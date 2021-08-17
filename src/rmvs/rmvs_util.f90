@@ -268,19 +268,14 @@ contains
       ! Arguments
       class(rmvs_pl),               intent(inout) :: self !! RMVS massive body object
       integer(I4B),   dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      class(rmvs_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
-      integer(I4B) :: i
 
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
+         call util_sort_rearrange(pl%nenc, ind, npl)
+         call util_sort_rearrange(pl%tpenc1P, ind, npl)
+         call util_sort_rearrange(pl%plind, ind, npl)
          call util_sort_rearrange_pl(pl,ind)
-         allocate(pl_sorted, source=self)
-         if (allocated(pl%nenc))    pl%nenc(1:npl) = pl_sorted%nenc(ind(1:npl))
-         if (allocated(pl%tpenc1P)) pl%tpenc1P(1:npl) = pl_sorted%tpenc1P(ind(1:npl))
-         if (allocated(pl%plind))   pl%plind(1:npl) = pl_sorted%plind(ind(1:npl))
-         deallocate(pl_sorted)
       end associate
 
       return
@@ -296,19 +291,15 @@ contains
       ! Arguments
       class(rmvs_tp),                intent(inout) :: self !! RMVS test particle object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      class(rmvs_tp), allocatable :: tp_sorted  !! Temporary holder for sorted body
 
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
+         call util_sort_rearrange(tp%lperi, ind, ntp)
+         call util_sort_rearrange(tp%plperP, ind, ntp)
+         call util_sort_rearrange(tp%plencP, ind, ntp)
+         call util_sort_rearrange(tp%xheliocentric, ind, ntp)
          call util_sort_rearrange_tp(tp,ind)
-         allocate(tp_sorted, source=self)
-         if (allocated(tp%lperi))         tp%lperi(1:ntp) = tp_sorted%lperi(ind(1:ntp))
-         if (allocated(tp%plperP))        tp%plperP(1:ntp) = tp_sorted%plperP(ind(1:ntp))
-         if (allocated(tp%plencP))        tp%plencP(1:ntp) = tp_sorted%plencP(ind(1:ntp))
-         if (allocated(tp%xheliocentric)) tp%xheliocentric(:,1:ntp) = tp_sorted%xheliocentric(:,ind(1:ntp))
-         deallocate(tp_sorted)
       end associate
 
       return

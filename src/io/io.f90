@@ -19,6 +19,7 @@ contains
       real(DP)                        :: Eorbit_error, Etotal_error, Ecoll_error
       real(DP)                        :: Mtot_now, Merror
       real(DP)                        :: Lmag_now, Lerror
+      character(len=STRMAX)           :: errmsg
       character(len=*), parameter     :: EGYFMT = '(ES23.16,10(",",ES23.16,:))' ! Format code for all simulation output
       character(len=*), parameter     :: EGYHEADER = '("t,Eorbit,Ecollisions,Lx,Ly,Lz,Mtot")'
       integer(I4B), parameter         :: EGYIU = 72
@@ -33,10 +34,10 @@ contains
                lfirst => param%lfirstenergy)
          if (param%energy_out /= "") then
             if (lfirst .and. (param%out_stat /= "OLD")) then
-               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write")
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
+               write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
             else
-               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append")
-               write(EGYIU,EGYHEADER)
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append", err = 667, iomsg = errmsg)
             end if
          end if
          call pl%h2b(cb)
@@ -60,8 +61,8 @@ contains
          end if
 
          if (param%energy_out /= "") then
-            write(EGYIU,EGYFMT) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
-            close(EGYIU)
+            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
+            close(EGYIU, err = 667, iomsg = errmsg)
          end if
          if (.not.lfirst .and. lterminal) then 
             Lmag_now = norm2(Ltot_now)
@@ -87,8 +88,12 @@ contains
          Lspin_last(:) = Lspin_now(:)
          Ltot_last(:) = Ltot_now(:)
       end associate
+
       return
 
+      667 continue
+      write(*,*) "Error writing energy and momentum tracking file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_conservation_report
 
 
@@ -105,27 +110,22 @@ contains
       character(len=*),          intent(in) :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
       integer(I4B), parameter  :: LUN = 7       !! Unit number of output file
-      integer(I4B)             :: ierr          !! Error code
-      character(STRMAX)        :: error_message !! Error message in UDIO procedure
+      character(STRMAX)        :: errmsg !! Error message in UDIO procedure
+      integer(I4B)             :: ierr
 
-      open(unit = LUN, file = param_file_name, status='replace', form = 'FORMATTED', iostat =ierr)
-      if (ierr /=0) then
-         write(*,*) 'Swiftest error.'
-         write(*,*) '   Could not open dump file: ',trim(adjustl(param_file_name))
-         call util_exit(FAILURE)
-      end if
-      
+      open(unit = LUN, file = param_file_name, status='replace', form = 'FORMATTED', err = 667, iomsg = errmsg)
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    due to compiler incompatabilities
       !write(LUN,'(DT)') param
-      call self%writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = error_message)
-      if (ierr /= 0) then
-         write(*,*) trim(adjustl(error_message))
-         call util_exit(FAILURE)
+      call self%writer(LUN, iotype = "none", v_list = [0], iostat = ierr, iomsg = errmsg)
+      if (ierr == 0) then
+         close(LUN, err = 667, iomsg = errmsg)
+         return
       end if
-      close(LUN)
 
-      return
+      667 continue
+      write(*,*) "Error opening parameter dump file " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_dump_param
 
 
@@ -145,6 +145,7 @@ contains
       integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
       integer(I4B)                   :: iu = LUN
       character(len=:), allocatable  :: dump_file_name
+      character(STRMAX)              :: errmsg 
 
       select type(self)
       class is(swiftest_cb)
@@ -154,16 +155,15 @@ contains
       class is (swiftest_tp)
          dump_file_name = trim(adjustl(param%intpfile)) 
       end select
-      open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', iostat = ierr)
-      if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   Unable to open binary dump file " // dump_file_name
-         call util_exit(FAILURE)
-      end if
+      open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', err = 667, iomsg = errmsg)
       call self%write_frame(iu, param)
-      close(LUN)
+      close(LUN, err = 667, iomsg = errmsg)
 
       return
+
+      667 continue
+      write(*,*) "Error dumping body data to file " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_dump_swiftest
 
 
@@ -368,11 +368,12 @@ contains
       character(STRMAX)              :: line                              !! Line of the input file
       character (len=:), allocatable :: line_trim,param_name, param_value !! Strings used to parse the param file
       character(*),parameter         :: linefmt = '(A)'                   !! Format code for simple text string
+      
 
       ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
       associate(param => self) 
          do
-            read(unit = unit, fmt = linefmt, iostat = iostat, end = 1) line
+            read(unit = unit, fmt = linefmt, end = 1, err = 667, iomsg = iomsg) line
             line_trim = trim(adjustl(line))
             ilength = len(line_trim)
             if ((ilength /= 0)) then 
@@ -385,13 +386,13 @@ contains
                param_value = io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
                case ("T0")
-                  read(param_value, *) param%t0
+                  read(param_value, *, err = 667, iomsg = iomsg) param%t0
                   t0_set = .true.
                case ("TSTOP")
-                  read(param_value, *) param%tstop
+                  read(param_value, *, err = 667, iomsg = iomsg) param%tstop
                   tstop_set = .true.
                case ("DT")
-                  read(param_value, *) param%dt
+                  read(param_value, *, err = 667, iomsg = iomsg) param%dt
                   dt_set = .true.
                case ("CB_IN")
                   param%incbfile = param_value
@@ -421,21 +422,21 @@ contains
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lclose = .true.
                case ("CHK_RMIN")
-                  read(param_value, *) param%rmin
+                  read(param_value, *, err = 667, iomsg = iomsg) param%rmin
                case ("CHK_RMAX")
-                  read(param_value, *) param%rmax
+                  read(param_value, *, err = 667, iomsg = iomsg) param%rmax
                case ("CHK_EJECT")
-                  read(param_value, *) param%rmaxu
+                  read(param_value, *, err = 667, iomsg = iomsg) param%rmaxu
                case ("CHK_QMIN")
-                  read(param_value, *) param%qmin
+                  read(param_value, *, err = 667, iomsg = iomsg) param%qmin
                case ("CHK_QMIN_COORD")
                   call io_toupper(param_value)
                   param%qmin_coord = param_value
                case ("CHK_QMIN_RANGE")
-                  read(param_value, *) param%qmin_alo
+                  read(param_value, *, err = 667, iomsg = iomsg) param%qmin_alo
                   ifirst = ilast + 1
                   param_value = io_get_token(line, ifirst, ilast, iostat)
-                  read(param_value, *) param%qmin_ahi
+                  read(param_value, *, err = 667, iomsg = iomsg) param%qmin_ahi
                case ("ENC_OUT")
                   param%enc_out = param_value
                case ("DISCARD_OUT")
@@ -452,11 +453,11 @@ contains
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T' ) param%lrhill_present = .true.
                case ("MU2KG")
-                  read(param_value, *) param%MU2KG
+                  read(param_value, *, err = 667, iomsg = iomsg) param%MU2KG
                case ("TU2S")
-                  read(param_value, *) param%TU2S
+                  read(param_value, *, err = 667, iomsg = iomsg) param%TU2S
                case ("DU2M")
-                  read(param_value, *) param%DU2M
+                  read(param_value, *, err = 667, iomsg = iomsg) param%DU2M
                case ("ENERGY")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lenergy = .true.
@@ -476,44 +477,44 @@ contains
                   call io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstenergy = .false. 
                case("EORBIT_ORIG")
-                  read(param_value, *) param%Eorbit_orig 
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Eorbit_orig 
                case("MTOT_ORIG")
-                  read(param_value, *) param%Mtot_orig 
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Mtot_orig 
                case("LTOT_ORIG")
-                  read(param_value, *) param%Ltot_orig(1)
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(1)
                   do i = 2, NDIM
                      ifirst = ilast + 1
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
-                     read(param_value, *) param%Ltot_orig(i)
+                     read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(i)
                   end do
                      param%Lmag_orig = norm2(param%Ltot_orig(:))
                case("LORBIT_ORIG")
-                  read(param_value, *) param%Lorbit_orig(1)
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Lorbit_orig(1)
                   do i = 2, NDIM
                      ifirst = ilast + 1
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
-                     read(param_value, *) param%Lorbit_orig(i)
+                     read(param_value, *, err = 667, iomsg = iomsg) param%Lorbit_orig(i)
                   end do
                case("LSPIN_ORIG")
-                  read(param_value, *) param%Lspin_orig(1)
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Lspin_orig(1)
                   do i = 2, NDIM
                      ifirst = ilast + 1
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
-                     read(param_value, *) param%Lspin_orig(i)
+                     read(param_value, *, err = 667, iomsg = iomsg) param%Lspin_orig(i)
                   end do
                case("LESCAPE")
-                  read(param_value, *) param%Lescape(1)
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Lescape(1)
                   do i = 2, NDIM
                      ifirst = ilast + 1
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
-                     read(param_value, *) param%Lescape(i)
+                     read(param_value, *, err = 667, iomsg = iomsg) param%Lescape(i)
                   end do
                case("MESCAPE")
-                  read(param_value, *) param%Mescape 
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Mescape 
                case("ECOLLISIONS")
-                  read(param_value, *) param%Ecollisions
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Ecollisions
                case("EUNTRACKED")
-                  read(param_value, *) param%Euntracked
+                  read(param_value, *, err = 667, iomsg = iomsg) param%Euntracked
                case ("NPLMAX", "NTPMAX", "GMTINY", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(iomsg,*) "Unknown parameter -> ",param_name
@@ -674,6 +675,7 @@ contains
          iostat = 0
       end associate
 
+      667 continue
       return 
    end subroutine io_param_reader
 
@@ -708,66 +710,66 @@ contains
       integer(I4B) :: i
 
       associate(param => self)
-         write(param_name, Afmt) "T0"; write(param_value,Rfmt) param%t0; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TSTOP"; write(param_value, Rfmt) param%tstop; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "DT"; write(param_value, Rfmt) param%dt; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "PL_IN"; write(param_value, Afmt) trim(adjustl(param%inplfile)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TP_in"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "IN_TYPE"; write(param_value, Afmt) trim(adjustl(param%in_type)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "T0"; write(param_value,Rfmt) param%t0; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TSTOP"; write(param_value, Rfmt) param%tstop; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "DT"; write(param_value, Rfmt) param%dt; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "PL_IN"; write(param_value, Afmt) trim(adjustl(param%inplfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TP_in"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "IN_TYPE"; write(param_value, Afmt) trim(adjustl(param%in_type)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%istep_out > 0) then
-            write(param_name, Afmt) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "BIN_OUT"; write(param_value, Afmt) trim(adjustl(param%outfile)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "OUT_TYPE"; write(param_value, Afmt) trim(adjustl(param%out_type)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "OUT_FORM"; write(param_value, Afmt) trim(adjustl(param%out_form)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "OUT_STAT"; write(param_value, Afmt) "APPEND"; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "BIN_OUT"; write(param_value, Afmt) trim(adjustl(param%outfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "OUT_TYPE"; write(param_value, Afmt) trim(adjustl(param%out_type)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "OUT_FORM"; write(param_value, Afmt) trim(adjustl(param%out_form)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "OUT_STAT"; write(param_value, Afmt) "APPEND"; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
-         write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%enc_out)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%enc_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%istep_dump > 0) then
-            write(param_name, Afmt) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
-         write(param_name, Afmt) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_EJECT"; write(param_value, Rfmt) param%rmaxu; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_QMIN"; write(param_value, Rfmt) param%qmin; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_EJECT"; write(param_value, Rfmt) param%rmaxu; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_QMIN"; write(param_value, Rfmt) param%qmin; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%qmin >= 0.0_DP) then
-            write(param_name, Afmt) "CHK_QMIN_COORD"; write(param_value, Afmt) trim(adjustl(param%qmin_coord)); write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "CHK_QMIN_COORD"; write(param_value, Afmt) trim(adjustl(param%qmin_coord)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             allocate(param_array(2))
             write(param_array(1)%value, Rfmt) param%qmin_alo
             write(param_array(2)%value, Rfmt) param%qmin_ahi
-            write(param_name, Afmt) "CHK_QMIN_RANGE"; write(unit, Afmt) adjustl(param_name), adjustl(param_array(1)%value), adjustl(param_array(2)%value)
+            write(param_name, Afmt) "CHK_QMIN_RANGE"; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_array(1)%value), adjustl(param_array(2)%value)
          end if
-         write(param_name, Afmt) "MU2KG"; write(param_value, Rfmt) param%MU2KG; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TU2S"; write(param_value, Rfmt) param%TU2S ; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "RHILL_PRESENT"; write(param_value, Lfmt) param%lrhill_present; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "MU2KG"; write(param_value, Rfmt) param%MU2KG; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TU2S"; write(param_value, Rfmt) param%TU2S ; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "RHILL_PRESENT"; write(param_value, Lfmt) param%lrhill_present; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
 
          if (param%lenergy) then
-            write(param_name, Afmt) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "EORBIT_ORIG"; write(param_value, Rfmt) param%Eorbit_orig; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "MTOT_ORIG"; write(param_value, Rfmt) param%Mtot_orig; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "EORBIT_ORIG"; write(param_value, Rfmt) param%Eorbit_orig; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "MTOT_ORIG"; write(param_value, Rfmt) param%Mtot_orig; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(unit, '("LTOT_ORIG  ",3(1X,ES25.17))') param%Ltot_orig(:)
             write(unit, '("LORBIT_ORIG",3(1X,ES25.17))') param%Lorbit_orig(:)
             write(unit, '("LSPIN_ORIG ",3(1X,ES25.17))') param%Lspin_orig(:)
             write(unit, '("LESCAPE ",3(1X,ES25.17))') param%Lescape(:)
    
-            write(param_name, Afmt) "MESCAPE"; write(param_value, Rfmt) param%Mescape; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "MESCAPE"; write(param_value, Rfmt) param%Mescape; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
-         write(param_name, Afmt) "FIRSTKICK"; write(param_value, Lfmt) param%lfirstkick; write(unit, Afmt) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "FIRSTKICK"; write(param_value, Lfmt) param%lfirstkick; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
    
-
-
          iostat = 0
          iomsg = "UDIO not implemented"
       end associate
+
+      667 continue
 
       return
    end subroutine io_param_writer
@@ -787,11 +789,12 @@ contains
       ! Internals
       integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
       integer(I4B)                  :: iu = LUN
-      integer(I4B)                  :: i, ierr, nbody
+      integer(I4B)                  :: i, nbody
       logical                       :: is_ascii, is_pl
       character(len=:), allocatable :: infile
       real(DP)                      :: t
       real(QP)                      :: val
+      character(STRMAX)             :: errmsg
 
       ! Select the appropriate polymorphic class (test particle or massive body)
       select type(self)
@@ -803,39 +806,38 @@ contains
          is_pl = .false.
       end select
 
-      ierr = 0
       is_ascii = (param%in_type == 'ASCII') 
       select case(param%in_type)
       case(ASCII_TYPE)
-         open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', iostat = ierr)
-         read(iu, *, iostat = ierr) nbody
+         open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
+         read(iu, *, err = 667, iomsg = errmsg) nbody
          call self%setup(nbody, param)
          if (nbody > 0) then
             do i = 1, nbody
                select type(self)
                class is (swiftest_pl)
                   if (param%lrhill_present) then
-                     read(iu, *, iostat=ierr, err=100) self%id(i), val, self%rhill(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val, self%rhill(i)
                   else
-                     read(iu, *, iostat=ierr, err=100) self%id(i), val
+                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val
                   end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
-                  if (param%lclose) read(iu, *, iostat=ierr, err=100) self%radius(i)
+                  if (param%lclose) read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
                class is (swiftest_tp)
-                  read(iu, *, iostat=ierr, err=100) self%id(i)
+                  read(iu, *, err = 667, iomsg = errmsg) self%id(i)
                end select
-               read(iu, *, iostat=ierr, err=100) self%xh(1, i), self%xh(2, i), self%xh(3, i)
-               read(iu, *, iostat=ierr, err=100) self%vh(1, i), self%vh(2, i), self%vh(3, i)
+               read(iu, *, err = 667, iomsg = errmsg) self%xh(1, i), self%xh(2, i), self%xh(3, i)
+               read(iu, *, err = 667, iomsg = errmsg) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                select type (self)
                class is (swiftest_pl)
                   if (param%lrotation) then
-                     read(iu, *, iostat=ierr, err=100) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
-                     read(iu, *, iostat=ierr, err=100) self%rot(1, i), self%rot(2, i), self%rot(3, i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
                   end if
                   if (param%ltides) then
-                     read(iu, *, iostat=ierr, err=100) self%k2(i)
-                     read(iu, *, iostat=ierr, err=100) self%Q(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
                   end if
                end select
                self%status(i) = ACTIVE
@@ -843,25 +845,24 @@ contains
             end do
          end if
       case (REAL4_TYPE, REAL8_TYPE)  !, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
-         open(unit=iu, file=infile, status='old', form='UNFORMATTED', iostat=ierr)
-         read(iu, iostat=ierr, err=100) nbody
+         open(unit=iu, file=infile, status='old', form='UNFORMATTED', err = 667, iomsg = errmsg)
+         read(iu, err = 667, iomsg = errmsg) nbody
          call self%setup(nbody, param)
          if (nbody > 0) then
-            call self%read_frame(iu, param, XV, ierr)
+            call self%read_frame(iu, param, XV)
             self%status(:) = ACTIVE
             self%lmask(:) = .true.
          end if
       case default
-         write(*,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'
-         ierr = -1
+         write(errmsg,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'
+         goto 667
       end select
-      close(iu)
+      close(iu, err = 667, iomsg = errmsg)
 
-      100 if (ierr /= 0 ) then
-         write(*,*) 'Error reading in initial conditions from ',trim(adjustl(infile))
-         call util_exit(FAILURE)
-      end if
+      return
 
+      667 continue
+      write(*,*) 'Error reading in initial conditions file: ',trim(adjustl(errmsg))
       return
    end subroutine io_read_body_in
 
@@ -880,38 +881,33 @@ contains
       ! Internals
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
       integer(I4B)            :: iu = LUN
-      integer(I4B)            :: ierr
-      logical                 :: is_ascii 
-      real(DP)                :: t
-      real(QP)                :: val
+      character(len=STRMAX)   :: errmsg
 
-      ierr = 0
-      is_ascii = (param%in_type == 'ASCII') 
-      if (is_ascii) then
-         open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', iostat = ierr)
-         read(iu, *, iostat = ierr) self%id
-         read(iu, *, iostat = ierr) val 
-         self%Gmass = real(val, kind=DP)
-         self%mass = real(val / param%GU, kind=DP)
-         read(iu, *, iostat = ierr) self%radius
-         read(iu, *, iostat = ierr) self%j2rp2
-         read(iu, *, iostat = ierr) self%j4rp4
+      if (param%in_type == 'ASCII') then
+         open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
+         read(iu, *, err = 667, iomsg = errmsg) self%id
+         read(iu, *, err = 667, iomsg = errmsg) self%Gmass
+         self%mass = real(self%Gmass / param%GU, kind=DP)
+         read(iu, *, err = 667, iomsg = errmsg) self%radius
+         read(iu, *, err = 667, iomsg = errmsg) self%j2rp2
+         read(iu, *, err = 667, iomsg = errmsg) self%j4rp4
          if (param%lrotation) then
-            read(iu, *, iostat = ierr) self%Ip(1), self%Ip(2), self%Ip(3)
-            read(iu, *, iostat = ierr) self%rot(1), self%rot(2), self%rot(3)
+            read(iu, *, err = 667, iomsg = errmsg) self%Ip(1), self%Ip(2), self%Ip(3)
+            read(iu, *, err = 667, iomsg = errmsg) self%rot(1), self%rot(2), self%rot(3)
          end if
       else
-         open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', iostat = ierr)
-         call self%read_frame(iu, param, XV, ierr)
+         open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         call self%read_frame(iu, param, XV)
       end if
-      close(iu)
-      if (ierr /=  0) then
-         write(*,*) 'Error opening massive body initial conditions file ',trim(adjustl(param%incbfile))
-         call util_exit(FAILURE)
-      end if
+      close(iu, err = 667, iomsg = errmsg)
+
       if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
 
       return
+
+      667 continue
+      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_read_cb_in
 
 
@@ -966,7 +962,7 @@ contains
    end function io_read_encounter
 
 
-   module subroutine io_read_frame_body(self, iu, param, form, ierr)
+   module subroutine io_read_frame_body(self, iu, param, form)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of either test particle or massive body data from a binary output file
@@ -979,11 +975,12 @@ contains
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       character(*),               intent(in)    :: form   !! Input format code ("XV" or "EL")
-      integer(I4B),               intent(out)   :: ierr   !! Error code
+      ! Internals
+      character(len=STRMAX)   :: errmsg
 
       associate(n => self%nbody)
-         read(iu, iostat=ierr, err=100) self%id(:)
-         !read(iu, iostat=ierr, err=100) self%name(1:n)
+         read(iu, err = 667, iomsg = errmsg) self%id(:)
+         !read(iu, err = 667, iomsg = errmsg) self%name(1:n)
          select case (form)
          case (EL) 
             if (.not.allocated(self%a))     allocate(self%a(n))
@@ -992,51 +989,50 @@ contains
             if (.not.allocated(self%capom)) allocate(self%capom(n))
             if (.not.allocated(self%omega)) allocate(self%omega(n))
             if (.not.allocated(self%capm))  allocate(self%capm(n))
-            read(iu, iostat=ierr, err=100) self%a(:)
-            read(iu, iostat=ierr, err=100) self%e(:)
-            read(iu, iostat=ierr, err=100) self%inc(:)
-            read(iu, iostat=ierr, err=100) self%capom(:)
-            read(iu, iostat=ierr, err=100) self%omega(:)
-            read(iu, iostat=ierr, err=100) self%capm(:)
+            read(iu, err = 667, iomsg = errmsg)  self%a(:)
+            read(iu, err = 667, iomsg = errmsg)  self%e(:)
+            read(iu, err = 667, iomsg = errmsg)  self%inc(:)
+            read(iu, err = 667, iomsg = errmsg) self%capom(:)
+            read(iu, err = 667, iomsg = errmsg) self%omega(:)
+            read(iu, err = 667, iomsg = errmsg) self%capm(:)
          case (XV)
-            read(iu, iostat=ierr, err=100) self%xh(1, :)
-            read(iu, iostat=ierr, err=100) self%xh(2, :)
-            read(iu, iostat=ierr, err=100) self%xh(3, :)
-            read(iu, iostat=ierr, err=100) self%vh(1, :)
-            read(iu, iostat=ierr, err=100) self%vh(2, :)
-            read(iu, iostat=ierr, err=100) self%vh(3, :)
+            read(iu, err = 667, iomsg = errmsg) self%xh(1, :)
+            read(iu, err = 667, iomsg = errmsg) self%xh(2, :)
+            read(iu, err = 667, iomsg = errmsg) self%xh(3, :)
+            read(iu, err = 667, iomsg = errmsg) self%vh(1, :)
+            read(iu, err = 667, iomsg = errmsg) self%vh(2, :)
+            read(iu, err = 667, iomsg = errmsg) self%vh(3, :)
          end select
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            read(iu, iostat=ierr, err=100) pl%Gmass(:)
+            read(iu, err = 667, iomsg = errmsg) pl%Gmass(:)
             pl%mass(:) = pl%Gmass(:) / param%GU 
-            if (param%lrhill_present) read(iu, iostat=ierr, err=100) pl%rhill(:)
-            if (param%lclose) read(iu, iostat=ierr, err=100) pl%radius(:)
+            if (param%lrhill_present) read(iu, err = 667, iomsg = errmsg) pl%rhill(:)
+            if (param%lclose) read(iu, err = 667, iomsg = errmsg) pl%radius(:)
             if (param%lrotation) then
-               read(iu, iostat=ierr, err=100) pl%rot(1, :)
-               read(iu, iostat=ierr, err=100) pl%rot(2, :)
-               read(iu, iostat=ierr, err=100) pl%rot(3, :)
-               read(iu, iostat=ierr, err=100) pl%Ip(1, :)
-               read(iu, iostat=ierr, err=100) pl%Ip(2, :)
-               read(iu, iostat=ierr, err=100) pl%Ip(3, :)
+               read(iu, err = 667, iomsg = errmsg) pl%rot(1, :)
+               read(iu, err = 667, iomsg = errmsg) pl%rot(2, :)
+               read(iu, err = 667, iomsg = errmsg) pl%rot(3, :)
+               read(iu, err = 667, iomsg = errmsg) pl%Ip(1, :)
+               read(iu, err = 667, iomsg = errmsg) pl%Ip(2, :)
+               read(iu, err = 667, iomsg = errmsg) pl%Ip(3, :)
             end if
             if (param%ltides) then
-               read(iu, iostat=ierr, err=100) pl%k2(1:n)
-               read(iu, iostat=ierr, err=100) pl%Q(1:n)
+               read(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
+               read(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
             end if
          end select
       end associate
 
-      100 if (ierr /=0) then
-         write(*,*) 'Error reading Swiftest body data'
-         call util_exit(FAILURE)
-      end if
-
       return
+
+      667 continue
+      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_read_frame_body
 
 
-   module subroutine io_read_frame_cb(self, iu, param, form, ierr)
+   module subroutine io_read_frame_cb(self, iu, param, form)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of central body data to the binary output file
@@ -1049,33 +1045,33 @@ contains
       integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
       character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
-      integer(I4B),               intent(out)   :: ierr     !! Error cod
+      ! Internals
+      character(len=STRMAX)   :: errmsg
 
-      read(iu, iostat=ierr, err=100) self%id
-      !read(iu, iostat=ierr, err=100) self%name
-      read(iu, iostat=ierr, err=100) self%Gmass
+      read(iu, err = 667, iomsg = errmsg) self%id
+      !read(iu, err = 667, iomsg = errmsg) self%name
+      read(iu, err = 667, iomsg = errmsg) self%Gmass
       self%mass = self%Gmass / param%GU
-      read(iu, iostat=ierr, err=100) self%radius
-      read(iu, iostat=ierr, err=100) self%j2rp2 
-      read(iu, iostat=ierr, err=100) self%j4rp4 
+      read(iu, err = 667, iomsg = errmsg) self%radius
+      read(iu, err = 667, iomsg = errmsg) self%j2rp2 
+      read(iu, err = 667, iomsg = errmsg) self%j4rp4 
       if (param%lrotation) then
-         read(iu, iostat=ierr, err=100) self%Ip(:)
-         read(iu, iostat=ierr, err=100) self%rot(:)
+         read(iu, err = 667, iomsg = errmsg) self%Ip(:)
+         read(iu, err = 667, iomsg = errmsg) self%rot(:)
       end if
       if (param%ltides) then
-         read(iu, iostat=ierr, err=100) self%k2
-         read(iu, iostat=ierr, err=100) self%Q
+         read(iu, err = 667, iomsg = errmsg) self%k2
+         read(iu, err = 667, iomsg = errmsg) self%Q
       end if
-      100 if (ierr /=0) then
-         write(*,*) 'Error reading central body data'
-         call util_exit(FAILURE)
-      end if
-
       return
+
+      667 continue
+      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_read_frame_cb
 
 
-   module subroutine io_read_frame_system(self, iu, param, form, ierr)
+   module subroutine io_read_frame_system(self, iu, param, form)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
@@ -1085,19 +1081,15 @@ contains
       integer(I4B),                 intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       character(*),                 intent(in)    :: form   !! Input format code ("XV" or "EL")
-      integer(I4B),                 intent(out)   :: ierr   !! Error code
       ! Internals
-      logical, save             :: lfirst = .true.
+      logical, save         :: lfirst = .true.
+      character(len=STRMAX) :: errmsg
+      integer(I4B)          :: ierr
 
       iu = BINUNIT
       if (lfirst) then
-         open(unit = iu, file = param%outfile, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
+         open(unit = iu, file = param%outfile, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg) 
          lfirst = .false.
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error:"
-            write(*, *) "   Binary output file already exists or cannot be accessed"
-            return
-         end if
       end if
       ierr = io_read_hdr(iu, param%t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
       if (ierr /= 0) then
@@ -1105,13 +1097,15 @@ contains
          write(*, *) "   Binary output file already exists or cannot be accessed"
          return
       end if
-      call self%cb%read_frame(iu, param, form, ierr)
-      if (ierr /= 0) return
-      call self%pl%read_frame(iu, param, form, ierr)
-      if (ierr /= 0) return
-      call self%tp%read_frame(iu, param, form, ierr)
+      call self%cb%read_frame(iu, param, form)
+      call self%pl%read_frame(iu, param, form)
+      call self%tp%read_frame(iu, param, form)
 
       return
+
+      667 continue
+      write(*,*) "Error reading system frame: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_read_frame_system
 
 
@@ -1132,22 +1126,28 @@ contains
       ! Result
       integer(I4B)      :: ierr
       ! Internals
-      real(SP)             :: ttmp
+      real(SP)              :: ttmp
+      character(len=STRMAX) :: errmsg
 
       select case (out_type)
       case (REAL4_TYPE, SWIFTER_REAL4_TYPE)
-         read(iu, iostat = ierr) ttmp, npl, ntp, out_form
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg) ttmp, npl, ntp, out_form
          if (ierr /= 0) return
          t = ttmp
       case (REAL8_TYPE, SWIFTER_REAL8_TYPE)
-         read(iu, iostat = ierr) t
-         read(iu, iostat = ierr) npl
-         read(iu, iostat = ierr) ntp
-         read(iu, iostat = ierr) out_form
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg) t
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg) npl
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg) ntp
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg) out_form
       case default
-         write(*,*) trim(adjustl(out_type)) // ' is an unrecognized file type'
+         write(errmsg,*) trim(adjustl(out_type)) // ' is an unrecognized file type'
          ierr = -1
       end select
+
+      return
+
+      667 continue
+      write(*,*) "Error reading header: " // trim(adjustl(errmsg))
 
       return
    end function io_read_hdr
@@ -1166,31 +1166,24 @@ contains
       ! Internals
       integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
       integer(I4B)            :: ierr = 0                !! Input error code
-      character(STRMAX)       :: error_message           !! Error message in UDIO procedure
+      character(STRMAX)       :: errmsg           !! Error message in UDIO procedure
 
       ! Read in name of parameter file
       write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
       write(*, *) ' '
       100 format(A)
-      open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr)
-      if (ierr /= 0) then
-         write(*,*) 'Swiftest error: ', ierr
-         write(*,*) '   Unable to open file ',trim(adjustl(param_file_name))
-         call util_exit(FAILURE)
-      end if
+      open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr, err = 667, iomsg = errmsg)
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
-      !read(LUN,'(DT)', iostat= ierr, iomsg = error_message) param
-      call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = error_message)
-      if (ierr /= 0) then
-         write(*,*) 'Swiftest error reading ', trim(adjustl(param_file_name))
-         write(*,*) ierr,trim(adjustl(error_message))
-         call util_exit(FAILURE)
-      end if
+      !read(LUN,'(DT)', iostat= ierr, iomsg = errmsg) param
+      call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = errmsg)
+      if (ierr == 0) return
 
-      return 
+      667 continue
+      write(*,*) "Error reading parameter file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_read_param_in
 
 
@@ -1232,7 +1225,7 @@ contains
       class(swiftest_parameters),   intent(in)    :: param   !! Current run configuration parameters 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
-      integer(I4B)          :: i, ierr
+      integer(I4B)          :: i
       logical, save :: lfirst = .true. 
       real(DP), dimension(:,:), allocatable :: vh
       character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
@@ -1241,6 +1234,7 @@ contains
       character(*), parameter :: NPLFMT    = '(I8)'
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
       class(swiftest_body), allocatable :: pltemp
+      character(len=STRMAX)   :: errmsg
 
       if (param%discard_out == "") return
 
@@ -1248,9 +1242,9 @@ contains
          if (nsp == 0) return
          select case(param%out_stat)
          case('APPEND')
-            open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
          case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', iostat = ierr)
+            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', err = 667, iomsg = errmsg)
          case default
             write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
@@ -1260,9 +1254,9 @@ contains
 
          write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
          do i = 1, nsp
-            write(LUN, NAMEFMT) SUB, tp_discards%id(i), tp_discards%status(i)
-            write(LUN, VECFMT) tp_discards%xh(1, i), tp_discards%xh(2, i), tp_discards%xh(3, i)
-            write(LUN, VECFMT) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
+            write(LUN, NAMEFMT, err = 667, iomsg = errmsg) SUB, tp_discards%id(i), tp_discards%status(i)
+            write(LUN, VECFMT, err = 667, iomsg = errmsg) tp_discards%xh(1, i), tp_discards%xh(2, i), tp_discards%xh(3, i)
+            write(LUN, VECFMT, err = 667, iomsg = errmsg) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
          end do
          if (param%lbig_discard) then
                if (param%lgr) then
@@ -1276,9 +1270,9 @@ contains
 
                write(LUN, NPLFMT) npl
                do i = 1, npl
-                  write(LUN, PLNAMEFMT) pl%id(i), pl%Gmass(i), pl%radius(i)
-                  write(LUN, VECFMT) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
-                  write(LUN, VECFMT) vh(1, i), vh(2, i), vh(3, i)
+                  write(LUN, PLNAMEFMT, err = 667, iomsg = errmsg) pl%id(i), pl%Gmass(i), pl%radius(i)
+                  write(LUN, VECFMT, err = 667, iomsg = errmsg) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
+                  write(LUN, VECFMT, err = 667, iomsg = errmsg) vh(1, i), vh(2, i), vh(3, i)
                end do
                deallocate(vh)
          end if
@@ -1286,6 +1280,10 @@ contains
       end associate
 
       return
+
+      667 continue
+      write(*,*) "Error writing discard file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_write_discard
 
 
@@ -1300,17 +1298,17 @@ contains
       logical , save          :: lfirst = .true.
       integer(I4B), parameter :: LUN = 30
       integer(I4B)            :: k, ierr
+      character(len=STRMAX)   :: errmsg
 
       if (param%enc_out == "" .or. self%nenc == 0) return
 
-      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
-      if ((ierr /= 0) .and. lfirst) then
-         open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', iostat = ierr)
-      end if
+      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr, iomsg = errmsg)
       if (ierr /= 0) then
-         write(*, *) "Swiftest Error:"
-         write(*, *) "   Unable to open binary encounter file"
-         call util_exit(FAILURE)
+         if (lfirst) then
+            open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         else
+            goto 667
+         end if
       end if
       lfirst = .false.
 
@@ -1337,13 +1335,12 @@ contains
          end select
       end associate
 
-      close(unit = LUN, iostat = ierr)
-      if (ierr /= 0) then
-         write(*, *) "Swiftest Error:"
-         write(*, *) "   Unable to close binary encounter file"
-         call util_exit(FAILURE)
-      end if
+      close(unit = LUN, err = 667, iomsg = errmsg)
+
       return
+      667 continue
+      write(*,*) "Error writing encounter file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_write_encounter
 
 
@@ -1360,48 +1357,53 @@ contains
       class(swiftest_body),       intent(in)    :: self   !! Swiftest particle object
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      ! Internals
+      character(len=STRMAX)   :: errmsg
 
       associate(n => self%nbody)
          if (n == 0) return
-         write(iu) self%id(1:n)
-         !write(iu) self%name(1:n)
+         write(iu, err = 667, iomsg = errmsg) self%id(1:n)
+         !write(iu, err = 667, iomsg = errmsg) self%name(1:n)
          select case (param%out_form)
          case (EL) 
-            write(iu) self%a(1:n)
-            write(iu) self%e(1:n)
-            write(iu) self%inc(1:n)
-            write(iu) self%capom(1:n)
-            write(iu) self%omega(1:n)
-            write(iu) self%capm(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%a(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%e(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%inc(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%capom(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%omega(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%capm(1:n)
          case (XV)
-            write(iu) self%xh(1, 1:n)
-            write(iu) self%xh(2, 1:n)
-            write(iu) self%xh(3, 1:n)
-            write(iu) self%vh(1, 1:n)
-            write(iu) self%vh(2, 1:n)
-            write(iu) self%vh(3, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%xh(1, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%xh(2, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%xh(3, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%vh(1, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%vh(2, 1:n)
+            write(iu, err = 667, iomsg = errmsg) self%vh(3, 1:n)
          end select
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            write(iu) pl%Gmass(1:n)
-            if (param%lrhill_present) write(iu) pl%rhill(1:n)
-            if (param%lclose) write(iu) pl%radius(1:n)
+            write(iu, err = 667, iomsg = errmsg) pl%Gmass(1:n)
+            if (param%lrhill_present) write(iu, err = 667, iomsg = errmsg) pl%rhill(1:n)
+            if (param%lclose) write(iu, err = 667, iomsg = errmsg) pl%radius(1:n)
             if (param%lrotation) then
-               write(iu) pl%Ip(1, 1:n)
-               write(iu) pl%Ip(2, 1:n)
-               write(iu) pl%Ip(3, 1:n)
-               write(iu) pl%rot(1, 1:n)
-               write(iu) pl%rot(2, 1:n)
-               write(iu) pl%rot(3, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%Ip(1, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%Ip(2, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%Ip(3, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%rot(1, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%rot(2, 1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%rot(3, 1:n)
             end if
             if (param%ltides) then
-               write(iu) pl%k2(1:n)
-               write(iu) pl%Q(1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
+               write(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
             end if
          end select
       end associate
 
       return
+      667 continue
+      write(*,*) "Error writing body frame: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_write_frame_body
 
 
@@ -1417,29 +1419,34 @@ contains
       class(swiftest_cb),         intent(in)    :: self   !! Swiftest central body object 
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      ! Internals
+      character(len=STRMAX)   :: errmsg
 
       associate(cb => self)
-         !write(iu) cb%name
-         write(iu) cb%id
-         write(iu) cb%Gmass
-         write(iu) cb%radius
-         write(iu) cb%j2rp2 
-         write(iu) cb%j4rp4 
+         !write(iu, err = 667, iomsg = errmsg) cb%name
+         write(iu, err = 667, iomsg = errmsg) cb%id
+         write(iu, err = 667, iomsg = errmsg) cb%Gmass
+         write(iu, err = 667, iomsg = errmsg) cb%radius
+         write(iu, err = 667, iomsg = errmsg) cb%j2rp2 
+         write(iu, err = 667, iomsg = errmsg) cb%j4rp4 
          if (param%lrotation) then
-            write(iu) cb%Ip(1)
-            write(iu) cb%Ip(2)
-            write(iu) cb%Ip(3)
-            write(iu) cb%rot(1)
-            write(iu) cb%rot(2)
-            write(iu) cb%rot(3)
+            write(iu, err = 667, iomsg = errmsg) cb%Ip(1)
+            write(iu, err = 667, iomsg = errmsg) cb%Ip(2)
+            write(iu, err = 667, iomsg = errmsg) cb%Ip(3)
+            write(iu, err = 667, iomsg = errmsg) cb%rot(1)
+            write(iu, err = 667, iomsg = errmsg) cb%rot(2)
+            write(iu, err = 667, iomsg = errmsg) cb%rot(3)
          end if
          if (param%ltides) then
-            write(iu) cb%k2
-            write(iu) cb%Q
+            write(iu, err = 667, iomsg = errmsg) cb%k2
+            write(iu, err = 667, iomsg = errmsg) cb%Q
          end if
       end associate
 
       return
+      667 continue
+      write(*,*) "Error writing central body frame: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_write_frame_cb
 
 
@@ -1460,19 +1467,16 @@ contains
       real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
       real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies  
       ! Internals
-      integer(I4B) :: ierr
+      character(len=STRMAX)   :: errmsg
 
-      write(iu, iostat = ierr) t
-      write(iu, iostat = ierr) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
-      write(iu, iostat = ierr) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
-
-      if (ierr /= 0) then
-         write(*, *) "Swiftest Error:"
-         write(*, *) "   Unable to write binary file record for encounter"
-         call util_exit(FAILURE)
-      end if
+      write(iu, err = 667, iomsg = errmsg) t
+      write(iu, err = 667, iomsg = errmsg) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
+      write(iu, err = 667, iomsg = errmsg) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
 
       return
+      667 continue
+      write(*,*) "Error writing encounter file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine
 
 
@@ -1491,11 +1495,10 @@ contains
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
-      integer(I4B)                     :: ierr            !! I/O error code
-
       class(swiftest_cb), allocatable  :: cb         !! Temporary local version of pl structure used for non-destructive conversions
       class(swiftest_pl), allocatable  :: pl         !! Temporary local version of pl structure used for non-destructive conversions
       class(swiftest_tp), allocatable  :: tp          !! Temporary local version of pl structure used for non-destructive conversions
+      character(len=STRMAX)            :: errmsg
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
@@ -1505,27 +1508,16 @@ contains
       if (lfirst) then
          select case(param%out_stat)
          case('APPEND')
-            open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr)
+            open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
          case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', iostat = ierr)
+            open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
          case default
             write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
          end select
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error: io_write_frame_system - first", ierr
-            write(*, *) "   Binary output file " // trim(adjustl(param%outfile)) // " already exists or cannot be accessed"
-            write(*, *) "   OUT_STAT: " // trim(adjustl(param%out_stat))
-            call util_exit(FAILURE)
-         end if
          lfirst = .false.
       else
-         open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', iostat = ierr)
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error: io_write_frame_system"
-            write(*, *) "   Unable to open binary output file for APPEND"
-            call util_exit(FAILURE)
-         end if
+         open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
       end if
       call io_write_hdr(iu, param%t, pl%nbody, tp%nbody, param%out_form, param%out_type)
 
@@ -1546,9 +1538,12 @@ contains
 
       deallocate(cb, pl, tp)
 
-      close(iu)
+      close(iu, err = 667, iomsg = errmsg)
 
       return
+      667 continue
+      write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_write_frame_system
 
 
@@ -1568,29 +1563,23 @@ contains
       character(*), intent(in) :: out_form !! Output format type ("EL" or  "XV")
       character(*), intent(in) :: out_type !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
       ! Internals
-      integer(I4B)               :: ierr !! Error code
+      character(len=STRMAX) :: errmsg
    
       select case (out_type)
       case (REAL4_TYPE,SWIFTER_REAL4_TYPE)
-         write(iu, iostat = ierr) real(t, kind=SP)
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error:"
-            write(*, *) "   Unable to write binary file header"
-            call util_exit(FAILURE)
-         end if
+         write(iu, err = 667, iomsg = errmsg) real(t, kind=SP)
       case (REAL8_TYPE,SWIFTER_REAL8_TYPE)
-         write(iu, iostat = ierr) t
-         if (ierr /= 0) then
-            write(*, *) "Swiftest error:"
-            write(*, *) "   Unable to write binary file header"
-            call util_exit(FAILURE)
-         end if
+         write(iu, err = 667, iomsg = errmsg) t
       end select
-      write(iu, iostat = ierr) npl
-      write(iu, iostat = ierr) ntp
-      write(iu, iostat = ierr) out_form
+      write(iu, err = 667, iomsg = errmsg) npl
+      write(iu, err = 667, iomsg = errmsg) ntp
+      write(iu, err = 667, iomsg = errmsg) out_form
    
       return
+
+      667 continue
+      write(*,*) "Error writing header: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine io_write_hdr
 
 end submodule s_io

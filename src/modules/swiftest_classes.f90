@@ -226,6 +226,7 @@ module swiftest_classes
       procedure :: append       => util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
+      procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert position vectors of massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
@@ -317,6 +318,8 @@ module swiftest_classes
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
+      integer(I4B), dimension(:),   allocatable :: id1    !! id of the first body in the encounter
+      integer(I4B), dimension(:),   allocatable :: id2    !! id of the second body in the encounter
       real(DP),     dimension(:,:), allocatable :: x1     !! the position of body 1 in the encounter
       real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
       real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
@@ -324,6 +327,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
    contains
       procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: append => util_append_encounter !! Appends elements from one structure to another
       procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
       procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
@@ -364,13 +368,12 @@ module swiftest_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine abstract_kick_body
 
-      subroutine abstract_read_frame(self, iu, param, form, ierr)
+      subroutine abstract_read_frame(self, iu, param, form)
          import DP, I4B, swiftest_base, swiftest_parameters
          class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
          character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr  !! Error code
       end subroutine abstract_read_frame
 
       subroutine abstract_set_mu(self, cb) 
@@ -620,31 +623,28 @@ module swiftest_classes
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_read_param_in
 
-      module subroutine io_read_frame_body(self, iu, param, form, ierr)
+      module subroutine io_read_frame_body(self, iu, param, form)
          implicit none
          class(swiftest_body),       intent(inout) :: self   !! Swiftest body object
          integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
          character(*),               intent(in)    :: form   !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr   !! Error code
       end subroutine io_read_frame_body
 
-      module subroutine io_read_frame_cb(self, iu, param, form, ierr)
+      module subroutine io_read_frame_cb(self, iu, param, form)
          implicit none
          class(swiftest_cb),         intent(inout) :: self    !! Swiftest central body object
          integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
          character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
-         integer(I4B),               intent(out)   :: ierr    !! Error code
       end subroutine io_read_frame_cb
 
-      module subroutine io_read_frame_system(self, iu, param, form, ierr)
+      module subroutine io_read_frame_system(self, iu, param, form)
          implicit none
          class(swiftest_nbody_system),intent(inout) :: self  !! Swiftest system object
          integer(I4B),                intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
          character(*),                intent(in)    :: form  !! Input format code ("XV" or "EL")
-         integer(I4B),                intent(out)   :: ierr  !! Error code
       end subroutine io_read_frame_system
 
       module subroutine io_write_discard(self, param)
@@ -887,10 +887,17 @@ module swiftest_classes
    interface
       module subroutine util_append_body(self, source, lsource_mask)
          implicit none
-         class(swiftest_body),            intent(inout) :: self   !! Swiftest body object
-         class(swiftest_body),            intent(in)    :: source  !! Source object to append
+         class(swiftest_body),            intent(inout) :: self          !! Swiftest body object
+         class(swiftest_body),            intent(in)    :: source        !! Source object to append
          logical, dimension(:),           intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
+
+      module subroutine util_append_encounter(self, source, lsource_mask)
+         implicit none
+         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list object
+         class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+         logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_encounter
 
       module subroutine util_append_pl(self, source, lsource_mask)
          implicit none
@@ -929,6 +936,12 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in)    :: cb   !! Swiftest central body object
       end subroutine util_coord_h2b_tp
+
+      module subroutine util_coord_xh2xb_pl(self, cb)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      end subroutine util_coord_xh2xb_pl
 
       module subroutine util_copy_encounter(self, source)
          implicit none
@@ -1008,7 +1021,7 @@ module swiftest_classes
          real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
       end subroutine util_rescale_system
 
-      module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
+      module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function
          implicit none
          integer(I4B),           intent(in)    :: N
@@ -1016,7 +1029,8 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)    :: x0
          real(DP),               intent(in)    :: eps
          logical,                intent(out)   :: lerr
-         real(DP), dimension(:), allocatable :: x1
+         integer(I4B),           intent(in)    :: maxloop
+         real(DP), dimension(:), allocatable   :: x1
       end function util_minimize_bfgs
 
       module subroutine util_peri_tp(self, system, param) 
@@ -1201,6 +1215,43 @@ module swiftest_classes
          integer(I4B), dimension(:), intent(out) :: ind
       end subroutine util_sort_index_dp
    end interface util_sort
+
+   interface util_sort_rearrange
+      module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+         implicit none
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_char_string
+
+      module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+         implicit none
+         real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_DP
+
+      module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+         implicit none
+         real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_DPvec
+
+      module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_I4B
+
+      module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+         implicit none
+         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_logical
+   end interface util_sort_rearrange
 
    interface
       module subroutine util_sort_rearrange_body(self, ind)

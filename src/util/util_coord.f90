@@ -42,6 +42,42 @@ contains
    end subroutine util_coord_h2b_pl
 
 
+   module subroutine util_coord_xh2xb_pl(self, cb)
+      !! author: David A. Minton
+      !!
+      !! Convert position vectors of massive bodies from heliocentric to barycentric coordinates (position and velocity)
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine coord_h2b.f90 
+      !! Adapted from Hal Levison's Swift routine coord_h2b.f 
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      ! Internals
+      integer(I4B)  :: i
+      real(DP)      :: Gmtot
+      real(DP), dimension(NDIM) :: xtmp
+
+      if (self%nbody == 0) return
+      associate(pl => self, npl => self%nbody)
+         Gmtot = cb%Gmass
+         xtmp(:) = 0.0_DP
+         do i = 1, npl
+            if (pl%status(i) == INACTIVE) cycle
+            Gmtot = Gmtot + pl%Gmass(i)
+            xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%xh(:,i)
+         end do
+         cb%xb(:) = -xtmp(:) / Gmtot
+         do i = 1, npl
+            if (pl%status(i) == INACTIVE) cycle
+            pl%xb(:,i) = pl%xh(:,i) + cb%xb(:)
+         end do
+      end associate
+
+      return
+   end subroutine util_coord_xh2xb_pl
+
+
    module subroutine util_coord_h2b_tp(self, cb)
       !! author: David A. Minton
       !!

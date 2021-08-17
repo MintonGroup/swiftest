@@ -130,28 +130,39 @@ module symba_classes
    end type symba_tp
 
    !********************************************************************************************************************************
+   !                                    symba_encounter class definitions and method interfaces
+   !*******************************************************************************************************************************
+   !> SyMBA class for tracking close encounters in a step
+   type, extends(swiftest_encounter) :: symba_encounter
+      integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
+   contains
+      procedure :: collision_check => symba_collision_check_encounter !! Checks if a test particle is going to collide with a massive body
+      procedure :: encounter_check => symba_encounter_check           !! Checks if massive bodies are going through close encounters with each other
+      procedure :: kick            => symba_kick_encounter            !! Kick barycentric velocities of active test particles within SyMBA recursion
+      procedure :: setup           => symba_setup_encounter           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: spill           => symba_util_spill_encounter      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: append          => symba_util_append_encounter     !! Appends elements from one structure to another
+   end type symba_encounter
+
+   !********************************************************************************************************************************
    !                                    symba_pltpenc class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-tp close encounters in a step
-   type, extends(swiftest_encounter) :: symba_pltpenc
-      integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
+   type, extends(symba_encounter) :: symba_pltpenc
    contains
-      procedure :: collision_check => symba_collision_check_pltpenc !! Checks if a test particle is going to collide with a massive body
-      procedure :: encounter_check => symba_encounter_check_pltpenc !! Checks if massive bodies are going through close encounters with each other
-      procedure :: kick            => symba_kick_pltpenc            !! Kick barycentric velocities of active test particles within SyMBA recursion
-      procedure :: setup           => symba_setup_pltpenc           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: spill           => symba_util_spill_pltpenc      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: resolve_collision => symba_collision_resolve_pltpenc !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_pltpenc
 
    !********************************************************************************************************************************
    !                                    symba_plplenc class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking pl-pl close encounters in a step
-   type, extends(symba_pltpenc) :: symba_plplenc
+   type, extends(symba_encounter) :: symba_plplenc
    contains
-      procedure :: extract_collisions     => symba_collision_encounter_extract_collisions        !! Processes the pl-pl encounter list remove only those encounters that led to a collision
-      procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations !! Process list of collisions, determine the collisional regime, and then create fragments
-      procedure :: resolve_mergers        => symba_collision_resolve_mergers        !! Process list of collisions and merge colliding bodies together
+      procedure :: extract_collisions     => symba_collision_encounter_extract_collisions !! Processes the pl-pl encounter list remove only those encounters that led to a collision
+      procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
+      procedure :: resolve_mergers        => symba_collision_resolve_mergers              !! Process list of collisions and merge colliding bodies together
+      procedure :: resolve_collision      => symba_collision_resolve_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_plplenc
 
    !********************************************************************************************************************************
@@ -174,16 +185,17 @@ module symba_classes
    end type symba_nbody_system
 
    interface
-      module subroutine symba_collision_check_pltpenc(self, system, param, t, dt, irec)
+      module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list object
-         class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t      !! current time
-         real(DP),                   intent(in)    :: dt     !! step size
-         integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      end subroutine symba_collision_check_pltpenc
+         class(symba_encounter),       intent(inout) :: self           !! SyMBA pl-tp encounter list object
+         class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+         class(swiftest_parameters), intent(in)    :: param          !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t              !! current time
+         real(DP),                   intent(in)    :: dt             !! step size
+         integer(I4B),               intent(in)    :: irec           !! Current recursion level
+         logical                                   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision n
+      end function symba_collision_check_encounter
 
       module subroutine symba_collision_encounter_extract_collisions(self, system, param)
          implicit none
@@ -211,6 +223,22 @@ module symba_classes
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_collision_resolve_mergers
+
+      module subroutine symba_collision_resolve_plplenc(self, system, param, t)
+         implicit none
+         class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
+         class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                   intent(in)    :: t      !! Current simulation time
+      end subroutine symba_collision_resolve_plplenc
+   
+      module subroutine symba_collision_resolve_pltpenc(self, system, param, t)
+         implicit none
+         class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list
+         class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                   intent(in)    :: t      !! Current simulation time
+      end subroutine symba_collision_resolve_pltpenc
 
       module subroutine symba_discard_pl(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
@@ -255,14 +283,14 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_pl
 
-      module function symba_encounter_check_pltpenc(self, system, dt, irec) result(lany_encounter)
+      module function symba_encounter_check(self, system, dt, irec) result(lany_encounter)
          implicit none
-         class(symba_pltpenc),      intent(inout) :: self           !! SyMBA pl-pl encounter list object
+         class(symba_encounter),      intent(inout) :: self           !! SyMBA pl-pl encounter list object
          class(symba_nbody_system), intent(inout) :: system         !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt             !! step size
          integer(I4B),              intent(in)    :: irec           !! Current recursion level 
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
-      end function symba_encounter_check_pltpenc
+      end function symba_encounter_check
 
       module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
          implicit none
@@ -273,7 +301,7 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
-      module function symba_fragmentation_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -283,9 +311,9 @@ module symba_classes
          real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
          real(DP),                        intent(inout) :: Qloss            !! Energy lost during collisionn
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casedisruption
+      end function symba_collision_casedisruption
    
-      module function symba_fragmentation_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -295,9 +323,9 @@ module symba_classes
          real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
          real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casehitandrun
+      end function symba_collision_casehitandrun
 
-      module function symba_fragmentation_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
+      module function symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -305,9 +333,9 @@ module symba_classes
          real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
          real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collisio
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casemerge
+      end function symba_collision_casemerge
 
-      module function symba_fragmentation_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
@@ -317,7 +345,7 @@ module symba_classes
          real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
          real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_fragmentation_casesupercatastrophic
+      end function symba_collision_casesupercatastrophic
 
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters
@@ -383,14 +411,14 @@ module symba_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine symba_kick_getacch_tp
 
-      module subroutine symba_kick_pltpenc(self, system, dt, irec, sgn)
+      module subroutine symba_kick_encounter(self, system, dt, irec, sgn)
          implicit none
-         class(symba_pltpenc),      intent(in)    :: self   !! SyMBA pl-tp encounter list object
+         class(symba_encounter),      intent(in)    :: self   !! SyMBA pl-tp encounter list object
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt     !! step size
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
-      end subroutine symba_kick_pltpenc
+      end subroutine symba_kick_encounter
    
       module subroutine symba_setup_initialize_particle_info(system, param) 
          implicit none
@@ -421,11 +449,11 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_setup_pl
 
-      module subroutine symba_setup_pltpenc(self,n)
+      module subroutine symba_setup_encounter(self,n)
          implicit none
-         class(symba_pltpenc), intent(inout) :: self !! SyMBA pl-tp encounter structure
+         class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
          integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine symba_setup_pltpenc
+      end subroutine symba_setup_encounter
 
       module subroutine symba_setup_tp(self, n, param)
          use swiftest_classes, only : swiftest_parameters
@@ -493,6 +521,13 @@ module symba_classes
    end interface
 
    interface
+      module subroutine symba_util_append_encounter(self, source, lsource_mask)
+         implicit none
+         class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
+         class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+         logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine symba_util_append_encounter
+
       module subroutine symba_util_append_merger(self, source, lsource_mask)
          use swiftest_classes, only : swiftest_body
          implicit none
@@ -613,7 +648,25 @@ module symba_classes
          character(*),    intent(in)    :: sortby    !! Sorting attribute
          logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine symba_util_sort_tp
+   end interface
 
+   interface util_sort_rearrange
+      module subroutine symba_util_sort_rearrange_arr_info(arr, ind, n)
+         implicit none
+         type(symba_particle_info),   dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine symba_util_sort_rearrange_arr_info
+
+      module subroutine symba_util_sort_rearrange_arr_kin(arr, ind, n)
+         implicit none
+         type(symba_kinship),         dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine symba_util_sort_rearrange_arr_kin
+   end interface util_sort_rearrange
+
+   interface
       module subroutine symba_util_sort_rearrange_pl(self, ind)
          implicit none
          class(symba_pl),               intent(inout) :: self !! SyMBA massive body object
@@ -655,14 +708,14 @@ module symba_classes
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine symba_util_spill_pl
 
-      module subroutine symba_util_spill_pltpenc(self, discards, lspill_list, ldestructive)
+      module subroutine symba_util_spill_encounter(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_encounter
          implicit none
-         class(symba_pltpenc),      intent(inout) :: self         !! SyMBA pl-tp encounter list
+         class(symba_encounter),    intent(inout) :: self         !! SyMBA pl-tp encounter list
          class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
          logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      end subroutine symba_util_spill_pltpenc
+      end subroutine symba_util_spill_encounter
 
       module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_body

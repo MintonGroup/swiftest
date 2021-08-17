@@ -40,20 +40,20 @@ contains
          lstatus(1:npl) = pl%status(1:npl) /= INACTIVE
 
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
-         Lcborbit(:) = cb%mass * cb%xb(:) .cross. cb%vb(:)
+         Lcborbit(:) = cb%mass * (cb%xb(:) .cross. cb%vb(:))
 
          do concurrent (i = 1:npl, lstatus(i))
             block ! We use a block construct to prevent generating temporary arrays for local variables
-               real(DP) :: v2, hx, hy, hz
+               real(DP) :: v2
+               real(DP), dimension(NDIM) ::  L
+
                v2 = dot_product(pl%vb(:,i), pl%vb(:,i))
-               hx = pl%xb(2,i) * pl%vb(3,i) - pl%xb(3,i) * pl%vb(2,i)
-               hy = pl%xb(3,i) * pl%vb(1,i) - pl%xb(1,i) * pl%vb(3,i)
-               hz = pl%xb(1,i) * pl%vb(2,i) - pl%xb(2,i) * pl%vb(1,i)
+               L(:) = pl%mass(i) * (pl%xb(:,i) .cross. pl%vb(:,i))
 
                ! Angular momentum from orbit 
-               Lplorbitx(i) = pl%mass(i) * hx
-               Lplorbity(i) = pl%mass(i) * hy
-               Lplorbitz(i) = pl%mass(i) * hz
+               Lplorbitx(i) = L(1)
+               Lplorbity(i) = L(2)
+               Lplorbitz(i) = L(3)
    
                ! Kinetic energy from orbit and spin
                kepl(i) = pl%mass(i) * v2
@@ -67,21 +67,12 @@ contains
             Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
             do concurrent (i = 1:npl, lstatus(i))
-               block 
-                  real(DP) :: rot2, hsx, hsy, hsz
-
-                  rot2 = dot_product(pl%rot(:,i), pl%rot(:,i))
-                  ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
-                  hsx = pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(1,i) 
-                  hsy = pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(2,i) 
-                  hsz = pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(3,i) 
-   
-                  ! Angular momentum from spin
-                  Lplspinx(i) = pl%mass(i) * hsx
-                  Lplspiny(i) = pl%mass(i) * hsy
-                  Lplspinz(i) = pl%mass(i) * hsz
-                  kespinpl(i) = pl%mass(i) * pl%Ip(3, i) * pl%radius(i)**2 * rot2
-               end block
+               ! Currently we assume that the rotation pole is the 3rd principal axis
+               ! Angular momentum from spin
+               Lplspinx(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(1,i)
+               Lplspiny(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(2,i)  
+               Lplspinz(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(3,i)  
+               kespinpl(i) = pl%mass(i) * pl%Ip(3, i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
             end do
          else
             kespincb = 0.0_DP
