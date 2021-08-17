@@ -186,7 +186,7 @@ contains
          end if
       end if
       if (lpure) then ! Reset these bodies back to being active so that nothing further is done to them
-         status = ACTIVE
+         status = HIT_AND_RUN_PURE
          select type(pl => system%pl)
          class is (symba_pl)
             pl%status(family(:)) = status
@@ -194,7 +194,7 @@ contains
             pl%lcollision(family(:)) = .false.
          end select
       else
-         status = HIT_AND_RUN
+         status = HIT_AND_RUN_DISRUPT
          call symba_collision_mergeaddsub(system, param, family, id_frag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, status)
       end if
 
@@ -871,7 +871,7 @@ contains
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
                   end do
-               case(HIT_AND_RUN)
+               case(HIT_AND_RUN_DISRUPT)
                   plnew%info(1) = pl%info(ibiggest)
                   plnew%status(1) = OLD_PARTICLE
                   plnew%status(2:nfrag) = NEW_PARTICLE
@@ -938,7 +938,7 @@ contains
       real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       logical                                     :: lgoodcollision
-      integer(I4B)                                :: i, status, jtarg, jproj, regime
+      integer(I4B)                                :: i, jtarg, jproj, regime
       real(DP), dimension(2)                      :: radius_si, mass_si, density_si
       real(DP)                                    :: mtiny_si, Mcb_si
       real(DP), dimension(NDIM)                   :: x1_si, v1_si, x2_si, v2_si
@@ -994,13 +994,13 @@ contains
    
                   select case (regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION)
-                     status = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plpl_collisions%status = symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     status = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plpl_collisions%status = symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                     status = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
+                     plpl_collisions%status = symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)
                   case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                     status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
+                     plpl_collisions%status = symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip) 
                   case default 
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
@@ -1140,12 +1140,11 @@ contains
       real(DP),                   intent(in)    :: t      !! Current simulation tim
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
-  
+      
+      call system%tp%xh2xb(system%cb)
       call system%tp%discard(system, param)
 
       return
    end subroutine symba_collision_resolve_pltpenc
-
-
 
 end submodule s_symba_collision
