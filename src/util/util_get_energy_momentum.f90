@@ -23,6 +23,7 @@ contains
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
       logical, dimension(self%pl%nplpl) :: lstatpl
       logical, dimension(self%pl%nbody) :: lstatus
+      real(DP) :: hx, hy, hz
 
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          system%Lorbit(:) = 0.0_DP
@@ -43,21 +44,17 @@ contains
          Lcborbit(:) = cb%mass * (cb%xb(:) .cross. cb%vb(:))
 
          do concurrent (i = 1:npl, lstatus(i))
-            block ! We use a block construct to prevent generating temporary arrays for local variables
-               real(DP) :: v2
-               real(DP), dimension(NDIM) ::  L
+            hx = pl%xb(2,i) * pl%vb(3,i) - pl%xb(3,i) * pl%vb(2,i)
+            hy = pl%xb(3,i) * pl%vb(1,i) - pl%xb(1,i) * pl%vb(3,i)
+            hz = pl%xb(1,i) * pl%vb(2,i) - pl%xb(2,i) * pl%vb(1,i)
 
-               v2 = dot_product(pl%vb(:,i), pl%vb(:,i))
-               L(:) = pl%mass(i) * (pl%xb(:,i) .cross. pl%vb(:,i))
+            ! Angular momentum from orbit 
+            Lplorbitx(i) = pl%mass(i) * hx
+            Lplorbity(i) = pl%mass(i) * hy
+            Lplorbitz(i) = pl%mass(i) * hz
 
-               ! Angular momentum from orbit 
-               Lplorbitx(i) = L(1)
-               Lplorbity(i) = L(2)
-               Lplorbitz(i) = L(3)
-   
-               ! Kinetic energy from orbit and spin
-               kepl(i) = pl%mass(i) * v2
-            end block
+            ! Kinetic energy from orbit
+            kepl(i) = pl%mass(i) * dot_product(pl%vb(:,i), pl%vb(:,i)) 
          end do
 
          if (param%lrotation) then
@@ -72,7 +69,9 @@ contains
                Lplspinx(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(1,i)
                Lplspiny(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(2,i)  
                Lplspinz(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(3,i)  
-               kespinpl(i) = pl%mass(i) * pl%Ip(3, i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
+
+               ! Kinetic energy from spin
+               kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
             end do
          else
             kespincb = 0.0_DP
