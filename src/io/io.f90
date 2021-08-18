@@ -624,6 +624,7 @@ contains
          write(*,*) "ROTATION      = ", param%lrotation
          write(*,*) "TIDES         = ", param%ltides
          write(*,*) "ENERGY         = ",param%lenergy
+         if (param%lenergy) write(*,*) "ENERGY_OUT     = ",trim(adjustl(param%energy_out))
          write(*,*) "MU2KG          = ",param%MU2KG       
          write(*,*) "TU2S           = ",param%TU2S        
          write(*,*) "DU2M           = ",param%DU2M        
