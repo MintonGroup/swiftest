@@ -243,8 +243,8 @@ contains
                   end do
                   pl%nplenc(:) = 0
                   pl%ntpenc(:) = 0
-                  pl%levelg(:) = 0
-                  pl%levelm(:) = 0
+                  pl%levelg(:) = -1
+                  pl%levelm(:) = -1
                   pl%lencounter = .false.
                   pl%lcollision = .false.
                   system%plplenc_list%nenc = 0
