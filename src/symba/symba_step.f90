@@ -33,6 +33,7 @@ contains
                   pl%lfirst = .true.
                   tp%lfirst = .true.
                else
+                  self%irec = -1
                   call helio_step_system(self, param, t, dt)
                end if
             end select
@@ -253,8 +254,8 @@ contains
            
                if (tp%nbody > 0) then
                   tp%nplenc(:) = 0 
-                  tp%levelg(:) = 0
-                  tp%levelm(:) = 0
+                  tp%levelg(:) = -1
+                  tp%levelm(:) = -1
                   system%pltpenc_list%nenc = 0
                end if
 
