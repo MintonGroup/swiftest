@@ -126,9 +126,9 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            associate(ind1 => self%index1, ind2 => self%index2)
-               if (pl%nbody > 0) pl%lmask(:) = pl%status(:) /= INACTIVE
-               if (tp%nbody > 0) tp%lmask(:) = tp%status(:) /= INACTIVE
+            associate(ind1 => self%index1, ind2 => self%index2, npl => pl%nbody, ntp => tp%nbody, nenc => self%nenc)
+               if (npl > 0) pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
+               if (ntp > 0) tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE
 
                irm1 = irec - 1
 
@@ -139,13 +139,13 @@ contains
                end if
 
                if (isplpl) then
-                  pl%ah(:,ind1(1:self%nenc)) = 0.0_DP
-                  pl%ah(:,ind2(1:self%nenc)) = 0.0_DP
+                  pl%ah(:,ind1(1:nenc)) = 0.0_DP
+                  pl%ah(:,ind2(1:nenc)) = 0.0_DP
                else
-                  tp%ah(:,ind2(1:self%nenc)) = 0.0_DP
+                  tp%ah(:,ind2(1:nenc)) = 0.0_DP
                end if
 
-               do k = 1, self%nenc
+               do k = 1, nenc
                   if (isplpl) then
                      lgoodlevel = (pl%levelg(ind1(k)) >= irm1) .and. (pl%levelg(ind2(k)) >= irm1)
                   else
@@ -176,15 +176,15 @@ contains
                      faci = fac * pl%Gmass(ind1(k))
                      if (isplpl) then
                         facj = fac * pl%Gmass(ind2(k))
-                        pl%ah(:,ind1(k)) = pl%ah(:,ind1(k)) + facj * dx(:)
-                        pl%ah(:,ind2(k)) = pl%ah(:,ind2(k)) - faci * dx(:)
+                        pl%ah(:, ind1(k)) = pl%ah(:, ind1(k)) + facj * dx(:)
+                        pl%ah(:, ind2(k)) = pl%ah(:, ind2(k)) - faci * dx(:)
                      else
-                        tp%ah(:,ind2(k)) = tp%ah(:,ind2(k)) - faci * dx(:)
+                        tp%ah(:, ind2(k)) = tp%ah(:, ind2(k)) - faci * dx(:)
                      end if
                   end if
                end do
                if (isplpl) then
-                  do k = 1, self%nenc
+                  do k = 1, nenc
                      pl%vb(:,ind1(k)) = pl%vb(:,ind1(k)) + sgn * dt * pl%ah(:,ind1(k))
                      pl%vb(:,ind2(k)) = pl%vb(:,ind2(k)) + sgn * dt * pl%ah(:,ind2(k))
                      pl%ah(:,ind1(k)) = 0.0_DP

@@ -65,9 +65,9 @@ contains
       associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
          system%lbeg = lbeg
          if (system%lbeg) then
-            call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
+            call tp%accel_int(pl%Gmass(1:npl), pl%xbeg(:,1:npl), npl)
          else
-            call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)
+            call tp%accel_int(pl%Gmass(1:npl), pl%xend(:,1:npl), npl)
          end if
          if (param%loblatecb) call tp%accel_obl(system)
          if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
@@ -99,7 +99,7 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         pl%ah(:,:) = 0.0_DP
+         pl%ah(:, 1:npl) = 0.0_DP
          call pl%accel(system, param, t, lbeg)
          if (lbeg) then
             call pl%set_beg_end(xbeg = pl%xh)
@@ -136,7 +136,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
-         tp%ah(:,:) = 0.0_DP
+         tp%ah(:, 1:ntp) = 0.0_DP
          call tp%accel(system, param, t, lbeg)
          do concurrent(i = 1:ntp, tp%lmask(i)) 
             tp%vb(:, i) = tp%vb(:, i) + tp%ah(:, i) * dt
