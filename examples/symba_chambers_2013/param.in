@@ -17,7 +17,6 @@ OUT_FORM       EL                 ! osculating element output
 OUT_STAT       REPLACE
 CHK_CLOSE      yes                ! check for planetary close encounters
 CHK_RMAX       100000.0            ! discard outside of
-ENC_OUT        enc.dat
 EXTRA_FORCE    no                 ! no extra user-defined forces
 BIG_DISCARD    no                 ! output all planets if anything discarded
 RHILL_PRESENT  yes                ! Hill's sphere radii in input file
