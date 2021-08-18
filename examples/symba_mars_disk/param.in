@@ -11,7 +11,7 @@ ISTEP_DUMP     1
 BIN_OUT        bin.dat
 PARTICLE_OUT   particle.dat
 OUT_TYPE       REAL8
-OUT_FORM       XV
+OUT_FORM       EL
 OUT_STAT       REPLACE
 CHK_CLOSE      yes
 CHK_RMIN       3389500.0
