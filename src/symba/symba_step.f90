@@ -255,7 +255,7 @@ contains
                   tp%nplenc(:) = 0 
                   tp%levelg(:) = 0
                   tp%levelm(:) = 0
-               system%pltpenc_list%nenc = 0
+                  system%pltpenc_list%nenc = 0
                end if
 
                call system%pl_adds%setup(0, param)
