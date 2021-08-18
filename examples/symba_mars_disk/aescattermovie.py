@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib.colors as mcolors
 
-radscale = 20
+radscale = 50
 RMars = 3389500.0
 xmin = 1.0
 xmax = 10.0
@@ -38,14 +38,14 @@ class AnimatedScatter(object):
         self.ax.set_ylim(ymin, ymax)
         fig.add_axes(self.ax)
         self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=True)
-        self.ani.save('aescatter.mp4', fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
+        self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'libx264'])
         print('Finished writing aescattter.mp4')
 
     def scatters(self, pl, radmarker, origin):
         scat = []
         for key, value in self.clist.items():
             idx = origin == value
-            s = self.ax.scatter(pl[idx, 0], pl[idx, 1], marker='o', s=radmarker[idx], c=value, alpha=0.25, label=key)
+            s = self.ax.scatter(pl[idx, 0], pl[idx, 1], marker='o', s=radmarker[idx], c=value, alpha=0.75, label=key)
             scat.append(s)
         return scat
 
@@ -75,6 +75,7 @@ class AnimatedScatter(object):
     def data_stream(self, frame=0):
         while True:
             d = self.ds.isel(time=frame)
+            d = d.where(np.invert(np.isnan(d['a'])), drop=True)
             Radius = d['radmarker'].values
             GMass = d['GMass'].values
             a = d['a'].values / RMars
