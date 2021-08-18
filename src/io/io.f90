@@ -609,12 +609,16 @@ contains
          write(*,*) "OUT_STAT       = ",trim(adjustl(param%out_stat))
          write(*,*) "ISTEP_DUMP     = ",param%istep_dump
          write(*,*) "CHK_CLOSE      = ",param%lclose
-         write(*,*) "CHK_RMIN       = ",param%rmin
-         write(*,*) "CHK_RMAX       = ",param%rmax
-         write(*,*) "CHK_EJECT      = ",param%rmaxu
-         write(*,*) "CHK_QMIN       = ",param%qmin
-         write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(param%qmin_coord))
-         write(*,*) "CHK_QMIN_RANGE = ",param%qmin_alo, param%qmin_ahi
+         if (param%rmin > 0.0) then
+            write(*,*) "CHK_RMIN       = ",param%rmin
+         else
+            write(*,*) "! CHK_RMIN value will be the central body radius"
+         end if
+         if (param%rmax > 0.0_DP) write(*,*) "CHK_RMAX       = ",param%rmax
+         if (param%rmaxu > 0.0_DP) write(*,*) "CHK_EJECT      = ",param%rmaxu
+         if ((param%qmin > 0.0_DP) .or. (param%qmin_alo > 0.0_DP) .or. (param%qmin_ahi > 0.0_DP)) write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(param%qmin_coord))
+         if (param%qmin > 0.0_DP) write(*,*) "CHK_QMIN       = ",param%qmin
+         if ((param%qmin_alo > 0.0_DP) .or. (param%qmin_ahi > 0.0_DP))  write(*,*) "CHK_QMIN_RANGE = ",param%qmin_alo, param%qmin_ahi
          write(*,*) "EXTRA_FORCE    = ",param%lextra_force
          write(*,*) "RHILL_PRESENT  = ",param%lrhill_present
          write(*,*) "ROTATION      = ", param%lrotation
@@ -655,7 +659,7 @@ contains
          end if
 
          associate(integrator => v_list(1))
-            if (integrator == RMVS) then
+            if ((integrator == RMVS) .or. (integrator == SYMBA)) then
                if (.not.param%lclose) then
                   write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
                   iostat = -1
@@ -903,6 +907,7 @@ contains
       close(iu, err = 667, iomsg = errmsg)
 
       if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
+      if (param%rmin < 0.0) param%rmin = self%radius
 
       return
 

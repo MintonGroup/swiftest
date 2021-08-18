@@ -1,0 +1,31 @@
+!
+! Parameter file for Chambers 2013 in units of Msun, AU, year
+!
+T0             0.0e0
+TSTOP          1e8        ! simulation length in years
+DT             0.016              ! stepsize in years
+CB_IN          sun_MsunAUYR.in
+PL_IN          pl_chambers_2013.in
+TP_IN          tp.in
+IN_TYPE        ASCII
+ISTEP_OUT      6250              ! output cadence 
+ISTEP_DUMP     6250            ! system dump cadence
+BIN_OUT        bin.dat
+PARTICLE_OUT   particle.dat
+OUT_TYPE       REAL8              ! double precision real output
+OUT_FORM       EL                 ! osculating element output
+OUT_STAT       REPLACE
+CHK_CLOSE      yes                ! check for planetary close encounters
+CHK_RMAX       100000.0            ! discard outside of
+EXTRA_FORCE    no                 ! no extra user-defined forces
+BIG_DISCARD    no                 ! output all planets if anything discarded
+RHILL_PRESENT  yes                ! Hill's sphere radii in input file
+MU2KG          1.98847e30         ! (M_sun-> kg)
+DU2M           1.495979e11        ! distance unit to meters (AU --> m)
+TU2S           3.15569259747e7    ! time unit to seconds (years --> seconds)
+GMTINY         1e-10		  
+ENERGY         yes
+ROTATION       yes
+FRAGMENTATION  yes
+DISCARD_OUT    discard.out
+SEED           8 12261555 871132 92734722 21132443 36344777 4334443 219291656 3848566
