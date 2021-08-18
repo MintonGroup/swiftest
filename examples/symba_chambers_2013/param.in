@@ -13,7 +13,7 @@ ISTEP_DUMP     6250            ! system dump cadence
 BIN_OUT        bin.dat
 PARTICLE_OUT   particle.dat
 OUT_TYPE       REAL8              ! double precision real output
-OUT_FORM       XV                 ! osculating element output
+OUT_FORM       EL                 ! osculating element output
 OUT_STAT       REPLACE
 CHK_CLOSE      yes                ! check for planetary close encounters
 CHK_RMAX       100000.0            ! discard outside of
