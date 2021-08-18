@@ -169,7 +169,7 @@ contains
          m_frag(2:nfrag) = (mtot - m_frag(1)) / (nfrag - 1) 
          rad_frag(2:nfrag) = (3 * m_frag(2:nfrag) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
          m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
-         id_frag(2:nfrag) = [(i, i = system%maxid + 1, system%maxid + nfrag - 1)]
+         id_frag(1:nfrag) = [(i, i = system%maxid + 1, system%maxid + nfrag)]
 
          do i = 1, nfrag
             Ip_frag(:, i) = Ip(:, jproj)
