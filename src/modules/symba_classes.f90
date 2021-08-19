@@ -55,8 +55,8 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA central body particle class
    type, extends(helio_cb) :: symba_cb
-      real(DP) :: M0  = 0.0_DP !! Initial mass of the central body
-      real(DP) :: dM  = 0.0_DP !! Change in mass of the central body
+      real(DP) :: GM0  = 0.0_DP !! Initial G*mass of the central body
+      real(DP) :: dGM  = 0.0_DP !! Change in G*mass of the central body
       real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
       type(symba_particle_info) :: info
@@ -215,14 +215,14 @@ module symba_classes
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_collision_resolve_fragmentations
    
       module subroutine symba_collision_resolve_mergers(self, system, param)
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_collision_resolve_mergers
 
       module subroutine symba_collision_resolve_plplenc(self, system, param, t, dt, irec)
@@ -309,7 +309,7 @@ module symba_classes
       module function symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
          integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
          real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
          real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
@@ -321,7 +321,7 @@ module symba_classes
       module function symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
          integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
          real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
          real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
@@ -333,7 +333,7 @@ module symba_classes
       module function symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
          integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
          real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
          real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collisio
@@ -343,7 +343,7 @@ module symba_classes
       module function symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
          implicit none
          class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
          integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
          real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
          real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision

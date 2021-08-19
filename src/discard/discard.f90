@@ -112,8 +112,9 @@ contains
       ! Internals
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
+      character(len=STRMAX) :: idstr, timestr
 
-      associate(ntp => tp%nbody, cb => system%cb, t => param%t, Gmtot => system%Gmtot)
+      associate(ntp => tp%nbody, cb => system%cb, Gmtot => system%Gmtot)
          rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
          rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
@@ -122,12 +123,16 @@ contains
                rh2 = dot_product(tp%xh(:, i), tp%xh(:, i))
                if ((param%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   tp%status(i) = DISCARDED_RMAX
-                  write(*, *) "Particle ", tp%id(i), " too far from sun at t = ", t
+                  write(idstr, *) tp%id(i)
+                  write(timestr, *) param%t
+                  write(*, *) "Particle " // trim(adjustl(idstr)) // " too far from the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
-                  write(*, *) "Particle ", tp%id(i), " too close to sun at t = ", t
+                  write(idstr, *) tp%id(i)
+                  write(timestr, *) param%t
+                  write(*, *) "Particle " // trim(adjustl(idstr)) //  " too close to the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
                else if (param%rmaxu >= 0.0_DP) then
@@ -136,7 +141,9 @@ contains
                   energy = 0.5_DP * vb2 - Gmtot / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
-                     write(*, *) "Particle ", tp%id(i), " is unbound and too far from barycenter at t = ", t
+                     write(idstr, *) tp%id(i)
+                     write(timestr, *) param%t
+                     write(*, *) "Particle " // trim(adjustl(idstr)) //  " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
                   end if

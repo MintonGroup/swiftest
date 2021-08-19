@@ -28,6 +28,7 @@ contains
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          system%Lorbit(:) = 0.0_DP
          system%Lspin(:) = 0.0_DP
+         system%Ltot(:) = 0.0_DP
          system%ke_orbit = 0.0_DP
          system%ke_spin = 0.0_DP
 
@@ -38,8 +39,10 @@ contains
          Lplspinx(:) = 0.0_DP
          Lplspiny(:) = 0.0_DP
          Lplspinz(:) = 0.0_DP
+
          lstatus(1:npl) = pl%status(1:npl) /= INACTIVE
 
+         system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), lstatus(1:npl)) 
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
          Lcborbit(:) = cb%mass * (cb%xb(:) .cross. cb%vb(:))
 
@@ -121,6 +124,7 @@ contains
          end if
 
          system%te = system%ke_orbit + system%ke_spin + system%pe
+         system%Ltot(:) = system%Lorbit(:) + system%Lspin(:)
       end associate
 
       return
