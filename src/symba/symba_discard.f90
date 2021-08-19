@@ -20,6 +20,7 @@ contains
       ! Internals
       integer(I4B) :: i, j
       real(DP)     :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
+      character(len=STRMAX) :: idstr, timestr
    
       associate(npl => pl%nbody, cb => system%cb)
          call system%set_msys()
@@ -33,12 +34,16 @@ contains
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMAX
-                  write(*, *) "Massive body ",  pl%id(i), " too far from the central body at t = ", param%t
+                  write(idstr, *) pl%id(i)
+                  write(timestr, *) param%t
+                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too far from the central body at t = " // trim(adjustl(timestr))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMIN
-                  write(*, *) "Massive body ", pl%id(i), " too close to the central body at t = ", param%t
+                  write(idstr, *) pl%id(i)
+                  write(timestr, *) param%t
+                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too close to the central body at t = " // trim(adjustl(timestr))
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
                   vb2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -47,7 +52,9 @@ contains
                      pl%ldiscard(i) = .true.
                      pl%lcollision(i) = .false. 
                      pl%status(i) = DISCARDED_RMAXU
-                     write(*, *) "Massive body ", pl%id(i), " is unbound and too far from barycenter at t = ", param%t
+                     write(idstr, *) pl%id(i)
+                     write(timestr, *) param%t
+                     write(*, *) "Massive body " // trim(adjustl(idstr)) // " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
                   end if
                end if
             end if
@@ -78,7 +85,7 @@ contains
       class is (symba_cb)
    
          ! Add the potential and kinetic energy of the lost body to the records
-         pe = -cb%mass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
+         pe = -cb%Gmass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
             ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
@@ -89,7 +96,7 @@ contains
          ! Add the pre-collision ke of the central body to the records
          ! Add planet mass to central body accumulator
          if (lescape_body) then
-            system%Mescape = system%Mescape + pl%mass(ipl)
+            param%GMescape = param%GMescape + pl%Gmass(ipl)
             do i = 1, pl%nbody
                if (i == ipl) cycle
                pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
@@ -112,8 +119,8 @@ contains
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
             Ltot(:) = Ltot(:) - cb%mass * (cb%xb(:) .cross. cb%vb(:))
-            system%Lescape(:) = system%Lescape(:) + Ltot(:)
-            if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
+            param%Lescape(:) = param%Lescape(:) + Ltot(:)
+            if (param%lrotation) param%Lescape(:) = param%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else
             xcom(:) = (pl%mass(ipl) * pl%xb(:, ipl) + cb%mass * cb%xb(:)) / (cb%mass + pl%mass(ipl))
@@ -126,10 +133,10 @@ contains
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
             if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
             ! Update mass of central body to be consistent with its total mass
-            cb%dM = cb%dM + pl%mass(ipl)
+            cb%dGM = cb%dGM + pl%Gmass(ipl)
             cb%dR = cb%dR + 1.0_DP / 3.0_DP * (pl%radius(ipl) / cb%radius)**3 - 2.0_DP / 9.0_DP * (pl%radius(ipl) / cb%radius)**6
-            cb%mass = cb%M0 + cb%dM
-            cb%Gmass = param%GU * cb%mass 
+            cb%Gmass = cb%GM0 + cb%dGM
+            cb%mass = cb%Gmass / param%GU
             cb%radius = cb%R0 + cb%dR
             param%rmin = cb%radius
             ! Add planet angular momentum to central body accumulator
@@ -147,11 +154,11 @@ contains
    
          ! We must do this for proper book-keeping, since we can no longer track this body's contribution to energy directly
          if (lescape_body) then
-            system%Ecollisions  = system%Ecollisions + ke_orbit + ke_spin + pe
-            system%Euntracked  = system%Euntracked - (ke_orbit + ke_spin + pe)
+            param%Ecollisions  = param%Ecollisions + ke_orbit + ke_spin + pe
+            param%Euntracked  = param%Euntracked - (ke_orbit + ke_spin + pe)
          else
-            system%Ecollisions  = system%Ecollisions + pe 
-            system%Euntracked = system%Euntracked - pe
+            param%Ecollisions  = param%Ecollisions + pe 
+            param%Euntracked = param%Euntracked - pe
          end if
    
       end select
@@ -306,7 +313,7 @@ contains
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
                   Eorbit_after = system%te
-                  system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
+                  param%Ecollisions = param%Ecollisions + (Eorbit_after - Eorbit_before)
                end if
 
             end associate

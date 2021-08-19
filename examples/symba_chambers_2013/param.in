@@ -8,8 +8,8 @@ CB_IN          sun_MsunAUYR.in
 PL_IN          pl_chambers_2013.in
 TP_IN          tp.in
 IN_TYPE        ASCII
-ISTEP_OUT      6250              ! output cadence 
-ISTEP_DUMP     6250            ! system dump cadence
+ISTEP_OUT      625              ! output cadence 
+ISTEP_DUMP     625             ! system dump cadence
 BIN_OUT        bin.dat
 PARTICLE_OUT   particle.dat
 OUT_TYPE       REAL8              ! double precision real output
@@ -18,7 +18,6 @@ OUT_STAT       REPLACE
 CHK_CLOSE      yes                ! check for planetary close encounters
 CHK_RMAX       100000.0            ! discard outside of
 EXTRA_FORCE    no                 ! no extra user-defined forces
-DISCARD_OUT    discard.out
 BIG_DISCARD    no                 ! output all planets if anything discarded
 RHILL_PRESENT  yes                ! Hill's sphere radii in input file
 MU2KG          1.98847e30         ! (M_sun-> kg)
@@ -29,4 +28,5 @@ ENERGY         yes
 ENERGY_OUT     energy.dat
 ROTATION       yes
 FRAGMENTATION  yes
+DISCARD_OUT    discard.out
 SEED           8 12261555 871132 92734722 21132443 36344777 4334443 219291656 3848566
