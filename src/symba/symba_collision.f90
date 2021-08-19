@@ -13,7 +13,7 @@ contains
       implicit none
       ! Arguments
       class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
       integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
       real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
@@ -106,7 +106,7 @@ contains
       implicit none
       ! Arguments
       class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
       integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
       real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
@@ -213,7 +213,7 @@ contains
       implicit none
       ! Arguments
       class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
       integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
       real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
@@ -269,7 +269,7 @@ contains
             ! Assume prinicpal axis rotation on 3rd Ip axis
             rot_frag(:,1) = L_spin_new(:) / (Ip_frag(3,1) * m_frag(1) * rad_frag(1)**2)
          else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
-            system%Lescape(:) = system%Lescape(:) + L_orb_old(:) 
+            param%Lescape(:) = param%Lescape(:) + L_orb_old(:) 
          end if
 
          ! Keep track of the component of potential energy due to the pre-impact family for book-keeping
@@ -280,8 +280,8 @@ contains
                pe = pe - pl%Gmass(i) * pl%mass(j) / norm2(pl%xb(:, i) - pl%xb(:, j))
             end do
          end do
-         system%Ecollisions  = system%Ecollisions + pe 
-         system%Euntracked = system%Euntracked - pe 
+         param%Ecollisions = param%Ecollisions + pe 
+         param%Euntracked  = param%Euntracked - pe 
 
          status = MERGED
          call symba_collision_mergeaddsub(system, param, family, id_frag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, status)
@@ -300,7 +300,7 @@ contains
       implicit none
       ! Arguments
       class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
       integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
       real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
       real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
@@ -930,7 +930,7 @@ contains
       ! Arguments
       class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       ! Internals
       ! Internals
       integer(I4B), dimension(:),     allocatable :: family           !! List of indices of all bodies inovlved in the collision
@@ -1023,7 +1023,7 @@ contains
       ! Arguments
       class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       ! Internals
       integer(I4B), dimension(:),     allocatable :: family           !! List of indices of all bodies inovlved in the collision
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
@@ -1119,7 +1119,7 @@ contains
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
                   Eorbit_after = system%te
-                  system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
+                  param%Ecollisions = param%Ecollisions + (Eorbit_after - Eorbit_before)
                end if
 
             end select 

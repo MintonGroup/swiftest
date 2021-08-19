@@ -61,11 +61,9 @@ module swiftest_classes
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
       real(DP)                  :: GMtot_orig = 0.0_DP     !! Initial system mass
-      real(DP)                  :: Lmag_orig = 0.0_DP     !! Initial total angular momentum magnitude
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Ltot = 0.0_DP          !! System angular momentum vector
       real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
       real(DP)                  :: GMescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
@@ -283,17 +281,14 @@ module swiftest_classes
       class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
       class(swiftest_pl),            allocatable :: pl_discards          !! Discarded massive body particle data structure
-      real(DP)                                   :: Gmtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                                   :: GMtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
       real(DP)                                   :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
       real(DP)                                   :: ke_spin = 0.0_DP     !! System spin kinetic energy
       real(DP)                                   :: pe = 0.0_DP          !! System potential energy
       real(DP)                                   :: te = 0.0_DP          !! System total energy
       real(DP), dimension(NDIM)                  :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
       real(DP), dimension(NDIM)                  :: Lspin = 0.0_DP       !! System spin angular momentum vector
-      real(DP), dimension(NDIM)                  :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                                   :: GMescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                                   :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
-      real(DP)                                   :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+      real(DP), dimension(NDIM)                  :: Ltot = 0.0_DP          !! System angular momentum vector
       logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                                          !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                                          !!    the test particles
