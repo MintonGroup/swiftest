@@ -53,7 +53,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
 
       if (self%nbody == 0) return
-      self%ldiscard(:) = .false.
+      self%ldiscard(1:self%nbody) = .false.
 
       return
    end subroutine discard_pl
@@ -86,9 +86,9 @@ contains
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call discard_cb_tp(tp, system, param)
          if (param%qmin >= 0.0_DP) call discard_peri_tp(tp, system, param)
          if (param%lclose) call discard_pl_tp(tp, system, param)
-         if (any(tp%ldiscard)) then
+         if (any(tp%ldiscard(1:ntp))) then
             allocate(ldiscard, source=tp%ldiscard)
-            call tp%spill(system%tp_discards, ldiscard, ldestructive=.true.)
+            call tp%spill(system%tp_discards, ldiscard(1:ntp), ldestructive=.true.)
          end if
       end associate
 

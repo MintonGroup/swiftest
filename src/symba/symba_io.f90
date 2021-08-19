@@ -273,34 +273,36 @@ contains
          class is (symba_pl)
             select type(tp => system%tp)
             class is (symba_tp)
-               do 
-                  lmatch = .false.
-                  read(LUN, err = 667, iomsg = errmsg) id
+               associate(npl => pl%nbody, ntp => tp%nbody)
+                  do 
+                     lmatch = .false.
+                     read(LUN, err = 667, iomsg = errmsg) id
 
-                  if (idx == cb%id) then
-                     read(LUN, err = 667, iomsg = errmsg) cb%info
-                     lmatch = .true.
-                  else 
-                     if (pl%nbody > 0) then
-                        idx = findloc(pl%id(:), id, dim=1)
-                        if (idx /= 0) then
-                           read(LUN, err = 667, iomsg = errmsg) pl%info(idx)
-                           lmatch = .true.
+                     if (idx == cb%id) then
+                        read(LUN, err = 667, iomsg = errmsg) cb%info
+                        lmatch = .true.
+                     else 
+                        if (npl > 0) then
+                           idx = findloc(pl%id(1:npl), id, dim=1)
+                           if (idx /= 0) then
+                              read(LUN, err = 667, iomsg = errmsg) pl%info(idx)
+                              lmatch = .true.
+                           end if
+                        end if
+                        if (.not.lmatch .and. ntp > 0) then
+                           idx = findloc(tp%id(1:ntp), id, dim=1)
+                           if (idx /= 0) then
+                              read(LUN, err = 667, iomsg = errmsg) tp%info(idx)
+                              lmatch = .true.
+                           end if
                         end if
                      end if
-                     if (.not.lmatch .and. tp%nbody > 0) then
-                        idx = findloc(tp%id(:), id, dim=1)
-                        if (idx /= 0) then
-                           read(LUN, err = 667, iomsg = errmsg) tp%info(idx)
-                           lmatch = .true.
-                        end if
+                     if (.not.lmatch) then
+                        write(*,*) 'Particle id ',id,' not found. Skipping'
+                        read(LUN, err = 667, iomsg = errmsg) tmpinfo
                      end if
-                  end if
-                  if (.not.lmatch) then
-                     write(*,*) 'Particle id ',id,' not found. Skipping'
-                     read(LUN, err = 667, iomsg = errmsg) tmpinfo
-                  end if
-               end do
+                  end do
+               end associate
                close(unit = LUN, err = 667, iomsg = errmsg)
             end select
          end select

@@ -64,6 +64,8 @@ contains
       real(DP)                  :: rji2, irij3, fac, r2
       real(DP), dimension(NDIM) :: dx
 
+      if ((self%nbody == 0) .or. (npl == 0)) return
+
       associate(tp => self, ntp => self%nbody)
          do concurrent(i = 1:ntp, tp%lmask(i))
             do j = 1, npl
