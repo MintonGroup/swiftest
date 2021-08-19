@@ -78,10 +78,10 @@ module swiftest_classes
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
    contains
-      procedure :: reader         => io_param_reader
-      procedure :: writer         => io_param_writer
-      procedure :: dump           => io_dump_param
-      procedure :: read_from_file => io_read_in_param
+      procedure :: reader  => io_param_reader
+      procedure :: writer  => io_param_writer
+      procedure :: dump    => io_dump_param
+      procedure :: read_in => io_read_in_param
    end type swiftest_parameters
 
    !********************************************************************************************************************************
@@ -93,7 +93,6 @@ module swiftest_classes
    contains
       !! The minimal methods that all systems must have
       procedure                                 :: dump => io_dump_swiftest 
-      procedure(abstract_initialize),  deferred :: initialize
       procedure(abstract_read_frame),  deferred :: read_frame
       procedure(abstract_write_frame), deferred :: write_frame
    end type swiftest_base
@@ -128,7 +127,7 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: L0       = 0.0_DP !! Initial angular momentum of the central body
       real(DP), dimension(NDIM) :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
-      procedure :: initialize  => io_read_in_cb        !! I/O routine for reading in central body data
+      procedure :: read_in     => io_read_in_cb        !! I/O routine for reading in central body data
       procedure :: read_frame  => io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central body
       procedure :: write_frame => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
    end type swiftest_cb
@@ -174,7 +173,7 @@ module swiftest_classes
       procedure :: drift       => drift_body               !! Loop through bodies and call Danby drift routine on heliocentric variables
       procedure :: v2pv        => gr_vh2pv_body            !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
       procedure :: pv2v        => gr_pv2vh_body            !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
-      procedure :: initialize  => io_read_in_body          !! Read in body initial conditions from a file
+      procedure :: read_in     => io_read_in_body          !! Read in body initial conditions from a file
       procedure :: read_frame  => io_read_frame_body       !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: write_frame => io_write_frame_body      !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: accel_obl   => obl_acc_body             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
@@ -355,12 +354,6 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
-
-      subroutine abstract_initialize(self, param) 
-         import swiftest_base, swiftest_parameters
-         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine abstract_initialize
 
       subroutine abstract_kick_body(self, system, param, t, dt, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP

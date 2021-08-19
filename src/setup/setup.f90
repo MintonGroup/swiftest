@@ -133,10 +133,10 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-  
-      call self%cb%initialize(param)
-      call self%pl%initialize(param)
-      call self%tp%initialize(param)
+ 
+      call self%cb%read_in(param)
+      call self%pl%read_in(param)
+      call self%tp%read_in(param)
       call self%validate_ids(param)
       call self%set_msys()
       call self%pl%set_mu(self%cb) 

@@ -35,7 +35,7 @@ program swiftest_driver
    param%integrator = integrator
 
    call setup_construct_system(nbody_system, param)
-   call param%read_from_file(param_file_name)
+   call param%read_in(param_file_name)
 
    associate(t          => param%t, &
              t0         => param%t0, &

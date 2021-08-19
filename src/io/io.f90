@@ -157,8 +157,12 @@ contains
          dump_file_name = trim(adjustl(param%intpfile)) 
       end select
       open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', err = 667, iomsg = errmsg)
+      select type(self)
+      class is (swiftest_body)
+         write(iu, err = 667, iomsg = errmsg) self%nbody
+      end select
       call self%write_frame(iu, param)
-      close(LUN, err = 667, iomsg = errmsg)
+      close(iu, err = 667, iomsg = errmsg)
 
       return
 
@@ -205,6 +209,7 @@ contains
          dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
          dump_param%out_form = XV
          dump_param%out_stat = 'APPEND'
+         dump_param%in_type = REAL8_TYPE
          dump_param%T0 = param%t
          call dump_param%dump(param_file_name)
 
@@ -1006,9 +1011,9 @@ contains
             if (.not.allocated(self%capom)) allocate(self%capom(n))
             if (.not.allocated(self%omega)) allocate(self%omega(n))
             if (.not.allocated(self%capm))  allocate(self%capm(n))
-            read(iu, err = 667, iomsg = errmsg)  self%a(:)
-            read(iu, err = 667, iomsg = errmsg)  self%e(:)
-            read(iu, err = 667, iomsg = errmsg)  self%inc(:)
+            read(iu, err = 667, iomsg = errmsg) self%a(:)
+            read(iu, err = 667, iomsg = errmsg) self%e(:)
+            read(iu, err = 667, iomsg = errmsg) self%inc(:)
             read(iu, err = 667, iomsg = errmsg) self%capom(:)
             read(iu, err = 667, iomsg = errmsg) self%omega(:)
             read(iu, err = 667, iomsg = errmsg) self%capm(:)
@@ -1044,7 +1049,14 @@ contains
       return
 
       667 continue
-      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      select type (self)
+      class is (swiftest_pl)
+         write(*,*) "Error reading massive body file: " // trim(adjustl(errmsg))
+      class is (swiftest_tp)
+         write(*,*) "Error reading test particle file: " // trim(adjustl(errmsg))
+      class default
+         write(*,*) "Error reading body file: " // trim(adjustl(errmsg))
+      end select
       call util_exit(FAILURE)
    end subroutine io_read_frame_body
 
@@ -1065,16 +1077,20 @@ contains
       ! Internals
       character(len=STRMAX)   :: errmsg
 
-      read(iu, err = 667, iomsg = errmsg) self%id
       !read(iu, err = 667, iomsg = errmsg) self%name
+      read(iu, err = 667, iomsg = errmsg) self%id
       read(iu, err = 667, iomsg = errmsg) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, err = 667, iomsg = errmsg) self%radius
       read(iu, err = 667, iomsg = errmsg) self%j2rp2 
       read(iu, err = 667, iomsg = errmsg) self%j4rp4 
       if (param%lrotation) then
-         read(iu, err = 667, iomsg = errmsg) self%Ip(:)
-         read(iu, err = 667, iomsg = errmsg) self%rot(:)
+         read(iu, err = 667, iomsg = errmsg) self%Ip(1)
+         read(iu, err = 667, iomsg = errmsg) self%Ip(2)
+         read(iu, err = 667, iomsg = errmsg) self%Ip(3)
+         read(iu, err = 667, iomsg = errmsg) self%rot(1)
+         read(iu, err = 667, iomsg = errmsg) self%rot(2)
+         read(iu, err = 667, iomsg = errmsg) self%rot(3)
       end if
       if (param%ltides) then
          read(iu, err = 667, iomsg = errmsg) self%k2
@@ -1094,29 +1110,22 @@ contains
       !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
-      integer(I4B),                 intent(inout) :: iu     !! Unit number for the output file to write frame to
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+      integer(I4B),                 intent(inout) :: iu    !! Unit number for the output file to write frame to
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      character(*),                 intent(in)    :: form   !! Input format code ("XV" or "EL")
+      character(*),                 intent(in)    :: form  !! Input format code ("XV" or "EL")
       ! Internals
-      logical, save         :: lfirst = .true.
       character(len=STRMAX) :: errmsg
       integer(I4B)          :: ierr
 
-      iu = BINUNIT
-      if (lfirst) then
-         open(unit = iu, file = param%outfile, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg) 
-         lfirst = .false.
-      end if
       ierr = io_read_hdr(iu, param%t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
       if (ierr /= 0) then
-         write(*, *) "Swiftest error:"
-         write(*, *) "   Binary output file already exists or cannot be accessed"
-         return
+         write(errmsg, *) "Cannot read header."
+         goto 667
       end if
-      call self%cb%read_frame(iu, param, form)
-      call self%pl%read_frame(iu, param, form)
-      call self%tp%read_frame(iu, param, form)
+      call self%cb%read_frame(iu, param, param%out_form)
+      call self%pl%read_frame(iu, param, param%out_form)
+      call self%tp%read_frame(iu, param, param%out_form)
 
       return
 
@@ -1137,7 +1146,7 @@ contains
       ! Arguments
       integer(I4B), intent(in)   :: iu
       integer(I4B), intent(out)  :: npl, ntp
-      character(*), intent(out)  ::  out_form
+      character(*), intent(out)  :: out_form
       real(DP),     intent(out)  :: t
       character(*), intent(in)   :: out_type
       ! Result
@@ -1147,19 +1156,18 @@ contains
       character(len=STRMAX) :: errmsg
 
       select case (out_type)
-      case (REAL4_TYPE, SWIFTER_REAL4_TYPE)
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg) ttmp, npl, ntp, out_form
-         if (ierr /= 0) return
+      case (REAL4_TYPE)
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg) ttmp
          t = ttmp
-      case (REAL8_TYPE, SWIFTER_REAL8_TYPE)
+      case (REAL8_TYPE)
          read(iu, iostat = ierr, err = 667, iomsg = errmsg) t
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg) npl
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg) ntp
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg) out_form
       case default
          write(errmsg,*) trim(adjustl(out_type)) // ' is an unrecognized file type'
          ierr = -1
       end select
+      read(iu, iostat = ierr, err = 667, iomsg = errmsg) npl
+      read(iu, iostat = ierr, err = 667, iomsg = errmsg) ntp
+      read(iu, iostat = ierr, err = 667, iomsg = errmsg) out_form
 
       return
 
