@@ -143,6 +143,8 @@ contains
       call self%tp%set_mu(self%cb) 
       call self%pl%eucl_index()
       if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
+      self%pl%lfirst = param%lfirstkick
+      self%tp%lfirst = param%lfirstkick
       return
    end subroutine setup_initialize_system
 
