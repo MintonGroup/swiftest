@@ -24,7 +24,8 @@ module swiftest_classes
       character(STRMAX)    :: incbfile       = CB_INFILE          !! Name of input file for the central body
       character(STRMAX)    :: inplfile       = PL_INFILE          !! Name of input file for massive bodies
       character(STRMAX)    :: intpfile       = TP_INFILE          !! Name of input file for test particles
-      character(STRMAX)    :: in_type        = ASCII_TYPE         !! Format of input data files
+      character(STRMAX)    :: in_type        = ASCII_TYPE         !! Data representation type of input data files
+      character(STRMAX)    :: in_form        = XV                 !! Format of input data files (EL or XV)
       integer(I4B)         :: istep_out      = -1                 !! Number of time steps between binary outputs
       character(STRMAX)    :: outfile        = BIN_OUTFILE        !! Name of output binary file
       character(STRMAX)    :: out_type       = REAL8_TYPE         !! Binary format of output file
@@ -78,10 +79,10 @@ module swiftest_classes
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
    contains
-      procedure :: reader         => io_param_reader
-      procedure :: writer         => io_param_writer
-      procedure :: dump           => io_dump_param
-      procedure :: read_from_file => io_read_param_in
+      procedure :: reader  => io_param_reader
+      procedure :: writer  => io_param_writer
+      procedure :: dump    => io_dump_param
+      procedure :: read_in => io_read_in_param
    end type swiftest_parameters
 
    !********************************************************************************************************************************
@@ -93,7 +94,6 @@ module swiftest_classes
    contains
       !! The minimal methods that all systems must have
       procedure                                 :: dump => io_dump_swiftest 
-      procedure(abstract_initialize),  deferred :: initialize
       procedure(abstract_read_frame),  deferred :: read_frame
       procedure(abstract_write_frame), deferred :: write_frame
    end type swiftest_base
@@ -128,7 +128,7 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: L0       = 0.0_DP !! Initial angular momentum of the central body
       real(DP), dimension(NDIM) :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
-      procedure :: initialize  => io_read_cb_in        !! I/O routine for reading in central body data
+      procedure :: read_in     => io_read_in_cb        !! I/O routine for reading in central body data
       procedure :: read_frame  => io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central body
       procedure :: write_frame => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
    end type swiftest_cb
@@ -174,7 +174,7 @@ module swiftest_classes
       procedure :: drift       => drift_body                 !! Loop through bodies and call Danby drift routine on heliocentric variables
       procedure :: v2pv        => gr_vh2pv_body              !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
       procedure :: pv2v        => gr_pv2vh_body              !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
-      procedure :: initialize  => io_read_body_in            !! Read in body initial conditions from a file
+      procedure :: read_in     => io_read_in_body          !! Read in body initial conditions from a file
       procedure :: read_frame  => io_read_frame_body         !! I/O routine for writing out a single frame of time-series data for the central body
       !procedure :: write_frame => io_write_frame_body        !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: write_frame => io_netcdf_write_frame_body !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
@@ -307,6 +307,7 @@ module swiftest_classes
       procedure :: discard                 => discard_system                  !! Perform a discard step on the system
       procedure :: conservation_report     => io_conservation_report          !! Compute energy and momentum and print out the change with time
       procedure :: dump                    => io_dump_system                  !! Dump the state of the system to a file
+      procedure :: get_old_t_final         => io_get_old_t_final_system       !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
       procedure :: read_frame              => io_read_frame_system            !! Read in a frame of input data from file
       procedure :: write_discard           => io_write_discard                !! Write out information about discarded test particles
       !procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
@@ -358,12 +359,6 @@ module swiftest_classes
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
 
-      subroutine abstract_initialize(self, param) 
-         import swiftest_base, swiftest_parameters
-         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine abstract_initialize
-
       subroutine abstract_kick_body(self, system, param, t, dt, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          implicit none
@@ -375,13 +370,13 @@ module swiftest_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine abstract_kick_body
 
-      subroutine abstract_read_frame(self, iu, param, form)
+      function abstract_read_frame(self, iu, param) result(ierr)
          import DP, I4B, swiftest_base, swiftest_parameters
          class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
-      end subroutine abstract_read_frame
+         integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
+      end function abstract_read_frame
 
       subroutine abstract_set_mu(self, cb) 
          import swiftest_body, swiftest_cb
@@ -581,6 +576,13 @@ module swiftest_classes
          integer(I4B)                  :: ierr             !! I/O error code 
       end function io_get_args
 
+      module function io_get_old_t_final_system(self, param) result(old_t_final)
+         implicit none
+         class(swiftest_nbody_system), intent(in) :: self
+         class(swiftest_parameters),   intent(in) :: param
+         real(DP)                                 :: old_t_final
+      end function io_get_old_t_final_system
+
       module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
          implicit none
          character(len=*), intent(in)    :: buffer         !! Input string buffer
@@ -612,47 +614,47 @@ module swiftest_classes
          character(len=*),           intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine io_param_writer
 
-      module subroutine io_read_body_in(self, param) 
+      module subroutine io_read_in_body(self, param) 
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_body_in
+      end subroutine io_read_in_body
 
-      module subroutine io_read_cb_in(self, param) 
+      module subroutine io_read_in_cb(self, param) 
          implicit none
          class(swiftest_cb),         intent(inout) :: self  !! Swiftest central body object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_cb_in
+      end subroutine io_read_in_cb
 
-      module subroutine io_read_param_in(self, param_file_name) 
+      module subroutine io_read_in_param(self, param_file_name) 
          implicit none
          class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
-      end subroutine io_read_param_in
+      end subroutine io_read_in_param
 
-      module subroutine io_read_frame_body(self, iu, param, form)
+      module function io_read_frame_body(self, iu, param) result(ierr)
          implicit none
-         class(swiftest_body),       intent(inout) :: self   !! Swiftest body object
-         integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-         character(*),               intent(in)    :: form   !! Input format code ("XV" or "EL")
-      end subroutine io_read_frame_body
+         class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
+         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+         integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
+      end function io_read_frame_body
 
-      module subroutine io_read_frame_cb(self, iu, param, form)
+      module function io_read_frame_cb(self, iu, param) result(ierr)
          implicit none
-         class(swiftest_cb),         intent(inout) :: self    !! Swiftest central body object
-         integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-         character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
-      end subroutine io_read_frame_cb
+         class(swiftest_cb),         intent(inout) :: self  !! Swiftest central body object
+         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+         integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
+      end function io_read_frame_cb
 
-      module subroutine io_read_frame_system(self, iu, param, form)
+      module function io_read_frame_system(self, iu, param) result(ierr)
          implicit none
          class(swiftest_nbody_system),intent(inout) :: self  !! Swiftest system object
          integer(I4B),                intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
-         character(*),                intent(in)    :: form  !! Input format code ("XV" or "EL")
-      end subroutine io_read_frame_system
+         integer(I4B)                               :: ierr  !! Error code: returns 0 if the read is successful
+      end function io_read_frame_system
 
       module subroutine io_write_discard(self, param)
          implicit none
