@@ -27,6 +27,7 @@ TU2S           3.15569259747e7    ! time unit to seconds (years --> seconds)
 GMTINY         1e-10		  
 ENERGY         yes
 ENERGY_OUT     energy.dat
+ENERGY_OUT     energy.dat
 ROTATION       yes
 FRAGMENTATION  yes
 SEED           8 12261555 871132 92734722 21132443 36344777 4334443 219291656 3848566
