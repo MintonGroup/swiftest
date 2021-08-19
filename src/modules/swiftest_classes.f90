@@ -81,7 +81,7 @@ module swiftest_classes
       procedure :: reader         => io_param_reader
       procedure :: writer         => io_param_writer
       procedure :: dump           => io_dump_param
-      procedure :: read_from_file => io_read_param_in
+      procedure :: read_from_file => io_read_in_param
    end type swiftest_parameters
 
    !********************************************************************************************************************************
@@ -622,11 +622,11 @@ module swiftest_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine io_read_in_cb
 
-      module subroutine io_read_param_in(self, param_file_name) 
+      module subroutine io_read_in_param(self, param_file_name) 
          implicit none
          class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
-      end subroutine io_read_param_in
+      end subroutine io_read_in_param
 
       module subroutine io_read_frame_body(self, iu, param, form)
          implicit none

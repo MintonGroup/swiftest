@@ -1169,7 +1169,7 @@ contains
       return
    end function io_read_hdr
 
-   module subroutine io_read_param_in(self, param_file_name) 
+   module subroutine io_read_in_param(self, param_file_name) 
       !! author: David A. Minton
       !!
       !! Read in parameters for the integration
@@ -1201,7 +1201,7 @@ contains
       667 continue
       write(*,*) "Error reading parameter file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
-   end subroutine io_read_param_in
+   end subroutine io_read_in_param
 
 
    module subroutine io_toupper(string)
