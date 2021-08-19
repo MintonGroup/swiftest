@@ -20,7 +20,7 @@ contains
       ! Internals
       integer(I4B) :: i, j
       real(DP)     :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
-      character(len=STRMAX) :: idstr
+      character(len=STRMAX) :: idstr, timestr
    
       associate(npl => pl%nbody, cb => system%cb)
          call system%set_msys()
@@ -35,13 +35,15 @@ contains
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMAX
                   write(idstr, *) pl%id(i)
-                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too far from the central body at t = ", param%t
+                  write(timestr, *) param%t
+                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too far from the central body at t = " // trim(adjustl(timestr))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMIN
                   write(idstr, *) pl%id(i)
-                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too close to the central body at t = ", param%t
+                  write(timestr, *) param%t
+                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too close to the central body at t = " // trim(adjustl(timestr))
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
                   vb2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -51,7 +53,8 @@ contains
                      pl%lcollision(i) = .false. 
                      pl%status(i) = DISCARDED_RMAXU
                      write(idstr, *) pl%id(i)
-                     write(*, *) "Massive body " // trim(adjustl(idstr)) // " is unbound and too far from barycenter at t = ", param%t
+                     write(timestr, *) param%t
+                     write(*, *) "Massive body " // trim(adjustl(idstr)) // " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
                   end if
                end if
             end if
