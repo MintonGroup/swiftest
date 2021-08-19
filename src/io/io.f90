@@ -909,6 +909,13 @@ contains
 
       if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
       if (param%rmin < 0.0) param%rmin = self%radius
+      
+      select type(cb => self)
+      class is (symba_cb)
+         cb%M0 = cb%mass
+         cb%R0 = cb%radius
+         cb%L0(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+      end select
 
       return
 
