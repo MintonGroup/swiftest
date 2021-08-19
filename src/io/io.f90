@@ -1804,7 +1804,7 @@ contains
          case('NEW', 'REPLACE', 'UNKNOWN')
          
             !! Create the new output file, deleting any previously existing output file of the same name
-            call check( nf90_create(param%outfile, NF90_HDF5, ncid) )
+            call check( nf90_create(param%outfile, NF90_NETCDF4, ncid) )
 
             !! Calculate the number of outputs needed to cover the entire simulation time
             noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output
