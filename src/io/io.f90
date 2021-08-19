@@ -299,6 +299,45 @@ contains
    end function io_get_args
 
 
+   module function io_get_old_t_final_system(self, param) result(old_t_final)
+      !! author: David A. Minton
+      !!
+      !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(in) :: self
+      class(swiftest_parameters),   intent(in) :: param
+      ! Result
+      real(DP)                                 :: old_t_final
+      ! Internals
+      class(swiftest_nbody_system), allocatable :: tmpsys
+      class(swiftest_parameters),   allocatable :: tmpparam
+      integer(I4B), parameter :: LUN = 76
+      integer(I4B) :: ierr, iu = LUN
+      character(len=STRMAX)            :: errmsg
+
+      old_t_final = 0.0_DP
+      allocate(tmpsys, source=self)
+      allocate(tmpparam, source=param)
+
+      ierr = 0
+      open(unit = iu, file = param%outfile, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+      do 
+         ierr = tmpsys%read_frame(iu, tmpparam)
+         if (ierr /= 0) exit
+      end do
+      if (is_iostat_end(ierr)) then
+         old_t_final = tmpparam%t
+         return
+      end if
+
+      667 continue
+      write(*,*) "Error reading binary output file. " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end function io_get_old_t_final_system
+
+
    module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
       !! author: David A. Minton
       !!
@@ -814,6 +853,7 @@ contains
       character(len=:), allocatable :: infile
       real(DP)                      :: t
       character(STRMAX)             :: errmsg
+      integer(I4B)                  :: ierr
 
       ! Select the appropriate polymorphic class (test particle or massive body)
       select type(self)
@@ -839,15 +879,15 @@ contains
       end select
 
       call self%setup(nbody, param)
+      ierr = 0
       if (nbody > 0) then
-         call self%read_frame(iu, param)
+         ierr = self%read_frame(iu, param)
          self%status(:) = ACTIVE
          self%lmask(:) = .true.
       end if
-
       close(iu, err = 667, iomsg = errmsg)
 
-      return
+      if (ierr == 0) return
 
       667 continue
       write(*,*) 'Error reading in initial conditions file: ',trim(adjustl(errmsg))
@@ -870,6 +910,7 @@ contains
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
       integer(I4B)            :: iu = LUN
       character(len=STRMAX)   :: errmsg
+      integer(I4B)            :: ierr
 
       if (param%in_type == 'ASCII') then
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
@@ -885,20 +926,22 @@ contains
          end if
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         call self%read_frame(iu, param)
+         ierr = self%read_frame(iu, param)
       end if
       close(iu, err = 667, iomsg = errmsg)
 
-      if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
-      if (param%rmin < 0.0) param%rmin = self%radius
-      
-      select type(cb => self)
-      class is (symba_cb)
-         cb%M0 = cb%mass
-         cb%R0 = cb%radius
-         cb%L0(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
-      end select
-
+      if (ierr == 0) then
+   
+         if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
+         if (param%rmin < 0.0) param%rmin = self%radius
+         
+         select type(cb => self)
+         class is (symba_cb)
+            cb%M0 = cb%mass
+            cb%R0 = cb%radius
+            cb%L0(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+         end select
+      end if
       return
 
       667 continue
@@ -958,7 +1001,7 @@ contains
    end function io_read_encounter
 
 
-   module subroutine io_read_frame_body(self, iu, param)
+   module function io_read_frame_body(self, iu, param) result(ierr)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of either test particle or massive body data from a binary output file
@@ -970,10 +1013,14 @@ contains
       class(swiftest_body),       intent(inout) :: self   !! Swiftest particle object
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Result
+      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       character(len=STRMAX)   :: errmsg
       integer(I4B) :: i
       real(QP)                      :: val
+
+      if (self%nbody == 0) return
 
       if ((param%in_form /= EL) .and. (param%in_form /= XV)) then
          write(errmsg, *) trim(adjustl(param%in_form)) // " is not a recognized format code for input files."
@@ -1074,6 +1121,7 @@ contains
          end select
       end associate
 
+      ierr = 0
       return
 
       667 continue
@@ -1086,10 +1134,10 @@ contains
          write(*,*) "Error reading body file: " // trim(adjustl(errmsg))
       end select
       call util_exit(FAILURE)
-   end subroutine io_read_frame_body
+   end function io_read_frame_body
 
 
-   module subroutine io_read_frame_cb(self, iu, param)
+   module function io_read_frame_cb(self, iu, param) result(ierr)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of central body data to the binary output file
@@ -1101,6 +1149,8 @@ contains
       class(swiftest_cb),         intent(inout) :: self     !! Swiftest central body object
       integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
+      ! Result
+      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       character(len=STRMAX)   :: errmsg
 
@@ -1123,15 +1173,17 @@ contains
          read(iu, err = 667, iomsg = errmsg) self%k2
          read(iu, err = 667, iomsg = errmsg) self%Q
       end if
+
+      ierr = 0
       return
 
       667 continue
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
-   end subroutine io_read_frame_cb
+   end function io_read_frame_cb
 
 
-   module subroutine io_read_frame_system(self, iu, param)
+   module function io_read_frame_system(self, iu, param) result(ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
@@ -1140,18 +1192,34 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
       integer(I4B),                 intent(inout) :: iu    !! Unit number for the output file to write frame to
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      ! Result
+      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       character(len=STRMAX) :: errmsg
-      integer(I4B)          :: ierr
 
       ierr = io_read_hdr(iu, param%t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
+      if (is_iostat_end(ierr)) return ! Reached the end of the frames
+
       if (ierr /= 0) then
-         write(errmsg, *) "Cannot read header."
+         write(errmsg, *) "Cannot read frame header."
          goto 667
       end if
-      call self%cb%read_frame(iu, param)
-      call self%pl%read_frame(iu, param)
-      call self%tp%read_frame(iu, param)
+      ierr = self%cb%read_frame(iu, param)
+      if (ierr /= 0) then
+         write(errmsg, *) "Cannot read central body frame."
+         goto 667
+      end if
+      ierr = self%pl%read_frame(iu, param)
+      if (ierr /= 0) then
+         write(errmsg, *) "Cannot read massive body frame."
+         goto 667
+      end if
+      ierr = self%tp%read_frame(iu, param)
+      if (ierr /= 0) then
+         write(errmsg, *) "Cannot read test particle frame."
+         goto 667
+      end if
+
       if (param%in_form == EL) then
          call self%pl%el2xv(self%cb)
          call self%tp%el2xv(self%cb)
@@ -1161,8 +1229,7 @@ contains
 
       667 continue
       write(*,*) "Error reading system frame: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_read_frame_system
+   end function io_read_frame_system
 
 
    function io_read_hdr(iu, t, npl, ntp, out_form, out_type) result(ierr)
@@ -1187,10 +1254,10 @@ contains
 
       select case (out_type)
       case (REAL4_TYPE)
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg) ttmp
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg, end = 333) ttmp
          t = ttmp
       case (REAL8_TYPE)
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg) t
+         read(iu, iostat = ierr, err = 667, iomsg = errmsg, end = 333) t
       case default
          write(errmsg,*) trim(adjustl(out_type)) // ' is an unrecognized file type'
          ierr = -1
@@ -1203,6 +1270,8 @@ contains
 
       667 continue
       write(*,*) "Error reading header: " // trim(adjustl(errmsg))
+      333 continue
+      return
 
       return
    end function io_read_hdr

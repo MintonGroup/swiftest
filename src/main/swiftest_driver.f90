@@ -19,6 +19,7 @@ program swiftest_driver
    integer(I8B)                               :: iout             !! Output cadence counter
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    integer(I4B)                               :: iu               !! Unit number of binary file
+   real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -50,8 +51,15 @@ program swiftest_driver
       iout = istep_out
       idump = istep_dump
       nloops = ceiling(tstop / dt, kind=I8B)
-      if (istep_out > 0 .and. (.not.param%lrestart)) call nbody_system%write_frame(iu, param)
-      if (.not.param%lrestart) call nbody_system%dump(param)
+      ! Prevent duplicate frames from being written if this is a restarted run
+      if (param%lrestart) then
+         old_t_final = nbody_system%get_old_t_final(param)
+      else
+         old_t_final = t0
+         if (istep_out > 0) call nbody_system%write_frame(iu, param)
+         call nbody_system%dump(param)
+      end if
+
 
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
@@ -73,7 +81,7 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               call nbody_system%write_frame(iu, param)
+               if (t > old_t_final) call nbody_system%write_frame(iu, param)
                iout = istep_out
             end if
          end if
