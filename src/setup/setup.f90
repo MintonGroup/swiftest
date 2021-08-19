@@ -264,8 +264,8 @@ contains
       end if
 
       if (param%lrotation) then
-         if (allocated(self%rot)) deallocate(self%rhill)
-         if (allocated(self%Ip)) deallocate(self%rhill)
+         if (allocated(self%rot)) deallocate(self%rot)
+         if (allocated(self%Ip)) deallocate(self%Ip)
          allocate(self%rot(NDIM, n))
          allocate(self%Ip(NDIM, n))
          self%rot(:,:) = 0.0_DP
@@ -273,9 +273,9 @@ contains
       end if
 
       if (param%ltides) then
-         if (allocated(self%k2)) deallocate(self%rhill)
-         if (allocated(self%Q)) deallocate(self%rhill)
-         if (allocated(self%tlag)) deallocate(self%rhill)
+         if (allocated(self%k2)) deallocate(self%k2)
+         if (allocated(self%Q)) deallocate(self%Q)
+         if (allocated(self%tlag)) deallocate(self%tlag)
          allocate(self%k2(n))
          allocate(self%Q(n))
          allocate(self%tlag(n))

@@ -1196,9 +1196,12 @@ contains
       integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       character(len=STRMAX) :: errmsg
+      integer(I4B) :: npl, ntp
 
-      ierr = io_read_hdr(iu, param%t, self%pl%nbody, self%tp%nbody, param%out_form, param%out_type)
+      ierr = io_read_hdr(iu, param%t, npl, ntp, param%out_form, param%out_type)
       if (is_iostat_end(ierr)) return ! Reached the end of the frames
+      call self%pl%setup(npl, param)
+      call self%tp%setup(ntp, param)
 
       if (ierr /= 0) then
          write(errmsg, *) "Cannot read frame header."
