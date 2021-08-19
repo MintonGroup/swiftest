@@ -60,14 +60,14 @@ module swiftest_classes
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
-      real(DP)                  :: Mtot_orig = 0.0_DP     !! Initial system mass
+      real(DP)                  :: GMtot_orig = 0.0_DP     !! Initial system mass
       real(DP)                  :: Lmag_orig = 0.0_DP     !! Initial total angular momentum magnitude
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
       real(DP), dimension(NDIM) :: Ltot = 0.0_DP          !! System angular momentum vector
       real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Mescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: GMescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
       real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
@@ -291,7 +291,7 @@ module swiftest_classes
       real(DP), dimension(NDIM)                  :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
       real(DP), dimension(NDIM)                  :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)                  :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                                   :: Mescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                                   :: GMescape = 0.0_DP     !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                                   :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
       real(DP)                                   :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 

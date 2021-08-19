@@ -85,7 +85,7 @@ contains
       class is (symba_cb)
    
          ! Add the potential and kinetic energy of the lost body to the records
-         pe = -cb%mass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
+         pe = -cb%Gmass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
             ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
@@ -96,7 +96,7 @@ contains
          ! Add the pre-collision ke of the central body to the records
          ! Add planet mass to central body accumulator
          if (lescape_body) then
-            system%Mescape = system%Mescape + pl%mass(ipl)
+            system%GMescape = system%GMescape + pl%Gmass(ipl)
             do i = 1, pl%nbody
                if (i == ipl) cycle
                pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
@@ -133,10 +133,10 @@ contains
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
             if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
             ! Update mass of central body to be consistent with its total mass
-            cb%dM = cb%dM + pl%mass(ipl)
+            cb%dGM = cb%dGM + pl%Gmass(ipl)
             cb%dR = cb%dR + 1.0_DP / 3.0_DP * (pl%radius(ipl) / cb%radius)**3 - 2.0_DP / 9.0_DP * (pl%radius(ipl) / cb%radius)**6
-            cb%mass = cb%M0 + cb%dM
-            cb%Gmass = param%GU * cb%mass 
+            cb%Gmass = cb%GM0 + cb%dGM
+            cb%mass = cb%Gmass / param%GU
             cb%radius = cb%R0 + cb%dR
             param%rmin = cb%radius
             ! Add planet angular momentum to central body accumulator
