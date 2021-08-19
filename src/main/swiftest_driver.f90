@@ -50,8 +50,8 @@ program swiftest_driver
       iout = istep_out
       idump = istep_dump
       nloops = ceiling(tstop / dt, kind=I8B)
-      if (istep_out > 0) call nbody_system%write_frame(iu, param)
-      call nbody_system%dump(param)
+      if (istep_out > 0 .and. (.not.param%lrestart)) call nbody_system%write_frame(iu, param)
+      if (.not.param%lrestart) call nbody_system%dump(param)
 
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
