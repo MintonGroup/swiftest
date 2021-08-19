@@ -61,7 +61,9 @@ contains
                         end if
 
                         ! Swap the planetocentric and heliocentric position vectors and central body masses
-                        tp%xh(:,:) = tp%xheliocentric(:,:)
+                        do concurrent(i = 1:ntp, tp%lmask(i))
+                           tp%xh(:, i) = tp%xheliocentric(:, i)
+                        end do
                         GMcb_original = cb%Gmass
                         cb%Gmass = tp%cb_heliocentric%Gmass
 
@@ -71,7 +73,7 @@ contains
                         if (param%lgr) call tp%accel_gr(param)
 
                         ! Put everything back the way we found it
-                        tp%xh(:,:) = xh_original(:,:)
+                        call move_alloc(xh_original, tp%xh)
                         cb%Gmass = GMcb_original
 
                      end associate

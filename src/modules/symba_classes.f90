@@ -497,8 +497,8 @@ module symba_classes
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                   value         :: t
-         integer(I4B),               value         :: ireci !! input recursion level
+         real(DP),                   intent(in)        :: t
+         integer(I4B),               intent(in)        :: ireci !! input recursion level
       end subroutine symba_step_recur_system
 
       module subroutine symba_step_reset_system(self, param)

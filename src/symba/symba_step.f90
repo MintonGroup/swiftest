@@ -33,6 +33,7 @@ contains
                   pl%lfirst = .true.
                   tp%lfirst = .true.
                else
+                  self%irec = -1
                   call helio_step_system(self, param, t, dt)
                end if
             end select
@@ -145,8 +146,8 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   value         :: t
-      integer(I4B),               value         :: ireci !! input recursion level
+      real(DP),                   intent(in)    :: t
+      integer(I4B),               intent(in)    :: ireci !! input recursion level
       ! Internals
       integer(I4B) :: i, j, irecp, nloops
       real(DP) :: dtl, dth
@@ -234,32 +235,38 @@ contains
          class is (symba_pl)
             select type(tp => system%tp)
             class is (symba_tp)
-               if (pl%nbody > 0) then
-                  pl%lcollision(:) = .false.
-                  pl%kin(:)%parent = [(i, i=1, pl%nbody)]
-                  pl%kin(:)%nchild = 0
-                  do i = 1, pl%nbody
-                     if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-                  end do
-                  pl%nplenc(:) = 0
-                  pl%ntpenc(:) = 0
-                  pl%levelg(:) = 0
-                  pl%levelm(:) = 0
-                  pl%lencounter = .false.
-                  pl%lcollision = .false.
-                  system%plplenc_list%nenc = 0
-                  system%plplcollision_list%nenc = 0
-               end if
-           
-               if (tp%nbody > 0) then
-                  tp%nplenc(:) = 0 
-                  tp%levelg(:) = 0
-                  tp%levelm(:) = 0
-               system%pltpenc_list%nenc = 0
-               end if
+               associate(npl => pl%nbody, ntp => tp%nbody)
+                  if (npl > 0) then
+                     pl%lcollision(1:npl) = .false.
+                     pl%kin(1:npl)%parent = [(i, i=1, npl)]
+                     pl%kin(1:npl)%nchild = 0
+                     do i = 1, npl
+                        if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
+                     end do
+                     pl%nplenc(1:npl) = 0
+                     pl%ntpenc(1:npl) = 0
+                     pl%levelg(1:npl) = -1
+                     pl%levelm(1:npl) = -1
+                     pl%lencounter(1:npl) = .false.
+                     pl%lcollision(1:npl) = .false.
+                     pl%ldiscard(1:npl) = .false.
+                     pl%lmask(1:npl) = .true.
+                     system%plplenc_list%nenc = 0
+                     system%plplcollision_list%nenc = 0
+                  end if
+            
+                  if (ntp > 0) then
+                     tp%nplenc(1:ntp) = 0 
+                     tp%levelg(1:ntp) = -1
+                     tp%levelm(1:ntp) = -1
+                     tp%lmask(1:ntp) = .true.
+                     pl%ldiscard(1:npl) = .false.
+                     system%pltpenc_list%nenc = 0
+                  end if
 
-               call system%pl_adds%setup(0, param)
-               call system%pl_discards%setup(0, param)
+                  call system%pl_adds%setup(0, param)
+                  call system%pl_discards%setup(0, param)
+               end associate
             end select
          end select
       end associate

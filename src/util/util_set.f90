@@ -77,7 +77,7 @@ contains
       class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
-      if (self%nbody > 0) self%mu(:) = cb%Gmass + self%Gmass(:)
+      if (self%nbody > 0) self%mu(1:self%nbody) = cb%Gmass + self%Gmass(1:self%nbody)
 
       return
    end subroutine util_set_mu_pl
@@ -92,7 +92,8 @@ contains
       class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
-      if (self%nbody > 0) self%mu(:) = cb%Gmass
+      if (self%nbody == 0) return
+      self%mu(1:self%nbody) = cb%Gmass
 
       return
    end subroutine util_set_mu_tp
@@ -107,10 +108,10 @@ contains
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
 
-      if (self%nbody > 0) then
-         call self%xv2el(cb) 
-         self%rhill(:) = self%a(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
-      end if
+      if (self%nbody == 0) return
+
+      call self%xv2el(cb) 
+      self%rhill(1:self%nbody) = self%a(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
 
       return
    end subroutine util_set_rhill
@@ -127,10 +128,10 @@ contains
       ! Internals
       real(DP), dimension(:), allocatable :: rh
 
-      if (self%nbody > 0) then
-         rh(:) = .mag. self%xh(:,:)
-         self%rhill(:) = rh(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
-      end if
+      if (self%nbody == 0) return
+
+      rh(1:self%nbody) = .mag. self%xh(:,1:self%nbody)
+      self%rhill(1:self%nbody) = rh(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
 
       return
    end subroutine util_set_rhill_approximate
