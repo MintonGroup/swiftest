@@ -213,8 +213,8 @@ contains
                         associate(i1 => ind1(good_idx(i)), i2 => ind2(good_idx(i)))
                            pl%vb(:,i1) = pl%vb(:,i1) + sgn * dt * pl%ah(:,i1)
                            pl%vb(:,i2) = pl%vb(:,i2) + sgn * dt * pl%ah(:,i2)
-                           pl%ah(:,ind1(1:nenc)) = 0.0_DP
-                           pl%ah(:,ind2(1:nenc)) = 0.0_DP
+                           pl%ah(:,i1) = 0.0_DP
+                           pl%ah(:,i2) = 0.0_DP
                         end associate
                      end do
                   else
