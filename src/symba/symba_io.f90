@@ -278,7 +278,7 @@ contains
                      lmatch = .false.
                      read(LUN, err = 667, iomsg = errmsg, end = 333) id
 
-                     if (idx == cb%id) then
+                     if (id == cb%id) then
                         read(LUN, err = 667, iomsg = errmsg) cb%info
                         lmatch = .true.
                      else 

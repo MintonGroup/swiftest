@@ -14,11 +14,10 @@ contains
       ! Internals
       real(DP), dimension(NDIM)       :: Ltot_now,  Lorbit_now,  Lspin_now
       real(DP), dimension(NDIM), save :: Ltot_last, Lorbit_last, Lspin_last
-      real(DP), save                  :: ke_orbit_last, ke_spin_last, pe_last, Eorbit_last
       real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  Eorbit_now
       real(DP)                        :: Eorbit_error, Etotal_error, Ecoll_error
-      real(DP)                        :: GMtot_now, Merror
-      real(DP)                        :: Lmag_now, Lerror
+      real(DP)                        :: GMtot_now
+      real(DP)                        :: Lerror, Merror
       character(len=STRMAX)           :: errmsg
       character(len=*), parameter     :: EGYFMT = '(ES23.16,10(",",ES23.16,:))' ! Format code for all simulation output
       character(len=*), parameter     :: EGYHEADER = '("t,Eorbit,Ecollisions,Lx,Ly,Lz,Mtot")'
@@ -28,12 +27,9 @@ contains
                                                          "; D(Eorbit+Ecollisions)/|E0| = ", ES12.5, &
                                                          "; DM/M0 = ", ES12.5)'
 
-      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, Ecollisions => self%Ecollisions, Lescape => self%Lescape, GMescape => self%GMescape, &
-               Euntracked => self%Euntracked, Eorbit_orig => param%Eorbit_orig, GMtot_orig => param%GMtot_orig, &
-               Ltot_orig => param%Ltot_orig(:), Lmag_orig => param%Lmag_orig, Lorbit_orig => param%Lorbit_orig(:), Lspin_orig => param%Lspin_orig(:), &
-               lfirst => param%lfirstenergy)
+      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody)
          if (param%energy_out /= "") then
-            if (lfirst .and. (param%out_stat /= "OLD")) then
+            if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
                write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
             else
@@ -46,48 +42,34 @@ contains
          ke_orbit_now = system%ke_orbit
          ke_spin_now = system%ke_spin
          pe_now = system%pe
-         Lorbit_now = system%Lorbit
-         Lspin_now = system%Lspin
+         Lorbit_now(:) = system%Lorbit(:)
+         Lspin_now(:) = system%Lspin(:)
          Eorbit_now = ke_orbit_now + ke_spin_now + pe_now
-         Ltot_now(:) = Lorbit_now(:) + Lspin_now(:) + Lescape(:)
-         GMtot_now = cb%Gmass + sum(pl%Gmass(1:npl)) + system%GMescape
-         if (lfirst) then
-            Eorbit_orig = Eorbit_now
-            GMtot_orig = GMtot_now
-            Lorbit_orig(:) = Lorbit_now(:)
-            Lspin_orig(:) = Lspin_now(:)
-            Ltot_orig(:) = Ltot_now(:)
-            Lmag_orig = norm2(Ltot_orig(:))
-            lfirst = .false.
+         Ltot_now(:) = system%Ltot(:) + param%Lescape(:)
+         GMtot_now = system%GMtot + param%GMescape 
+
+         if (param%lfirstenergy) then
+            param%Eorbit_orig = Eorbit_now
+            param%GMtot_orig = GMtot_now
+            param%Lorbit_orig(:) = Lorbit_now(:)
+            param%Lspin_orig(:) = Lspin_now(:)
+            param%Ltot_orig(:) = Ltot_now(:)
+            param%lfirstenergy = .false.
          end if
 
          if (param%energy_out /= "") then
-            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, Ecollisions, Ltot_now, GMtot_now
+            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, param%Ecollisions, Ltot_now, GMtot_now
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
-         if (.not.lfirst .and. lterminal) then 
-            Lmag_now = norm2(Ltot_now)
-            Lerror = norm2(Ltot_now - Ltot_orig) / Lmag_orig
-            Eorbit_error = (Eorbit_now - Eorbit_orig) / abs(Eorbit_orig)
-            Ecoll_error = Ecollisions / abs(Eorbit_orig)
-            Etotal_error = (Eorbit_now - Ecollisions - Eorbit_orig - Euntracked) / abs(Eorbit_orig)
-            Merror = (GMtot_now - GMtot_orig) / GMtot_orig
+
+         if (.not.param%lfirstenergy .and. lterminal) then 
+            Lerror = norm2(Ltot_now(:) - param%Ltot_orig(:)) / norm2(param%Ltot_orig(:))
+            Eorbit_error = (Eorbit_now - param%Eorbit_orig) / abs(param%Eorbit_orig)
+            Ecoll_error = param%Ecollisions / abs(param%Eorbit_orig)
+            Etotal_error = (Eorbit_now - param%Ecollisions - param%Eorbit_orig - param%Euntracked) / abs(param%Eorbit_orig)
+            Merror = (GMtot_now - param%GMtot_orig) / param%GMtot_orig
             write(*, egytermfmt) Lerror, Ecoll_error, Etotal_error, Merror
-            ! if (Ecoll_error > 0.0_DP) then
-            !    write(*,*) 'Something has gone wrong! Collisional energy should not be positive!'
-            !    write(*,*) 'dke_orbit: ',(ke_orbit_now - ke_orbit_last) / abs(Eorbit_orig)
-            !    write(*,*) 'dke_spin : ',(ke_spin_now - ke_spin_last) / abs(Eorbit_orig)
-            !    write(*,*) 'dpe      : ',(pe_now - pe_last) / abs(Eorbit_orig)
-            !    write(*,*)
-            ! end if
          end if
-         ke_orbit_last = ke_orbit_now
-         ke_spin_last = ke_spin_now
-         pe_last = pe_now
-         Eorbit_last = Eorbit_now
-         Lorbit_last(:) = Lorbit_now(:)
-         Lspin_last(:) = Lspin_now(:)
-         Ltot_last(:) = Ltot_now(:)
       end associate
 
       return
@@ -212,6 +194,7 @@ contains
          dump_param%out_stat = 'APPEND'
          dump_param%in_type = REAL8_TYPE
          dump_param%T0 = param%t
+
          call dump_param%dump(param_file_name)
 
          call self%cb%dump(dump_param)
@@ -536,7 +519,6 @@ contains
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
                      read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(i)
                   end do
-                     param%Lmag_orig = norm2(param%Ltot_orig(:))
                case("LORBIT_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Lorbit_orig(1)
                   do i = 2, NDIM
