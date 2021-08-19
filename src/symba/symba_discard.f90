@@ -92,7 +92,7 @@ contains
             system%Mescape = system%Mescape + pl%mass(ipl)
             do i = 1, pl%nbody
                if (i == ipl) cycle
-               pe = pe - pl%mass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
+               pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
             end do
    
             Ltot(:) = 0.0_DP
