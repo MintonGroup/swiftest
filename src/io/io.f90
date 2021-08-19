@@ -214,8 +214,8 @@ contains
          call dump_param%dump(param_file_name)
 
          call self%cb%dump(dump_param)
-         if (self%pl%nbody > 0) call self%pl%dump(dump_param)
-         if (self%tp%nbody > 0) call self%tp%dump(dump_param)
+         call self%pl%dump(dump_param)
+         call self%tp%dump(dump_param)
 
          idx = idx + 1
          if (idx > NDUMPFILES) idx = 1
