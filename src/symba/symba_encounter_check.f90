@@ -46,10 +46,18 @@ contains
                plplenc_list%id1(1:nenc) = pl%id(plplenc_list%index1(1:nenc))
                plplenc_list%id2(1:nenc) = pl%id(plplenc_list%index2(1:nenc))
                do k = 1, nenc
-                  plplenc_list%status(k) = ACTIVE
-                  plplenc_list%level(k) = irec
-                  pl%lencounter(plplenc_list%index1(k)) = .true.
-                  pl%lencounter(plplenc_list%index2(k)) = .true.
+                  associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
+                     plplenc_list%status(k) = ACTIVE
+                     plplenc_list%level(k) = irec
+                     pl%lencounter(i) = .true.
+                     pl%lencounter(j) = .true.
+                     pl%levelg(i) = irec
+                     pl%levelm(i) = irec
+                     pl%levelg(j) = irec
+                     pl%levelm(j) = irec
+                     pl%nplenc(i) = pl%nplenc(i) + 1
+                     pl%nplenc(j) = pl%nplenc(j) + 1
+                  end associate
                end do
             end associate
          end if
@@ -177,16 +185,24 @@ contains
                call pltpenc_list%resize(nenc)
                pltpenc_list%status(1:nenc) = ACTIVE
                pltpenc_list%level(1:nenc) = irec
-               pltpenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:,:), lencounter(:,:))
-               pltpenc_list%index1(1:nenc) = pack(spread([(i, i = 1, npl)], dim=1, ncopies=ntp), lencounter(:,:)) 
-               pltpenc_list%index2(1:nenc) = pack(spread([(i, i = 1, ntp)], dim=2, ncopies=npl), lencounter(:,:))
+               pltpenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(1:ntp, 1:npl), lencounter(1:ntp, 1:npl))
+               pltpenc_list%index1(1:nenc) = pack(spread([(i, i = 1, npl)], dim=1, ncopies=ntp), lencounter(1:ntp, 1:npl)) 
+               pltpenc_list%index2(1:nenc) = pack(spread([(i, i = 1, ntp)], dim=2, ncopies=npl), lencounter(1:ntp, 1:npl))
                pltpenc_list%id1(1:nenc) = pl%id(pltpenc_list%index1(1:nenc))
                pltpenc_list%id2(1:nenc) = tp%id(pltpenc_list%index2(1:nenc))
                select type(pl)
                class is (symba_pl)
-                  pl%lencounter(:) = .false.
+                  pl%lencounter(1:npl) = .false.
                   do k = 1, nenc
-                     pl%lencounter(pltpenc_list%index1(k)) = .true.
+                     associate(plind => pltpenc_list%index1(k), tpind => pltpenc_list%index2(k))
+                        pl%lencounter(plind) = .true.
+                        pl%levelg(plind) = irec
+                        pl%levelm(plind) = irec
+                        tp%levelg(tpind) = irec
+                        tp%levelm(tpind) = irec
+                        pl%ntpenc(plind) = pl%ntpenc(plind) + 1
+                        tp%nplenc(tpind) = tp%nplenc(tpind) + 1
+                     end associate
                   end do
                end select
             end associate

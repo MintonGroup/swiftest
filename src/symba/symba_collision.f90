@@ -841,32 +841,32 @@ contains
                ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
   
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
-               plnew%id(:) = id_frag(:) 
+               plnew%id(1:nfrag) = id_frag(1:nfrag) 
                system%maxid = system%maxid + nfrag
-               plnew%xb(:,:) = xb_frag(:, :) 
-               plnew%vb(:,:) = vb_frag(:, :)
+               plnew%xb(:, 1:nfrag) = xb_frag(:, 1:nfrag) 
+               plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
                do i = 1, nfrag
                   plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
                   plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
                end do
-               plnew%mass(:) = m_frag(:)
-               plnew%Gmass(:) = param%GU * m_frag(:)
-               plnew%radius(:) = rad_frag(:)
-               plnew%density(:) = m_frag(:) / rad_frag(:)
+               plnew%mass(1:nfrag) = m_frag(1:nfrag)
+               plnew%Gmass(1:nfrag) = param%GU * m_frag(1:nfrag)
+               plnew%radius(1:nfrag) = rad_frag(1:nfrag)
+               plnew%density(1:nfrag) = m_frag(1:nfrag) / rad_frag(1:nfrag)
    
                select case(status)
                case(DISRUPTION)
-                  plnew%info(:)%origin_type = "Disruption"
-                  plnew%status(:) = NEW_PARTICLE
-                  plnew%info(:)%origin_time = param%t
+                  plnew%info(1:nfrag)%origin_type = "Disruption"
+                  plnew%status(1:nfrag) = NEW_PARTICLE
+                  plnew%info(1:nfrag)%origin_time = param%t
                   do i = 1, nfrag
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
                   end do
                case(SUPERCATASTROPHIC)
-                  plnew%info(:)%origin_type = "Supercatastrophic"
-                  plnew%status(:) = NEW_PARTICLE
-                  plnew%info(:)%origin_time = param%t
+                  plnew%info(1:nfrag)%origin_type = "Supercatastrophic"
+                  plnew%status(1:nfrag) = NEW_PARTICLE
+                  plnew%info(1:nfrag)%origin_time = param%t
                   do i = 1, nfrag
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
@@ -887,8 +887,8 @@ contains
                end select
    
                if (param%lrotation) then
-                  plnew%Ip(:,:) = Ip_frag(:,:)
-                  plnew%rot(:,:) = rot_frag(:,:)
+                  plnew%Ip(:, 1:nfrag) = Ip_frag(:, 1:nfrag)
+                  plnew%rot(:, 1:nfrag) = rot_frag(:, 1:nfrag)
                end if
    
                if (param%ltides) then
@@ -899,11 +899,11 @@ contains
 
                call plnew%set_mu(cb)
                !Copy over or set integration parameters for new bodies
-               plnew%lcollision(:) = .false.
-               plnew%ldiscard(:) = .false.
-               plnew%lmtiny(:) = plnew%Gmass(:) > param%GMTINY
-               plnew%levelg(:) = pl%levelg(ibiggest)
-               plnew%levelm(:) = pl%levelm(ibiggest)
+               plnew%lcollision(1:nfrag) = .false.
+               plnew%ldiscard(1:nfrag) = .false.
+               plnew%lmtiny(1:nfrag) = plnew%Gmass(1:nfrag) > param%GMTINY
+               plnew%levelg(1:nfrag) = pl%levelg(ibiggest)
+               plnew%levelm(1:nfrag) = pl%levelm(ibiggest)
    
                ! Append the new merged body to the list and record how many we made
                nstart = pl_adds%nbody + 1
