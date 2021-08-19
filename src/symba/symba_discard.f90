@@ -179,14 +179,21 @@ contains
       class(symba_pl),              intent(inout) :: pl     !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      ! Internals
+      logical, dimension(pl%nbody) ::  ldiscard
     
       ! First check for collisions with the central body
       associate(npl => pl%nbody, cb => system%cb)
          if (npl == 0) return 
+         ldiscard(1:npl) = pl%ldiscard(1:npl) ! Don't include any bodies that were previously flagged for discard in here
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
             call symba_discard_cb_pl(pl, system, param)
          end if
          if (param%qmin >= 0.0_DP .and. npl > 0) call symba_discard_peri_pl(pl, system, param)
+         if (any(.not.ldiscard(1:npl) .and. pl%ldiscard(1:npl))) then
+            ldiscard(1:npl) = .not.ldiscard(1:npl) .and. pl%ldiscard(1:npl)
+            call system%pl_discards%append(pl, ldiscard) 
+         end if
       end associate
 
       return

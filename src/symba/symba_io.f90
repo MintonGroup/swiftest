@@ -298,7 +298,6 @@ contains
                         end if
                      end if
                      if (.not.lmatch) then
-                        write(*,*) 'Particle id ',id,' not found. Skipping'
                         read(LUN, err = 667, iomsg = errmsg) tmpinfo
                      end if
                   end do
