@@ -13,7 +13,6 @@ contains
       logical,                      intent(in)    :: lterminal !! Indicates whether to output information to the terminal screen
       ! Internals
       real(DP), dimension(NDIM)       :: Ltot_now,  Lorbit_now,  Lspin_now
-      real(DP), dimension(NDIM), save :: Ltot_last, Lorbit_last, Lspin_last
       real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  Eorbit_now
       real(DP)                        :: Eorbit_error, Etotal_error, Ecoll_error
       real(DP)                        :: GMtot_now
@@ -68,7 +67,7 @@ contains
             Ecoll_error = param%Ecollisions / abs(param%Eorbit_orig)
             Etotal_error = (Eorbit_now - param%Ecollisions - param%Eorbit_orig - param%Euntracked) / abs(param%Eorbit_orig)
             Merror = (GMtot_now - param%GMtot_orig) / param%GMtot_orig
-            write(*, egytermfmt) Lerror, Ecoll_error, Etotal_error, Merror
+            write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
          end if
       end associate
 
@@ -800,7 +799,7 @@ contains
             write(unit, '("LSPIN_ORIG ",3(1X,ES25.17))') param%Lspin_orig(:)
             write(unit, '("LESCAPE ",3(1X,ES25.17))') param%Lescape(:)
    
-            write(param_name, Afmt) "GMescape"; write(param_value, Rfmt) param%GMescape; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "GMESCAPE"; write(param_value, Rfmt) param%GMescape; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
