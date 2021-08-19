@@ -791,6 +791,19 @@ module swiftest_classes
          real(DP),               intent(out) :: tperi !! time of pericenter passage
       end subroutine orbel_xv2aqt
 
+      module pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
+         implicit none
+         real(DP),               intent(in)  :: mu    !! Gravitational constant
+         real(DP), dimension(:), intent(in)  :: x     !! Position vector
+         real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
+         real(DP),               intent(out) :: a     !! semimajor axis
+         real(DP),               intent(out) :: e     !! eccentricity
+         real(DP),               intent(out) :: inc   !! inclination
+         real(DP),               intent(out) :: capom !! longitude of ascending node
+         real(DP),               intent(out) :: omega !! argument of periapsis
+         real(DP),               intent(out) :: capm  !! mean anomaly
+      end subroutine orbel_xv2el
+
       module subroutine orbel_xv2el_vec(self, cb)
          implicit none
          class(swiftest_body), intent(inout) :: self !! Swiftest body object

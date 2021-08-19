@@ -762,8 +762,14 @@ def swiftest_xr2infile(ds, param, framenum=-1):
             else:
                print(i.values, pli['GMass'].values, file=plfile)
             print(pli['Radius'].values, file=plfile)
-            print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
-            print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
+            if param['IN_FORM'] == 'XV':
+                print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
+                print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
+            elif param['IN_FORM'] == 'EL':
+                print(pli['a'].values, pli['e'].values, pli['inc'].values, file=plfile)
+                print(pli['capom'].values, pli['omega'].values, pli['capm'].values, file=plfile)
+            else:
+                print(f"{param['IN_FORM']} is not a valid input format type.")
         plfile.close()
         
         # TP file
@@ -772,8 +778,14 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         for i in tp.id:
             tpi = tp.sel(id=i)
             print(i.values, file=tpfile)
-            print(tpi['px'].values, tpi['py'].values, tpi['pz'].values, file=tpfile)
-            print(tpi['vx'].values, tpi['vy'].values, tpi['vz'].values, file=tpfile)
+            if param['IN_FORM'] == 'XV':
+                print(tpi['px'].values, tpi['py'].values, tpi['pz'].values, file=tpfile)
+                print(tpi['vx'].values, tpi['vy'].values, tpi['vz'].values, file=tpfile)
+            elif param['IN_FORM'] == 'EL':
+                print(tpi['a'].values, tpi['e'].values, tpi['inc'].values, file=tpfile)
+                print(tpi['capom'].values, tpi['omega'].values, tpi['capm'].values, file=tpfile)
+            else:
+                print(f"{param['IN_FORM']} is not a valid input format type.")
         tpfile.close()
     elif param['IN_TYPE'] == 'REAL8':
         # Now make Swiftest files
@@ -788,23 +800,33 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         plfile = FortranFile(param['PL_IN'], 'w')
         npl = pl.id.count().values
         plid = pl.id.values
-        px = pl['px'].values  
-        py = pl['py'].values  
-        pz = pl['pz'].values  
-        vx = pl['vx'].values  
-        vy = pl['vy'].values  
-        vz = pl['vz'].values  
+        if param['IN_FORM'] == 'XV':
+            v1 = pl['px'].values
+            v2 = pl['py'].values
+            v3 = pl['pz'].values
+            v4 = pl['vx'].values
+            v5 = pl['vy'].values
+            v6 = pl['vz'].values
+        elif param['IN_FORM'] == 'EL':
+            v1 = pl['a'].values
+            v2 = pl['e'].values
+            v3 = pl['inc'].values
+            v4 = pl['capom'].values
+            v5 = pl['omega'].values
+            v6 = pl['capm'].values
+        else:
+            print(f"{param['IN_FORM']} is not a valid input format type.")
         Gmass = pl['GMass'].values
         radius = pl['Radius'].values  
         
         plfile.write_record(npl)
         plfile.write_record(plid)
-        plfile.write_record(px)
-        plfile.write_record(py)
-        plfile.write_record(pz)
-        plfile.write_record(vx)
-        plfile.write_record(vy)
-        plfile.write_record(vz)
+        plfile.write_record(v1)
+        plfile.write_record(v2)
+        plfile.write_record(v3)
+        plfile.write_record(v4)
+        plfile.write_record(v5)
+        plfile.write_record(v6)
         plfile.write_record(Gmass)
         if param['RHILL_PRESENT'] == 'YES':
             rhill = pl['Rhill'].values
@@ -814,20 +836,30 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         tpfile = FortranFile(param['TP_IN'], 'w')
         ntp = tp.id.count().values
         tpid = tp.id.values
-        px = tp['px'].values  
-        py = tp['py'].values  
-        pz = tp['pz'].values  
-        vx = tp['vx'].values  
-        vy = tp['vy'].values  
-        vz = tp['vz'].values 
+        if param['IN_FORM'] == 'XV':
+            v1 = tp['px'].values
+            v2 = tp['py'].values
+            v3 = tp['pz'].values
+            v4 = tp['vx'].values
+            v5 = tp['vy'].values
+            v6 = tp['vz'].values
+        elif param['IN_FORM'] == 'EL':
+            v1 = tp['a'].values
+            v2 = tp['e'].values
+            v3 = tp['inc'].values
+            v4 = tp['capom'].values
+            v5 = tp['omega'].values
+            v6 = tp['capm'].values
+        else:
+            print(f"{param['IN_FORM']} is not a valid input format type.")
         tpfile.write_record(ntp)
         tpfile.write_record(tpid)
-        tpfile.write_record(px)
-        tpfile.write_record(py)
-        tpfile.write_record(pz)
-        tpfile.write_record(vx)
-        tpfile.write_record(vy)
-        tpfile.write_record(vz)
+        tpfile.write_record(v1)
+        tpfile.write_record(v2)
+        tpfile.write_record(v3)
+        tpfile.write_record(v4)
+        tpfile.write_record(v5)
+        tpfile.write_record(v6)
     else:
         print(f"{param['IN_TYPE']} is an unknown file type")
 
