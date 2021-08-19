@@ -128,7 +128,7 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: L0       = 0.0_DP !! Initial angular momentum of the central body
       real(DP), dimension(NDIM) :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
-      procedure :: initialize  => io_read_cb_in        !! I/O routine for reading in central body data
+      procedure :: initialize  => io_read_in_cb        !! I/O routine for reading in central body data
       procedure :: read_frame  => io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central body
       procedure :: write_frame => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
    end type swiftest_cb
@@ -174,7 +174,7 @@ module swiftest_classes
       procedure :: drift       => drift_body               !! Loop through bodies and call Danby drift routine on heliocentric variables
       procedure :: v2pv        => gr_vh2pv_body            !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
       procedure :: pv2v        => gr_pv2vh_body            !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
-      procedure :: initialize  => io_read_body_in          !! Read in body initial conditions from a file
+      procedure :: initialize  => io_read_in_body          !! Read in body initial conditions from a file
       procedure :: read_frame  => io_read_frame_body       !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: write_frame => io_write_frame_body      !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: accel_obl   => obl_acc_body             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
@@ -610,17 +610,17 @@ module swiftest_classes
          character(len=*),           intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine io_param_writer
 
-      module subroutine io_read_body_in(self, param) 
+      module subroutine io_read_in_body(self, param) 
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_body_in
+      end subroutine io_read_in_body
 
-      module subroutine io_read_cb_in(self, param) 
+      module subroutine io_read_in_cb(self, param) 
          implicit none
          class(swiftest_cb),         intent(inout) :: self  !! Swiftest central body object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_cb_in
+      end subroutine io_read_in_cb
 
       module subroutine io_read_param_in(self, param_file_name) 
          implicit none

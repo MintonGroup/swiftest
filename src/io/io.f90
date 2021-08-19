@@ -721,7 +721,7 @@ contains
          write(param_name, Afmt) "DT"; write(param_value, Rfmt) param%dt; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "CB_IN"; write(param_value, Afmt) trim(adjustl(param%incbfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "PL_IN"; write(param_value, Afmt) trim(adjustl(param%inplfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TP_in"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "TP_IN"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "IN_TYPE"; write(param_value, Afmt) trim(adjustl(param%in_type)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%istep_out > 0) then
             write(param_name, Afmt) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
@@ -784,7 +784,7 @@ contains
    end subroutine io_param_writer
 
 
-   module subroutine io_read_body_in(self, param) 
+   module subroutine io_read_in_body(self, param) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read in either test particle or massive body data 
@@ -873,10 +873,10 @@ contains
       667 continue
       write(*,*) 'Error reading in initial conditions file: ',trim(adjustl(errmsg))
       return
-   end subroutine io_read_body_in
+   end subroutine io_read_in_body
 
 
-   module subroutine io_read_cb_in(self, param) 
+   module subroutine io_read_in_cb(self, param) 
       !! author: David A. Minton
       !!
       !! Reads in central body data 
@@ -925,7 +925,7 @@ contains
       667 continue
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
-   end subroutine io_read_cb_in
+   end subroutine io_read_in_cb
 
 
    function io_read_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, &
