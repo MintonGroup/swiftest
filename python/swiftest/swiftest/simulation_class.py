@@ -20,6 +20,7 @@ class Simulation:
             'TP_IN': "tp.in",
             'CB_IN': "cb.in",
             'IN_TYPE': "ASCII",
+            'IN_FORM': "XV",
             'ISTEP_OUT': "1",
             'ISTEP_DUMP': "1",
             'BIN_OUT': "bin.dat",
