@@ -24,7 +24,8 @@ module swiftest_classes
       character(STRMAX)    :: incbfile       = CB_INFILE          !! Name of input file for the central body
       character(STRMAX)    :: inplfile       = PL_INFILE          !! Name of input file for massive bodies
       character(STRMAX)    :: intpfile       = TP_INFILE          !! Name of input file for test particles
-      character(STRMAX)    :: in_type        = ASCII_TYPE         !! Format of input data files
+      character(STRMAX)    :: in_type        = ASCII_TYPE         !! Data representation type of input data files
+      character(STRMAX)    :: in_form        = XV                 !! Format of input data files (EL or XV)
       integer(I4B)         :: istep_out      = -1                 !! Number of time steps between binary outputs
       character(STRMAX)    :: outfile        = BIN_OUTFILE        !! Name of output binary file
       character(STRMAX)    :: out_type       = REAL8_TYPE         !! Binary format of output file
@@ -366,12 +367,11 @@ module swiftest_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine abstract_kick_body
 
-      subroutine abstract_read_frame(self, iu, param, form)
+      subroutine abstract_read_frame(self, iu, param)
          import DP, I4B, swiftest_base, swiftest_parameters
          class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         character(*),               intent(in)    :: form  !! Input format code ("XV" or "EL")
       end subroutine abstract_read_frame
 
       subroutine abstract_set_mu(self, cb) 
@@ -621,28 +621,25 @@ module swiftest_classes
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_read_in_param
 
-      module subroutine io_read_frame_body(self, iu, param, form)
+      module subroutine io_read_frame_body(self, iu, param)
          implicit none
          class(swiftest_body),       intent(inout) :: self   !! Swiftest body object
          integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-         character(*),               intent(in)    :: form   !! Input format code ("XV" or "EL")
       end subroutine io_read_frame_body
 
-      module subroutine io_read_frame_cb(self, iu, param, form)
+      module subroutine io_read_frame_cb(self, iu, param)
          implicit none
          class(swiftest_cb),         intent(inout) :: self    !! Swiftest central body object
          integer(I4B),               intent(inout) :: iu      !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-         character(*),               intent(in)    :: form    !! Input format code ("XV" or "EL")
       end subroutine io_read_frame_cb
 
-      module subroutine io_read_frame_system(self, iu, param, form)
+      module subroutine io_read_frame_system(self, iu, param)
          implicit none
          class(swiftest_nbody_system),intent(inout) :: self  !! Swiftest system object
          integer(I4B),                intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
-         character(*),                intent(in)    :: form  !! Input format code ("XV" or "EL")
       end subroutine io_read_frame_system
 
       module subroutine io_write_discard(self, param)

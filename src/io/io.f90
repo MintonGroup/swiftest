@@ -208,6 +208,7 @@ contains
          dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
          dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
          dump_param%out_form = XV
+         dump_param%in_form  = XV
          dump_param%out_stat = 'APPEND'
          dump_param%in_type = REAL8_TYPE
          dump_param%T0 = param%t
@@ -409,6 +410,9 @@ contains
                case ("IN_TYPE")
                   call io_toupper(param_value)
                   param%in_type = param_value
+               case ("IN_FORM")
+                  call io_toupper(param_value)
+                  param%in_form = param_value
                case ("ISTEP_OUT")
                   read(param_value, *) param%istep_out
                case ("BIN_OUT")
@@ -611,6 +615,7 @@ contains
          write(*,*) "BIN_OUT        = ",trim(adjustl(param%outfile))
          write(*,*) "OUT_TYPE       = ",trim(adjustl(param%out_type))
          write(*,*) "OUT_FORM       = ",trim(adjustl(param%out_form))
+         write(*,*) "IN_FORM        = ",trim(adjustl(param%in_form))
          write(*,*) "OUT_STAT       = ",trim(adjustl(param%out_stat))
          write(*,*) "ISTEP_DUMP     = ",param%istep_dump
          write(*,*) "CHK_CLOSE      = ",param%lclose
@@ -728,6 +733,7 @@ contains
          write(param_name, Afmt) "PL_IN"; write(param_value, Afmt) trim(adjustl(param%inplfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "TP_IN"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "IN_TYPE"; write(param_value, Afmt) trim(adjustl(param%in_type)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "IN_FORM"; write(param_value, Afmt) trim(adjustl(param%in_form)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%istep_out > 0) then
             write(param_name, Afmt) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "BIN_OUT"; write(param_value, Afmt) trim(adjustl(param%outfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
@@ -803,11 +809,10 @@ contains
       ! Internals
       integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
       integer(I4B)                  :: iu = LUN
-      integer(I4B)                  :: i, nbody
+      integer(I4B)                  :: nbody
       logical                       :: is_ascii, is_pl
       character(len=:), allocatable :: infile
       real(DP)                      :: t
-      real(QP)                      :: val
       character(STRMAX)             :: errmsg
 
       ! Select the appropriate polymorphic class (test particle or massive body)
@@ -825,52 +830,21 @@ contains
       case(ASCII_TYPE)
          open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
          read(iu, *, err = 667, iomsg = errmsg) nbody
-         call self%setup(nbody, param)
-         if (nbody > 0) then
-            do i = 1, nbody
-               select type(self)
-               class is (swiftest_pl)
-                  if (param%lrhill_present) then
-                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val, self%rhill(i)
-                  else
-                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val
-                  end if
-                  self%Gmass(i) = real(val, kind=DP)
-                  self%mass(i) = real(val / param%GU, kind=DP)
-                  if (param%lclose) read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
-               class is (swiftest_tp)
-                  read(iu, *, err = 667, iomsg = errmsg) self%id(i)
-               end select
-               read(iu, *, err = 667, iomsg = errmsg) self%xh(1, i), self%xh(2, i), self%xh(3, i)
-               read(iu, *, err = 667, iomsg = errmsg) self%vh(1, i), self%vh(2, i), self%vh(3, i)
-               select type (self)
-               class is (swiftest_pl)
-                  if (param%lrotation) then
-                     read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
-                     read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
-                  end if
-                  if (param%ltides) then
-                     read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
-                     read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
-                  end if
-               end select
-               self%status(i) = ACTIVE
-               self%lmask(i) = .true.
-            end do
-         end if
-      case (REAL4_TYPE, REAL8_TYPE)  !, SWIFTER_REAL4_TYPE, SWIFTER_REAL8_TYPE)
+      case (REAL4_TYPE, REAL8_TYPE)  
          open(unit=iu, file=infile, status='old', form='UNFORMATTED', err = 667, iomsg = errmsg)
          read(iu, err = 667, iomsg = errmsg) nbody
-         call self%setup(nbody, param)
-         if (nbody > 0) then
-            call self%read_frame(iu, param, XV)
-            self%status(:) = ACTIVE
-            self%lmask(:) = .true.
-         end if
       case default
          write(errmsg,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'
          goto 667
       end select
+
+      call self%setup(nbody, param)
+      if (nbody > 0) then
+         call self%read_frame(iu, param)
+         self%status(:) = ACTIVE
+         self%lmask(:) = .true.
+      end if
+
       close(iu, err = 667, iomsg = errmsg)
 
       return
@@ -911,7 +885,7 @@ contains
          end if
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         call self%read_frame(iu, param, XV)
+         call self%read_frame(iu, param)
       end if
       close(iu, err = 667, iomsg = errmsg)
 
@@ -984,7 +958,7 @@ contains
    end function io_read_encounter
 
 
-   module subroutine io_read_frame_body(self, iu, param, form)
+   module subroutine io_read_frame_body(self, iu, param)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of either test particle or massive body data from a binary output file
@@ -996,53 +970,107 @@ contains
       class(swiftest_body),       intent(inout) :: self   !! Swiftest particle object
       integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      character(*),               intent(in)    :: form   !! Input format code ("XV" or "EL")
       ! Internals
       character(len=STRMAX)   :: errmsg
+      integer(I4B) :: i
+      real(QP)                      :: val
+
+      if ((param%in_form /= EL) .and. (param%in_form /= XV)) then
+         write(errmsg, *) trim(adjustl(param%in_form)) // " is not a recognized format code for input files."
+         goto 667
+      end if
 
       associate(n => self%nbody)
-         read(iu, err = 667, iomsg = errmsg) self%id(:)
-         !read(iu, err = 667, iomsg = errmsg) self%name(1:n)
-         select case (form)
-         case (EL) 
+
+         if (param%in_form == EL) then
             if (.not.allocated(self%a))     allocate(self%a(n))
             if (.not.allocated(self%e))     allocate(self%e(n))
             if (.not.allocated(self%inc))   allocate(self%inc(n))
             if (.not.allocated(self%capom)) allocate(self%capom(n))
             if (.not.allocated(self%omega)) allocate(self%omega(n))
             if (.not.allocated(self%capm))  allocate(self%capm(n))
-            read(iu, err = 667, iomsg = errmsg) self%a(:)
-            read(iu, err = 667, iomsg = errmsg) self%e(:)
-            read(iu, err = 667, iomsg = errmsg) self%inc(:)
-            read(iu, err = 667, iomsg = errmsg) self%capom(:)
-            read(iu, err = 667, iomsg = errmsg) self%omega(:)
-            read(iu, err = 667, iomsg = errmsg) self%capm(:)
-         case (XV)
-            read(iu, err = 667, iomsg = errmsg) self%xh(1, :)
-            read(iu, err = 667, iomsg = errmsg) self%xh(2, :)
-            read(iu, err = 667, iomsg = errmsg) self%xh(3, :)
-            read(iu, err = 667, iomsg = errmsg) self%vh(1, :)
-            read(iu, err = 667, iomsg = errmsg) self%vh(2, :)
-            read(iu, err = 667, iomsg = errmsg) self%vh(3, :)
-         end select
-         select type(pl => self)  
-         class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            read(iu, err = 667, iomsg = errmsg) pl%Gmass(:)
-            pl%mass(:) = pl%Gmass(:) / param%GU 
-            if (param%lrhill_present) read(iu, err = 667, iomsg = errmsg) pl%rhill(:)
-            if (param%lclose) read(iu, err = 667, iomsg = errmsg) pl%radius(:)
-            if (param%lrotation) then
-               read(iu, err = 667, iomsg = errmsg) pl%rot(1, :)
-               read(iu, err = 667, iomsg = errmsg) pl%rot(2, :)
-               read(iu, err = 667, iomsg = errmsg) pl%rot(3, :)
-               read(iu, err = 667, iomsg = errmsg) pl%Ip(1, :)
-               read(iu, err = 667, iomsg = errmsg) pl%Ip(2, :)
-               read(iu, err = 667, iomsg = errmsg) pl%Ip(3, :)
-            end if
-            if (param%ltides) then
-               read(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
-               read(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
-            end if
+         end if
+
+         select case(param%in_type)
+         case (REAL4_TYPE, REAL8_TYPE)
+            read(iu, err = 667, iomsg = errmsg) self%id(:)
+
+            select case (param%in_form)
+            case (XV)
+               read(iu, err = 667, iomsg = errmsg) self%xh(1, :)
+               read(iu, err = 667, iomsg = errmsg) self%xh(2, :)
+               read(iu, err = 667, iomsg = errmsg) self%xh(3, :)
+               read(iu, err = 667, iomsg = errmsg) self%vh(1, :)
+               read(iu, err = 667, iomsg = errmsg) self%vh(2, :)
+               read(iu, err = 667, iomsg = errmsg) self%vh(3, :)
+            case (EL) 
+               read(iu, err = 667, iomsg = errmsg) self%a(:)
+               read(iu, err = 667, iomsg = errmsg) self%e(:)
+               read(iu, err = 667, iomsg = errmsg) self%inc(:)
+               read(iu, err = 667, iomsg = errmsg) self%capom(:)
+               read(iu, err = 667, iomsg = errmsg) self%omega(:)
+               read(iu, err = 667, iomsg = errmsg) self%capm(:)
+            end select
+
+            select type(pl => self)  
+            class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
+               read(iu, err = 667, iomsg = errmsg) pl%Gmass(:)
+               pl%mass(:) = pl%Gmass(:) / param%GU 
+               if (param%lrhill_present) read(iu, err = 667, iomsg = errmsg) pl%rhill(:)
+               if (param%lclose) read(iu, err = 667, iomsg = errmsg) pl%radius(:)
+               if (param%lrotation) then
+                  read(iu, err = 667, iomsg = errmsg) pl%Ip(1, :)
+                  read(iu, err = 667, iomsg = errmsg) pl%Ip(2, :)
+                  read(iu, err = 667, iomsg = errmsg) pl%Ip(3, :)
+                  read(iu, err = 667, iomsg = errmsg) pl%rot(1, :)
+                  read(iu, err = 667, iomsg = errmsg) pl%rot(2, :)
+                  read(iu, err = 667, iomsg = errmsg) pl%rot(3, :)
+               end if
+               if (param%ltides) then
+                  read(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
+                  read(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
+               end if
+            end select
+
+         case (ASCII_TYPE)
+            do i = 1, n
+
+               select type(self)
+               class is (swiftest_pl)
+                  if (param%lrhill_present) then
+                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val, self%rhill(i)
+                  else
+                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val
+                  end if
+                  self%Gmass(i) = real(val, kind=DP)
+                  self%mass(i) = real(val / param%GU, kind=DP)
+                  if (param%lclose) read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
+               class is (swiftest_tp)
+                  read(iu, *, err = 667, iomsg = errmsg) self%id(i)
+               end select
+
+               select case(param%in_form)
+               case (XV)
+                  read(iu, *, err = 667, iomsg = errmsg) self%xh(1, i), self%xh(2, i), self%xh(3, i)
+                  read(iu, *, err = 667, iomsg = errmsg) self%vh(1, i), self%vh(2, i), self%vh(3, i)
+               case (EL)
+                  read(iu, *, err = 667, iomsg = errmsg) self%a(i), self%e(i), self%inc(i)
+                  read(iu, *, err = 667, iomsg = errmsg) self%capom(i), self%omega(i), self%capm(i)
+               end select
+
+               select type (self)
+               class is (swiftest_pl)
+                  if (param%lrotation) then
+                     read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
+                  end if
+                  if (param%ltides) then
+                     read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
+                  end if
+               end select
+
+            end do
          end select
       end associate
 
@@ -1061,7 +1089,7 @@ contains
    end subroutine io_read_frame_body
 
 
-   module subroutine io_read_frame_cb(self, iu, param, form)
+   module subroutine io_read_frame_cb(self, iu, param)
       !! author: David A. Minton
       !!
       !! Reads a frame of output of central body data to the binary output file
@@ -1073,7 +1101,6 @@ contains
       class(swiftest_cb),         intent(inout) :: self     !! Swiftest central body object
       integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
       class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-      character(*),               intent(in)    :: form     !! Input format code ("XV" or "EL")
       ! Internals
       character(len=STRMAX)   :: errmsg
 
@@ -1104,7 +1131,7 @@ contains
    end subroutine io_read_frame_cb
 
 
-   module subroutine io_read_frame_system(self, iu, param, form)
+   module subroutine io_read_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
@@ -1113,7 +1140,6 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
       integer(I4B),                 intent(inout) :: iu    !! Unit number for the output file to write frame to
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      character(*),                 intent(in)    :: form  !! Input format code ("XV" or "EL")
       ! Internals
       character(len=STRMAX) :: errmsg
       integer(I4B)          :: ierr
@@ -1123,9 +1149,13 @@ contains
          write(errmsg, *) "Cannot read header."
          goto 667
       end if
-      call self%cb%read_frame(iu, param, param%out_form)
-      call self%pl%read_frame(iu, param, param%out_form)
-      call self%tp%read_frame(iu, param, param%out_form)
+      call self%cb%read_frame(iu, param)
+      call self%pl%read_frame(iu, param)
+      call self%tp%read_frame(iu, param)
+      if (param%in_form == EL) then
+         call self%pl%el2xv(self%cb)
+         call self%tp%el2xv(self%cb)
+      end if
 
       return
 
