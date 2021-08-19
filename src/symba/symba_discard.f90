@@ -20,6 +20,7 @@ contains
       ! Internals
       integer(I4B) :: i, j
       real(DP)     :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
+      character(len=STRMAX) :: idstr
    
       associate(npl => pl%nbody, cb => system%cb)
          call system%set_msys()
@@ -33,12 +34,14 @@ contains
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMAX
-                  write(*, *) "Massive body ",  pl%id(i), " too far from the central body at t = ", param%t
+                  write(idstr, *) pl%id(i)
+                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too far from the central body at t = ", param%t
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMIN
-                  write(*, *) "Massive body ", pl%id(i), " too close to the central body at t = ", param%t
+                  write(idstr, *) pl%id(i)
+                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too close to the central body at t = ", param%t
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
                   vb2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -47,7 +50,8 @@ contains
                      pl%ldiscard(i) = .true.
                      pl%lcollision(i) = .false. 
                      pl%status(i) = DISCARDED_RMAXU
-                     write(*, *) "Massive body ", pl%id(i), " is unbound and too far from barycenter at t = ", param%t
+                     write(idstr, *) pl%id(i)
+                     write(*, *) "Massive body " // trim(adjustl(idstr)) // " is unbound and too far from barycenter at t = ", param%t
                   end if
                end if
             end if
