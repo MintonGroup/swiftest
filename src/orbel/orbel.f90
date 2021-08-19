@@ -890,7 +890,7 @@ contains
       end do
    end subroutine orbel_xv2el_vec 
 
-   pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
+   module pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -906,9 +906,17 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2el.f90
       !! Adapted from Martin Duncan's Swift routine orbel_xv2el.f
       implicit none
-      real(DP), intent(in)  :: mu
-      real(DP), dimension(:), intent(in)  :: x, v
-      real(DP), intent(out) :: a, e, inc, capom, omega, capm
+      ! Arguments
+      real(DP),               intent(in)  :: mu    !! Gravitational constant
+      real(DP), dimension(:), intent(in)  :: x     !! Position vector
+      real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
+      real(DP),               intent(out) :: a     !! semimajor axis
+      real(DP),               intent(out) :: e     !! eccentricity
+      real(DP),               intent(out) :: inc   !! inclination
+      real(DP),               intent(out) :: capom !! longitude of ascending node
+      real(DP),               intent(out) :: omega !! argument of periapsis
+      real(DP),               intent(out) :: capm  !! mean anomaly
+      ! Internals
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, cape, tmpf, capf
       real(DP), dimension(NDIM) :: hvec
