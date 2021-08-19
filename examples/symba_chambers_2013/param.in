@@ -25,6 +25,7 @@ DU2M           1.495979e11        ! distance unit to meters (AU --> m)
 TU2S           3.15569259747e7    ! time unit to seconds (years --> seconds)
 GMTINY         1e-10		  
 ENERGY         yes
+ENERGY_OUT     energy.dat
 ROTATION       yes
 FRAGMENTATION  yes
 DISCARD_OUT    discard.out
