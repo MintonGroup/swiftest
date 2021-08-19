@@ -17,7 +17,7 @@ contains
       real(DP), save                  :: ke_orbit_last, ke_spin_last, pe_last, Eorbit_last
       real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  Eorbit_now
       real(DP)                        :: Eorbit_error, Etotal_error, Ecoll_error
-      real(DP)                        :: Mtot_now, Merror
+      real(DP)                        :: GMtot_now, Merror
       real(DP)                        :: Lmag_now, Lerror
       character(len=STRMAX)           :: errmsg
       character(len=*), parameter     :: EGYFMT = '(ES23.16,10(",",ES23.16,:))' ! Format code for all simulation output
@@ -28,8 +28,8 @@ contains
                                                          "; D(Eorbit+Ecollisions)/|E0| = ", ES12.5, &
                                                          "; DM/M0 = ", ES12.5)'
 
-      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, Ecollisions => self%Ecollisions, Lescape => self%Lescape, Mescape => self%Mescape, &
-               Euntracked => self%Euntracked, Eorbit_orig => param%Eorbit_orig, Mtot_orig => param%Mtot_orig, &
+      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, Ecollisions => self%Ecollisions, Lescape => self%Lescape, GMescape => self%GMescape, &
+               Euntracked => self%Euntracked, Eorbit_orig => param%Eorbit_orig, GMtot_orig => param%GMtot_orig, &
                Ltot_orig => param%Ltot_orig(:), Lmag_orig => param%Lmag_orig, Lorbit_orig => param%Lorbit_orig(:), Lspin_orig => param%Lspin_orig(:), &
                lfirst => param%lfirstenergy)
          if (param%energy_out /= "") then
@@ -50,10 +50,10 @@ contains
          Lspin_now = system%Lspin
          Eorbit_now = ke_orbit_now + ke_spin_now + pe_now
          Ltot_now(:) = Lorbit_now(:) + Lspin_now(:) + Lescape(:)
-         Mtot_now = cb%mass + sum(pl%mass(1:npl)) + system%Mescape
+         GMtot_now = cb%Gmass + sum(pl%Gmass(1:npl)) + system%GMescape
          if (lfirst) then
             Eorbit_orig = Eorbit_now
-            Mtot_orig = Mtot_now
+            GMtot_orig = GMtot_now
             Lorbit_orig(:) = Lorbit_now(:)
             Lspin_orig(:) = Lspin_now(:)
             Ltot_orig(:) = Ltot_now(:)
@@ -62,7 +62,7 @@ contains
          end if
 
          if (param%energy_out /= "") then
-            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, Ecollisions, Ltot_now, Mtot_now
+            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, Ecollisions, Ltot_now, GMtot_now
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
          if (.not.lfirst .and. lterminal) then 
@@ -71,7 +71,7 @@ contains
             Eorbit_error = (Eorbit_now - Eorbit_orig) / abs(Eorbit_orig)
             Ecoll_error = Ecollisions / abs(Eorbit_orig)
             Etotal_error = (Eorbit_now - Ecollisions - Eorbit_orig - Euntracked) / abs(Eorbit_orig)
-            Merror = (Mtot_now - Mtot_orig) / Mtot_orig
+            Merror = (GMtot_now - GMtot_orig) / GMtot_orig
             write(*, egytermfmt) Lerror, Ecoll_error, Etotal_error, Merror
             ! if (Ecoll_error > 0.0_DP) then
             !    write(*,*) 'Something has gone wrong! Collisional energy should not be positive!'
@@ -527,8 +527,8 @@ contains
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstenergy = .false. 
                case("EORBIT_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Eorbit_orig 
-               case("MTOT_ORIG")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%Mtot_orig 
+               case("GMTOT_ORIG")
+                  read(param_value, *, err = 667, iomsg = iomsg) param%GMtot_orig 
                case("LTOT_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(1)
                   do i = 2, NDIM
@@ -558,8 +558,8 @@ contains
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
                      read(param_value, *, err = 667, iomsg = iomsg) param%Lescape(i)
                   end do
-               case("MESCAPE")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%Mescape 
+               case("GMESCAPE")
+                  read(param_value, *, err = 667, iomsg = iomsg) param%GMescape 
                case("ECOLLISIONS")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Ecollisions
                case("EUNTRACKED")
@@ -812,13 +812,13 @@ contains
          if (param%lenergy) then
             write(param_name, Afmt) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "EORBIT_ORIG"; write(param_value, Rfmt) param%Eorbit_orig; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "MTOT_ORIG"; write(param_value, Rfmt) param%Mtot_orig; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "GMTOT_ORIG"; write(param_value, Rfmt) param%GMtot_orig; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(unit, '("LTOT_ORIG  ",3(1X,ES25.17))') param%Ltot_orig(:)
             write(unit, '("LORBIT_ORIG",3(1X,ES25.17))') param%Lorbit_orig(:)
             write(unit, '("LSPIN_ORIG ",3(1X,ES25.17))') param%Lspin_orig(:)
             write(unit, '("LESCAPE ",3(1X,ES25.17))') param%Lescape(:)
    
-            write(param_name, Afmt) "MESCAPE"; write(param_value, Rfmt) param%Mescape; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, Afmt) "GMescape"; write(param_value, Rfmt) param%GMescape; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
@@ -937,7 +937,8 @@ contains
          
          select type(cb => self)
          class is (symba_cb)
-            cb%M0 = cb%mass
+            cb%GM0 = cb%Gmass
+            cb%dGM = 0.0_DP
             cb%R0 = cb%radius
             cb%L0(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
          end select

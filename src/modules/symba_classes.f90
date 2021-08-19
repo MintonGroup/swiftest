@@ -55,8 +55,8 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA central body particle class
    type, extends(helio_cb) :: symba_cb
-      real(DP) :: M0  = 0.0_DP !! Initial mass of the central body
-      real(DP) :: dM  = 0.0_DP !! Change in mass of the central body
+      real(DP) :: GM0  = 0.0_DP !! Initial G*mass of the central body
+      real(DP) :: dGM  = 0.0_DP !! Change in G*mass of the central body
       real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
       type(symba_particle_info) :: info
