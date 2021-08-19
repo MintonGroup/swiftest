@@ -455,15 +455,15 @@ contains
          end if
 
          ! Reset all of the status flags for this body
-         where(pl%status(:) /= INACTIVE) 
-            pl%status(:) = ACTIVE
-            pl%ldiscard(:) = .false.
-            pl%lcollision(:) = .false.
-            pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
-            pl%lmask(:) = .true.
+         where(pl%status(1:pl%nbody) /= INACTIVE) 
+            pl%status(1:pl%nbody) = ACTIVE
+            pl%ldiscard(1:pl%nbody) = .false.
+            pl%lcollision(1:pl%nbody) = .false.
+            pl%lmtiny(1:pl%nbody) = pl%Gmass(1:pl%nbody) > param%GMTINY
+            pl%lmask(1:pl%nbody) = .true.
          elsewhere
-            pl%ldiscard(:) = .true.
-            pl%lmask(:) = .false.
+            pl%ldiscard(1:pl%nbody) = .true.
+            pl%lmask(1:pl%nbody) = .false.
          end where
 
          pl%nplm = count(pl%lmtiny(1:pl%nbody) .and. pl%lmask(1:pl%nbody))

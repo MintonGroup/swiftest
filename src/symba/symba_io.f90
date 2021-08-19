@@ -276,7 +276,7 @@ contains
                associate(npl => pl%nbody, ntp => tp%nbody)
                   do 
                      lmatch = .false.
-                     read(LUN, err = 667, iomsg = errmsg) id
+                     read(LUN, err = 667, iomsg = errmsg, end = 333) id
 
                      if (idx == cb%id) then
                         read(LUN, err = 667, iomsg = errmsg) cb%info
@@ -308,6 +308,7 @@ contains
          end select
       end select
 
+      333 continue
       return
 
       667 continue

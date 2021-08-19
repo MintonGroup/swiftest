@@ -28,10 +28,8 @@ contains
                call self%reset(param)
                lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
                if (lencounter) then
-                  tp%lfirst = pl%lfirst
                   call self%interp(param, t, dt)
-                  pl%lfirst = .true.
-                  tp%lfirst = .true.
+                  param%lfirstkick = .true.
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
@@ -266,6 +264,9 @@ contains
 
                   call system%pl_adds%setup(0, param)
                   call system%pl_discards%setup(0, param)
+
+                  tp%lfirst = param%lfirstkick
+                  pl%lfirst = param%lfirstkick
                end associate
             end select
          end select
