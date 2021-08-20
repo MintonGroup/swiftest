@@ -346,10 +346,11 @@ contains
          class is (symba_parameters)
             pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
          end select
-         pl%nplm = count(.not. pl%lmtiny(1:npl))
+         nplm = count(.not. pl%lmtiny(1:npl))
+         pl%nplm = int(nplm, kind=I4B)
 
          nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
-         nplplm = (nplm * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
+         nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
          if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
          allocate(self%k_plpl(2, nplpl))
          do i = 1, npl

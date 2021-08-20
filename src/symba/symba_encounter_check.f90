@@ -23,11 +23,11 @@ contains
   
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody, nplpl => self%nplpl)
-         allocate(lencounter(nplpl), loc_lvdotr(nplpl))
+      associate(pl => self, npl => self%nbody, nplplm => self%nplplm)
+         allocate(lencounter(nplplm), loc_lvdotr(nplplm))
          lencounter(:) = .false.
    
-         do k = 1, nplpl
+         do k = 1, nplplm
             associate(i => pl%k_plpl(1, k), j => pl%k_plpl(2, k))
                xr(:) = pl%xh(:, j) - pl%xh(:, i)
                vr(:) = pl%vh(:, j) - pl%vh(:, i)
