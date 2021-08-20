@@ -220,7 +220,7 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                              :: i, j, ibiggest, nfamily
+      integer(I4B)                              :: i, j, k, ibiggest, nfamily
       real(DP)                                  :: volume_new, pe
       real(DP), dimension(NDIM)                 :: xc, vc, xcrossv
       real(DP), dimension(2)                    :: vol
@@ -283,8 +283,27 @@ contains
          param%Ecollisions = param%Ecollisions + pe 
          param%Euntracked  = param%Euntracked - pe 
 
+         ! Update any encounter lists that have the removedbodies in them so that they instead point to the new 
+         do k = 1, system%plplenc_list%nenc
+            do j = 1, nfamily
+               i = family(j)
+               if (i == ibiggest) cycle
+               if (system%plplenc_list%id1(k) == pl%id(i)) then
+                  system%plplenc_list%id1(k) = pl%id(ibiggest)
+                  system%plplenc_list%index1(k) = i
+               end if
+               if (system%plplenc_list%id2(k) == pl%id(i)) then
+                  system%plplenc_list%id2(k) = pl%id(ibiggest)
+                  system%plplenc_list%index2(k) = i
+               end if
+               if (system%plplenc_list%id1(k) == system%plplenc_list%id2(k)) system%plplenc_list%status(k) = INACTIVE
+            end do
+         end do
+
+
          status = MERGED
          call symba_collision_mergeaddsub(system, param, family, id_frag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, status)
+
          
       end select
 
