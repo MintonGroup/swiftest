@@ -215,6 +215,7 @@ module helio_classes
       end subroutine helio_step_tp
 
       module subroutine helio_util_index_eucl_plpl(self, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(helio_pl),            intent(inout) :: self  !! Helio massive body object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters

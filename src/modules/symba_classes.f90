@@ -354,6 +354,7 @@ module symba_classes
       end function symba_collision_casesupercatastrophic
 
       module subroutine symba_util_index_eucl_plpl(self, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
