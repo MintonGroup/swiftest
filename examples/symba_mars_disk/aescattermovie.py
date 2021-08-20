@@ -5,12 +5,14 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib.colors as mcolors
 
-radscale = 50
+titletext = "High M - High e"
+radscale = 1000
 RMars = 3389500.0
 xmin = 1.0
 xmax = 10.0
 ymin = 1e-6
 ymax = 1.0
+framejump = 1
 
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
@@ -28,7 +30,6 @@ class AnimatedScatter(object):
                       'Supercatastrophic' : 'xkcd:shocking pink',
                       'Hit and run fragment' : 'xkcd:baby poop green'}
 
-        self.stream = self.data_stream(frame)
         # Setup the figure and axes...
         fig = plt.figure(figsize=(8,4.5), dpi=300)
         plt.tight_layout(pad=0)
@@ -63,7 +64,7 @@ class AnimatedScatter(object):
         self.title = self.ax.text(0.50, 1.05, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, transform=self.ax.transAxes,
                         ha="center")
 
-        self.title.set_text(f'Time = ${t / 24 / 3600:4.1f}$ days with ${npl:f}$ particles')
+        self.title.set_text(f"{titletext} - Time = ${t / 24 / 3600:4.1f}$ days with ${npl:f}$ particles")
         slist = self.scatters(pl, radmarker, origin)
         self.s0 = slist[0]
         self.s1 = slist[1]
@@ -92,9 +93,9 @@ class AnimatedScatter(object):
 
     def update(self,frame):
         """Update the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(frame))
+        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(framejump * frame))
 
-        self.title.set_text(f'Time = ${t / 24 / 3600:4.1f}$ days with ${npl:4.0f}$ particles')
+        self.title.set_text(f"{titletext} - Time = ${t / 24 / 3600:4.1f}$ days with ${npl:4.0f}$ particles")
 
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.

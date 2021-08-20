@@ -8,8 +8,8 @@ CB_IN          sun_MsunAUYR.in
 PL_IN          pl_chambers_2013.in
 TP_IN          tp.in
 IN_TYPE        ASCII
-ISTEP_OUT      625              ! output cadence 
-ISTEP_DUMP     625             ! system dump cadence
+ISTEP_OUT      6250              ! output cadence 
+ISTEP_DUMP     6250            ! system dump cadence
 BIN_OUT        bin.dat
 PARTICLE_OUT   particle.dat
 OUT_TYPE       REAL8              ! double precision real output
