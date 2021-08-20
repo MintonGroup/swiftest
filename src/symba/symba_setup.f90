@@ -77,19 +77,13 @@ contains
          call system%pltpenc_list%setup(0)
          call system%plplenc_list%setup(0)
          call system%plplcollision_list%setup(0)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            call pl%sort("mass", ascending=.false.)
-            select type(param)
-            class is (symba_parameters)
-               pl%lmtiny(:) = pl%Gmass(:) > param%GMTINY
-               pl%nplm = count(pl%lmtiny(:))
-               if (param%lrestart) then
-                  call symba_io_read_particle(system, param)
-               else
-                  call symba_setup_initialize_particle_info(system, param) 
-               end if
-            end select
+         select type(param)
+         class is (symba_parameters)
+            if (param%lrestart) then
+               call symba_io_read_particle(system, param)
+            else
+               call symba_setup_initialize_particle_info(system, param) 
+            end if
          end select
       end associate
 

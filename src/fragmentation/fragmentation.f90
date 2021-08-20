@@ -100,7 +100,6 @@ contains
 
       call reset_fragments()
       call define_coordinate_system()
-      call construct_temporary_system()
 
       ! Calculate the initial energy of the system without the collisional family
       call calculate_system_energy(linclude_fragments=.false.)
@@ -150,25 +149,25 @@ contains
       end do
       call restore_scale_factors()
 
-      write(*,        "(' -------------------------------------------------------------------------------------')")
-      write(*,        "('  Final diagnostic')")
-      write(*,        "(' -------------------------------------------------------------------------------------')")
-      call calculate_system_energy(linclude_fragments=.true.)
-      if (lfailure) then
-         write(*,*) "symba_frag_pos failed after: ",try," tries"
-         do ii = 1, nfrag
-            vb_frag(:, ii) = vcom(:)
-         end do
-      else
-         write(*,*) "symba_frag_pos succeeded after: ",try," tries"
-         write(*,        "(' dL_tot should be very small' )")
-         write(*,fmtlabel) ' dL_tot      |', dLmag / Lmag_before
-         write(*,        "(' dE_tot should be negative and equal to Qloss' )")
-         write(*,fmtlabel) ' dE_tot      |', dEtot / abs(Etot_before)
-         write(*,fmtlabel) ' Qloss       |', -Qloss / abs(Etot_before)
-         write(*,fmtlabel) ' dE - Qloss  |', (Etot_after - Etot_before + Qloss) / abs(Etot_before)
-      end if
-      write(*,        "(' -------------------------------------------------------------------------------------')")
+      ! write(*,        "(' -------------------------------------------------------------------------------------')")
+      ! write(*,        "('  Final diagnostic')")
+      ! write(*,        "(' -------------------------------------------------------------------------------------')")
+      ! call calculate_system_energy(linclude_fragments=.true.)
+      ! if (lfailure) then
+      !    write(*,*) "symba_frag_pos failed after: ",try," tries"
+      !    do ii = 1, nfrag
+      !       vb_frag(:, ii) = vcom(:)
+      !    end do
+      ! else
+      !    write(*,*) "symba_frag_pos succeeded after: ",try," tries"
+      !    write(*,        "(' dL_tot should be very small' )")
+      !    write(*,fmtlabel) ' dL_tot      |', dLmag / Lmag_before
+      !    write(*,        "(' dE_tot should be negative and equal to Qloss' )")
+      !    write(*,fmtlabel) ' dE_tot      |', dEtot / abs(Etot_before)
+      !    write(*,fmtlabel) ' Qloss       |', -Qloss / abs(Etot_before)
+      !    write(*,fmtlabel) ' dE - Qloss  |', (Etot_after - Etot_before + Qloss) / abs(Etot_before)
+      ! end if
+      ! write(*,        "(' -------------------------------------------------------------------------------------')")
 
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
@@ -355,7 +354,7 @@ contains
 
             associate(pl => system%pl, npl => system%pl%nbody, cb => system%cb)
                if (size(lexclude) /= npl + nfrag) then 
-                  allocate(lexclude_tmp(npl_new))
+                  allocate(lexclude_tmp(npl + nfrag))
                   lexclude_tmp(1:npl) = lexclude(1:npl)
                   call move_alloc(lexclude_tmp, lexclude)
                end if
@@ -364,8 +363,9 @@ contains
                elsewhere
                   lexclude(1:npl) = .false. 
                end where
-               lexclude(npl+1:npl_new) = .true.
+               lexclude(npl+1:(npl + nfrag)) = .true.
                if (allocated(tmpparam)) deallocate(tmpparam) 
+               if (allocated(tmpsys)) deallocate(tmpsys)
                allocate(tmpparam, source=param)
                call setup_construct_system(tmpsys, param)
                call tmpsys%tp%setup(0, param)
@@ -388,8 +388,11 @@ contains
             implicit none
             ! Internals
             integer(I4B) :: i
+            class(swiftest_pl), allocatable :: pl_discards
+            logical, dimension(:), allocatable :: lexclude_tmp
 
             associate(pl => system%pl, npl => system%pl%nbody)
+               npl_new = npl + nfrag
 
                tmpsys%pl%mass(npl+1:npl_new) = m_frag(1:nfrag)
                tmpsys%pl%Gmass(npl+1:npl_new) = m_frag(1:nfrag) * tmpparam%GU
@@ -407,11 +410,20 @@ contains
                ! Disable the collisional family for subsequent energy calculations and coordinate shifts
                lexclude(family(:)) = .true.
                lexclude(npl+1:npl_new) = .false.
-               where(lexclude(:)) 
-                  tmpsys%pl%status(:) = INACTIVE
+               where(lexclude(1:npl_new)) 
+                  tmpsys%pl%status(1:npl_new) = INACTIVE
                elsewhere
-                  tmpsys%pl%status(:) = ACTIVE
+                  tmpsys%pl%status(1:npl_new) = ACTIVE
                end where
+               allocate(pl_discards, mold=tmpsys%pl)
+               call tmpsys%pl%spill(pl_discards, lspill_list=lexclude(1:npl_new), ldestructive=.true.)
+               npl_new = count(.not.lexclude(:))
+
+               if (size(lexclude) /= npl_new) then 
+                  allocate(lexclude_tmp(npl_new))
+                  call move_alloc(lexclude_tmp, lexclude)
+               end if
+               lexclude(1:npl_new) = .false.
 
             end associate
 
@@ -432,49 +444,30 @@ contains
             logical, dimension(:), allocatable :: lexclude_tmp
             logical :: lk_plpl
 
-            ! Because we're making a copy of symba_pl with the excludes/fragments appended, we need to deallocate the
-            ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
-            ! allocating two of these ginormous arrays simulteouously. This is not particularly efficient, but as this
-            ! subroutine should be called relatively infrequently, it shouldn't matter too much.
 
             ! Build the internal planet list out of the non-excluded bodies and optionally with fragments appended. This
             ! will get passed to the energy calculation subroutine so that energy is computed exactly the same way is it
             ! is in the main program. This will temporarily expand the planet list in a temporary system object called tmpsys to feed it into symba_energy
             associate(pl => system%pl, npl => system%pl%nbody, cb => system%cb)
 
-               where (lexclude(1:npl_new))
-                  tmpsys%pl%status(1:npl_new) = INACTIVE
-               elsewhere
-                  tmpsys%pl%status(1:npl_new) = ACTIVE
-               end where
-      
-               select type(plwksp => tmpsys%pl)
-               class is (symba_pl)
-                  select type(param)
-                  class is (symba_parameters)
-                     if (linclude_fragments) call add_fragments_to_tmpsys() ! Adds or updates the fragment properties to their current values
-                     plwksp%nplm = count(plwksp%Gmass > param%Gmtiny / mscale)
-                  end select
-               end select
-
+               ! Because we're making a copy of symba_pl with the excludes/fragments appended, we need to deallocate the
+               ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
+               ! allocating two of these ginormous arrays simulteouously. This is not particularly efficient, but as this
+               ! subroutine should be called relatively infrequently, it shouldn't matter too much.
                lk_plpl = allocated(pl%k_plpl)
                if (lk_plpl) deallocate(pl%k_plpl)
 
-               call tmpsys%pl%eucl_index()
+               call construct_temporary_system()
+               if (linclude_fragments) call add_fragments_to_tmpsys()
+
+               call tmpsys%pl%index(param)
 
                call tmpsys%get_energy_and_momentum(param) 
 
                ! Restore the big array
                deallocate(tmpsys%pl%k_plpl) 
-               select type(pl)
-               class is (symba_pl)
-                  select type(param)
-                  class is (symba_parameters)
-                     pl%nplm = count(pl%Gmass > param%Gmtiny)
-                  end select
-               end select
 
-               if (lk_plpl) call pl%eucl_index()
+               if (lk_plpl) call pl%index(param)
 
                ! Calculate the current fragment energy and momentum balances
                if (linclude_fragments) then

@@ -1,8 +1,8 @@
-submodule (swiftest_classes) s_eucl
+submodule (swiftest_classes) s_util_index
    use swiftest
 contains
 
-   module subroutine eucl_dist_index_plpl(self)
+   module subroutine util_index_eucl_plpl(self, param)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix
@@ -13,13 +13,14 @@ contains
       !!       2019. hal-0204751
       implicit none
       ! Arguments
-      class(swiftest_pl),             intent(inout) :: self  !! Swiftest massive body objec
+      class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       ! Internals
       integer(I8B) :: i, j, counter, npl
 
       npl = int(self%nbody, kind=I8B)
       associate(nplpl => self%nplpl)
-         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, nplm x npl, minus first column
+         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
          if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
          allocate(self%k_plpl(2, nplpl))
          do i = 1, npl
@@ -33,6 +34,6 @@ contains
       end associate
 
       return
-   end subroutine eucl_dist_index_plpl
+   end subroutine util_index_eucl_plpl
 
- end submodule s_eucl
+end submodule s_util_index

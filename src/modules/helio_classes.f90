@@ -38,6 +38,7 @@ module helio_classes
    contains
       procedure :: drift       => helio_drift_pl           !! Method for Danby drift in Democratic Heliocentric coordinates 
       procedure :: lindrift    => helio_drift_linear_pl    !! Method for linear drift of massive bodies due to barycentric momentum of Sun
+      procedure :: index       => helio_util_index_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: accel_gr    => helio_gr_kick_getacch_pl !! Acceleration term arising from the post-Newtonian correction
       procedure :: gr_pos_kick => helio_gr_p4_pl           !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => helio_kick_getacch_pl    !! Compute heliocentric accelerations of massive bodies
@@ -212,6 +213,13 @@ module helio_classes
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsizee
       end subroutine helio_step_tp
+
+      module subroutine helio_util_index_eucl_plpl(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(helio_pl),            intent(inout) :: self  !! Helio massive body object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      end subroutine helio_util_index_eucl_plpl
    end interface
 
 end module helio_classes

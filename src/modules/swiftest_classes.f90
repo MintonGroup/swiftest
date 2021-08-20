@@ -217,7 +217,7 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure :: discard      => discard_pl             !! Placeholder method for discarding massive bodies 
-      procedure :: eucl_index   => eucl_dist_index_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure :: index        => util_index_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: accel_int    => kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl    => obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup        => setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
@@ -454,9 +454,10 @@ module swiftest_classes
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
-      module subroutine eucl_dist_index_plpl(self)
+      module subroutine util_index_eucl_plpl(self, param)
          implicit none
-         class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine
 
       module subroutine fragmentation_initialize(system, param, family, x, v, L_spin, Ip, mass, radius, &

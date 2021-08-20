@@ -905,6 +905,7 @@ contains
             read(iu, *, err = 667, iomsg = errmsg) self%Ip(1), self%Ip(2), self%Ip(3)
             read(iu, *, err = 667, iomsg = errmsg) self%rot(1), self%rot(2), self%rot(3)
          end if
+         ierr = 0
       else
          open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
          ierr = self%read_frame(iu, param)
