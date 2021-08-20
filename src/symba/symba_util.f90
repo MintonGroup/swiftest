@@ -417,22 +417,24 @@ contains
       class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, j, k
+      integer(I4B) :: i, j, k, npl
       logical, dimension(:), allocatable :: lmask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
 
-      associate(pl => self, pl_adds => system%pl_adds)
+      associate(pl => self, pl_adds => system%pl_adds, nadd => system%pl_adds%nbody)
 
+         npl = pl%nbody
          ! Deallocate any temporary variables
          if (allocated(pl%xbeg)) deallocate(pl%xbeg)
          if (allocated(pl%xend)) deallocate(pl%xend)
 
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
-         allocate(lmask, source=pl%ldiscard(:))
-         lmask(:) = lmask(:) .or. pl%status(:) == INACTIVE
+         allocate(lmask(npl))
+         lmask(1:npl) = pl%ldiscard(1:npl) .or. pl%status(1:npl) == INACTIVE
          allocate(tmp, mold=self)
          call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+         npl = pl%nbody
          call tmp%setup(0,param)
          deallocate(tmp)
          deallocate(lmask)
@@ -442,39 +444,40 @@ contains
          call plplenc_old%copy(system%plplenc_list)
 
          ! Add in any new bodies
-         if (pl_adds%nbody > 0) then
+         if (nadd > 0) then
             ! Append the adds to the main pl object
-            call pl%append(pl_adds, lsource_mask=[(.true., i=1, pl_adds%nbody)])
+            call pl%append(pl_adds, lsource_mask=[(.true., i=1, nadd)])
+            npl = pl%nbody
 
-            allocate(lmask(pl%nbody)) 
-            lmask(:) = pl%status(1:pl%nbody) == NEW_PARTICLE
+            allocate(lmask(npl)) 
+            lmask(1:npl) = pl%status(1:npl) == NEW_PARTICLE
 
-            call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, pl%nbody)], lmask))
+            call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, npl)], lmask))
 
             deallocate(lmask)
          end if
 
          ! Reset all of the status flags for this body
-         where(pl%status(1:pl%nbody) /= INACTIVE) 
-            pl%status(1:pl%nbody) = ACTIVE
-            pl%ldiscard(1:pl%nbody) = .false.
-            pl%lcollision(1:pl%nbody) = .false.
-            pl%lmtiny(1:pl%nbody) = pl%Gmass(1:pl%nbody) > param%GMTINY
-            pl%lmask(1:pl%nbody) = .true.
+         where(pl%status(1:npl) /= INACTIVE) 
+            pl%status(1:npl) = ACTIVE
+            pl%ldiscard(1:npl) = .false.
+            pl%lcollision(1:npl) = .false.
+            pl%lmtiny(1:npl) = pl%Gmass(1:npl) > param%GMTINY
+            pl%lmask(1:npl) = .true.
          elsewhere
-            pl%ldiscard(1:pl%nbody) = .true.
-            pl%lmask(1:pl%nbody) = .false.
+            pl%ldiscard(1:npl) = .true.
+            pl%lmask(1:npl) = .false.
          end where
 
-         pl%nplm = count(pl%lmtiny(1:pl%nbody) .and. pl%lmask(1:pl%nbody))
+         pl%nplm = count(pl%lmtiny(1:npl) .and. pl%lmask(1:npl))
 
          ! Reindex the new list of bodies 
          call pl%sort("mass", ascending=.false.)
          call pl%eucl_index()
 
          ! Reset the kinship trackers
-         pl%kin(1:pl%nbody)%nchild = 0
-         pl%kin(1:pl%nbody)%parent = [(i, i=1, pl%nbody)]
+         pl%kin(1:npl)%nchild = 0
+         pl%kin(1:npl)%parent = [(i, i=1, npl)]
 
          ! Re-build the encounter list
          lencounter = pl%encounter_check(system, param%dt, 0) 

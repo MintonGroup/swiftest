@@ -8,10 +8,10 @@ Functions that recreate the Swift/Swifter tool programs
 """
 
 def wrap_angle(angle):
-    while np.any(angle >= 2 * np.pi):
-        angle[angle >= 2 * np.pi] -= 2 * np.pi
+    while np.any(angle >= 360.0 ):
+        angle[angle >= 360.0] -= 360.0
     while np.any(angle < 0.0):
-        angle[angle < 0.0] += 2 * np.pi
+        angle[angle < 0.0] += 360.0
     return angle
 
 def follow_swift(ds, ifol=None, nskp=None):
@@ -50,15 +50,9 @@ def follow_swift(ds, ifol=None, nskp=None):
         intxt = input('Input the print frequency\n')
         nskp = int(intxt)
         
-    dr = 180.0 / np.pi
     fol['obar'] = fol['capom'] + fol['omega']
     fol['obar'] = fol['obar'].fillna(0)
     fol['obar'] = wrap_angle(fol['obar'])
-    fol['obar'] = fol['obar'] * dr
-    fol['inc'] = fol['inc'] * dr
-    fol['capom'] = fol['capom'] * dr
-    fol['omega'] = fol['omega'] * dr
-    fol['capm'] = fol['capm'] * dr
     fol['peri'] = fol['a'] * (1.0 - fol['e'])
     fol['apo']  = fol['a'] * (1.0 + fol['e'])
 
