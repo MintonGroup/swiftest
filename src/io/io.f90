@@ -1101,6 +1101,13 @@ contains
 
             end do
          end select
+
+         if (param%in_form == EL) then
+            self%inc(1:n)   = self%inc(1:n) * DEG2RAD
+            self%capom(1:n) = self%capom(1:n) * DEG2RAD
+            self%omega(1:n) = self%omega(1:n) * DEG2RAD
+            self%capm(1:n)  = self%capm(1:n) * DEG2RAD
+         end if
       end associate
 
       ierr = 0
@@ -1203,11 +1210,6 @@ contains
       if (ierr /= 0) then
          write(errmsg, *) "Cannot read test particle frame."
          goto 667
-      end if
-
-      if (param%in_form == EL) then
-         call self%pl%el2xv(self%cb)
-         call self%tp%el2xv(self%cb)
       end if
 
       return
@@ -1481,10 +1483,10 @@ contains
          case (EL) 
             write(iu, err = 667, iomsg = errmsg) self%a(1:n)
             write(iu, err = 667, iomsg = errmsg) self%e(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%inc(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%capom(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%omega(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%capm(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%inc(1:n) * RAD2DEG
+            write(iu, err = 667, iomsg = errmsg) self%capom(1:n) * RAD2DEG
+            write(iu, err = 667, iomsg = errmsg) self%omega(1:n) * RAD2DEG
+            write(iu, err = 667, iomsg = errmsg) self%capm(1:n) * RAD2DEG
          case (XV)
             write(iu, err = 667, iomsg = errmsg) self%xh(1, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%xh(2, 1:n)
