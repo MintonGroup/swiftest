@@ -5,19 +5,21 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib.colors as mcolors
 
-radscale = 50
+titletext = "Chambers (2013)"
+radscale = 2000
 AU = 1.0
 xmin = 0.0
 xmax = 2.00
 ymin = 1e-4
 ymax = 1.0
+framejump = 10
 
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
     def __init__(self, ds, param):
 
         frame = 0
-        nframes = ds['time'].size
+        nframes = int(ds['time'].size / framejump)
         self.ds = ds
         self.param = param
         self.ds['radmarker'] = self.ds['Radius'].fillna(0)
@@ -28,8 +30,8 @@ class AnimatedScatter(object):
                       'Supercatastrophic' : 'xkcd:shocking pink',
                       'Hit and run fragment' : 'xkcd:baby poop green'}
 
-        self.stream = self.data_stream(frame)
         # Setup the figure and axes...
+        #self.stream = self.data_stream(0)
         fig = plt.figure(figsize=(8,4.5), dpi=300)
         plt.tight_layout(pad=0)
         # set up the figure
@@ -63,7 +65,7 @@ class AnimatedScatter(object):
         self.title = self.ax.text(0.50, 1.05, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, transform=self.ax.transAxes,
                         ha="center")
 
-        self.title.set_text(f"Time = ${t*1e-6:6.3f}$ My with ${npl:4.0f}$ particles")
+        self.title.set_text(f"{titletext} -  Time = ${t*1e-6:6.3f}$ My with ${npl:4.0f}$ particles")
         slist = self.scatters(pl, radmarker, origin)
         self.s0 = slist[0]
         self.s1 = slist[1]
@@ -74,7 +76,7 @@ class AnimatedScatter(object):
 
     def data_stream(self, frame=0):
         while True:
-            d = self.ds.isel(time=frame)
+            d = self.ds.isel(time = frame)
             d = d.where(np.invert(np.isnan(d['a'])), drop=True)
             Radius = d['radmarker'].values
             GMass = d['GMass'].values
@@ -87,14 +89,13 @@ class AnimatedScatter(object):
 
             t = self.ds.coords['time'].values[frame]
 
-            frame += 1
             yield t, name, GMass, Radius, npl, np.c_[a, e], radmarker, origin
 
     def update(self,frame):
         """Update the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(frame))
+        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(framejump * frame))
 
-        self.title.set_text(f"Time = ${t*1e-6:6.3f}$ My with ${npl:4.0f}$ particles")
+        self.title.set_text(f"{titletext} - Time = ${t*1e-6:6.3f}$ My with ${npl:4.0f}$ particles")
 
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.
