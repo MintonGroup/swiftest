@@ -1212,11 +1212,6 @@ contains
          goto 667
       end if
 
-      if (param%in_form == EL) then
-         call self%pl%el2xv(self%cb)
-         call self%tp%el2xv(self%cb)
-      end if
-
       return
 
       667 continue
