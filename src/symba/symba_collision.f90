@@ -901,7 +901,6 @@ contains
                !Copy over or set integration parameters for new bodies
                plnew%lcollision(1:nfrag) = .false.
                plnew%ldiscard(1:nfrag) = .false.
-               plnew%lmtiny(1:nfrag) = plnew%Gmass(1:nfrag) > param%GMTINY
                plnew%levelg(1:nfrag) = pl%levelg(ibiggest)
                plnew%levelm(1:nfrag) = pl%levelm(ibiggest)
    
