@@ -31,7 +31,6 @@ class AnimatedScatter(object):
                       'Hit and run fragment' : 'xkcd:baby poop green'}
 
         # Setup the figure and axes...
-        #self.stream = self.data_stream(0)
         fig = plt.figure(figsize=(8,4.5), dpi=300)
         plt.tight_layout(pad=0)
         # set up the figure
