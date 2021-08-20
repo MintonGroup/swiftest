@@ -476,11 +476,11 @@ module swiftest_classes
          logical,                                                   intent(out)   :: lfailure !! Answers the question: Should this have been a merger instead?
       end subroutine fragmentation_initialize
 
-      module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
+      module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, min_mfrag, Qloss)
          implicit none
          integer(I4B),               intent(out) :: regime
          real(DP),                   intent(out) :: Mlr, Mslr
-         real(DP),                   intent(in)  :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
+         real(DP),                   intent(in)  :: Mcb, m1, m2, rad1, rad2, den1, den2, min_mfrag 
          real(DP),     dimension(:), intent(in)  :: xh1, xh2, vb1, vb2
          real(DP),                   intent(out) :: Qloss !! Energy lost during the collision
       end subroutine fragmentation_regime

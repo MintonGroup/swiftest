@@ -126,7 +126,9 @@ contains
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
                case ("GMTINY")
-                  read(param_value, *) param%Gmtiny
+                  read(param_value, *) param%GMTINY
+               case ("MIN_GMFRAG")
+                  read(param_value, *) param%min_GMfrag
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -155,6 +157,15 @@ contains
          end do
          1 continue
 
+
+         if (self%GMTINY < 0.0_DP) then
+            write(iomsg,*) "GMTINY invalid or not set: ", self%GMTINY
+            iostat = -1
+            return
+         else
+            write(*,*) "GMTINY          = ", self%GMTINY   
+         end if
+
          write(*,*) "FRAGMENTATION = ", param%lfragmentation
          if (param%lfragmentation) then
             if (seed_set) then
@@ -163,14 +174,8 @@ contains
                call random_seed(get = param%seed)
             end if
             write(*,*) "SEED: N,VAL    = ",size(param%seed), param%seed(:)
-         end if
-
-         if (self%Gmtiny < 0.0_DP) then
-            write(iomsg,*) "GMTINY invalid or not set: ", self%Gmtiny
-            iostat = -1
-            return
-         else
-            write(*,*) "GMTINY          = ", self%Gmtiny   
+            if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
+            write(*,*) "MIN_GMFRAG      = ", self%min_GMfrag
          end if
 
          if (.not.self%lclose) then
@@ -222,7 +227,8 @@ contains
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
          write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%Gmtiny; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%GMTINY; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "MIN_GMFRAG"; write(param_value, Rfmt) param%min_GMfrag; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%lfragmentation) then
             write(param_name, Afmt) "SEED"
