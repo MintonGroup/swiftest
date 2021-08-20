@@ -270,7 +270,6 @@ contains
       call util_resize(self%k2, nnew)
       call util_resize(self%Q, nnew)
       call util_resize(self%tlag, nnew)
-      call self%eucl_index()
 
       return
    end subroutine util_resize_pl

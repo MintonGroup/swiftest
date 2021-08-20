@@ -4,7 +4,7 @@ module orbel
     public :: xv2el
 contains
     pure elemental subroutine xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
-        use module_interfaces, only : orbel_xv2el
+        use swiftest_classes, only : orbel_xv2el
         implicit none
         ! Arguments
         real*8, intent(in) :: mu, px, py, pz, vx, vy, vz
@@ -26,7 +26,7 @@ contains
         real*8, dimension(3) :: x, v
         x = [px, py, pz]
         v = [vx, vy, vz]
-        call orbel_xv2el(x, v, mu, a, e, inc, capom, omega, capm)
+        call orbel_xv2el(mu, x(:), v(:), a, e, inc, capom, omega, capm)
         return
     end subroutine xv2el
 end module orbel

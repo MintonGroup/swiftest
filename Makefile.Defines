@@ -54,24 +54,26 @@ VTUNE_FLAGS = -g -O2 -vec -simd -shared-intel -qopenmp -debug inline-debug-info 
 IDEBUG = -O0 -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin -init=snan,arrays 
 STRICTREAL = -fp-model strict -fp-model no-except -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -prec-div -prec-sqrt -assume protect-parens
-PAR = -qopenmp #-parallel  Something goes wrong in SyMBA at the moment with auto-paralellization enabled
+PAR = -qopenmp #-parallel  #Something goes wrong in SyMBA at the moment with auto-paralellization enabled
 HEAPARR = -heap-arrays 1048576 
 OPTREPORT = -qopt-report=5 
+IPRODUCTION = -init=snan,arrays -no-wrap-margin -O3 $(STRICTREAL) $(PAR) $(SIMDVEC) $(HEAPARR) 
 
 #gfortran flags
-GDEBUG = -g -Og -fbacktrace -fbounds-check 
-GPRODUCTION = -O3
+GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
 GPAR = -fopenmp #-ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
+GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
 #FFLAGS  = $(IDEBUG) $(HEAPARR) $(SIMDVEC) $(PAR)
-#FFLAGS  = -init=snan,arrays -no-wrap-margin -O0 -g -traceback $(STRICTREAL) $(PAR) $(SIMDVEC) $(HEAPARR) 
+#FFLAGS  = $(IPRODUCTION)
 #FORTRAN = ifort
 #AR     = xiar
 
 FORTRAN = gfortran
-FFLAGS =  -ffree-line-length-none $(GPAR) $(GPRODUCTION) #$(GMEM)
+#FFLAGS =  $(GDEBUG) #$(GMEM) #$(GPAR)
+FFLAGS =  $(GPRODUCTION)
 AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only

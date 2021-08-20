@@ -34,6 +34,7 @@ module whm_classes
       procedure :: j2h         => whm_coord_j2h_pl           !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
       procedure :: vh2vj       => whm_coord_vh2vj_pl         !! Convert velocity vectors from heliocentric to Jacobi coordinates 
       procedure :: drift       => whm_drift_pl               !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
+      procedure :: index       => whm_util_index_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: accel_gr    => whm_gr_kick_getacch_pl     !! Acceleration term arising from the post-Newtonian correction
       procedure :: gr_pos_kick => whm_gr_p4_pl               !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
@@ -108,6 +109,13 @@ module whm_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
+      module subroutine whm_util_index_eucl_plpl(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(whm_pl),            intent(inout) :: self  !! WHM massive body object
+         class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters
+      end subroutine whm_util_index_eucl_plpl
+   
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters

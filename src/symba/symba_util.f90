@@ -208,7 +208,7 @@ contains
    
       return
    end subroutine symba_util_copy_encounter
-   
+
 
    module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
       !! author: David A. Minton
@@ -318,6 +318,52 @@ contains
 
       return
    end subroutine symba_util_fill_tp
+
+
+   module subroutine symba_util_index_eucl_plpl(self, param)
+      !! author: Jacob R. Elliott and David A. Minton
+      !!
+      !! Turns i,j indices into k index for use in the Euclidean distance matrix. This also sets the lmtiny flag and computes the
+      !! number of interactions that excludes semi-interacting bodies with each other (Gmass < GMTINY).
+      !! This method will also sort the bodies in descending order by Mass
+      !!
+      !! Reference:
+      !!
+      !!    Mélodie Angeletti, Jean-Marie Bonny, Jonas Koko. Parallel Euclidean distance matrix computation on big datasets *. 
+      !!       2019. hal-0204751
+      implicit none
+      ! Arguments
+      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      ! Internals
+      integer(I8B) :: i, j, counter, npl, nplm
+
+      associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
+         npl = int(self%nbody, kind=I8B)
+         call pl%sort("mass", ascending=.false.)
+
+         select type(param)
+         class is (symba_parameters)
+            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
+         end select
+         pl%nplm = count(.not. pl%lmtiny(1:npl))
+
+         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
+         nplplm = (nplm * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
+         if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
+         allocate(self%k_plpl(2, nplpl))
+         do i = 1, npl
+            counter = (i - 1_I8B) * npl - i * (i - 1_I8B) / 2_I8B + 1_I8B
+            do j = i + 1_I8B, npl
+               self%k_plpl(1, counter) = i
+               self%k_plpl(2, counter) = j
+               counter = counter + 1_I8B
+            end do
+         end do
+      end associate
+
+      return
+   end subroutine symba_util_index_eucl_plpl
 
 
    module subroutine symba_util_peri_pl(self, system, param)
@@ -462,18 +508,14 @@ contains
             pl%status(1:npl) = ACTIVE
             pl%ldiscard(1:npl) = .false.
             pl%lcollision(1:npl) = .false.
-            pl%lmtiny(1:npl) = pl%Gmass(1:npl) > param%GMTINY
             pl%lmask(1:npl) = .true.
          elsewhere
             pl%ldiscard(1:npl) = .true.
             pl%lmask(1:npl) = .false.
          end where
 
-         pl%nplm = count(pl%lmtiny(1:npl) .and. pl%lmask(1:npl))
-
          ! Reindex the new list of bodies 
-         call pl%sort("mass", ascending=.false.)
-         call pl%eucl_index()
+         call pl%index(param)
 
          ! Reset the kinship trackers
          pl%kin(1:npl)%nchild = 0
