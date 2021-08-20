@@ -18,10 +18,11 @@ module symba_classes
    integer(I4B),          parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
 
    type, extends(swiftest_parameters) :: symba_parameters
-      character(STRMAX)                       :: particle_out  = PARTICLE_OUTFILE !! Name of output particle information file
-      real(DP)                                :: GMTINY          = -1.0_DP          !! Smallest mass that is fully gravitating
-      integer(I4B), dimension(:), allocatable :: seed                              !! Random seeds
-      logical                                 :: lfragmentation = .false.          !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: particle_out   = PARTICLE_OUTFILE !! Name of output particle information file
+      real(DP)                                :: GMTINY         = -1.0_DP          !! Smallest G*mass that is fully gravitating
+      real(DP)                                :: min_GMfrag     = -1.0_DP           !! Smallest G*mass that can be produced in a fragmentation event
+      integer(I4B), dimension(:), allocatable :: seed                             !! Random seeds
+      logical                                 :: lfragmentation = .false.         !! Do fragmentation modeling instead of simple merger.
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
@@ -88,6 +89,7 @@ module symba_classes
       procedure :: discard         => symba_discard_pl               !! Process massive body discards
       procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
+      procedure :: accel_int       => symba_kick_getacch_int_pl      !! Compute direct cross (third) term heliocentric accelerations of massive bodiess, with no mutual interactions between bodies below GMTINY
       procedure :: accel           => symba_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
       procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for the input number of bodies
       procedure :: append          => symba_util_append_pl           !! Appends elements from one structure to another
@@ -403,6 +405,11 @@ module symba_classes
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
       end subroutine symba_io_read_particle
+
+      module pure subroutine symba_kick_getacch_int_pl(self)
+         implicit none
+         class(symba_pl), intent(inout) :: self
+      end subroutine symba_kick_getacch_int_pl
 
       module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters

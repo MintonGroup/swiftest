@@ -987,7 +987,7 @@ contains
    end subroutine fragmentation_initialize
 
 
-   module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, mtiny, Qloss)
+   module subroutine fragmentation_regime(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, regime, Mlr, Mslr, min_mfrag, Qloss)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Determine the collisional regime of two colliding bodies. 
@@ -1008,7 +1008,7 @@ contains
       ! Arguments
       integer(I4B), intent(out)         :: regime
       real(DP), intent(out)          :: Mlr, Mslr
-      real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, mtiny 
+      real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, min_mfrag 
       real(DP), dimension(:), intent(in)   :: xh1, xh2, vb1, vb2
       real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
       ! Constants
@@ -1082,7 +1082,7 @@ contains
       Qloss = 0.0_DP
       U_binding = (3.0_DP * Mtot) / (5.0_DP * Rp) ! LS12 eq. 27
 
-      if ((m1 < mtiny).or.(m2 < mtiny)) then 
+      if ((m1 < min_mfrag).or.(m2 < min_mfrag)) then 
          regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
          Mlr = Mtot
          Mslr = 0.0_DP

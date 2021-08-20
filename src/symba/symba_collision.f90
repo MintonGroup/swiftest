@@ -22,7 +22,7 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, istart, nfrag, ibiggest, nfamily, nstart, nend
+      integer(I4B)                            :: i, istart, nfrag, nfamily, nstart, nend
       real(DP)                                :: mtot, avg_dens
       real(DP), dimension(NDIM)               :: xcom, vcom, Ip_new
       real(DP), dimension(2)                  :: vol
@@ -156,7 +156,7 @@ contains
          allocate(rot_frag(NDIM, nfrag))
          allocate(Ip_frag(NDIM, nfrag))
          m_frag(1) = mass(jtarg)
-         ibiggest = maxloc(system%pl%Gmass(family(:)), dim=1)
+         ibiggest = family(maxloc(system%pl%Gmass(family(:)), dim=1))
          id_frag(1) = system%pl%id(ibiggest)
          rad_frag(1) = radius(jtarg)
          xb_frag(:, 1) = x(:, jtarg) 
@@ -235,8 +235,8 @@ contains
       class is (symba_pl)
          write(*, '("Merging bodies ",I8,99(:,",",I8))') pl%id(family(:))
 
-         ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
-         id_frag(1) = pl%id(family(ibiggest))
+         ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
+         id_frag(1) = pl%id(ibiggest)
 
          m_frag(1) = sum(mass(:))
 
@@ -838,7 +838,7 @@ contains
                ! Setup new bodies
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
-               ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
+               ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
   
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(1:nfrag) = id_frag(1:nfrag) 
@@ -939,7 +939,7 @@ contains
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i, jtarg, jproj, regime
       real(DP), dimension(2)                      :: radius_si, mass_si, density_si
-      real(DP)                                    :: mtiny_si, Mcb_si
+      real(DP)                                    :: min_mfrag_si, Mcb_si
       real(DP), dimension(NDIM)                   :: x1_si, v1_si, x2_si, v2_si
       real(DP)                                    :: mlr, mslr, mtot, dentot, msys, msys_new, Qloss, impact_parameter
       integer(I4B), parameter                     :: NRES = 3   !! Number of collisional product results
@@ -974,7 +974,7 @@ contains
                   v2_si(:)      = plplcollision_list%v2(:,i) * param%DU2M / param%TU2S    !! The velocity of the parent from inside the step (at collision)
                   density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The collective density of the parent and its children
                   Mcb_si        = cb%mass * param%MU2KG 
-                  mtiny_si      = (param%GMTINY / param%GU) * param%MU2KG
+                  min_mfrag_si  = (param%min_GMfrag / param%GU) * param%MU2KG
                
                   mass_res(:) = 0.0_DP
             
@@ -983,7 +983,7 @@ contains
    
                   !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
                   call fragmentation_regime(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), x1_si(:), x2_si(:),& 
-                        v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), regime, mlr, mslr, mtiny_si, Qloss)
+                        v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), regime, mlr, mslr, min_mfrag_si, Qloss)
    
                   mass_res(1) = min(max(mlr, 0.0_DP), mtot)
                   mass_res(2) = min(max(mslr, 0.0_DP), mtot)
