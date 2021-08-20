@@ -290,11 +290,11 @@ contains
                if (i == ibiggest) cycle
                if (system%plplenc_list%id1(k) == pl%id(i)) then
                   system%plplenc_list%id1(k) = pl%id(ibiggest)
-                  system%plplenc_list%index1 = i
+                  system%plplenc_list%index1(k) = i
                end if
                if (system%plplenc_list%id2(k) == pl%id(i)) then
                   system%plplenc_list%id2(k) = pl%id(ibiggest)
-                  system%plplenc_list%index2 = i
+                  system%plplenc_list%index2(k) = i
                end if
                if (system%plplenc_list%id1(k) == system%plplenc_list%id2(k)) system%plplenc_list%status(k) = INACTIVE
             end do
