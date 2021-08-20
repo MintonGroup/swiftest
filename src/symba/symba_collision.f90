@@ -22,7 +22,7 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, istart, nfrag, ibiggest, nfamily, nstart, nend
+      integer(I4B)                            :: i, istart, nfrag, nfamily, nstart, nend
       real(DP)                                :: mtot, avg_dens
       real(DP), dimension(NDIM)               :: xcom, vcom, Ip_new
       real(DP), dimension(2)                  :: vol
@@ -156,7 +156,7 @@ contains
          allocate(rot_frag(NDIM, nfrag))
          allocate(Ip_frag(NDIM, nfrag))
          m_frag(1) = mass(jtarg)
-         ibiggest = maxloc(system%pl%Gmass(family(:)), dim=1)
+         ibiggest = family(maxloc(system%pl%Gmass(family(:)), dim=1))
          id_frag(1) = system%pl%id(ibiggest)
          rad_frag(1) = radius(jtarg)
          xb_frag(:, 1) = x(:, jtarg) 
@@ -235,8 +235,8 @@ contains
       class is (symba_pl)
          write(*, '("Merging bodies ",I8,99(:,",",I8))') pl%id(family(:))
 
-         ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
-         id_frag(1) = pl%id(family(ibiggest))
+         ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
+         id_frag(1) = pl%id(ibiggest)
 
          m_frag(1) = sum(mass(:))
 
@@ -838,7 +838,7 @@ contains
                ! Setup new bodies
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
-               ibiggest = maxloc(pl%Gmass(family(:)), dim=1)
+               ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
   
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(1:nfrag) = id_frag(1:nfrag) 
