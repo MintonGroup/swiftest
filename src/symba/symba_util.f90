@@ -468,6 +468,7 @@ contains
       logical, dimension(:), allocatable :: lmask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
+      integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp, nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
 
       associate(pl => self, pl_adds => system%pl_adds, nadd => system%pl_adds%nbody)
 
@@ -522,12 +523,27 @@ contains
          pl%kin(1:npl)%nchild = 0
          pl%kin(1:npl)%parent = [(i, i=1, npl)]
 
-         ! Re-build the encounter list
+         ! Re-build the zero-level encounter list, being sure to save the original level information for all bodies
+         allocate(levelg_orig_pl, source=pl%levelg)
+         allocate(levelm_orig_pl, source=pl%levelm)
+         allocate(nplenc_orig_pl, source=pl%nplenc)
+         allocate(ntpenc_orig_pl, source=pl%ntpenc)
          lencounter = pl%encounter_check(system, param%dt, 0) 
-         select type(tp => system%tp)
-         class is (symba_tp)
-            lencounter = tp%encounter_check(system, param%dt, 0)
-         end select
+         if (system%tp%nbody > 0) then
+            select type(tp => system%tp)
+            class is (symba_tp)
+               allocate(levelg_orig_tp, source=tp%levelg)
+               allocate(levelm_orig_tp, source=tp%levelm)
+               allocate(nplenc_orig_tp, source=tp%nplenc)
+               lencounter = tp%encounter_check(system, param%dt, 0)
+               call move_alloc(levelg_orig_tp, tp%levelg)
+               call move_alloc(levelm_orig_tp, tp%levelm)
+               call move_alloc(nplenc_orig_tp, tp%nplenc)
+            end select
+         end if
+         call move_alloc(levelg_orig_pl, pl%levelg)
+         call move_alloc(levelm_orig_pl, pl%levelm)
+         call move_alloc(nplenc_orig_pl, pl%nplenc)
 
          associate(idnew1 => system%plplenc_list%id1, idnew2 => system%plplenc_list%id2, idold1 => plplenc_old%id1, idold2 => plplenc_old%id2)
             do k = 1, system%plplenc_list%nenc
