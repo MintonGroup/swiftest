@@ -23,11 +23,11 @@ contains
   
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody, nplpl => self%nplpl)
-         allocate(lencounter(nplpl), loc_lvdotr(nplpl))
+      associate(pl => self, npl => self%nbody, nplplm => self%nplplm)
+         allocate(lencounter(nplplm), loc_lvdotr(nplplm))
          lencounter(:) = .false.
    
-         do k = 1, nplpl
+         do k = 1, nplplm
             associate(i => pl%k_plpl(1, k), j => pl%k_plpl(2, k))
                xr(:) = pl%xh(:, j) - pl%xh(:, i)
                vr(:) = pl%vh(:, j) - pl%vh(:, i)
@@ -40,9 +40,9 @@ contains
          if (lany_encounter) then 
             associate(plplenc_list => system%plplenc_list)
                call plplenc_list%resize(nenc)
-               plplenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(:), lencounter(:))
-               plplenc_list%index1(1:nenc) = pack(pl%k_plpl(1,:), lencounter(:))
-               plplenc_list%index2(1:nenc) = pack(pl%k_plpl(2,:), lencounter(:))
+               plplenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(1:nplplm), lencounter(1:nplplm))
+               plplenc_list%index1(1:nenc) = pack(pl%k_plpl(1,1:nplplm), lencounter(1:nplplm))
+               plplenc_list%index2(1:nenc) = pack(pl%k_plpl(2,1:nplplm), lencounter(1:nplplm))
                plplenc_list%id1(1:nenc) = pl%id(plplenc_list%index1(1:nenc))
                plplenc_list%id2(1:nenc) = pl%id(plplenc_list%index2(1:nenc))
                do k = 1, nenc
