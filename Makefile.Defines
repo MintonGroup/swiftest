@@ -61,17 +61,17 @@ OPTREPORT = -qopt-report=5
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check 
 GPRODUCTION = -O3
-GPAR = -fopenmp -ftree-parallelize-loops=4
+GPAR = -fopenmp #-ftree-parallelize-loops=4
 GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 
 #FFLAGS  = $(IDEBUG) $(HEAPARR) $(SIMDVEC) $(PAR)
-FFLAGS  = -init=snan,arrays -no-wrap-margin -O3 $(STRICTREAL) $(PAR) $(SIMDVEC) $(HEAPARR) 
-FORTRAN = ifort
+#FFLAGS  = -init=snan,arrays -no-wrap-margin -O0 -g -traceback $(STRICTREAL) $(PAR) $(SIMDVEC) $(HEAPARR) 
+#FORTRAN = ifort
 #AR     = xiar
 
-#FORTRAN = gfortran
-#FFLAGS =  -ffree-line-length-none $(GPRODUCTION) $(GPAR) #$(GDEBUG) $(GMEM)
+FORTRAN = gfortran
+FFLAGS =  -ffree-line-length-none $(GPAR) $(GPRODUCTION) #$(GMEM)
 AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
