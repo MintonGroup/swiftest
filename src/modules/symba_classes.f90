@@ -18,10 +18,11 @@ module symba_classes
    integer(I4B),          parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
 
    type, extends(swiftest_parameters) :: symba_parameters
-      character(STRMAX)                       :: particle_out  = PARTICLE_OUTFILE !! Name of output particle information file
-      real(DP)                                :: GMTINY          = -1.0_DP          !! Smallest mass that is fully gravitating
-      integer(I4B), dimension(:), allocatable :: seed                              !! Random seeds
-      logical                                 :: lfragmentation = .false.          !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: particle_out   = PARTICLE_OUTFILE !! Name of output particle information file
+      real(DP)                                :: GMTINY         = -1.0_DP          !! Smallest G*mass that is fully gravitating
+      real(DP)                                :: min_GMfrag     = -1.0_DP           !! Smallest G*mass that can be produced in a fragmentation event
+      integer(I4B), dimension(:), allocatable :: seed                             !! Random seeds
+      logical                                 :: lfragmentation = .false.         !! Do fragmentation modeling instead of simple merger.
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer

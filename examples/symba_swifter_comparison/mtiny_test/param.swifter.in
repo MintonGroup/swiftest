@@ -1,0 +1,27 @@
+T0             0.0 
+TSTOP          4200.0 
+DT             600.0
+PL_IN          pl.swifter.in
+TP_IN          tp.in
+IN_TYPE        ASCII
+ISTEP_OUT      1
+ISTEP_DUMP     1
+BIN_OUT        bin.swifter.dat
+OUT_TYPE       REAL8
+OUT_FORM       XV
+OUT_STAT       UNKNOWN
+J2             0.0
+J4             0.0
+CHK_CLOSE      yes
+CHK_RMIN       3389500.0
+CHK_RMAX       3389500000.0
+CHK_EJECT      3389500000.0
+CHK_QMIN       3389500.0
+CHK_QMIN_COORD HELIO
+CHK_QMIN_RANGE 3389500.0 338950000000.0
+ENC_OUT        /dev/null
+EXTRA_FORCE    no
+BIG_DISCARD    no
+RHILL_PRESENT  yes
+WALLTIME       yes
+ENERGY         yes
