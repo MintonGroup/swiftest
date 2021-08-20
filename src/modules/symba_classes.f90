@@ -84,6 +84,7 @@ module symba_classes
       type(symba_particle_info), dimension(:), allocatable :: info
    contains
       procedure :: make_family     => symba_collision_make_family_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
+      procedure :: index           => symba_util_index_eucl_plpl     !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: discard         => symba_discard_pl               !! Process massive body discards
       procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
@@ -351,6 +352,12 @@ module symba_classes
          real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
          integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       end function symba_collision_casesupercatastrophic
+
+      module subroutine symba_util_index_eucl_plpl(self, param)
+         implicit none
+         class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      end subroutine symba_util_index_eucl_plpl
 
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters

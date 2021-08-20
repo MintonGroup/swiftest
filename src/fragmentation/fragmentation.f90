@@ -432,10 +432,6 @@ contains
             logical, dimension(:), allocatable :: lexclude_tmp
             logical :: lk_plpl
 
-            ! Because we're making a copy of symba_pl with the excludes/fragments appended, we need to deallocate the
-            ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
-            ! allocating two of these ginormous arrays simulteouously. This is not particularly efficient, but as this
-            ! subroutine should be called relatively infrequently, it shouldn't matter too much.
 
             ! Build the internal planet list out of the non-excluded bodies and optionally with fragments appended. This
             ! will get passed to the energy calculation subroutine so that energy is computed exactly the same way is it
@@ -447,34 +443,23 @@ contains
                elsewhere
                   tmpsys%pl%status(1:npl_new) = ACTIVE
                end where
-      
-               select type(plwksp => tmpsys%pl)
-               class is (symba_pl)
-                  select type(param)
-                  class is (symba_parameters)
-                     if (linclude_fragments) call add_fragments_to_tmpsys() ! Adds or updates the fragment properties to their current values
-                     plwksp%nplm = count(plwksp%Gmass > param%Gmtiny / mscale)
-                  end select
-               end select
-
+     
+               
+               ! Because we're making a copy of symba_pl with the excludes/fragments appended, we need to deallocate the
+               ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
+               ! allocating two of these ginormous arrays simulteouously. This is not particularly efficient, but as this
+               ! subroutine should be called relatively infrequently, it shouldn't matter too much.
                lk_plpl = allocated(pl%k_plpl)
                if (lk_plpl) deallocate(pl%k_plpl)
 
-               call tmpsys%pl%eucl_index()
+               call tmpsys%pl%index(param)
 
                call tmpsys%get_energy_and_momentum(param) 
 
                ! Restore the big array
                deallocate(tmpsys%pl%k_plpl) 
-               select type(pl)
-               class is (symba_pl)
-                  select type(param)
-                  class is (symba_parameters)
-                     pl%nplm = count(pl%Gmass > param%Gmtiny)
-                  end select
-               end select
 
-               if (lk_plpl) call pl%eucl_index()
+               if (lk_plpl) call pl%index(param)
 
                ! Calculate the current fragment energy and momentum balances
                if (linclude_fragments) then

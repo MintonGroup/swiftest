@@ -1,6 +1,6 @@
 !Parameter file for the SyMBA-RINGMOONS test
 T0             0.0 
-TSTOP          3000.0 
+TSTOP          4200.0 
 DT             600.0
 PL_IN          pl.swiftest.in
 TP_IN          tp.in
@@ -24,7 +24,7 @@ BIG_DISCARD    no
 RHILL_PRESENT  yes
 GMTINY         1000.0
 ENERGY         yes
-FRAGMENTATION  yes 
+FRAGMENTATION  no  
 ROTATION       yes
 MU2KG          1.0
 DU2M           1.0

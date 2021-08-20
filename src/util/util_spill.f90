@@ -39,6 +39,7 @@ contains
 
       return
    end subroutine util_spill_arr_char_string
+   
 
    module subroutine util_spill_arr_DP(keeps, discards, lspill_list, ldestructive)
       !! author: David A. Minton
@@ -77,6 +78,7 @@ contains
 
       return
    end subroutine util_spill_arr_DP
+
 
    module subroutine util_spill_arr_DPvec(keeps, discards, lspill_list, ldestructive)
       !! author: David A. Minton
@@ -120,6 +122,7 @@ contains
       return
    end subroutine util_spill_arr_DPvec
 
+
    module subroutine util_spill_arr_I4B(keeps, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
@@ -157,6 +160,7 @@ contains
 
       return
    end subroutine util_spill_arr_I4B
+   
 
    module subroutine util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
       !! author: David A. Minton
