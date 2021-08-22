@@ -2,7 +2,7 @@ submodule(symba_classes) s_symba_kick
    use swiftest
 contains
 
-   module pure subroutine symba_kick_getacch_int_pl(self)
+   module subroutine symba_kick_getacch_int_pl(self)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of massive bodies, with no mutual interactions between bodies below GMTINY
@@ -13,33 +13,35 @@ contains
       ! Arguments
       class(symba_pl), intent(inout) :: self
       ! Internals
-      integer(I4B)                      :: k
-      real(DP)                          :: rji2, irij3, faci, facj, rlim2
+      integer(I8B)                      :: k, nplplm
+      real(DP)                          :: rji2, rlim2
       real(DP)                          :: dx, dy, dz
+      integer(I4B) :: i, j
+      real(DP), dimension(:,:), pointer :: ah, xh
+      real(DP), dimension(NDIM,self%nbody) :: ahi, ahj
+      integer(I4B), dimension(:,:), pointer :: k_plpl
+      logical, dimension(:), pointer :: lmask
+      real(DP), dimension(:), pointer :: Gmass
 
-      associate(pl => self, npl => self%nbody, nplplm => self%nplplm)
-         do k = 1, nplplm
-            associate(i => pl%k_plpl(1, k), j => pl%k_plpl(2, k))
-               if (pl%lmask(i) .and. pl%lmask(j)) then
-                  dx = pl%xh(1, j) - pl%xh(1, i)
-                  dy = pl%xh(2, j) - pl%xh(2, i)
-                  dz = pl%xh(3, j) - pl%xh(3, i)
-                  rji2 = dx**2 + dy**2 + dz**2
-                  rlim2 = (pl%radius(i) + pl%radius(j))**2
-                  if (rji2 > rlim2) then
-                     irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                     faci = pl%Gmass(i) * irij3
-                     facj = pl%Gmass(j) * irij3
-                     pl%ah(1, i) = pl%ah(1, i) + facj * dx
-                     pl%ah(2, i) = pl%ah(2, i) + facj * dy
-                     pl%ah(3, i) = pl%ah(3, i) + facj * dz
-                     pl%ah(1, j) = pl%ah(1, j) - faci * dx
-                     pl%ah(2, j) = pl%ah(2, j) - faci * dy
-                     pl%ah(3, j) = pl%ah(3, j) - faci * dz
-                  end if
-               end if
-            end associate
+      associate(ah => self%ah, xh => self%xh, k_plpl => self%k_plpl, lmask => self%lmask, Gmass => self%Gmass)
+         nplplm = self%nplplm
+         ahi(:,:) = 0.0_DP
+         ahj(:,:) = 0.0_DP
+         !$omp parallel do default(shared)&
+         !$omp private(k, i, j, dx, dy, dz, rji2)  &
+         !$omp reduction(+:ahi) &
+         !$omp reduction(-:ahj) 
+         do k = 1_I8B, nplplm
+            i = k_plpl(1,k)
+            j = k_plpl(2,k)
+            dx = xh(1, j) - xh(1, i)
+            dy = xh(2, j) - xh(2, i)
+            dz = xh(3, j) - xh(3, i)
+            rji2 = dx**2 + dy**2 + dz**2
+            if (lmask(i) .and. lmask(j)) call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
          end do
+         !$omp end parallel do
+         ah(:,:) = ah(:,:) + ahi(:,:) + ahj(:,:)
       end associate
 
       return
@@ -61,30 +63,36 @@ contains
       real(DP),                     intent(in)    :: t      !! Current simulation time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
-      integer(I4B)              :: k
-      real(DP)                  :: irij3, rji2, rlim2, faci, facj
-      real(DP), dimension(NDIM) :: dx
+      integer(I4B)              :: i, j
+      integer(I8B)              :: k, nplplenc
+      real(DP)                  :: rji2, dx, dy, dz
+      real(DP), dimension(NDIM,self%nbody) :: ahi, ahj
+      class(symba_plplenc), pointer :: plplenc_list
 
       if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
-         associate(pl => self, cb => system%cb, plplenc_list => system%plplenc_list, nplplenc => system%plplenc_list%nenc)
+         associate(pl => self, xh => self%xh, ah => self%ah, Gmass => self%Gmass, plplenc_list => system%plplenc_list)
             call helio_kick_getacch_pl(pl, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
-            do k = 1, nplplenc
-               associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
-                  dx(:) = pl%xh(:, j) - pl%xh(:, i)
-                  rji2 = dot_product(dx(:), dx(:))
-                  rlim2 = (pl%radius(i) + pl%radius(j))**2
-                  if (rji2 > rlim2) then
-                     irij3 = 1.0_DP / (rji2 * sqrt(rji2))
-                     faci = pl%Gmass(i) * irij3
-                     facj = pl%Gmass(j) * irij3
-                     pl%ah(:, i) = pl%ah(:, i) - facj * dx(:)
-                     pl%ah(:, j) = pl%ah(:, j) + faci * dx(:)
-                  end if
-               end associate
+            nplplenc = int(plplenc_list%nenc, kind=I8B)
+            ahi(:,:) = 0.0_DP
+            ahj(:,:) = 0.0_DP
+            !$omp parallel do default(shared)&
+            !$omp private(k, i, j, dx, dy, dz, rji2)  &
+            !$omp reduction(+:ahi) &
+            !$omp reduction(-:ahj) 
+            do k = 1_I8B, nplplenc
+               i = plplenc_list%index1(k)
+               j = plplenc_list%index2(k)
+               dx = xh(1, j) - xh(1, i)
+               dy = xh(2, j) - xh(2, i)
+               dz = xh(3, j) - xh(3, i)
+               rji2 = dx**2 + dy**2 + dz**2
+               call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
             end do
+            !$omp end parallel do
+            ah(:,:) = ah(:,:) - ahi(:,:) - ahj(:,:)
          end associate
       end select
 
