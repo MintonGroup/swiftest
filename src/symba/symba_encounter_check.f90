@@ -16,24 +16,37 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      integer(I8B)                              :: k
-      integer(I4B)                              :: nenc
-      real(DP),     dimension(NDIM)             :: xr, vr
-      logical,      dimension(:),   allocatable :: lencounter, loc_lvdotr
+      integer(I8B) :: k, nplplm
+      integer(I4B) :: i, j, nenc
+      real(DP) :: xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2
+      logical,  dimension(self%nplplm) :: lencounter, loc_lvdotr
+      real(DP), dimension(:,:), pointer :: xh, vh
+      real(DP), dimension(:), pointer :: rhill
+      integer(I4B), dimension(:,:), pointer :: k_plpl
   
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody, nplplm => self%nplplm)
-         allocate(lencounter(nplplm), loc_lvdotr(nplplm))
+      associate(pl => self, xh => self%xh, vh => self%vh, rhill => self%rhill, npl => self%nbody, k_plpl => self%k_plpl)
+         nplplm = self%nplplm
          lencounter(:) = .false.
-   
-         do k = 1, nplplm
-            associate(i => pl%k_plpl(1, k), j => pl%k_plpl(2, k))
-               xr(:) = pl%xh(:, j) - pl%xh(:, i)
-               vr(:) = pl%vh(:, j) - pl%vh(:, i)
-               call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), pl%rhill(j), dt, irec, lencounter(k), loc_lvdotr(k))
-            end associate
+         loc_lvdotr(:) = .false.
+  
+         !$omp parallel do default(shared)&
+         !$omp private(k, i, j, xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2)
+         do k = 1_I8B, nplplm
+            i = k_plpl(1, k)
+            j = k_plpl(2, k)
+            xr = xh(1, j) - xh(1, i)
+            yr = xh(2, j) - xh(2, i)
+            zr = xh(3, j) - xh(3, i)
+            vxr = vh(1, j) - vh(1, i)
+            vyr = vh(2, j) - vh(2, i)
+            vzr = vh(3, j) - vh(3, i)
+            rhill1 = rhill(i)
+            rhill2 = rhill(j)
+            call symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter(k), loc_lvdotr(k))
          end do
+         !$omp end parallel do
 
          nenc = count(lencounter(:))
          lany_encounter = nenc > 0
@@ -46,18 +59,18 @@ contains
                plplenc_list%id1(1:nenc) = pl%id(plplenc_list%index1(1:nenc))
                plplenc_list%id2(1:nenc) = pl%id(plplenc_list%index2(1:nenc))
                do k = 1, nenc
-                  associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
-                     plplenc_list%status(k) = ACTIVE
-                     plplenc_list%level(k) = irec
-                     pl%lencounter(i) = .true.
-                     pl%lencounter(j) = .true.
-                     pl%levelg(i) = irec
-                     pl%levelm(i) = irec
-                     pl%levelg(j) = irec
-                     pl%levelm(j) = irec
-                     pl%nplenc(i) = pl%nplenc(i) + 1
-                     pl%nplenc(j) = pl%nplenc(j) + 1
-                  end associate
+                  i = plplenc_list%index1(k)
+                  j = plplenc_list%index2(k)
+                  plplenc_list%status(k) = ACTIVE
+                  plplenc_list%level(k) = irec
+                  pl%lencounter(i) = .true.
+                  pl%lencounter(j) = .true.
+                  pl%levelg(i) = irec
+                  pl%levelm(i) = irec
+                  pl%levelg(j) = irec
+                  pl%levelm(j) = irec
+                  pl%nplenc(i) = pl%nplenc(i) + 1
+                  pl%nplenc(j) = pl%nplenc(j) + 1
                end do
             end associate
          end if
