@@ -406,7 +406,7 @@ module symba_classes
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
       end subroutine symba_io_read_particle
 
-      module pure subroutine symba_kick_getacch_int_pl(self)
+      module subroutine symba_kick_getacch_int_pl(self)
          implicit none
          class(symba_pl), intent(inout) :: self
       end subroutine symba_kick_getacch_int_pl

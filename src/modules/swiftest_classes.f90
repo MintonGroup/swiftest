@@ -247,6 +247,8 @@ module swiftest_classes
       integer(I4B), dimension(:),    allocatable :: isperi !! Perihelion passage flag
       real(DP),     dimension(:),    allocatable :: peri   !! Perihelion distance
       real(DP),     dimension(:),    allocatable :: atp    !! Semimajor axis following perihelion passage
+      integer(I4B), dimension(:,:),  allocatable :: k_pltp !! Index array used to convert flattened the body-body comparison upper triangular matrix
+      integer(I8B)                               :: npltp  !! Number of pl-tp comparisons in the flattened upper triangular matrix
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and util_spill_tp
    contains
@@ -262,6 +264,7 @@ module swiftest_classes
       procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
       procedure :: xh2xb     => util_coord_xh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
+      !procedure :: index     => util_index_eucl_pltp   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
       procedure :: resize    => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -457,6 +460,13 @@ module swiftest_classes
       module subroutine util_index_eucl_plpl(self, param)
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      end subroutine
+
+      module subroutine util_index_eucl_pltp(self, pl, param)
+         implicit none
+         class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+         class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine
 
@@ -717,7 +727,27 @@ module swiftest_classes
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_netcdf_write_frame_system
 
-      module pure subroutine kick_getacch_int_pl(self)
+      module pure elemental subroutine kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+         implicit none
+         real(DP), intent(in)  :: rji2
+         real(DP), intent(in)  :: dx, dy, dz
+         real(DP), intent(in)  :: Gmi
+         real(DP), intent(in)  :: Gmj
+         real(DP), intent(inout) :: axi, ayi, azi
+         real(DP), intent(inout) :: axj, ayj, azj
+      end subroutine kick_getacch_int_one_pl
+
+      !module pure elemental subroutine kick_getacch_int_one_tp(rji2, dx, dy, dz, Gmpl, ax, ay, az)
+      module pure subroutine kick_getacch_int_one_tp(rji2, dx, dy, dz, Gmpl, ax, ay, az)
+         !$omp declare simd(kick_getacch_int_one_tp)
+         implicit none
+         real(DP), intent(in)  :: rji2
+         real(DP), intent(in)  :: dx, dy, dz
+         real(DP), intent(in)  :: Gmpl
+         real(DP), intent(inout) :: ax, ay, az
+      end subroutine kick_getacch_int_one_tp
+
+      module subroutine kick_getacch_int_pl(self)
          implicit none
          class(swiftest_pl), intent(inout) :: self
       end subroutine kick_getacch_int_pl
