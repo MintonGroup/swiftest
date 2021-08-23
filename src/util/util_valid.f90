@@ -12,7 +12,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)                  :: i
       integer(I4B), dimension(:), allocatable :: idarr
@@ -34,7 +34,7 @@ contains
                call util_exit(FAILURE)
             end if
          end do
-         self%maxid = maxval(idarr)
+         param%maxid = max(param%maxid, maxval(idarr))
       end associate
 
       return
