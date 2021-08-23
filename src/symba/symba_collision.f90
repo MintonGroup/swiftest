@@ -283,7 +283,7 @@ contains
          param%Ecollisions = param%Ecollisions + pe 
          param%Euntracked  = param%Euntracked - pe 
 
-         ! Update any encounter lists that have the removedbodies in them so that they instead point to the new 
+         ! Update any encounter lists that have the removed bodies in them so that they instead point to the new 
          do k = 1, system%plplenc_list%nenc
             do j = 1, nfamily
                i = family(j)
