@@ -15,8 +15,7 @@ module swiftest_classes
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
-      integer(I4B)         :: nplmax         = -1                 !! Maximum allowed number of massive bodies
-      integer(I4B)         :: ntpmax         = -1                 !! Maximum allowed number of test particles
+      integer(I4B)         :: maxid = -1           !! The current maximum particle id number 
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
@@ -295,7 +294,6 @@ module swiftest_classes
       logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                                          !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                                          !!    the test particles
-      integer(I4B)                               :: maxid = -1           !! The current maximum particle id number 
    contains
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), deferred :: step
@@ -1448,7 +1446,7 @@ module swiftest_classes
       module subroutine util_valid_id_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine util_valid_id_system
 
       module subroutine util_version()
