@@ -30,6 +30,7 @@ sim.param['ENERGY'] = "YES"
 sim.param['ENERGY_OUT'] = "energy.dat"
 sim.param['PL_IN'] = "pl_chambers_2013.in"
 sim.param['CB_IN'] = "sun_MsunAUYR.in"
+sim.param['ENC_OUT'] = ""
 
 # Simulation parameters
 sim.param['FRAGMENTATION'] = "YES"
