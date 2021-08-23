@@ -4,6 +4,7 @@ from swiftest import tool
 from swiftest import constants
 from datetime import date
 import xarray as xr
+import numpy as np
 
 class Simulation:
     """
@@ -27,12 +28,12 @@ class Simulation:
             'OUT_TYPE': 'REAL8',
             'OUT_FORM': "EL",
             'OUT_STAT': "REPLACE",
-            'CHK_RMAX': "1000.0",
-            'CHK_EJECT': "1000.0",
-            'CHK_RMIN': f"{constants.RSun / constants.AU2M}",
-            'CHK_QMIN': f"{constants.RSun / constants.AU2M}",
+            'CHK_RMAX': "-1.0",
+            'CHK_EJECT': "-1.0",
+            'CHK_RMIN': "-1.0",
+            'CHK_QMIN': "-1.0",
             'CHK_QMIN_COORD': "HELIO",
-            'CHK_QMIN_RANGE': f"{constants.RSun / constants.AU2M} 1000.0",
+            'CHK_QMIN_RANGE': "-1.0 -1.0",
             'ENC_OUT': "enc.dat",
             'MU2KG': constants.MSun,
             'TU2S': constants.JD2S,
@@ -73,7 +74,7 @@ class Simulation:
         return
     
     
-    def addp(self, idvals, t1, t2, t3, t4, t5, t6, Gmass=None, radius=None, Rhill=None, t=0.0):
+    def addp(self, idvals, t1, t2, t3, t4, t5, t6, GMpl=None, Rpl=None, Rhill=None, Ip_x=None, Ip_y=None, Ip_z=None, rot_x=None, rot_y=None, rot_z=None):
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress
@@ -90,16 +91,18 @@ class Simulation:
            Gmass  : Optional: Array of G*mass values if these are massive bodies
            radius : Optional: Array radius values if these are massive bodies
            Rhill  : Optional: Array Rhill values if these are massive bodies
+           Ip_x,y,z : Optional: Principal axes moments of inertia
+           rot_x,y,z: Optional: Rotation rate vector components
         Returns
         -------
         self.ds : xarray dataset
         """
-        dsnew = init_cond.vec2xr(self.param, idvals, t1, t2, t3, t4, t5, t6, Gmass, radius, Rhill)
+        t = self.param['T0']
+
+        dsnew = init_cond.vec2xr(self.param, idvals, t1, t2, t3, t4, t5, t6, GMpl, Rpl, Rhill, Ip_x, Ip_y, Ip_z, rot_x, rot_y, rot_z, t)
         if dsnew is not None:
             self.ds = xr.combine_by_coords([self.ds, dsnew])
         return
-        
-        
     
     
     def read_param(self, param_file, codename="Swiftest"):

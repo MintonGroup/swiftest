@@ -555,7 +555,7 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
                case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
-                  write(iomsg,*) "Unknown parameter -> ",param_name
+                  write(*,*) "Unknown parameter -> ",param_name
                   iostat = -1
                   return
                end select

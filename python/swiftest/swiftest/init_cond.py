@@ -1,6 +1,8 @@
 import swiftest
 import numpy as np
 from astroquery.jplhorizons import Horizons
+import astropy.units as u
+from astropy.coordinates import SkyCoord
 import datetime
 from datetime import date
 import xarray as xr
@@ -74,6 +76,32 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         'Pluto': np.longdouble(1188.3e3 / swiftest.AU2M)
     }
     
+    planetrot = {
+       'Sun' : np.longdouble(2*np.pi / 25.05) / swiftest.JD2S, # Approximate
+       'Mercury': np.longdouble(2*np.pi / 58.646) / swiftest.JD2S,
+       'Venus': np.longdouble(2*np.pi / 243.0226 ) / swiftest.JD2S,
+       'Earth': np.longdouble(2*np.pi / 0.99726968) / swiftest.JD2S,
+       'Mars': np.longdouble(2*np.pi / 1.025957) / swiftest.JD2S,
+       'Jupiter': np.longdouble(2*np.pi / (9.9250 / 24.0) ) / swiftest.JD2S,
+       'Saturn': np.longdouble(2*np.pi / (10.656 / 24.0) ) / swiftest.JD2S,
+       'Uranus': np.longdouble(2*np.pi / 0.71833) / swiftest.JD2S,
+       'Neptune': np.longdouble(2*np.pi / 0.6713) / swiftest.JD2S,
+       'Pluto': np.longdouble(2*np.pi / 6.387230) / swiftest.JD2S
+    }
+   
+    planetIpz = { # Only the polar moments of inertia are used currently. Where the quantity is unkown, we just use the value of a sphere = 0.4
+        'Sun' : np.longdouble(0.070),
+        'Mercury' : np.longdouble(0.346),
+        'Venus': np.longdouble(0.4),
+        'Earth': np.longdouble(0.3307),
+        'Mars': np.longdouble(0.3644),
+        'Jupiter': np.longdouble(0.2756),
+        'Saturn': np.longdouble(0.22),
+        'Uranus': np.longdouble(0.23),
+        'Neptune': np.longdouble(0.23),
+        'Pluto': np.longdouble(0.4)
+        }
+
     # Unit conversion factors
     DCONV = swiftest.AU2M / param['DU2M']
     VCONV = (swiftest.AU2M / swiftest.JD2S) / (param['DU2M'] / param['TU2S'])
@@ -84,8 +112,14 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     Rcb = np.array([swiftest.RSun / param['DU2M']])
     J2RP2 = np.array([swiftest.J2Sun * (swiftest.RSun / param['DU2M']) ** 2])
     J4RP4 = np.array([swiftest.J4Sun * (swiftest.RSun / param['DU2M']) ** 4])
+    
+    solarpole = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree)
+    solarrot = planetrot['Sun'] * param['TU2S']
+    rotcb = solarpole.cartesian * solarrot
+    Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
+    
     cbid = np.array([0])
-    cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4])
+    cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4, Ipsun[0], Ipsun[1], Ipsun[2], rotcb.x, rotcb.y, rotcb.z ])
     
     # Horizons date time internal variables
     tstart = datetime.date.fromisoformat(ephemerides_start_date)
@@ -155,6 +189,12 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         Rhill = []
         Rpl = []
         GMpl = []
+        Ip_x = []
+        Ip_y = []
+        Ip_z = []
+        rot_x = []
+        rot_y = []
+        rot_z = []
 
         pldata = {}
         if ispl:
@@ -191,19 +231,35 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
             p10.append(pldata[key].vectors()['vx'][0] * VCONV)
             p11.append(pldata[key].vectors()['vy'][0] * VCONV)
             p12.append(pldata[key].vectors()['vz'][0] * VCONV)
+        pvec = np.vstack([p1, p2, p3, p4, p5, p6])
         if ispl:
             Rpl.append(planetradius[key] * DCONV)
             GMpl.append(GMcb[0] / MSun_over_Mpl[key])
+            pvec = np.vstack([pvec, GMpl, Rpl])
+
             # Generate planet value vectors
             if (param['RHILL_PRESENT'] == 'YES'):
                 Rhill.append(pldata[key].elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
-                pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, Rhill, p7, p8, p9, p10, p11, p12])
-            else:
-                pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl, p7, p8, p9, p10, p11, p12])
+                pvec = np.vstack([pvec, Rhill])
+            if (param['ROTATION'] == 'YES'):
+                RA = pldata[key].ephemerides()['NPole_RA'][0]
+                DEC = pldata[key].ephemerides()['NPole_DEC'][0]
+
+                rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree)
+                rotrate = planetrot[key] * param['TU2S']
+                rot = rotpole.cartesian * rotrate
+                Ip = np.array([0.0, 0.0, planetIpz[key]])
+                Ip_x.append(Ip[0])
+                Ip_y.append(Ip[1])
+                Ip_z.append(Ip[2])
+                rot_x.append(rot.x)
+                rot_y.append(rot.y)
+                rot_z.append(rot.z)
+                pvec = np.vstack([pvec, Ip_x, Ip_y, Ip_z, rot_x, rot_y, rot_z])
         else:
-            pvec = np.vstack([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
             plab = tlab.copy()
-            
+        pvec = np.vstack([pvec, p7, p8, p9, p10, p11, p12])
+
         if idval is None:
             plid = np.array([planetid[key]], dtype=int)
         else:
@@ -217,8 +273,22 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
 
     return ds
 
-def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, Rhill=None, t=0.0):
-   
+def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, Rhill=None, Ip_x=None, Ip_y=None, Ip_z=None, rot_x=None, rot_y=None, rot_z=None, t=0.0):
+    
+    if param['ROTATION'] == 'YES':
+        if Ip_x is None:
+            Ip_x = np.full_like(v1, 0.4)
+        if Ip_y is None:
+            Ip_y = np.full_like(v1, 0.4)
+        if Ip_z is None:
+            Ip_z = np.full_like(v1, 0.4)
+        if rot_x is None:
+            rot_x = np.full_like(v1, 0.0)
+        if rot_y is None:
+            rot_y = np.full_like(v1, 0.0)
+        if rot_z is None:
+            rot_z = np.full_like(v1, 0.0)
+    
     dims = ['time', 'id', 'vec']
     if GMpl is not None:
         ispl = True
@@ -233,18 +303,18 @@ def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, Rhill=Non
         return None
 
     clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
+    vec = np.vstack([v1, v2, v3, v4, v5, v6])
     if ispl:
+        vec = np.vstack([vec, GMpl, Rpl])
         if param['RHILL_PRESENT'] == 'YES':
-            vec = np.vstack([v1, v2, v3, v4, v5, v6, GMpl, Rpl, Rhill]).T
-        else:
-            vec = np.vstack([v1, v2, v3, v4, v5, v6, GMpl, Rpl]).T
-    else:
-        vec = np.vstack([v1, v2, v3, v4, v5, v6]).T
-    bodyframe = np.expand_dims(vec, axis=0)
+            vec = np.vstack([vec, Rhill])
+        if param['ROTATION'] == 'YES':
+            vec = np.vstack([vec, Ip_x, Ip_y, Ip_z, rot_x, rot_y, rot_z])
+    bodyframe = np.expand_dims(vec.T, axis=0)
     if ispl:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': tpid, 'vec': plab})
+        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': plab})
     else:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': tpid, 'vec': tlab})
+        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': tlab})
 
     ds = bodyxr.to_dataset(dim='vec')
     return ds
