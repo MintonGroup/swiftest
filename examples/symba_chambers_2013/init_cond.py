@@ -14,7 +14,6 @@ GU = swiftest.GC / (DU2M**3 / (MU2KG * TU2S**2))
 sim.param['MU2KG'] = MU2KG
 sim.param['TU2S'] = TU2S
 sim.param['DU2M'] = DU2M
-sim.param['GU'] = GU
 
 # Simulation time parameters
 sim.param['T0'] = 0.0
