@@ -102,7 +102,6 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         'Pluto': np.longdouble(0.4)
         }
 
- 
     # Unit conversion factors
     DCONV = swiftest.AU2M / param['DU2M']
     VCONV = (swiftest.AU2M / swiftest.JD2S) / (param['DU2M'] / param['TU2S'])
@@ -274,8 +273,22 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
 
     return ds
 
-def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, Rhill=None, t=0.0):
-   
+def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, Rhill=None, Ip_x=None, Ip_y=None, Ip_z=None, rot_x=None, rot_y=None, rot_z=None, t=0.0):
+    
+    if param['ROTATION'] == 'YES':
+        if Ip_x is None:
+            Ip_x = np.full_like(v1, 0.4)
+        if Ip_y is None:
+            Ip_y = np.full_like(v1, 0.4)
+        if Ip_z is None:
+            Ip_z = np.full_like(v1, 0.4)
+        if rot_x is None:
+            rot_x = np.full_like(v1, 0.0)
+        if rot_y is None:
+            rot_y = np.full_like(v1, 0.0)
+        if rot_z is None:
+            rot_z = np.full_like(v1, 0.0)
+    
     dims = ['time', 'id', 'vec']
     if GMpl is not None:
         ispl = True
@@ -290,18 +303,18 @@ def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, Rhill=Non
         return None
 
     clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
+    vec = np.vstack([v1, v2, v3, v4, v5, v6])
     if ispl:
+        vec = np.vstack([vec, GMpl, Rpl])
         if param['RHILL_PRESENT'] == 'YES':
-            vec = np.vstack([v1, v2, v3, v4, v5, v6, GMpl, Rpl, Rhill]).T
-        else:
-            vec = np.vstack([v1, v2, v3, v4, v5, v6, GMpl, Rpl]).T
-    else:
-        vec = np.vstack([v1, v2, v3, v4, v5, v6]).T
-    bodyframe = np.expand_dims(vec, axis=0)
+            vec = np.vstack([vec, Rhill])
+        if param['ROTATION'] == 'YES':
+            vec = np.vstack([vec, Ip_x, Ip_y, Ip_z, rot_x, rot_y, rot_z])
+    bodyframe = np.expand_dims(vec.T, axis=0)
     if ispl:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': tpid, 'vec': plab})
+        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': plab})
     else:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': tpid, 'vec': tlab})
+        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': tlab})
 
     ds = bodyxr.to_dataset(dim='vec')
     return ds

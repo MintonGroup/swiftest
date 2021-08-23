@@ -21,7 +21,7 @@ CHK_QMIN_RANGE   -1.0 -1.0
 MU2KG            1.988409870698051e+30
 TU2S             31557600.0
 DU2M             149597870700.0
-IN_FORM          XV
+IN_FORM          EL
 ENC_OUT          enc.dat
 EXTRA_FORCE      NO
 DISCARD_OUT      discard.out
@@ -34,4 +34,5 @@ ROTATION         YES
 TIDES            NO
 ENERGY           YES
 GR               NO
+GU               39.476926408897626
 ENERGY_OUT       energy.dat

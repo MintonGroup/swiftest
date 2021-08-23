@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import swiftest
 import numpy as np
-import os
+from numpy.random import default_rng
 
 # Initialize simulation object
 sim = swiftest.Simulation()
@@ -10,9 +10,11 @@ sim = swiftest.Simulation()
 MU2KG = swiftest.MSun
 TU2S = swiftest.YR2S
 DU2M = swiftest.AU2M
+GU = swiftest.GC / (DU2M**3 / (MU2KG * TU2S**2))
 sim.param['MU2KG'] = MU2KG
 sim.param['TU2S'] = TU2S
 sim.param['DU2M'] = DU2M
+sim.param['GU'] = GU
 
 # Simulation time parameters
 sim.param['T0'] = 0.0
@@ -35,10 +37,14 @@ sim.param['FRAGMENTATION'] = "YES"
 sim.param['ROTATION'] = "YES"
 sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
+sim.param['IN_FORM'] = 'EL'
+sim.param['OUT_FORM'] = 'EL'
 
 # Add central body
 sim.add("Sun")
-sim.add("Earth")
+GMcb = sim.ds['GMass'].values[0]
+sim.add("Jupiter")
+sim.add("Saturn")
 
 # Add bodies described in Chambers (2013) Sec. 2.1, with the uniform spatial distribution and two bodies sizes (big and small)
 Nb = 14
@@ -49,7 +55,35 @@ dens = 3000.0 / (MU2KG / DU2M**3)
 Rb = (3 * Mb / (4 * np.pi * dens) )**(1.0 / 3.0)
 Rs = (3 * Ms / (4 * np.pi * dens) )**(1.0 / 3.0)
 
+# Define the initial orbital elements of the big and small bodies
+avalb = default_rng().uniform(0.3, 2.0, Nb)
+avals = default_rng().uniform(0.3, 2.0, Ns)
+evalb = default_rng().uniform(0.0, 0.001, Nb)
+evals = default_rng().uniform(0.0, 0.001, Ns)
+incvalb = default_rng().uniform(0.0, 0.0005 * 180 / np.pi, Nb)
+incvals = default_rng().uniform(0.0, 0.0005 * 180 / np.pi, Ns)
+capomvalb = default_rng().uniform(0.0, 360.0, Nb)
+capomvals = default_rng().uniform(0.0, 360.0, Ns)
+omegavalb = default_rng().uniform(0.0, 360.0, Nb)
+omegavals = default_rng().uniform(0.0, 360.0, Ns)
+capmvalb = default_rng().uniform(0.0, 360.0, Nb)
+capmvals = default_rng().uniform(0.0, 360.0, Ns)
+GMvalb = np.full(Nb, Mb * GU)
+GMvals = np.full(Ns, Ms * GU)
+Rvalb = np.full(Nb, Rb)
+Rvals = np.full(Ns, Rs)
+Rhb = avalb * (GMvalb / (3 * GMcb))**(1.0/3.0)
+Rhs = avals * (GMvals / (3 * GMcb))**(1.0/3.0)
 
+# Give the bodies unique ids
+idb = np.arange(100, 100 + Nb)
+ids = np.arange(100 + Nb, 100 + Nb + Ns)
+
+# Populate the simulation object with the two types of bodies
+sim.addp(idb, avalb, evalb, incvalb, capomvalb, omegavalb, capmvalb, GMpl=GMvalb, Rpl=Rvalb, Rhill=Rhb)
+sim.addp(ids, avals, evals, incvals, capomvals, omegavals, capmvals, GMpl=GMvals, Rpl=Rvals, Rhill=Rhs)
+
+# Save everything to a set of initial conditions files
 sim.save("param.in")
 
 
