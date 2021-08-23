@@ -34,5 +34,6 @@ ROTATION         YES
 TIDES            NO
 ENERGY           YES
 GR               NO
-GU               39.476926408897626
 ENERGY_OUT       energy.dat
+GMTINY           1.1053539394491336e-08
+MIN_GMFRAG       1.1053539394491336e-10
