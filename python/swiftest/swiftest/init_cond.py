@@ -216,3 +216,35 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         ds = xr.combine_by_coords([ds, plds])
 
     return ds
+
+def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, Rhill=None, t=0.0):
+   
+    dims = ['time', 'id', 'vec']
+    if GMpl is not None:
+        ispl = True
+    else:
+        ispl = False
+   
+    if ispl and Rpl is None:
+        print("Massive bodies need a radius value.")
+        return None
+    if ispl and Rhill is None and param['RHILL_PRESENT'] == 'YES':
+        print("Rhill is required.")
+        return None
+
+    clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
+    if ispl:
+        if param['RHILL_PRESENT'] == 'YES':
+            vec = np.vstack([v1, v2, v3, v4, v5, v6, GMpl, Rpl, Rhill]).T
+        else:
+            vec = np.vstack([v1, v2, v3, v4, v5, v6, GMpl, Rpl]).T
+    else:
+        vec = np.vstack([v1, v2, v3, v4, v5, v6]).T
+    bodyframe = np.expand_dims(vec, axis=0)
+    if ispl:
+        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': tpid, 'vec': plab})
+    else:
+        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': tpid, 'vec': tlab})
+
+    ds = bodyxr.to_dataset(dim='vec')
+    return ds

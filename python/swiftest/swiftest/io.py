@@ -351,13 +351,13 @@ def swifter_stream(f, param):
         tvec = np.empty((6, ntp))
         tpid = np.empty(ntp, dtype='int')
         if npl > 0:
-            Mpl = np.empty(npl)
+            GMpl = np.empty(npl)
             Rpl = np.empty(npl)
             for i in range(npl):
                 # Read single-line pl frame for
                 record = f.read_record('<i4', '<f8', '<f8', '(6,)<f8')
                 plid[i] = record[0]
-                Mpl[i] = record[1]
+                GMpl[i] = record[1]
                 Rpl[i] = record[2]
                 pvec[:, i] = record[3]
         if ntp > 0:
@@ -384,7 +384,7 @@ def swifter_stream(f, param):
         plab = tlab.copy()
         plab.append('GMass')
         plab.append('Radius')
-        pvec = np.vstack([pvec, Mpl, Rpl])
+        pvec = np.vstack([pvec, GMpl, Rpl])
         
         yield t, npl, plid, pvec.T, plab, \
               ntp, tpid, tvec.T, tlab
@@ -499,7 +499,7 @@ def swiftest_stream(f, param):
             p4 = f.read_reals(np.float64)
             p5 = f.read_reals(np.float64)
             p6 = f.read_reals(np.float64)
-            Mpl = f.read_reals(np.float64)
+            GMpl = f.read_reals(np.float64)
             if param['RHILL_PRESENT'] == 'YES':
                 Rhill = f.read_reals(np.float64)
             Rpl = f.read_reals(np.float64)
@@ -525,7 +525,7 @@ def swiftest_stream(f, param):
         clab, plab, tlab = make_swiftest_labels(param)
         
         if npl > 0:
-            pvec = np.vstack([p1, p2, p3, p4, p5, p6, Mpl, Rpl])
+            pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl])
         else:
             pvec = np.empty((8, 0))
             plid = np.empty(0)
