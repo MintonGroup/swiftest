@@ -160,6 +160,45 @@ contains
 
       return
    end subroutine util_spill_arr_I4B
+
+
+   module subroutine util_spill_arr_I8B(keeps, discards, lspill_list, ldestructive)
+      !! author: David A. Minton
+      !!
+      !! Performs a spill operation on a single array of type I4B
+      !! This is the inverse of a spill operation
+      implicit none
+      ! Arguments
+      integer(I8B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+      integer(I8B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+      logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
+
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
+
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+      if (ldestructive) then
+         if (nkeep > 0) then
+            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+         else
+            deallocate(keeps)
+         end if
+      end if
+
+      return
+   end subroutine util_spill_arr_I8B
    
 
    module subroutine util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
@@ -262,6 +301,7 @@ contains
       associate(keeps => self)
          call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)
          call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
+         call util_spill(keeps%kidx, discards%kidx, lspill_list, ldestructive)
          call util_spill(keeps%index1, discards%index1, lspill_list, ldestructive)
          call util_spill(keeps%index2, discards%index2, lspill_list, ldestructive)
          call util_spill(keeps%id1, discards%id1, lspill_list, ldestructive)
