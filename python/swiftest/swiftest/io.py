@@ -741,6 +741,12 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     RSun = np.double(cb['Radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
+    Ip_xcb = np.double(cb['Ip_x'])
+    Ip_ycb = np.double(cb['Ip_y'])
+    Ip_zcb = np.double(cb['Ip_z'])
+    rot_xcb = np.double(cb['rot_x'])
+    rot_ycb = np.double(cb['rot_y'])
+    rot_zcb = np.double(cb['rot_z'])
     cbid = int(0)
     
     if param['IN_TYPE'] == 'ASCII':
@@ -751,6 +757,13 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         print(RSun, file=cbfile)
         print(J2, file=cbfile)
         print(J4, file=cbfile)
+        if param['ROTATION'] == 'YES':
+            print(Ip_xcb, file=cbfile)
+            print(Ip_ycb, file=cbfile)
+            print(Ip_zcb, file=cbfile)
+            print(rot_xcb, file=cbfile)
+            print(rot_ycb, file=cbfile)
+            print(rot_zcb, file=cbfile)
         cbfile.close()
         
         plfile = open(param['PL_IN'], 'w')
@@ -770,6 +783,9 @@ def swiftest_xr2infile(ds, param, framenum=-1):
                 print(pli['capom'].values, pli['omega'].values, pli['capm'].values, file=plfile)
             else:
                 print(f"{param['IN_FORM']} is not a valid input format type.")
+            if param['ROTATION'] == 'YES':
+                print(pli['Ip_x'].values, pli['Ip_y'].values, pli['Ip_z'].values, file=plfile)
+                print(pli['rot_x'].values, pli['rot_y'].values, pli['rot_z'].values, file=plfile)
         plfile.close()
         
         # TP file
@@ -795,6 +811,14 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         cbfile.write_record(np.double(RSun))
         cbfile.write_record(np.double(J2))
         cbfile.write_record(np.double(J4))
+        if param['ROTATION'] == 'YES':
+            cbfile.write_record(np.double(Ip_xcb))
+            cbfile.write_record(np.double(Ip_ycb))
+            cbfile.write_record(np.double(Ip_zcb))
+            cbfile.write_record(np.double(rot_xcb))
+            cbfile.write_record(np.double(rot_ycb))
+            cbfile.write_record(np.double(rot_zcb))
+
         cbfile.close()
         
         plfile = FortranFile(param['PL_IN'], 'w')
@@ -829,9 +853,15 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         plfile.write_record(v6)
         plfile.write_record(Gmass)
         if param['RHILL_PRESENT'] == 'YES':
-            rhill = pl['Rhill'].values
-            plfile.write_record(rhill)
+            plfile.write_record(pl['Rhill'].values)
         plfile.write_record(radius)
+        if param['ROTATION'] == 'YES':
+            plfile.write_record(pl['Ip_x'].values)
+            plfile.write_record(pl['Ip_y'].values)
+            plfile.write_record(pl['Ip_z'].values)
+            plfile.write_record(pl['rot_x'].values)
+            plfile.write_record(pl['rot_y'].values)
+            plfile.write_record(pl['rot_z'].values)
         plfile.close()
         tpfile = FortranFile(param['TP_IN'], 'w')
         ntp = tp.id.count().values
