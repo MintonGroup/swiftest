@@ -53,8 +53,8 @@ Ms = 2.8e-8
 dens = 3000.0 / (MU2KG / DU2M**3)
 Rb = (3 * Mb / (4 * np.pi * dens) )**(1.0 / 3.0)
 Rs = (3 * Ms / (4 * np.pi * dens) )**(1.0 / 3.0)
-MTINY = 1e-2 * Ms
-sim.param['GMTINY'] = MTINY * GU
+sim.param['GMTINY'] = 1e-2 * GU * Ms
+sim.param['MIN_GMFRAG'] = 1e-4 * GU * Ms
 
 # Define the initial orbital elements of the big and small bodies
 avalb = default_rng().uniform(0.3, 2.0, Nb)
