@@ -1054,7 +1054,7 @@ contains
                read(iu, err = 667, iomsg = errmsg) pl%Gmass(:)
                pl%mass(:) = pl%Gmass(:) / param%GU 
                if (param%lrhill_present) read(iu, err = 667, iomsg = errmsg) pl%rhill(:)
-               if (param%lclose) read(iu, err = 667, iomsg = errmsg) pl%radius(:)
+               read(iu, err = 667, iomsg = errmsg) pl%radius(:)
                if (param%lrotation) then
                   read(iu, err = 667, iomsg = errmsg) pl%Ip(1, :)
                   read(iu, err = 667, iomsg = errmsg) pl%Ip(2, :)
@@ -1081,7 +1081,7 @@ contains
                   end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
-                  if (param%lclose) read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
+                  read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
                class is (swiftest_tp)
                   read(iu, *, err = 667, iomsg = errmsg) self%id(i)
                end select
@@ -1508,7 +1508,7 @@ contains
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu, err = 667, iomsg = errmsg) pl%Gmass(1:n)
             if (param%lrhill_present) write(iu, err = 667, iomsg = errmsg) pl%rhill(1:n)
-            if (param%lclose) write(iu, err = 667, iomsg = errmsg) pl%radius(1:n)
+            write(iu, err = 667, iomsg = errmsg) pl%radius(1:n)
             if (param%lrotation) then
                write(iu, err = 667, iomsg = errmsg) pl%Ip(1, 1:n)
                write(iu, err = 667, iomsg = errmsg) pl%Ip(2, 1:n)
