@@ -53,7 +53,6 @@ class Simulation:
         self.codename = codename
         if param_file != "" :
             self.read_param(param_file, codename)
-            self.param['GU'] = constants.GC  / (param['DU2M'])**3 / (param['MU2KG'] * param['TU2S']**2)
         return
     
     
