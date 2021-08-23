@@ -758,12 +758,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         print(J2, file=cbfile)
         print(J4, file=cbfile)
         if param['ROTATION'] == 'YES':
-            print(Ip_xcb, file=cbfile)
-            print(Ip_ycb, file=cbfile)
-            print(Ip_zcb, file=cbfile)
-            print(rot_xcb, file=cbfile)
-            print(rot_ycb, file=cbfile)
-            print(rot_zcb, file=cbfile)
+            print(Ip_xcb, Ip_ycb, Ip_zcb, file=cbfile)
+            print(rot_xcb, rot_ycb, rot_zcb, file=cbfile)
         cbfile.close()
         
         plfile = open(param['PL_IN'], 'w')
