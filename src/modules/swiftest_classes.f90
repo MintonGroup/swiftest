@@ -15,8 +15,7 @@ module swiftest_classes
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
-      integer(I4B)         :: nplmax         = -1                 !! Maximum allowed number of massive bodies
-      integer(I4B)         :: ntpmax         = -1                 !! Maximum allowed number of test particles
+      integer(I4B)         :: maxid = -1           !! The current maximum particle id number 
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
@@ -296,7 +295,6 @@ module swiftest_classes
       logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                                          !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                                          !!    the test particles
-      integer(I4B)                               :: maxid = -1           !! The current maximum particle id number 
    contains
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), deferred :: step
@@ -727,29 +725,40 @@ module swiftest_classes
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_netcdf_write_frame_system
 
-      module pure elemental subroutine kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+      module subroutine kick_getacch_int_all_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
          implicit none
-         real(DP), intent(in)  :: rji2
-         real(DP), intent(in)  :: dx, dy, dz
-         real(DP), intent(in)  :: Gmi
-         real(DP), intent(in)  :: Gmj
-         real(DP), intent(inout) :: axi, ayi, azi
-         real(DP), intent(inout) :: axj, ayj, azj
+         integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
+         integer(I8B),                 intent(in)    :: nplpl  !! Number of massive body interactions to compute
+         integer(I4B), dimension(:,:), intent(in)    :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
+         real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
+         real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
+         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+      end subroutine kick_getacch_int_all_pl
+
+      module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+         !$omp declare simd(kick_getacch_int_one_pl)
+         implicit none
+         real(DP), intent(in)  :: rji2            !! Square of distance between the two bodies
+         real(DP), intent(in)  :: xr, yr, zr      !! Distances between the two bodies in x, y, and z directions
+         real(DP), intent(in)  :: Gmi             !! G*mass of body i
+         real(DP), intent(in)  :: Gmj             !! G*mass of body j
+         real(DP), intent(inout) :: axi, ayi, azi !! Acceleration vector components of body i
+         real(DP), intent(inout) :: axj, ayj, azj !! Acceleration vector components of body j
       end subroutine kick_getacch_int_one_pl
 
-      !module pure elemental subroutine kick_getacch_int_one_tp(rji2, dx, dy, dz, Gmpl, ax, ay, az)
-      module pure subroutine kick_getacch_int_one_tp(rji2, dx, dy, dz, Gmpl, ax, ay, az)
+      module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, Gmpl, ax, ay, az)
          !$omp declare simd(kick_getacch_int_one_tp)
          implicit none
-         real(DP), intent(in)  :: rji2
-         real(DP), intent(in)  :: dx, dy, dz
-         real(DP), intent(in)  :: Gmpl
-         real(DP), intent(inout) :: ax, ay, az
+         real(DP), intent(in)  :: rji2         !! Square of distance between the test particle and massive body
+         real(DP), intent(in)  :: xr, yr, zr   !! Distances between the two bodies in x, y, and z directions
+         real(DP), intent(in)  :: Gmpl         !! G*mass of massive body
+         real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
       end subroutine kick_getacch_int_one_tp
 
       module subroutine kick_getacch_int_pl(self)
          implicit none
-         class(swiftest_pl), intent(inout) :: self
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       end subroutine kick_getacch_int_pl
 
       module pure subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
@@ -1464,7 +1473,7 @@ module swiftest_classes
       module subroutine util_valid_id_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine util_valid_id_system
 
       module subroutine util_version()

@@ -189,7 +189,6 @@ contains
          dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
          dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
          dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-         dump_param%out_form = XV
          dump_param%in_form  = XV
          dump_param%out_stat = 'APPEND'
          dump_param%in_type = REAL8_TYPE
@@ -197,6 +196,7 @@ contains
 
          call dump_param%dump(param_file_name)
 
+         dump_param%out_form = XV
          call self%cb%dump(dump_param)
          call self%pl%dump(dump_param)
          call self%tp%dump(dump_param)
@@ -454,7 +454,7 @@ contains
                   call io_toupper(param_value)
                   param%out_stat = param_value
                case ("ISTEP_DUMP")
-                  read(param_value, *) param%istep_dump
+                  read(param_value, *, err = 667, iomsg = iomsg) param%istep_dump
                case ("CHK_CLOSE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lclose = .true.
@@ -551,6 +551,8 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%Ecollisions
                case("EUNTRACKED")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Euntracked
+               case ("MAXID")
+                  read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
                case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(iomsg,*) "Unknown parameter -> ",param_name
@@ -760,6 +762,7 @@ contains
          write(param_name, Afmt) "TP_IN"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "IN_TYPE"; write(param_value, Afmt) trim(adjustl(param%in_type)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "IN_FORM"; write(param_value, Afmt) trim(adjustl(param%in_form)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         if (param%istep_dump > 0) write(param_name, Afmt) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%istep_out > 0) then
             write(param_name, Afmt) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "BIN_OUT"; write(param_value, Afmt) trim(adjustl(param%outfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
@@ -768,9 +771,6 @@ contains
             write(param_name, Afmt) "OUT_STAT"; write(param_value, Afmt) "APPEND"; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
          write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%enc_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         if (param%istep_dump > 0) then
-            write(param_name, Afmt) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         end if
          write(param_name, Afmt) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "CHK_EJECT"; write(param_value, Rfmt) param%rmaxu; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
@@ -810,6 +810,7 @@ contains
             write(param_name, Afmt) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
          write(param_name, Afmt) "FIRSTKICK"; write(param_value, Lfmt) param%lfirstkick; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, Afmt) "MAXID"; write(param_value, Ifmt) param%maxid; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
    
          iostat = 0
          iomsg = "UDIO not implemented"
@@ -1053,7 +1054,7 @@ contains
                read(iu, err = 667, iomsg = errmsg) pl%Gmass(:)
                pl%mass(:) = pl%Gmass(:) / param%GU 
                if (param%lrhill_present) read(iu, err = 667, iomsg = errmsg) pl%rhill(:)
-               if (param%lclose) read(iu, err = 667, iomsg = errmsg) pl%radius(:)
+               read(iu, err = 667, iomsg = errmsg) pl%radius(:)
                if (param%lrotation) then
                   read(iu, err = 667, iomsg = errmsg) pl%Ip(1, :)
                   read(iu, err = 667, iomsg = errmsg) pl%Ip(2, :)
@@ -1080,7 +1081,7 @@ contains
                   end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
-                  if (param%lclose) read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
+                  read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
                class is (swiftest_tp)
                   read(iu, *, err = 667, iomsg = errmsg) self%id(i)
                end select
@@ -1506,7 +1507,7 @@ contains
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu, err = 667, iomsg = errmsg) pl%Gmass(1:n)
             if (param%lrhill_present) write(iu, err = 667, iomsg = errmsg) pl%rhill(1:n)
-            if (param%lclose) write(iu, err = 667, iomsg = errmsg) pl%radius(1:n)
+            write(iu, err = 667, iomsg = errmsg) pl%radius(1:n)
             if (param%lrotation) then
                write(iu, err = 667, iomsg = errmsg) pl%Ip(1, 1:n)
                write(iu, err = 667, iomsg = errmsg) pl%Ip(2, 1:n)

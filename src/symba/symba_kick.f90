@@ -12,38 +12,8 @@ contains
       implicit none
       ! Arguments
       class(symba_pl), intent(inout) :: self
-      ! Internals
-      integer(I8B)                      :: k, nplplm
-      real(DP)                          :: rji2, rlim2
-      real(DP)                          :: dx, dy, dz
-      integer(I4B) :: i, j
-      real(DP), dimension(:,:), pointer :: ah, xh
-      real(DP), dimension(NDIM,self%nbody) :: ahi, ahj
-      integer(I4B), dimension(:,:), pointer :: k_plpl
-      logical, dimension(:), pointer :: lmask
-      real(DP), dimension(:), pointer :: Gmass, radius
 
-      associate(ah => self%ah, xh => self%xh, k_plpl => self%k_plpl, lmask => self%lmask, Gmass => self%Gmass, radius => self%radius)
-         nplplm = self%nplplm
-         ahi(:,:) = 0.0_DP
-         ahj(:,:) = 0.0_DP
-         !$omp parallel do default(shared)&
-         !$omp private(k, i, j, dx, dy, dz, rji2, rlim2)  &
-         !$omp reduction(+:ahi) &
-         !$omp reduction(-:ahj) 
-         do k = 1_I8B, nplplm
-            i = k_plpl(1,k)
-            j = k_plpl(2,k)
-            dx = xh(1, j) - xh(1, i)
-            dy = xh(2, j) - xh(2, i)
-            dz = xh(3, j) - xh(3, i)
-            rji2 = dx**2 + dy**2 + dz**2
-            rlim2 = (radius(i)+radius(j))**2
-            if ((rji2 > rlim2) .and. lmask(i) .and. lmask(j)) call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-         end do
-         !$omp end parallel do
-         ah(:,1:self%nbody) = ah(:,1:self%nbody) + ahi(:,1:self%nbody) + ahj(:,1:self%nbody)
-      end associate
+      call kick_getacch_int_all_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
 
       return
    end subroutine symba_kick_getacch_int_pl
@@ -66,7 +36,7 @@ contains
       ! Internals
       integer(I4B)              :: i, j
       integer(I8B)              :: k, nplplenc
-      real(DP)                  :: rji2, rlim2, dx, dy, dz
+      real(DP)                  :: rji2, rlim2, xr, yr, zr
       real(DP), dimension(NDIM,self%nbody) :: ahi, ahj
       class(symba_plplenc), pointer :: plplenc_list
       real(DP), dimension(:), pointer :: Gmass, radius
@@ -82,18 +52,18 @@ contains
             ahi(:,:) = 0.0_DP
             ahj(:,:) = 0.0_DP
             !$omp parallel do default(shared)&
-            !$omp private(k, i, j, dx, dy, dz, rji2, rlim2)  &
+            !$omp private(k, i, j, xr, yr, zr, rji2, rlim2)  &
             !$omp reduction(+:ahi) &
             !$omp reduction(-:ahj) 
             do k = 1_I8B, nplplenc
                i = plplenc_list%index1(k)
                j = plplenc_list%index2(k)
-               dx = xh(1, j) - xh(1, i)
-               dy = xh(2, j) - xh(2, i)
-               dz = xh(3, j) - xh(3, i)
-               rji2 = dx**2 + dy**2 + dz**2
+               xr = xh(1, j) - xh(1, i)
+               yr = xh(2, j) - xh(2, i)
+               zr = xh(3, j) - xh(3, i)
+               rji2 = xr**2 + yr**2 + zr**2
                rlim2 = (radius(i)+radius(j))**2
-               if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+               if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
             end do
             !$omp end parallel do
             ah(:,1:self%nbody) = ah(:,1:self%nbody) - ahi(:,1:self%nbody) - ahj(:,1:self%nbody)

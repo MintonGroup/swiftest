@@ -68,7 +68,7 @@ contains
       ! Distribute any residual mass if there is any and set the radius
       m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
       rad_frag(:) = (3 * m_frag(:) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
-      id_frag(:) = [(i, i = system%maxid + 1, system%maxid + nfrag)]
+      id_frag(:) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
 
       do i = 1, nfrag
          Ip_frag(:, i) = Ip_new(:)
@@ -169,7 +169,7 @@ contains
          m_frag(2:nfrag) = (mtot - m_frag(1)) / (nfrag - 1) 
          rad_frag(2:nfrag) = (3 * m_frag(2:nfrag) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
          m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
-         id_frag(1:nfrag) = [(i, i = system%maxid + 1, system%maxid + nfrag)]
+         id_frag(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
 
          do i = 1, nfrag
             Ip_frag(:, i) = Ip(:, jproj)
@@ -372,7 +372,7 @@ contains
       ! Distribute any residual mass if there is any and set the radius
       m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
       rad_frag(:) = (3 * m_frag(:) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
-      id_frag(:) = [(i, i = system%maxid + 1, system%maxid + nfrag)]
+      id_frag(:) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
 
       do i = 1, nfrag
          Ip_frag(:, i) = Ip_new(:)
@@ -821,7 +821,7 @@ contains
       implicit none
       ! Arguments
       class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-      class(symba_parameters),         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
+      class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
       integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
       integer(I4B),    dimension(:),   intent(in)    :: id_frag          !! List of fragment ids
       real(DP),        dimension(:),   intent(in)    :: m_frag, rad_frag !! Distribution of fragment mass and radii
@@ -861,7 +861,7 @@ contains
   
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(1:nfrag) = id_frag(1:nfrag) 
-               system%maxid = system%maxid + nfrag
+               param%maxid = param%maxid + nfrag
                plnew%xb(:, 1:nfrag) = xb_frag(:, 1:nfrag) 
                plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
                do i = 1, nfrag
