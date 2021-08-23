@@ -73,6 +73,35 @@ class Simulation:
         return
     
     
+    def addp(self, idvals, t1, t2, t3, t4, t5, t6, Gmass=None, radius=None, Rhill=None, t=0.0):
+        """
+        Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
+        or cartesian state vectors, depending on the value of self.param). Input all angles in degress
+
+        Parameters
+        ----------
+           idvals : Integer array of body index values.
+           t1     : xh for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
+           t2     : yh for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
+           t3     : zh for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
+           t4     : vxh for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
+           t5     : vyh for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
+           t6     : vzh for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
+           Gmass  : Optional: Array of G*mass values if these are massive bodies
+           radius : Optional: Array radius values if these are massive bodies
+           Rhill  : Optional: Array Rhill values if these are massive bodies
+        Returns
+        -------
+        self.ds : xarray dataset
+        """
+        dsnew = init_cond.vec2xr(self.param, idvals, t1, t2, t3, t4, t5, t6, Gmass, radius, Rhill)
+        if dsnew is not None:
+            self.ds = xr.combine_by_coords([self.ds, dsnew])
+        return
+        
+        
+    
+    
     def read_param(self, param_file, codename="Swiftest"):
         if codename == "Swiftest":
             self.param = io.read_swiftest_param(param_file, self.param)
