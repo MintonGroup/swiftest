@@ -318,6 +318,7 @@ module swiftest_classes
       integer(I4B)                              :: nenc   !! Total number of encounters
       logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
+      integer(I8B), dimension(:),   allocatable :: kidx   !! index value of the encounter from the master k_plpl encounter list
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
       integer(I4B), dimension(:),   allocatable :: id1    !! id of the first body in the encounter
@@ -1411,6 +1412,14 @@ module swiftest_classes
          logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
          logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_arr_I4B
+
+      module subroutine util_spill_arr_I8B(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         integer(I8B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         integer(I8B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine util_spill_arr_I8B
 
       module subroutine util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
          implicit none

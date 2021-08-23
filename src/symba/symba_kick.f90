@@ -37,36 +37,24 @@ contains
       integer(I4B)              :: i, j
       integer(I8B)              :: k, nplplenc
       real(DP)                  :: rji2, rlim2, xr, yr, zr
-      real(DP), dimension(NDIM,self%nbody) :: ahi, ahj
-      class(symba_plplenc), pointer :: plplenc_list
-      real(DP), dimension(:), pointer :: Gmass, radius
-      real(DP), dimension(:,:), pointer :: ah, xh
+      real(DP), dimension(NDIM,self%nbody) :: ah_enc
+      integer(I4B), dimension(:,:), allocatable :: k_plpl_enc
 
       if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
-         associate(pl => self, xh => self%xh, ah => self%ah, Gmass => self%Gmass, plplenc_list => system%plplenc_list, radius => self%radius)
+         associate(pl => self, npl => self%nbody, plplenc_list => system%plplenc_list, radius => self%radius)
+            ! Apply kicks to all bodies (including those in the encounter list)
             call helio_kick_getacch_pl(pl, system, param, t, lbeg)
-            ! Remove accelerations from encountering pairs
+
+            ! Remove kicks from bodies involved currently in the encounter list, as these are dealt with separately.
             nplplenc = int(plplenc_list%nenc, kind=I8B)
-            ahi(:,:) = 0.0_DP
-            ahj(:,:) = 0.0_DP
-            !$omp parallel do default(shared)&
-            !$omp private(k, i, j, xr, yr, zr, rji2, rlim2)  &
-            !$omp reduction(+:ahi) &
-            !$omp reduction(-:ahj) 
-            do k = 1_I8B, nplplenc
-               i = plplenc_list%index1(k)
-               j = plplenc_list%index2(k)
-               xr = xh(1, j) - xh(1, i)
-               yr = xh(2, j) - xh(2, i)
-               zr = xh(3, j) - xh(3, i)
-               rji2 = xr**2 + yr**2 + zr**2
-               rlim2 = (radius(i)+radius(j))**2
-               if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-            end do
-            !$omp end parallel do
-            ah(:,1:self%nbody) = ah(:,1:self%nbody) - ahi(:,1:self%nbody) - ahj(:,1:self%nbody)
+            allocate(k_plpl_enc(2,nplplenc))
+            k_plpl_enc(:,1:nplplenc) = pl%k_plpl(:,plplenc_list%kidx(1:nplplenc))
+            ah_enc(:,:) = 0.0_DP
+            call kick_getacch_int_all_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
+            pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
+
          end associate
       end select
 
