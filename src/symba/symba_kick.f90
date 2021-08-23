@@ -21,14 +21,14 @@ contains
       real(DP), dimension(NDIM,self%nbody) :: ahi, ahj
       integer(I4B), dimension(:,:), pointer :: k_plpl
       logical, dimension(:), pointer :: lmask
-      real(DP), dimension(:), pointer :: Gmass
+      real(DP), dimension(:), pointer :: Gmass, radius
 
-      associate(ah => self%ah, xh => self%xh, k_plpl => self%k_plpl, lmask => self%lmask, Gmass => self%Gmass)
+      associate(ah => self%ah, xh => self%xh, k_plpl => self%k_plpl, lmask => self%lmask, Gmass => self%Gmass, radius => self%radius)
          nplplm = self%nplplm
          ahi(:,:) = 0.0_DP
          ahj(:,:) = 0.0_DP
          !$omp parallel do default(shared)&
-         !$omp private(k, i, j, dx, dy, dz, rji2)  &
+         !$omp private(k, i, j, dx, dy, dz, rji2, rlim2)  &
          !$omp reduction(+:ahi) &
          !$omp reduction(-:ahj) 
          do k = 1_I8B, nplplm
@@ -38,7 +38,8 @@ contains
             dy = xh(2, j) - xh(2, i)
             dz = xh(3, j) - xh(3, i)
             rji2 = dx**2 + dy**2 + dz**2
-            if (lmask(i) .and. lmask(j)) call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+            rlim2 = (radius(i)+radius(j))**2
+            if ((rji2 > rlim2) .and. lmask(i) .and. lmask(j)) call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
          end do
          !$omp end parallel do
          ah(:,:) = ah(:,:) + ahi(:,:) + ahj(:,:)
@@ -65,21 +66,23 @@ contains
       ! Internals
       integer(I4B)              :: i, j
       integer(I8B)              :: k, nplplenc
-      real(DP)                  :: rji2, dx, dy, dz
+      real(DP)                  :: rji2, rlim2, dx, dy, dz
       real(DP), dimension(NDIM,self%nbody) :: ahi, ahj
       class(symba_plplenc), pointer :: plplenc_list
+      real(DP), dimension(:), pointer :: Gmass, radius
+      real(DP), dimension(:,:), pointer :: ah, xh
 
       if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
-         associate(pl => self, xh => self%xh, ah => self%ah, Gmass => self%Gmass, plplenc_list => system%plplenc_list)
+         associate(pl => self, xh => self%xh, ah => self%ah, Gmass => self%Gmass, plplenc_list => system%plplenc_list, radius => self%radius)
             call helio_kick_getacch_pl(pl, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             nplplenc = int(plplenc_list%nenc, kind=I8B)
             ahi(:,:) = 0.0_DP
             ahj(:,:) = 0.0_DP
             !$omp parallel do default(shared)&
-            !$omp private(k, i, j, dx, dy, dz, rji2)  &
+            !$omp private(k, i, j, dx, dy, dz, rji2, rlim2)  &
             !$omp reduction(+:ahi) &
             !$omp reduction(-:ahj) 
             do k = 1_I8B, nplplenc
@@ -89,7 +92,8 @@ contains
                dy = xh(2, j) - xh(2, i)
                dz = xh(3, j) - xh(3, i)
                rji2 = dx**2 + dy**2 + dz**2
-               call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+               rlim2 = (radius(i)+radius(j))**2
+               if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, dx, dy, dz, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
             end do
             !$omp end parallel do
             ah(:,:) = ah(:,:) - ahi(:,:) - ahj(:,:)
