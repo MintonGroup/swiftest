@@ -14,7 +14,7 @@ contains
       class(swiftest_pl), intent(inout) :: self
       ! Internals
       integer(I8B)                      :: k, nplpl
-      real(DP)                          :: rji2, rlim2
+      real(DP)                          :: rji2
       real(DP)                          :: dx, dy, dz
       integer(I4B) :: i, j
       real(DP), dimension(:,:), pointer :: ah, xh
