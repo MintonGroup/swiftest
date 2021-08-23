@@ -30,6 +30,7 @@ sim.param['ENERGY'] = "YES"
 sim.param['ENERGY_OUT'] = "energy.dat"
 sim.param['PL_IN'] = "pl_chambers_2013.in"
 sim.param['CB_IN'] = "sun_MsunAUYR.in"
+sim.param['ENC_OUT'] = ""
 
 # Simulation parameters
 sim.param['FRAGMENTATION'] = "YES"
@@ -59,10 +60,10 @@ sim.param['MIN_GMFRAG'] = 1e-4 * GU * Ms
 # Define the initial orbital elements of the big and small bodies
 avalb = default_rng().uniform(0.3, 2.0, Nb)
 avals = default_rng().uniform(0.3, 2.0, Ns)
-evalb = default_rng().uniform(0.0, 0.01, Nb)
-evals = default_rng().uniform(0.0, 0.01, Ns)
-incvalb = default_rng().uniform(0.0, 0.005 * 180 / np.pi, Nb)
-incvals = default_rng().uniform(0.0, 0.005 * 180 / np.pi, Ns)
+evalb = np.abs(default_rng().normal(loc=0.0, scale=0.13, size=Nb))
+evals = np.abs(default_rng().normal(loc=0.0, scale=0.13, size=Ns))
+incvalb = default_rng().normal(loc=0.0, scale=1.0, size=Nb)
+incvals = default_rng().normal(loc=0.0, scale=1.0, size=Ns)
 capomvalb = default_rng().uniform(0.0, 360.0, Nb)
 capomvals = default_rng().uniform(0.0, 360.0, Ns)
 omegavalb = default_rng().uniform(0.0, 360.0, Nb)
