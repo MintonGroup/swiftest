@@ -13,3 +13,4 @@ einsteinC = np.longdouble(299792458.0)
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
 J2Sun = np.longdouble(2.198e-7)
 J4Sun = np.longdouble(-4.805e-9)
+
