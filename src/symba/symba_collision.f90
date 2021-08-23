@@ -300,11 +300,9 @@ contains
             end do
          end do
 
-
          status = MERGED
          call symba_collision_mergeaddsub(system, param, family, id_frag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, status)
 
-         
       end select
 
       return 
