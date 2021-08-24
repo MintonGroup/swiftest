@@ -281,7 +281,6 @@ contains
          ! Therefore we need to set the nbody values for both the keeps and discareds
          discards%nbody = count(lspill_list(:))
          keeps%nbody = keeps%nbody - discards%nbody
-         if (keeps%nbody > size(keeps%status)) keeps%status(keeps%nbody+1:size(keeps%status)) = INACTIVE
       end associate
      
       return
@@ -316,7 +315,6 @@ contains
          ! Therefore we need to set the nenc values for both the keeps and discareds
          discards%nenc = count(lspill_list(:))
          keeps%nenc = count(.not.lspill_list(:)) 
-         if (keeps%nenc > size(keeps%status)) keeps%status(keeps%nenc+1:size(keeps%status)) = INACTIVE
       end associate
    
       return
