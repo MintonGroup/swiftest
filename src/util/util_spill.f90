@@ -316,7 +316,7 @@ contains
          ! Therefore we need to set the nenc values for both the keeps and discareds
          discards%nenc = count(lspill_list(:))
          keeps%nenc = count(.not.lspill_list(:)) 
-         if (keeps%nenc > size(keeps%status)) keeps%status(keeps%nenc+1:size(keeps%status)) = INACTIVE
+         if (size(keeps%status) > keeps%nenc) keeps%status(keeps%nenc+1:size(keeps%status)) = INACTIVE
       end associate
    
       return
