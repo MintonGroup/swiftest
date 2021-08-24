@@ -19,7 +19,7 @@ class AnimatedScatter(object):
     def __init__(self, ds, param):
 
         frame = 0
-        nframes = ds['time'].size
+        nframes = int(ds['time'].size / framejump)
         self.ds = ds
         self.param = param
         self.ds['radmarker'] = self.ds['Radius'].fillna(0)
