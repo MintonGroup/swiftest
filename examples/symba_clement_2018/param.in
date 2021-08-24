@@ -33,3 +33,5 @@ ROTATION         YES
 TIDES            NO
 ENERGY           YES
 GR               NO
+GMTINY           2.96336237e-09
+MIN_GMFRAG       2.96336237e-11
