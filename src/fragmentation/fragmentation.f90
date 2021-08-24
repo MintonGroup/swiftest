@@ -45,8 +45,6 @@ contains
       real(DP), parameter                     :: Etol = 1e-8_DP
       integer(I4B), parameter                 :: MAXTRY = 3000
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes, fpe_quiet_modes
-      class(swiftest_nbody_system), allocatable :: tmpsys
-      class(swiftest_parameters), allocatable   :: tmpparam
 
       if (nfrag < NFRAG_MIN) then
          write(*,*) "symba_frag_pos needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
@@ -269,8 +267,6 @@ contains
             dLmag = .mag.dL(:)
             dEtot = Etot_after - Etot_before
 
-            call tmpsys%rescale(tmpparam, mscale**(-1), dscale**(-1), tscale**(-1))
-
             mscale = 1.0_DP
             dscale = 1.0_DP
             vscale = 1.0_DP
@@ -343,12 +339,15 @@ contains
          end subroutine define_coordinate_system
 
 
-         subroutine construct_temporary_system()
+         subroutine construct_temporary_system(tmpsys, tmpparam)
             !! Author: David A. Minton
             !!
             !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
             !! and optionally including fragments.
             implicit none
+            ! Arguments
+            class(swiftest_nbody_system), allocatable, intent(inout) :: tmpsys
+            class(swiftest_parameters), allocatable, intent(inout) :: tmpparam
             ! Internals
             logical, dimension(:), allocatable :: lexclude_tmp
 
@@ -364,8 +363,6 @@ contains
                   lexclude(1:npl) = .false. 
                end where
                lexclude(npl+1:(npl + nfrag)) = .true.
-               if (allocated(tmpparam)) deallocate(tmpparam) 
-               if (allocated(tmpsys)) deallocate(tmpsys)
                allocate(tmpparam, source=param)
                call setup_construct_system(tmpsys, param)
                call tmpsys%tp%setup(0, param)
@@ -381,11 +378,14 @@ contains
          end subroutine construct_temporary_system
 
 
-         subroutine add_fragments_to_tmpsys()
+         subroutine add_fragments_to_tmpsys(tmpsys, tmpparam)
             !! Author: David A. Minton
             !!
             !! Adds fragments to the temporary system pl object
             implicit none
+            ! Arguments
+            class(swiftest_nbody_system), intent(inout) :: tmpsys
+            class(swiftest_parameters), intent(inout) :: tmpparam
             ! Internals
             integer(I4B) :: i
             class(swiftest_pl), allocatable :: pl_discards
@@ -443,7 +443,8 @@ contains
             integer(I4B) :: i, nplm
             logical, dimension(:), allocatable :: lexclude_tmp
             logical :: lk_plpl
-
+            class(swiftest_nbody_system), allocatable :: tmpsys
+            class(swiftest_parameters), allocatable   :: tmpparam
 
             ! Build the internal planet list out of the non-excluded bodies and optionally with fragments appended. This
             ! will get passed to the energy calculation subroutine so that energy is computed exactly the same way is it
@@ -457,8 +458,8 @@ contains
                lk_plpl = allocated(pl%k_plpl)
                if (lk_plpl) deallocate(pl%k_plpl)
 
-               call construct_temporary_system()
-               if (linclude_fragments) call add_fragments_to_tmpsys()
+               call construct_temporary_system(tmpsys, tmpparam)
+               if (linclude_fragments) call add_fragments_to_tmpsys(tmpsys, tmpparam)
 
                call tmpsys%pl%index(param)
 
