@@ -39,7 +39,7 @@ class AnimatedScatter(object):
         self.ax.set_ylim(ymin, ymax)
         fig.add_axes(self.ax)
         self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=True)
-        self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'libx264'])
+        self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'mpeg4'])
         print('Finished writing aescattter.mp4')
 
     def scatters(self, pl, radmarker, origin):
@@ -70,7 +70,7 @@ class AnimatedScatter(object):
         self.s1 = slist[1]
         self.s2 = slist[2]
         self.s3 = slist[3]
-        self.ax.legend(loc='upper right')
+        self.ax.legend(loc='lower right')
         return self.s0, self.s1, self.s2, self.s3, self.title
 
     def data_stream(self, frame=0):
