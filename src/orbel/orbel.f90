@@ -16,7 +16,7 @@ contains
       if (self%nbody == 0) return
 
       call self%set_mu(cb)
-      do i = 1, self%nbody
+      do concurrent (i = 1:self%nbody)
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
                            self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
       end do
@@ -288,7 +288,7 @@ contains
       end if
 
       return
-   end function  orbel_flon
+   end function orbel_flon
 
 
    !**********************************************************************
@@ -358,7 +358,7 @@ contains
 
       !write(*,*) 'fget : returning without complete convergence'
       return
-   end function  orbel_fget
+   end function orbel_fget
 
 
    !**********************************************************************
@@ -878,17 +878,18 @@ contains
       if (self%nbody == 0) return
 
       call self%set_mu(cb)
-      if (.not.allocated(self%a))     allocate(self%a(self%nbody))
-      if (.not.allocated(self%e))     allocate(self%e(self%nbody))
-      if (.not.allocated(self%inc))   allocate(self%inc(self%nbody))
-      if (.not.allocated(self%capom)) allocate(self%capom(self%nbody))
-      if (.not.allocated(self%omega)) allocate(self%omega(self%nbody))
-      if (.not.allocated(self%capm))  allocate(self%capm(self%nbody))
-      do i = 1, self%nbody
+      if (allocated(self%a)) deallocate(self%a); allocate(self%a(self%nbody))
+      if (allocated(self%e)) deallocate(self%e); allocate(self%e(self%nbody))
+      if (allocated(self%inc)) deallocate(self%inc); allocate(self%inc(self%nbody))
+      if (allocated(self%capom)) deallocate(self%capom); allocate(self%capom(self%nbody))
+      if (allocated(self%omega)) deallocate(self%omega); allocate(self%omega(self%nbody))
+      if (allocated(self%capm)) deallocate(self%capm);  allocate(self%capm(self%nbody))
+      do concurrent (i = 1:self%nbody)
          call orbel_xv2el(self%mu(i), self%xh(:, i), self%vh(:, i), self%a(i), self%e(i), self%inc(i),  &
                           self%capom(i), self%omega(i), self%capm(i))
       end do
    end subroutine orbel_xv2el_vec 
+
 
    module pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
       !! author: David A. Minton

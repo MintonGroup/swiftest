@@ -42,7 +42,7 @@ contains
       integer(I4B), parameter                 :: NFRAG_MIN = 7 !! The minimum allowable number of fragments (set to 6 because that's how many unknowns are needed in the tangential velocity calculation)
       real(DP)                                :: r_max_start, r_max_start_old, r_max, f_spin 
       real(DP), parameter                     :: Ltol = 10 * epsilon(1.0_DP)
-      real(DP), parameter                     :: Etol = 1e-10_DP
+      real(DP), parameter                     :: Etol = 1e-8_DP
       integer(I4B), parameter                 :: MAXTRY = 3000
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes, fpe_quiet_modes
       class(swiftest_nbody_system), allocatable :: tmpsys
@@ -126,17 +126,17 @@ contains
          if (.not.lfailure) call set_fragment_tan_vel(lfailure)
             
          if (lfailure) then
-            !write(*,*) 'Failed to find tangential velocities'
+            ! write(*,*) 'Failed to find tangential velocities'
          else 
             call set_fragment_radial_velocities(lfailure)
-            !if (lfailure) write(*,*) 'Failed to find radial velocities'
+            ! if (lfailure) write(*,*) 'Failed to find radial velocities'
             if (.not.lfailure) then
                call calculate_system_energy(linclude_fragments=.true.)
                if ((abs(dEtot + Qloss) > Etol) .or. (dEtot > 0.0_DP)) then
-                  !write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + Qloss) / Etol
+                  ! write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + Qloss) / Etol
                   lfailure = .true.
                else if (abs(dLmag) / Lmag_before > Ltol) then
-                  !write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
+                  ! write(*,*) 'Failed due to high angular momentum error: ', dLmag / Lmag_before
                   lfailure = .true.
                end if
             end if
@@ -153,11 +153,11 @@ contains
       ! write(*,        "('  Final diagnostic')")
       ! write(*,        "(' -------------------------------------------------------------------------------------')")
       ! call calculate_system_energy(linclude_fragments=.true.)
-      ! if (lfailure) then
-      !    write(*,*) "symba_frag_pos failed after: ",try," tries"
-      !    do ii = 1, nfrag
-      !       vb_frag(:, ii) = vcom(:)
-      !    end do
+      if (lfailure) then
+         ! write(*,*) "symba_frag_pos failed after: ",try," tries"
+         do ii = 1, nfrag
+            vb_frag(:, ii) = vcom(:)
+         end do
       ! else
       !    write(*,*) "symba_frag_pos succeeded after: ",try," tries"
       !    write(*,        "(' dL_tot should be very small' )")
@@ -166,7 +166,7 @@ contains
       !    write(*,fmtlabel) ' dE_tot      |', dEtot / abs(Etot_before)
       !    write(*,fmtlabel) ' Qloss       |', -Qloss / abs(Etot_before)
       !    write(*,fmtlabel) ' dE - Qloss  |', (Etot_after - Etot_before + Qloss) / abs(Etot_before)
-      ! end if
+      end if
       ! write(*,        "(' -------------------------------------------------------------------------------------')")
 
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
