@@ -5,7 +5,8 @@ contains
    module subroutine orbel_el2xv_vec(self, cb)
       !! author: David A. Minton
       !!
-      !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
+      !! A wrapper method that converts all of the orbital element vectors into cartesian position and velocity vectors for a Swiftest body object.
+      !! This method deallocates all of the orbital elements after it is finished.
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self !! Swiftest body object
@@ -20,6 +21,8 @@ contains
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
                            self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
       end do
+      deallocate(self%a, self%e, self%inc, self%capom, self%omega, self%capm)
+      return
    end subroutine orbel_el2xv_vec
 
 
