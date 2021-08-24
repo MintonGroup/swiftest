@@ -1829,8 +1829,6 @@ contains
       call pl%write_frame(iu, param)
       call tp%write_frame(iu, param)
 
-      deallocate(cb, pl, tp)
-
       close(iu, err = 667, iomsg = errmsg)
 
       return
