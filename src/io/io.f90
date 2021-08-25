@@ -1575,6 +1575,7 @@ contains
       integer(I4B)                              :: rotz_varid   !! NetCDF ID for the rotation z variable
       integer(I4B)                              :: k2_varid     !! NetCDF ID for the Love number variable
       integer(I4B)                              :: Q_varid      !! NetCDF ID for the energy dissipation variable
+      integer(14B), dimension(self%body)        :: ind
 
       !! Open the netCDF file
       call check( nf90_open(param%outfile, nf90_write, ncid) )
@@ -1589,48 +1590,42 @@ contains
 
          select case (param%out_form)
          case (EL) 
-            do j = 1, n
-               do i = 1, n
-                  if (self%id(i) == j) then
+            call util_sort(self%id(1:n), ind(1:n))
+            do i = 1, n
+               j = ind(i)
+               !! Reassign all variable IDs
+               call check( nf90_inq_varid(ncid, "a", a_varid))
+               call check( nf90_inq_varid(ncid, "e", e_varid))
+               call check( nf90_inq_varid(ncid, "inc", inc_varid))
+               call check( nf90_inq_varid(ncid, "capom", capom_varid))
+               call check( nf90_inq_varid(ncid, "omega", omega_varid))
+               call check( nf90_inq_varid(ncid, "capm", capm_varid))
 
-                     !! Reassign all variable IDs
-                     call check( nf90_inq_varid(ncid, "a", a_varid))
-                     call check( nf90_inq_varid(ncid, "e", e_varid))
-                     call check( nf90_inq_varid(ncid, "inc", inc_varid))
-                     call check( nf90_inq_varid(ncid, "capom", capom_varid))
-                     call check( nf90_inq_varid(ncid, "omega", omega_varid))
-                     call check( nf90_inq_varid(ncid, "capm", capm_varid))
-
-                     call check( nf90_put_var(ncid, a_varid, self%a(j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, e_varid, self%e(j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, inc_varid, self%inc(j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, capom_varid, self%capom(j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, omega_varid, self%omega(j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, capm_varid, self%capm(j), start=(/ioutput + 1, j/)) )
-                  end if
-               end do 
+               call check( nf90_put_var(ncid, a_varid, self%a(j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, e_varid, self%e(j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, inc_varid, self%inc(j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, capom_varid, self%capom(j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, omega_varid, self%omega(j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, capm_varid, self%capm(j), start=(/ioutput + 1, j/)) ) 
             end do 
          case (XV)
-            do j = 1, n
-               do i = 1, n 
-                  if (self%id(i) == j) then
+            call util_sort(self%id(1:n), ind(1:n))
+            do i = 1, n
+               j = ind(i)
+               !! Reassign all variable IDs
+               call check( nf90_inq_varid(ncid, "xhx", xhx_varid))
+               call check( nf90_inq_varid(ncid, "xhy", xhy_varid))
+               call check( nf90_inq_varid(ncid, "xhz", xhz_varid))
+               call check( nf90_inq_varid(ncid, "vhx", vhx_varid))
+               call check( nf90_inq_varid(ncid, "vhy", vhy_varid))
+               call check( nf90_inq_varid(ncid, "vhz", vhz_varid))
 
-                     !! Reassign all variable IDs
-                     call check( nf90_inq_varid(ncid, "xhx", xhx_varid))
-                     call check( nf90_inq_varid(ncid, "xhy", xhy_varid))
-                     call check( nf90_inq_varid(ncid, "xhz", xhz_varid))
-                     call check( nf90_inq_varid(ncid, "vhx", vhx_varid))
-                     call check( nf90_inq_varid(ncid, "vhy", vhy_varid))
-                     call check( nf90_inq_varid(ncid, "vhz", vhz_varid))
-
-                     call check( nf90_put_var(ncid, xhx_varid, self%xh(1, j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, xhy_varid, self%xh(2, j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, xhz_varid, self%xh(3, j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, vhx_varid, self%vh(1, j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, vhy_varid, self%vh(2, j), start=(/ioutput + 1, j/)) )
-                     call check( nf90_put_var(ncid, vhz_varid, self%vh(3, j), start=(/ioutput + 1, j/)) )
-                  end if
-               end do 
+               call check( nf90_put_var(ncid, xhx_varid, self%xh(1, j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, xhy_varid, self%xh(2, j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, xhz_varid, self%xh(3, j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, vhx_varid, self%vh(1, j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, vhy_varid, self%vh(2, j), start=(/ioutput + 1, j/)) )
+               call check( nf90_put_var(ncid, vhz_varid, self%vh(3, j), start=(/ioutput + 1, j/)) )
             end do 
          end select
          select type(pl => self)  
