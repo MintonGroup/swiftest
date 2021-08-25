@@ -111,6 +111,11 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
+	cd $(SWIFTEST_HOME)/src/netcdf; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make libdir
 	cd $(SWIFTEST_HOME)/src/obl; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -194,6 +199,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/kick;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/netcdf;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/obl;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/operators;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/orbel;   rm -f Makefile.Defines Makefile *.gc*

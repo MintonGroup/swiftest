@@ -15,7 +15,7 @@ module swiftest_classes
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
-      integer(I4B)         :: maxid = -1           !! The current maximum particle id number 
+      integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
@@ -26,9 +26,9 @@ module swiftest_classes
       character(STRMAX)    :: in_type        = ASCII_TYPE         !! Data representation type of input data files
       character(STRMAX)    :: in_form        = XV                 !! Format of input data files (EL or XV)
       integer(I4B)         :: istep_out      = -1                 !! Number of time steps between binary outputs
-      character(STRMAX)    :: outfile        = BIN_OUTFILE        !! Name of output binary file
-      character(STRMAX)    :: out_type       = REAL8_TYPE         !! Binary format of output file
-      character(STRMAX)    :: out_form       = XV                 !! Data to write to output file
+      character(STRMAX)    :: outfile        = NETCDF_OUTFILE     !! Name of output binary file
+      character(STRMAX)    :: out_type       = NETCDF_DOUBLE_TYPE !! Binary format of output file
+      character(STRMAX)    :: out_form       = XVEL               !! Data to write to output file
       character(STRMAX)    :: out_stat       = 'NEW'              !! Open status for output binary file
       integer(I4B)         :: istep_dump     = -1                 !! Number of time steps between dumps
       real(DP)             :: rmin           = -1.0_DP            !! Minimum heliocentric radius for test particle
@@ -82,6 +82,39 @@ module swiftest_classes
       procedure :: read_in => io_read_in_param
    end type swiftest_parameters
 
+   type :: netcdf_parameters
+      integer(I4B) :: ncid         !! NetCDF ID for the output file
+      integer(I4B) :: dimids(2)    !! Dimensions of the NetCDF file
+      integer(I4B) :: time_dimid   !! NetCDF ID for the time dimension 
+      integer(I4B) :: id_dimid     !! NetCDF ID for the particle name dimension
+      integer(I4B) :: a_varid      !! NetCDF ID for the semimajor axis variable 
+      integer(I4B) :: e_varid      !! NetCDF ID for the eccentricity variable 
+      integer(I4B) :: inc_varid    !! NetCDF ID for the inclination variable 
+      integer(I4B) :: capom_varid  !! NetCDF ID for the long. asc. node variable 
+      integer(I4B) :: omega_varid  !! NetCDF ID for the arg. periapsis variable 
+      integer(I4B) :: capm_varid   !! NetCDF ID for the mean anomaly variable 
+      integer(I4B) :: xhx_varid    !! NetCDF ID for the heliocentric position x variable 
+      integer(I4B) :: xhy_varid    !! NetCDF ID for the heliocentric position y variable 
+      integer(I4B) :: xhz_varid    !! NetCDF ID for the heliocentric position z variable 
+      integer(I4B) :: vhx_varid    !! NetCDF ID for the heliocentric velocity x variable 
+      integer(I4B) :: vhy_varid    !! NetCDF ID for the heliocentric velocity y variable 
+      integer(I4B) :: vhz_varid    !! NetCDF ID for the heliocentric velocity z variable 
+      integer(I4B) :: Gmass_varid  !! NetCDF ID for the mass variable
+      integer(I4B) :: rhill_varid  !! NetCDF ID for the hill radius variable
+      integer(I4B) :: radius_varid !! NetCDF ID for the radius variable
+      integer(I4B) :: Ip1_varid    !! NetCDF ID for the axis 1 principal moment of inertia variable
+      integer(I4B) :: Ip2_varid    !! NetCDF ID for the axis 2 principal moment of inertia variable
+      integer(I4B) :: Ip3_varid    !! NetCDF ID for the axis 3 principal moment of inertia variable
+      integer(I4B) :: rotx_varid   !! NetCDF ID for the rotation x variable
+      integer(I4B) :: roty_varid   !! NetCDF ID for the rotation y variable
+      integer(I4B) :: rotz_varid   !! NetCDF ID for the rotation z variable
+      integer(I4B) :: k2_varid     !! NetCDF ID for the Love number variable
+      integer(I4B) :: Q_varid      !! NetCDF ID for the energy dissipation variable
+      integer(I4B) :: out_type     !! NetCDF output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
+   contains
+      procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+   end type netcdf_parameters
+
    !********************************************************************************************************************************
    ! swiftest_base class definitions and methods
    !********************************************************************************************************************************
@@ -90,9 +123,9 @@ module swiftest_classes
       logical :: lintegrate = .false.  !! Flag indicating that this object should be integrated in the current step 
    contains
       !! The minimal methods that all systems must have
-      procedure                                 :: dump => io_dump_swiftest 
-      procedure(abstract_read_frame),  deferred :: read_frame
-      procedure(abstract_write_frame), deferred :: write_frame
+      procedure :: dump               => io_dump_swiftest 
+      procedure :: write_frame_netcdf => netcdf_write_frame_base !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      generic   :: write_frame => write_frame_netcdf
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -127,7 +160,8 @@ module swiftest_classes
    contains
       procedure :: read_in     => io_read_in_cb        !! I/O routine for reading in central body data
       procedure :: read_frame  => io_read_frame_cb     !! I/O routine for reading out a single frame of time-series data for the central body
-      procedure :: write_frame => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure :: write_frame_bin => io_write_frame_cb    !! I/O routine for writing out a single frame of time-series data for the central body
+      generic   :: write_frame => write_frame_bin
    end type swiftest_cb
 
    !********************************************************************************************************************************
@@ -173,8 +207,7 @@ module swiftest_classes
       procedure :: pv2v        => gr_pv2vh_body              !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
       procedure :: read_in     => io_read_in_body          !! Read in body initial conditions from a file
       procedure :: read_frame  => io_read_frame_body         !! I/O routine for writing out a single frame of time-series data for the central body
-      !procedure :: write_frame => io_write_frame_body        !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure :: write_frame => io_netcdf_write_frame_body !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      procedure :: write_frame_bin => io_write_frame_body        !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: accel_obl   => obl_acc_body               !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: el2xv       => orbel_el2xv_vec            !! Convert orbital elements to position and velocity vectors
       procedure :: xv2el       => orbel_xv2el_vec            !! Convert position and velocity vectors to orbital  elements 
@@ -187,6 +220,7 @@ module swiftest_classes
       procedure :: sort        => util_sort_body             !! Sorts body arrays by a sortable componen
       procedure :: rearrange   => util_sort_rearrange_body   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill       => util_spill_body            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      generic   :: write_frame => write_frame_bin
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -277,7 +311,7 @@ module swiftest_classes
    ! swiftest_nbody_system class definitions and methods
    !********************************************************************************************************************************
    !> An abstract class for a basic Swiftest nbody system 
-   type, abstract, extends(swiftest_base) :: swiftest_nbody_system
+   type, abstract :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
       class(swiftest_cb),            allocatable :: cb                   !! Central body data structure
       class(swiftest_pl),            allocatable :: pl                   !! Massive body data structure
@@ -306,8 +340,7 @@ module swiftest_classes
       procedure :: get_old_t_final         => io_get_old_t_final_system       !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
       procedure :: read_frame              => io_read_frame_system            !! Read in a frame of input data from file
       procedure :: write_discard           => io_write_discard                !! Write out information about discarded test particles
-      !procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
-      procedure :: write_frame             => io_netcdf_write_frame_system    !! Append a frame of output data to file in NetCDF format
+      procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
       procedure :: initialize              => setup_initialize_system         !! Initialize the system from input files
       procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
@@ -399,13 +432,6 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t     !! Simulation time
          real(DP),                     intent(in)    :: dt    !! Current stepsize
       end subroutine abstract_step_system
-
-      subroutine abstract_write_frame(self, iu, param)
-         import DP, I4B, swiftest_base, swiftest_parameters
-         class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      end subroutine abstract_write_frame
    end interface
 
    interface
@@ -687,13 +713,6 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_body
 
-      module subroutine io_netcdf_write_frame_body(self, iu, param)
-         implicit none
-         class(swiftest_body),       intent(in)    :: self  !! Swiftest body object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      end subroutine io_netcdf_write_frame_body
-
       module subroutine io_write_frame_cb(self, iu, param)
          implicit none
          class(swiftest_cb),         intent(in)    :: self  !! Swiftest central body object 
@@ -712,19 +731,18 @@ module swiftest_classes
          real(DP), dimension(:), intent(in) :: vh1, vh2         !! Swiftestcentric velocity vectors of the two encountering bodies 
       end subroutine io_write_frame_encounter
 
-      module subroutine io_write_frame_system(self, iu, param)
+      module subroutine io_write_frame_system(self, param)
          implicit none
          class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
-         integer(I4B),                  intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_system
 
-      module subroutine io_netcdf_write_frame_system(self, iu, param)
+      module subroutine netcdf_write_frame_system(self, iu, param)
          implicit none
          class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
          integer(I4B),                  intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
-      end subroutine io_netcdf_write_frame_system
+      end subroutine netcdf_write_frame_system
 
       module subroutine kick_getacch_int_all_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
          implicit none
@@ -769,6 +787,19 @@ module swiftest_classes
          real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
          integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
       end subroutine kick_getacch_int_tp
+
+      module subroutine netcdf_initialize_output(self, param)
+         implicit none
+         class(netcdf_parameters),     intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),   intent(in)    :: param   !! Current run configuration parameters 
+      end subroutine netcdf_initialize_output
+
+      module subroutine netcdf_write_frame_base(self, iu, param)
+         implicit none
+         class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
+         class(netcdf_parameters),   intent(inout) :: iu    !! Unit number for the output file to write frame to
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      end subroutine netcdf_write_frame_base
 
       module subroutine obl_acc_body(self, system)
          implicit none

@@ -47,11 +47,12 @@ module swiftest_globals
    character(*), parameter :: ASCII_TYPE          = 'ASCII' !! Symbolic name for ASCII file type
    character(*), parameter :: REAL4_TYPE          = 'REAL4' !! Symbolic name for binary file type REAL4
    character(*), parameter :: REAL8_TYPE          = 'REAL8' !! Symbolic name for binary file type REAL8
-   character(*), parameter :: SWIFTER_REAL4_TYPE  = 'SWIFTER4' !! Symbolic name for binary file type for the old style Swifter REAL4
-   character(*), parameter :: SWIFTER_REAL8_TYPE  = 'SWIFTER8' !! Symbolic name for binary file type for the old style Swifter REAL8
+   character(*), parameter :: NETCDF_FLOAT_TYPE   = 'NETCDF_FLOAT' !! Symbolic name for binary file type REAL8
+   character(*), parameter :: NETCDF_DOUBLE_TYPE   = 'NETCDF_DOUBLE' !! Symbolic name for binary file type REAL8
 
-   character(*), parameter :: EL  = 'EL' !! Symbolic name for binary output file contents for orbital element type
-   character(*), parameter :: XV  = 'XV' !! Symbolic name for binary output file contents for cartesian position and velocity type
+   character(*), parameter :: EL  = 'EL' !! Symbolic name for binary output file contents for orbital elements
+   character(*), parameter :: XV  = 'XV' !! Symbolic name for binary output file contents for cartesian position and velocity vectors
+   character(*), parameter :: XVEL  = 'XVEL' !! Symbolic name for binary output file contents for both cartesian position and velocity and orbital elements
 
    ! OpenMP Parameters
    integer(I4B)            :: nthreads = 1 !! Number of OpenMP threads
@@ -124,5 +125,33 @@ module swiftest_globals
 
    real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
    real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
+
+   !> NetCDF variable names and constants
+   character(*), parameter :: NETCDF_OUTFILE = 'bin.nc'
+   character(*), parameter :: TIME_DIMNAME   = "time"!! netcdf id for the time dimension 
+   character(*), parameter :: ID_DIMNAME     = "id"!! NetCDF ID for the  particle name dimension
+   character(*), parameter :: A_VARNAME      = "a"!! NetCDF ID for the semimajor axis variable 
+   character(*), parameter :: E_VARNAME      = "e"!! NetCDF ID for the eccentricity variable 
+   character(*), parameter :: INC_VARNAME    = "inc"!! NetCDF ID for the inclination variable 
+   character(*), parameter :: CAPOM_VARNAME  = "capom"!! NetCDF ID for the long. asc. node variable 
+   character(*), parameter :: OMEGA_VARNAME  = "omega"!! NetCDF ID for the arg. periapsis variable 
+   character(*), parameter :: CAPM_VARNAME   = "capm"!! NetCDF ID for the mean anomaly variable 
+   character(*), parameter :: XHX_VARNAME    = "xhx"!! NetCDF ID for the heliocentric position x variable 
+   character(*), parameter :: XHY_VARNAME    = "xhy"!! NetCDF ID for the heliocentric position y variable 
+   character(*), parameter :: XHZ_VARNAME    = "xhz"!! NetCDF ID for the heliocentric position z variable 
+   character(*), parameter :: VHX_VARNAME    = "vhx"!! NetCDF ID for the heliocentric velocity x variable 
+   character(*), parameter :: VHY_VARNAME    = "vhy"!! NetCDF ID for the heliocentric velocity y variable 
+   character(*), parameter :: VHZ_VARNAME    = "vhz"!! NetCDF ID for the heliocentric velocity z variable 
+   character(*), parameter :: GMASS_VARNAME  = "Gmass"!! NetCDF ID for the mass variable
+   character(*), parameter :: RHILL_VARNAME  = "rhill"!! NetCDF ID for the hill radius variable
+   character(*), parameter :: RADIUS_VARNAME = "radius"!! NetCDF ID for the radius variable
+   character(*), parameter :: IP1_VARNAME    = "Ip1"!! NetCDF ID for the axis 1 principal moment of inertial variable
+   character(*), parameter :: IP2_VARNAME    = "Ip2"!! NetCDF ID for the axis 2 principal moment of inertial variable
+   character(*), parameter :: IP3_VARNAME    = "Ip3"!! NetCDF ID for the axis 3 principal moment of inertial variable
+   character(*), parameter :: ROTX_VARNAME   = "rotx"!! NetCDF ID for the rotation x variable
+   character(*), parameter :: ROTY_VARNAME   = "roty"!! NetCDF ID for the rotation y variable
+   character(*), parameter :: ROTZ_VARNAME   = "rotz"!! NetCDF ID for the rotation z variable
+   character(*), parameter :: K2_VARNAME     = "k2"!! NetCDF ID for the Love number variable
+   character(*), parameter :: Q_VARNAME      = "Q"!! NetCDF ID for the energy dissipation variable
 
 end module swiftest_globals
