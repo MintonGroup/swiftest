@@ -1575,7 +1575,7 @@ contains
       integer(I4B)                              :: rotz_varid   !! NetCDF ID for the rotation z variable
       integer(I4B)                              :: k2_varid     !! NetCDF ID for the Love number variable
       integer(I4B)                              :: Q_varid      !! NetCDF ID for the energy dissipation variable
-      integer(14B), dimension(self%body)        :: ind
+      integer(14B), dimension(self%nbody)       :: ind
 
       !! Open the netCDF file
       call check( nf90_open(param%outfile, nf90_write, ncid) )
