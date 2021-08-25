@@ -87,6 +87,7 @@ module swiftest_classes
       integer(I4B) :: dimids(2)    !! Dimensions of the NetCDF file
       integer(I4B) :: time_dimid   !! NetCDF ID for the time dimension 
       integer(I4B) :: id_dimid     !! NetCDF ID for the particle name dimension
+      integer(I4B) :: name_varid   !! NetCDF ID for the semimajor axis variable 
       integer(I4B) :: a_varid      !! NetCDF ID for the semimajor axis variable 
       integer(I4B) :: e_varid      !! NetCDF ID for the eccentricity variable 
       integer(I4B) :: inc_varid    !! NetCDF ID for the inclination variable 

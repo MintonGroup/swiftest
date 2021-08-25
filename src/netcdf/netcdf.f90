@@ -38,6 +38,8 @@ contains
             do i = 1, n
                j = ind(i)
                id = self%id(j)
+               call check( nf90_inq_varid(iu%ncid, NAME_VARNAME, iu%name_varid))
+               call check( nf90_put_var(iu%ncid, iu%name_varid, trim(adjustl(self%name(j))), start=[ioutput + 1, id]) )
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
                   call check( nf90_inq_varid(iu%ncid, XHX_VARNAME, iu%xhx_varid))
                   call check( nf90_inq_varid(iu%ncid, XHY_VARNAME, iu%xhy_varid))
@@ -107,6 +109,8 @@ contains
          end associate
       class is (swiftest_cb)
          id = self%id
+         call check( nf90_inq_varid(iu%ncid, NAME_VARNAME, iu%name_varid))
+         call check( nf90_put_var(iu%ncid, iu%name_varid, trim(adjustl(self%name)), start=[ioutput + 1, id]) )
          call check( nf90_inq_varid(iu%ncid, GMASS_VARNAME, iu%Gmass_varid))
          call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[ioutput + 1, id]) )
          call check( nf90_inq_varid(iu%ncid, RADIUS_VARNAME, iu%radius_varid))
@@ -174,21 +178,23 @@ contains
       end select
 
       !! Define the variables
+      call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, self%dimids, self%name_varid) )
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
-         call check( nf90_def_var(self%ncid, A_VARNAME, self%out_type, self%dimids, self%a_varid) )
-         call check( nf90_def_var(self%ncid, E_VARNAME, self%out_type, self%dimids, self%e_varid) )
-         call check( nf90_def_var(self%ncid, INC_VARNAME, self%out_type, self%dimids, self%inc_varid) )
-         call check( nf90_def_var(self%ncid, CAPOM_VARNAME, self%out_type, self%dimids, self%capom_varid) )
-         call check( nf90_def_var(self%ncid, OMEGA_VARNAME, self%out_type, self%dimids, self%omega_varid) )
-         call check( nf90_def_var(self%ncid, CAPM_VARNAME, self%out_type, self%dimids, self%capm_varid) )
-      end if
-      if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, self%dimids, self%xhx_varid) )
          call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, self%dimids, self%xhy_varid) )
          call check( nf90_def_var(self%ncid, XHZ_VARNAME, self%out_type, self%dimids, self%xhz_varid) )
          call check( nf90_def_var(self%ncid, VHX_VARNAME, self%out_type, self%dimids, self%vhx_varid) )
          call check( nf90_def_var(self%ncid, VHY_VARNAME, self%out_type, self%dimids, self%vhy_varid) )
          call check( nf90_def_var(self%ncid, VHZ_VARNAME, self%out_type, self%dimids, self%vhz_varid) )
+      end if
+   
+      if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
+         call check( nf90_def_var(self%ncid, A_VARNAME, self%out_type, self%dimids, self%a_varid) )
+         call check( nf90_def_var(self%ncid, E_VARNAME, self%out_type, self%dimids, self%e_varid) )
+         call check( nf90_def_var(self%ncid, INC_VARNAME, self%out_type, self%dimids, self%inc_varid) )
+         call check( nf90_def_var(self%ncid, CAPOM_VARNAME, self%out_type, self%dimids, self%capom_varid) )
+         call check( nf90_def_var(self%ncid, OMEGA_VARNAME, self%out_type, self%dimids, self%omega_varid) )
+         call check( nf90_def_var(self%ncid, CAPM_VARNAME, self%out_type, self%dimids, self%capm_varid) )
       end if
 
       call check( nf90_def_var(self%ncid, GMASS_VARNAME, self%out_type, self%dimids, self%Gmass_varid) )

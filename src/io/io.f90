@@ -907,7 +907,7 @@ contains
          self%id = 1
          param%maxid = 1
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         read(iu, *, err = 667, iomsg = errmsg) idold
+         read(iu, *, err = 667, iomsg = errmsg) self%name
          read(iu, *, err = 667, iomsg = errmsg) self%Gmass
          self%mass = real(self%Gmass / param%GU, kind=DP)
          read(iu, *, err = 667, iomsg = errmsg) self%radius
@@ -1037,6 +1037,7 @@ contains
          select case(param%in_type)
          case (REAL4_TYPE, REAL8_TYPE)
             read(iu, err = 667, iomsg = errmsg) self%id(:)
+            read(iu, err = 667, iomsg = errmsg) self%name(:)
 
             select case (param%in_form)
             case (XV)
@@ -1080,9 +1081,9 @@ contains
                select type(self)
                class is (swiftest_pl)
                   if (param%lrhill_present) then
-                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val, self%rhill(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%name(i), val, self%rhill(i)
                   else
-                     read(iu, *, err = 667, iomsg = errmsg) self%id(i), val
+                     read(iu, *, err = 667, iomsg = errmsg) self%name(i), val
                   end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
@@ -1157,8 +1158,8 @@ contains
       ! Internals
       character(len=STRMAX)   :: errmsg
 
-      !read(iu, err = 667, iomsg = errmsg) self%name
       read(iu, err = 667, iomsg = errmsg) self%id
+      read(iu, err = 667, iomsg = errmsg) self%name
       read(iu, err = 667, iomsg = errmsg) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, err = 667, iomsg = errmsg) self%radius

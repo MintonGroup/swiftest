@@ -129,7 +129,8 @@ module swiftest_globals
    !> NetCDF variable names and constants
    character(*), parameter :: NETCDF_OUTFILE = 'bin.nc'
    character(*), parameter :: TIME_DIMNAME   = "time"!! netcdf id for the time dimension 
-   character(*), parameter :: ID_DIMNAME     = "id"!! NetCDF ID for the  particle name dimension
+   character(*), parameter :: ID_DIMNAME     = "id"!! NetCDF ID for the particle id dimension
+   character(*), parameter :: NAME_VARNAME   = "name"!! NetCDF ID for the  particle name variable
    character(*), parameter :: A_VARNAME      = "a"!! NetCDF ID for the semimajor axis variable 
    character(*), parameter :: E_VARNAME      = "e"!! NetCDF ID for the eccentricity variable 
    character(*), parameter :: INC_VARNAME    = "inc"!! NetCDF ID for the inclination variable 
