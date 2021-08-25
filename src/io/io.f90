@@ -141,8 +141,10 @@ contains
       select type(self)
       class is (swiftest_body)
          write(iu, err = 667, iomsg = errmsg) self%nbody
+         call io_write_frame_body(self,iu, param)
+      class is (swiftest_cb)
+         call io_write_frame_cb(self,iu, param)
       end select
-      call self%write_frame(iu, param)
       close(iu, err = 667, iomsg = errmsg)
 
       return
@@ -1773,6 +1775,7 @@ contains
       call util_exit(FAILURE)
    end subroutine
 
+
    module subroutine io_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -1836,6 +1839,7 @@ contains
       write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_write_frame_system
+
 
    module subroutine io_netcdf_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
