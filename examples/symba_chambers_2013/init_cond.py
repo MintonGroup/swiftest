@@ -42,7 +42,7 @@ sim.param['OUT_FORM'] = 'EL'
 
 # Add central body
 sim.add("Sun")
-GMcb = sim.ds['GMass'].values[0]
+GMcb = sim.ds['Gmass'].values[0]
 sim.add("Jupiter")
 sim.add("Saturn")
 
@@ -82,8 +82,8 @@ idb = np.arange(100, 100 + Nb)
 ids = np.arange(100 + Nb, 100 + Nb + Ns)
 
 # Populate the simulation object with the two types of bodies
-sim.addp(idb, avalb, evalb, incvalb, capomvalb, omegavalb, capmvalb, GMpl=GMvalb, Rpl=Rvalb, Rhill=Rhb)
-sim.addp(ids, avals, evals, incvals, capomvals, omegavals, capmvals, GMpl=GMvals, Rpl=Rvals, Rhill=Rhs)
+sim.addp(idb, avalb, evalb, incvalb, capomvalb, omegavalb, capmvalb, GMpl=GMvalb, Rpl=Rvalb, rhill=Rhb)
+sim.addp(ids, avals, evals, incvals, capomvals, omegavals, capmvals, GMpl=GMvals, Rpl=Rvals, rhill=Rhs)
 
 # Save everything to a set of initial conditions files
 sim.save("param.in")

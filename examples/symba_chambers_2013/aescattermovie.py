@@ -22,7 +22,7 @@ class AnimatedScatter(object):
         nframes = int(ds['time'].size / framejump)
         self.ds = ds
         self.param = param
-        self.ds['radmarker'] = self.ds['Radius'].fillna(0)
+        self.ds['radmarker'] = self.ds['radius'].fillna(0)
         self.ds['radmarker'] = self.ds['radmarker'] / self.ds['radmarker'].max() * radscale
 
         self.clist = {'Initial conditions' : 'xkcd:faded blue',
@@ -53,7 +53,7 @@ class AnimatedScatter(object):
     def setup_plot(self):
         # First frame
         """Initial drawing of the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(0))
+        t, name, Gmass, radius, npl, pl, radmarker, origin = next(self.data_stream(0))
 
         # set up the figure
         self.ax.margins(x=10, y=1)
@@ -77,8 +77,8 @@ class AnimatedScatter(object):
         while True:
             d = self.ds.isel(time = frame)
             d = d.where(np.invert(np.isnan(d['a'])), drop=True)
-            Radius = d['radmarker'].values
-            GMass = d['GMass'].values
+            radius = d['radmarker'].values
+            Gmass = d['Gmass'].values
             a = d['a'].values / AU
             e = d['e'].values
             name = d['id'].values
@@ -88,11 +88,11 @@ class AnimatedScatter(object):
 
             t = self.ds.coords['time'].values[frame]
 
-            yield t, name, GMass, Radius, npl, np.c_[a, e], radmarker, origin
+            yield t, name, Gmass, radius, npl, np.c_[a, e], radmarker, origin
 
     def update(self,frame):
         """Update the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(framejump * frame))
+        t, name, Gmass, radius, npl, pl, radmarker, origin = next(self.data_stream(framejump * frame))
 
         self.title.set_text(f"{titletext} - Time = ${t*1e-6:6.3f}$ My with ${npl:4.0f}$ particles")
 

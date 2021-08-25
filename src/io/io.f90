@@ -1575,10 +1575,12 @@ contains
       integer(I4B)                              :: rotz_varid   !! NetCDF ID for the rotation z variable
       integer(I4B)                              :: k2_varid     !! NetCDF ID for the Love number variable
       integer(I4B)                              :: Q_varid      !! NetCDF ID for the energy dissipation variable
+      integer(I4B)                              :: oldMode
       integer(I4B), dimension(self%nbody)       :: ind
 
       !! Open the netCDF file
       call check( nf90_open(param%outfile, nf90_write, ncid) )
+      call check( nf90_set_fill(ncid, nf90_nofill, oldMode) )
 
       associate(n => self%nbody)
          if (n == 0) return
@@ -1886,6 +1888,7 @@ contains
       integer(I4B)                                :: rotz_varid      !! NetCDF ID for the rotation z variable
       integer(I4B)                                :: k2_varid        !! NetCDF ID for the Love number variable
       integer(I4B)                                :: Q_varid         !! NetCDF ID for the energy dissipation variable
+      integer(I4B)                                :: oldMode
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
@@ -1914,6 +1917,7 @@ contains
          
             !! Create the new output file, deleting any previously existing output file of the same name
             call check( nf90_create(param%outfile, NF90_NETCDF4, ncid) )
+            call check( nf90_set_fill(ncid, nf90_nofill, oldMode) )
 
             !! Calculate the number of outputs needed to cover the entire simulation time
             noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output

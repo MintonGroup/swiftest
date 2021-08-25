@@ -324,7 +324,7 @@ def swifter_stream(f, param):
     plid : int array
         IDs of massive bodies
     pvec : float array
-        (npl,N) - vector of N quantities or each particle (6 of XV/EL + GMass, Radius, etc)
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Gmass, radius, etc)
     plab : string list
         Labels for the pvec data
     ntp  : int
@@ -368,12 +368,12 @@ def swifter_stream(f, param):
         
         tlab = []
         if param['OUT_FORM'] == 'XV':
-            tlab.append('px')
-            tlab.append('py')
-            tlab.append('pz')
-            tlab.append('vx')
-            tlab.append('vy')
-            tlab.append('vz')
+            tlab.append('xhx')
+            tlab.append('xhy')
+            tlab.append('xhz')
+            tlab.append('vhx')
+            tlab.append('vhy')
+            tlab.append('vhz')
         elif param['OUT_FORM'] == 'EL':
             tlab.append('a')
             tlab.append('e')
@@ -382,8 +382,8 @@ def swifter_stream(f, param):
             tlab.append('omega')
             tlab.append('capm')
         plab = tlab.copy()
-        plab.append('GMass')
-        plab.append('Radius')
+        plab.append('Gmass')
+        plab.append('radius')
         pvec = np.vstack([pvec, GMpl, Rpl])
         
         yield t, npl, plid, pvec.T, plab, \
@@ -393,12 +393,12 @@ def swifter_stream(f, param):
 def make_swiftest_labels(param):
     tlab = []
     if param['OUT_FORM'] == 'XV':
-        tlab.append('px')
-        tlab.append('py')
-        tlab.append('pz')
-        tlab.append('vx')
-        tlab.append('vy')
-        tlab.append('vz')
+        tlab.append('xhx')
+        tlab.append('xhy')
+        tlab.append('xhz')
+        tlab.append('vhx')
+        tlab.append('vhy')
+        tlab.append('vhz')
     elif param['OUT_FORM'] == 'EL':
         tlab.append('a')
         tlab.append('e')
@@ -407,24 +407,24 @@ def make_swiftest_labels(param):
         tlab.append('omega')
         tlab.append('capm')
     plab = tlab.copy()
-    plab.append('GMass')
-    plab.append('Radius')
+    plab.append('Gmass')
+    plab.append('radius')
     if param['RHILL_PRESENT'] == 'YES':
-        plab.append('Rhill')
-    clab = ['GMass', 'Radius', 'J_2', 'J_4']
+        plab.append('rhill')
+    clab = ['Gmass', 'radius', 'J_2', 'J_4']
     if param['ROTATION'] == 'YES':
-        clab.append('Ip_x')
-        clab.append('Ip_y')
-        clab.append('Ip_z')
-        clab.append('rot_x')
-        clab.append('rot_y')
-        clab.append('rot_z')
-        plab.append('Ip_x')
-        plab.append('Ip_y')
-        plab.append('Ip_z')
-        plab.append('rot_x')
-        plab.append('rot_y')
-        plab.append('rot_z')
+        clab.append('Ip1')
+        clab.append('Ip2')
+        clab.append('Ip3')
+        clab.append('rotx')
+        clab.append('roty')
+        clab.append('rotz')
+        plab.append('Ip1')
+        plab.append('Ip2')
+        plab.append('Ip3')
+        plab.append('rotx')
+        plab.append('roty')
+        plab.append('rotz')
     if param['TIDES'] == 'YES':
         clab.append('k2')
         clab.append('Q')
@@ -449,13 +449,13 @@ def swiftest_stream(f, param):
     cbid : int array
         ID of central body (always returns 0)
     cvec : float array
-        (npl,1) - vector of quantities for the massive body (GMass, Radius, J2, J4, etc)
+        (npl,1) - vector of quantities for the massive body (Gmass, radius, J2, J4, etc)
     npl  : int
         Number of massive bodies
     plid : int array
         IDs of massive bodies
     pvec : float array
-        (npl,N) - vector of N quantities or each particle (6 of XV/EL + GMass, Radius, etc)
+        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Gmass, radius, etc)
     plab : string list
         Labels for the pvec data
     ntp  : int
@@ -501,7 +501,7 @@ def swiftest_stream(f, param):
             p6 = f.read_reals(np.float64)
             GMpl = f.read_reals(np.float64)
             if param['RHILL_PRESENT'] == 'YES':
-                Rhill = f.read_reals(np.float64)
+                rhill = f.read_reals(np.float64)
             Rpl = f.read_reals(np.float64)
             if param['ROTATION'] == 'YES':
                 Ipplx = f.read_reals(np.float64)
@@ -537,7 +537,7 @@ def swiftest_stream(f, param):
         cvec = np.array([Mcb, Rcb, J2cb, J4cb])
         if param['RHILL_PRESENT'] == 'YES':
            if npl > 0:
-              pvec = np.vstack([pvec, Rhill])
+              pvec = np.vstack([pvec, rhill])
         if param['ROTATION'] == 'YES':
             cvec = np.vstack([cvec, Ipcbx, Ipcby, Ipcbz, rotcbx, rotcby, rotcbz])
             if npl > 0:
@@ -685,7 +685,7 @@ def swiftest_particle_stream(f):
 
 def swiftest_particle_2xr(ds, param):
    """Reads in the Swiftest SyMBA-generated PARTICLE_OUT  and converts it to an xarray Dataset"""
-   veclab = ['time_origin', 'px_origin', 'py_origin', 'pz_origin', 'vx_origin', 'vy_origin', 'vz_origin']
+   veclab = ['time_origin', 'xhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
    id_list = []
    origin_type_list = []
    origin_vec_list = []
@@ -734,19 +734,19 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     frame = ds.isel(time=framenum)
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['GMass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['GMass']), drop=True).drop_vars(['GMass', 'Radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
-    GMSun = np.double(cb['GMass'])
-    RSun = np.double(cb['Radius'])
+    GMSun = np.double(cb['Gmass'])
+    RSun = np.double(cb['radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
-    Ip_xcb = np.double(cb['Ip_x'])
-    Ip_ycb = np.double(cb['Ip_y'])
-    Ip_zcb = np.double(cb['Ip_z'])
-    rot_xcb = np.double(cb['rot_x'])
-    rot_ycb = np.double(cb['rot_y'])
-    rot_zcb = np.double(cb['rot_z'])
+    Ip1cb = np.double(cb['Ip1'])
+    Ip2cb = np.double(cb['Ip2'])
+    Ip3cb = np.double(cb['Ip3'])
+    rotxcb = np.double(cb['rotx'])
+    rotycb = np.double(cb['roty'])
+    rotzcb = np.double(cb['rotz'])
     cbid = int(0)
     
     if param['IN_TYPE'] == 'ASCII':
@@ -758,8 +758,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         print(J2, file=cbfile)
         print(J4, file=cbfile)
         if param['ROTATION'] == 'YES':
-            print(Ip_xcb, Ip_ycb, Ip_zcb, file=cbfile)
-            print(rot_xcb, rot_ycb, rot_zcb, file=cbfile)
+            print(Ip1cb, Ip2cb, Ip3cb, file=cbfile)
+            print(rotxcb, rotycb, rotzcb, file=cbfile)
         cbfile.close()
         
         plfile = open(param['PL_IN'], 'w')
@@ -767,21 +767,21 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         for i in pl.id:
             pli = pl.sel(id=i)
             if param['RHILL_PRESENT'] == 'YES':
-               print(i.values, pli['GMass'].values, pli['Rhill'].values, file=plfile)
+               print(i.values, pli['Gmass'].values, pli['rhill'].values, file=plfile)
             else:
-               print(i.values, pli['GMass'].values, file=plfile)
-            print(pli['Radius'].values, file=plfile)
+               print(i.values, pli['Gmass'].values, file=plfile)
+            print(pli['radius'].values, file=plfile)
             if param['IN_FORM'] == 'XV':
-                print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
-                print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
+                print(pli['xhx'].values, pli['xhy'].values, pli['xhz'].values, file=plfile)
+                print(pli['vhx'].values, pli['vhy'].values, pli['vhz'].values, file=plfile)
             elif param['IN_FORM'] == 'EL':
                 print(pli['a'].values, pli['e'].values, pli['inc'].values, file=plfile)
                 print(pli['capom'].values, pli['omega'].values, pli['capm'].values, file=plfile)
             else:
                 print(f"{param['IN_FORM']} is not a valid input format type.")
             if param['ROTATION'] == 'YES':
-                print(pli['Ip_x'].values, pli['Ip_y'].values, pli['Ip_z'].values, file=plfile)
-                print(pli['rot_x'].values, pli['rot_y'].values, pli['rot_z'].values, file=plfile)
+                print(pli['Ip1'].values, pli['Ip2'].values, pli['Ip3'].values, file=plfile)
+                print(pli['rotx'].values, pli['roty'].values, pli['rotz'].values, file=plfile)
         plfile.close()
         
         # TP file
@@ -791,8 +791,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
             tpi = tp.sel(id=i)
             print(i.values, file=tpfile)
             if param['IN_FORM'] == 'XV':
-                print(tpi['px'].values, tpi['py'].values, tpi['pz'].values, file=tpfile)
-                print(tpi['vx'].values, tpi['vy'].values, tpi['vz'].values, file=tpfile)
+                print(tpi['xhx'].values, tpi['xhy'].values, tpi['xhz'].values, file=tpfile)
+                print(tpi['vhx'].values, tpi['vhy'].values, tpi['vhz'].values, file=tpfile)
             elif param['IN_FORM'] == 'EL':
                 print(tpi['a'].values, tpi['e'].values, tpi['inc'].values, file=tpfile)
                 print(tpi['capom'].values, tpi['omega'].values, tpi['capm'].values, file=tpfile)
@@ -808,12 +808,12 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         cbfile.write_record(np.double(J2))
         cbfile.write_record(np.double(J4))
         if param['ROTATION'] == 'YES':
-            cbfile.write_record(np.double(Ip_xcb))
-            cbfile.write_record(np.double(Ip_ycb))
-            cbfile.write_record(np.double(Ip_zcb))
-            cbfile.write_record(np.double(rot_xcb))
-            cbfile.write_record(np.double(rot_ycb))
-            cbfile.write_record(np.double(rot_zcb))
+            cbfile.write_record(np.double(Ip1cb))
+            cbfile.write_record(np.double(Ip2cb))
+            cbfile.write_record(np.double(Ip3cb))
+            cbfile.write_record(np.double(rotxcb))
+            cbfile.write_record(np.double(rotycb))
+            cbfile.write_record(np.double(rotzcb))
 
         cbfile.close()
         
@@ -821,12 +821,12 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         npl = pl.id.count().values
         plid = pl.id.values
         if param['IN_FORM'] == 'XV':
-            v1 = pl['px'].values
-            v2 = pl['py'].values
-            v3 = pl['pz'].values
-            v4 = pl['vx'].values
-            v5 = pl['vy'].values
-            v6 = pl['vz'].values
+            v1 = pl['xhx'].values
+            v2 = pl['xhy'].values
+            v3 = pl['xhz'].values
+            v4 = pl['vhx'].values
+            v5 = pl['vhy'].values
+            v6 = pl['vhz'].values
         elif param['IN_FORM'] == 'EL':
             v1 = pl['a'].values
             v2 = pl['e'].values
@@ -836,8 +836,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
             v6 = pl['capm'].values
         else:
             print(f"{param['IN_FORM']} is not a valid input format type.")
-        Gmass = pl['GMass'].values
-        radius = pl['Radius'].values  
+        Gmass = pl['Gmass'].values
+        radius = pl['radius'].values  
         
         plfile.write_record(npl)
         plfile.write_record(plid)
@@ -849,26 +849,26 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         plfile.write_record(v6)
         plfile.write_record(Gmass)
         if param['RHILL_PRESENT'] == 'YES':
-            plfile.write_record(pl['Rhill'].values)
+            plfile.write_record(pl['rhill'].values)
         plfile.write_record(radius)
         if param['ROTATION'] == 'YES':
-            plfile.write_record(pl['Ip_x'].values)
-            plfile.write_record(pl['Ip_y'].values)
-            plfile.write_record(pl['Ip_z'].values)
-            plfile.write_record(pl['rot_x'].values)
-            plfile.write_record(pl['rot_y'].values)
-            plfile.write_record(pl['rot_z'].values)
+            plfile.write_record(pl['Ip1'].values)
+            plfile.write_record(pl['Ip2'].values)
+            plfile.write_record(pl['Ip3'].values)
+            plfile.write_record(pl['rotx'].values)
+            plfile.write_record(pl['roty'].values)
+            plfile.write_record(pl['rotz'].values)
         plfile.close()
         tpfile = FortranFile(param['TP_IN'], 'w')
         ntp = tp.id.count().values
         tpid = tp.id.values
         if param['IN_FORM'] == 'XV':
-            v1 = tp['px'].values
-            v2 = tp['py'].values
-            v3 = tp['pz'].values
-            v4 = tp['vx'].values
-            v5 = tp['vy'].values
-            v6 = tp['vz'].values
+            v1 = tp['xhx'].values
+            v2 = tp['xhy'].values
+            v3 = tp['xhz'].values
+            v4 = tp['vhx'].values
+            v5 = tp['vhy'].values
+            v6 = tp['vhz'].values
         elif param['IN_FORM'] == 'EL':
             v1 = tp['a'].values
             v2 = tp['e'].values
@@ -910,11 +910,11 @@ def swifter_xr2infile(ds, param, framenum=-1):
     frame = ds.isel(time=framenum)
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['GMass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['GMass']), drop=True).drop_vars(['GMass', 'Radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
+    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
-    GMSun = np.double(cb['GMass'])
-    RSun = np.double(cb['Radius'])
+    GMSun = np.double(cb['Gmass'])
+    RSun = np.double(cb['radius'])
     param['J2'] = np.double(cb['J_2'])
     param['J4'] = np.double(cb['J_4'])
     
@@ -922,19 +922,19 @@ def swifter_xr2infile(ds, param, framenum=-1):
         # Swiftest Central body file
         plfile = open(param['PL_IN'], 'w')
         print(pl.id.count().values + 1, file=plfile)
-        print(cb.id.values[0], cb['GMass'].values[0], file=plfile)
+        print(cb.id.values[0], cb['Gmass'].values[0], file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
             if param['RHILL_PRESENT'] == "YES":
-                print(i.values, pli['GMass'].values, pli['Rhill'].values, file=plfile)
+                print(i.values, pli['Gmass'].values, pli['rhill'].values, file=plfile)
             else:
-                print(i.values, pli['GMass'].values, file=plfile)
+                print(i.values, pli['Gmass'].values, file=plfile)
             if param['CHK_CLOSE'] == "YES":
-                print(pli['Radius'].values, file=plfile)
-            print(pli['px'].values, pli['py'].values, pli['pz'].values, file=plfile)
-            print(pli['vx'].values, pli['vy'].values, pli['vz'].values, file=plfile)
+                print(pli['radius'].values, file=plfile)
+            print(pli['xhx'].values, pli['xhy'].values, pli['xhz'].values, file=plfile)
+            print(pli['vhx'].values, pli['vhy'].values, pli['vhz'].values, file=plfile)
         plfile.close()
         
         # TP file
@@ -943,8 +943,8 @@ def swifter_xr2infile(ds, param, framenum=-1):
         for i in tp.id:
             tpi = tp.sel(id=i)
             print(i.values, file=tpfile)
-            print(tpi['px'].values, tpi['py'].values, tpi['pz'].values, file=tpfile)
-            print(tpi['vx'].values, tpi['vy'].values, tpi['vz'].values, file=tpfile)
+            print(tpi['xhx'].values, tpi['xhy'].values, tpi['xhz'].values, file=tpfile)
+            print(tpi['vhx'].values, tpi['vhy'].values, tpi['vhz'].values, file=tpfile)
         tpfile.close()
     else:
         # Now make Swiftest files
@@ -1080,14 +1080,14 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                 i_list = [i for i in line.split(" ") if i.strip()]
                 GMpl = real2float(i_list[0])
                 if isSyMBA:
-                    Rhill = real2float(i_list[1])
+                    rhill = real2float(i_list[1])
                     if swift_param['LCLOSE'] == "T":
                         plrad = real2float(i_list[2])
                 else:
                     if swift_param['LCLOSE'] == "T":
                         plrad = real2float(i_list[1])
                 if swifter_param['RHILL_PRESENT'] == 'YES':
-                    print(n + 1, GMpl, Rhill, file=plnew)
+                    print(n + 1, GMpl, rhill, file=plnew)
                 else:
                     print(n + 1, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE'] == 'YES':
@@ -1100,10 +1100,10 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                 print(xh, yh, zh, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                vx = real2float(i_list[0])
-                vy = real2float(i_list[1])
-                vz = real2float(i_list[2])
-                print(vx, vy, vz, file=plnew)
+                vhx = real2float(i_list[0])
+                vhy = real2float(i_list[1])
+                vhz = real2float(i_list[2])
+                print(vhx, vhy, vhz, file=plnew)
         plnew.close()
         plold.close()
     except IOError:
@@ -1139,10 +1139,10 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                 print(xh, yh, zh, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                vx = real2float(i_list[0])
-                vy = real2float(i_list[1])
-                vz = real2float(i_list[2])
-                print(vx, vy, vz, file=tpnew)
+                vhx = real2float(i_list[0])
+                vhy = real2float(i_list[1])
+                vhz = real2float(i_list[2])
+                print(vhx, vhy, vhz, file=tpnew)
                 # Ignore STAT lines
                 line = tpold.readline()
                 line = tpold.readline()
@@ -1190,8 +1190,8 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                 idnum = int(i_list[0])
                 GMpl = real2float(i_list[1])
                 if swifter_param['RHILL_PRESENT'] == 'YES':
-                   Rhill = real2float(i_list[2])
-                   print(idnum, GMpl, Rhill, file=plnew)
+                   rhill = real2float(i_list[2])
+                   print(idnum, GMpl, rhill, file=plnew)
                 else:
                    print(idnum, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE'] == 'YES':
@@ -1207,10 +1207,10 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                 print(xh, yh, zh, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                vx = real2float(i_list[0])
-                vy = real2float(i_list[1])
-                vz = real2float(i_list[2])
-                print(vx, vy, vz, file=plnew)
+                vhx = real2float(i_list[0])
+                vhy = real2float(i_list[1])
+                vhz = real2float(i_list[2])
+                print(vhx, vhy, vhz, file=plnew)
         plnew.close()
         plold.close()
     except IOError:
@@ -1251,10 +1251,10 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                 print(xh, yh, zh, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in line.split(" ") if i.strip()]
-                vx = real2float(i_list[0])
-                vy = real2float(i_list[1])
-                vz = real2float(i_list[2])
-                print(vx, vy, vz, file=tpnew)
+                vhx = real2float(i_list[0])
+                vhy = real2float(i_list[1])
+                vhz = real2float(i_list[2])
+                print(vhx, vhy, vhz, file=tpnew)
         
         tpold.close()
         tpnew.close()
