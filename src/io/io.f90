@@ -877,6 +877,7 @@ contains
       end if
       close(iu, err = 667, iomsg = errmsg)
 
+
       if (ierr == 0) return
 
       667 continue
@@ -900,11 +901,13 @@ contains
       integer(I4B), parameter :: LUN = 7              !! Unit number of input file
       integer(I4B)            :: iu = LUN
       character(len=STRMAX)   :: errmsg
-      integer(I4B)            :: ierr
+      integer(I4B)            :: ierr, idold
 
       if (param%in_type == 'ASCII') then
+         self%id = 1
+         param%maxid = 1
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         read(iu, *, err = 667, iomsg = errmsg) self%id
+         read(iu, *, err = 667, iomsg = errmsg) idold
          read(iu, *, err = 667, iomsg = errmsg) self%Gmass
          self%mass = real(self%Gmass / param%GU, kind=DP)
          read(iu, *, err = 667, iomsg = errmsg) self%radius
@@ -922,6 +925,7 @@ contains
       close(iu, err = 667, iomsg = errmsg)
 
       if (ierr == 0) then
+
    
          if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
          if (param%rmin < 0.0) param%rmin = self%radius
@@ -1073,7 +1077,6 @@ contains
 
          case (ASCII_TYPE)
             do i = 1, n
-
                select type(self)
                class is (swiftest_pl)
                   if (param%lrhill_present) then
@@ -1108,7 +1111,8 @@ contains
                      read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
                   end if
                end select
-
+               param%maxid = param%maxid + 1
+               self%id(i) = param%maxid
             end do
          end select
 

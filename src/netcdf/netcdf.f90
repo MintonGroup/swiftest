@@ -152,8 +152,8 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
       implicit none
       ! Arguments
-      class(netcdf_parameters),      intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),   intent(in)    :: param           !! Current run configuration parameters 
+      class(netcdf_parameters),   intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(in)    :: param           !! Current run configuration parameters 
       ! Internals
       logical :: fileExists
 
@@ -196,7 +196,7 @@ contains
       if (param%lclose) call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, self%dimids, self%radius_varid) )
       if (param%lrotation) then
          call check( nf90_def_var(self%ncid, IP1_VARNAME, self%out_type, self%dimids, self%Ip1_varid) )
-         call check( nf90_def_var(self%ncid, IP2_VARNAME, self%out_type, self%dimids, self%Ip3_varid) )
+         call check( nf90_def_var(self%ncid, IP2_VARNAME, self%out_type, self%dimids, self%Ip2_varid) )
          call check( nf90_def_var(self%ncid, IP3_VARNAME, self%out_type, self%dimids, self%Ip3_varid) )
          call check( nf90_def_var(self%ncid, ROTX_VARNAME, self%out_type, self%dimids, self%rotx_varid) )
          call check( nf90_def_var(self%ncid, ROTY_VARNAME, self%out_type, self%dimids, self%roty_varid) )
@@ -206,6 +206,8 @@ contains
          call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, self%dimids, self%k2_varid) )
          call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, self%dimids, self%Q_varid) )
       end if
+
+      call check( nf90_close(self%ncid) )
 
       return
    end subroutine netcdf_initialize_output
