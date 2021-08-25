@@ -1550,7 +1550,7 @@ contains
       integer(I4B)                              :: ncid         !! NetCDF ID for the output file
       integer(I4B)                              :: dimids(2)    !! Dimensions of the NetCDF file
       integer(I4B)                              :: time_dimid   !! NetCDF ID for the time dimension 
-      integer(I4B)                              :: name_dimid   !! NetCDF ID for the particle name dimension
+      integer(I4B)                              :: id_dimid   !! NetCDF ID for the particle name dimension
       integer(I4B)                              :: ioutput      !! The current output number
       integer(I4B)                              :: a_varid      !! NetCDF ID for the semimajor axis variable 
       integer(I4B)                              :: e_varid      !! NetCDF ID for the eccentricity variable 
@@ -1580,7 +1580,7 @@ contains
 
       !! Open the netCDF file
       call check( nf90_open(param%outfile, nf90_write, ncid) )
-      call check( nf90_set_fill(ncid, nf90_nofill, oldMode) )
+      !call check( nf90_set_fill(ncid, nf90_nofill, oldMode) )
 
       associate(n => self%nbody)
          if (n == 0) return
@@ -1863,7 +1863,7 @@ contains
       integer(I4B)                                :: ncid            !! NetCDF ID for the output file
       integer(I4B)                                :: dimids(2)       !! Dimensions of the NetCDF file
       integer(I4B)                                :: time_dimid      !! NetCDF ID for the time dimension 
-      integer(I4B)                                :: name_dimid      !! NetCDF ID for the particle name dimension
+      integer(I4B)                                :: id_dimid      !! NetCDF ID for the particle name dimension
       integer(I4B)                                :: noutput         !! Number of output events covering the total simulation time
       integer(I4B)                                :: a_varid         !! NetCDF ID for the semimajor axis variable 
       integer(I4B)                                :: e_varid         !! NetCDF ID for the eccentricity variable 
@@ -1889,6 +1889,7 @@ contains
       integer(I4B)                                :: k2_varid        !! NetCDF ID for the Love number variable
       integer(I4B)                                :: Q_varid         !! NetCDF ID for the energy dissipation variable
       integer(I4B)                                :: oldMode
+      logical                                     :: fileExists
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
@@ -1916,16 +1917,21 @@ contains
          case('NEW', 'REPLACE', 'UNKNOWN')
          
             !! Create the new output file, deleting any previously existing output file of the same name
-            call check( nf90_create(param%outfile, NF90_NETCDF4, ncid) )
-            call check( nf90_set_fill(ncid, nf90_nofill, oldMode) )
+            inquire(file=param%outfile, exist=fileExists)
+            if (fileExists) then
+               open(file=param%outfile, unit=BINUNIT, status='OLD')
+               close (unit=BINUNIT, status="delete")
+            end if
+            call check( nf90_create(param%outfile, NF90_HDF5, ncid) )
+            !call check( nf90_set_fill(ncid, nf90_nofill, oldMode) )
 
             !! Calculate the number of outputs needed to cover the entire simulation time
             noutput = ((param%tstop / param%dt) / param%istep_out) + 2 !! +2 because t=0 gets put in spot 1 and need a stop for the final output
 
             !! Define the NetCDF dimensions with particle name as the record dimension
-            call check( nf90_def_dim(ncid, "Name", NF90_UNLIMITED, name_dimid) )     !! 'x' dimension
-            call check( nf90_def_dim(ncid, "Time", NF90_UNLIMITED, time_dimid) )     !! 'y' dimension
-            dimids = (/ time_dimid, name_dimid /)
+            call check( nf90_def_dim(ncid, "id", NF90_UNLIMITED, id_dimid) )     !! 'x' dimension
+            call check( nf90_def_dim(ncid, "time", NF90_UNLIMITED, time_dimid) )     !! 'y' dimension
+            dimids = (/ time_dimid, id_dimid /)
 
             !! Define the variables
             select case (param%out_form)
