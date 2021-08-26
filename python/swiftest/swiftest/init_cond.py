@@ -129,7 +129,8 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     ephemerides_step = '1d'
     
     clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
-    if param['OUT_FORM'] == 'EL':
+    # Add the missing labels
+    if param['OUT_FORM'] == 'XV':
         plab.append('a')
         plab.append('e')
         plab.append('inc')
@@ -142,7 +143,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         tlab.append('capom')
         tlab.append('omega')
         tlab.append('capm')
-    elif param['OUT_FORM'] == 'XV':
+    elif param['OUT_FORM'] == 'EL':
         plab.append('xhx')
         plab.append('xhy')
         plab.append('xhz')
@@ -155,32 +156,6 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         tlab.append('vhx')
         tlab.append('vhy')
         tlab.append('vhz')
-
-    elif param['OUT_FORM'] == 'XVEL':
-        plab.append('xhx')
-        plab.append('xhy')
-        plab.append('xhz')
-        plab.append('vhx')
-        plab.append('vhy')
-        plab.append('vhz')
-        tlab.append('xhx')
-        tlab.append('xhy')
-        tlab.append('xhz')
-        tlab.append('vhx')
-        tlab.append('vhy')
-        tlab.append('vhz')
-        plab.append('a')
-        plab.append('e')
-        plab.append('inc')
-        plab.append('capom')
-        plab.append('omega')
-        plab.append('capm')
-        tlab.append('a')
-        tlab.append('e')
-        tlab.append('inc')
-        tlab.append('capom')
-        tlab.append('omega')
-        tlab.append('capm')
 
     dims = ['time', 'id', 'vec']
     t = np.array([0.0])
@@ -199,7 +174,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         ds = xr.combine_by_coords([ds, cbds])
     else: # Fetch solar system ephemerides from Horizons
         print(f"Fetching ephemerides data for {key} from JPL/Horizons")
-        pl = []
+
         p1 = []
         p2 = []
         p3 = []
