@@ -3,163 +3,27 @@ submodule (swiftest_classes) s_netcdf
    use netcdf
 contains
 
-   module subroutine netcdf_write_frame_base(self, iu, param)
+   subroutine check(status)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Write a frame of output of either test particle or massive body data to the binary output file
-      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_write_frame.F
+      !! Checks the status of all NetCDF operations to catch errors
       implicit none
       ! Arguments
-      class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
-      class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
-      ! Internals
-      integer(I4B)                              :: i, j, id, ioutput
-      integer(I4B), dimension(:), allocatable   :: ind
+      integer, intent (in) :: status
 
-      !! Open the netCDF file
-      call check( nf90_open(param%outfile, nf90_write, iu%ncid) )
-      !call check( nf90_set_fill(iu%ncid, nf90_nofill, oldMode) )
-
-
-      ! Calculate the output number that we are currently on
-      ioutput = (param%t / param%dt) / param%istep_out
-
-      select type(self)
-      class is (swiftest_body)
-         associate(n => self%nbody)
-            if (n == 0) return
-            allocate(ind(n))
-            call util_sort(self%id(1:n), ind(1:n))
-
-            do i = 1, n
-               j = ind(i)
-               id = self%id(j)
-               call check( nf90_inq_varid(iu%ncid, ID_DIMNAME, iu%id_varid))
-               call check( nf90_put_var(iu%ncid, iu%id_varid, id, start=[id]) )
-               !call check( nf90_inq_varid(iu%ncid, NAME_VARNAME, iu%name_varid))
-               !call check( nf90_put_var(iu%ncid, iu%name_varid, trim(adjustl(self%name(j))), start=[ioutput + 1, id]) )
-               if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
-                  call check( nf90_inq_varid(iu%ncid, XHX_VARNAME, iu%xhx_varid))
-                  call check( nf90_inq_varid(iu%ncid, XHY_VARNAME, iu%xhy_varid))
-                  call check( nf90_inq_varid(iu%ncid, XHZ_VARNAME, iu%xhz_varid))
-                  call check( nf90_inq_varid(iu%ncid, VHX_VARNAME, iu%vhx_varid))
-                  call check( nf90_inq_varid(iu%ncid, VHY_VARNAME, iu%vhy_varid))
-                  call check( nf90_inq_varid(iu%ncid, VHZ_VARNAME, iu%vhz_varid))
-      
-                  call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[ioutput + 1, id]) )
-               end if
-               if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
-                  call check( nf90_inq_varid(iu%ncid, A_VARNAME, iu%a_varid))
-                  call check( nf90_inq_varid(iu%ncid, E_VARNAME, iu%e_varid))
-                  call check( nf90_inq_varid(iu%ncid, INC_VARNAME, iu%inc_varid))
-                  call check( nf90_inq_varid(iu%ncid, CAPOM_VARNAME, iu%capom_varid))
-                  call check( nf90_inq_varid(iu%ncid, OMEGA_VARNAME, iu%omega_varid))
-                  call check( nf90_inq_varid(iu%ncid, CAPM_VARNAME, iu%capm_varid))
-
-                  call check( nf90_put_var(iu%ncid, iu%a_varid, self%a(j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%e_varid, self%e(j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%inc_varid, self%inc(j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%capom_varid, self%capom(j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j), start=[ioutput + 1, id]) )
-                  call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j), start=[ioutput + 1, id]) ) 
-               end if
-               select type(pl => self)  
-               class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-                  call check( nf90_inq_varid(iu%ncid, GMASS_VARNAME, iu%Gmass_varid))
-                  call check( nf90_put_var(iu%ncid, iu%Gmass_varid, pl%Gmass(j), start=[ioutput + 1, id]) )
-                  if (param%lrhill_present) then 
-                     call check( nf90_inq_varid(iu%ncid, RHILL_VARNAME, iu%rhill_varid))
-                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, pl%rhill(j), start=[ioutput + 1, id]) )
-                  end if
-                  if (param%lclose) then
-                     call check( nf90_inq_varid(iu%ncid, RADIUS_VARNAME, iu%radius_varid))
-                     call check( nf90_put_var(iu%ncid, iu%radius_varid, pl%radius(j), start=[ioutput + 1, id]) )
-                  end if
-                  if (param%lrotation) then
-                     call check( nf90_inq_varid(iu%ncid, IP1_VARNAME, iu%Ip1_varid))
-                     call check( nf90_inq_varid(iu%ncid, IP2_VARNAME, iu%Ip2_varid))
-                     call check( nf90_inq_varid(iu%ncid, IP3_VARNAME, iu%Ip3_varid))
-                     call check( nf90_inq_varid(iu%ncid, ROTX_VARNAME, iu%rotx_varid))
-                     call check( nf90_inq_varid(iu%ncid, ROTY_VARNAME, iu%roty_varid))
-                     call check( nf90_inq_varid(iu%ncid, ROTZ_VARNAME, iu%rotz_varid))
-
-                     call check( nf90_put_var(iu%ncid, iu%Ip1_varid, pl%Ip(1, j), start=[ioutput + 1, id]) )
-                     call check( nf90_put_var(iu%ncid, iu%Ip2_varid, pl%Ip(2, j), start=[ioutput + 1, id]) )
-                     call check( nf90_put_var(iu%ncid, iu%Ip3_varid, pl%Ip(3, j), start=[ioutput + 1, id]) )
-                     call check( nf90_put_var(iu%ncid, iu%rotx_varid, pl%rot(1, j), start=[ioutput + 1, id]) )
-                     call check( nf90_put_var(iu%ncid, iu%roty_varid, pl%rot(2, j), start=[ioutput + 1, id]) )
-                     call check( nf90_put_var(iu%ncid, iu%rotz_varid, pl%rot(3, j), start=[ioutput + 1, id]) )
-                  end if
-                  if (param%ltides) then
-                     call check( nf90_inq_varid(iu%ncid, K2_VARNAME, iu%k2_varid))
-                     call check( nf90_inq_varid(iu%ncid, Q_VARNAME, iu%Q_varid))
-
-                     call check( nf90_put_var(iu%ncid, iu%k2_varid, pl%k2(j), start=[ioutput + 1, id]) )
-                     call check( nf90_put_var(iu%ncid, iu%Q_varid, pl%Q(j), start=[ioutput + 1, id]) )
-                  end if
-               end select
-            end do
-         end associate
-      class is (swiftest_cb)
-         id = self%id
-         call check( nf90_inq_varid(iu%ncid, TIME_DIMNAME, iu%time_varid))
-         call check( nf90_put_var(iu%ncid, iu%time_varid, param%t, start=[ioutput + 1]) )
-         call check( nf90_inq_varid(iu%ncid, ID_DIMNAME, iu%id_varid))
-         call check( nf90_put_var(iu%ncid, iu%id_varid, id, start=[id]) )
-         !call check( nf90_inq_varid(iu%ncid, NAME_VARNAME, iu%name_varid))
-         !call check( nf90_put_var(iu%ncid, iu%name_varid, trim(adjustl(self%name)), start=[ioutput + 1, id]) )
-         call check( nf90_inq_varid(iu%ncid, GMASS_VARNAME, iu%Gmass_varid))
-         call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[ioutput + 1, id]) )
-         call check( nf90_inq_varid(iu%ncid, RADIUS_VARNAME, iu%radius_varid))
-         call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[ioutput + 1, id]) )
-         if (param%lrotation) then
-            call check( nf90_inq_varid(iu%ncid, IP1_VARNAME, iu%Ip1_varid))
-            call check( nf90_inq_varid(iu%ncid, IP2_VARNAME, iu%Ip2_varid))
-            call check( nf90_inq_varid(iu%ncid, IP3_VARNAME, iu%Ip3_varid))
-            call check( nf90_inq_varid(iu%ncid, ROTX_VARNAME, iu%rotx_varid))
-            call check( nf90_inq_varid(iu%ncid, ROTY_VARNAME, iu%roty_varid))
-            call check( nf90_inq_varid(iu%ncid, ROTZ_VARNAME, iu%rotz_varid))
-   
-            call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1), start=[ioutput + 1, id]) )
-            call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2), start=[ioutput + 1, id]) )
-            call check( nf90_put_var(iu%ncid, iu%Ip3_varid, self%Ip(3), start=[ioutput + 1, id]) )
-            call check( nf90_put_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[ioutput + 1, id]) )
-            call check( nf90_put_var(iu%ncid, iu%roty_varid, self%rot(2), start=[ioutput + 1, id]) )
-            call check( nf90_put_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[ioutput + 1, id]) )
-         end if
-         if (param%ltides) then
-            call check( nf90_inq_varid(iu%ncid, K2_VARNAME, iu%k2_varid))
-            call check( nf90_inq_varid(iu%ncid, Q_VARNAME, iu%Q_varid))
-
-            call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2, start=[ioutput + 1, id]) )
-            call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[ioutput + 1, id]) )
-         end if
-      end select
-
-      ! Close the netCDF file
-      call check( nf90_close(iu%ncid) )
+      if(status /= nf90_noerr) then
+         write(*,*) trim(nf90_strerror(status))
+         call util_exit(FAILURE)
+      end if
 
       return
-   end subroutine netcdf_write_frame_base
+   end subroutine check
 
 
    module subroutine netcdf_initialize_output(self, param)
-      !! author: Carlisle A. Wishard, Dana Singh, and David A. Mintont
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Initialize a NetCDF file system
-      !! There is no direct file output from this subroutine
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_write_frame.F
+      !! Initialize a NetCDF file system and defines all variables.
       implicit none
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
@@ -184,9 +48,10 @@ contains
       end select
 
       !! Define the variables
-      !call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, self%dimids, self%name_varid) )
-      call check( nf90_def_var(self%ncid, TIME_DIMNAME, self%out_type, self%dimids(1), self%time_varid) )
-      call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, self%dimids(2), self%id_varid) )
+      call check( nf90_def_var(self%ncid, TIME_DIMNAME, self%out_type, self%time_dimid, self%time_varid) )
+      call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, self%id_dimid, self%id_varid) )
+      call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid) )
+      call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid) )
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, self%dimids, self%xhx_varid) )
          call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, self%dimids, self%xhy_varid) )
@@ -220,6 +85,23 @@ contains
          call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, self%dimids, self%k2_varid) )
          call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, self%dimids, self%Q_varid) )
       end if
+      if (param%lenergy) then
+         call check( nf90_def_var(self%ncid, KE_ORB_VARNAME, self%out_type, self%time_dimid, self%KE_orb_varid) )
+         call check( nf90_def_var(self%ncid, KE_SPIN_VARNAME, self%out_type, self%time_dimid, self%KE_spin_varid) )
+         call check( nf90_def_var(self%ncid, PE_VARNAME, self%out_type, self%time_dimid, self%PE_varid) )
+         call check( nf90_def_var(self%ncid, L_ORBX_VARNAME, self%out_type, self%time_dimid, self%L_orbx_varid) )
+         call check( nf90_def_var(self%ncid, L_ORBY_VARNAME, self%out_type, self%time_dimid, self%L_orby_varid) )
+         call check( nf90_def_var(self%ncid, L_ORBZ_VARNAME, self%out_type, self%time_dimid, self%L_orbz_varid) )
+         call check( nf90_def_var(self%ncid, L_SPINX_VARNAME, self%out_type, self%time_dimid, self%L_spinx_varid) )
+         call check( nf90_def_var(self%ncid, L_SPINY_VARNAME, self%out_type, self%time_dimid, self%L_spiny_varid) )
+         call check( nf90_def_var(self%ncid, L_SPINZ_VARNAME, self%out_type, self%time_dimid, self%L_spinz_varid) )
+         call check( nf90_def_var(self%ncid, L_ESCAPEX_VARNAME, self%out_type, self%time_dimid, self%L_escapex_varid) )
+         call check( nf90_def_var(self%ncid, L_ESCAPEY_VARNAME, self%out_type, self%time_dimid, self%L_escapey_varid) )
+         call check( nf90_def_var(self%ncid, L_ESCAPEZ_VARNAME, self%out_type, self%time_dimid, self%L_escapez_varid) )
+         call check( nf90_def_var(self%ncid, ECOLLISIONS_VARNAME, self%out_type, self%time_dimid, self%Ecollisions_varid) )
+         call check( nf90_def_var(self%ncid, EUNTRACKED_VARNAME, self%out_type, self%time_dimid, self%Euntracked_varid) )
+         call check( nf90_def_var(self%ncid, GMESCAPE_VARNAME, self%out_type, self%time_dimid, self%GMescape_varid) )
+      end if
 
       call check( nf90_close(self%ncid) )
 
@@ -227,21 +109,212 @@ contains
    end subroutine netcdf_initialize_output
 
 
-   subroutine check(status)
+   module subroutine netcdf_write_frame_base(self, iu, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Checks the status of all NetCDF operations to catch errors
+      !! Write a frame of output of either test particle or massive body data to the binary output file
+      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
       implicit none
       ! Arguments
-      integer, intent (in) :: status
+      class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
+      class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      integer(I4B)                              :: i, j, id, tslot
+      integer(I4B), dimension(:), allocatable   :: ind
 
-      if(status /= nf90_noerr) then
-         write(*,*) trim(nf90_strerror(status))
-         call util_exit(FAILURE)
-      end if
+      !! Open the netCDF file
+      call check( nf90_open(param%outfile, nf90_write, iu%ncid) )
+      !call check( nf90_set_fill(iu%ncid, nf90_nofill, oldMode) )
+
+      tslot = int(param%ioutput, kind=I4B) + 1
+
+      select type(self)
+      class is (swiftest_body)
+         associate(n => self%nbody)
+            if (n == 0) return
+            allocate(ind(n))
+            call util_sort(self%id(1:n), ind(1:n))
+
+            do i = 1, n
+               j = ind(i)
+               id = self%id(j)
+               call check( nf90_inq_varid(iu%ncid, ID_DIMNAME, iu%id_varid))
+               call check( nf90_put_var(iu%ncid, iu%id_varid, id, start=[id]) )
+               !call check( nf90_inq_varid(iu%ncid, NAME_VARNAME, iu%name_varid))
+               !call check( nf90_put_var(iu%ncid, iu%name_varid, trim(adjustl(self%name(j))), start=[tslot, id]) )
+               if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+                  call check( nf90_inq_varid(iu%ncid, XHX_VARNAME, iu%xhx_varid))
+                  call check( nf90_inq_varid(iu%ncid, XHY_VARNAME, iu%xhy_varid))
+                  call check( nf90_inq_varid(iu%ncid, XHZ_VARNAME, iu%xhz_varid))
+                  call check( nf90_inq_varid(iu%ncid, VHX_VARNAME, iu%vhx_varid))
+                  call check( nf90_inq_varid(iu%ncid, VHY_VARNAME, iu%vhy_varid))
+                  call check( nf90_inq_varid(iu%ncid, VHZ_VARNAME, iu%vhz_varid))
+      
+                  call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[tslot, id]) )
+               end if
+               if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
+                  call check( nf90_inq_varid(iu%ncid, A_VARNAME, iu%a_varid))
+                  call check( nf90_inq_varid(iu%ncid, E_VARNAME, iu%e_varid))
+                  call check( nf90_inq_varid(iu%ncid, INC_VARNAME, iu%inc_varid))
+                  call check( nf90_inq_varid(iu%ncid, CAPOM_VARNAME, iu%capom_varid))
+                  call check( nf90_inq_varid(iu%ncid, OMEGA_VARNAME, iu%omega_varid))
+                  call check( nf90_inq_varid(iu%ncid, CAPM_VARNAME, iu%capm_varid))
+
+                  call check( nf90_put_var(iu%ncid, iu%a_varid, self%a(j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%e_varid, self%e(j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%inc_varid, self%inc(j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%capom_varid, self%capom(j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j), start=[tslot, id]) )
+                  call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j), start=[tslot, id]) ) 
+               end if
+               select type(pl => self)  
+               class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
+                  call check( nf90_inq_varid(iu%ncid, GMASS_VARNAME, iu%Gmass_varid))
+                  call check( nf90_put_var(iu%ncid, iu%Gmass_varid, pl%Gmass(j), start=[tslot, id]) )
+                  if (param%lrhill_present) then 
+                     call check( nf90_inq_varid(iu%ncid, RHILL_VARNAME, iu%rhill_varid))
+                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, pl%rhill(j), start=[tslot, id]) )
+                  end if
+                  if (param%lclose) then
+                     call check( nf90_inq_varid(iu%ncid, RADIUS_VARNAME, iu%radius_varid))
+                     call check( nf90_put_var(iu%ncid, iu%radius_varid, pl%radius(j), start=[tslot, id]) )
+                  end if
+                  if (param%lrotation) then
+                     call check( nf90_inq_varid(iu%ncid, IP1_VARNAME, iu%Ip1_varid))
+                     call check( nf90_inq_varid(iu%ncid, IP2_VARNAME, iu%Ip2_varid))
+                     call check( nf90_inq_varid(iu%ncid, IP3_VARNAME, iu%Ip3_varid))
+                     call check( nf90_inq_varid(iu%ncid, ROTX_VARNAME, iu%rotx_varid))
+                     call check( nf90_inq_varid(iu%ncid, ROTY_VARNAME, iu%roty_varid))
+                     call check( nf90_inq_varid(iu%ncid, ROTZ_VARNAME, iu%rotz_varid))
+
+                     call check( nf90_put_var(iu%ncid, iu%Ip1_varid, pl%Ip(1, j), start=[tslot, id]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip2_varid, pl%Ip(2, j), start=[tslot, id]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip3_varid, pl%Ip(3, j), start=[tslot, id]) )
+                     call check( nf90_put_var(iu%ncid, iu%rotx_varid, pl%rot(1, j), start=[tslot, id]) )
+                     call check( nf90_put_var(iu%ncid, iu%roty_varid, pl%rot(2, j), start=[tslot, id]) )
+                     call check( nf90_put_var(iu%ncid, iu%rotz_varid, pl%rot(3, j), start=[tslot, id]) )
+                  end if
+                  if (param%ltides) then
+                     call check( nf90_inq_varid(iu%ncid, K2_VARNAME, iu%k2_varid))
+                     call check( nf90_inq_varid(iu%ncid, Q_VARNAME, iu%Q_varid))
+
+                     call check( nf90_put_var(iu%ncid, iu%k2_varid, pl%k2(j), start=[tslot, id]) )
+                     call check( nf90_put_var(iu%ncid, iu%Q_varid, pl%Q(j), start=[tslot, id]) )
+                  end if
+               end select
+            end do
+         end associate
+      class is (swiftest_cb)
+         id = self%id
+         call check( nf90_inq_varid(iu%ncid, ID_DIMNAME, iu%id_varid))
+         call check( nf90_put_var(iu%ncid, iu%id_varid, id, start=[id]) )
+         call check( nf90_inq_varid(iu%ncid, GMASS_VARNAME, iu%Gmass_varid))
+         call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[tslot, id]) )
+         call check( nf90_inq_varid(iu%ncid, RADIUS_VARNAME, iu%radius_varid))
+         call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[tslot, id]) )
+         if (param%lrotation) then
+            call check( nf90_inq_varid(iu%ncid, IP1_VARNAME, iu%Ip1_varid))
+            call check( nf90_inq_varid(iu%ncid, IP2_VARNAME, iu%Ip2_varid))
+            call check( nf90_inq_varid(iu%ncid, IP3_VARNAME, iu%Ip3_varid))
+            call check( nf90_inq_varid(iu%ncid, ROTX_VARNAME, iu%rotx_varid))
+            call check( nf90_inq_varid(iu%ncid, ROTY_VARNAME, iu%roty_varid))
+            call check( nf90_inq_varid(iu%ncid, ROTZ_VARNAME, iu%rotz_varid))
+   
+            call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1), start=[tslot, id]) )
+            call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2), start=[tslot, id]) )
+            call check( nf90_put_var(iu%ncid, iu%Ip3_varid, self%Ip(3), start=[tslot, id]) )
+            call check( nf90_put_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[tslot, id]) )
+            call check( nf90_put_var(iu%ncid, iu%roty_varid, self%rot(2), start=[tslot, id]) )
+            call check( nf90_put_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[tslot, id]) )
+         end if
+         if (param%ltides) then
+            call check( nf90_inq_varid(iu%ncid, K2_VARNAME, iu%k2_varid))
+            call check( nf90_inq_varid(iu%ncid, Q_VARNAME, iu%Q_varid))
+
+            call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2, start=[tslot, id]) )
+            call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[tslot, id]) )
+         end if
+      end select
+
+      ! Close the netCDF file
+      call check( nf90_close(iu%ncid) )
 
       return
-   end subroutine check
+   end subroutine netcdf_write_frame_base
+
+   module subroutine netcdf_write_hdr_system(self, iu, param) 
+      !! author: David A. Minton
+      !!
+      !! Writes header information (variables that change with time, but not particle id). 
+      !! This subroutine significantly improves the output over the original binary file, allowing us to track energy, momentum, and other quantities that 
+      !! previously were handled as separate output files.
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
+      class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      ! Internals
+      integer(I4B) :: tslot
+
+      tslot = int(param%ioutput, kind=I4B) + 1
+
+      call check( nf90_open(param%outfile, nf90_write, iu%ncid) )
+
+      call check( nf90_inq_varid(iu%ncid, TIME_DIMNAME, iu%time_varid))
+      call check( nf90_put_var(iu%ncid, iu%time_varid, param%t, start=[tslot]) )
+
+      call check( nf90_inq_varid(iu%ncid, NPL_VARNAME, iu%npl_varid))
+      call check( nf90_put_var(iu%ncid, iu%npl_varid, self%pl%nbody, start=[tslot]) )
+
+      call check( nf90_inq_varid(iu%ncid, NTP_VARNAME, iu%ntp_varid))
+      call check( nf90_put_var(iu%ncid, iu%ntp_varid, self%tp%nbody, start=[tslot]) )
+
+      if (param%lenergy) then
+         call check( nf90_inq_varid(iu%ncid, KE_ORB_VARNAME, iu%KE_orb_varid) )
+         call check( nf90_inq_varid(iu%ncid, KE_SPIN_VARNAME, iu%KE_spin_varid) )
+         call check( nf90_inq_varid(iu%ncid, PE_VARNAME, iu%PE_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_ORBX_VARNAME, iu%L_orbx_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_ORBY_VARNAME, iu%L_orby_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_ORBZ_VARNAME, iu%L_orbz_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_SPINX_VARNAME, iu%L_spinx_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_SPINY_VARNAME, iu%L_spiny_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_SPINZ_VARNAME, iu%L_spinz_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_ESCAPEX_VARNAME, iu%L_escapex_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_ESCAPEY_VARNAME, iu%L_escapey_varid) )
+         call check( nf90_inq_varid(iu%ncid, L_ESCAPEZ_VARNAME, iu%L_escapez_varid) )
+         call check( nf90_inq_varid(iu%ncid, ECOLLISIONS_VARNAME, iu%Ecollisions_varid) )
+         call check( nf90_inq_varid(iu%ncid, EUNTRACKED_VARNAME, iu%Euntracked_varid) )
+         call check( nf90_inq_varid(iu%ncid, GMESCAPE_VARNAME, iu%GMescape_varid) )
+
+         call check( nf90_put_var(iu%ncid, iu%KE_orb_varid, self%ke_orbit, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%KE_spin_varid, self%ke_spin, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%PE_varid, self%pe, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_orbx_varid, self%Lorbit(1), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_orby_varid, self%Lorbit(2), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_orbz_varid, self%Lorbit(3), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_spinx_varid, self%Lspin(1), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_spiny_varid, self%Lspin(2), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_spinz_varid, self%Lspin(3), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_escapex_varid, param%Lescape(1), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_escapey_varid, param%Lescape(2), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_escapez_varid, param%Lescape(3), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%Ecollisions_varid, param%Ecollisions, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%Euntracked_varid, param%Euntracked, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%GMescape_varid, param%GMescape, start=[tslot]) )
+
+      end if
+
+      ! Close the netCDF file
+      call check( nf90_close(iu%ncid) )
+
+      return
+   end subroutine netcdf_write_hdr_system
 
 
 

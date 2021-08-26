@@ -27,7 +27,7 @@ contains
                                                          "; DM/M0 = ", ES12.5)'
 
       associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody)
-         if (param%energy_out /= "") then
+         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE) .and. (param%energy_out /= "")) then
             if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
                write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
@@ -56,7 +56,7 @@ contains
             param%lfirstenergy = .false.
          end if
 
-         if (param%energy_out /= "") then
+         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE) .and. (param%energy_out /= "")) then
             write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, param%Ecollisions, Ltot_now, GMtot_now
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
@@ -219,7 +219,6 @@ contains
             write(*, statusfmt) param%t, tfrac, pl%nbody, self%tp%nbody
          end select
          write(*, walltimefmt) finish - start, wallperstep
-         if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
       end if
 
       return
@@ -1620,8 +1619,8 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.F
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(in)    :: self   !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
       class(swiftest_cb), allocatable  :: cb         !! Temporary local version of pl structure used for non-destructive conversions
@@ -1632,11 +1631,13 @@ contains
       logical                          :: fileExists
       type(netcdf_parameters)          :: nciu
 
+      if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
+
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
       allocate(tp, source = self%tp)
       iu = BINUNIT
-
+      
       if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
          if (lfirst) then
             select case(param%out_stat)
@@ -1653,7 +1654,7 @@ contains
          else
             open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
          end if
-         call io_write_hdr(iu, param%t, pl%nbody, tp%nbody, param%out_form, param%out_type)
+         call self%write_hdr(iu, param)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
          if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)
@@ -1682,6 +1683,7 @@ contains
             end select
             lfirst = .false.
          end if
+         call self%write_hdr(nciu, param)
       end if
 
       if (param%lgr) then
@@ -1707,6 +1709,8 @@ contains
          call tp%write_frame(nciu, param)
       end if
 
+      
+
       return
 
       667 continue
@@ -1715,7 +1719,7 @@ contains
    end subroutine io_write_frame_system
 
 
-   subroutine io_write_hdr(iu, t, npl, ntp, out_form, out_type)
+   module subroutine io_write_hdr_system(self, iu, param) ! t, npl, ntp, out_form, out_type)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Write frame header to output binary file
@@ -1724,30 +1728,27 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_hdr.F
       implicit none
       ! Arguments
-      integer(I4B), intent(in) :: iu       !! Output file unit number
-      real(DP),     intent(in) :: t        !! Current time of simulation
-      integer(I4B), intent(in) :: npl      !! Number of massive bodies
-      integer(I4B), intent(in) :: ntp      !! Number of test particles
-      character(*), intent(in) :: out_form !! Output format type ("EL" or  "XV")
-      character(*), intent(in) :: out_type !! Output file format type (REAL4, REAL8 - see swiftest module for symbolic name definitions)
+      class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
+      integer(I4B),                 intent(inout) ::  iu    !! Output file unit number
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
       ! Internals
       character(len=STRMAX) :: errmsg
    
-      select case (out_type)
+      select case (param%out_type)
       case (REAL4_TYPE)
-         write(iu, err = 667, iomsg = errmsg) real(t, kind=SP)
+         write(iu, err = 667, iomsg = errmsg) real(param%t, kind=SP)
       case (REAL8_TYPE)
-         write(iu, err = 667, iomsg = errmsg) t
+         write(iu, err = 667, iomsg = errmsg) param%t
       end select
-      write(iu, err = 667, iomsg = errmsg) npl
-      write(iu, err = 667, iomsg = errmsg) ntp
-      write(iu, err = 667, iomsg = errmsg) out_form
+      write(iu, err = 667, iomsg = errmsg) self%pl%nbody
+      write(iu, err = 667, iomsg = errmsg) self%tp%nbody
+      write(iu, err = 667, iomsg = errmsg) param%out_form
    
       return
 
       667 continue
       write(*,*) "Error writing header: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
-   end subroutine io_write_hdr
+   end subroutine io_write_hdr_system
 
 end submodule s_io

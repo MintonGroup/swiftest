@@ -42,7 +42,8 @@ program swiftest_driver
              dt         => param%dt, &
              tstop      => param%tstop, &
              istep_out  => param%istep_out, &
-             istep_dump => param%istep_dump)  
+             istep_dump => param%istep_dump, &
+             ioutput    => param%ioutput)  
 
       call nbody_system%initialize(param)
       t = t0
@@ -50,6 +51,7 @@ program swiftest_driver
       iout = istep_out
       idump = istep_dump
       nloops = ceiling(tstop / dt, kind=I8B)
+      ioutput = ceiling(t0/ dt, kind=I8B) / int(istep_out, kind=I8B)
       ! Prevent duplicate frames from being written if this is a restarted run
       if (param%lrestart) then
          old_t_final = nbody_system%get_old_t_final(param)
@@ -80,6 +82,7 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
+               ioutput = ceiling(t / dt, kind=I8B) / int(istep_out, kind=I8B)
                if (t > old_t_final) call nbody_system%write_frame(param)
                iout = istep_out
             end if
