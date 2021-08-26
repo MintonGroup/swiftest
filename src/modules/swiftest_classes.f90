@@ -133,7 +133,9 @@ module swiftest_classes
       integer(I4B) :: Euntracked_varid  !! NetCDF ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       integer(I4B) :: GMescape_varid    !! NetCDF ID for the G*Mass of bodies that escape the system
    contains
+      procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: open       => netcdf_open              !! Opens a NetCDF file
    end type netcdf_parameters
 
    !********************************************************************************************************************************
@@ -811,11 +813,23 @@ module swiftest_classes
          integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
       end subroutine kick_getacch_int_tp
 
+      module subroutine netcdf_close(self, param)
+         implicit none
+         class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      end subroutine netcdf_close
+
       module subroutine netcdf_initialize_output(self, param)
          implicit none
          class(netcdf_parameters),     intent(inout) :: self  !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       end subroutine netcdf_initialize_output
+
+      module subroutine netcdf_open(self, param)
+         implicit none
+         class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      end subroutine netcdf_open
 
       module subroutine netcdf_write_frame_base(self, iu, param)
          implicit none
