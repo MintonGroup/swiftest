@@ -263,9 +263,9 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         pvec = np.vstack([pvec, p7, p8, p9, p10, p11, p12])
 
         if idval is None:
-            plid = np.array([planetid[key]], dtype=int)
+            plid = np.array([planetid[key]+1], dtype=int)
         else:
-            plid = np.array([idval], dtype=int)
+            plid = np.array([idval]+1, dtype=int)
 
         # Prepare frames by adding an extra axis for the time coordinate
         plframe = np.expand_dims(pvec.T, axis=0)
