@@ -670,14 +670,14 @@ def swiftest2xr(param):
         tpds = tpda.to_dataset(dim='vec')
         print('\nCreating Dataset')
         ds = xr.combine_by_coords([cbds, plds, tpds])
-        print(f"Successfully converted {ds.sizes['time']} output frames.")
 
     elif ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         print('\nCreating Dataset')
         ds = xr.open_dataset(param['BIN_OUT'])
-        print(f"Successfully converted {ds.sizes['time']} output frames.")
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
+        return None
+    print(f"Successfully converted {ds.sizes['time']} output frames.")
 
     if param['PARTICLE_OUT'] != "":
        ds = swiftest_particle_2xr(ds, param)
