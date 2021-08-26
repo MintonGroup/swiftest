@@ -1630,7 +1630,7 @@ contains
       logical                          :: fileExists
       type(netcdf_parameters)          :: nciu
 
-      if (param%lenergy) call self%conservation_report(param, lterminal=.true.)
+      if (.not.lfirst .and. param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
