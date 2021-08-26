@@ -1678,10 +1678,14 @@ contains
             end select
 
             select case(param%out_stat)
+            case('APPEND')
+               call nciu%open(param)
             case('NEW', 'REPLACE', 'UNKNOWN')
                call nciu%initialize(param)
             end select
             lfirst = .false.
+         else
+            call nciu%open(param)
          end if
          call self%write_hdr(nciu, param)
       end if
@@ -1707,9 +1711,8 @@ contains
          call cb%write_frame(nciu, param)
          call pl%write_frame(nciu, param)
          call tp%write_frame(nciu, param)
+         call nciu%close(param)
       end if
-
-      
 
       return
 
