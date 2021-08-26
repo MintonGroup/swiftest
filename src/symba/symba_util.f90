@@ -495,11 +495,12 @@ contains
          if (nadd > 0) then
             ! Append the adds to the main pl object
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, nadd)])
+
+            allocate(lmask(npl+nadd)) 
+            lmask(1:npl) = .false.
+            lmask(npl+1:npl+nadd) = pl%status(npl+1:npl+nadd) == NEW_PARTICLE
+
             npl = pl%nbody
-
-            allocate(lmask(npl)) 
-            lmask(1:npl) = pl%status(1:npl) == NEW_PARTICLE
-
             call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, npl)], lmask))
 
             deallocate(lmask)

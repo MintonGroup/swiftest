@@ -67,8 +67,9 @@ contains
 
       ! Distribute any residual mass if there is any and set the radius
       m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
-      rad_frag(:) = (3 * m_frag(:) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
-      id_frag(:) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+      rad_frag(1:nfrag) = (3 * m_frag(:) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
+      id_frag(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+      param%maxid = id_frag(nfrag)
 
       do i = 1, nfrag
          Ip_frag(:, i) = Ip_new(:)
@@ -169,7 +170,8 @@ contains
          m_frag(2:nfrag) = (mtot - m_frag(1)) / (nfrag - 1) 
          rad_frag(2:nfrag) = (3 * m_frag(2:nfrag) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
          m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
-         id_frag(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+         id_frag(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
+         param%maxid = id_frag(nfrag)
 
          do i = 1, nfrag
             Ip_frag(:, i) = Ip(:, jproj)
@@ -369,8 +371,9 @@ contains
       end if
       ! Distribute any residual mass if there is any and set the radius
       m_frag(nfrag) = m_frag(nfrag) + (mtot - sum(m_frag(:)))
-      rad_frag(:) = (3 * m_frag(:) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
-      id_frag(:) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+      rad_frag(1:nfrag) = (3 * m_frag(:) / (4 * PI * avg_dens))**(1.0_DP / 3.0_DP)
+      id_frag(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+      param%maxid = id_frag(nfrag)
 
       do i = 1, nfrag
          Ip_frag(:, i) = Ip_new(:)
