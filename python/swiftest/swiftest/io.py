@@ -680,8 +680,10 @@ def swiftest2xr(param):
     print(f"Successfully converted {ds.sizes['time']} output frames.")
 
     if param['PARTICLE_OUT'] != "":
-       ds = swiftest_particle_2xr(ds, param)
-    
+        infoxr = swiftest_particle_2xr(param)
+        print('\nAdding particle info to Dataset')
+        ds = xr.merge([ds, infoxr])
+
     return ds
 
 
@@ -717,7 +719,7 @@ def swiftest_particle_stream(f):
       yield plid, origin_type, origin_vec
 
 
-def swiftest_particle_2xr(ds, param):
+def swiftest_particle_2xr(param):
    """Reads in the Swiftest SyMBA-generated PARTICLE_OUT  and converts it to an xarray Dataset"""
    veclab = ['time_origin', 'xhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
    id_list = []
@@ -743,9 +745,7 @@ def swiftest_particle_2xr(ds, param):
    infoxr = vecda.to_dataset(dim='vec')
    infoxr['origin_type'] = typeda
 
-   print('\nAdding particle info to Dataset')
-   ds = xr.merge([ds, infoxr])
-   return ds
+   return infoxr
 
 
 def swiftest_xr2infile(ds, param, framenum=-1):
