@@ -8,9 +8,11 @@ TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1
 ISTEP_DUMP     1
-BIN_OUT        bin.nc
+BIN_OUT        bin.dat
+OUT_TYPE       REAL8
+!BIN_OUT        bin.nc
+!UT_TYPE       NETCDF_DOUBLE
 PARTICLE_OUT   particle.dat
-OUT_TYPE       NETCDF_DOUBLE
 OUT_FORM       XVEL
 OUT_STAT       REPLACE
 CHK_CLOSE      yes

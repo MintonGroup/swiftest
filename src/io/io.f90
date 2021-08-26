@@ -1492,23 +1492,22 @@ contains
       associate(n => self%nbody)
          if (n == 0) return
          write(iu, err = 667, iomsg = errmsg) self%id(1:n)
-         !write(iu, err = 667, iomsg = errmsg) self%name(1:n)
-         select case (param%out_form)
-         case (EL) 
-            write(iu, err = 667, iomsg = errmsg) self%a(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%e(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%inc(1:n) * RAD2DEG
-            write(iu, err = 667, iomsg = errmsg) self%capom(1:n) * RAD2DEG
-            write(iu, err = 667, iomsg = errmsg) self%omega(1:n) * RAD2DEG
-            write(iu, err = 667, iomsg = errmsg) self%capm(1:n) * RAD2DEG
-         case (XV)
+         if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
             write(iu, err = 667, iomsg = errmsg) self%xh(1, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%xh(2, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%xh(3, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%vh(1, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%vh(2, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%vh(3, 1:n)
-         end select
+         end if
+         if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
+            write(iu, err = 667, iomsg = errmsg) self%a(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%e(1:n)
+            write(iu, err = 667, iomsg = errmsg) self%inc(1:n) * RAD2DEG
+            write(iu, err = 667, iomsg = errmsg) self%capom(1:n) * RAD2DEG
+            write(iu, err = 667, iomsg = errmsg) self%omega(1:n) * RAD2DEG
+            write(iu, err = 667, iomsg = errmsg) self%capm(1:n) * RAD2DEG
+         end if
          select type(pl => self)  
          class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
             write(iu, err = 667, iomsg = errmsg) pl%Gmass(1:n)
