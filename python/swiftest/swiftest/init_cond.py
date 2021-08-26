@@ -206,7 +206,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
             pldata[key] = Horizons(id=key, id_type='smallbody', location='@sun',
                                    epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                            'step': ephemerides_step})
-        if param['OUT_FORM'] == 'XV':
+        if (param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL'):
             p1.append(pldata[key].vectors()['x'][0] * DCONV)
             p2.append(pldata[key].vectors()['y'][0] * DCONV)
             p3.append(pldata[key].vectors()['z'][0] * DCONV)
