@@ -1037,7 +1037,7 @@ contains
          select case(param%in_type)
          case (REAL4_TYPE, REAL8_TYPE)
             read(iu, err = 667, iomsg = errmsg) self%id(:)
-            read(iu, err = 667, iomsg = errmsg) self%name(:)
+            !read(iu, err = 667, iomsg = errmsg) self%name(:)
 
             select case (param%in_form)
             case (XV)
@@ -1159,7 +1159,7 @@ contains
       character(len=STRMAX)   :: errmsg
 
       read(iu, err = 667, iomsg = errmsg) self%id
-      read(iu, err = 667, iomsg = errmsg) self%name
+      !read(iu, err = 667, iomsg = errmsg) self%name
       read(iu, err = 667, iomsg = errmsg) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, err = 667, iomsg = errmsg) self%radius

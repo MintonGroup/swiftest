@@ -367,14 +367,14 @@ def swifter_stream(f, param):
                 tvec[:, i] = record[1]
         
         tlab = []
-        if param['OUT_FORM'] == 'XV':
+        if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
             tlab.append('xhx')
             tlab.append('xhy')
             tlab.append('xhz')
             tlab.append('vhx')
             tlab.append('vhy')
             tlab.append('vhz')
-        elif param['OUT_FORM'] == 'EL':
+        if param['OUT_FORM'] == 'EL' or param['OUT_FORM'] == 'XVEL':
             tlab.append('a')
             tlab.append('e')
             tlab.append('inc')
@@ -392,14 +392,15 @@ def swifter_stream(f, param):
 
 def make_swiftest_labels(param):
     tlab = []
-    if param['OUT_FORM'] == 'XV':
+    if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
         tlab.append('xhx')
         tlab.append('xhy')
         tlab.append('xhz')
         tlab.append('vhx')
         tlab.append('vhy')
         tlab.append('vhz')
-    elif param['OUT_FORM'] == 'EL':
+   
+    if param['OUT_FORM'] == 'EL' or param['OUT_FORM'] == 'XVEL':
         tlab.append('a')
         tlab.append('e')
         tlab.append('inc')
@@ -499,6 +500,13 @@ def swiftest_stream(f, param):
             p4 = f.read_reals(np.float64)
             p5 = f.read_reals(np.float64)
             p6 = f.read_reals(np.float64)
+            if param['OUT_FORM'] == 'XVEL':
+               p7 = f.read_reals(np.float64)
+               p8 = f.read_reals(np.float64)
+               p9 = f.read_reals(np.float64)
+               p10 = f.read_reals(np.float64)
+               p11 = f.read_reals(np.float64)
+               p12 = f.read_reals(np.float64) 
             GMpl = f.read_reals(np.float64)
             if param['RHILL_PRESENT'] == 'YES':
                 rhill = f.read_reals(np.float64)
@@ -521,18 +529,36 @@ def swiftest_stream(f, param):
             t4 = f.read_reals(np.float64)
             t5 = f.read_reals(np.float64)
             t6 = f.read_reals(np.float64)
+            if param['OUT_FORM'] == 'XVEL':
+               t7 = f.read_reals(np.float64)
+               t8 = f.read_reals(np.float64)
+               t9 = f.read_reals(np.float64)
+               t10 = f.read_reals(np.float64)
+               t11 = f.read_reals(np.float64)
+               t12 = f.read_reals(np.float64) 
         
         clab, plab, tlab = make_swiftest_labels(param)
-        
+
         if npl > 0:
-            pvec = np.vstack([p1, p2, p3, p4, p5, p6, GMpl, Rpl])
+            pvec = np.vstack([p1, p2, p3, p4, p5, p6])
+            if param['OUT_FORM'] == 'XVEL':
+               pvec = np.vstack([pvec, p7, p8, p9, p10, p11, p12])
+            pvec = np.vstack([pvec, GMpl, Rpl])
         else:
-            pvec = np.empty((8, 0))
+            if param['OUT_FORM'] == 'XVEL':
+               pvec = np.empty((14, 0))
+            else:
+               pvec = np.empty((8, 0))
             plid = np.empty(0)
         if ntp > 0:
             tvec = np.vstack([t1, t2, t3, t4, t5, t6])
+            if param['OUT_FORM'] == 'XVEL':
+               tvec = np.vstack([tvec, t7, t8, t9, t10, t11, t12])
         else:
-            tvec = np.empty((6, 0))
+            if param['OUT_FORM'] == 'XVEL':
+               tvec = np.empty((12, 0))
+            else:
+               tvec = np.empty((6, 0))
             tpid = np.empty(0)
         cvec = np.array([Mcb, Rcb, J2cb, J4cb])
         if param['RHILL_PRESENT'] == 'YES':
