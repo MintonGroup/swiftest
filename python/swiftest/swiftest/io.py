@@ -633,44 +633,52 @@ def swiftest2xr(param):
     -------
     xarray dataset
     """
-    
-    dims = ['time', 'id', 'vec']
-    cb = []
-    pl = []
-    tp = []
-    try:
-        with FortranFile(param['BIN_OUT'], 'r') as f:
-            for t, cbid, cvec, clab, \
-                npl, plid, pvec, plab, \
-                ntp, tpid, tvec, tlab in swiftest_stream(f, param):
-                # Prepare frames by adding an extra axis for the time coordinate
-                cbframe = np.expand_dims(cvec, axis=0)
-                plframe = np.expand_dims(pvec, axis=0)
-                tpframe = np.expand_dims(tvec, axis=0)
+    if ((param['OUT_TYPE'] == 'REAL8') or (param['OUT_TYPE'] == 'REAL4')): 
+        dims = ['time', 'id', 'vec']
+        cb = []
+        pl = []
+        tp = []
+        try:
+            with FortranFile(param['BIN_OUT'], 'r') as f:
+                for t, cbid, cvec, clab, \
+                    npl, plid, pvec, plab, \
+                    ntp, tpid, tvec, tlab in swiftest_stream(f, param):
+                    # Prepare frames by adding an extra axis for the time coordinate
+                    cbframe = np.expand_dims(cvec, axis=0)
+                    plframe = np.expand_dims(pvec, axis=0)
+                    tpframe = np.expand_dims(tvec, axis=0)
 
-                # Create xarray DataArrays out of each body type
-                cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
-                plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
-                tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
+                    # Create xarray DataArrays out of each body type
+                    cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
+                    plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
+                    tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
                 
-                cb.append(cbxr)
-                pl.append(plxr)
-                tp.append(tpxr)
-                sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
-                sys.stdout.flush()
-    except IOError:
-        print(f"Error encountered reading in {param['BIN_OUT']}")
+                    cb.append(cbxr)
+                    pl.append(plxr)
+                    tp.append(tpxr)
+                    sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
+                    sys.stdout.flush()
+        except IOError:
+            print(f"Error encountered reading in {param['BIN_OUT']}")
 
-    cbda = xr.concat(cb, dim='time')
-    plda = xr.concat(pl, dim='time')
-    tpda = xr.concat(tp, dim='time')
+        cbda = xr.concat(cb, dim='time')
+        plda = xr.concat(pl, dim='time')
+        tpda = xr.concat(tp, dim='time')
     
-    cbds = cbda.to_dataset(dim='vec')
-    plds = plda.to_dataset(dim='vec')
-    tpds = tpda.to_dataset(dim='vec')
-    print('\nCreating Dataset')
-    ds = xr.combine_by_coords([cbds, plds, tpds])
-    print(f"Successfully converted {ds.sizes['time']} output frames.")
+        cbds = cbda.to_dataset(dim='vec')
+        plds = plda.to_dataset(dim='vec')
+        tpds = tpda.to_dataset(dim='vec')
+        print('\nCreating Dataset')
+        ds = xr.combine_by_coords([cbds, plds, tpds])
+        print(f"Successfully converted {ds.sizes['time']} output frames.")
+
+    elif ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
+        print('\nCreating Dataset')
+        ds = xr.open_dataset(param['BIN_OUT'])
+        print(f"Successfully converted {ds.sizes['time']} output frames.")
+    else:
+        print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
+
     if param['PARTICLE_OUT'] != "":
        ds = swiftest_particle_2xr(ds, param)
     
