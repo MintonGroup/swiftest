@@ -118,7 +118,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     rotcb = solarpole.cartesian * solarrot
     Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
     
-    cbid = np.array([0])
+    cbid = np.array([1])
     cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4, Ipsun[0], Ipsun[1], Ipsun[2], rotcb.x, rotcb.y, rotcb.z ])
     
     # Horizons date time internal variables
@@ -167,7 +167,6 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         val = -1
     if key == "Sun" : # Create central body
         print("Creating the Sun as a central body")
-        cb = []
         cbframe = np.expand_dims(cvec.T, axis=0)
         cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
         cbds = cbxr.to_dataset(dim='vec')
