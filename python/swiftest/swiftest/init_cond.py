@@ -118,7 +118,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     rotcb = solarpole.cartesian * solarrot
     Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
     
-    cbid = np.array([1])
+    cbid = np.array([0])
     cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4])
     if param['ROTATION'] == 'YES':
         cvec = np.vstack([cvec, Ipsun[0], Ipsun[1], Ipsun[2], rotcb.x, rotcb.y, rotcb.z])
@@ -264,9 +264,9 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
             plab = tlab.copy()
 
         if idval is None:
-            plid = np.array([planetid[key]], dtype=int) + 1
+            plid = np.array([planetid[key]], dtype=int)
         else:
-            plid = np.array([idval]+1, dtype=int)
+            plid = np.array([idval], dtype=int)
 
         # Prepare frames by adding an extra axis for the time coordinate
         plframe = np.expand_dims(pvec.T, axis=0)
@@ -277,7 +277,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
 
     return ds
 
-def vec2xr(param, names, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=0.0):
+def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=0.0):
     
     if param['ROTATION'] == 'YES':
         if Ip1 is None:
