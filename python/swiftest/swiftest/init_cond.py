@@ -305,8 +305,12 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     if ispl and rhill is None and param['RHILL_PRESENT'] == 'YES':
         print("rhill is required.")
         return None
-
+   
+    # Be sure we use the correct input format
+    old_out_form = param['OUT_FORM']
+    param['OUT_FORM'] = param['IN_FORM']
     clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
+    param['OUT_FORM'] = old_out_form
     vec = np.vstack([v1, v2, v3, v4, v5, v6])
     if ispl:
         vec = np.vstack([vec, GMpl, Rpl])

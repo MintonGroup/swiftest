@@ -99,7 +99,7 @@ class Simulation:
         """
         t = self.param['T0']
 
-        dsnew = init_cond.vec2xr(self.param, idvals, namevales, t1, t2, t3, t4, t5, t6, GMpl, Rpl, rhill, Ip1, Ip2, Ip3, rotx, roty, rotz, t)
+        dsnew = init_cond.vec2xr(self.param, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl, Rpl, rhill, Ip1, Ip2, Ip3, rotx, roty, rotz, t)
         if dsnew is not None:
             self.ds = xr.combine_by_coords([self.ds, dsnew])
         return
