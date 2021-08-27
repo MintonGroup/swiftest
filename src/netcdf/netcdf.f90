@@ -54,7 +54,6 @@ contains
       call check( nf90_def_dim(self%ncid, ID_DIMNAME, NF90_UNLIMITED, self%id_dimid) )     ! 'x' dimension
       call check( nf90_def_dim(self%ncid, TIME_DIMNAME, NF90_UNLIMITED, self%time_dimid) ) ! 'y' dimension
       call check( nf90_def_dim(self%ncid, STR_DIMNAME, NAMELEN, self%str_dimid) ) ! Dimension for string variables (aka character arrays)
-      self%dimids = [self%time_dimid, self%id_dimid, self%str_dimid]
 
       select case (param%out_type)
       case(NETCDF_FLOAT_TYPE)
@@ -68,39 +67,39 @@ contains
       call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, self%id_dimid, self%id_varid) )
       call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid) )
       call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid) )
-      call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%id_dimid, self%str_dimid], self%name_varid) )
+      call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%name_varid) )
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
-         call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, self%dimids, self%xhx_varid) )
-         call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, self%dimids, self%xhy_varid) )
-         call check( nf90_def_var(self%ncid, XHZ_VARNAME, self%out_type, self%dimids, self%xhz_varid) )
-         call check( nf90_def_var(self%ncid, VHX_VARNAME, self%out_type, self%dimids, self%vhx_varid) )
-         call check( nf90_def_var(self%ncid, VHY_VARNAME, self%out_type, self%dimids, self%vhy_varid) )
-         call check( nf90_def_var(self%ncid, VHZ_VARNAME, self%out_type, self%dimids, self%vhz_varid) )
+         call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhx_varid) )
+         call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhy_varid) )
+         call check( nf90_def_var(self%ncid, XHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhz_varid) )
+         call check( nf90_def_var(self%ncid, VHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhx_varid) )
+         call check( nf90_def_var(self%ncid, VHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhy_varid) )
+         call check( nf90_def_var(self%ncid, VHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhz_varid) )
       end if
    
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
-         call check( nf90_def_var(self%ncid, A_VARNAME, self%out_type, self%dimids, self%a_varid) )
-         call check( nf90_def_var(self%ncid, E_VARNAME, self%out_type, self%dimids, self%e_varid) )
-         call check( nf90_def_var(self%ncid, INC_VARNAME, self%out_type, self%dimids, self%inc_varid) )
-         call check( nf90_def_var(self%ncid, CAPOM_VARNAME, self%out_type, self%dimids, self%capom_varid) )
-         call check( nf90_def_var(self%ncid, OMEGA_VARNAME, self%out_type, self%dimids, self%omega_varid) )
-         call check( nf90_def_var(self%ncid, CAPM_VARNAME, self%out_type, self%dimids, self%capm_varid) )
+         call check( nf90_def_var(self%ncid, A_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%a_varid) )
+         call check( nf90_def_var(self%ncid, E_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%e_varid) )
+         call check( nf90_def_var(self%ncid, INC_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%inc_varid) )
+         call check( nf90_def_var(self%ncid, CAPOM_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%capom_varid) )
+         call check( nf90_def_var(self%ncid, OMEGA_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%omega_varid) )
+         call check( nf90_def_var(self%ncid, CAPM_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%capm_varid) )
       end if
 
-      call check( nf90_def_var(self%ncid, GMASS_VARNAME, self%out_type, self%dimids, self%Gmass_varid) )
-      if (param%lrhill_present) call check( nf90_def_var(self%ncid, RHILL_VARNAME, self%out_type, self%dimids, self%rhill_varid) )
-      if (param%lclose) call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, self%dimids, self%radius_varid) )
+      call check( nf90_def_var(self%ncid, GMASS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Gmass_varid) )
+      if (param%lrhill_present) call check( nf90_def_var(self%ncid, RHILL_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rhill_varid) )
+      if (param%lclose) call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%radius_varid) )
       if (param%lrotation) then
-         call check( nf90_def_var(self%ncid, IP1_VARNAME, self%out_type, self%dimids, self%Ip1_varid) )
-         call check( nf90_def_var(self%ncid, IP2_VARNAME, self%out_type, self%dimids, self%Ip2_varid) )
-         call check( nf90_def_var(self%ncid, IP3_VARNAME, self%out_type, self%dimids, self%Ip3_varid) )
-         call check( nf90_def_var(self%ncid, ROTX_VARNAME, self%out_type, self%dimids, self%rotx_varid) )
-         call check( nf90_def_var(self%ncid, ROTY_VARNAME, self%out_type, self%dimids, self%roty_varid) )
-         call check( nf90_def_var(self%ncid, ROTZ_VARNAME, self%out_type, self%dimids, self%rotz_varid) )
+         call check( nf90_def_var(self%ncid, IP1_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip1_varid) )
+         call check( nf90_def_var(self%ncid, IP2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip2_varid) )
+         call check( nf90_def_var(self%ncid, IP3_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip3_varid) )
+         call check( nf90_def_var(self%ncid, ROTX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotx_varid) )
+         call check( nf90_def_var(self%ncid, ROTY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%roty_varid) )
+         call check( nf90_def_var(self%ncid, ROTZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotz_varid) )
       end if
       if (param%ltides) then
-         call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, self%dimids, self%k2_varid) )
-         call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, self%dimids, self%Q_varid) )
+         call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%k2_varid) )
+         call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Q_varid) )
       end if
       if (param%lenergy) then
          call check( nf90_def_var(self%ncid, KE_ORB_VARNAME, self%out_type, self%time_dimid, self%KE_orb_varid) )
@@ -146,7 +145,6 @@ contains
       call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid))
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid))
 
-      !call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid))
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid))
          call check( nf90_inq_varid(self%ncid, XHY_VARNAME, self%xhy_varid))
@@ -235,66 +233,66 @@ contains
                call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
                name = trim(adjustl(self%name(j)))
                strlen = len(name)
-               call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[idslot, 1], count=[1, strlen]) )
+               call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[1, idslot], count=[strlen, 1]) )
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
-                  call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[tslot, idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
                end if
                if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
-                  call check( nf90_put_var(iu%ncid, iu%a_varid, self%a(j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%e_varid, self%e(j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%inc_varid, self%inc(j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%capom_varid, self%capom(j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j), start=[tslot, idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j), start=[tslot, idslot]) ) 
+                  call check( nf90_put_var(iu%ncid, iu%a_varid, self%a(j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%e_varid, self%e(j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%inc_varid, self%inc(j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%capom_varid, self%capom(j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j), start=[idslot, tslot]) ) 
                end if
                select type(pl => self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-                  call check( nf90_put_var(iu%ncid, iu%Gmass_varid, pl%Gmass(j), start=[tslot, idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%Gmass_varid, pl%Gmass(j), start=[idslot, tslot]) )
                   if (param%lrhill_present) then 
-                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, pl%rhill(j), start=[tslot, idslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, pl%rhill(j), start=[idslot, tslot]) )
                   end if
                   if (param%lclose) then
-                     call check( nf90_put_var(iu%ncid, iu%radius_varid, pl%radius(j), start=[tslot, idslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%radius_varid, pl%radius(j), start=[idslot, tslot]) )
                   end if
                   if (param%lrotation) then
-                     call check( nf90_put_var(iu%ncid, iu%Ip1_varid, pl%Ip(1, j), start=[tslot, idslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%Ip2_varid, pl%Ip(2, j), start=[tslot, idslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%Ip3_varid, pl%Ip(3, j), start=[tslot, idslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%rotx_varid, pl%rot(1, j), start=[tslot, idslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%roty_varid, pl%rot(2, j), start=[tslot, idslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%rotz_varid, pl%rot(3, j), start=[tslot, idslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip1_varid, pl%Ip(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip2_varid, pl%Ip(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip3_varid, pl%Ip(3, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%rotx_varid, pl%rot(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%roty_varid, pl%rot(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%rotz_varid, pl%rot(3, j), start=[idslot, tslot]) )
                   end if
                   if (param%ltides) then
-                     call check( nf90_put_var(iu%ncid, iu%k2_varid, pl%k2(j), start=[tslot, idslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%Q_varid, pl%Q(j), start=[tslot, idslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%k2_varid, pl%k2(j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Q_varid, pl%Q(j), start=[idslot, tslot]) )
                   end if
                end select
             end do
          end associate
       class is (swiftest_cb)
          idslot = self%id + 1
-         call check( nf90_put_var(iu%ncid, iu%id_varid, id, start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
          name = trim(adjustl(self%name))
          strlen = len(name)
-         call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[idslot, 1], count=[1, strlen]) )
-         call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[tslot, idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[tslot, idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[idslot, tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
          if (param%lrotation) then
-            call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1), start=[tslot, idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2), start=[tslot, idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%Ip3_varid, self%Ip(3), start=[tslot, idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[tslot, idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%roty_varid, self%rot(2), start=[tslot, idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[tslot, idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1), start=[idslot, tslot]) )
+            call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2), start=[idslot, tslot]) )
+            call check( nf90_put_var(iu%ncid, iu%Ip3_varid, self%Ip(3), start=[idslot, tslot]) )
+            call check( nf90_put_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[idslot, tslot]) )
+            call check( nf90_put_var(iu%ncid, iu%roty_varid, self%rot(2), start=[idslot, tslot]) )
+            call check( nf90_put_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[idslot, tslot]) )
          end if
          if (param%ltides) then
-            call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2, start=[tslot, idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[tslot, idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]) )
+            call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[idslot, tslot]) )
          end if
       end select
 
@@ -344,7 +342,6 @@ contains
 
       return
    end subroutine netcdf_write_hdr_system
-
 
 
 end submodule s_netcdf

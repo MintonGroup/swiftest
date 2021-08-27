@@ -710,6 +710,24 @@ def swiftest2xr(param):
     return ds
 
 
+def clean_string_values(param, ds):
+    """
+    Cleans up the string values in the DataSet that have artifacts as a result of coming from NetCDF Fortran
+
+    Parameters
+    ----------
+    param : dict
+    ds    : xarray dataset
+ 
+    Returns
+    -------
+    dscleanstring : xarray dataset with the strings cleaned up
+    """  
+
+    dscleanstring = ds 
+    return dscleanstring
+
+
 def swiftest_particle_stream(f):
    """
    Reads in a Swiftest particle.dat file and returns a single frame of particle data as a datastream
