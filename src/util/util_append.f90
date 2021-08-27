@@ -128,6 +128,7 @@ contains
       logical,                       dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew
+      class(swiftest_particle_info), allocatable :: tmp
 
       if (.not. allocated(source)) return
 

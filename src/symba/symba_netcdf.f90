@@ -60,7 +60,7 @@ contains
       call netcdf_open(self, param)
 
       call check( nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_type_varid))
+      call check( nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid))
       call check( nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid))
       call check( nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid))
       call check( nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid))
@@ -70,6 +70,43 @@ contains
 
       return
    end subroutine symba_netcdf_open
+
+   module subroutine symba_netcdf_write_frame_cb(self, iu, param)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Write a frame of output of a SyMBA massive body data to the binary output file
+      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      implicit none
+      ! Arguments
+      class(symba_cb),            intent(in)    :: self   !! SyMBA central body object
+      class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      integer(I4B)                              :: strlen, idslot
+      character(len=:), allocatable             :: charstring
+
+      call netcdf_write_frame_base(self, iu, param)
+      select type(iu)
+      class is (symba_netcdf_parameters)
+         select type(info => self%info)
+         class is (symba_particle_info)
+            idslot = self%id + 1
+   
+            charstring = trim(adjustl(info%origin_type))
+            strlen = len(charstring)
+            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_time_varid, info%origin_time, start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, info%origin_xh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, info%origin_xh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, info%origin_xh(3), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, info%origin_vh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, info%origin_vh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, info%origin_vh(3), start=[idslot]) )
+         end select
+      end select
+
+      return
+   end subroutine symba_netcdf_write_frame_cb
 
    
    module subroutine symba_netcdf_write_frame_pl(self, iu, param)
@@ -83,12 +120,11 @@ contains
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot
+      integer(I4B)                              :: i, j, strlen, idslot
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
 
       call netcdf_write_frame_base(self, iu, param)
-      tslot = int(param%ioutput, kind=I4B) + 1
       select type(iu)
       class is (symba_netcdf_parameters)
          associate(npl => self%nbody)
@@ -104,6 +140,13 @@ contains
                   charstring = trim(adjustl(info(j)%origin_type))
                   strlen = len(charstring)
                   call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_time_varid, info(j)%origin_time, start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, info(j)%origin_xh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, info(j)%origin_xh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, info(j)%origin_xh(3), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, info(j)%origin_vh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, info(j)%origin_vh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, info(j)%origin_vh(3), start=[idslot]) )
                end do
             end select
          end associate
@@ -112,4 +155,52 @@ contains
 
       return
    end subroutine symba_netcdf_write_frame_pl
+
+
+   module subroutine symba_netcdf_write_frame_tp(self, iu, param)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Write a frame of output of a SyMBA massive body data to the binary output file
+      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      implicit none
+      ! Arguments
+      class(symba_tp),            intent(in)    :: self   !! SyMBA test particle 
+      class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      integer(I4B)                              :: i, j, strlen, idslot
+      integer(I4B), dimension(:), allocatable   :: ind
+      character(len=:), allocatable             :: charstring
+
+      call netcdf_write_frame_base(self, iu, param)
+      select type(iu)
+      class is (symba_netcdf_parameters)
+         associate(ntp => self%nbody)
+            if (ntp == 0) return
+            allocate(ind(ntp))
+            call util_sort(self%id(1:ntp), ind(1:ntp))
+            select type(info => self%info)
+            class is (symba_particle_info)
+               do i = 1, ntp
+                  j = ind(i)
+                  idslot = self%id(j) + 1
+      
+                  charstring = trim(adjustl(info(j)%origin_type))
+                  strlen = len(charstring)
+                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_time_varid, info(j)%origin_time, start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, info(j)%origin_xh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, info(j)%origin_xh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, info(j)%origin_xh(3), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, info(j)%origin_vh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, info(j)%origin_vh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, info(j)%origin_vh(3), start=[idslot]) )
+               end do
+            end select
+         end associate
+
+      end select
+
+      return
+   end subroutine symba_netcdf_write_frame_tp
 end submodule s_symba_netcdf

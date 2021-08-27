@@ -364,7 +364,7 @@ contains
                end where
                lexclude(npl+1:(npl + nfrag)) = .true.
                allocate(tmpparam, source=param)
-               call setup_construct_system(tmpsys, param)
+               call setup_construct_system(tmpsys, tmpparam)
                call tmpsys%tp%setup(0, param)
                deallocate(tmpsys%cb)
                allocate(tmpsys%cb, source=cb)

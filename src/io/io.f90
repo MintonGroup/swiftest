@@ -1811,7 +1811,6 @@ contains
       character(len=STRMAX)            :: errmsg
       integer(I4B)                     :: iu = BINUNIT   !! Unit number for the output file to write frame to
       logical                          :: fileExists
-      type(netcdf_parameters)          :: nciu
 
       if (.not.lfirst .and. param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
@@ -1861,17 +1860,17 @@ contains
 
             select case(param%out_stat)
             case('APPEND')
-               call nciu%open(param)
+               call param%nciu%open(param)
             case('NEW', 'REPLACE', 'UNKNOWN')
-               call nciu%initialize(param)
-               call nciu%close(param)
-               call nciu%open(param)
+               call param%nciu%initialize(param)
+               call param%nciu%close(param)
+               call param%nciu%open(param)
             end select
             lfirst = .false.
          else
-            call nciu%open(param)
+            call param%nciu%open(param)
          end if
-         call self%write_hdr(nciu, param)
+         call self%write_hdr(param%nciu, param)
       end if
 
       if (param%lgr) then
@@ -1892,10 +1891,10 @@ contains
 
          close(iu, err = 667, iomsg = errmsg)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         call cb%write_frame(nciu, param)
-         call pl%write_frame(nciu, param)
-         call tp%write_frame(nciu, param)
-         call nciu%close(param)
+         call cb%write_frame(param%nciu, param)
+         call pl%write_frame(param%nciu, param)
+         call tp%write_frame(param%nciu, param)
+         call param%nciu%close(param)
       end if
 
       return

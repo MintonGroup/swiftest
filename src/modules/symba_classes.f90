@@ -81,6 +81,7 @@ module symba_classes
       real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
    contains
+      procedure :: write_frame_netcdf => symba_netcdf_write_frame_cb   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
    end type symba_cb
 
    !********************************************************************************************************************************
@@ -119,7 +120,6 @@ module symba_classes
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_pl            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: write_frame_netcdf => symba_netcdf_write_frame_pl   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
-      generic :: write_frame => write_frame_netcdf
    end type symba_pl
 
    type, extends(symba_pl) :: symba_merger
@@ -149,6 +149,7 @@ module symba_classes
       procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: write_frame_netcdf => symba_netcdf_write_frame_tp   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
    end type symba_tp
 
    !********************************************************************************************************************************
@@ -472,14 +473,30 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine symba_netcdf_open
       
+      module subroutine symba_netcdf_write_frame_cb(self, iu, param)
+         use swiftest_classes, only : swiftest_parameters, netcdf_parameters
+         implicit none
+         class(symba_cb),            intent(in)    :: self   !! Symba central body object
+         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      end subroutine symba_netcdf_write_frame_cb
+
       module subroutine symba_netcdf_write_frame_pl(self, iu, param)
          use swiftest_classes, only : swiftest_parameters, netcdf_parameters
          implicit none
-         class(symba_pl),            intent(in)    :: self   !! Swiftest particle object
+         class(symba_pl),            intent(in)    :: self   !! Symba massive body object
          class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine symba_netcdf_write_frame_pl
    
+      module subroutine symba_netcdf_write_frame_tp(self, iu, param)
+         use swiftest_classes, only : swiftest_parameters, netcdf_parameters
+         implicit none
+         class(symba_tp),            intent(in)    :: self   !! SyMBA test particle object
+         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      end subroutine symba_netcdf_write_frame_tp
+
       module subroutine symba_setup_initialize_particle_info_system(self, param) 
          use swiftest_classes, only : swiftest_parameters
          implicit none

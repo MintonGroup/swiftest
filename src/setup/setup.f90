@@ -10,7 +10,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-      class(swiftest_parameters),                  intent(in)    :: param     !! Swiftest parameters
+      class(swiftest_parameters),                  intent(inout) :: param     !! Swiftest parameters
 
       select case(param%integrator)
       case (BS)
@@ -69,9 +69,11 @@ contains
 
       select type(system)
       class is (symba_nbody_system)
-         allocate(symba_particle_info :: system%cb%info)
+         if (.not.allocated(system%cb%info)) allocate(symba_particle_info :: system%cb%info)
+         if (.not.allocated(param%nciu)) allocate(symba_netcdf_parameters :: param%nciu)
       class default
-         allocate(swiftest_particle_info :: system%cb%info)
+         if (.not.allocated(system%cb%info)) allocate(swiftest_particle_info :: system%cb%info)
+         if (.not.allocated(param%nciu)) allocate(netcdf_parameters :: param%nciu)
       end select
 
       return
