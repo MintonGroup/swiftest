@@ -766,8 +766,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     A set of three input files for a Swiftest run
     """
     frame = ds.isel(time=framenum)
-    cb = frame.where(frame.id == 0, drop=True)
-    pl = frame.where(frame.id > 0, drop=True)
+    cb = frame.where(frame.id == 1, drop=True)
+    pl = frame.where(frame.id > 1, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
@@ -775,12 +775,13 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     RSun = np.double(cb['radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
-    Ip1cb = np.double(cb['Ip1'])
-    Ip2cb = np.double(cb['Ip2'])
-    Ip3cb = np.double(cb['Ip3'])
-    rotxcb = np.double(cb['rotx'])
-    rotycb = np.double(cb['roty'])
-    rotzcb = np.double(cb['rotz'])
+    if param['ROTATION'] == 'YES':
+        Ip1cb = np.double(cb['Ip1'])
+        Ip2cb = np.double(cb['Ip2'])
+        Ip3cb = np.double(cb['Ip3'])
+        rotxcb = np.double(cb['rotx'])
+        rotycb = np.double(cb['roty'])
+        rotzcb = np.double(cb['rotz'])
     cbid = int(0)
     
     if param['IN_TYPE'] == 'ASCII':
@@ -942,8 +943,8 @@ def swifter_xr2infile(ds, param, framenum=-1):
     A set of input files for a Swifter run
     """
     frame = ds.isel(time=framenum)
-    cb = frame.where(frame.id == 0, drop=True)
-    pl = frame.where(frame.id > 0, drop=True)
+    cb = frame.where(frame.id == 1, drop=True)
+    pl = frame.where(frame.id > 1, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
@@ -956,7 +957,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
         # Swiftest Central body file
         plfile = open(param['PL_IN'], 'w')
         print(pl.id.count().values + 1, file=plfile)
-        print(cb.id.values[0], cb['Gmass'].values[0], file=plfile)
+        print(cb.id.values[0], GMSun, file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         print('0.0 0.0 0.0', file=plfile)
         for i in pl.id:

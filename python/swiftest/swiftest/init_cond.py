@@ -119,7 +119,9 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
     
     cbid = np.array([1])
-    cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4, Ipsun[0], Ipsun[1], Ipsun[2], rotcb.x, rotcb.y, rotcb.z ])
+    cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4])
+    if param['ROTATION'] == 'YES':
+        cvec = np.vstack([cvec, Ipsun[0], Ipsun[1], Ipsun[2], rotcb.x, rotcb.y, rotcb.z])
     
     # Horizons date time internal variables
     tstart = datetime.date.fromisoformat(ephemerides_start_date)
