@@ -138,6 +138,41 @@ contains
    end subroutine util_resize_arr_I4B
 
 
+
+   module subroutine util_resize_arr_info(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                                         intent(in)    :: nnew !! New size
+      ! Internals
+      class(swiftest_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (.not. allocated(arr) .or. nnew < 0) return
+
+      nold = size(arr)
+      if (nnew == nold) return
+
+      if (nnew == 0) then
+         deallocate(arr)
+         return
+      end if
+      
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_resize_arr_info
+
+
    module subroutine util_resize_arr_logical(arr, nnew)
       !! author: David A. Minton
       !!
@@ -181,7 +216,7 @@ contains
       class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
       integer(I4B),               intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%name, nnew)
+      call util_resize(self%info, nnew)
       call util_resize(self%id, nnew)
       call util_resize(self%status, nnew)
       call util_resize(self%ldiscard, nnew)

@@ -231,7 +231,7 @@ contains
                j = ind(i)
                idslot = self%id(j) + 1
                call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
-               name = trim(adjustl(self%name(j)))
+               name = trim(adjustl(self%info(j)%name))
                strlen = len(name)
                call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[1, idslot], count=[strlen, 1]) )
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
@@ -277,7 +277,7 @@ contains
       class is (swiftest_cb)
          idslot = self%id + 1
          call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
-         name = trim(adjustl(self%name))
+         name = trim(adjustl(self%info%name))
          strlen = len(name)
          call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[1, idslot], count=[strlen, 1]) )
          call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[idslot, tslot]) )

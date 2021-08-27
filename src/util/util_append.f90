@@ -116,6 +116,34 @@ contains
    end subroutine util_append_arr_I4B
 
 
+   module subroutine util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+      implicit none
+      ! Arguments
+      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+      class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      integer(I4B),                                             intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+      logical,                       dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
+
+      if (.not. allocated(source)) return
+
+      nnew = count(lsource_mask(1:nsrc))
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nnew))
+      else
+         call util_resize(arr, nold + nnew)
+      end if
+
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+
+      return
+   end subroutine util_append_arr_info
+
+
    module subroutine util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
       !!
@@ -156,7 +184,7 @@ contains
       logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       associate(nold => self%nbody, nsrc => source%nbody)
-         call util_append(self%name, source%name, nold, nsrc, lsource_mask)
+         call util_append(self%info, source%info, nold, nsrc, lsource_mask)
          call util_append(self%id, source%id, nold, nsrc, lsource_mask)
          call util_append(self%status, source%status, nold, nsrc, lsource_mask)
          call util_append(self%ldiscard, source%ldiscard, nold, nsrc, lsource_mask)

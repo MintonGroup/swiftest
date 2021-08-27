@@ -82,6 +82,27 @@ contains
       return
    end subroutine util_fill_arr_I4B
 
+
+   module subroutine util_fill_arr_info(keeps, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Performs a fill operation on a single array of particle origin information types
+      !! This is the inverse of a spill operation
+      implicit none
+      ! Arguments
+      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+      class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+      logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+
+      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+      return
+   end subroutine util_fill_arr_info
+
+
    module subroutine util_fill_arr_logical(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -119,7 +140,7 @@ contains
       !> Fill all the common components
       associate(keeps => self)
          call util_fill(keeps%id, inserts%id, lfill_list)
-         call util_fill(keeps%name, inserts%name, lfill_list)
+         call util_fill(keeps%info, inserts%info, lfill_list)
          call util_fill(keeps%status, inserts%status, lfill_list)
          call util_fill(keeps%ldiscard, inserts%ldiscard, lfill_list)
          call util_fill(keeps%lmask, inserts%lmask, lfill_list)

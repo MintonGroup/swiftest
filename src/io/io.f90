@@ -111,7 +111,90 @@ contains
    end subroutine io_dump_param
 
 
-   module subroutine io_dump_swiftest(self, param)
+   module subroutine io_dump_particle_info(self, iu)
+      !! author: David A. Minton
+      !!
+      !! Reads in particle information object information from an open file unformatted file
+      implicit none
+      ! Arguments
+      class(swiftest_particle_info), intent(in) :: self !! Particle metadata information object
+      integer(I4B),                  intent(in) :: iu   !! Open file unit number
+      ! Internals
+      character(STRMAX)         :: errmsg
+
+      write(iu, err = 667, iomsg = errmsg) self%name
+      write(iu, err = 667, iomsg = errmsg) self%particle_type
+
+      return
+
+      667 continue
+      write(*,*) "Error writing particle metadata information from file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine io_dump_particle_info
+
+
+   module subroutine io_dump_particle_info_base(self, param, idx)
+      !! author: David A. Minton
+      !!
+      !! Dumps the particle information data to a file. 
+      !! Pass a list of array indices for test particles (tpidx) and/or massive bodies (plidx) to append
+      implicit none
+      ! Arguments
+      class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
+      class(swiftest_parameters),           intent(in)    :: param !! Current run configuration parameters 
+      integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
+
+      ! Internals
+      logical, save             :: lfirst = .true.
+      integer(I4B), parameter   :: LUN = 22
+      integer(I4B)              :: i
+      character(STRMAX)         :: errmsg
+
+      if (lfirst) then
+         select case(param%out_stat)
+         case('APPEND')
+            open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         case('NEW', 'UNKNOWN', 'REPLACE')
+            open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         case default
+            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
+            call util_exit(FAILURE)
+         end select
+
+         lfirst = .false.
+      else
+         open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+      end if
+
+      select type(self)
+      class is (swiftest_cb)
+         write(LUN, err = 667, iomsg = errmsg) self%id
+         call self%info%dump(LUN)
+      class is (swiftest_body)
+         if (present(idx)) then
+            do i = 1, size(idx)
+               write(LUN, err = 667, iomsg = errmsg) self%id(idx(i))
+               call self%info(idx(i))%dump(LUN) 
+            end do
+         else
+            do i = 1, self%nbody
+               write(LUN, err = 667, iomsg = errmsg) self%id(i)
+               call self%info(i)%dump(LUN) 
+            end do
+         end if
+      end select
+
+      close(unit = LUN, err = 667, iomsg = errmsg)
+
+      return
+
+      667 continue
+      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine io_dump_particle_info_base
+
+
+   module subroutine io_dump_base(self, param)
       !! author: David A. Minton
       !!
       !! Dump massive body data to files
@@ -152,7 +235,7 @@ contains
       667 continue
       write(*,*) "Error dumping body data to file " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
-   end subroutine io_dump_swiftest
+   end subroutine io_dump_base
 
 
    module subroutine io_dump_system(self, param)
@@ -554,7 +637,9 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%Euntracked
                case ("MAXID")
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
-               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "PARTICLE_OUT", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("PARTICLE_OUT")
+                  param%particle_out = param_value
+               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(*,*) "Unknown parameter -> ",param_name
                   iostat = -1
@@ -771,6 +856,7 @@ contains
             write(param_name, Afmt) "OUT_FORM"; write(param_value, Afmt) trim(adjustl(param%out_form)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
             write(param_name, Afmt) "OUT_STAT"; write(param_value, Afmt) "APPEND"; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          end if
+         write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%enc_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
@@ -906,7 +992,7 @@ contains
          self%id = 0
          param%maxid = 0
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         read(iu, *, err = 667, iomsg = errmsg) self%name
+         read(iu, *, err = 667, iomsg = errmsg) self%info%name
          read(iu, *, err = 667, iomsg = errmsg) self%Gmass
          self%mass = real(self%Gmass / param%GU, kind=DP)
          read(iu, *, err = 667, iomsg = errmsg) self%radius
@@ -1036,7 +1122,9 @@ contains
          select case(param%in_type)
          case (REAL4_TYPE, REAL8_TYPE)
             read(iu, err = 667, iomsg = errmsg) self%id(:)
-            read(iu, err = 667, iomsg = errmsg) self%name(:)
+            associate(name => self%info%name)
+               read(iu, err = 667, iomsg = errmsg) name(:)
+            end associate
 
             select case (param%in_form)
             case (XV)
@@ -1082,9 +1170,9 @@ contains
                select type(self)
                class is (swiftest_pl)
                   if (param%lrhill_present) then
-                     read(iu, *, err = 667, iomsg = errmsg) self%name(i), val, self%rhill(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%info(i)%name, val, self%rhill(i)
                   else
-                     read(iu, *, err = 667, iomsg = errmsg) self%name(i), val
+                     read(iu, *, err = 667, iomsg = errmsg) self%info(i)%name, val
                   end if
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
@@ -1160,7 +1248,7 @@ contains
       character(len=STRMAX)   :: errmsg
 
       read(iu, err = 667, iomsg = errmsg) self%id
-      read(iu, err = 667, iomsg = errmsg) self%name
+      read(iu, err = 667, iomsg = errmsg) self%info%name
       read(iu, err = 667, iomsg = errmsg) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, err = 667, iomsg = errmsg) self%radius
@@ -1279,6 +1367,7 @@ contains
       return
    end function io_read_hdr
 
+
    module subroutine io_read_in_param(self, param_file_name) 
       !! author: David A. Minton
       !!
@@ -1312,6 +1401,96 @@ contains
       write(*,*) "Error reading parameter file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_read_in_param
+
+
+   module subroutine io_read_in_particle_info(self, iu)
+      !! author: David A. Minton
+      !!
+      !! Reads in particle information object information from an open file unformatted file
+      implicit none
+      ! Arguments
+      class(swiftest_particle_info), intent(inout) :: self !! Particle metadata information object
+      integer(I4B),                  intent(in)    :: iu   !! Open file unit number
+      ! Internals
+      character(STRMAX)             :: errmsg
+
+      read(iu, err = 667, iomsg = errmsg) self%name
+      read(iu, err = 667, iomsg = errmsg) self%particle_type
+
+      return
+
+      667 continue
+      write(*,*) "Error reading particle metadata information from file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine io_read_in_particle_info
+
+
+   module subroutine io_read_particle_info_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Reads an old particle information file for a restartd run
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      ! Internals
+      integer(I4B), parameter       :: LUN = 22
+      integer(I4B)                  :: i,  id, idx
+      logical                       :: lmatch  
+      character(STRMAX)             :: errmsg
+      class(swiftest_particle_info), allocatable :: tmpinfo
+
+      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+
+      allocate(tmpinfo, mold=self%cb%info)
+
+      select type(cb => self%cb)
+      class is (swiftest_cb)
+         select type(pl => self%pl)
+         class is (swiftest_pl)
+            select type(tp => self%tp)
+            class is (swiftest_tp)
+               associate(npl => pl%nbody, ntp => tp%nbody)
+                  do 
+                     lmatch = .false.
+                     read(LUN, err = 667, iomsg = errmsg, end = 333) id
+
+                     if (id == cb%id) then
+                        call cb%info%read_in(LUN) 
+                        lmatch = .true.
+                     else 
+                        if (npl > 0) then
+                           idx = findloc(pl%id(1:npl), id, dim=1)
+                           if (idx /= 0) then
+                              call pl%info(idx)%read_in(LUN) 
+                              lmatch = .true.
+                           end if
+                        end if
+                        if (.not.lmatch .and. ntp > 0) then
+                           idx = findloc(tp%id(1:ntp), id, dim=1)
+                           if (idx /= 0) then
+                              call tp%info(idx)%read_in(LUN) 
+                              lmatch = .true.
+                           end if
+                        end if
+                     end if
+                     if (.not.lmatch) then
+                        call tmpinfo%read_in(LUN) 
+                     end if
+                  end do
+               end associate
+               close(unit = LUN, err = 667, iomsg = errmsg)
+            end select
+         end select
+      end select
+
+      333 continue
+      return
+
+      667 continue
+      write(*,*) "Error reading particle information file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine io_read_particle_info_system
 
 
    module subroutine io_toupper(string)
@@ -1495,7 +1674,7 @@ contains
       associate(n => self%nbody)
          if (n == 0) return
          write(iu, err = 667, iomsg = errmsg) self%id(1:n)
-         write(iu, err = 667, iomsg = errmsg) self%name(1:n)
+         write(iu, err = 667, iomsg = errmsg) self%info(1:n)%name
          if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
             write(iu, err = 667, iomsg = errmsg) self%xh(1, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%xh(2, 1:n)
@@ -1556,7 +1735,7 @@ contains
 
       associate(cb => self)
          write(iu, err = 667, iomsg = errmsg) cb%id
-         write(iu, err = 667, iomsg = errmsg) cb%name
+         write(iu, err = 667, iomsg = errmsg) cb%info%name
          write(iu, err = 667, iomsg = errmsg) cb%Gmass
          write(iu, err = 667, iomsg = errmsg) cb%radius
          write(iu, err = 667, iomsg = errmsg) cb%j2rp2 

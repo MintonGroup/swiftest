@@ -2,60 +2,48 @@ submodule(symba_classes) s_symba_setup
    use swiftest
 contains
 
-   module subroutine symba_setup_initialize_particle_info(system, param) 
+   module subroutine symba_setup_initialize_particle_info_system(self, param) 
       !! author: David A. Minton
       !!
       !! Initializes a new particle information data structure with initial conditions recorded
       implicit none
       ! Argumets
-      class(symba_nbody_system), intent(inout) :: system  !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param !! Current run configuration parameters with SyMBA extensions
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i
-      integer(I4B), dimension(:), allocatable :: idx
 
-      select type(cb => system%cb)
-      class is (symba_cb)
-         cb%info%origin_type = "Central body"
-         cb%info%origin_time = param%t0
-         cb%info%origin_xh(:) = 0.0_DP
-         cb%info%origin_vh(:) = 0.0_DP
-         call symba_io_dump_particle_info(system, param, lincludecb=.true.)
+      select type(cbinfo => self%cb%info)
+      class is (symba_particle_info)
+         cbinfo%origin_type = "Initial conditions"
+         cbinfo%origin_time = param%t0
+         cbinfo%origin_xh(:) = 0.0_DP
+         cbinfo%origin_vh(:) = 0.0_DP
       end select
 
-      select type(pl => system%pl)
-      class is (symba_pl)
-         do i = 1, pl%nbody
-            pl%info(i)%origin_type = "Initial conditions"
-            pl%info(i)%origin_time = param%t0
-            pl%info(i)%origin_xh(:) = pl%xh(:,i)
-            pl%info(i)%origin_vh(:) = pl%vh(:,i)
+      select type(plinfo => self%pl%info)
+      class is (symba_particle_info)
+         do i = 1, self%pl%nbody
+            plinfo(i)%origin_type = "Initial conditions"
+            plinfo(i)%origin_time = param%t0
+            plinfo(i)%origin_xh(:) = self%pl%xh(:,i)
+            plinfo(i)%origin_vh(:) = self%pl%vh(:,i)
          end do
-         if (pl%nbody > 0) then
-            allocate(idx(pl%nbody))
-            call symba_io_dump_particle_info(system, param, plidx=[(i, i=1, pl%nbody)])
-            deallocate(idx)
-         end if
       end select
 
-      select type(tp => system%tp)
-      class is (symba_tp)
-         do i = 1, tp%nbody
-            tp%info(i)%origin_type = "Initial conditions"
-            tp%info(i)%origin_time = param%t0
-            tp%info(i)%origin_xh(:) = tp%xh(:,i)
-            tp%info(i)%origin_vh(:) = tp%vh(:,i)
+      select type(tpinfo => self%tp%info)
+      class is (symba_particle_info)
+         do i = 1, self%tp%nbody
+            tpinfo(i)%origin_type = "Initial conditions"
+            tpinfo(i)%origin_time = param%t0
+            tpinfo(i)%origin_xh(:) = self%tp%xh(:,i)
+            tpinfo(i)%origin_vh(:) = self%tp%vh(:,i)
          end do
-         if (tp%nbody > 0) then
-            allocate(idx(tp%nbody))
-            call symba_io_dump_particle_info(system, param, tpidx=[(i, i=1, tp%nbody)])
-            deallocate(idx)
-         end if
       end select
-
+      call setup_initialize_particle_info_system(self, param)
 
       return
-   end subroutine symba_setup_initialize_particle_info
+   end subroutine symba_setup_initialize_particle_info_system
 
 
    module subroutine symba_setup_initialize_system(self, param)
@@ -77,14 +65,6 @@ contains
          call system%pltpenc_list%setup(0)
          call system%plplenc_list%setup(0)
          call system%plplcollision_list%setup(0)
-         select type(param)
-         class is (symba_parameters)
-            if (param%lrestart) then
-               call symba_io_read_particle(system, param)
-            else
-               call symba_setup_initialize_particle_info(system, param) 
-            end if
-         end select
       end associate
 
       return
@@ -135,6 +115,8 @@ contains
       call setup_pl(self, n, param) 
       if (n <= 0) return
 
+
+      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%lcollision)) deallocate(self%lcollision)
       if (allocated(self%lencounter)) deallocate(self%lencounter)
       if (allocated(self%lmtiny)) deallocate(self%lmtiny)
@@ -148,6 +130,7 @@ contains
       if (allocated(self%kin)) deallocate(self%kin)
       if (allocated(self%info)) deallocate(self%info)
 
+      allocate(symba_particle_info :: self%info(n))
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
       allocate(self%lmtiny(n))
@@ -159,7 +142,6 @@ contains
       allocate(self%peri(n))
       allocate(self%atp(n))
       allocate(self%kin(n))
-      allocate(self%info(n))
 
       self%lcollision(:) = .false.
       self%lencounter(:) = .false.

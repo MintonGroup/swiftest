@@ -2,33 +2,6 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
-   module subroutine symba_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
-
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
-      else
-         call util_resize(arr, nold + nnew)
-      end if
-
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine symba_util_append_arr_info
-
 
    module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
@@ -208,26 +181,6 @@ contains
    
       return
    end subroutine symba_util_copy_encounter
-
-
-   module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of particle origin information types
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      type(symba_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
-   
-      return
-   end subroutine symba_util_fill_arr_info
 
 
    module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -501,7 +454,7 @@ contains
             lmask(npl+1:npl+nadd) = pl%status(npl+1:npl+nadd) == NEW_PARTICLE
 
             npl = pl%nbody
-            call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, npl)], lmask))
+            call pl%dump_particle_info(param, idx=pack([(i, i=1, npl)], lmask))
 
             deallocate(lmask)
          end if
@@ -576,40 +529,6 @@ contains
 
       return
    end subroutine symba_util_rearray_pl
-
-
-   module subroutine symba_util_resize_arr_info(arr, nnew)
-      !! author: David A. Minton
-      !!
-      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
-      implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                                         intent(in)    :: nnew !! New size
-      ! Internals
-      type(symba_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
-
-      if (.not. allocated(arr) .or. nnew < 0) return
-
-      nold = size(arr)
-      if (nnew == nold) return
-
-      if (nnew == 0) then
-         deallocate(arr)
-         return
-      end if
-      
-      allocate(tmp(nnew))
-      if (nnew > nold) then
-         tmp(1:nold) = arr(1:nold)
-      else
-         tmp(1:nnew) = arr(1:nnew)
-      end if
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine symba_util_resize_arr_info
 
 
    module subroutine symba_util_resize_arr_kin(arr, nnew)
@@ -803,26 +722,6 @@ contains
    end subroutine symba_util_sort_tp
 
 
-   module subroutine symba_util_sort_rearrange_arr_info(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of particle information type in-place from an index list.
-      implicit none
-      ! Arguments
-      type(symba_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B),              dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      type(symba_particle_info), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, source=arr)
-      tmp(1:n) = arr(ind(1:n))
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine symba_util_sort_rearrange_arr_info
-
 
    module subroutine symba_util_sort_rearrange_arr_kin(arr, ind, n)
       !! author: David A. Minton
@@ -906,45 +805,6 @@ contains
       
       return
    end subroutine symba_util_sort_rearrange_tp
-
-
-   module subroutine symba_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of particle origin information types
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,                   dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-      logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine symba_util_spill_arr_info
 
 
    module subroutine symba_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)

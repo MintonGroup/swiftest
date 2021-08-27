@@ -67,6 +67,13 @@ contains
          call util_exit(FAILURE)
       end select
 
+      select type(system)
+      class is (symba_nbody_system)
+         allocate(symba_particle_info :: system%cb%info)
+      class default
+         allocate(swiftest_particle_info :: system%cb%info)
+      end select
+
       return
    end subroutine setup_construct_system
 
@@ -127,6 +134,33 @@ contains
    end subroutine setup_encounter
 
 
+   module subroutine setup_initialize_particle_info_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Setup up particle information metadata from initial conditions
+      !
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+
+      associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
+         cb%info%particle_type = CB_TYPE_NAME
+         call cb%dump_particle_info(param)
+         if (npl > 0) then
+            pl%info(1:npl)%particle_type = PL_TYPE_NAME
+            call pl%dump_particle_info(param)
+         end if
+         if (ntp > 0) then
+            tp%info(1:ntp)%particle_type = TP_TYPE_NAME
+            call tp%dump_particle_info(param)
+         end if
+      end associate
+
+      return
+   end subroutine setup_initialize_particle_info_system
+
+
    module subroutine setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -152,6 +186,12 @@ contains
       if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
       self%pl%lfirst = param%lfirstkick
       self%tp%lfirst = param%lfirstkick
+
+      if (param%lrestart) then
+         call self%read_particle_info(param)
+      else
+         call self%init_particle_info(param)
+      end if
       return
    end subroutine setup_initialize_system
 
@@ -173,7 +213,7 @@ contains
       self%lfirst = .true.
 
       if (allocated(self%id)) deallocate(self%id)
-      if (allocated(self%name)) deallocate(self%name)
+      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%ldiscard)) deallocate(self%ldiscard)
       if (allocated(self%xh)) deallocate(self%xh)
@@ -186,7 +226,7 @@ contains
       if (allocated(self%lmask)) deallocate(self%lmask)
 
       allocate(self%id(n))
-      allocate(self%name(n))
+      allocate(self%info(n))
       allocate(self%status(n))
       allocate(self%ldiscard(n))
       allocate(self%xh(NDIM, n))
@@ -199,7 +239,7 @@ contains
       allocate(self%lmask(n))
 
       self%id(:)   = 0
-      self%name(:) = "UNNAMED"
+      self%info(:)%name = "UNNAMED"
       self%status(:) = INACTIVE
       self%lmask(:)  = .false.
       self%ldiscard(:) = .false.
@@ -247,10 +287,12 @@ contains
       call setup_body(self, n, param)
       if (n <= 0) return 
 
+      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%mass)) deallocate(self%mass)
       if (allocated(self%Gmass)) deallocate(self%Gmass)
       if (allocated(self%rhill)) deallocate(self%rhill)
 
+      allocate(swiftest_particle_info :: self%info(n))
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
@@ -311,14 +353,17 @@ contains
       call setup_body(self, n, param)
       if (n <= 0) return
 
+      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%isperi)) deallocate(self%isperi)
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
 
+      allocate(swiftest_particle_info :: self%info(n))
       allocate(self%isperi(n))
       allocate(self%peri(n))
       allocate(self%atp(n))
 
+      self%info(:)%particle_type = TP_TYPE_NAME
       self%isperi(:) = 0
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP

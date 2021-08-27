@@ -2,76 +2,26 @@ submodule (symba_classes) s_symba_io
    use swiftest
 contains
 
-   module subroutine symba_io_dump_particle_info(system, param, lincludecb, tpidx, plidx) 
+   module subroutine symba_io_dump_particle_info(self, iu)
       !! author: David A. Minton
       !!
-      !! Dumps the particle information data to a file. 
-      !! Pass a list of array indices for test particles (tpidx) and/or massive bodies (plidx) to append
+      !! Reads in particle information object information from an open file unformatted file
       implicit none
       ! Arguments
-      class(symba_nbody_system),             intent(inout) :: system !! SyMBA nbody system object
-      class(symba_parameters),               intent(in)    :: param  !! Current run configuration parameters with SyMBA extensions
-      logical,                     optional, intent(in)    :: lincludecb  !! Set to true to include the central body (default is false)
-      integer(I4B), dimension(:),  optional, intent(in)    :: tpidx  !! Array of test particle indices to append to the particle file
-      integer(I4B), dimension(:),  optional, intent(in)    :: plidx  !! Array of massive body indices to append to the particle file
+      class(symba_particle_info), intent(in) :: self !! Particle metadata information object
+      integer(I4B),               intent(in) :: iu   !! Open file unit number
       ! Internals
-      logical, save             :: lfirst = .true.
-      integer(I4B), parameter   :: LUN = 22
-      integer(I4B)              :: i
-      character(STRMAX)         :: errmsg
+      character(STRMAX) :: errmsg
 
-      if (lfirst) then
-         select case(param%out_stat)
-         case('APPEND')
-            open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         case('NEW', 'UNKNOWN', 'REPLACE')
-            open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         case default
-            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
-            call util_exit(FAILURE)
-         end select
-
-         lfirst = .false.
-      else
-         open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-      end if
-
-      if (present(lincludecb)) then
-         if (lincludecb) then
-            select type(cb => system%cb)
-            class is (symba_cb)
-               write(LUN, err = 667, iomsg = errmsg) cb%id
-               write(LUN, err = 667, iomsg = errmsg) cb%info
-            end select
-         end if
-      end if
-
-      if (present(plidx) .and. (system%pl%nbody > 0)) then
-         select type(pl => system%pl)
-         class is (symba_pl)
-            do i = 1, size(plidx)
-               write(LUN, err = 667, iomsg = errmsg) pl%id(plidx(i))
-               write(LUN, err = 667, iomsg = errmsg) pl%info(plidx(i))
-            end do
-         end select
-      end if
-
-      if (present(tpidx) .and. (system%tp%nbody > 0)) then
-         select type(tp => system%tp)
-         class is (symba_tp)
-            do i = 1, size(tpidx)
-               write(LUN, err = 667, iomsg = errmsg) tp%id(tpidx(i))
-               write(LUN, err = 667, iomsg = errmsg) tp%info(tpidx(i))
-            end do
-         end select
-      end if
-
-      close(unit = LUN, err = 667, iomsg = errmsg)
+      write(iu, err = 667, iomsg = errmsg) self%origin_type
+      write(iu, err = 667, iomsg = errmsg) self%origin_time
+      write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
+      write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
       return
 
       667 continue
-      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing particle metadata information from file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine symba_io_dump_particle_info
 
@@ -120,8 +70,6 @@ contains
                ifirst = ilast + 1
                param_value = io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
-               case ("PARTICLE_OUT")
-                  param%particle_out = param_value
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
@@ -226,7 +174,6 @@ contains
 
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
-         write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%GMTINY; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "MIN_GMFRAG"; write(param_value, Rfmt) param%min_GMfrag; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
@@ -256,70 +203,29 @@ contains
    end subroutine symba_io_param_writer
 
 
-   module subroutine symba_io_read_particle(system, param)
+   module subroutine symba_io_read_in_particle_info(self, iu)
       !! author: David A. Minton
       !!
-      !! Reads an old particle information file for a restartd run
+      !! Reads in particle information object information from an open file unformatted file
       implicit none
-      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
-      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
-
+      ! Arguments
+      class(symba_particle_info), intent(inout) :: self !! Particle metadata information object
+      integer(I4B),               intent(in)    :: iu   !! Open file unit number
       ! Internals
-      integer(I4B), parameter :: LUN = 22
-      integer(I4B)            :: i,  id, idx
-      logical                 :: lmatch  
-      type(symba_particle_info) :: tmpinfo
-      character(STRMAX)       :: errmsg
+      character(STRMAX) :: errmsg
 
-      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+      call io_read_in_particle_info(self, iu)
+      read(iu, err = 667, iomsg = errmsg) self%origin_type
+      read(iu, err = 667, iomsg = errmsg) self%origin_time
+      read(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
+      read(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
-      select type(cb => system%cb)
-      class is (symba_cb)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            select type(tp => system%tp)
-            class is (symba_tp)
-               associate(npl => pl%nbody, ntp => tp%nbody)
-                  do 
-                     lmatch = .false.
-                     read(LUN, err = 667, iomsg = errmsg, end = 333) id
-
-                     if (id == cb%id) then
-                        read(LUN, err = 667, iomsg = errmsg) cb%info
-                        lmatch = .true.
-                     else 
-                        if (npl > 0) then
-                           idx = findloc(pl%id(1:npl), id, dim=1)
-                           if (idx /= 0) then
-                              read(LUN, err = 667, iomsg = errmsg) pl%info(idx)
-                              lmatch = .true.
-                           end if
-                        end if
-                        if (.not.lmatch .and. ntp > 0) then
-                           idx = findloc(tp%id(1:ntp), id, dim=1)
-                           if (idx /= 0) then
-                              read(LUN, err = 667, iomsg = errmsg) tp%info(idx)
-                              lmatch = .true.
-                           end if
-                        end if
-                     end if
-                     if (.not.lmatch) then
-                        read(LUN, err = 667, iomsg = errmsg) tmpinfo
-                     end if
-                  end do
-               end associate
-               close(unit = LUN, err = 667, iomsg = errmsg)
-            end select
-         end select
-      end select
-
-      333 continue
       return
 
       667 continue
-      write(*,*) "Error reading particle information file: " // trim(adjustl(errmsg))
+      write(*,*) "Error reading particle metadata information from file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
-   end subroutine symba_io_read_particle
+   end subroutine symba_io_read_in_particle_info
 
 
    module subroutine symba_io_write_discard(self, param)

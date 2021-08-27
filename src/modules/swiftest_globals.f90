@@ -55,6 +55,10 @@ module swiftest_globals
    character(*), parameter :: XV  = 'XV' !! Symbolic name for binary output file contents for cartesian position and velocity vectors
    character(*), parameter :: XVEL  = 'XVEL' !! Symbolic name for binary output file contents for both cartesian position and velocity and orbital elements
 
+   character(*), parameter :: CB_TYPE_NAME = "CentralBody"
+   character(*), parameter :: PL_TYPE_NAME = "MassiveBody"
+   character(*), parameter :: TP_TYPE_NAME = "TestParticle"
+
    ! OpenMP Parameters
    integer(I4B)            :: nthreads = 1 !! Number of OpenMP threads
    integer(I4B), parameter :: NTHERSHOLD = 1000 !! Threshold value for OpenMP loop parallelization
@@ -113,11 +117,14 @@ module swiftest_globals
    character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.in',  'dump_param2.in']
 
    !> Default file names that can be changed by the user in the parameters file
-   character(*), parameter :: CB_INFILE    = 'cb.in'
-   character(*), parameter :: PL_INFILE    = 'pl.in'
-   character(*), parameter :: TP_INFILE    = 'tp.in'
-   character(*), parameter :: BIN_OUTFILE  = 'bin.dat'
-   integer(I4B), parameter :: BINUNIT      = 20 !! File unit number for the binary output file
+   character(*), parameter :: CB_INFILE        = 'cb.in'
+   character(*), parameter :: PL_INFILE        = 'pl.in'
+   character(*), parameter :: TP_INFILE        = 'tp.in'
+   character(*), parameter :: BIN_OUTFILE      = 'bin.dat'
+   integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
+   character(*), parameter :: PARTICLE_OUTFILE = 'particle.dat'
+   integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
+
 
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM   = 3                  !! Number of dimensions in our reality

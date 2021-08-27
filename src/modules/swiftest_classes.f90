@@ -31,6 +31,7 @@ module swiftest_classes
       character(STRMAX)    :: out_type       = NETCDF_DOUBLE_TYPE !! Binary format of output file
       character(STRMAX)    :: out_form       = XVEL               !! Data to write to output file
       character(STRMAX)    :: out_stat       = 'NEW'              !! Open status for output binary file
+      character(STRMAX)    :: particle_out   = PARTICLE_OUTFILE   !! Name of output particle information file
       integer(I4B)         :: istep_dump     = -1                 !! Number of time steps between dumps
       real(DP)             :: rmin           = -1.0_DP            !! Minimum heliocentric radius for test particle
       real(DP)             :: rmax           = -1.0_DP            !! Maximum heliocentric radius for test particle
@@ -140,14 +141,27 @@ module swiftest_classes
    end type netcdf_parameters
 
    !********************************************************************************************************************************
+   !                                    swiftest_swiftest_particle_info class definitions and method interfaces
+   !*******************************************************************************************************************************
+   !> Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
+   !> of fragments produced in collisional events.
+   type :: swiftest_particle_info
+      character(len=NAMELEN)  :: name          !! Non-unique name
+      character(len=NAMELEN)  :: particle_type !! String containing a description of the particle type (e.g. CentralBody, MassiveBody, TestParticle)
+   contains
+      procedure :: dump       => io_dump_particle_info          !! Dumps contents of particle information to file
+      procedure :: read_in    => io_read_in_particle_info       !! Read in a particle information object from an open file
+   end type swiftest_particle_info
+
+   !********************************************************************************************************************************
    ! swiftest_base class definitions and methods
    !********************************************************************************************************************************
    type, abstract :: swiftest_base
-      !! An superclass for a generic Swiftest object
-      logical :: lintegrate = .false.  !! Flag indicating that this object should be integrated in the current step 
+      !! An abstract superclass for a generic Swiftest object
    contains
       !! The minimal methods that all systems must have
-      procedure :: dump               => io_dump_swiftest        !! Dump contents to file
+      procedure :: dump               => io_dump_base           !! Dump contents to file
+      procedure :: dump_particle_info => io_dump_particle_info_base !! Dump contents of particle information metadata to file
       procedure :: write_frame_netcdf => netcdf_write_frame_base !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       generic   :: write_frame        => write_frame_netcdf      !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
    end type swiftest_base
@@ -157,30 +171,30 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, extends(swiftest_base) :: swiftest_cb           
-      character(len=NAMELEN)    :: name              !! Non-unique name
-      integer(I4B)              :: id       = 0      !! External identifier (unique)
-      real(DP)                  :: mass     = 0.0_DP !! Central body mass (units MU)
-      real(DP)                  :: Gmass    = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
-      real(DP)                  :: radius   = 0.0_DP !! Central body radius (units DU)
-      real(DP)                  :: density  = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
-      real(DP)                  :: j2rp2    = 0.0_DP !! J2*R^2 term for central body
-      real(DP)                  :: j4rp4    = 0.0_DP !! J4*R^2 term for central body
-      real(DP), dimension(NDIM) :: aobl     = 0.0_DP !! Barycentric acceleration due to central body oblatenes
-      real(DP), dimension(NDIM) :: atide    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
-      real(DP), dimension(NDIM) :: aoblbeg  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
-      real(DP), dimension(NDIM) :: aoblend  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
-      real(DP), dimension(NDIM) :: atidebeg = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
-      real(DP), dimension(NDIM) :: atideend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
-      real(DP), dimension(NDIM) :: xb       = 0.0_DP !! Barycentric position (units DU)
-      real(DP), dimension(NDIM) :: vb       = 0.0_DP !! Barycentric velocity (units DU / TU)
-      real(DP), dimension(NDIM) :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
-      real(DP), dimension(NDIM) :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
-      real(DP), dimension(NDIM) :: rot      = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP)                  :: k2       = 0.0_DP !! Tidal Love number
-      real(DP)                  :: Q        = 0.0_DP !! Tidal quality factor
-      real(DP)                  :: tlag     = 0.0_DP !! Tidal phase lag angle
-      real(DP), dimension(NDIM) :: L0       = 0.0_DP !! Initial angular momentum of the central body
-      real(DP), dimension(NDIM) :: dL       = 0.0_DP !! Change in angular momentum of the central body
+      class(swiftest_particle_info), allocatable :: info              !! Particle metadata information
+      integer(I4B)                               :: id       = 0      !! External identifier (unique)
+      real(DP)                                   :: mass     = 0.0_DP !! Central body mass (units MU)
+      real(DP)                                   :: Gmass    = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
+      real(DP)                                   :: radius   = 0.0_DP !! Central body radius (units DU)
+      real(DP)                                   :: density  = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
+      real(DP)                                   :: j2rp2    = 0.0_DP !! J2*R^2 term for central body
+      real(DP)                                   :: j4rp4    = 0.0_DP !! J4*R^2 term for central body
+      real(DP), dimension(NDIM)                  :: aobl     = 0.0_DP !! Barycentric acceleration due to central body oblatenes
+      real(DP), dimension(NDIM)                  :: atide    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
+      real(DP), dimension(NDIM)                  :: aoblbeg  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
+      real(DP), dimension(NDIM)                  :: aoblend  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
+      real(DP), dimension(NDIM)                  :: atidebeg = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
+      real(DP), dimension(NDIM)                  :: atideend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
+      real(DP), dimension(NDIM)                  :: xb       = 0.0_DP !! Barycentric position (units DU)
+      real(DP), dimension(NDIM)                  :: vb       = 0.0_DP !! Barycentric velocity (units DU / TU)
+      real(DP), dimension(NDIM)                  :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
+      real(DP), dimension(NDIM)                  :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
+      real(DP), dimension(NDIM)                  :: rot      = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
+      real(DP)                                   :: k2       = 0.0_DP !! Tidal Love number
+      real(DP)                                   :: Q        = 0.0_DP !! Tidal quality factor
+      real(DP)                                   :: tlag     = 0.0_DP !! Tidal phase lag angle
+      real(DP), dimension(NDIM)                  :: L0       = 0.0_DP !! Initial angular momentum of the central body
+      real(DP), dimension(NDIM)                  :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
       procedure :: read_in         => io_read_in_cb     !! I/O routine for reading in central body data
       procedure :: read_frame      => io_read_frame_cb  !! I/O routine for reading out a single frame of time-series data for the central body
@@ -196,7 +210,7 @@ module swiftest_classes
       !! Superclass that defines the generic elements of a Swiftest particle 
       logical                                             :: lfirst = .true. !! Run the current step as a first
       integer(I4B)                                        :: nbody = 0       !! Number of bodies
-      character(len=NAMELEN), dimension(:),   allocatable :: name            !! Non-unique name
+      class(swiftest_particle_info),   dimension(:),   allocatable :: info            !! Particle metadata information
       integer(I4B),           dimension(:),   allocatable :: id              !! External identifier (unique)
       integer(I4B),           dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
       logical,                dimension(:),   allocatable :: ldiscard        !! Body should be discarded
@@ -357,22 +371,24 @@ module swiftest_classes
       procedure(abstract_step_system), deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure :: discard                 => discard_system                  !! Perform a discard step on the system
-      procedure :: conservation_report     => io_conservation_report          !! Compute energy and momentum and print out the change with time
-      procedure :: dump                    => io_dump_system                  !! Dump the state of the system to a file
-      procedure :: get_old_t_final         => io_get_old_t_final_system       !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
-      procedure :: read_frame              => io_read_frame_system            !! Read in a frame of input data from file
-      procedure :: write_discard           => io_write_discard                !! Write out information about discarded test particles
-      procedure :: write_frame             => io_write_frame_system           !! Append a frame of output data to file
-      procedure :: write_hdr_bin           => io_write_hdr_system             !! Write a header for an output frame in Fortran binary format
-      procedure :: write_hdr_netcdf        => netcdf_write_hdr_system         !! Write a header for an output frame in NetCDF format
-      procedure :: initialize              => setup_initialize_system         !! Initialize the system from input files
-      procedure :: step_spin               => tides_step_spin_system          !! Steps the spins of the massive & central bodies due to tides.
-      procedure :: set_msys                => util_set_msys                   !! Sets the value of msys from the masses of system bodies.
-      procedure :: get_energy_and_momentum => util_get_energy_momentum_system !! Calculates the total system energy and momentum
-      procedure :: rescale                 => util_rescale_system             !! Rescales the system into a new set of units
-      procedure :: validate_ids            => util_valid_id_system            !! Validate the numerical ids passed to the system and save the maximum value
-      generic   :: write_hdr               => write_hdr_bin, write_hdr_netcdf !! Generic method call for writing headers
+      procedure :: discard                 => discard_system                         !! Perform a discard step on the system
+      procedure :: conservation_report     => io_conservation_report                 !! Compute energy and momentum and print out the change with time
+      procedure :: dump                    => io_dump_system                         !! Dump the state of the system to a file
+      procedure :: get_old_t_final         => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
+      procedure :: read_frame              => io_read_frame_system                   !! Read in a frame of input data from file
+      procedure :: read_particle_info      => io_read_particle_info_system           !! Read in particle metadata from file
+      procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
+      procedure :: write_frame             => io_write_frame_system                  !! Append a frame of output data to file
+      procedure :: write_hdr_bin           => io_write_hdr_system                    !! Write a header for an output frame in Fortran binary format
+      procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
+      procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
+      procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
+      procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
+      procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
+      procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
+      procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
+      procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
+      generic   :: write_hdr               => write_hdr_bin, write_hdr_netcdf        !! Generic method call for writing headers
    end type swiftest_nbody_system
 
    type :: swiftest_encounter
@@ -614,11 +630,24 @@ module swiftest_classes
          character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_dump_param
 
-      module subroutine io_dump_swiftest(self, param)
+      module subroutine io_dump_particle_info_base(self, param, idx)
+         implicit none
+         class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
+         class(swiftest_parameters),           intent(in)    :: param !! Current run configuration parameters 
+         integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
+      end subroutine io_dump_particle_info_base
+
+      module subroutine io_dump_particle_info(self, iu)
+         implicit none
+         class(swiftest_particle_info), intent(in) :: self !! Swiftest particle info metadata object
+         integer(I4B),                  intent(in) :: iu   !! Open unformatted file unit number
+      end subroutine io_dump_particle_info
+
+      module subroutine io_dump_base(self, param)
          implicit none
          class(swiftest_base),          intent(inout) :: self  !! Swiftest base object
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
-      end subroutine io_dump_swiftest
+      end subroutine io_dump_base
 
       module subroutine io_dump_system(self, param)
          implicit none
@@ -689,6 +718,12 @@ module swiftest_classes
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_read_in_param
 
+      module subroutine io_read_in_particle_info(self, iu)
+         implicit none
+         class(swiftest_particle_info), intent(inout) :: self !! Particle metadata information object
+         integer(I4B),                  intent(in)    :: iu   !! Open file unit number
+      end subroutine io_read_in_particle_info
+
       module function io_read_frame_body(self, iu, param) result(ierr)
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
@@ -712,6 +747,12 @@ module swiftest_classes
          class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                               :: ierr  !! Error code: returns 0 if the read is successful
       end function io_read_frame_system
+
+      module subroutine io_read_particle_info_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      end subroutine io_read_particle_info_system
 
       module subroutine io_write_discard(self, param)
          implicit none
@@ -953,6 +994,12 @@ module swiftest_classes
          integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine setup_encounter
 
+      module subroutine setup_initialize_particle_info_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      end subroutine setup_initialize_particle_info_system
+
       module subroutine setup_initialize_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
@@ -1030,6 +1077,14 @@ module swiftest_classes
          logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_I4B
 
+      module subroutine util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
+         implicit none
+         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,                   dimension(:),        intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      end subroutine util_append_arr_info
+
       module subroutine util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
          implicit none
          logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
@@ -1037,6 +1092,7 @@ module swiftest_classes
          integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
          logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_logical
+
    end interface
 
    interface
@@ -1190,6 +1246,13 @@ module swiftest_classes
          logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_arr_I4B
 
+      module subroutine util_fill_arr_info(keeps, inserts, lfill_list)
+         implicit none
+         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      end subroutine util_fill_arr_info
+
       module subroutine util_fill_arr_logical(keeps, inserts, lfill_list)
          implicit none
          logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
@@ -1251,6 +1314,12 @@ module swiftest_classes
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
          integer(I4B),                            intent(in)    :: nnew !! New size
       end subroutine util_resize_arr_I4B
+
+      module subroutine util_resize_arr_info(arr, nnew)
+         implicit none
+         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                   intent(in)    :: nnew !! New size
+      end subroutine util_resize_arr_info
 
       module subroutine util_resize_arr_logical(arr, nnew)
          implicit none
@@ -1430,6 +1499,13 @@ module swiftest_classes
          integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_I4B
 
+      module subroutine util_sort_rearrange_arr_info(arr, ind, n)
+         implicit none
+         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B),        dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                                   intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_info
+
       module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
          implicit none
          logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
@@ -1519,6 +1595,14 @@ module swiftest_classes
          logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
          logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_arr_I8B
+
+      module subroutine util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
+         implicit none
+         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,                       dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                                  intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      end subroutine util_spill_arr_info
 
       module subroutine util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
          implicit none

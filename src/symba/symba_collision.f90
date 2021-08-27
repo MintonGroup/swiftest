@@ -838,101 +838,117 @@ contains
       class is (symba_pl)
          select type(pl_discards => system%pl_discards)
          class is (symba_merger)
-            associate(pl_adds => system%pl_adds, cb => system%cb)
+            select type(info => pl%info)
+            class is (symba_particle_info)
+               associate(pl_adds => system%pl_adds, cb => system%cb)
+      
+                  ! Add the family bodies to the subtraction list
+                  nfamily = size(family(:))
+                  nfrag   = size(m_frag(:))
+                  lmask(:) = .false.
+                  lmask(family(:)) = .true.
+                  pl%status(family(:)) = MERGED
+                  nstart = pl_discards%nbody + 1
+                  nend = pl_discards%nbody + nfamily
+                  call pl_discards%append(pl, lmask)
+                  pl%ldiscard(family(:)) = .true.
+                  pl%lcollision(family(:)) = .true.
+      
+                  ! Record how many bodies were subtracted in this event
+                  pl_discards%ncomp(nstart:nend) = nfamily 
+      
+                  ! Setup new bodies
+                  allocate(plnew, mold=pl)
+                  call plnew%setup(nfrag, param)
+                  ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
    
-               ! Add the family bodies to the subtraction list
-               nfamily = size(family(:))
-               nfrag   = size(m_frag(:))
-               lmask(:) = .false.
-               lmask(family(:)) = .true.
-               pl%status(family(:)) = MERGED
-               nstart = pl_discards%nbody + 1
-               nend = pl_discards%nbody + nfamily
-               call pl_discards%append(pl, lmask)
-               pl%ldiscard(family(:)) = .true.
-               pl%lcollision(family(:)) = .true.
-   
-               ! Record how many bodies were subtracted in this event
-               pl_discards%ncomp(nstart:nend) = nfamily 
-   
-               ! Setup new bodies
-               allocate(plnew, mold=pl)
-               call plnew%setup(nfrag, param)
-               ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
-  
-               ! Copy over identification, information, and physical properties of the new bodies from the fragment list
-               plnew%id(1:nfrag) = id_frag(1:nfrag) 
-               param%maxid = param%maxid + nfrag
-               plnew%xb(:, 1:nfrag) = xb_frag(:, 1:nfrag) 
-               plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
-               do i = 1, nfrag
-                  plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
-                  plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
-               end do
-               plnew%mass(1:nfrag) = m_frag(1:nfrag)
-               plnew%Gmass(1:nfrag) = param%GU * m_frag(1:nfrag)
-               plnew%radius(1:nfrag) = rad_frag(1:nfrag)
-               plnew%density(1:nfrag) = m_frag(1:nfrag) / rad_frag(1:nfrag)
-   
-               select case(status)
-               case(DISRUPTION)
-                  plnew%info(1:nfrag)%origin_type = "Disruption"
-                  plnew%status(1:nfrag) = NEW_PARTICLE
-                  plnew%info(1:nfrag)%origin_time = param%t
+                  ! Copy over identification, information, and physical properties of the new bodies from the fragment list
+                  plnew%id(1:nfrag) = id_frag(1:nfrag) 
+                  param%maxid = param%maxid + nfrag
+                  plnew%xb(:, 1:nfrag) = xb_frag(:, 1:nfrag) 
+                  plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
                   do i = 1, nfrag
-                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
-                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+                     plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
+                     plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
                   end do
-               case(SUPERCATASTROPHIC)
-                  plnew%info(1:nfrag)%origin_type = "Supercatastrophic"
-                  plnew%status(1:nfrag) = NEW_PARTICLE
-                  plnew%info(1:nfrag)%origin_time = param%t
-                  do i = 1, nfrag
-                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
-                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
-                  end do
-               case(HIT_AND_RUN_DISRUPT)
-                  plnew%info(1) = pl%info(ibiggest)
-                  plnew%status(1) = OLD_PARTICLE
-                  plnew%status(2:nfrag) = NEW_PARTICLE
-                  plnew%info(2:nfrag)%origin_type = "Hit and run fragment"
-                  plnew%info(2:nfrag)%origin_time = param%t
-                  do i = 2, nfrag
-                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
-                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
-                  end do
-               case(MERGED)
-                  plnew%info(1) = pl%info(ibiggest)
-                  plnew%status(1) = OLD_PARTICLE
-               end select
+                  plnew%mass(1:nfrag) = m_frag(1:nfrag)
+                  plnew%Gmass(1:nfrag) = param%GU * m_frag(1:nfrag)
+                  plnew%radius(1:nfrag) = rad_frag(1:nfrag)
+                  plnew%density(1:nfrag) = m_frag(1:nfrag) / rad_frag(1:nfrag)
    
-               if (param%lrotation) then
-                  plnew%Ip(:, 1:nfrag) = Ip_frag(:, 1:nfrag)
-                  plnew%rot(:, 1:nfrag) = rot_frag(:, 1:nfrag)
-               end if
-   
-               if (param%ltides) then
-                  plnew%Q = pl%Q(ibiggest)
-                  plnew%k2 = pl%k2(ibiggest)
-                  plnew%tlag = pl%tlag(ibiggest)
-               end if
+                  select type(info => plnew%info)
+                  class is (symba_particle_info)
+                     select case(status)
+                     case(DISRUPTION)
+                        info(1:nfrag)%origin_type = "Disruption"
+                        plnew%status(1:nfrag) = NEW_PARTICLE
+                        info(1:nfrag)%origin_time = param%t
+                        do i = 1, nfrag
+                           info(i)%origin_xh(:) = plnew%xh(:,i)
+                           info(i)%origin_vh(:) = plnew%vh(:,i)
+                        end do
+                     case(SUPERCATASTROPHIC)
+                        info(1:nfrag)%origin_type = "Supercatastrophic"
+                        plnew%status(1:nfrag) = NEW_PARTICLE
+                        info(1:nfrag)%origin_time = param%t
+                        do i = 1, nfrag
+                           info(i)%origin_xh(:) = plnew%xh(:,i)
+                           info(i)%origin_vh(:) = plnew%vh(:,i)
+                        end do
+                     case(HIT_AND_RUN_DISRUPT)
+                        select type(plinfo => pl%info)
+                        class is (symba_particle_info)
+                           info(1)%name = plinfo(ibiggest)%name
+                           info(1)%origin_xh(:) = plinfo(ibiggest)%origin_xh(:)
+                           info(1)%origin_vh(:) = plinfo(ibiggest)%origin_vh(:)
+                        end select
+                        plnew%status(1) = OLD_PARTICLE
+                        plnew%status(2:nfrag) = NEW_PARTICLE
+                        info(2:nfrag)%origin_type = "Hit and run fragment"
+                        info(2:nfrag)%origin_time = param%t
+                        do i = 2, nfrag
+                           info(i)%origin_xh(:) = plnew%xh(:,i)
+                           info(i)%origin_vh(:) = plnew%vh(:,i)
+                        end do
+                     case(MERGED)
+                        select type(plinfo => pl%info)
+                        class is (symba_particle_info)
+                           info(1)%name = plinfo(ibiggest)%name
+                           info(1)%origin_xh(:) = plinfo(ibiggest)%origin_xh(:)
+                           info(1)%origin_vh(:) = plinfo(ibiggest)%origin_vh(:)
+                        end select
+                        plnew%status(1) = OLD_PARTICLE
+                     end select
+                  end select
+      
+                  if (param%lrotation) then
+                     plnew%Ip(:, 1:nfrag) = Ip_frag(:, 1:nfrag)
+                     plnew%rot(:, 1:nfrag) = rot_frag(:, 1:nfrag)
+                  end if
+      
+                  if (param%ltides) then
+                     plnew%Q = pl%Q(ibiggest)
+                     plnew%k2 = pl%k2(ibiggest)
+                     plnew%tlag = pl%tlag(ibiggest)
+                  end if
 
-               call plnew%set_mu(cb)
-               !Copy over or set integration parameters for new bodies
-               plnew%lcollision(1:nfrag) = .false.
-               plnew%ldiscard(1:nfrag) = .false.
-               plnew%levelg(1:nfrag) = pl%levelg(ibiggest)
-               plnew%levelm(1:nfrag) = pl%levelm(ibiggest)
-   
-               ! Append the new merged body to the list and record how many we made
-               nstart = pl_adds%nbody + 1
-               nend = pl_adds%nbody + plnew%nbody
-               call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
-               pl_adds%ncomp(nstart:nend) = plnew%nbody
-   
-               call plnew%setup(0, param)
-               deallocate(plnew)
-            end associate
+                  call plnew%set_mu(cb)
+                  !Copy over or set integration parameters for new bodies
+                  plnew%lcollision(1:nfrag) = .false.
+                  plnew%ldiscard(1:nfrag) = .false.
+                  plnew%levelg(1:nfrag) = pl%levelg(ibiggest)
+                  plnew%levelm(1:nfrag) = pl%levelm(ibiggest)
+      
+                  ! Append the new merged body to the list and record how many we made
+                  nstart = pl_adds%nbody + 1
+                  nend = pl_adds%nbody + plnew%nbody
+                  call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
+                  pl_adds%ncomp(nstart:nend) = plnew%nbody
+      
+                  call plnew%setup(0, param)
+                  deallocate(plnew)
+               end associate
+            end select
          end select
       end select
    

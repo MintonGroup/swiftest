@@ -328,7 +328,7 @@ contains
 
       associate(n => self%nbody)
          call util_sort_rearrange(self%id,       ind, n)
-         call util_sort_rearrange(self%name,     ind, n)
+         call util_sort_rearrange(self%info,     ind, n)
          call util_sort_rearrange(self%status,   ind, n)
          call util_sort_rearrange(self%ldiscard, ind, n)
          call util_sort_rearrange(self%xh,       ind, n)
@@ -457,6 +457,27 @@ contains
 
       return
    end subroutine util_sort_rearrange_arr_logical
+
+
+   module subroutine util_sort_rearrange_arr_info(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of particle information type in-place from an index list.
+      implicit none
+      ! Arguments
+      class(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),         dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                                    intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      class(swiftest_particle_info), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, source=arr)
+      tmp(1:n) = arr(ind(1:n))
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_info
 
 
    module subroutine util_sort_rearrange_pl(self, ind)
