@@ -4,7 +4,7 @@ module symba_classes
    !! Definition of classes and methods specific to the Democratic SyMBAcentric Method
    !! Adapted from David E. Kaufmann's Swifter routine: helio.f90
    use swiftest_globals
-   use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter, swiftest_particle_info
+   use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter, swiftest_particle_info, netcdf_parameters
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use rmvs_classes,     only : rmvs_chk_ind
    implicit none
@@ -14,6 +14,28 @@ module symba_classes
    integer(I4B), private, parameter :: NTENC            = 3
    real(DP),     private, parameter :: RHSCALE          = 6.5_DP
    real(DP),     private, parameter :: RSHELL           = 0.48075_DP
+   character(*), parameter :: ORIGIN_TYPE_VARNAME = "origin_type"
+   character(*), parameter :: ORIGIN_TIME_VARNAME = "origin_time"
+   character(*), parameter :: ORIGIN_XHX_VARNAME  = "origin_xhx"
+   character(*), parameter :: ORIGIN_XHY_VARNAME  = "origin_xhy"
+   character(*), parameter :: ORIGIN_XHZ_VARNAME  = "origin_xhz"
+   character(*), parameter :: ORIGIN_VHX_VARNAME  = "origin_vhx"
+   character(*), parameter :: ORIGIN_VHY_VARNAME  = "origin_vhy"
+   character(*), parameter :: ORIGIN_VHZ_VARNAME  = "origin_vhz"
+
+   type, extends(netcdf_parameters) :: symba_netcdf_parameters
+      integer(I4B) :: origin_type_varid  !! NetCDF ID for the origin type
+      integer(I4B) :: origin_time_varid  !! NetCDF ID for the origin type
+      integer(I4B) :: origin_xhx_varid   !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_xhy_varid   !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_xhz_varid   !! NetCDF ID for the origin xh z component
+      integer(I4B) :: origin_vhx_varid   !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_vhy_varid   !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_vhz_varid   !! NetCDF ID for the origin xh z component
+   contains
+      procedure :: initialize => symba_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output objec
+      procedure :: open       => symba_netcdf_open              !! Opens a NetCDF file
+   end type symba_netcdf_parameters
 
    type, extends(swiftest_parameters) :: symba_parameters
       real(DP)                                :: GMTINY         = -1.0_DP          !! Smallest G*mass that is fully gravitating
@@ -96,6 +118,8 @@ module symba_classes
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_pl            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: write_frame_netcdf => symba_netcdf_write_frame_pl   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      generic :: write_frame => write_frame_netcdf
    end type symba_pl
 
    type, extends(symba_pl) :: symba_merger
@@ -433,6 +457,28 @@ module symba_classes
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_encounter
+
+      module subroutine symba_netcdf_initialize_output(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param !! Current run configuration parameters 
+      end subroutine symba_netcdf_initialize_output
+   
+      module subroutine symba_netcdf_open(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      end subroutine symba_netcdf_open
+      
+      module subroutine symba_netcdf_write_frame_pl(self, iu, param)
+         use swiftest_classes, only : swiftest_parameters, netcdf_parameters
+         implicit none
+         class(symba_pl),            intent(in)    :: self   !! Swiftest particle object
+         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      end subroutine symba_netcdf_write_frame_pl
    
       module subroutine symba_setup_initialize_particle_info_system(self, param) 
          use swiftest_classes, only : swiftest_parameters

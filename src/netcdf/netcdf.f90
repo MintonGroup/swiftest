@@ -47,7 +47,7 @@ contains
       integer(I4B) :: old_mode
 
       !! Create the new output file, deleting any previously existing output file of the same name
-      call check( nf90_create(param%outfile, NF90_HDF5, self%ncid) )
+      call check( nf90_create(param%outfile, NF90_NETCDF4, self%ncid) )
       call check( nf90_set_fill(self%ncid, nf90_nofill, old_mode) )
 
       ! Define the NetCDF dimensions with particle name as the record dimension
@@ -68,6 +68,7 @@ contains
       call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid) )
       call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid) )
       call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%name_varid) )
+      call check( nf90_def_var(self%ncid, PTYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%ptype_varid) )
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhx_varid) )
          call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhy_varid) )
@@ -119,8 +120,6 @@ contains
          call check( nf90_def_var(self%ncid, GMESCAPE_VARNAME, self%out_type, self%time_dimid, self%GMescape_varid) )
       end if
 
-      call check( nf90_enddef(self%ncid) )
-
       return
    end subroutine netcdf_initialize_output
 
@@ -144,6 +143,7 @@ contains
       call check( nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid))
       call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid))
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid))
+      call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid))
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid))
@@ -214,9 +214,7 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, tslot, strlen, idslot
       integer(I4B), dimension(:), allocatable   :: ind
-      character(len=:), allocatable             :: name
-
-      !! Open the netCDF file
+      character(len=:), allocatable             :: charstring
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
@@ -231,9 +229,14 @@ contains
                j = ind(i)
                idslot = self%id(j) + 1
                call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
-               name = trim(adjustl(self%info(j)%name))
-               strlen = len(name)
-               call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[1, idslot], count=[strlen, 1]) )
+               charstring = trim(adjustl(self%info(j)%name))
+               strlen = len(charstring)
+               call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+               charstring = trim(adjustl(self%info(j)%particle_type))
+               strlen = len(charstring)
+               call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
                   call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]) )
@@ -277,9 +280,15 @@ contains
       class is (swiftest_cb)
          idslot = self%id + 1
          call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
-         name = trim(adjustl(self%info%name))
-         strlen = len(name)
-         call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[1, idslot], count=[strlen, 1]) )
+
+         charstring = trim(adjustl(self%info%name))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+         charstring = trim(adjustl(self%info%particle_type))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
          call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[idslot, tslot]) )
          call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
          if (param%lrotation) then

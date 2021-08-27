@@ -1864,6 +1864,8 @@ contains
                call nciu%open(param)
             case('NEW', 'REPLACE', 'UNKNOWN')
                call nciu%initialize(param)
+               call nciu%close(param)
+               call nciu%open(param)
             end select
             lfirst = .false.
          else

@@ -702,11 +702,6 @@ def swiftest2xr(param):
         return None
     print(f"Successfully converted {ds.sizes['time']} output frames.")
 
-    if param['PARTICLE_OUT'] != "":
-        infoxr = swiftest_particle_2xr(param)
-        print('\nAdding particle info to Dataset')
-        ds = xr.merge([ds, infoxr])
-
     return ds
 
 
@@ -723,7 +718,9 @@ def clean_string_values(param, ds):
     -------
     ds : xarray dataset with the strings cleaned up
     """  
-    ds['name'] =  ds['name'].str.decode(encoding='utf-8')
+    #ds['name'] =  ds['name'].str.decode(encoding='utf-8')
+    #ds['particle_type'] =  ds['particle_type'].str.decode(encoding='utf-8')
+    #  ds['origin_type'] =  ds['origin_type'].str.decode(encoding='utf-8')
     return ds
 
 

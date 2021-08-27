@@ -55,9 +55,9 @@ module swiftest_globals
    character(*), parameter :: XV  = 'XV' !! Symbolic name for binary output file contents for cartesian position and velocity vectors
    character(*), parameter :: XVEL  = 'XVEL' !! Symbolic name for binary output file contents for both cartesian position and velocity and orbital elements
 
-   character(*), parameter :: CB_TYPE_NAME = "CentralBody"
-   character(*), parameter :: PL_TYPE_NAME = "MassiveBody"
-   character(*), parameter :: TP_TYPE_NAME = "TestParticle"
+   character(*), parameter :: CB_TYPE_NAME = "Central Body"
+   character(*), parameter :: PL_TYPE_NAME = "Massive Body"
+   character(*), parameter :: TP_TYPE_NAME = "Test Particle"
 
    ! OpenMP Parameters
    integer(I4B)            :: nthreads = 1 !! Number of OpenMP threads
@@ -139,6 +139,7 @@ module swiftest_globals
    character(*), parameter :: TIME_DIMNAME      = "time"        !! NetCDF name of the time dimension 
    character(*), parameter :: ID_DIMNAME        = "id"          !! NetCDF name of the particle id dimension
    character(*), parameter :: STR_DIMNAME       = "str"         !! NetCDF name of the particle id dimension
+   character(*), parameter :: PTYPE_VARNAME     = "particle_type" ! NetCDF name of the particle type variable
    character(*), parameter :: NAME_VARNAME      = "name"        !! NetCDF name of the particle name variable
    character(*), parameter :: NPL_VARNAME       = "npl"         !! NetCDF name of the number of active massive bodies variable
    character(*), parameter :: NTP_VARNAME       = "ntp"         !! NetCDF name of the number of active test particles variable

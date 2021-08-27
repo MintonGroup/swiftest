@@ -93,7 +93,8 @@ module swiftest_classes
       integer(I4B) :: str_dimid         !! NetCDF ID for the character string dimension
       integer(I4B) :: time_varid        !! NetCDF ID for the time variable
       integer(I4B) :: id_varid          !! NetCDF ID for the particle name variable
-      integer(I4B) :: name_varid        !! NetCDF ID for the semimajor axis variable 
+      integer(I4B) :: name_varid        !! NetCDF ID for the namevariable 
+      integer(I4B) :: ptype_varid       !! NetCDF ID for the particle type variable
       integer(I4B) :: npl_varid         !! NetCDF ID for the number of active massive bodies variable
       integer(I4B) :: ntp_varid         !! NetCDF ID for the number of active test particles variable
       integer(I4B) :: a_varid           !! NetCDF ID for the semimajor axis variable 
@@ -147,7 +148,7 @@ module swiftest_classes
    !> of fragments produced in collisional events.
    type :: swiftest_particle_info
       character(len=NAMELEN)  :: name          !! Non-unique name
-      character(len=NAMELEN)  :: particle_type !! String containing a description of the particle type (e.g. CentralBody, MassiveBody, TestParticle)
+      character(len=NAMELEN)  :: particle_type !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
    contains
       procedure :: dump       => io_dump_particle_info          !! Dumps contents of particle information to file
       procedure :: read_in    => io_read_in_particle_info       !! Read in a particle information object from an open file
