@@ -214,7 +214,7 @@ contains
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                              :: i, j, id, tslot, strlen, idslot
+      integer(I4B)                              :: i, j, tslot, strlen, idslot
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: name
 
@@ -232,10 +232,10 @@ contains
             do i = 1, n
                j = ind(i)
                idslot = self%id(j) + 1
-               call check( nf90_put_var(iu%ncid, iu%id_varid, id, start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
                name = trim(adjustl(self%name(j)))
                strlen = len(name)
-               call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[id, 1], count=[1, strlen]) )
+               call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[idslot, 1], count=[1, strlen]) )
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
                   call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[tslot, idslot]) )
                   call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[tslot, idslot]) )
@@ -277,11 +277,11 @@ contains
             end do
          end associate
       class is (swiftest_cb)
-         id = self%id
+         idslot = self%id + 1
          call check( nf90_put_var(iu%ncid, iu%id_varid, id, start=[idslot]) )
          name = trim(adjustl(self%name))
          strlen = len(name)
-         call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[id, 1], count=[1, strlen]) )
+         call check( nf90_put_var(iu%ncid, iu%name_varid, name, start=[idslot, 1], count=[1, strlen]) )
          call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[tslot, idslot]) )
          call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[tslot, idslot]) )
          if (param%lrotation) then

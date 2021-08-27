@@ -903,8 +903,8 @@ contains
       integer(I4B)            :: ierr, idold
 
       if (param%in_type == 'ASCII') then
-         self%id = 1
-         param%maxid = 1
+         self%id = 0
+         param%maxid = 0
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
          read(iu, *, err = 667, iomsg = errmsg) self%name
          read(iu, *, err = 667, iomsg = errmsg) self%Gmass
@@ -1070,10 +1070,12 @@ contains
                   read(iu, err = 667, iomsg = errmsg) pl%rot(3, :)
                end if
                if (param%ltides) then
-                  read(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
-                  read(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
+                  read(iu, err = 667, iomsg = errmsg) pl%k2(:)
+                  read(iu, err = 667, iomsg = errmsg) pl%Q(:)
                end if
             end select
+
+            param%maxid = max(param%maxid, maxval(self%id(1:n)))
 
          case (ASCII_TYPE)
             do i = 1, n

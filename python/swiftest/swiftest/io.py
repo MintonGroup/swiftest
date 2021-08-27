@@ -696,6 +696,7 @@ def swiftest2xr(param):
     elif ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         print('\nCreating Dataset')
         ds = xr.open_dataset(param['BIN_OUT'])
+        ds = clean_string_values(param, ds)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
@@ -797,6 +798,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     RSun = np.double(cb['radius'])
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
+    cbname = cb['name'].values[0]
     if param['ROTATION'] == 'YES':
         Ip1cb = np.double(cb['Ip1'])
         Ip2cb = np.double(cb['Ip2'])
@@ -809,7 +811,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
         cbfile = open(param['CB_IN'], 'w')
-        print(0, file=cbfile)
+        print(cbname, file=cbfile)
         print(GMSun, file=cbfile)
         print(RSun, file=cbfile)
         print(J2, file=cbfile)
@@ -824,9 +826,9 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         for i in pl.id:
             pli = pl.sel(id=i)
             if param['RHILL_PRESENT'] == 'YES':
-               print(i.values, pli['Gmass'].values, pli['rhill'].values, file=plfile)
+               print(pli['name'].values, pli['Gmass'].values, pli['rhill'].values, file=plfile)
             else:
-               print(i.values, pli['Gmass'].values, file=plfile)
+               print(pli['name'].values, pli['Gmass'].values, file=plfile)
             print(pli['radius'].values, file=plfile)
             if param['IN_FORM'] == 'XV':
                 print(pli['xhx'].values, pli['xhy'].values, pli['xhz'].values, file=plfile)
@@ -846,7 +848,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         print(tp.id.count().values, file=tpfile)
         for i in tp.id:
             tpi = tp.sel(id=i)
-            print(i.values, file=tpfile)
+            print(tpi['name'].values, file=tpfile)
             if param['IN_FORM'] == 'XV':
                 print(tpi['xhx'].values, tpi['xhy'].values, tpi['xhz'].values, file=tpfile)
                 print(tpi['vhx'].values, tpi['vhy'].values, tpi['vhz'].values, file=tpfile)

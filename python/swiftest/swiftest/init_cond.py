@@ -171,6 +171,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         print("Creating the Sun as a central body")
         cbframe = np.expand_dims(cvec.T, axis=0)
         cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
+        cbxr = cbxr.assign_coords(name=('id', [key]))
         cbds = cbxr.to_dataset(dim='vec')
         ds = xr.combine_by_coords([ds, cbds])
     else: # Fetch solar system ephemerides from Horizons
@@ -270,12 +271,13 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         # Prepare frames by adding an extra axis for the time coordinate
         plframe = np.expand_dims(pvec.T, axis=0)
         plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
+        plxr = plxr.assign_coords(name=('id', [plname]))
         plds = plxr.to_dataset(dim='vec')
         ds = xr.combine_by_coords([ds, plds])
 
     return ds
 
-def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=0.0):
+def vec2xr(param, names, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=0.0):
     
     if param['ROTATION'] == 'YES':
         if Ip1 is None:
@@ -317,6 +319,8 @@ def vec2xr(param, idvals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=Non
         bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': plab})
     else:
         bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': tlab})
+      
+    bodyxr = bodyxr.assign_coords(name=('id', names))
 
     ds = bodyxr.to_dataset(dim='vec')
     return ds
