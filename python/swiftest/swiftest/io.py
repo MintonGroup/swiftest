@@ -806,8 +806,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     A set of three input files for a Swiftest run
     """
     frame = ds.isel(time=framenum)
-    cb = frame.where(frame.id == 1, drop=True)
-    pl = frame.where(frame.id > 1, drop=True)
+    cb = frame.where(frame.id == 0, drop=True)
+    pl = frame.where(frame.id > 0, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
@@ -984,8 +984,8 @@ def swifter_xr2infile(ds, param, framenum=-1):
     A set of input files for a Swifter run
     """
     frame = ds.isel(time=framenum)
-    cb = frame.where(frame.id == 1, drop=True)
-    pl = frame.where(frame.id > 1, drop=True)
+    cb = frame.where(frame.id == 0, drop=True)
+    pl = frame.where(frame.id > 0, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
