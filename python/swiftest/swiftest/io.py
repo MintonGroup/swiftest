@@ -721,11 +721,10 @@ def clean_string_values(param, ds):
  
     Returns
     -------
-    dscleanstring : xarray dataset with the strings cleaned up
+    ds : xarray dataset with the strings cleaned up
     """  
-
-    dscleanstring = ds 
-    return dscleanstring
+    ds['name'] =  ds['name'].str.decode(encoding='utf-8')
+    return ds
 
 
 def swiftest_particle_stream(f):
