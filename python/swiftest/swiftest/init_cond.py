@@ -320,7 +320,7 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     else:
         bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': tlab})
       
-    bodyxr = bodyxr.assign_coords(name=('id', names))
+    bodyxr = bodyxr.assign_coords(name=('id', namevals))
 
     ds = bodyxr.to_dataset(dim='vec')
     return ds
