@@ -231,7 +231,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
             p10.append(pldata[key].vectors()['vx'][0] * VCONV)
             p11.append(pldata[key].vectors()['vy'][0] * VCONV)
             p12.append(pldata[key].vectors()['vz'][0] * VCONV)
-        pvec = np.vstack([p1, p2, p3, p4, p5, p6])
+        pvec = np.vstack([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
 
         if ispl:
             Rpl.append(planetradius[key] * DCONV)
@@ -259,7 +259,6 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
                 pvec = np.vstack([pvec, Ip1, Ip2, Ip3, rotx, roty, rotz])
         else:
             plab = tlab.copy()
-        pvec = np.vstack([pvec, p7, p8, p9, p10, p11, p12])
 
         if idval is None:
             plid = np.array([planetid[key]], dtype=int) + 1
