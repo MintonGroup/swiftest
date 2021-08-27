@@ -1036,7 +1036,7 @@ contains
          select case(param%in_type)
          case (REAL4_TYPE, REAL8_TYPE)
             read(iu, err = 667, iomsg = errmsg) self%id(:)
-            !read(iu, err = 667, iomsg = errmsg) self%name(:)
+            read(iu, err = 667, iomsg = errmsg) self%name(:)
 
             select case (param%in_form)
             case (XV)
@@ -1158,7 +1158,7 @@ contains
       character(len=STRMAX)   :: errmsg
 
       read(iu, err = 667, iomsg = errmsg) self%id
-      !read(iu, err = 667, iomsg = errmsg) self%name
+      read(iu, err = 667, iomsg = errmsg) self%name
       read(iu, err = 667, iomsg = errmsg) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, err = 667, iomsg = errmsg) self%radius
@@ -1473,6 +1473,7 @@ contains
       call util_exit(FAILURE)
    end subroutine io_write_encounter
 
+
    module subroutine io_write_frame_body(self, iu, param)
       !! author: David A. Minton
       !!
@@ -1492,6 +1493,7 @@ contains
       associate(n => self%nbody)
          if (n == 0) return
          write(iu, err = 667, iomsg = errmsg) self%id(1:n)
+         write(iu, err = 667, iomsg = errmsg) self%name(1:n)
          if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
             write(iu, err = 667, iomsg = errmsg) self%xh(1, 1:n)
             write(iu, err = 667, iomsg = errmsg) self%xh(2, 1:n)
@@ -1551,8 +1553,8 @@ contains
       character(len=STRMAX)   :: errmsg
 
       associate(cb => self)
-         !write(iu, err = 667, iomsg = errmsg) cb%name
          write(iu, err = 667, iomsg = errmsg) cb%id
+         write(iu, err = 667, iomsg = errmsg) cb%name
          write(iu, err = 667, iomsg = errmsg) cb%Gmass
          write(iu, err = 667, iomsg = errmsg) cb%radius
          write(iu, err = 667, iomsg = errmsg) cb%j2rp2 

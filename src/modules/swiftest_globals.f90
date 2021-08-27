@@ -43,6 +43,7 @@ module swiftest_globals
    integer(I4B), parameter :: RINGMOONS          = 9
 
    integer(I4B), parameter :: STRMAX = 512 !! Maximum size of character strings
+   integer(I4B), parameter :: NAMELEN = 32 !! Maximum size of name strings
 
    character(*), parameter :: ASCII_TYPE          = 'ASCII' !! Symbolic name for ASCII file type
    character(*), parameter :: REAL4_TYPE          = 'REAL4' !! Symbolic name for binary file type REAL4
@@ -130,6 +131,7 @@ module swiftest_globals
    character(*), parameter :: NETCDF_OUTFILE    = 'bin.nc'      !! Default output file name
    character(*), parameter :: TIME_DIMNAME      = "time"        !! NetCDF name of the time dimension 
    character(*), parameter :: ID_DIMNAME        = "id"          !! NetCDF name of the particle id dimension
+   character(*), parameter :: STR_DIMNAME       = "str"         !! NetCDF name of the particle id dimension
    character(*), parameter :: NAME_VARNAME      = "name"        !! NetCDF name of the particle name variable
    character(*), parameter :: NPL_VARNAME       = "npl"         !! NetCDF name of the number of active massive bodies variable
    character(*), parameter :: NTP_VARNAME       = "ntp"         !! NetCDF name of the number of active test particles variable

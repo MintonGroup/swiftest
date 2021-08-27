@@ -86,10 +86,11 @@ module swiftest_classes
    type :: netcdf_parameters
       integer(I4B) :: out_type          !! NetCDF output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B) :: ncid              !! NetCDF ID for the output file
-      integer(I4B) :: dimids(2)         !! Dimensions of the NetCDF file
+      integer(I4B) :: dimids(3)         !! Dimensions of the NetCDF file
       integer(I4B) :: time_dimid        !! NetCDF ID for the time dimension 
+      integer(I4B) :: id_dimid          !! NetCDF ID for the particle id dimension
+      integer(I4B) :: str_dimid         !! NetCDF ID for the character string dimension
       integer(I4B) :: time_varid        !! NetCDF ID for the time variable
-      integer(I4B) :: id_dimid          !! NetCDF ID for the particle name dimension
       integer(I4B) :: id_varid          !! NetCDF ID for the particle name variable
       integer(I4B) :: name_varid        !! NetCDF ID for the semimajor axis variable 
       integer(I4B) :: npl_varid         !! NetCDF ID for the number of active massive bodies variable
@@ -156,7 +157,7 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, extends(swiftest_base) :: swiftest_cb           
-      character(len=STRMAX)     :: name              !! Non-unique name
+      character(len=NAMELEN)    :: name              !! Non-unique name
       integer(I4B)              :: id       = 0      !! External identifier (unique)
       real(DP)                  :: mass     = 0.0_DP !! Central body mass (units MU)
       real(DP)                  :: Gmass    = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
@@ -193,29 +194,29 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract, extends(swiftest_base) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
-      logical                                            :: lfirst = .true. !! Run the current step as a first
-      integer(I4B)                                       :: nbody = 0       !! Number of bodies
-      character(len=STRMAX), dimension(:),   allocatable :: name            !! Non-unique name
-      integer(I4B),          dimension(:),   allocatable :: id              !! External identifier (unique)
-      integer(I4B),          dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
-      logical,               dimension(:),   allocatable :: ldiscard        !! Body should be discarded
-      logical,               dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
-      real(DP),              dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      real(DP),              dimension(:,:), allocatable :: xh              !! Swiftestcentric position
-      real(DP),              dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
-      real(DP),              dimension(:,:), allocatable :: xb              !! Barycentric position
-      real(DP),              dimension(:,:), allocatable :: vb              !! Barycentric velocity
-      real(DP),              dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
-      real(DP),              dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
-      real(DP),              dimension(:,:), allocatable :: atide           !! Tanngential component of acceleration of bodies due to tides
-      real(DP),              dimension(:,:), allocatable :: agr             !! Acceleration due to post-Newtonian correction
-      real(DP),              dimension(:),   allocatable :: ir3h            !! Inverse heliocentric radius term (1/rh**3)
-      real(DP),              dimension(:),   allocatable :: a               !! Semimajor axis (pericentric distance for a parabolic orbit)
-      real(DP),              dimension(:),   allocatable :: e               !! Eccentricity
-      real(DP),              dimension(:),   allocatable :: inc             !! Inclination
-      real(DP),              dimension(:),   allocatable :: capom           !! Longitude of ascending node
-      real(DP),              dimension(:),   allocatable :: omega           !! Argument of pericenter
-      real(DP),              dimension(:),   allocatable :: capm            !! Mean anomaly
+      logical                                             :: lfirst = .true. !! Run the current step as a first
+      integer(I4B)                                        :: nbody = 0       !! Number of bodies
+      character(len=NAMELEN), dimension(:),   allocatable :: name            !! Non-unique name
+      integer(I4B),           dimension(:),   allocatable :: id              !! External identifier (unique)
+      integer(I4B),           dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
+      logical,                dimension(:),   allocatable :: ldiscard        !! Body should be discarded
+      logical,                dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
+      real(DP),               dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
+      real(DP),               dimension(:,:), allocatable :: xh              !! Swiftestcentric position
+      real(DP),               dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
+      real(DP),               dimension(:,:), allocatable :: xb              !! Barycentric position
+      real(DP),               dimension(:,:), allocatable :: vb              !! Barycentric velocity
+      real(DP),               dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
+      real(DP),               dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
+      real(DP),               dimension(:,:), allocatable :: atide           !! Tanngential component of acceleration of bodies due to tides
+      real(DP),               dimension(:,:), allocatable :: agr             !! Acceleration due to post-Newtonian correction
+      real(DP),               dimension(:),   allocatable :: ir3h            !! Inverse heliocentric radius term (1/rh**3)
+      real(DP),               dimension(:),   allocatable :: a               !! Semimajor axis (pericentric distance for a parabolic orbit)
+      real(DP),               dimension(:),   allocatable :: e               !! Eccentricity
+      real(DP),               dimension(:),   allocatable :: inc             !! Inclination
+      real(DP),               dimension(:),   allocatable :: capom           !! Longitude of ascending node
+      real(DP),               dimension(:),   allocatable :: omega           !! Argument of pericenter
+      real(DP),               dimension(:),   allocatable :: capm            !! Mean anomaly
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains

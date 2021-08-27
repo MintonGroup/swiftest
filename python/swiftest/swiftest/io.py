@@ -468,6 +468,7 @@ def swiftest_stream(f, param):
     tlab : string list
         Labels for the tvec data
     """
+    NAMELEN = 32
     while True:  # Loop until you read the end of file
         try:
             # Read multi-line header
@@ -478,6 +479,9 @@ def swiftest_stream(f, param):
         ntp = f.read_ints()
         iout_form = f.read_reals('c')
         cbid = f.read_ints()
+        dtstr = f'a{NAMELEN}'
+        cbnames = f.read_record(dtstr)
+        cbnames = [np.char.strip(str(cbnames[0], encoding='utf-8'))]
         Mcb = f.read_reals(np.float64)
         Rcb = f.read_reals(np.float64)
         J2cb = f.read_reals(np.float64)
@@ -494,6 +498,11 @@ def swiftest_stream(f, param):
             Qcb = f.read_reals(np.float64)
         if npl[0] > 0:
             plid = f.read_ints()
+            dtstr = f'({npl[0]},)a{NAMELEN}'
+            names = f.read_record(np.dtype(dtstr))
+            plnames = []
+            for i in range(npl[0]):
+               plnames.append(np.char.strip(str(names[i], encoding='utf-8')))
             p1 = f.read_reals(np.float64)
             p2 = f.read_reals(np.float64)
             p3 = f.read_reals(np.float64)
@@ -523,6 +532,11 @@ def swiftest_stream(f, param):
                 Qpl = f.read_reals(np.float64)
         if ntp[0] > 0:
             tpid = f.read_ints()
+            dtstr = f'({ntp[0]},)a{NAMELEN}'
+            names = f.read_record(np.dtype(dtstr))
+            tpnames = []
+            for i in range(npl[0]):
+               tpnames.append(np.char.strip(str(names[i], encoding='utf-8')))
             t1 = f.read_reals(np.float64)
             t2 = f.read_reals(np.float64)
             t3 = f.read_reals(np.float64)
@@ -550,6 +564,7 @@ def swiftest_stream(f, param):
             else:
                pvec = np.empty((8, 0))
             plid = np.empty(0)
+            plnames = np.empty(0)
         if ntp > 0:
             tvec = np.vstack([t1, t2, t3, t4, t5, t6])
             if param['OUT_FORM'] == 'XVEL':
@@ -560,6 +575,7 @@ def swiftest_stream(f, param):
             else:
                tvec = np.empty((6, 0))
             tpid = np.empty(0)
+            tpnames = np.empty(0)
         cvec = np.array([Mcb, Rcb, J2cb, J4cb])
         if param['RHILL_PRESENT'] == 'YES':
            if npl > 0:
@@ -572,9 +588,9 @@ def swiftest_stream(f, param):
             cvec = np.vstack([cvec, k2cb, Qcb])
             if npl > 0:
                 pvec = np.vstack([pvec, k2pl, Qpl])
-        yield t, cbid, cvec.T, clab, \
-              npl, plid, pvec.T, plab, \
-              ntp, tpid, tvec.T, tlab
+        yield t, cbid, cbnames, cvec.T, clab, \
+              npl, plid, plnames, pvec.T, plab, \
+              ntp, tpid, tpnames, tvec.T, tlab
 
 
 def swifter2xr(param):
@@ -638,24 +654,30 @@ def swiftest2xr(param):
         cb = []
         pl = []
         tp = []
+        cbn = None
         try:
             with FortranFile(param['BIN_OUT'], 'r') as f:
-                for t, cbid, cvec, clab, \
-                    npl, plid, pvec, plab, \
-                    ntp, tpid, tvec, tlab in swiftest_stream(f, param):
+                for t, cbid, cbnames, cvec, clab, \
+                    npl, plid, plnames, pvec, plab, \
+                    ntp, tpid, tpnames, tvec, tlab in swiftest_stream(f, param):
                     # Prepare frames by adding an extra axis for the time coordinate
                     cbframe = np.expand_dims(cvec, axis=0)
                     plframe = np.expand_dims(pvec, axis=0)
                     tpframe = np.expand_dims(tvec, axis=0)
 
+
                     # Create xarray DataArrays out of each body type
                     cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
+                    cbxr = cbxr.assign_coords(name=("id", cbnames))
                     plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
+                    plxr = plxr.assign_coords(name=("id", plnames))
                     tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
-                
+                    tpxr = tpxr.assign_coords(name=("id", tpnames))
+
                     cb.append(cbxr)
                     pl.append(plxr)
                     tp.append(tpxr)
+
                     sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
                     sys.stdout.flush()
         except IOError:
