@@ -5,7 +5,7 @@ import xarray as xr
 import sys
 import tempfile
 
-newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP")
+newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP", "IN_FORM")
 
 def real2float(realstr):
     """
