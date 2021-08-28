@@ -86,7 +86,7 @@ class AnimatedScatter(object):
             a = d['a'].values / self.Rcb
             e = d['e'].values
             name = d['id'].values
-            npl = d.id.count().values
+            npl = d['npl'].values[0]
             radmarker = d['radmarker']
             origin = d['origin_type'].values
 
