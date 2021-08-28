@@ -237,7 +237,8 @@ contains
       class(swiftest_body),       intent(inout) :: self  !! Swiftest generic body object
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
-
+      ! Internals
+      integer(I4B) :: i
       self%nbody = n
       if (n <= 0) return
       self%lfirst = .true.
@@ -270,6 +271,13 @@ contains
 
       self%id(:)   = 0
       self%info(:)%name = "UNNAMED"
+      self%info(:)%particle_type = "UKNOWN"
+      self%info(:)%origin_type = "UNKNOWN"
+      self%info(:)%origin_time = -1.0_DP
+      do i = 1, n
+         self%info(i)%origin_xh(:) = 0.0_DP
+         self%info(i)%origin_vh(:) = 0.0_DP
+      end do
       self%status(:) = INACTIVE
       self%lmask(:)  = .false.
       self%ldiscard(:) = .false.
