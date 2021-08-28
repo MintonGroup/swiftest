@@ -145,7 +145,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
-      class(swiftest_parameters),           intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
       integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
 
       ! Internals
@@ -154,41 +154,47 @@ contains
       integer(I4B)              :: i
       character(STRMAX)         :: errmsg
 
-      if (lfirst) then
-         select case(param%out_stat)
-         case('APPEND')
-            open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         case('NEW', 'UNKNOWN', 'REPLACE')
-            open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         case default
-            write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
-            call util_exit(FAILURE)
+      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
+         if (lfirst) then
+            select case(param%out_stat)
+            case('APPEND')
+               open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+            case('NEW', 'UNKNOWN', 'REPLACE')
+               open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+            case default
+               write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
+               call util_exit(FAILURE)
+            end select
+
+            lfirst = .false.
+         else
+            open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         end if
+
+         select type(self)
+         class is (swiftest_cb)
+            write(LUN, err = 667, iomsg = errmsg) self%id
+            call self%info%dump(LUN)
+         class is (swiftest_body)
+            if (present(idx)) then
+               do i = 1, size(idx)
+                  write(LUN, err = 667, iomsg = errmsg) self%id(idx(i))
+                  call self%info(idx(i))%dump(LUN) 
+               end do
+            else
+               do i = 1, self%nbody
+                  write(LUN, err = 667, iomsg = errmsg) self%id(i)
+                  call self%info(i)%dump(LUN) 
+               end do
+            end if
          end select
 
-         lfirst = .false.
-      else
-         open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+         close(unit = LUN, err = 667, iomsg = errmsg)
+      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         call param%nciu%open(param) 
+         call self%write_particle_info(param%nciu)
+         call param%nciu%close(param)
       end if
-
-      select type(self)
-      class is (swiftest_cb)
-         write(LUN, err = 667, iomsg = errmsg) self%id
-         call self%info%dump(LUN)
-      class is (swiftest_body)
-         if (present(idx)) then
-            do i = 1, size(idx)
-               write(LUN, err = 667, iomsg = errmsg) self%id(idx(i))
-               call self%info(idx(i))%dump(LUN) 
-            end do
-         else
-            do i = 1, self%nbody
-               write(LUN, err = 667, iomsg = errmsg) self%id(i)
-               call self%info(i)%dump(LUN) 
-            end do
-         end if
-      end select
-
-      close(unit = LUN, err = 667, iomsg = errmsg)
 
       return
 

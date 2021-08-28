@@ -238,26 +238,22 @@ contains
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
 
+      call self%write_particle_info(iu)
+
       tslot = int(param%ioutput, kind=I4B) + 1
 
       select type(self)
          class is (swiftest_body)
          associate(n => self%nbody)
             if (n == 0) return
+            
+
             allocate(ind(n))
             call util_sort(self%id(1:n), ind)
 
             do i = 1, n
                j = ind(i)
                idslot = self%id(j) + 1
-               call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
-               charstring = trim(adjustl(self%info(j)%name))
-               strlen = len(charstring)
-               call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
-
-               charstring = trim(adjustl(self%info(j)%particle_type))
-               strlen = len(charstring)
-               call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
 
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
                   call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
@@ -275,19 +271,6 @@ contains
                   call check( nf90_put_var(iu%ncid, iu%capom_varid, self%capom(j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j), start=[idslot, tslot]) ) 
-               end if
-
-               if (iu%ltrack_origin) then
-                  charstring = trim(adjustl(self%info(j)%origin_type))
-                  strlen = len(charstring)
-                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info(j)%origin_time, start=[idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info(j)%origin_xh(1), start=[idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info(j)%origin_xh(2), start=[idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info(j)%origin_xh(3), start=[idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info(j)%origin_vh(1), start=[idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info(j)%origin_vh(2), start=[idslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info(j)%origin_vh(3), start=[idslot]) )
                end if
 
                select type(self)  
@@ -342,22 +325,84 @@ contains
             call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[idslot, tslot]) )
          end if
 
-         if (iu%ltrack_origin) then
-            charstring = trim(adjustl(self%info%origin_type))
-            strlen = len(charstring)
-            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]) )
-         end if
       end select
 
       return
    end subroutine netcdf_write_frame_base
+
+   
+   module subroutine netcdf_write_particle_info_base(self, iu)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Write all current particle to file
+      implicit none
+      ! Arguments
+      class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
+      class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      ! Internals
+      integer(I4B)                              :: i, j, tslot, strlen, idslot
+      integer(I4B), dimension(:), allocatable   :: ind
+      character(len=:), allocatable             :: charstring
+
+
+      select type(self)
+         class is (swiftest_body)
+         associate(n => self%nbody)
+            if (n == 0) return
+            allocate(ind(n))
+            call util_sort(self%id(1:n), ind)
+
+            do i = 1, n
+               j = ind(i)
+               idslot = self%id(j) + 1
+               call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
+               charstring = trim(adjustl(self%info(j)%name))
+               strlen = len(charstring)
+               call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+               charstring = trim(adjustl(self%info(j)%particle_type))
+               strlen = len(charstring)
+               call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+               charstring = trim(adjustl(self%info(j)%origin_type))
+               strlen = len(charstring)
+               call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info(j)%origin_time, start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info(j)%origin_xh(1), start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info(j)%origin_xh(2), start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info(j)%origin_xh(3), start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info(j)%origin_vh(1), start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info(j)%origin_vh(2), start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info(j)%origin_vh(3), start=[idslot]) )
+            end do
+         end associate
+
+      class is (swiftest_cb)
+         idslot = self%id + 1
+         call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
+
+         charstring = trim(adjustl(self%info%name))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+         charstring = trim(adjustl(self%info%particle_type))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+         charstring = trim(adjustl(self%info%origin_type))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]) )
+      end select
+
+      return
+   end subroutine netcdf_write_particle_info_base
 
 
    module subroutine netcdf_write_hdr_system(self, iu, param) 

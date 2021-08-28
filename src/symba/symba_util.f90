@@ -291,15 +291,6 @@ contains
          npl = int(self%nbody, kind=I8B)
          call pl%sort("mass", ascending=.false.)
 
-         select type(param)
-         class is (symba_parameters)
-            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
-            where(pl%lmtiny(1:npl))
-               pl%info(1:npl)%particle_type = PL_TINY_TYPE_NAME 
-            elsewhere
-               pl%info(1:npl)%particle_type = PL_TYPE_NAME 
-            end where
-         end select
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
 
@@ -415,11 +406,11 @@ contains
       ! Arguments
       class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
       class(symba_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
       integer(I4B) :: i, j, k, npl, nencmin
-      logical, dimension(:), allocatable :: lmask
+      logical, dimension(:), allocatable :: lmask, ldump_mask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
       integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp, nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
@@ -450,15 +441,15 @@ contains
             ! Append the adds to the main pl object
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, nadd)])
 
-            allocate(lmask(npl+nadd)) 
-            lmask(1:npl) = .false.
-            lmask(npl+1:npl+nadd) = pl%status(npl+1:npl+nadd) == NEW_PARTICLE
-
+            allocate(ldump_mask(npl+nadd))  ! This mask is used only to append the original Fortran binary particle.dat file with new bodies. This is ignored for NetCDF output
+            ldump_mask(1:npl) = .false.
+            ldump_mask(npl+1:npl+nadd) = pl%status(npl+1:npl+nadd) == NEW_PARTICLE
             npl = pl%nbody
-            call pl%dump_particle_info(param, idx=pack([(i, i=1, npl)], lmask))
-
-            deallocate(lmask)
+         else
+            allocate(ldump_mask(npl))
+            ldump_mask(:) = .false.
          end if
+
 
          ! Reset all of the status flags for this body
          where(pl%status(1:npl) /= INACTIVE) 
@@ -470,6 +461,19 @@ contains
             pl%ldiscard(1:npl) = .true.
             pl%lmask(1:npl) = .false.
          end where
+
+         select type(param)
+         class is (symba_parameters)
+            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
+            where(pl%lmtiny(1:npl))
+               pl%info(1:npl)%particle_type = PL_TINY_TYPE_NAME 
+            elsewhere
+               pl%info(1:npl)%particle_type = PL_TYPE_NAME 
+            end where
+         end select
+
+         call pl%dump_particle_info(param, idx=pack([(i, i=1, npl)], ldump_mask))
+         deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 
          call pl%index(param)

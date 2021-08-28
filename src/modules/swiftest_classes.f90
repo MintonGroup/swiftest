@@ -179,10 +179,12 @@ module swiftest_classes
       !! An abstract superclass for a generic Swiftest object
    contains
       !! The minimal methods that all systems must have
-      procedure :: dump               => io_dump_base                 !! Dump contents to file
-      procedure :: dump_particle_info => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
-      procedure :: write_frame_netcdf => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
-      generic   :: write_frame        => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
+      procedure :: dump                       => io_dump_base                 !! Dump contents to file
+      procedure :: dump_particle_info         => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
+      procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
+      generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
+      generic   :: write_particle_info        => write_particle_info_netcdf
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -652,7 +654,7 @@ module swiftest_classes
       module subroutine io_dump_particle_info_base(self, param, idx)
          implicit none
          class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
-         class(swiftest_parameters),           intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
          integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
       end subroutine io_dump_particle_info_base
 
@@ -912,6 +914,12 @@ module swiftest_classes
          class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
       end subroutine netcdf_write_hdr_system
+
+      module subroutine netcdf_write_particle_info_base(self, iu)
+         implicit none
+         class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
+         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      end subroutine netcdf_write_particle_info_base
 
       module subroutine obl_acc_body(self, system)
          implicit none

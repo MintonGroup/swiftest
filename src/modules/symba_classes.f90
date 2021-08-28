@@ -571,7 +571,7 @@ module symba_classes
          implicit none
          class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_util_rearray_pl
    end interface
 

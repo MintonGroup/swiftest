@@ -175,15 +175,8 @@ contains
          end if
 
          cb%info%particle_type = CB_TYPE_NAME
-         call cb%dump_particle_info(param)
-         if (npl > 0) then
-            pl%info(1:npl)%particle_type = PL_TYPE_NAME
-            call pl%dump_particle_info(param)
-         end if
-         if (ntp > 0) then
-            tp%info(1:ntp)%particle_type = TP_TYPE_NAME
-            call tp%dump_particle_info(param)
-         end if
+         if (npl > 0) pl%info(1:npl)%particle_type = PL_TYPE_NAME
+         if (ntp > 0) tp%info(1:ntp)%particle_type = TP_TYPE_NAME
 
       end associate
 

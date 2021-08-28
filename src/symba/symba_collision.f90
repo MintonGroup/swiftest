@@ -907,7 +907,6 @@ contains
 
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(1:nfrag) = id_frag(1:nfrag) 
-               param%maxid = param%maxid + nfrag
                plnew%xb(:, 1:nfrag) = xb_frag(:, 1:nfrag) 
                plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
                do i = 1, nfrag
