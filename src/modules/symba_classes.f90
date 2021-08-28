@@ -14,29 +14,6 @@ module symba_classes
    integer(I4B), private, parameter :: NTENC            = 3
    real(DP),     private, parameter :: RHSCALE          = 6.5_DP
    real(DP),     private, parameter :: RSHELL           = 0.48075_DP
-   character(*), parameter :: ORIGIN_TYPE_VARNAME = "origin_type"
-   character(*), parameter :: ORIGIN_TIME_VARNAME = "origin_time"
-   character(*), parameter :: ORIGIN_XHX_VARNAME  = "origin_xhx"
-   character(*), parameter :: ORIGIN_XHY_VARNAME  = "origin_xhy"
-   character(*), parameter :: ORIGIN_XHZ_VARNAME  = "origin_xhz"
-   character(*), parameter :: ORIGIN_VHX_VARNAME  = "origin_vhx"
-   character(*), parameter :: ORIGIN_VHY_VARNAME  = "origin_vhy"
-   character(*), parameter :: ORIGIN_VHZ_VARNAME  = "origin_vhz"
-   character(*), parameter :: PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
-
-   type, extends(netcdf_parameters) :: symba_netcdf_parameters
-      integer(I4B) :: origin_type_varid  !! NetCDF ID for the origin type
-      integer(I4B) :: origin_time_varid  !! NetCDF ID for the origin type
-      integer(I4B) :: origin_xhx_varid   !! NetCDF ID for the origin xh x component
-      integer(I4B) :: origin_xhy_varid   !! NetCDF ID for the origin xh y component
-      integer(I4B) :: origin_xhz_varid   !! NetCDF ID for the origin xh z component
-      integer(I4B) :: origin_vhx_varid   !! NetCDF ID for the origin xh x component
-      integer(I4B) :: origin_vhy_varid   !! NetCDF ID for the origin xh y component
-      integer(I4B) :: origin_vhz_varid   !! NetCDF ID for the origin xh z component
-   contains
-      procedure :: initialize => symba_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output objec
-      procedure :: open       => symba_netcdf_open              !! Opens a NetCDF file
-   end type symba_netcdf_parameters
 
    type, extends(swiftest_parameters) :: symba_parameters
       real(DP)                                :: GMTINY         = -1.0_DP          !! Smallest G*mass that is fully gravitating
@@ -47,20 +24,6 @@ module symba_classes
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
    end type symba_parameters
-
-   !********************************************************************************************************************************
-   !                                    symba_swiftest_particle_info class definitions and method interfaces
-   !*******************************************************************************************************************************
-   !> Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
-   !> of fragments produced in collisional events.
-   type, extends(swiftest_particle_info) :: symba_particle_info
-      character(len=NAMELEN)    :: origin_type !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
-      real(DP)                  :: origin_time !! The time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_xh   !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_vh   !! The heliocentric velocity vector at the time of the particle's formation
-   contains
-      procedure :: read_in => symba_io_read_in_particle_info !! Reads in SyMBA particle information metadata from an open unformatted file
-   end type symba_particle_info
 
    !********************************************************************************************************************************
    !                                    symba_kinship class definitions and method interfaces
@@ -82,7 +45,6 @@ module symba_classes
       real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
    contains
-      procedure :: write_frame_netcdf => symba_netcdf_write_frame_cb   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
    end type symba_cb
 
    !********************************************************************************************************************************
@@ -120,7 +82,6 @@ module symba_classes
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_pl            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: write_frame_netcdf => symba_netcdf_write_frame_pl   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
    end type symba_pl
 
    type, extends(symba_pl) :: symba_merger
@@ -150,7 +111,6 @@ module symba_classes
       procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: write_frame_netcdf => symba_netcdf_write_frame_tp   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
    end type symba_tp
 
    !********************************************************************************************************************************
@@ -202,7 +162,6 @@ module symba_classes
    contains
       procedure :: write_discard      => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize         => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
-      procedure :: init_particle_info => symba_setup_initialize_particle_info_system  !! Initialize the system from input files
       procedure :: step               => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
       procedure :: interp             => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
       procedure :: set_recur_levels   => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
@@ -384,13 +343,6 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_util_index_eucl_plpl
 
-      module subroutine symba_io_dump_particle_info(self, iu)
-         implicit none
-         class(symba_particle_info), intent(in) :: self !! Particle metadata information object
-         integer(I4B),               intent(in) :: iu   !! Open file unit number
-      end subroutine symba_io_dump_particle_info
-
-   
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
          class(symba_parameters), intent(inout) :: self       !! Current run configuration parameters with SyMBA additionss
@@ -412,12 +364,6 @@ module symba_classes
          integer,                intent(out)   :: iostat    !! IO status code
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
-
-      module subroutine symba_io_read_in_particle_info(self, iu)
-         implicit none
-         class(symba_particle_info), intent(inout) :: self !! Particle metadata information object
-         integer(I4B),               intent(in)    :: iu   !! Open file unit number
-      end subroutine symba_io_read_in_particle_info
 
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters
@@ -459,51 +405,6 @@ module symba_classes
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_encounter
-
-      module subroutine symba_netcdf_initialize_output(self, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),     intent(in)    :: param !! Current run configuration parameters 
-      end subroutine symba_netcdf_initialize_output
-   
-      module subroutine symba_netcdf_open(self, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
-      end subroutine symba_netcdf_open
-      
-      module subroutine symba_netcdf_write_frame_cb(self, iu, param)
-         use swiftest_classes, only : swiftest_parameters, netcdf_parameters
-         implicit none
-         class(symba_cb),            intent(in)    :: self   !! Symba central body object
-         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
-      end subroutine symba_netcdf_write_frame_cb
-
-      module subroutine symba_netcdf_write_frame_pl(self, iu, param)
-         use swiftest_classes, only : swiftest_parameters, netcdf_parameters
-         implicit none
-         class(symba_pl),            intent(in)    :: self   !! Symba massive body object
-         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
-      end subroutine symba_netcdf_write_frame_pl
-   
-      module subroutine symba_netcdf_write_frame_tp(self, iu, param)
-         use swiftest_classes, only : swiftest_parameters, netcdf_parameters
-         implicit none
-         class(symba_tp),            intent(in)    :: self   !! SyMBA test particle object
-         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
-      end subroutine symba_netcdf_write_frame_tp
-
-      module subroutine symba_setup_initialize_particle_info_system(self, param) 
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters with SyMBA extensions
-      end subroutine symba_setup_initialize_particle_info_system
 
       module subroutine symba_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters

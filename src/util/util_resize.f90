@@ -138,28 +138,21 @@ contains
    end subroutine util_resize_arr_I4B
 
 
-
    module subroutine util_resize_arr_info(arr, nnew)
       !! author: David A. Minton
       !!
       !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
       implicit none
       ! Arguments
-      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
       integer(I4B),                                         intent(in)    :: nnew !! New size
       ! Internals
-      class(swiftest_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      type(swiftest_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
       integer(I4B) :: nold !! Old size
       logical :: is_symba
 
       if (.not. allocated(arr) .or. nnew < 0) return
 
-      select type(arr)
-      class is (symba_particle_info)
-         is_symba = .true.
-      class default
-         is_symba = .false.
-      end select
       nold = size(arr)
       if (nnew == nold) return
 
@@ -167,12 +160,8 @@ contains
          deallocate(arr)
          return
       end if
-    
-      if (is_symba) then
-         allocate(symba_particle_info :: tmp(nnew))
-      else
-         allocate(swiftest_particle_info :: tmp(nnew))
-      end if
+      
+      allocate(tmp(nnew))
       if (nnew > nold) then
          tmp(1:nold) = arr(1:nold)
       else

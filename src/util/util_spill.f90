@@ -208,8 +208,8 @@ contains
       !! This is the inverse of a spill operation
       implicit none
       ! Arguments
-      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
       logical,                       dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
       logical,                                                  intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals

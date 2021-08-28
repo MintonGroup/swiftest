@@ -2,30 +2,6 @@ submodule (symba_classes) s_symba_io
    use swiftest
 contains
 
-   module subroutine symba_io_dump_particle_info(self, iu)
-      !! author: David A. Minton
-      !!
-      !! Reads in particle information object information from an open file unformatted file
-      implicit none
-      ! Arguments
-      class(symba_particle_info), intent(in) :: self !! Particle metadata information object
-      integer(I4B),               intent(in) :: iu   !! Open file unit number
-      ! Internals
-      character(STRMAX) :: errmsg
-
-      write(iu, err = 667, iomsg = errmsg) self%origin_type
-      write(iu, err = 667, iomsg = errmsg) self%origin_time
-      write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
-      write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
-
-      return
-
-      667 continue
-      write(*,*) "Error writing particle metadata information from file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine symba_io_dump_particle_info
-
-
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -201,31 +177,6 @@ contains
       667 continue
       return
    end subroutine symba_io_param_writer
-
-
-   module subroutine symba_io_read_in_particle_info(self, iu)
-      !! author: David A. Minton
-      !!
-      !! Reads in particle information object information from an open file unformatted file
-      implicit none
-      ! Arguments
-      class(symba_particle_info), intent(inout) :: self !! Particle metadata information object
-      integer(I4B),               intent(in)    :: iu   !! Open file unit number
-      ! Internals
-      character(STRMAX) :: errmsg
-
-      call io_read_in_particle_info(self, iu)
-      read(iu, err = 667, iomsg = errmsg) self%origin_type
-      read(iu, err = 667, iomsg = errmsg) self%origin_time
-      read(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
-      read(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
-
-      return
-
-      667 continue
-      write(*,*) "Error reading particle metadata information from file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine symba_io_read_in_particle_info
 
 
    module subroutine symba_io_write_discard(self, param)

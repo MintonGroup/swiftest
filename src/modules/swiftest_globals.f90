@@ -181,4 +181,14 @@ module swiftest_globals
    character(*), parameter :: ECOLLISIONS_VARNAME = "Ecollisions" !! NetCDF name of the escaped angular momentum y variable                             
    character(*), parameter :: EUNTRACKED_VARNAME  = "Euntracked"  !! NetCDF name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
    character(*), parameter :: GMESCAPE_VARNAME    = "GMescape"    !! NetCDF name of the G*Mass of bodies that escape the system
+   character(*), parameter :: ORIGIN_TYPE_VARNAME = "origin_type"
+   character(*), parameter :: ORIGIN_TIME_VARNAME = "origin_time"
+   character(*), parameter :: ORIGIN_XHX_VARNAME  = "origin_xhx"
+   character(*), parameter :: ORIGIN_XHY_VARNAME  = "origin_xhy"
+   character(*), parameter :: ORIGIN_XHZ_VARNAME  = "origin_xhz"
+   character(*), parameter :: ORIGIN_VHX_VARNAME  = "origin_vhx"
+   character(*), parameter :: ORIGIN_VHY_VARNAME  = "origin_vhy"
+   character(*), parameter :: ORIGIN_VHZ_VARNAME  = "origin_vhz"
+   character(*), parameter :: PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
+
 end module swiftest_globals

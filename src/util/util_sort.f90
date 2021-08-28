@@ -465,22 +465,18 @@ contains
       !! Rearrange a single array of particle information type in-place from an index list.
       implicit none
       ! Arguments
-      class(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      type(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
       integer(I4B),                   dimension(:),              intent(in)    :: ind !! Index to rearrange against
       integer(I4B),                                    intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       ! Internals
-      class(swiftest_particle_info), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+      type(swiftest_particle_info), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
       integer(I4B) :: i
 
+
       if (.not. allocated(arr) .or. n <= 0) return
-      select type(arr)
-      class is (symba_particle_info)
-         allocate(symba_particle_info :: tmp(n))
-      class is (swiftest_particle_info)
-         allocate(swiftest_particle_info :: tmp(n))
-      end select
+      allocate(tmp, mold=arr)
       tmp(1:n) = arr(ind(1:n))
-      arr(1:n) = tmp(1:n)
+      call move_alloc(tmp, arr)
 
       return
    end subroutine util_sort_rearrange_arr_info

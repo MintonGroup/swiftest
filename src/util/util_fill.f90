@@ -90,37 +90,18 @@ contains
       !! This is the inverse of a spill operation
       implicit none
       ! Arguments
-      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
       logical,                       dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       ! Internals
-      class(swiftest_particle_info), dimension(:), allocatable :: ktmp, itmp
-      integer(I4B) :: nk, ni
+      type(swiftest_particle_info), dimension(:), allocatable :: ktmp, itmp
+
 
       if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
 
-      nk = size(keeps)
-      ni = size(inserts)
+      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
 
-      select type(keeps)
-      class is (symba_particle_info)
-         allocate(symba_particle_info :: ktmp(nk))
-      class is (swiftest_particle_info)
-         allocate(swiftest_particle_info :: ktmp(nk))
-      end select
-
-      select type(inserts)
-      class is (symba_particle_info)
-         allocate(symba_particle_info :: itmp(ni))
-      class is (swiftest_particle_info)
-         allocate(swiftest_particle_info :: itmp(ni))
-      end select
-
-      ktmp(:) = unpack(ktmp(:), .not.lfill_list(:), ktmp(:))
-      ktmp(:) = unpack(itmp(:),      lfill_list(:), ktmp(:))
-
-      keeps(:) = ktmp(:)
-   
       return
    end subroutine util_fill_arr_info
 

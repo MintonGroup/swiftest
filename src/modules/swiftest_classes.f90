@@ -59,6 +59,15 @@ module swiftest_classes
       integer(I4B) :: Ecollisions_varid !! NetCDF ID for the energy lost in collisions variable
       integer(I4B) :: Euntracked_varid  !! NetCDF ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       integer(I4B) :: GMescape_varid    !! NetCDF ID for the G*Mass of bodies that escape the system
+      logical      :: ltrack_origin = .false. !! Indicate whether to track particle origin (SyMBA with Fragmentation)
+      integer(I4B) :: origin_type_varid  !! NetCDF ID for the origin type
+      integer(I4B) :: origin_time_varid  !! NetCDF ID for the origin type
+      integer(I4B) :: origin_xhx_varid   !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_xhy_varid   !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_xhz_varid   !! NetCDF ID for the origin xh z component
+      integer(I4B) :: origin_vhx_varid   !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_vhy_varid   !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_vhz_varid   !! NetCDF ID for the origin xh z component
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
@@ -136,7 +145,7 @@ module swiftest_classes
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
 
-      class(netcdf_parameters), allocatable  :: nciu !! Object containing NetCDF parameters
+      type(netcdf_parameters) :: nciu !! Object containing NetCDF parameters
    contains
       procedure :: reader  => io_param_reader
       procedure :: writer  => io_param_writer
@@ -153,6 +162,10 @@ module swiftest_classes
    type :: swiftest_particle_info
       character(len=NAMELEN)  :: name          !! Non-unique name
       character(len=NAMELEN)  :: particle_type !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
+      character(len=NAMELEN)    :: origin_type !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+      real(DP)                  :: origin_time !! The time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_xh   !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_vh   !! The heliocentric velocity vector at the time of the particle's formation
    contains
       procedure :: dump       => io_dump_particle_info          !! Dumps contents of particle information to file
       procedure :: read_in    => io_read_in_particle_info       !! Read in a particle information object from an open file
@@ -176,7 +189,7 @@ module swiftest_classes
    !********************************************************************************************************************************
    !> A concrete lass for the central body in a Swiftest simulation
    type, abstract, extends(swiftest_base) :: swiftest_cb           
-      class(swiftest_particle_info), allocatable :: info              !! Particle metadata information
+      type(swiftest_particle_info)               :: info              !! Particle metadata information
       integer(I4B)                               :: id       = 0      !! External identifier (unique)
       real(DP)                                   :: mass     = 0.0_DP !! Central body mass (units MU)
       real(DP)                                   :: Gmass    = 0.0_DP !! Central mass gravitational term G * mass (units GU * MU)
@@ -215,7 +228,7 @@ module swiftest_classes
       !! Superclass that defines the generic elements of a Swiftest particle 
       logical                                             :: lfirst = .true. !! Run the current step as a first
       integer(I4B)                                        :: nbody = 0       !! Number of bodies
-      class(swiftest_particle_info),   dimension(:),   allocatable :: info            !! Particle metadata information
+      type(swiftest_particle_info), dimension(:), allocatable :: info            !! Particle metadata information
       integer(I4B),           dimension(:),   allocatable :: id              !! External identifier (unique)
       integer(I4B),           dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
       logical,                dimension(:),   allocatable :: ldiscard        !! Body should be discarded
@@ -1002,7 +1015,7 @@ module swiftest_classes
       module subroutine setup_initialize_particle_info_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine setup_initialize_particle_info_system
 
       module subroutine setup_initialize_system(self, param)
@@ -1084,8 +1097,8 @@ module swiftest_classes
 
       module subroutine util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
          implicit none
-         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
          integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
          logical,                   dimension(:),        intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_info
@@ -1253,8 +1266,8 @@ module swiftest_classes
 
       module subroutine util_fill_arr_info(keeps, inserts, lfill_list)
          implicit none
-         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
          logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine util_fill_arr_info
 
@@ -1322,7 +1335,7 @@ module swiftest_classes
 
       module subroutine util_resize_arr_info(arr, nnew)
          implicit none
-         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
          integer(I4B),                                   intent(in)    :: nnew !! New size
       end subroutine util_resize_arr_info
 
@@ -1506,7 +1519,7 @@ module swiftest_classes
 
       module subroutine util_sort_rearrange_arr_info(arr, ind, n)
          implicit none
-         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B),        dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                                   intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_info
@@ -1603,8 +1616,8 @@ module swiftest_classes
 
       module subroutine util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
          implicit none
-         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
          logical,                       dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
          logical,                                                  intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_arr_info

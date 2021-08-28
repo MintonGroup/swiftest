@@ -122,41 +122,23 @@ contains
       !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
       implicit none
       ! Arguments
-      class(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      class(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                                             intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,                       dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      integer(I4B),                                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+      logical,                       dimension(:),             intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew
-      class(swiftest_particle_info), dimension(:), allocatable :: arr_tmp, source_tmp
 
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nnew))
+      else
+         call util_resize(arr, nold + nnew)
+      end if
 
-      select type(source)
-      class is (symba_particle_info)
-         allocate(symba_particle_info :: arr_tmp(nold+nnew))
-         if (nold > 0) then
-            arr_tmp(1:nold) = arr(1:nold)
-            deallocate(arr)
-         end if
-      class is (swiftest_particle_info) 
-         allocate(swiftest_particle_info :: arr_tmp(nold+nnew))
-         if (nold > 0) then
-            arr_tmp(1:nold) = arr(1:nold)
-            deallocate(arr)
-         end if
-      end select
-
-      select type(source)
-      class is (symba_particle_info)
-         arr_tmp(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-      class is (swiftest_particle_info)
-         arr_tmp(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-      end select
-
-      call move_alloc(arr_tmp, arr)
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
 
       return
    end subroutine util_append_arr_info

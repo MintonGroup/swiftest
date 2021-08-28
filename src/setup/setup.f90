@@ -67,15 +67,6 @@ contains
          call util_exit(FAILURE)
       end select
 
-      select type(system)
-      class is (symba_nbody_system)
-         if (.not.allocated(system%cb%info)) allocate(symba_particle_info :: system%cb%info)
-         if (.not.allocated(param%nciu)) allocate(symba_netcdf_parameters :: param%nciu)
-      class default
-         if (.not.allocated(system%cb%info)) allocate(swiftest_particle_info :: system%cb%info)
-         if (.not.allocated(param%nciu)) allocate(netcdf_parameters :: param%nciu)
-      end select
-
       return
    end subroutine setup_construct_system
 
@@ -144,9 +135,45 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      logical :: ltrack_origin
+      integer(I4B) :: i
 
       associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
+         select type(param)
+         class is (symba_parameters)
+            param%nciu%ltrack_origin = param%lfragmentation
+         class default
+            param%nciu%ltrack_origin = .false.
+         end select
+
+         select type(param)
+         class is (symba_parameters)
+            ltrack_origin = param%lfragmentation
+         class default
+            ltrack_origin = .false.
+         end select
+
+         if (ltrack_origin) then
+            cb%info%origin_type = "Initial conditions"
+            cb%info%origin_time = param%t0
+            cb%info%origin_xh(:) = 0.0_DP
+            cb%info%origin_vh(:) = 0.0_DP
+            do i = 1, self%pl%nbody
+               pl%info(i)%origin_type = "Initial conditions"
+               pl%info(i)%origin_time = param%t0
+               pl%info(i)%origin_xh(:) = self%pl%xh(:,i)
+               pl%info(i)%origin_vh(:) = self%pl%vh(:,i)
+            end do
+            do i = 1, self%tp%nbody
+               tp%info(i)%origin_type = "Initial conditions"
+               tp%info(i)%origin_time = param%t0
+               tp%info(i)%origin_xh(:) = self%tp%xh(:,i)
+               tp%info(i)%origin_vh(:) = self%tp%vh(:,i)
+            end do
+         end if
+
          cb%info%particle_type = CB_TYPE_NAME
          call cb%dump_particle_info(param)
          if (npl > 0) then
@@ -157,6 +184,7 @@ contains
             tp%info(1:ntp)%particle_type = TP_TYPE_NAME
             call tp%dump_particle_info(param)
          end if
+
       end associate
 
       return

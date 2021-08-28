@@ -2,50 +2,6 @@ submodule(symba_classes) s_symba_setup
    use swiftest
 contains
 
-   module subroutine symba_setup_initialize_particle_info_system(self, param) 
-      !! author: David A. Minton
-      !!
-      !! Initializes a new particle information data structure with initial conditions recorded
-      implicit none
-      ! Argumets
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      ! Internals
-      integer(I4B) :: i
-
-      select type(cbinfo => self%cb%info)
-      class is (symba_particle_info)
-         cbinfo%origin_type = "Initial conditions"
-         cbinfo%origin_time = param%t0
-         cbinfo%origin_xh(:) = 0.0_DP
-         cbinfo%origin_vh(:) = 0.0_DP
-      end select
-
-      select type(plinfo => self%pl%info)
-      class is (symba_particle_info)
-         do i = 1, self%pl%nbody
-            plinfo(i)%origin_type = "Initial conditions"
-            plinfo(i)%origin_time = param%t0
-            plinfo(i)%origin_xh(:) = self%pl%xh(:,i)
-            plinfo(i)%origin_vh(:) = self%pl%vh(:,i)
-         end do
-      end select
-
-      select type(tpinfo => self%tp%info)
-      class is (symba_particle_info)
-         do i = 1, self%tp%nbody
-            tpinfo(i)%origin_type = "Initial conditions"
-            tpinfo(i)%origin_time = param%t0
-            tpinfo(i)%origin_xh(:) = self%tp%xh(:,i)
-            tpinfo(i)%origin_vh(:) = self%tp%vh(:,i)
-         end do
-      end select
-      call setup_initialize_particle_info_system(self, param)
-
-      return
-   end subroutine symba_setup_initialize_particle_info_system
-
-
    module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -116,7 +72,6 @@ contains
       if (n <= 0) return
 
 
-      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%lcollision)) deallocate(self%lcollision)
       if (allocated(self%lencounter)) deallocate(self%lencounter)
       if (allocated(self%lmtiny)) deallocate(self%lmtiny)
@@ -128,9 +83,7 @@ contains
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
       if (allocated(self%kin)) deallocate(self%kin)
-      if (allocated(self%info)) deallocate(self%info)
 
-      allocate(symba_particle_info :: self%info(n))
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
       allocate(self%lmtiny(n))

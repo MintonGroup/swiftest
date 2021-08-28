@@ -124,6 +124,10 @@ contains
 
       write(iu, err = 667, iomsg = errmsg) self%name
       write(iu, err = 667, iomsg = errmsg) self%particle_type
+      write(iu, err = 667, iomsg = errmsg) self%origin_type
+      write(iu, err = 667, iomsg = errmsg) self%origin_time
+      write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
+      write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
       return
 
@@ -1416,6 +1420,10 @@ contains
 
       read(iu, err = 667, iomsg = errmsg) self%name
       read(iu, err = 667, iomsg = errmsg) self%particle_type
+      read(iu, err = 667, iomsg = errmsg) self%origin_type
+      read(iu, err = 667, iomsg = errmsg) self%origin_time
+      read(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
+      read(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
       return
 
@@ -1438,7 +1446,7 @@ contains
       integer(I4B)                  :: i,  id, idx
       logical                       :: lmatch  
       character(STRMAX)             :: errmsg
-      class(swiftest_particle_info), allocatable :: tmpinfo
+      type(swiftest_particle_info), allocatable :: tmpinfo
 
       open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
 

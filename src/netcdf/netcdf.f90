@@ -120,6 +120,17 @@ contains
          call check( nf90_def_var(self%ncid, GMESCAPE_VARNAME, self%out_type, self%time_dimid, self%GMescape_varid) )
       end if
 
+      if (self%ltrack_origin) then
+         call check( nf90_def_var(self%ncid, ORIGIN_TYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%origin_type_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_TIME_VARNAME, self%out_type, self%id_dimid, self%origin_time_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_XHX_VARNAME, self%out_type, self%id_dimid, self%origin_xhx_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_XHY_VARNAME, self%out_type, self%id_dimid, self%origin_xhy_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_XHZ_VARNAME, self%out_type, self%id_dimid, self%origin_xhz_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_VHX_VARNAME, self%out_type, self%id_dimid, self%origin_vhx_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_VHY_VARNAME, self%out_type, self%id_dimid, self%origin_vhy_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_VHZ_VARNAME, self%out_type, self%id_dimid,  self%origin_vhz_varid) )
+      end if
+
       return
    end subroutine netcdf_initialize_output
 
@@ -197,6 +208,17 @@ contains
          call check( nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid) )
       end if
 
+      if (self%ltrack_origin) then
+         call check( nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_VHX_VARNAME, self%origin_vhx_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_VHY_VARNAME, self%origin_vhy_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_VHZ_VARNAME, self%origin_vhz_varid))
+      end if
+
       return
    end subroutine netcdf_open
 
@@ -219,7 +241,7 @@ contains
       tslot = int(param%ioutput, kind=I4B) + 1
 
       select type(self)
-      class is (swiftest_body)
+         class is (swiftest_body)
          associate(n => self%nbody)
             if (n == 0) return
             allocate(ind(n))
@@ -245,6 +267,7 @@ contains
                   call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
                end if
+
                if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
                   call check( nf90_put_var(iu%ncid, iu%a_varid, self%a(j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%e_varid, self%e(j), start=[idslot, tslot]) )
@@ -253,27 +276,42 @@ contains
                   call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j), start=[idslot, tslot]) ) 
                end if
-               select type(pl => self)  
+
+               if (iu%ltrack_origin) then
+                  charstring = trim(adjustl(self%info(j)%origin_type))
+                  strlen = len(charstring)
+                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info(j)%origin_time, start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info(j)%origin_xh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info(j)%origin_xh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info(j)%origin_xh(3), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info(j)%origin_vh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info(j)%origin_vh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info(j)%origin_vh(3), start=[idslot]) )
+               end if
+
+               select type(self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-                  call check( nf90_put_var(iu%ncid, iu%Gmass_varid, pl%Gmass(j), start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]) )
                   if (param%lrhill_present) then 
-                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, pl%rhill(j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, self%rhill(j), start=[idslot, tslot]) )
                   end if
                   if (param%lclose) then
-                     call check( nf90_put_var(iu%ncid, iu%radius_varid, pl%radius(j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius(j), start=[idslot, tslot]) )
                   end if
                   if (param%lrotation) then
-                     call check( nf90_put_var(iu%ncid, iu%Ip1_varid, pl%Ip(1, j), start=[idslot, tslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%Ip2_varid, pl%Ip(2, j), start=[idslot, tslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%Ip3_varid, pl%Ip(3, j), start=[idslot, tslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%rotx_varid, pl%rot(1, j), start=[idslot, tslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%roty_varid, pl%rot(2, j), start=[idslot, tslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%rotz_varid, pl%rot(3, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Ip3_varid, self%Ip(3, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%rotx_varid, self%rot(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%roty_varid, self%rot(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%rotz_varid, self%rot(3, j), start=[idslot, tslot]) )
                   end if
                   if (param%ltides) then
-                     call check( nf90_put_var(iu%ncid, iu%k2_varid, pl%k2(j), start=[idslot, tslot]) )
-                     call check( nf90_put_var(iu%ncid, iu%Q_varid, pl%Q(j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2(j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q(j), start=[idslot, tslot]) )
                   end if
+
                end select
             end do
          end associate
@@ -303,10 +341,24 @@ contains
             call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]) )
             call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[idslot, tslot]) )
          end if
+
+         if (iu%ltrack_origin) then
+            charstring = trim(adjustl(self%info%origin_type))
+            strlen = len(charstring)
+            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]) )
+         end if
       end select
 
       return
    end subroutine netcdf_write_frame_base
+
 
    module subroutine netcdf_write_hdr_system(self, iu, param) 
       !! author: David A. Minton
