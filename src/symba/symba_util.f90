@@ -298,6 +298,11 @@ contains
          select type(param)
          class is (symba_parameters)
             pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
+            where(pl%lmtiny(1:npl))
+               pl%info(1:npl)%particle_type = PL_TINY_TYPE_NAME 
+            elsewhere
+               pl%info(1:npl)%particle_type = PL_TYPE_NAME 
+            end where
          end select
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)

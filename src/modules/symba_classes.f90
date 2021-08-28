@@ -22,6 +22,7 @@ module symba_classes
    character(*), parameter :: ORIGIN_VHX_VARNAME  = "origin_vhx"
    character(*), parameter :: ORIGIN_VHY_VARNAME  = "origin_vhy"
    character(*), parameter :: ORIGIN_VHZ_VARNAME  = "origin_vhz"
+   character(*), parameter :: PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
 
    type, extends(netcdf_parameters) :: symba_netcdf_parameters
       integer(I4B) :: origin_type_varid  !! NetCDF ID for the origin type

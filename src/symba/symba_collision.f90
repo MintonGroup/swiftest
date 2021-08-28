@@ -833,6 +833,7 @@ contains
       integer(I4B) :: i, ibiggest, nstart, nend, nfamily, nfrag
       logical, dimension(system%pl%nbody)    :: lmask
       class(symba_pl), allocatable            :: plnew
+      character(*), parameter :: FRAGFMT = '("Fragment",I0.7)'
    
       select type(pl => system%pl)
       class is (symba_pl)
@@ -884,6 +885,7 @@ contains
                         plnew%status(1:nfrag) = NEW_PARTICLE
                         info(1:nfrag)%origin_time = param%t
                         do i = 1, nfrag
+                           write(info(i)%name, FRAGFMT) id_frag(i)
                            info(i)%origin_xh(:) = plnew%xh(:,i)
                            info(i)%origin_vh(:) = plnew%vh(:,i)
                         end do
@@ -892,6 +894,7 @@ contains
                         plnew%status(1:nfrag) = NEW_PARTICLE
                         info(1:nfrag)%origin_time = param%t
                         do i = 1, nfrag
+                           write(info(i)%name, FRAGFMT) id_frag(i)
                            info(i)%origin_xh(:) = plnew%xh(:,i)
                            info(i)%origin_vh(:) = plnew%vh(:,i)
                         end do
@@ -907,6 +910,7 @@ contains
                         info(2:nfrag)%origin_type = "Hit and run fragment"
                         info(2:nfrag)%origin_time = param%t
                         do i = 2, nfrag
+                           write(info(i)%name, FRAGFMT) id_frag(i)
                            info(i)%origin_xh(:) = plnew%xh(:,i)
                            info(i)%origin_vh(:) = plnew%vh(:,i)
                         end do
