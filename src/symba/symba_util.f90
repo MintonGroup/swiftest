@@ -418,7 +418,7 @@ contains
       class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, j, k, npl
+      integer(I4B) :: i, j, k, npl, nencmin
       logical, dimension(:), allocatable :: lmask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
@@ -500,8 +500,10 @@ contains
          call move_alloc(levelm_orig_pl, pl%levelm)
          call move_alloc(nplenc_orig_pl, pl%nplenc)
 
+         ! Re-index the encounter list as the index values may have changed
          associate(idnew1 => system%plplenc_list%id1, idnew2 => system%plplenc_list%id2, idold1 => plplenc_old%id1, idold2 => plplenc_old%id2)
-            do k = 1, system%plplenc_list%nenc
+            nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
+            do k = 1, nencmin
                if ((idnew1(k) == idold1(k)) .and. (idnew2(k) == idold2(k))) then
                   ! This is an encounter we already know about, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
