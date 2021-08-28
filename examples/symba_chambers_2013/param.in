@@ -11,7 +11,7 @@ IN_TYPE          ASCII
 PL_IN            pl_chambers_2013.in
 TP_IN            tp.in
 CB_IN            sun_MsunAUYR.in
-BIN_OUT          bin.dat
+BIN_OUT          bin.nc
 CHK_QMIN         -1.0
 CHK_RMIN         -1.0
 CHK_RMAX         1000.0

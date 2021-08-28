@@ -40,6 +40,7 @@ sim.param['CHK_EJECT'] = 1000.0
 sim.param['IN_FORM'] = 'EL'
 sim.param['OUT_FORM'] = 'XVEL'
 sim.param['OUT_TYPE'] = 'NETCDF_DOUBLE'
+sim.param['BIN_OUT'] = 'bin.nc'
 
 # Add central body
 sim.add("Sun")
