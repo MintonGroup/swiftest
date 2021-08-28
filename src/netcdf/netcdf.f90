@@ -223,7 +223,7 @@ contains
          associate(n => self%nbody)
             if (n == 0) return
             allocate(ind(n))
-            call util_sort(self%id(1:n), ind(1:n))
+            call util_sort(self%id(1:n), ind)
 
             do i = 1, n
                j = ind(i)

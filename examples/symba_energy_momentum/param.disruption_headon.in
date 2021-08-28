@@ -6,10 +6,10 @@ PL_IN          disruption_headon.in
 TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1                 ! output cadence every year
-BIN_OUT        bin.disruption_headon.dat
+BIN_OUT        bin.disruption_headon.nc
 PARTICLE_OUT   particle.disruption_headon.dat
-OUT_TYPE       REAL8             ! double precision real output
-OUT_FORM       XV                ! osculating element output
+OUT_TYPE       NETCDF_DOUBLE     ! double precision real output
+OUT_FORM       XVEL              ! osculating element output
 OUT_STAT       REPLACE
 ISTEP_DUMP     1                 ! system dump cadence
 CHK_CLOSE      yes               ! check for planetary close encounters

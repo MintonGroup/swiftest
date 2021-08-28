@@ -79,7 +79,6 @@ contains
             call util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
             call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
             call util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
-            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
 
             call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
          end associate
@@ -148,7 +147,6 @@ contains
             call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
             call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
             call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
-            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
 
             call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
          end associate
@@ -229,7 +227,6 @@ contains
             call util_fill(keeps%peri, inserts%peri, lfill_list)
             call util_fill(keeps%atp, inserts%atp, lfill_list)
             call util_fill(keeps%kin, inserts%kin, lfill_list)
-            call util_fill(keeps%info, inserts%info, lfill_list)
             
             call util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
@@ -260,7 +257,6 @@ contains
             call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-            call util_fill(keeps%info, inserts%info, lfill_list)
             
             call util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
@@ -607,7 +603,6 @@ contains
       call util_resize(self%peri, nnew)
       call util_resize(self%atp, nnew)
       call util_resize(self%kin, nnew)
-      call util_resize(self%info, nnew)
 
       call util_resize_pl(self, nnew)
 
@@ -627,7 +622,6 @@ contains
       call util_resize(self%nplenc, nnew)
       call util_resize(self%levelg, nnew)
       call util_resize(self%levelm, nnew)
-      call util_resize(self%info, nnew)
 
       call util_resize_tp(self, nnew)
 
@@ -779,7 +773,6 @@ contains
          call util_sort_rearrange(pl%isperi,     ind, npl)
          call util_sort_rearrange(pl%peri,       ind, npl)
          call util_sort_rearrange(pl%atp,        ind, npl)
-         call util_sort_rearrange(pl%info,       ind, npl)
          call util_sort_rearrange(pl%kin,        ind, npl)
 
          call util_sort_rearrange_pl(pl,ind)
@@ -803,7 +796,6 @@ contains
          call util_sort_rearrange(tp%nplenc, ind, ntp)
          call util_sort_rearrange(tp%levelg, ind, ntp)
          call util_sort_rearrange(tp%levelm, ind, ntp)
-         call util_sort_rearrange(tp%info,   ind, ntp)
 
          call util_sort_rearrange_tp(tp,ind)
       end associate
@@ -880,7 +872,6 @@ contains
             call util_spill(keeps%isperi, discards%isperi, lspill_list, ldestructive)
             call util_spill(keeps%peri, discards%peri, lspill_list, ldestructive)
             call util_spill(keeps%atp, discards%atp, lspill_list, ldestructive)
-            call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
             call util_spill(keeps%kin, discards%kin, lspill_list, ldestructive)
 
             call util_spill_pl(keeps, discards, lspill_list, ldestructive)
@@ -945,7 +936,6 @@ contains
             call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
             call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
-            call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
 
             call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
