@@ -134,7 +134,12 @@ contains
 
       nnew = count(lsource_mask(1:nsrc))
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
+         select type(source)
+         class is (symba_particle_info)
+            allocate(symba_particle_info :: arr(nold+nnew))
+         class default
+            allocate(swiftest_particle_info :: arr(nold+nnew))
+         end select
       else
          call util_resize(arr, nold + nnew)
       end if

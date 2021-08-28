@@ -718,9 +718,10 @@ def clean_string_values(param, ds):
     -------
     ds : xarray dataset with the strings cleaned up
     """  
-    #ds['name'] =  ds['name'].str.decode(encoding='utf-8')
-    #ds['particle_type'] =  ds['particle_type'].str.decode(encoding='utf-8')
-    #  ds['origin_type'] =  ds['origin_type'].str.decode(encoding='utf-8')
+    ds['name'] =  ds['name'].str.decode(encoding='utf-8')
+    ds['particle_type'] =  ds['particle_type'].str.decode(encoding='utf-8')
+    if 'origin_type' in ds:
+       ds['origin_type'] =  ds['origin_type'].str.decode(encoding='utf-8')
     return ds
 
 
