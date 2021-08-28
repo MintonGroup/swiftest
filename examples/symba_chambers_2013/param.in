@@ -4,8 +4,8 @@ TSTOP            300000000.0
 DT               0.01642710472279261
 ISTEP_OUT        60876
 ISTEP_DUMP       60876
-OUT_FORM         EL
-OUT_TYPE         REAL8
+OUT_FORM         XVEL
+OUT_TYPE         NETCDF_DOUBLE
 OUT_STAT         REPLACE
 IN_TYPE          ASCII
 PL_IN            pl_chambers_2013.in

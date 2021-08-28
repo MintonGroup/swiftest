@@ -38,7 +38,8 @@ sim.param['ROTATION'] = "YES"
 sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
 sim.param['IN_FORM'] = 'EL'
-sim.param['OUT_FORM'] = 'EL'
+sim.param['OUT_FORM'] = 'XVEL'
+sim.param['OUT_TYPE'] = 'NETCDF_DOUBLE'
 
 # Add central body
 sim.add("Sun")
@@ -78,12 +79,20 @@ Rhb = avalb * (GMvalb / (3 * GMcb))**(1.0/3.0)
 Rhs = avals * (GMvals / (3 * GMcb))**(1.0/3.0)
 
 # Give the bodies unique ids
-idb = np.arange(100, 100 + Nb)
-ids = np.arange(100 + Nb, 100 + Nb + Ns)
+idb = np.arange(10, 10 + Nb)
+ids = np.arange(11 + Nb, 11 + Nb + Ns)
+
+nameb = []
+for i in idb:
+   nameb.append(f"BigBody{i-10:0.4g}")
+names = []
+for i in ids:
+   names.append(f"SmallBody{i-10:0.4g}")
+
 
 # Populate the simulation object with the two types of bodies
-sim.addp(idb, avalb, evalb, incvalb, capomvalb, omegavalb, capmvalb, GMpl=GMvalb, Rpl=Rvalb, rhill=Rhb)
-sim.addp(ids, avals, evals, incvals, capomvals, omegavals, capmvals, GMpl=GMvals, Rpl=Rvals, rhill=Rhs)
+sim.addp(idb, nameb, avalb, evalb, incvalb, capomvalb, omegavalb, capmvalb, GMpl=GMvalb, Rpl=Rvalb, rhill=Rhb)
+sim.addp(ids, names, avals, evals, incvals, capomvals, omegavals, capmvals, GMpl=GMvals, Rpl=Rvals, rhill=Rhs)
 
 # Save everything to a set of initial conditions files
 sim.save("param.in")
