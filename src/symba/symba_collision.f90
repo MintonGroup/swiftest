@@ -833,7 +833,8 @@ contains
       integer(I4B) :: i, ibiggest, nstart, nend, nfamily, nfrag
       logical, dimension(system%pl%nbody)    :: lmask
       class(symba_pl), allocatable            :: plnew
-      character(*), parameter :: FRAGFMT = '("Fragment",I0.7)'
+      character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
+      character(len=NAMELEN) :: newname
    
       select type(pl => system%pl)
       class is (symba_pl)
@@ -880,7 +881,8 @@ contains
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   plnew%info(1:nfrag)%origin_time = param%t
                   do i = 1, nfrag
-                     write(info(i)%name, FRAGFMT) id_frag(i)
+                     write(newname, FRAGFMT) id_frag(i)
+                     plnew%info(i)%name = newname
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
                   end do
@@ -889,29 +891,25 @@ contains
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   plnew%info(1:nfrag)%origin_time = param%t
                   do i = 1, nfrag
-                     write(info(i)%name, FRAGFMT) id_frag(i)
+                     write(newname, FRAGFMT) id_frag(i)
+                     plnew%info(i)%name = newname
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
                   end do
                case(HIT_AND_RUN_DISRUPT)
-                  plnew%info(1)%name = pl%info(ibiggest)%name
-                  plnew%info(1)%origin_type = pl%info(ibiggest)%origin_type
-                  plnew%info(1)%origin_xh(:) = pl%info(ibiggest)%origin_xh(:)
-                  plnew%info(1)%origin_vh(:) = pl%info(ibiggest)%origin_vh(:)
+                  call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
                   plnew%status(2:nfrag) = NEW_PARTICLE
                   plnew%info(2:nfrag)%origin_type = "Hit and run fragment"
                   plnew%info(2:nfrag)%origin_time = param%t
                   do i = 2, nfrag
-                     write(info(i)%name, FRAGFMT) id_frag(i)
+                     write(newname, FRAGFMT) id_frag(i)
+                     plnew%info(i)%name = newname
                      plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
                      plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
                   end do
                case(MERGED)
-                  plnew%info(1)%name = pl%info(ibiggest)%name
-                  plnew%info(1)%origin_type = pl%info(ibiggest)%origin_type
-                  plnew%info(1)%origin_xh(:) = pl%info(ibiggest)%origin_xh(:)
-                  plnew%info(1)%origin_vh(:) = pl%info(ibiggest)%origin_vh(:)
+                  call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
                end select
    

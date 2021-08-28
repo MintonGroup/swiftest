@@ -15,6 +15,7 @@ contains
       logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: nspill, nkeep, nlist
+      character(len=STRMAX), dimension(:), allocatable                :: tmp          !! Array of values to keep 
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -31,7 +32,9 @@ contains
       discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
          if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            allocate(tmp(nkeep))
+            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
@@ -54,6 +57,7 @@ contains
       logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: nspill, nkeep, nlist
+      real(DP), dimension(:), allocatable                :: tmp          !! Array of values to keep 
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -70,7 +74,9 @@ contains
       discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
          if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            allocate(tmp(nkeep))
+            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
@@ -93,6 +99,7 @@ contains
       logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: i, nspill, nkeep, nlist
+      real(DP), dimension(:,:), allocatable                :: tmp          !! Array of values to keep 
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -111,9 +118,11 @@ contains
       end do
       if (ldestructive) then
          if (nkeep > 0) then
+            allocate(tmp(NDIM, nkeep))
             do i = 1, NDIM
-               keeps(i,:) = pack(keeps(i,1:nlist), .not. lspill_list(1:nlist))
+               tmp(i, :) = pack(keeps(i, 1:nlist), .not. lspill_list(1:nlist))
             end do
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
@@ -136,6 +145,7 @@ contains
       logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: nspill, nkeep, nlist
+      integer(I4B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -152,7 +162,9 @@ contains
       discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
          if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            allocate(tmp(nkeep))
+            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
@@ -175,6 +187,7 @@ contains
       logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: nspill, nkeep, nlist
+      integer(I8B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -191,7 +204,9 @@ contains
       discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
          if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            allocate(tmp(nkeep))
+            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
@@ -213,7 +228,9 @@ contains
       logical,                       dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
       logical,                                                  intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
+      integer(I4B) :: i, nspill, nkeep, nlist
+      integer(I4B), dimension(:), allocatable :: idx
+      type(swiftest_particle_info), dimension(:), allocatable :: tmp
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -227,10 +244,17 @@ contains
          allocate(discards(nspill))
       end if
 
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+      allocate(idx(nspill))
+      idx(:) = pack([(i, i = 1, nlist)], lspill_list)
+      call util_copy_particle_info_arr(keeps, discards, idx)
       if (ldestructive) then
          if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            deallocate(idx)
+            allocate(idx(nkeep))
+            allocate(tmp(nkeep))
+            idx(:) = pack([(i, i = 1, nlist)], .not. lspill_list)
+            call util_copy_particle_info_arr(keeps, tmp, idx)
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
@@ -253,6 +277,7 @@ contains
       logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or no
       ! Internals
       integer(I4B) :: nspill, nkeep, nlist
+      logical, dimension(:), allocatable                :: tmp          !! Array of values to keep 
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -269,7 +294,9 @@ contains
       discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
          if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            allocate(tmp(nkeep))
+            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
@@ -324,6 +351,7 @@ contains
      
       return
    end subroutine util_spill_body
+
 
    module subroutine util_spill_encounter(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton

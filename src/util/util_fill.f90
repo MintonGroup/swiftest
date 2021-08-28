@@ -92,15 +92,20 @@ contains
       ! Arguments
       type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
       type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,                       dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      logical,                      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       ! Internals
-      type(swiftest_particle_info), dimension(:), allocatable :: ktmp, itmp
-
+      integer(I4B), dimension(:), allocatable  :: insert_idx
+      integer(I4B) :: i, nkeep, ninsert
 
       if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
 
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+      nkeep = size(keeps)
+      ninsert = count(lfill_list)
+
+      allocate(insert_idx(ninsert))
+
+      insert_idx(:) = pack([(i, i = 1, nkeep)], lfill_list)
+      call util_copy_particle_info_arr(inserts, keeps, insert_idx)
 
       return
    end subroutine util_fill_arr_info

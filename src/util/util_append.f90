@@ -127,7 +127,8 @@ contains
       integer(I4B),                                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
       logical,                       dimension(:),             intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
-      integer(I4B) :: nnew
+      integer(I4B) :: nnew, i
+      integer(I4B), dimension(:), allocatable :: idx
 
       if (.not. allocated(source)) return
 
@@ -138,7 +139,11 @@ contains
          call util_resize(arr, nold + nnew)
       end if
 
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      allocate(idx(nnew))
+
+      idx = pack([(i, i = 1, nsrc)], lsource_mask(1:nsrc))
+
+      call util_copy_particle_info_arr(source(1:nsrc), arr(nold+1:nold+nnew), idx)
 
       return
    end subroutine util_append_arr_info
@@ -179,9 +184,9 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_body),            intent(inout) :: self         !! Swiftest body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_body),  intent(inout) :: self         !! Swiftest body object
+      class(swiftest_body),  intent(in)    :: source       !! Source object to append
+      logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       associate(nold => self%nbody, nsrc => source%nbody)
          call util_append(self%info, source%info, nold, nsrc, lsource_mask)

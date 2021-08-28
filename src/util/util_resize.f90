@@ -163,10 +163,11 @@ contains
       
       allocate(tmp(nnew))
       if (nnew > nold) then
-         tmp(1:nold) = arr(1:nold)
+         call util_copy_particle_info_arr(arr(1:nold), tmp(1:nold))
       else
-         tmp(1:nnew) = arr(1:nnew)
+         call util_copy_particle_info_arr(arr(1:nnew), tmp(1:nnew))
       end if
+
       call move_alloc(tmp, arr)
 
       return

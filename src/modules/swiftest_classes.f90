@@ -167,8 +167,9 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: origin_xh   !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh   !! The heliocentric velocity vector at the time of the particle's formation
    contains
-      procedure :: dump       => io_dump_particle_info          !! Dumps contents of particle information to file
-      procedure :: read_in    => io_read_in_particle_info       !! Read in a particle information object from an open file
+      procedure :: dump    => io_dump_particle_info    !! Dumps contents of particle information to file
+      procedure :: read_in => io_read_in_particle_info !! Read in a particle information object from an open file
+      procedure :: copy    => util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
    end type swiftest_particle_info
 
    !********************************************************************************************************************************
@@ -178,10 +179,10 @@ module swiftest_classes
       !! An abstract superclass for a generic Swiftest object
    contains
       !! The minimal methods that all systems must have
-      procedure :: dump               => io_dump_base           !! Dump contents to file
-      procedure :: dump_particle_info => io_dump_particle_info_base !! Dump contents of particle information metadata to file
-      procedure :: write_frame_netcdf => netcdf_write_frame_base !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
-      generic   :: write_frame        => write_frame_netcdf      !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
+      procedure :: dump               => io_dump_base                 !! Dump contents to file
+      procedure :: dump_particle_info => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
+      procedure :: write_frame_netcdf => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      generic   :: write_frame        => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -258,25 +259,25 @@ module swiftest_classes
       procedure(abstract_step_body),    deferred :: step
       procedure(abstract_accel),        deferred :: accel
       ! These are concrete because the implementation is the same for all types of particles
-      procedure :: drift           => drift_body               !! Loop through bodies and call Danby drift routine on heliocentric variables
-      procedure :: v2pv            => gr_vh2pv_body            !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
-      procedure :: pv2v            => gr_pv2vh_body            !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
-      procedure :: read_in         => io_read_in_body          !! Read in body initial conditions from a file
-      procedure :: read_frame      => io_read_frame_body       !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure :: write_frame_bin => io_write_frame_body      !! I/O routine for writing out a single frame of time-series data for the central body
-      procedure :: accel_obl       => obl_acc_body             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: el2xv           => orbel_el2xv_vec          !! Convert orbital elements to position and velocity vectors
-      procedure :: xv2el           => orbel_xv2el_vec          !! Convert position and velocity vectors to orbital  elements 
-      procedure :: setup           => setup_body               !! A constructor that sets the number of bodies and allocates all allocatable arrays
-      procedure :: accel_user      => user_kick_getacch_body   !! Add user-supplied heliocentric accelerations to planets
-      procedure :: append          => util_append_body         !! Appends elements from one structure to another
-      procedure :: fill            => util_fill_body           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
-      procedure :: resize          => util_resize_body         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
-      procedure :: set_ir3         => util_set_ir3h            !! Sets the inverse heliocentric radius term (1/rh**3)
-      procedure :: sort            => util_sort_body           !! Sorts body arrays by a sortable componen
-      procedure :: rearrange       => util_sort_rearrange_body !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill           => util_spill_body          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      generic   :: write_frame     => write_frame_bin          !! Add the generic write frame for Fortran binary files
+      procedure :: drift           => drift_body                   !! Loop through bodies and call Danby drift routine on heliocentric variables
+      procedure :: v2pv            => gr_vh2pv_body                !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
+      procedure :: pv2v            => gr_pv2vh_body                !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
+      procedure :: read_in         => io_read_in_body              !! Read in body initial conditions from a file
+      procedure :: read_frame      => io_read_frame_body           !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure :: write_frame_bin => io_write_frame_body          !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure :: accel_obl       => obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure :: el2xv           => orbel_el2xv_vec              !! Convert orbital elements to position and velocity vectors
+      procedure :: xv2el           => orbel_xv2el_vec              !! Convert position and velocity vectors to orbital  elements 
+      procedure :: setup           => setup_body                   !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure :: accel_user      => user_kick_getacch_body       !! Add user-supplied heliocentric accelerations to planets
+      procedure :: append          => util_append_body             !! Appends elements from one structure to another
+      procedure :: fill            => util_fill_body               !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize          => util_resize_body             !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
+      procedure :: set_ir3         => util_set_ir3h                !! Sets the inverse heliocentric radius term (1/rh**3)
+      procedure :: sort            => util_sort_body               !! Sorts body arrays by a sortable componen
+      procedure :: rearrange       => util_sort_rearrange_body     !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill           => util_spill_body              !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      generic   :: write_frame     => write_frame_bin              !! Add the generic write frame for Fortran binary files
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -1207,6 +1208,19 @@ module swiftest_classes
          class(swiftest_encounter), intent(inout) :: self   !! Encounter list 
          class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
       end subroutine util_copy_encounter
+
+      module subroutine util_copy_particle_info(self, source)
+         implicit none
+         class(swiftest_particle_info),  intent(inout) :: self
+         class(swiftest_particle_info),  intent(in)    :: source
+      end subroutine util_copy_particle_info
+
+      module subroutine util_copy_particle_info_arr(source, dest, idx)
+         implicit none
+         class(swiftest_particle_info), dimension(:), intent(in)             :: source !! Source object to copy into
+         class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata information object
+         integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source object
+      end subroutine util_copy_particle_info_arr
 
       module subroutine util_exit(code)
          implicit none
