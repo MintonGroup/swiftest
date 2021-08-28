@@ -30,8 +30,11 @@ contains
       real(DP), dimension(:), allocatable     :: m_frag, rad_frag
       integer(I4B), dimension(:), allocatable :: id_frag
       logical                                 :: lfailure
+      character(len=STRMAX) :: collider_message
 
-      write(*, '("Disruption between bodies ",I8,99(:,",",I8))') system%pl%id(family(:))
+      collider_message = "Disruption between"
+      call symba_collision_collider_message(system%pl, family, collider_message)
+      write(*,*) trim(adjustl(collider_message))
 
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
       nfrag = NFRAG_DISRUPT 
@@ -125,8 +128,12 @@ contains
       integer(I4B), dimension(:), allocatable :: id_frag
       logical                                 :: lpure
       logical,  dimension(system%pl%nbody)    :: lmask
+      character(len=STRMAX) :: collider_message
+      character(len=NAMELEN) :: idstr
 
-      write(*, '("Hit and run between bodies ",I8,99(:,",",I8))')  system%pl%id(family(:))
+      collider_message = "Hit and run between"
+      call symba_collision_collider_message(system%pl, family, collider_message)
+      write(*,*) trim(adjustl(collider_message))
 
       mtot = sum(mass(:))
       xcom(:) = (mass(1) * x(:,1) + mass(2) * x(:,2)) / mtot
@@ -232,10 +239,15 @@ contains
       real(DP), dimension(NDIM, 1)              :: vb_frag, xb_frag, rot_frag, Ip_frag
       real(DP), dimension(1)                    :: m_frag, rad_frag
       integer(I4B), dimension(1)                :: id_frag
+      character(len=STRMAX) :: collider_message
+      character(len=NAMELEN) :: idstr
+
+      collider_message = "Merging"
+      call symba_collision_collider_message(system%pl, family, collider_message)
+      write(*,*) trim(adjustl(collider_message))
 
       select type(pl => system%pl)
       class is (symba_pl)
-         write(*, '("Merging bodies ",I8,99(:,",",I8))') pl%id(family(:))
 
          ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
          id_frag(1) = pl%id(ibiggest)
@@ -338,8 +350,12 @@ contains
       integer(I4B), dimension(:), allocatable :: id_frag
       logical                                 :: lfailure
       logical,  dimension(system%pl%nbody)    :: lmask
+      character(len=STRMAX) :: collider_message
+      character(len=NAMELEN) :: idstr
 
-      write(*, '("Supercatastrophic disruption between bodies ",I8,99(:,",",I8))')  system%pl%id(family(:))
+      collider_message = "Supercatastrophic disruption between"
+      call symba_collision_collider_message(system%pl, family, collider_message)
+      write(*,*) trim(adjustl(collider_message))
 
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
       nfrag = NFRAG_SUPERCAT
@@ -401,6 +417,34 @@ contains
 
       return
    end function symba_collision_casesupercatastrophic
+
+
+   subroutine symba_collision_collider_message(pl, family, collider_message)
+      !! author: David A. Minton
+      !!
+      !! Prints a nicely formatted message about which bodies collided, including their names and ids.
+      !! This subroutine appends the body names and ids to an input message.
+      implicit none
+      ! Arguments
+      class(swiftest_pl),            intent(in)    :: pl            !! Swiftest massive body object
+      integer(I4B),    dimension(:), intent(in)    :: family           !! Index of collisional family members
+      character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
+      ! Internals
+      integer(I4B) :: i, n
+      character(len=STRMAX) :: idstr
+      
+      n = size(family)
+      if (n == 0) return
+
+      do i = 1, n
+         if (i > 1) collider_message = trim(adjustl(collider_message)) // " and "
+         collider_message = " " // trim(adjustl(collider_message)) // " " // trim(adjustl(pl%info(family(i))%name))
+         write(idstr, '(I10)') pl%id(family(i))
+         collider_message = trim(adjustl(collider_message)) // " (" // trim(adjustl(idstr)) // ") "
+      end do
+
+      return
+   end subroutine symba_collision_collider_message
 
 
    module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)

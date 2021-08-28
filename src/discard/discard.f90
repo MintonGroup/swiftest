@@ -125,14 +125,14 @@ contains
                   tp%status(i) = DISCARDED_RMAX
                   write(idstr, *) tp%id(i)
                   write(timestr, *) param%t
-                  write(*, *) "Particle " // trim(adjustl(idstr)) // " too far from the central body at t = " // trim(adjustl(timestr))
+                  write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // " too far from the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
                   write(idstr, *) tp%id(i)
                   write(timestr, *) param%t
-                  write(*, *) "Particle " // trim(adjustl(idstr)) //  " too close to the central body at t = " // trim(adjustl(timestr))
+                  write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" //  " too close to the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
                else if (param%rmaxu >= 0.0_DP) then
@@ -143,7 +143,7 @@ contains
                      tp%status(i) = DISCARDED_RMAXU
                      write(idstr, *) tp%id(i)
                      write(timestr, *) param%t
-                     write(*, *) "Particle " // trim(adjustl(idstr)) //  " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
+                     write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" //  " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
                   end if
@@ -173,6 +173,7 @@ contains
       integer(I4B)              :: i, j, ih
       real(DP)                  :: r2
       real(DP), dimension(NDIM) :: dx
+      character(len=STRMAX) :: idstr, timestr
    
       associate(cb => system%cb, ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, t => param%t)
          call tp%get_peri(system, param)
@@ -190,7 +191,9 @@ contains
                         (tp%atp(i) <= param%qmin_ahi) .and.    &           
                         (tp%peri(i) <= param%qmin)) then
                         tp%status(i) = DISCARDED_PERI
-                        write(*, *) "Particle ", tp%id(i), " perihelion distance too small at t = ", t
+                        write(idstr, *) tp%id(i)
+                        write(timestr, *) param%t
+                        write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // " perihelion distance too small at t = " // trim(adjustl(timestr))
                         tp%ldiscard(i) = .true.
                      end if
                   end if
@@ -219,6 +222,7 @@ contains
       integer(I4B)              :: i, j, isp
       real(DP)                  :: r2min, radius
       real(DP), dimension(NDIM) :: dx, dv
+      character(len=STRMAX) :: idstri, idstrj, timestr
    
       associate(ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, t => param%t, dt => param%dt)
          do i = 1, ntp
@@ -233,6 +237,12 @@ contains
                      tp%lmask(i) = .false.
                      pl%ldiscard(j) = .true.
                      write(*, *) "Particle ", tp%id(i), " too close to massive body ", pl%id(j), " at t = ", t
+                     write(idstri, *) tp%id(i)
+                     write(idstrj, *) pl%id(j)
+                     write(timestr, *) param%t
+                     write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
+                                            // "  too close to massive body " // trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstrj)) &
+                                            // " at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      exit
                   end if
