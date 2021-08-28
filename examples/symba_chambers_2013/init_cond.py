@@ -85,10 +85,10 @@ ids = np.arange(11 + Nb, 11 + Nb + Ns)
 
 nameb = []
 for i in idb:
-   nameb.append(f"BigBody{i-10:0.4g}")
+   nameb.append(f"BigBody{i-9:0.4g}")
 names = []
 for i in ids:
-   names.append(f"SmallBody{i-10:0.4g}")
+   names.append(f"SmallBody{i-9:0.4g}")
 
 
 # Populate the simulation object with the two types of bodies
