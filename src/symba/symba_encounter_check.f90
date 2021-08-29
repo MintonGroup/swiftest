@@ -19,7 +19,7 @@ contains
       integer(I8B) :: k, nplplm
       integer(I4B) :: i, j, nenc
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2
-      logical,  dimension(self%nplplm) :: lencounter, loc_lvdotr
+      logical,  dimension(:), allocatable  :: lencounter, loc_lvdotr
       real(DP), dimension(:,:), pointer :: xh, vh
       real(DP), dimension(:), pointer :: rhill
       integer(I4B), dimension(:,:), pointer :: k_plpl
@@ -28,6 +28,8 @@ contains
 
       associate(pl => self, xh => self%xh, vh => self%vh, rhill => self%rhill, npl => self%nbody, k_plpl => self%k_plpl)
          nplplm = self%nplplm
+         allocate(lencounter(nplplm))
+         allocate(loc_lvdotr(nplplm))
          lencounter(:) = .false.
          loc_lvdotr(:) = .false.
   
@@ -48,7 +50,9 @@ contains
          end do
          !$omp end parallel do
 
+         !$omp parallel workshare
          nenc = count(lencounter(:))
+         !$omp end parallel workshare
          lany_encounter = nenc > 0
          if (lany_encounter) then 
             associate(plplenc_list => system%plplenc_list)
