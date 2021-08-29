@@ -409,7 +409,7 @@ contains
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, j, k, npl, nencmin
+      integer(I4B) :: i, j, k, npl, nencmin, idnew1, idnew2, idold1, idold2
       logical, dimension(:), allocatable :: lmask, ldump_mask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
@@ -418,6 +418,7 @@ contains
       associate(pl => self, pl_adds => system%pl_adds, nadd => system%pl_adds%nbody)
 
          npl = pl%nbody
+         if (npl == 0) return
          ! Deallocate any temporary variables
          if (allocated(pl%xbeg)) deallocate(pl%xbeg)
          if (allocated(pl%xend)) deallocate(pl%xend)
@@ -429,7 +430,7 @@ contains
          call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
          npl = pl%nbody
          call tmp%setup(0,param)
-         deallocate(tmp)
+         if (allocated(tmp)) deallocate(tmp)
          deallocate(lmask)
 
          ! Store the original plplenc list so we don't remove any of the original encounters
@@ -449,7 +450,6 @@ contains
             allocate(ldump_mask(npl))
             ldump_mask(:) = .false.
          end if
-
 
          ! Reset all of the status flags for this body
          where(pl%status(1:npl) /= INACTIVE) 
@@ -481,16 +481,19 @@ contains
          ! Reset the kinship trackers
          pl%kin(1:npl)%nchild = 0
          pl%kin(1:npl)%parent = [(i, i=1, npl)]
+          do i = 1, npl
+             if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
+          end do
 
          ! Re-build the zero-level encounter list, being sure to save the original level information for all bodies
          allocate(levelg_orig_pl, source=pl%levelg)
          allocate(levelm_orig_pl, source=pl%levelm)
          allocate(nplenc_orig_pl, source=pl%nplenc)
-         allocate(ntpenc_orig_pl, source=pl%ntpenc)
          lencounter = pl%encounter_check(system, param%dt, 0) 
          if (system%tp%nbody > 0) then
             select type(tp => system%tp)
             class is (symba_tp)
+               allocate(ntpenc_orig_pl, source=pl%ntpenc)
                allocate(levelg_orig_tp, source=tp%levelg)
                allocate(levelm_orig_tp, source=tp%levelm)
                allocate(nplenc_orig_tp, source=tp%nplenc)
@@ -498,6 +501,7 @@ contains
                call move_alloc(levelg_orig_tp, tp%levelg)
                call move_alloc(levelm_orig_tp, tp%levelm)
                call move_alloc(nplenc_orig_tp, tp%nplenc)
+               call move_alloc(ntpenc_orig_pl, pl%ntpenc)
             end select
          end if
          call move_alloc(levelg_orig_pl, pl%levelg)
@@ -505,33 +509,34 @@ contains
          call move_alloc(nplenc_orig_pl, pl%nplenc)
 
          ! Re-index the encounter list as the index values may have changed
-         associate(idnew1 => system%plplenc_list%id1, idnew2 => system%plplenc_list%id2, idold1 => plplenc_old%id1, idold2 => plplenc_old%id2)
-            nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
-            do k = 1, nencmin
-               if ((idnew1(k) == idold1(k)) .and. (idnew2(k) == idold2(k))) then
-                  ! This is an encounter we already know about, so save the old information
-                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
-                  system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
-                  system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
-                  system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
-                  system%plplenc_list%level(k) = plplenc_old%level(k)
-               else if (((idnew1(k) == idold2(k)) .and. (idnew2(k) == idold1(k)))) then
-                  ! This is an encounter we already know about, but with the order reversed, so save the old information
-                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
-                  system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
-                  system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
-                  system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
-                  system%plplenc_list%level(k) = plplenc_old%level(k)
-               end if
-            end do
-         end associate
-
+         nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
+         do k = 1, nencmin
+            idnew1 = system%plplenc_list%id1(k)
+            idnew2 = system%plplenc_list%id2(k)
+            idold1 = plplenc_old%id1(k)
+            idold2 = plplenc_old%id2(k)
+            if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
+               ! This is an encounter we already know about, so save the old information
+               system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+               system%plplenc_list%status(k) = plplenc_old%status(k) 
+               system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
+               system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
+               system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
+               system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
+               system%plplenc_list%t(k) = plplenc_old%t(k)
+               system%plplenc_list%level(k) = plplenc_old%level(k)
+            else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
+               ! This is an encounter we already know about, but with the order reversed, so save the old information
+               system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+               system%plplenc_list%status(k) = plplenc_old%status(k) 
+               system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
+               system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
+               system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
+               system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
+               system%plplenc_list%t(k) = plplenc_old%t(k)
+               system%plplenc_list%level(k) = plplenc_old%level(k)
+            end if
+         end do
       end associate
 
       return
@@ -548,7 +553,7 @@ contains
       integer(I4B),                                   intent(in)    :: nnew !! New size
       ! Internals
       type(symba_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
+         integer(I4B) :: nold !! Old size
 
       if (.not. allocated(arr) .or. nnew < 0) return
 

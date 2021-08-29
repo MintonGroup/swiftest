@@ -969,6 +969,7 @@ contains
                end if
 
                call plnew%set_mu(cb)
+               call plnew%set_rhill(cb)
                !Copy over or set integration parameters for new bodies
                plnew%lcollision(1:nfrag) = .false.
                plnew%ldiscard(1:nfrag) = .false.

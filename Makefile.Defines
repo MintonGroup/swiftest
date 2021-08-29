@@ -62,18 +62,18 @@ IPRODUCTION = -init=snan,arrays  -no-wrap-margin -O3 $(STRICTREAL) $(PAR) $(SIMD
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
 GPAR = -fopenmp #-ftree-parallelize-loops=4
-GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
+GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-strict -fsanitize=undefined -fsanitize=signed-integer-overflow -fsanitize=object-size -fstack-protector-all
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
 #FFLAGS  = $(IDEBUG) $(HEAPARR) $(SIMDVEC) $(PAR)
-#FFLAGS  = $(IPRODUCTION) -g -traceback  $(OPTREPORT)
-#FORTRAN = ifort
+FFLAGS  = $(IPRODUCTION) -g -traceback  $(OPTREPORT)
+FORTRAN = ifort
 #AR     = xiar
 
-FORTRAN = gfortran
+#FORTRAN = gfortran
 #FFLAGS =  $(GDEBUG) $(GMEM) $(GPAR)
-FFLAGS =  $(GPRODUCTION)
+#FFLAGS =  $(GPRODUCTION) -g -fcheck=all -Wall -fbacktrace
 AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only
