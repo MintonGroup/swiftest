@@ -20,14 +20,11 @@ class AnimatedScatter(object):
     def __init__(self, ds, param):
 
         frame = 0
-        nframes = int(ds['time'].size / framejump)
+        self.ds = ds
+        self.nframes = int(ds['time'].size / framejump)
+        self.Rcb = self.ds['radius'].sel(id=0, time=0).values
         self.ds = ds
         self.param = param
-        self.Rcb = self.ds['radius'].sel(id=0, time=0).values
-        self.ds['radmarker'] = self.ds['radius'].fillna(0)
-        np.where(self.ds['radmarker'] > ncutoff, 0, self.ds['radmarker'])
-        self.ds['radmarker'] = (self.ds['radmarker'] / self.Rcb) * radscale
-
         self.clist = {'Initial conditions' : 'xkcd:faded blue',
                       'Disruption' : 'xkcd:marigold',
                       'Supercatastrophic' : 'xkcd:shocking pink',
@@ -41,7 +38,8 @@ class AnimatedScatter(object):
         self.ax.set_xlim(xmin, xmax)
         self.ax.set_ylim(ymin, ymax)
         fig.add_axes(self.ax)
-        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=True)
+        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=self.nframes, init_func=self.setup_plot, blit=True)
+        #self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'libx264'])
         self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'mpeg4'])
         print('Finished writing aescattter.mp4')
 
@@ -79,16 +77,16 @@ class AnimatedScatter(object):
     def data_stream(self, frame=0):
         while True:
             d = self.ds.isel(time=frame)
-            d = d.where(d['a'] < ncutoff, drop=True)
 
+            d = d.where(d['radius'] < self.Rcb, drop=True)
+            d['radmarker'] = (d['radius'] / self.Rcb) * radscale
             radius = d['radmarker'].values
-            d = d.where(d['a'] > self.Rcb, drop=True)
 
             Gmass = d['Gmass'].values
             a = d['a'].values / self.Rcb
             e = d['e'].values
             name = d['id'].values
-            npl = d.id.count().values
+            npl = d['npl'].values[0]
             radmarker = d['radmarker']
             origin = d['origin_type'].values
 
