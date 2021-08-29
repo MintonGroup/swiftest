@@ -67,13 +67,13 @@ GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporari
 GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
 #FFLAGS  = $(IDEBUG) $(HEAPARR) $(SIMDVEC) $(PAR)
-FFLAGS  = $(IPRODUCTION) $(OPTREPORT)
-FORTRAN = ifort
+#FFLAGS  = $(IPRODUCTION) -g -traceback  $(OPTREPORT)
+#FORTRAN = ifort
 #AR     = xiar
 
-#FORTRAN = gfortran
+FORTRAN = gfortran
 #FFLAGS =  $(GDEBUG) $(GMEM) $(GPAR)
-#FFLAGS =  $(GPRODUCTION)
+FFLAGS =  $(GPRODUCTION)
 AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only

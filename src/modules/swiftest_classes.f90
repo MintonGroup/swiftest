@@ -160,12 +160,17 @@ module swiftest_classes
    !> Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
    !> of fragments produced in collisional events.
    type :: swiftest_particle_info
-      character(len=NAMELEN)  :: name          !! Non-unique name
-      character(len=NAMELEN)  :: particle_type !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
-      character(len=NAMELEN)    :: origin_type !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
-      real(DP)                  :: origin_time !! The time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_xh   !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_vh   !! The heliocentric velocity vector at the time of the particle's formation
+      character(len=NAMELEN)    :: name            !! Non-unique name
+      character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
+      character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+      real(DP)                  :: origin_time     !! The time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
+      real(DP)                  :: discard_time    !! The time of the particle's discard
+      character(len=NAMELEN)    :: status          !! Particle status description: Active, Merged, Fragmented, etc.
+      real(DP), dimension(NDIM) :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+      real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
+      integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
    contains
       procedure :: dump    => io_dump_particle_info    !! Dumps contents of particle information to file
       procedure :: read_in => io_read_in_particle_info !! Read in a particle information object from an open file
@@ -844,7 +849,6 @@ module swiftest_classes
       end subroutine kick_getacch_int_all_pl
 
       module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
-         !$omp declare simd(kick_getacch_int_one_pl)
          implicit none
          real(DP), intent(in)  :: rji2            !! Square of distance between the two bodies
          real(DP), intent(in)  :: xr, yr, zr      !! Distances between the two bodies in x, y, and z directions
@@ -855,7 +859,6 @@ module swiftest_classes
       end subroutine kick_getacch_int_one_pl
 
       module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, Gmpl, ax, ay, az)
-         !$omp declare simd(kick_getacch_int_one_tp)
          implicit none
          real(DP), intent(in)  :: rji2         !! Square of distance between the test particle and massive body
          real(DP), intent(in)  :: xr, yr, zr   !! Distances between the two bodies in x, y, and z directions
