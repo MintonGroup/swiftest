@@ -53,7 +53,7 @@ program swiftest_driver
       nloops = ceiling(tstop / dt, kind=I8B)
       ioutput = ceiling(t0/ dt, kind=I8B) / int(istep_out, kind=I8B)
       ! Prevent duplicate frames from being written if this is a restarted run
-      if (param%lrestart) then
+      if ((param%lrestart) .and. ((param%out_type == REAL8_TYPE) .or. param%out_type == REAL4_TYPE)) then
          old_t_final = nbody_system%get_old_t_final(param)
       else
          old_t_final = t0

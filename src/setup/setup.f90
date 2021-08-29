@@ -141,21 +141,8 @@ contains
       integer(I4B) :: i
 
       associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
-         select type(param)
-         class is (symba_parameters)
-            param%nciu%ltrack_origin = param%lfragmentation
-         class default
-            param%nciu%ltrack_origin = .false.
-         end select
 
-         select type(param)
-         class is (symba_parameters)
-            ltrack_origin = param%lfragmentation
-         class default
-            ltrack_origin = .false.
-         end select
-
-         if (ltrack_origin) then
+         if (param%nciu%ltrack_origin) then
             cb%info%origin_type = "Initial conditions"
             cb%info%origin_time = param%t0
             cb%info%origin_xh(:) = 0.0_DP

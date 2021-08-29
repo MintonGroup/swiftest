@@ -154,7 +154,7 @@ contains
       integer(I4B)              :: i
       character(STRMAX)         :: errmsg
 
-      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
+      !if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
          if (lfirst) then
             select case(param%out_stat)
             case('APPEND')
@@ -190,7 +190,8 @@ contains
          end select
 
          close(unit = LUN, err = 667, iomsg = errmsg)
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+      !else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+      if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
          call param%nciu%open(param) 
          call self%write_particle_info(param%nciu)
          call param%nciu%close(param)
@@ -1851,6 +1852,7 @@ contains
          end if
          call self%write_hdr(iu, param)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+
          if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)
           
@@ -1870,6 +1872,13 @@ contains
                   open(file=param%outfile, unit=iu, status='OLD')
                   close (unit=BINUNIT, status="delete")
                end if
+            end select
+
+            select type(param)
+            class is (symba_parameters)
+               param%nciu%ltrack_origin = param%lfragmentation
+            class default
+               param%nciu%ltrack_origin = .false.
             end select
 
             select case(param%out_stat)
