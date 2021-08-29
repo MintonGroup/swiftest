@@ -14,18 +14,19 @@ contains
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i, j
-      integer(I8B) :: k
+      integer(I8B) :: k, nplpl
       real(DP) :: oblpot, kecb, kespincb
       real(DP), dimension(self%pl%nbody) :: irh, kepl, kespinpl, pecb
       real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
       real(DP), dimension(self%pl%nbody) :: Lplspinx, Lplspiny, Lplspinz
-      real(DP), dimension(self%pl%nplpl) :: pepl 
+      logical, dimension(self%pl%nbody)  :: lstatus
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
-      logical, dimension(self%pl%nplpl) :: lstatpl
-      logical, dimension(self%pl%nbody) :: lstatus
+      real(DP), dimension(:), allocatable :: pepl 
+      logical, dimension(:), allocatable :: lstatpl
       real(DP) :: hx, hy, hz
 
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+         nplpl = pl%nplpl
          system%Lorbit(:) = 0.0_DP
          system%Lspin(:) = 0.0_DP
          system%Ltot(:) = 0.0_DP
@@ -82,24 +83,35 @@ contains
          end if
    
          ! Do the central body potential energy component first
-         associate(px => pl%xb(1,:), py => pl%xb(2,:), pz => pl%xb(3,:))
-            do concurrent(i = 1:npl, lstatus(i))
-               pecb(i) = -cb%Gmass * pl%mass(i) / sqrt(px(i)**2 + py(i)**2 + pz(i)**2)
-            end do
-         end associate
+         where(.not. lstatus(1:npl))
+            pecb(1:npl) = 0.0_DP
+         end where
+
+         do concurrent(i = 1:npl, lstatus(i))
+            pecb(i) = -cb%Gmass * pl%mass(i) / norm2(pl%xb(:,i)) 
+         end do
    
          ! Do the potential energy between pairs of massive bodies
-         associate(indi => pl%k_plpl(1, :), indj => pl%k_plpl(2, :))
-            do concurrent (k = 1:pl%nplpl)
-               lstatpl(k) = (lstatus(indi(k)) .and. lstatus(indj(k)))
-            end do
+         allocate(lstatpl(nplpl))
+         allocate(pepl(nplpl))
+         do concurrent (k = 1:nplpl)
+            i = pl%k_plpl(1,k)
+            j = pl%k_plpl(2,k)
+            lstatpl(k) = (lstatus(i) .and. lstatus(j))
+         end do
 
-            do concurrent (k = 1:pl%nplpl, lstatpl(k))
-               pepl(k) = -(pl%Gmass(indi(k)) * pl%mass(indj(k))) / norm2(pl%xb(:, indi(k)) - pl%xb(:, indj(k)))
-            end do
-         end associate
+         where(.not.lstatpl(1:nplpl)) 
+            pepl(1:nplpl) = 0.0_DP
+         end where
+
+         do concurrent (k = 1:nplpl, lstatpl(k))
+            i = pl%k_plpl(1,k)
+            j = pl%k_plpl(2,k)
+            pepl(k) = -(pl%Gmass(i) * pl%mass(j)) / norm2(pl%xb(:, i) - pl%xb(:, j))
+         end do
    
          system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lstatus(1:npl))
+         deallocate(lstatpl, pepl)
 
          system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), lstatus(:)))
          if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), lstatus(:)))

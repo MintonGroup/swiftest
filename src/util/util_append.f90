@@ -258,7 +258,6 @@ contains
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
       logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
-
       select type(source)
       class is (swiftest_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
@@ -275,6 +274,8 @@ contains
             call util_append(self%k2, source%k2, nold, nsrc, lsource_mask)
             call util_append(self%Q, source%Q, nold, nsrc, lsource_mask)
             call util_append(self%tlag, source%tlag, nold, nsrc, lsource_mask)
+
+            if (allocated(self%k_plpl)) deallocate(self%k_plpl)
 
             call util_append_body(self, source, lsource_mask)
          end associate

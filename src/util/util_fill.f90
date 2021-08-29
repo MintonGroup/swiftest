@@ -206,6 +206,8 @@ contains
             call util_fill(keeps%vbeg, inserts%vbeg, lfill_list)
             call util_fill(keeps%Ip, inserts%Ip, lfill_list)
             call util_fill(keeps%rot, inserts%rot, lfill_list)
+
+            if (allocated(keeps%k_plpl)) deallocate(keeps%k_plpl)
             
             call util_fill_body(keeps, inserts, lfill_list)
          class default

@@ -36,7 +36,7 @@ contains
       ! Internals
       integer(I4B)              :: i, j
       integer(I8B)              :: k, nplplenc
-      real(DP)                  :: rji2, rlim2, xr, yr, zr
+      real(DP)                  :: rjj, rlim2, xr, yr, zr
       real(DP), dimension(NDIM,self%nbody) :: ah_enc
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc
 
@@ -78,7 +78,7 @@ contains
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)              :: k
-      real(DP)                  :: rji2, fac, rlim2
+      real(DP)                  :: rjj, fac, rlim2
       real(DP), dimension(NDIM) :: dx
 
       if (self%nbody == 0) return
@@ -95,8 +95,8 @@ contains
                      else
                         dx(:) = tp%xh(:,j) - pl%xend(:,i)
                      end if
-                     rji2 = dot_product(dx(:), dx(:))
-                     fac = pl%Gmass(i) / (rji2 * sqrt(rji2))
+                     rjj = dot_product(dx(:), dx(:))
+                     fac = pl%Gmass(i) / (rjj * sqrt(rjj))
                      tp%ah(:,j) = tp%ah(:,j) + fac * dx(:)
                   end IF
                end associate
@@ -123,14 +123,16 @@ contains
       integer(I4B),              intent(in)    :: irec   !! Current recursion level
       integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       ! Internals
-      integer(I4B)              :: i, irm1, irecl, ngood
+      integer(I4B)              :: i, j, irm1, irecl, ngood
+      integer(I8B)              :: k
       real(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
       real(DP), dimension(NDIM) :: dx
       logical                   :: isplpl
-      logical, dimension(self%nenc) :: lgoodlevel
+      logical, dimension(:), allocatable :: lgoodlevel
       integer(I4B), dimension(:), allocatable :: good_idx
 
       if (self%nenc == 0) return
+
 
       select type(self)
       class is (symba_plplenc)
@@ -142,9 +144,10 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            associate(ind1 => self%index1, ind2 => self%index2, npl => pl%nbody, ntp => tp%nbody, nenc => self%nenc)
+            associate(npl => pl%nbody, ntp => tp%nbody, nenc => self%nenc)
                if (npl > 0) pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
                if (ntp > 0) tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE
+               allocate(lgoodlevel(nenc))
 
                irm1 = irec - 1
 
@@ -154,89 +157,89 @@ contains
                   irecl = irec
                end if
 
-               do i = 1, nenc
+               do k = 1, nenc
+                  i = self%index1(k)
+                  j = self%index2(k)
                   if (isplpl) then
-                     lgoodlevel(i) = (pl%levelg(ind1(i)) >= irm1) .and. (pl%levelg(ind2(i)) >= irm1)
+                     lgoodlevel(k) = (pl%levelg(i) >= irm1) .and. (pl%levelg(j) >= irm1)
                   else
-                     lgoodlevel(i) = (pl%levelg(ind1(i)) >= irm1) .and. (tp%levelg(ind2(i)) >= irm1)
+                     lgoodlevel(k) = (pl%levelg(i) >= irm1) .and. (tp%levelg(j) >= irm1)
                   end if
-                  lgoodlevel(i) = (self%status(i) == ACTIVE) .and. lgoodlevel(i)
+                  lgoodlevel(k) = (self%status(k) == ACTIVE) .and. lgoodlevel(k)
                end do
                ngood = count(lgoodlevel(:))
-               if (ngood > 0) then
+               if (ngood > 0_I8B) then
                   allocate(good_idx(ngood))
                   good_idx(:) = pack([(i, i = 1, nenc)], lgoodlevel(:))
 
                   if (isplpl) then
-                     do i = 1, ngood
-                        associate(i1 => ind1(good_idx(i)), i2 => ind2(good_idx(i)))
-                           pl%ah(:,i1) = 0.0_DP
-                           pl%ah(:,i2) = 0.0_DP
-                        end associate
+                     do concurrent (k = 1:ngood)
+                        i = self%index1(good_idx(k))
+                        j = self%index2(good_idx(k))
+                        pl%ah(:,i) = 0.0_DP
+                        pl%ah(:,j) = 0.0_DP
                      end do
                   else
-                     do i = 1, ngood
-                        associate(i2 => ind2(good_idx(i)))
-                           tp%ah(:,i2) = 0.0_DP
-                        end associate
+                     do concurrent (k = 1_I8B:ngood)
+                        j = self%index2(good_idx(k))
+                        tp%ah(:,j) = 0.0_DP
                      end do
                   end if
 
-                  do i = 1, ngood
-                     associate(k => good_idx(i), i1 => ind1(good_idx(i)), i2 => ind2(good_idx(i)))
-                        if (isplpl) then
-                           ri = ((pl%rhill(i1)  + pl%rhill(i2))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
-                           rim1 = ri * (RSHELL**2)
-                           dx(:) = pl%xh(:,i2) - pl%xh(:,i1)
-                        else
-                           ri = ((pl%rhill(i1))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
-                           rim1 = ri * (RSHELL**2)
-                           dx(:) = tp%xh(:,i2) - pl%xh(:,i1)
-                        end if
-                        r2 = dot_product(dx(:), dx(:))
-                        if (r2 < rim1) then
-                           fac = 0.0_DP
-                           lgoodlevel(k) = .false.
-                           cycle
-                        end if
-                        if (r2 < ri) then
-                           ris = sqrt(ri)
-                           r = sqrt(r2)
-                           rr = (ris - r) / (ris * (1.0_DP - RSHELL))
-                           fac = (r2**(-1.5_DP)) * (1.0_DP - 3 * (rr**2) + 2 * (rr**3))
-                        else
-                           ir3 = 1.0_DP / (r2 * sqrt(r2))
-                           fac = ir3
-                        end if
-                        faci = fac * pl%Gmass(i1)
-                        if (isplpl) then
-                           facj = fac * pl%Gmass(i2)
-                           pl%ah(:, i1) = pl%ah(:, i1) + facj * dx(:)
-                           pl%ah(:, i2) = pl%ah(:, i2) - faci * dx(:)
-                        else
-                           tp%ah(:, i2) = tp%ah(:, i2) - faci * dx(:)
-                        end if
-                     end associate
+                  do k = 1, ngood
+                     i = self%index1(good_idx(k))
+                     j = self%index2(good_idx(k))
+                     if (isplpl) then
+                        ri = ((pl%rhill(i)  + pl%rhill(j))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
+                        rim1 = ri * (RSHELL**2)
+                        dx(:) = pl%xh(:,j) - pl%xh(:,i)
+                     else
+                        ri = ((pl%rhill(i))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
+                        rim1 = ri * (RSHELL**2)
+                        dx(:) = tp%xh(:,j) - pl%xh(:,i)
+                     end if
+                     r2 = dot_product(dx(:), dx(:))
+                     if (r2 < rim1) then
+                        fac = 0.0_DP
+                        lgoodlevel(good_idx(k)) = .false.
+                        cycle
+                     end if
+                     if (r2 < ri) then
+                        ris = sqrt(ri)
+                        r = sqrt(r2)
+                        rr = (ris - r) / (ris * (1.0_DP - RSHELL))
+                        fac = (r2**(-1.5_DP)) * (1.0_DP - 3 * (rr**2) + 2 * (rr**3))
+                     else
+                        ir3 = 1.0_DP / (r2 * sqrt(r2))
+                        fac = ir3
+                     end if
+                     faci = fac * pl%Gmass(i)
+                     if (isplpl) then
+                        facj = fac * pl%Gmass(j)
+                        pl%ah(:, i) = pl%ah(:, i) + facj * dx(:)
+                        pl%ah(:, j) = pl%ah(:, j) - faci * dx(:)
+                     else
+                        tp%ah(:, j) = tp%ah(:, j) - faci * dx(:)
+                     end if
                   end do
                   ngood = count(lgoodlevel(:))
-                  if (ngood == 0) return
+                  if (ngood == 0_I8B) return
                   good_idx(1:ngood) = pack([(i, i = 1, nenc)], lgoodlevel(:))
 
                   if (isplpl) then
-                     do i = 1, ngood
-                        associate(i1 => ind1(good_idx(i)), i2 => ind2(good_idx(i)))
-                           pl%vb(:,i1) = pl%vb(:,i1) + sgn * dt * pl%ah(:,i1)
-                           pl%vb(:,i2) = pl%vb(:,i2) + sgn * dt * pl%ah(:,i2)
-                           pl%ah(:,i1) = 0.0_DP
-                           pl%ah(:,i2) = 0.0_DP
-                        end associate
+                     do k = 1, ngood
+                        i = self%index1(good_idx(k))
+                        j = self%index2(good_idx(k))
+                        pl%vb(:,i) = pl%vb(:,i) + sgn * dt * pl%ah(:,i)
+                        pl%vb(:,j) = pl%vb(:,j) + sgn * dt * pl%ah(:,j)
+                        pl%ah(:,i) = 0.0_DP
+                        pl%ah(:,j) = 0.0_DP
                      end do
                   else
-                     do i = 1, ngood
-                        associate(i2 => ind2(good_idx(i)))
-                           tp%vb(:,i2) = tp%vb(:,i2) + sgn * dt * tp%ah(:,i2)
-                           tp%ah(:,i2) = 0.0_DP
-                        end associate
+                     do k = 1, ngood
+                        j = self%index2(good_idx(k))
+                        tp%vb(:,j) = tp%vb(:,j) + sgn * dt * tp%ah(:,j)
+                        tp%ah(:,j) = 0.0_DP
                      end do
                   end if
                end if

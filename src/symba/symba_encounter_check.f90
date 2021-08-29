@@ -99,7 +99,7 @@ contains
       integer(I4B),              intent(in)    :: irec       !! Current recursion level 
       logical                                  :: lany_encounter !! Returns true if there is at least one close encounter  
       ! Internals
-      integer(I4B)              :: k
+      integer(I4B)              :: i, j,k
       real(DP), dimension(NDIM) :: xr, vr
       logical                   :: lencounter, isplpl
       real(DP)                  :: rlim2, rji2
@@ -122,40 +122,40 @@ contains
             allocate(lencmask(self%nenc))
             lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
             if (.not.any(lencmask(:))) return
-            associate(ind1 => self%index1, ind2 => self%index2) 
-               do concurrent(k = 1:self%nenc, lencmask(k))
+            do concurrent(k = 1:self%nenc, lencmask(k))
+               i = self%index1(k)
+               j = self%index2(k)
+               if (isplpl) then
+                  xr(:) = pl%xh(:,j) - pl%xh(:,i)
+                  vr(:) = pl%vb(:,j) - pl%vb(:,i)
+                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), pl%rhill(j), dt, irec, lencounter, self%lvdotr(k))
+               else
+                  xr(:) = tp%xh(:,j) - pl%xh(:,i)
+                  vr(:) = tp%vb(:,j) - pl%vb(:,i)
+                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), 0.0_DP, dt, irec, lencounter, self%lvdotr(k))
+               end if
+               if (lencounter) then
                   if (isplpl) then
-                     xr(:) = pl%xh(:,ind2(k)) - pl%xh(:,ind1(k))
-                     vr(:) = pl%vb(:,ind2(k)) - pl%vb(:,ind1(k))
-                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(ind1(k)), pl%rhill(ind2(k)), dt, irec, lencounter, self%lvdotr(k))
+                     rlim2 = (pl%radius(i) + pl%radius(j))**2
                   else
-                     xr(:) = tp%xh(:,ind2(k)) - pl%xh(:,ind1(k))
-                     vr(:) = tp%vb(:,ind2(k)) - pl%vb(:,ind1(k))
-                     call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(ind1(k)), 0.0_DP, dt, irec, lencounter, self%lvdotr(k))
+                     rlim2 = (pl%radius(i))**2
                   end if
-                  if (lencounter) then
+                  rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+                  if (rji2 > rlim2) then
+                     lany_encounter = .true.
+                     pl%levelg(i) = irec
+                     pl%levelm(i) = MAX(irec, pl%levelm(i))
                      if (isplpl) then
-                        rlim2 = (pl%radius(ind1(k)) + pl%radius(ind2(k)))**2
+                        pl%levelg(j) = irec
+                        pl%levelm(j) = MAX(irec, pl%levelm(j))
                      else
-                        rlim2 = (pl%radius(ind1(k)))**2
+                        tp%levelg(j) = irec
+                        tp%levelm(j) = MAX(irec, tp%levelm(j))
                      end if
-                     rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
-                     if (rji2 > rlim2) then
-                        lany_encounter = .true.
-                        pl%levelg(ind1(k)) = irec
-                        pl%levelm(ind1(k)) = MAX(irec, pl%levelm(ind1(k)))
-                        if (isplpl) then
-                           pl%levelg(ind2(k)) = irec
-                           pl%levelm(ind2(k)) = MAX(irec, pl%levelm(ind2(k)))
-                        else
-                           tp%levelg(ind2(k)) = irec
-                           tp%levelm(ind2(k)) = MAX(irec, tp%levelm(ind2(k)))
-                        end if
-                        self%level(k) = irec
-                     end if
-                  end if   
-               end do
-            end associate
+                     self%level(k) = irec
+                  end if
+               end if   
+            end do
          end select
       end select
 

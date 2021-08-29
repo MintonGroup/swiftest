@@ -152,12 +152,12 @@ contains
       ! write(*,        "(' -------------------------------------------------------------------------------------')")
       ! call calculate_system_energy(linclude_fragments=.true.)
       if (lfailure) then
-         ! write(*,*) "symba_frag_pos failed after: ",try," tries"
+          write(*,*) "symba_frag_pos failed after: ",try," tries"
          do ii = 1, nfrag
             vb_frag(:, ii) = vcom(:)
          end do
-      ! else
-      !    write(*,*) "symba_frag_pos succeeded after: ",try," tries"
+       else
+          write(*,*) "symba_frag_pos succeeded after: ",try," tries"
       !    write(*,        "(' dL_tot should be very small' )")
       !    write(*,fmtlabel) ' dL_tot      |', dLmag / Lmag_before
       !    write(*,        "(' dE_tot should be negative and equal to Qloss' )")

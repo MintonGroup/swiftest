@@ -417,6 +417,8 @@ contains
             call util_spill(keeps%Ip, discards%Ip, lspill_list, ldestructive)
             call util_spill(keeps%rot, discards%rot, lspill_list, ldestructive)
 
+            if (ldestructive .and. allocated(keeps%k_plpl)) deallocate(keeps%k_plpl)
+
             call util_spill_body(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on swiftest_pl'

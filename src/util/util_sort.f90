@@ -13,8 +13,10 @@ contains
       character(*),         intent(in)    :: sortby    !! Sorting attribute
       logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -23,6 +25,7 @@ contains
       end if
 
       associate(body => self, n => self%nbody)
+         allocate(ind(n))
          select case(sortby)
          case("id")
             call util_sort(direction * body%id(1:n), ind(1:n))
@@ -53,7 +56,6 @@ contains
 
       return
    end subroutine util_sort_body
-
 
 
    module subroutine util_sort_dp(arr)
@@ -235,8 +237,10 @@ contains
       character(*),       intent(in)    :: sortby    !! Sorting attribute
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -245,6 +249,7 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
          select case(sortby)
          case("Gmass","mass")
             call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
@@ -286,8 +291,10 @@ contains
       character(*),       intent(in)    :: sortby    !! Sorting attribute
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -296,6 +303,7 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
+         allocate(ind(ntp))
          select case(sortby)
          case("peri")
             call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
@@ -505,6 +513,8 @@ contains
          call util_sort_rearrange(pl%k2,      ind, npl)
          call util_sort_rearrange(pl%Q,       ind, npl)
          call util_sort_rearrange(pl%tlag,    ind, npl)
+
+         if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
 
          call util_sort_rearrange_body(pl, ind)
       end associate

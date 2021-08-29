@@ -646,7 +646,7 @@ contains
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
 
       if (self%nbody == 0) return
@@ -658,6 +658,7 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
          select case(sortby)
          case("nplenc")
             call util_sort(direction * pl%nplenc(1:npl), ind(1:npl))
@@ -696,7 +697,7 @@ contains
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
 
       if (self%nbody == 0) return
@@ -708,6 +709,7 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
+         allocate(ind(ntp))
          select case(sortby)
          case("nplenc")
             call util_sort(direction * tp%nplenc(1:ntp), ind(1:ntp))

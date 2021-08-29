@@ -141,8 +141,10 @@ contains
       character(*),  intent(in)    :: sortby    !! Sorting attribute
       logical,       intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B) :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -151,6 +153,7 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
          select case(sortby)
          case("eta")
             call util_sort(direction * pl%eta(1:npl), ind(1:npl))

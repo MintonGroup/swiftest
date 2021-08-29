@@ -307,6 +307,8 @@ contains
       call util_resize(self%Q, nnew)
       call util_resize(self%tlag, nnew)
 
+      if (allocated(self%k_plpl)) deallocate(self%k_plpl)
+
       return
    end subroutine util_resize_pl
 

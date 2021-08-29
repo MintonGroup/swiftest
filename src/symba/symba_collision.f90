@@ -740,7 +740,7 @@ contains
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       ! Internals
-      logical,      dimension(self%nenc)      :: lplpl_collision
+      logical,      dimension(:), allocatable :: lplpl_collision
       logical,      dimension(:), allocatable :: lplpl_unique_parent
       integer(I4B), dimension(:), pointer     :: plparent
       integer(I4B), dimension(:), allocatable :: collision_idx, unique_parent_idx
@@ -749,6 +749,7 @@ contains
       select type (pl => system%pl)
       class is (symba_pl)
          associate(plplenc_list => self, nplplenc => self%nenc, idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
+            allocate(lplpl_collision(nplplenc))
             lplpl_collision(:) = plplenc_list%status(1:nplplenc) == COLLISION
             if (.not.any(lplpl_collision)) return 
             ! Collisions have been detected in this step. So we need to determine which of them are between unique bodies.
@@ -1139,6 +1140,7 @@ contains
       ! Internals
       real(DP) :: Eorbit_before, Eorbit_after
       logical :: lplpl_collision
+      character(len=STRMAX) :: timestr
    
       associate(plplenc_list => self, plplcollision_list => system%plplcollision_list)
          select type(pl => system%pl)
@@ -1157,7 +1159,8 @@ contains
                end if
 
                do
-                  write(*, *) "Collision between massive bodies detected at time t = ", t
+                  write(timestr,*) t
+                  write(*, *) "Collision between massive bodies detected at time t = " // trim(adjustl(timestr))
                   if (param%lfragmentation) then
                      call plplcollision_list%resolve_fragmentations(system, param)
                   else

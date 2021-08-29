@@ -236,13 +236,12 @@ contains
                      tp%status(i) = DISCARDED_PLR
                      tp%lmask(i) = .false.
                      pl%ldiscard(j) = .true.
-                     write(*, *) "Particle ", tp%id(i), " too close to massive body ", pl%id(j), " at t = ", t
                      write(idstri, *) tp%id(i)
                      write(idstrj, *) pl%id(j)
                      write(timestr, *) param%t
-                     write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
-                                            // "  too close to massive body " // trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstrj)) &
-                                            // " at t = " // trim(adjustl(timestr))
+                     write(*, *) "Test particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
+                                                  // "  too close to massive body " // trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstrj)) &
+                                                  // " at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      exit
                   end if
