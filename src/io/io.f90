@@ -67,6 +67,10 @@ contains
             Ecoll_error = param%Ecollisions / abs(param%Eorbit_orig)
             Etotal_error = (Eorbit_now - param%Ecollisions - param%Eorbit_orig - param%Euntracked) / abs(param%Eorbit_orig)
             Merror = (GMtot_now - param%GMtot_orig) / param%GMtot_orig
+            if (Merror < -10 * epsilon(Merror)) then
+               write(*,*) 'Mass loss! Halting!'
+               call util_exit(FAILURE)
+            end if
             write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
          end if
       end associate
