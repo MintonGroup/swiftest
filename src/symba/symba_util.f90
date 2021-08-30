@@ -409,15 +409,16 @@ contains
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, j, k, npl, nencmin, idnew1, idnew2, idold1, idold2
+      integer(I4B) :: i, j, k, npl, nadd, nencmin, idnew1, idnew2, idold1, idold2
       logical, dimension(:), allocatable :: lmask, ldump_mask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
       integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp, nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
 
-      associate(pl => self, pl_adds => system%pl_adds, nadd => system%pl_adds%nbody)
+      associate(pl => self, pl_adds => system%pl_adds)
 
          npl = pl%nbody
+         nadd = pl_adds%nbody)
          if (npl == 0) return
          ! Deallocate any temporary variables
          if (allocated(pl%xbeg)) deallocate(pl%xbeg)

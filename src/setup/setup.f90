@@ -211,38 +211,45 @@ contains
 
       self%lfirst = .true.
 
-      if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%info)) deallocate(self%info)
+      if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%ldiscard)) deallocate(self%ldiscard)
+      if (allocated(self%lmask)) deallocate(self%lmask)
+      if (allocated(self%mu)) deallocate(self%mu)
       if (allocated(self%xh)) deallocate(self%xh)
       if (allocated(self%vh)) deallocate(self%vh)
       if (allocated(self%xb)) deallocate(self%xb)
       if (allocated(self%vb)) deallocate(self%vb)
       if (allocated(self%ah)) deallocate(self%ah)
-      if (allocated(self%ir3h)) deallocate(self%ir3h)
-      if (allocated(self%mu)) deallocate(self%mu)
-      if (allocated(self%lmask)) deallocate(self%lmask)
       if (allocated(self%aobl)) deallocate(self%aobl)
-      if (allocated(self%atide)) deallocate(self%lmask)
       if (allocated(self%agr)) deallocate(self%lmask)
+      if (allocated(self%atide)) deallocate(self%lmask)
+      if (allocated(self%ir3h)) deallocate(self%ir3h)
+      if (allocated(self%a)) deallocate(self%a)
+      if (allocated(self%e)) deallocate(self%e)
+      if (allocated(self%e)) deallocate(self%e)
+      if (allocated(self%inc)) deallocate(self%inc)
+      if (allocated(self%capom)) deallocate(self%capom)
+      if (allocated(self%omega)) deallocate(self%omega)
+      if (allocated(self%capm)) deallocate(self%capm)
 
       if (n == 0) return
 
-      allocate(self%id(n))
       allocate(self%info(n))
+      allocate(self%id(n))
       allocate(self%status(n))
       allocate(self%ldiscard(n))
+      allocate(self%lmask(n))
+      allocate(self%mu(n))
       allocate(self%xh(NDIM, n))
       allocate(self%vh(NDIM, n))
       allocate(self%xb(NDIM, n))
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
-      allocate(self%mu(n))
-      allocate(self%lmask(n))
 
-      self%id(:)   = 0
+      self%id(:) = 0
       do i = 1, n
          call self%info(i)%set_value(&
             name = "UNNAMED", &
