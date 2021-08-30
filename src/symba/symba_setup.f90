@@ -43,9 +43,12 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call symba_setup_pl(self, n, param) 
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%ncomp)) deallocate(self%ncomp)
+
+      if (n == 0) return
+
       allocate(self%ncomp(n))
       self%ncomp(:) = 0
 
@@ -69,8 +72,7 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call setup_pl(self, n, param) 
-      if (n <= 0) return
-
+      if (n < 0) return
 
       if (allocated(self%lcollision)) deallocate(self%lcollision)
       if (allocated(self%lencounter)) deallocate(self%lencounter)
@@ -83,6 +85,8 @@ contains
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
       if (allocated(self%kin)) deallocate(self%kin)
+
+      if (n == 0) return
 
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
@@ -123,9 +127,12 @@ contains
       integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
 
       call setup_encounter(self, n)
-      if (n == 0) return
+      if (n < 0) return
 
       if (allocated(self%level)) deallocate(self%level)
+
+      if (n ==0) return
+
       allocate(self%level(n))
 
       self%level(:) = -1
@@ -148,12 +155,14 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_tp does not have its own setup method so we use the base method for swiftest_tp
       call setup_tp(self, n, param) 
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%nplenc)) deallocate(self%nplenc)
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
       if (allocated(self%info)) deallocate(self%info)
+
+      if (n == 0) return
 
       allocate(self%nplenc(n))
       allocate(self%levelg(n))

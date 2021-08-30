@@ -82,7 +82,7 @@ contains
       integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
 
       self%nenc = n
-      if (n == 0) return
+      if (n < 0) return
 
       if (allocated(self%lvdotr)) deallocate(self%lvdotr)
       if (allocated(self%status)) deallocate(self%status)
@@ -96,6 +96,8 @@ contains
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
       if (allocated(self%t)) deallocate(self%t)
+
+      if (n == 0) return
 
       allocate(self%lvdotr(n))
       allocate(self%status(n))
@@ -205,7 +207,8 @@ contains
       integer(I4B) :: i
 
       self%nbody = n
-      if (n <= 0) return
+      if (n < 0) return
+
       self%lfirst = .true.
 
       if (allocated(self%id)) deallocate(self%id)
@@ -220,6 +223,11 @@ contains
       if (allocated(self%ir3h)) deallocate(self%ir3h)
       if (allocated(self%mu)) deallocate(self%mu)
       if (allocated(self%lmask)) deallocate(self%lmask)
+      if (allocated(self%aobl)) deallocate(self%aobl)
+      if (allocated(self%atide)) deallocate(self%lmask)
+      if (allocated(self%agr)) deallocate(self%lmask)
+
+      if (n == 0) return
 
       allocate(self%id(n))
       allocate(self%info(n))
@@ -263,17 +271,14 @@ contains
       self%mu(:)     = 0.0_DP
 
       if (param%loblatecb) then
-         if (allocated(self%aobl)) deallocate(self%aobl)
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if
       if (param%ltides) then
-         if (allocated(self%atide)) deallocate(self%lmask)
          allocate(self%atide(NDIM, n))
          self%atide(:,:) = 0.0_DP
       end if
       if (param%lgr) then
-         if (allocated(self%agr)) deallocate(self%lmask)
          allocate(self%agr(NDIM, n))
          self%agr(:,:) = 0.0_DP
       end if
@@ -296,14 +301,21 @@ contains
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
-      if (n <= 0) return 
+      if (n < 0) return 
 
-      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%mass)) deallocate(self%mass)
       if (allocated(self%Gmass)) deallocate(self%Gmass)
       if (allocated(self%rhill)) deallocate(self%rhill)
+      if (allocated(self%radius)) deallocate(self%radius)
+      if (allocated(self%density)) deallocate(self%density)
+      if (allocated(self%rot)) deallocate(self%rot)
+      if (allocated(self%Ip)) deallocate(self%Ip)
+      if (allocated(self%k2)) deallocate(self%k2)
+      if (allocated(self%Q)) deallocate(self%Q)
+      if (allocated(self%tlag)) deallocate(self%tlag)
 
-      allocate(swiftest_particle_info :: self%info(n))
+      if (n == 0) return
+
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
@@ -315,8 +327,6 @@ contains
       self%nplpl = 0   
 
       if (param%lclose) then
-         if (allocated(self%radius)) deallocate(self%radius)
-         if (allocated(self%density)) deallocate(self%density)
          allocate(self%radius(n))
          allocate(self%density(n))
          self%radius(:) = 0.0_DP
@@ -324,8 +334,6 @@ contains
       end if
 
       if (param%lrotation) then
-         if (allocated(self%rot)) deallocate(self%rot)
-         if (allocated(self%Ip)) deallocate(self%Ip)
          allocate(self%rot(NDIM, n))
          allocate(self%Ip(NDIM, n))
          self%rot(:,:) = 0.0_DP
@@ -333,9 +341,6 @@ contains
       end if
 
       if (param%ltides) then
-         if (allocated(self%k2)) deallocate(self%k2)
-         if (allocated(self%Q)) deallocate(self%Q)
-         if (allocated(self%tlag)) deallocate(self%tlag)
          allocate(self%k2(n))
          allocate(self%Q(n))
          allocate(self%tlag(n))
@@ -362,19 +367,18 @@ contains
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
-      if (n <= 0) return
+      if (n < 0) return
 
-      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%isperi)) deallocate(self%isperi)
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
 
-      allocate(swiftest_particle_info :: self%info(n))
+      if (n == 0) return
+
       allocate(self%isperi(n))
       allocate(self%peri(n))
       allocate(self%atp(n))
 
-      self%info(:)%particle_type = TP_TYPE_NAME
       self%isperi(:) = 0
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
