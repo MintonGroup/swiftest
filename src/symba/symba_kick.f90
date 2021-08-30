@@ -77,7 +77,7 @@ contains
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
-      integer(I4B)              :: k
+      integer(I4B)              :: i, j, k
       real(DP)                  :: rjj, fac, rlim2
       real(DP), dimension(NDIM) :: dx
 
@@ -88,18 +88,18 @@ contains
             call helio_kick_getacch_tp(tp, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
-               associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
-                  if (tp%lmask(j)) THEN
-                     if (lbeg) then
-                        dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
-                     else
-                        dx(:) = tp%xh(:,j) - pl%xend(:,i)
-                     end if
-                     rjj = dot_product(dx(:), dx(:))
-                     fac = pl%Gmass(i) / (rjj * sqrt(rjj))
-                     tp%ah(:,j) = tp%ah(:,j) + fac * dx(:)
-                  end IF
-               end associate
+               i = pltpenc_list%index1(k)
+               j = pltpenc_list%index2(k)
+               if (tp%lmask(j)) THEN
+                  if (lbeg) then
+                     dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
+                  else
+                     dx(:) = tp%xh(:,j) - pl%xend(:,i)
+                  end if
+                  rjj = dot_product(dx(:), dx(:))
+                  fac = pl%Gmass(i) / (rjj * sqrt(rjj))
+                  tp%ah(:,j) = tp%ah(:,j) + fac * dx(:)
+               end IF
             end do
          end associate
       end select

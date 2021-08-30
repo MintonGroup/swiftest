@@ -322,6 +322,9 @@ contains
 
                call symba_discard_nonplpl_conservation(self, system, param)
 
+               ! Save the add/discard information to file
+               call system%write_discard(param)
+
                call pl%rearray(system, param)
 
                if (param%lenergy) then

@@ -73,9 +73,12 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
       ! Internals
       logical, dimension(:), allocatable :: ldiscard
+      integer(I4B) :: npl, ntp
 
-      associate(tp => self, ntp => self%nbody, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
+      associate(tp => self, cb => system%cb, pl => system%pl)
          if ((ntp == 0) .or. (npl ==0)) return 
+         ntp = tp%nbody
+         npl = pl%nbody
 
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then

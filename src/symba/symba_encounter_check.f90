@@ -178,7 +178,7 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
-      integer(I4B)                              :: i, j, k,nenc
+      integer(I4B)                              :: i, j, k,nenc, plind, tpind
       real(DP),     dimension(NDIM)             :: xr, vr
       logical,      dimension(:,:), allocatable :: lencounter, loc_lvdotr
   
@@ -212,15 +212,15 @@ contains
                class is (symba_pl)
                   pl%lencounter(1:npl) = .false.
                   do k = 1, nenc
-                     associate(plind => pltpenc_list%index1(k), tpind => pltpenc_list%index2(k))
-                        pl%lencounter(plind) = .true.
-                        pl%levelg(plind) = irec
-                        pl%levelm(plind) = irec
-                        tp%levelg(tpind) = irec
-                        tp%levelm(tpind) = irec
-                        pl%ntpenc(plind) = pl%ntpenc(plind) + 1
-                        tp%nplenc(tpind) = tp%nplenc(tpind) + 1
-                     end associate
+                     plind = pltpenc_list%index1(k)
+                     tpind = pltpenc_list%index2(k)
+                     pl%lencounter(plind) = .true.
+                     pl%levelg(plind) = irec
+                     pl%levelm(plind) = irec
+                     tp%levelg(tpind) = irec
+                     tp%levelm(tpind) = irec
+                     pl%ntpenc(plind) = pl%ntpenc(plind) + 1
+                     tp%nplenc(tpind) = tp%nplenc(tpind) + 1
                   end do
                end select
             end associate

@@ -285,19 +285,19 @@ contains
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       ! Internals
-      integer(I8B) :: i, j, counter, npl, nplm
+      integer(I8B) :: i, j, counter, npl, nplm, nplpl, nplplm
 
-      associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
+      associate(pl => self)
          npl = int(self%nbody, kind=I8B)
          call pl%sort("mass", ascending=.false.)
 
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
 
-         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
-         nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
+         pl%nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
+         pl%nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
          if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
-         allocate(self%k_plpl(2, nplpl))
+         allocate(self%k_plpl(2, pl%nplpl))
          do i = 1, npl
             counter = (i - 1_I8B) * npl - i * (i - 1_I8B) / 2_I8B + 1_I8B
             do j = i + 1_I8B, npl
@@ -418,7 +418,7 @@ contains
       associate(pl => self, pl_adds => system%pl_adds)
 
          npl = pl%nbody
-         nadd = pl_adds%nbody)
+         nadd = pl_adds%nbody
          if (npl == 0) return
          ! Deallocate any temporary variables
          if (allocated(pl%xbeg)) deallocate(pl%xbeg)
@@ -431,7 +431,7 @@ contains
          call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
          npl = pl%nbody
          call tmp%setup(0,param)
-         if (allocated(tmp)) deallocate(tmp)
+         deallocate(tmp)
          deallocate(lmask)
 
          ! Store the original plplenc list so we don't remove any of the original encounters
@@ -869,8 +869,6 @@ contains
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
@@ -911,10 +909,8 @@ contains
       class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
   
-      associate(keeps => self, nenc => self%nenc)
+      associate(keeps => self)
          select type(discards)
          class is (symba_encounter)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
@@ -940,8 +936,6 @@ contains
       class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components

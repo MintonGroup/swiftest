@@ -745,11 +745,12 @@ contains
       logical,      dimension(:), allocatable :: lplpl_unique_parent
       integer(I4B), dimension(:), pointer     :: plparent
       integer(I4B), dimension(:), allocatable :: collision_idx, unique_parent_idx
-      integer(I4B)                            :: i, index_coll, ncollisions, nunique_parent
+      integer(I4B)                            :: i, index_coll, ncollisions, nunique_parent, nplplenc
 
       select type (pl => system%pl)
       class is (symba_pl)
-         associate(plplenc_list => self, nplplenc => self%nenc, idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
+         associate(plplenc_list => self, idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
+            nplplenc = plplenc_list%nenc
             allocate(lplpl_collision(nplplenc))
             lplpl_collision(:) = plplenc_list%status(1:nplplenc) == COLLISION
             if (.not.any(lplpl_collision)) return 
