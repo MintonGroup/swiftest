@@ -469,9 +469,10 @@ contains
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
-      integer(I4B)                              :: k
+      integer(I4B)                              :: i, j, k, nenc
       real(DP)                                  :: rlim, Gmtot
       logical                                   :: isplpl
+      character(len=STRMAX)                     :: timestr, idstri, idstrj
 
       lany_collision = .false.
       if (self%nenc == 0) return
@@ -487,64 +488,78 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            associate(nenc => self%nenc, ind1 => self%index1, ind2 => self%index2)
-               allocate(lmask(nenc))
-               lmask(:) = ((self%status(1:nenc) == ACTIVE) .and. (pl%levelg(ind1(1:nenc)) >= irec))
-               if (isplpl) then
-                  lmask(:) = lmask(:) .and. (pl%levelg(ind2(1:nenc)) >= irec)
-               else
-                  lmask(:) = lmask(:) .and. (tp%levelg(ind2(1:nenc)) >= irec)
-               end if
-               if (.not.any(lmask(:))) return
+            nenc = self%nenc
+            nenc = self%nenc
+            allocate(lmask(nenc))
+            lmask(:) = ((self%status(1:nenc) == ACTIVE) .and. (pl%levelg(self%index1(1:nenc)) >= irec))
+            if (isplpl) then
+               lmask(:) = lmask(:) .and. (pl%levelg(self%index2(1:nenc)) >= irec)
+            else
+               lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
+            end if
+            if (.not.any(lmask(:))) return
 
-               allocate(lcollision(nenc))
-               lcollision(:) = .false.
+            allocate(lcollision(nenc))
+            lcollision(:) = .false.
 
-               if (isplpl) then
-                  do concurrent(k = 1:nenc, lmask(k))
-                     xr(:) = pl%xh(:, ind1(k)) - pl%xh(:, ind2(k)) 
-                     vr(:) = pl%vb(:, ind1(k)) - pl%vb(:, ind2(k))
-                     rlim = pl%radius(ind1(k)) + pl%radius(ind2(k))
-                     Gmtot = pl%Gmass(ind1(k)) + pl%Gmass(ind2(k))
-                     lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k))
-                  end do
-               else
-                  do concurrent(k = 1:nenc, lmask(k))
-                     xr(:) = pl%xh(:, ind1(k)) - tp%xh(:, ind2(k)) 
-                     vr(:) = pl%vb(:, ind1(k)) - tp%vb(:, ind2(k))
-                     lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(ind1(k)), pl%radius(ind1(k)), dt, self%lvdotr(k))
-                  end do
-               end if
-
-               if (any(lcollision(1:nenc))) call pl%xh2xb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
-               do k = 1, nenc
-                  if (lcollision(k)) self%status(k) = COLLISION
-                  self%t(k) = t
-                  self%x1(:,k) = pl%xh(:,ind1(k)) + system%cb%xb(:)
-                  self%v1(:,k) = pl%vb(:,ind1(k)) 
-                  if (isplpl) then
-                     self%x2(:,k) = pl%xh(:,ind2(k)) + system%cb%xb(:)
-                     self%v2(:,k) = pl%vb(:,ind2(k)) 
-                     if (lcollision(k)) then
-                        ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional family
-                        if (pl%lcollision(ind1(k)) .or. pl%lcollision(ind2(k))) call pl%make_family([ind1(k),ind2(k)])
-   
-                        ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
-                        pl%lcollision([ind1(k), ind2(k)]) = .true.
-                        pl%ldiscard([ind1(k), ind2(k)]) = .true.
-                        pl%status([ind1(k), ind2(k)]) = COLLISION
-                     end if
-                  else
-                     self%x2(:,k) = tp%xh(:,ind2(k)) + system%cb%xb(:)
-                     self%v2(:,k) = tp%vb(:,ind2(k)) 
-                     if (lcollision(k)) then
-                        tp%status(ind2(k)) = DISCARDED_PLR
-                        tp%ldiscard(ind2(k)) = .true.
-                        write(*,*) 'Test particle ',tp%id(ind2(k)), ' collided with massive body ',pl%id(ind1(k)), ' at time ',t
-                     end if
-                  end if
+            if (isplpl) then
+               do concurrent(k = 1:nenc, lmask(k))
+                  i = self%index1(k)
+                  j = self%index2(k)
+                  xr(:) = pl%xh(:, i) - pl%xh(:, j) 
+                  vr(:) = pl%vb(:, i) - pl%vb(:, j)
+                  rlim = pl%radius(i) + pl%radius(j)
+                  Gmtot = pl%Gmass(i) + pl%Gmass(j)
+                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k))
                end do
-            end associate
+            else
+               do concurrent(k = 1:nenc, lmask(k))
+                  i = self%index1(k)
+                  j = self%index2(k)
+                  xr(:) = pl%xh(:, i) - tp%xh(:, j) 
+                  vr(:) = pl%vb(:, i) - tp%vb(:, j)
+                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k))
+               end do
+            end if
+
+            if (any(lcollision(1:nenc))) call pl%xh2xb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+            do k = 1, nenc
+               i = self%index1(k)
+               j = self%index2(k)
+               if (lcollision(k)) self%status(k) = COLLISION
+               self%t(k) = t
+               self%x1(:,k) = pl%xh(:,i) + system%cb%xb(:)
+               self%v1(:,k) = pl%vb(:,i) 
+               if (isplpl) then
+                  self%x2(:,k) = pl%xh(:,j) + system%cb%xb(:)
+                  self%v2(:,k) = pl%vb(:,j) 
+                  if (lcollision(k)) then
+                     ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional family
+                     if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_family([i,j])
+
+                     ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
+                     pl%lcollision([i, j]) = .true.
+                     pl%ldiscard([i, j]) = .true.
+                     pl%status([i, j]) = COLLISION
+                     call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
+                     call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,j), discard_vh=pl%vh(:,j))
+                  end if
+               else
+                  self%x2(:,k) = tp%xh(:,j) + system%cb%xb(:)
+                  self%v2(:,k) = tp%vb(:,j) 
+                  if (lcollision(k)) then
+                     tp%status(j) = DISCARDED_PLR
+                     tp%ldiscard(j) = .true.
+                     write(idstri, *) pl%id(i)
+                     write(idstrj, *) tp%id(j)
+                     write(timestr, *) t
+                     call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_xh=tp%xh(:,j), discard_vh=tp%vh(:,j))
+                     write(*, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
+                             //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
+                             //  " at t = " // trim(adjustl(timestr))
+                  end if
+               end if
+            end do
          end select
       end select
 
@@ -1167,6 +1182,7 @@ contains
       real(DP) :: Eorbit_before, Eorbit_after
       logical :: lplpl_collision
       character(len=STRMAX) :: timestr
+      class(symba_parameters), allocatable :: tmp_param
    
       associate(plplenc_list => self, plplcollision_list => system%plplcollision_list)
          select type(pl => system%pl)
@@ -1187,6 +1203,8 @@ contains
                do
                   write(timestr,*) t
                   write(*, *) "Collision between massive bodies detected at time t = " // trim(adjustl(timestr))
+                  allocate(tmp_param, source=param)
+                  tmp_param%t = t
                   if (param%lfragmentation) then
                      call plplcollision_list%resolve_fragmentations(system, param)
                   else
@@ -1199,14 +1217,15 @@ contains
                   if ((system%pl_adds%nbody == 0) .and. (system%pl_discards%nbody == 0)) exit
 
                   ! Save the add/discard information to file
-                  call system%write_discard(param)
+                  call system%write_discard(tmp_param)
 
                   ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
-                  call pl%rearray(system, param)
+                  call pl%rearray(system, tmp_param)
 
                   ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
                   call system%pl_discards%setup(0, param)
                   call system%pl_adds%setup(0, param)
+                  deallocate(tmp_param)
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plplcollision_list 
                   lplpl_collision = plplenc_list%collision_check(system, param, t, dt, irec)
