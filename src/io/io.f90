@@ -67,14 +67,15 @@ contains
             Ecoll_error = param%Ecollisions / abs(param%Eorbit_orig)
             Etotal_error = (Eorbit_now - param%Ecollisions - param%Eorbit_orig - param%Euntracked) / abs(param%Eorbit_orig)
             Merror = (GMtot_now - param%GMtot_orig) / param%GMtot_orig
+            write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
             if (Merror < -10 * epsilon(Merror)) then
                write(*,*) 'Mass loss! Halting!'
+               call pl%xv2el(cb)
                call param%nciu%open(param)
                call pl%write_frame(param%nciu, param)
                call param%nciu%close(param)
                call util_exit(FAILURE)
             end if
-            write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
          end if
       end associate
 
@@ -1868,7 +1869,6 @@ contains
          else
             open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
          end if
-         call self%write_hdr(iu, param)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
 
          if (lfirst) then
@@ -1904,7 +1904,6 @@ contains
          else
             call param%nciu%open(param)
          end if
-         call self%write_hdr(param%nciu, param)
       end if
 
       if (param%lgr) then
@@ -1919,11 +1918,13 @@ contains
       
       ! Write out each data type frame
       if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
+         call self%write_hdr(iu, param)
          call cb%write_frame(iu, param)
          call pl%write_frame(iu, param)
          call tp%write_frame(iu, param)
          close(iu, err = 667, iomsg = errmsg)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         call self%write_hdr(param%nciu, param)
          call cb%write_frame(param%nciu, param)
          call pl%write_frame(param%nciu, param)
          call tp%write_frame(param%nciu, param)

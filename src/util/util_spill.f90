@@ -318,10 +318,12 @@ contains
       logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
       ! Internals
+      integer(I4B) :: nbody_old
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
       associate(keeps => self)
+         
          call util_spill(keeps%id, discards%id, lspill_list, ldestructive)
          call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
          call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
@@ -343,10 +345,12 @@ contains
          call util_spill(keeps%omega, discards%omega, lspill_list, ldestructive)
          call util_spill(keeps%capm, discards%capm, lspill_list, ldestructive)
 
+         nbody_old = keeps%nbody
+
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nbody values for both the keeps and discareds
-         discards%nbody = count(lspill_list(:))
-         keeps%nbody = keeps%nbody - discards%nbody
+         discards%nbody = count(lspill_list(1:nbody_old))
+         if (ldestructive) keeps%nbody = nbody_old- discards%nbody
       end associate
      
       return
@@ -363,6 +367,8 @@ contains
       class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      ! Internals
+      integer(I4B) :: nenc_old
   
       associate(keeps => self)
          call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)
@@ -378,10 +384,12 @@ contains
          call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
          call util_spill(keeps%t, discards%t, lspill_list, ldestructive)
 
+         nenc_old = keeps%nenc
+
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nenc values for both the keeps and discareds
-         discards%nenc = count(lspill_list(:))
-         keeps%nenc = count(.not.lspill_list(:)) 
+         discards%nenc = count(lspill_list(1:nenc_old))
+         if (ldestructive) keeps%nenc = nenc_old - discards%nenc
       end associate
    
       return

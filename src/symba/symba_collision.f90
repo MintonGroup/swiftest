@@ -989,18 +989,20 @@ contains
                call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
                ! Record how many bodies were added in this event
                pl_adds%ncomp(nstart:nend) = plnew%nbody
-               call plnew%setup(0, param)
 
                ! Add the discarded bodies to the discard list
                pl%status(family(:)) = MERGED
-               lmask(:) = .false.
-               lmask(family(:)) = .true.
                pl%ldiscard(family(:)) = .true.
                pl%lcollision(family(:)) = .true.
+               lmask(:) = .false.
+               lmask(family(:)) = .true.
+               
+               call plnew%setup(0, param)
+               call pl%spill(plnew, lmask, ldestructive=.false.)
    
                nstart = pl_discards%nbody + 1
                nend = pl_discards%nbody + nfamily
-               call pl_discards%append(pl, lmask)
+               call pl_discards%append(plnew, lsource_mask=[(.true., i = 1, nfamily)])
 
                ! Record how many bodies were subtracted in this event
                pl_discards%ncomp(nstart:nend) = nfamily 
