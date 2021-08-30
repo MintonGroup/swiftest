@@ -39,12 +39,19 @@ contains
       class(swiftest_particle_info),  intent(inout) :: self
       class(swiftest_particle_info),  intent(in)    :: source
 
-      self%name = source%name 
-      self%particle_type = source%particle_type
-      self%origin_type = source%origin_type
-      self%origin_time = source%origin_time
-      self%origin_xh(:) = source%origin_xh(:)
-      self%origin_vh(:) = source%origin_vh(:)
+      call self%set_value(&
+         name = source%name, &
+         particle_type = source%particle_type, &
+         status = source%status, & 
+         origin_type = source%origin_type, &
+         origin_time = source%origin_time, & 
+         origin_xh = source%origin_xh(:), &
+         origin_vh = source%origin_vh(:), &
+         discard_time = source%discard_time, & 
+         discard_xh = source%discard_xh(:), &
+         discard_vh = source%discard_vh(:), &
+         discard_body_id = source%discard_body_id &
+      )
 
       return
    end subroutine util_copy_particle_info

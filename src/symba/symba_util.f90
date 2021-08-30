@@ -454,6 +454,7 @@ contains
          ! Reset all of the status flags for this body
          where(pl%status(1:npl) /= INACTIVE) 
             pl%status(1:npl) = ACTIVE
+            pl%info(1:npl)%status = "ACTIVE"
             pl%ldiscard(1:npl) = .false.
             pl%lcollision(1:npl) = .false.
             pl%lmask(1:npl) = .true.

@@ -9,65 +9,74 @@ module swiftest_classes
 
 
    type :: netcdf_parameters
-      integer(I4B) :: out_type          !! NetCDF output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
-      integer(I4B) :: ncid              !! NetCDF ID for the output file
-      integer(I4B) :: dimids(3)         !! Dimensions of the NetCDF file
-      integer(I4B) :: time_dimid        !! NetCDF ID for the time dimension 
-      integer(I4B) :: id_dimid          !! NetCDF ID for the particle id dimension
-      integer(I4B) :: str_dimid         !! NetCDF ID for the character string dimension
-      integer(I4B) :: time_varid        !! NetCDF ID for the time variable
-      integer(I4B) :: id_varid          !! NetCDF ID for the particle name variable
-      integer(I4B) :: name_varid        !! NetCDF ID for the namevariable 
-      integer(I4B) :: ptype_varid       !! NetCDF ID for the particle type variable
-      integer(I4B) :: npl_varid         !! NetCDF ID for the number of active massive bodies variable
-      integer(I4B) :: ntp_varid         !! NetCDF ID for the number of active test particles variable
-      integer(I4B) :: a_varid           !! NetCDF ID for the semimajor axis variable 
-      integer(I4B) :: e_varid           !! NetCDF ID for the eccentricity variable 
-      integer(I4B) :: inc_varid         !! NetCDF ID for the inclination variable 
-      integer(I4B) :: capom_varid       !! NetCDF ID for the long. asc. node variable 
-      integer(I4B) :: omega_varid       !! NetCDF ID for the arg. periapsis variable 
-      integer(I4B) :: capm_varid        !! NetCDF ID for the mean anomaly variable 
-      integer(I4B) :: xhx_varid         !! NetCDF ID for the heliocentric position x variable 
-      integer(I4B) :: xhy_varid         !! NetCDF ID for the heliocentric position y variable 
-      integer(I4B) :: xhz_varid         !! NetCDF ID for the heliocentric position z variable 
-      integer(I4B) :: vhx_varid         !! NetCDF ID for the heliocentric velocity x variable 
-      integer(I4B) :: vhy_varid         !! NetCDF ID for the heliocentric velocity y variable 
-      integer(I4B) :: vhz_varid         !! NetCDF ID for the heliocentric velocity z variable 
-      integer(I4B) :: Gmass_varid       !! NetCDF ID for the mass variable
-      integer(I4B) :: rhill_varid       !! NetCDF ID for the hill radius variable
-      integer(I4B) :: radius_varid      !! NetCDF ID for the radius variable
-      integer(I4B) :: Ip1_varid         !! NetCDF ID for the axis 1 principal moment of inertia variable
-      integer(I4B) :: Ip2_varid         !! NetCDF ID for the axis 2 principal moment of inertia variable
-      integer(I4B) :: Ip3_varid         !! NetCDF ID for the axis 3 principal moment of inertia variable
-      integer(I4B) :: rotx_varid        !! NetCDF ID for the rotation x variable
-      integer(I4B) :: roty_varid        !! NetCDF ID for the rotation y variable
-      integer(I4B) :: rotz_varid        !! NetCDF ID for the rotation z variable
-      integer(I4B) :: k2_varid          !! NetCDF ID for the Love number variable
-      integer(I4B) :: Q_varid           !! NetCDF ID for the energy dissipation variable
-      integer(I4B) :: KE_orb_varid      !! NetCDF ID for the system orbital kinetic energy variable
-      integer(I4B) :: KE_spin_varid     !! NetCDF ID for the system spin kinetic energy variable
-      integer(I4B) :: PE_varid          !! NetCDF ID for the system potential energy variable
-      integer(I4B) :: L_orbx_varid      !! NetCDF ID for the system orbital angular momentum x variable
-      integer(I4B) :: L_orby_varid      !! NetCDF ID for the system orbital angular momentum y variable
-      integer(I4B) :: L_orbz_varid      !! NetCDF ID for the system orbital angular momentum z variable
-      integer(I4B) :: L_spinx_varid     !! NetCDF ID for the system spin angular momentum x variable
-      integer(I4B) :: L_spiny_varid     !! NetCDF ID for the system spin angular momentum y variable
-      integer(I4B) :: L_spinz_varid     !! NetCDF ID for the system spin angular momentum z variable
-      integer(I4B) :: L_escapex_varid   !! NetCDF ID for the escaped angular momentum x variable
-      integer(I4B) :: L_escapey_varid   !! NetCDF ID for the escaped angular momentum x variable
-      integer(I4B) :: L_escapez_varid   !! NetCDF ID for the escaped angular momentum x variable
-      integer(I4B) :: Ecollisions_varid !! NetCDF ID for the energy lost in collisions variable
-      integer(I4B) :: Euntracked_varid  !! NetCDF ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
-      integer(I4B) :: GMescape_varid    !! NetCDF ID for the G*Mass of bodies that escape the system
-      logical      :: ltrack_origin = .false. !! Indicate whether to track particle origin (SyMBA with Fragmentation)
-      integer(I4B) :: origin_type_varid  !! NetCDF ID for the origin type
-      integer(I4B) :: origin_time_varid  !! NetCDF ID for the origin type
-      integer(I4B) :: origin_xhx_varid   !! NetCDF ID for the origin xh x component
-      integer(I4B) :: origin_xhy_varid   !! NetCDF ID for the origin xh y component
-      integer(I4B) :: origin_xhz_varid   !! NetCDF ID for the origin xh z component
-      integer(I4B) :: origin_vhx_varid   !! NetCDF ID for the origin xh x component
-      integer(I4B) :: origin_vhy_varid   !! NetCDF ID for the origin xh y component
-      integer(I4B) :: origin_vhz_varid   !! NetCDF ID for the origin xh z component
+      integer(I4B) :: out_type              !! NetCDF output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
+      integer(I4B) :: ncid                  !! NetCDF ID for the output file
+      integer(I4B) :: dimids(3)             !! Dimensions of the NetCDF file
+      integer(I4B) :: time_dimid            !! NetCDF ID for the time dimension 
+      integer(I4B) :: id_dimid              !! NetCDF ID for the particle id dimension
+      integer(I4B) :: str_dimid             !! NetCDF ID for the character string dimension
+      integer(I4B) :: time_varid            !! NetCDF ID for the time variable
+      integer(I4B) :: id_varid              !! NetCDF ID for the particle name variable
+      integer(I4B) :: name_varid            !! NetCDF ID for the namevariable 
+      integer(I4B) :: ptype_varid           !! NetCDF ID for the particle type variable
+      integer(I4B) :: npl_varid             !! NetCDF ID for the number of active massive bodies variable
+      integer(I4B) :: ntp_varid             !! NetCDF ID for the number of active test particles variable
+      integer(I4B) :: a_varid               !! NetCDF ID for the semimajor axis variable 
+      integer(I4B) :: e_varid               !! NetCDF ID for the eccentricity variable 
+      integer(I4B) :: inc_varid             !! NetCDF ID for the inclination variable 
+      integer(I4B) :: capom_varid           !! NetCDF ID for the long. asc. node variable 
+      integer(I4B) :: omega_varid           !! NetCDF ID for the arg. periapsis variable 
+      integer(I4B) :: capm_varid            !! NetCDF ID for the mean anomaly variable 
+      integer(I4B) :: xhx_varid             !! NetCDF ID for the heliocentric position x variable 
+      integer(I4B) :: xhy_varid             !! NetCDF ID for the heliocentric position y variable 
+      integer(I4B) :: xhz_varid             !! NetCDF ID for the heliocentric position z variable 
+      integer(I4B) :: vhx_varid             !! NetCDF ID for the heliocentric velocity x variable 
+      integer(I4B) :: vhy_varid             !! NetCDF ID for the heliocentric velocity y variable 
+      integer(I4B) :: vhz_varid             !! NetCDF ID for the heliocentric velocity z variable 
+      integer(I4B) :: Gmass_varid           !! NetCDF ID for the mass variable
+      integer(I4B) :: rhill_varid           !! NetCDF ID for the hill radius variable
+      integer(I4B) :: radius_varid          !! NetCDF ID for the radius variable
+      integer(I4B) :: Ip1_varid             !! NetCDF ID for the axis 1 principal moment of inertia variable
+      integer(I4B) :: Ip2_varid             !! NetCDF ID for the axis 2 principal moment of inertia variable
+      integer(I4B) :: Ip3_varid             !! NetCDF ID for the axis 3 principal moment of inertia variable
+      integer(I4B) :: rotx_varid            !! NetCDF ID for the rotation x variable
+      integer(I4B) :: roty_varid            !! NetCDF ID for the rotation y variable
+      integer(I4B) :: rotz_varid            !! NetCDF ID for the rotation z variable
+      integer(I4B) :: k2_varid              !! NetCDF ID for the Love number variable
+      integer(I4B) :: Q_varid               !! NetCDF ID for the energy dissipation variable
+      integer(I4B) :: KE_orb_varid          !! NetCDF ID for the system orbital kinetic energy variable
+      integer(I4B) :: KE_spin_varid         !! NetCDF ID for the system spin kinetic energy variable
+      integer(I4B) :: PE_varid              !! NetCDF ID for the system potential energy variable
+      integer(I4B) :: L_orbx_varid          !! NetCDF ID for the system orbital angular momentum x variable
+      integer(I4B) :: L_orby_varid          !! NetCDF ID for the system orbital angular momentum y variable
+      integer(I4B) :: L_orbz_varid          !! NetCDF ID for the system orbital angular momentum z variable
+      integer(I4B) :: L_spinx_varid         !! NetCDF ID for the system spin angular momentum x variable
+      integer(I4B) :: L_spiny_varid         !! NetCDF ID for the system spin angular momentum y variable
+      integer(I4B) :: L_spinz_varid         !! NetCDF ID for the system spin angular momentum z variable
+      integer(I4B) :: L_escapex_varid       !! NetCDF ID for the escaped angular momentum x variable
+      integer(I4B) :: L_escapey_varid       !! NetCDF ID for the escaped angular momentum x variable
+      integer(I4B) :: L_escapez_varid       !! NetCDF ID for the escaped angular momentum x variable
+      integer(I4B) :: Ecollisions_varid     !! NetCDF ID for the energy lost in collisions variable
+      integer(I4B) :: Euntracked_varid      !! NetCDF ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      integer(I4B) :: GMescape_varid        !! NetCDF ID for the G*Mass of bodies that escape the system
+      integer(I4B) :: status_varid          !! NetCDF ID for the status variable
+      integer(I4B) :: origin_type_varid     !! NetCDF ID for the origin type
+      integer(I4B) :: origin_time_varid     !! NetCDF ID for the origin time
+      integer(I4B) :: origin_xhx_varid      !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_xhy_varid      !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_xhz_varid      !! NetCDF ID for the origin xh z component
+      integer(I4B) :: origin_vhx_varid      !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_vhy_varid      !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_vhz_varid      !! NetCDF ID for the origin xh z component
+      integer(I4B) :: discard_time_varid    !! NetCDF ID for the time of discard variable
+      integer(I4B) :: discard_xhx_varid     !! NetCDF ID for the heliocentric position of the body at the time of discard x variable
+      integer(I4B) :: discard_xhy_varid     !! NetCDF ID for the heliocentric position of the body at the time of discard y variable
+      integer(I4B) :: discard_xhz_varid     !! NetCDF ID for the heliocentric position of the body at the time of discard z variable
+      integer(I4B) :: discard_vhx_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard x variable
+      integer(I4B) :: discard_vhy_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard y variable
+      integer(I4B) :: discard_vhz_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard z variable
+      integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
+   
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
@@ -172,9 +181,10 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
    contains
-      procedure :: dump    => io_dump_particle_info    !! Dumps contents of particle information to file
-      procedure :: read_in => io_read_in_particle_info !! Read in a particle information object from an open file
-      procedure :: copy    => util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
+      procedure :: dump      => io_dump_particle_info    !! Dumps contents of particle information to file
+      procedure :: read_in   => io_read_in_particle_info !! Read in a particle information object from an open file
+      procedure :: copy      => util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
+      procedure :: set_value => util_set_particle_info   !! Sets one or more values of the particle information metadata object
    end type swiftest_particle_info
 
    !********************************************************************************************************************************
@@ -234,29 +244,29 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract, extends(swiftest_base) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
-      logical                                             :: lfirst = .true. !! Run the current step as a first
-      integer(I4B)                                        :: nbody = 0       !! Number of bodies
-      type(swiftest_particle_info), dimension(:), allocatable :: info            !! Particle metadata information
-      integer(I4B),           dimension(:),   allocatable :: id              !! External identifier (unique)
-      integer(I4B),           dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
-      logical,                dimension(:),   allocatable :: ldiscard        !! Body should be discarded
-      logical,                dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
-      real(DP),               dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      real(DP),               dimension(:,:), allocatable :: xh              !! Swiftestcentric position
-      real(DP),               dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
-      real(DP),               dimension(:,:), allocatable :: xb              !! Barycentric position
-      real(DP),               dimension(:,:), allocatable :: vb              !! Barycentric velocity
-      real(DP),               dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
-      real(DP),               dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
-      real(DP),               dimension(:,:), allocatable :: atide           !! Tanngential component of acceleration of bodies due to tides
-      real(DP),               dimension(:,:), allocatable :: agr             !! Acceleration due to post-Newtonian correction
-      real(DP),               dimension(:),   allocatable :: ir3h            !! Inverse heliocentric radius term (1/rh**3)
-      real(DP),               dimension(:),   allocatable :: a               !! Semimajor axis (pericentric distance for a parabolic orbit)
-      real(DP),               dimension(:),   allocatable :: e               !! Eccentricity
-      real(DP),               dimension(:),   allocatable :: inc             !! Inclination
-      real(DP),               dimension(:),   allocatable :: capom           !! Longitude of ascending node
-      real(DP),               dimension(:),   allocatable :: omega           !! Argument of pericenter
-      real(DP),               dimension(:),   allocatable :: capm            !! Mean anomaly
+      logical                                                   :: lfirst = .true. !! Run the current step as a first
+      integer(I4B)                                              :: nbody = 0       !! Number of bodies
+      type(swiftest_particle_info), dimension(:),   allocatable :: info            !! Particle metadata information
+      integer(I4B),                 dimension(:),   allocatable :: id              !! External identifier (unique)
+      integer(I4B),                 dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
+      logical,                      dimension(:),   allocatable :: ldiscard        !! Body should be discarded
+      logical,                      dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
+      real(DP),                     dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
+      real(DP),                     dimension(:,:), allocatable :: xh              !! Swiftestcentric position
+      real(DP),                     dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
+      real(DP),                     dimension(:,:), allocatable :: xb              !! Barycentric position
+      real(DP),                     dimension(:,:), allocatable :: vb              !! Barycentric velocity
+      real(DP),                     dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
+      real(DP),                     dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
+      real(DP),                     dimension(:,:), allocatable :: atide           !! Tanngential component of acceleration of bodies due to tides
+      real(DP),                     dimension(:,:), allocatable :: agr             !! Acceleration due to post-Newtonian correction
+      real(DP),                     dimension(:),   allocatable :: ir3h            !! Inverse heliocentric radius term (1/rh**3)
+      real(DP),                     dimension(:),   allocatable :: a               !! Semimajor axis (pericentric distance for a parabolic orbit)
+      real(DP),                     dimension(:),   allocatable :: e               !! Eccentricity
+      real(DP),                     dimension(:),   allocatable :: inc             !! Inclination
+      real(DP),                     dimension(:),   allocatable :: capom           !! Longitude of ascending node
+      real(DP),                     dimension(:),   allocatable :: omega           !! Argument of pericenter
+      real(DP),                     dimension(:),   allocatable :: capm            !! Mean anomaly
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_body and util_spill
    contains
@@ -341,10 +351,10 @@ module swiftest_classes
    !> An abstract class for a generic collection of Swiftest test particles
    type, abstract, extends(swiftest_body) :: swiftest_tp
       !! Superclass that defines the generic elements of a Swiftest test particle 
-      integer(I4B), dimension(:),    allocatable :: isperi !! Perihelion passage flag
-      real(DP),     dimension(:),    allocatable :: peri   !! Perihelion distance
-      real(DP),     dimension(:),    allocatable :: atp    !! Semimajor axis following perihelion passage
-      integer(I4B), dimension(:,:),  allocatable :: k_pltp !! Index array used to convert flattened the body-body comparison upper triangular matrix
+      integer(I4B), dimension(:),   allocatable :: isperi !! Perihelion passage flag
+      real(DP),     dimension(:),   allocatable :: peri   !! Perihelion distance
+      real(DP),     dimension(:),   allocatable :: atp    !! Semimajor axis following perihelion passage
+      integer(I4B), dimension(:,:), allocatable :: k_pltp !! Index array used to convert flattened the body-body comparison upper triangular matrix
       integer(I8B)                               :: npltp  !! Number of pl-tp comparisons in the flattened upper triangular matrix
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and util_spill_tp
@@ -376,22 +386,22 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      class(swiftest_cb),            allocatable :: cb                   !! Central body data structure
-      class(swiftest_pl),            allocatable :: pl                   !! Massive body data structure
-      class(swiftest_tp),            allocatable :: tp                   !! Test particle data structure
-      class(swiftest_tp),            allocatable :: tp_discards          !! Discarded test particle data structure
-      class(swiftest_pl),            allocatable :: pl_discards          !! Discarded massive body particle data structure
-      real(DP)                                   :: GMtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                                   :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
-      real(DP)                                   :: ke_spin = 0.0_DP     !! System spin kinetic energy
-      real(DP)                                   :: pe = 0.0_DP          !! System potential energy
-      real(DP)                                   :: te = 0.0_DP          !! System total energy
-      real(DP), dimension(NDIM)                  :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
-      real(DP), dimension(NDIM)                  :: Lspin = 0.0_DP       !! System spin angular momentum vector
-      real(DP), dimension(NDIM)                  :: Ltot = 0.0_DP        !! System angular momentum vector
-      logical                                    :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
-                                                                         !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
-                                                                         !!    the test particles
+      class(swiftest_cb), allocatable :: cb                   !! Central body data structure
+      class(swiftest_pl), allocatable :: pl                   !! Massive body data structure
+      class(swiftest_tp), allocatable :: tp                   !! Test particle data structure
+      class(swiftest_tp), allocatable :: tp_discards          !! Discarded test particle data structure
+      class(swiftest_pl), allocatable :: pl_discards          !! Discarded massive body particle data structure
+      real(DP)                        :: GMtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                        :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
+      real(DP)                        :: ke_spin = 0.0_DP     !! System spin kinetic energy
+      real(DP)                        :: pe = 0.0_DP          !! System potential energy
+      real(DP)                        :: te = 0.0_DP          !! System total energy
+      real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
+      real(DP), dimension(NDIM)       :: Lspin = 0.0_DP       !! System spin angular momentum vector
+      real(DP), dimension(NDIM)       :: Ltot = 0.0_DP        !! System angular momentum vector
+      logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
+                                                              !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
+                                                              !!    the test particles
    contains
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), deferred :: step
@@ -783,7 +793,7 @@ module swiftest_classes
       module subroutine io_write_discard(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine io_write_discard
 
       module subroutine io_toupper(string)
@@ -1122,7 +1132,6 @@ module swiftest_classes
          integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
          logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_logical
-
    end interface
 
    interface
@@ -1431,6 +1440,22 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_mu_tp
+
+      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+         implicit none
+         class(swiftest_particle_info), intent(inout)           :: self
+         character(len=*),              intent(in),    optional :: name            !! Non-unique name
+         character(len=*),              intent(in),    optional :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
+         character(len=*),              intent(in),    optional :: status          !! Particle status description: Active, Merged, Fragmented, etc.
+         character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+         real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
+         real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+         real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
+         real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
+         real(DP), dimension(:),        intent(in),    optional :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+         real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
+         integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
+      end subroutine util_set_particle_info
 
       module subroutine util_set_rhill(self,cb)
          implicit none

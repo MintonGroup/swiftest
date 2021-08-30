@@ -938,7 +938,7 @@ contains
       ! Internals
       integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
       integer(I4B)                  :: iu = LUN
-      integer(I4B)                  :: nbody
+      integer(I4B)                  :: i, nbody
       logical                       :: is_ascii, is_pl
       character(len=:), allocatable :: infile
       real(DP)                      :: t
@@ -974,6 +974,9 @@ contains
          ierr = self%read_frame(iu, param)
          self%status(:) = ACTIVE
          self%lmask(:) = .true.
+         do i = 1, nbody
+            call self%info(i)%set_value(status="ACTIVE")
+         end do
       end if
       close(iu, err = 667, iomsg = errmsg)
 
@@ -1547,7 +1550,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest system object
-      class(swiftest_parameters),   intent(in)    :: param   !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param   !! Current run configuration parameters 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: i
@@ -1561,9 +1564,17 @@ contains
       class(swiftest_body), allocatable :: pltemp
       character(len=STRMAX)   :: errmsg, out_stat
 
-      if (param%discard_out == "") return
-
       associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
+
+         ! Record the discarded body metadata information to file
+         if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+            call param%nciu%open(param) 
+            call tp_discards%write_particle_info(param%nciu)
+            call param%nciu%close(param)
+         end if
+   
+         if (param%discard_out == "") return
+
          if (nsp == 0) return
          if (lfirst) then
             out_stat = param%out_stat
@@ -1589,22 +1600,22 @@ contains
             write(LUN, VECFMT, err = 667, iomsg = errmsg) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
          end do
          if (param%lbig_discard) then
-               if (param%lgr) then
-                  allocate(pltemp, source = pl)
-                  call pltemp%pv2v(param)
-                  allocate(vh, source = pltemp%vh)
-                  deallocate(pltemp)
-               else
-                  allocate(vh, source = pl%vh)
-               end if
+            if (param%lgr) then
+               allocate(pltemp, source = pl)
+               call pltemp%pv2v(param)
+               allocate(vh, source = pltemp%vh)
+               deallocate(pltemp)
+            else
+               allocate(vh, source = pl%vh)
+            end if
 
-               write(LUN, NPLFMT) npl
-               do i = 1, npl
-                  write(LUN, PLNAMEFMT, err = 667, iomsg = errmsg) pl%id(i), pl%Gmass(i), pl%radius(i)
-                  write(LUN, VECFMT, err = 667, iomsg = errmsg) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
-                  write(LUN, VECFMT, err = 667, iomsg = errmsg) vh(1, i), vh(2, i), vh(3, i)
-               end do
-               deallocate(vh)
+            write(LUN, NPLFMT) npl
+            do i = 1, npl
+               write(LUN, PLNAMEFMT, err = 667, iomsg = errmsg) pl%id(i), pl%Gmass(i), pl%radius(i)
+               write(LUN, VECFMT, err = 667, iomsg = errmsg) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
+               write(LUN, VECFMT, err = 667, iomsg = errmsg) vh(1, i), vh(2, i), vh(3, i)
+            end do
+            deallocate(vh)
          end if
          close(LUN)
       end associate
@@ -1876,13 +1887,6 @@ contains
                   open(file=param%outfile, unit=iu, status='OLD')
                   close (unit=BINUNIT, status="delete")
                end if
-            end select
-
-            select type(param)
-            class is (symba_parameters)
-               param%nciu%ltrack_origin = param%lfragmentation
-            class default
-               param%nciu%ltrack_origin = .false.
             end select
 
             select case(param%out_stat)

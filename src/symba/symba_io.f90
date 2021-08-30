@@ -182,7 +182,7 @@ contains
    module subroutine symba_io_write_discard(self, param)
       implicit none
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: iadd, isub, j, nsub, nadd
@@ -196,13 +196,21 @@ contains
       class(swiftest_body), allocatable :: pltemp
       character(STRMAX) :: errmsg, out_stat
 
-      if (param%discard_out == "") return
-
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
+
          if (self%tp_discards%nbody > 0) call io_write_discard(self, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
+
+            ! Record the discarded body metadata information to file
+            if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+               call param%nciu%open(param) 
+               call pl_discards%write_particle_info(param%nciu)
+               call param%nciu%close(param)
+            end if
+
+            if (param%discard_out == "") return
             if (lfirst) then
                out_stat = param%out_stat
             else

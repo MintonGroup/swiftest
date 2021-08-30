@@ -315,6 +315,7 @@ contains
          end do
 
          status = MERGED
+         
          call symba_collision_mergeaddsub(system, param, family, id_frag, Ip_frag, m_frag, rad_frag, xb_frag, vb_frag, rot_frag, status)
 
       end select
@@ -875,7 +876,7 @@ contains
       real(DP),        dimension(:,:), intent(in)    :: xb_frag, vb_frag, rot_frag !! Fragment barycentric position, barycentric velocity, and rotation vectors
       integer(I4B),                    intent(in)    :: status           !! Status flag to assign to adds
       ! Internals
-      integer(I4B) :: i, ibiggest, nstart, nend, nfamily, nfrag
+      integer(I4B) :: i, ibiggest, ismallest, iother, nstart, nend, nfamily, nfrag
       logical, dimension(system%pl%nbody)    :: lmask
       class(symba_pl), allocatable            :: plnew
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
@@ -885,26 +886,16 @@ contains
       class is (symba_pl)
          select type(pl_discards => system%pl_discards)
          class is (symba_merger)
-            associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb)
+            associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody)
                ! Add the family bodies to the subtraction list
                nfamily = size(family(:))
                nfrag   = size(m_frag(:))
-               lmask(:) = .false.
-               lmask(family(:)) = .true.
-               pl%status(family(:)) = MERGED
-               nstart = pl_discards%nbody + 1
-               nend = pl_discards%nbody + nfamily
-               call pl_discards%append(pl, lmask)
-               pl%ldiscard(family(:)) = .true.
-               pl%lcollision(family(:)) = .true.
-   
-               ! Record how many bodies were subtracted in this event
-               pl_discards%ncomp(nstart:nend) = nfamily 
-   
+
                ! Setup new bodies
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
-               ibiggest = family(maxloc(pl%Gmass(family(:)), dim=1))
+               ibiggest  = family(maxloc(pl%Gmass(family(:)), dim=1))
+               ismallest = family(minloc(pl%Gmass(family(:)), dim=1))
 
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(1:nfrag) = id_frag(1:nfrag) 
@@ -923,40 +914,54 @@ contains
 
                select case(status)
                case(DISRUPTION)
-                  plnew%info(1:nfrag)%origin_type = "Disruption"
                   plnew%status(1:nfrag) = NEW_PARTICLE
-                  plnew%info(1:nfrag)%origin_time = param%t
                   do i = 1, nfrag
                      write(newname, FRAGFMT) id_frag(i)
-                     plnew%info(i)%name = newname
-                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
-                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+                     call plnew%info(i)%set_value(origin_type="Disruption", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
+                  end do
+                  do i = 1, nfamily
+                     if (family(i) == ibiggest) then
+                        iother = ismallest
+                     else
+                        iother = ibiggest
+                     end if
+                     call pl%info(family(i))%set_value(status="Disruption", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do
                case(SUPERCATASTROPHIC)
-                  plnew%info(1:nfrag)%origin_type = "Supercatastrophic"
                   plnew%status(1:nfrag) = NEW_PARTICLE
-                  plnew%info(1:nfrag)%origin_time = param%t
                   do i = 1, nfrag
                      write(newname, FRAGFMT) id_frag(i)
-                     plnew%info(i)%name = newname
-                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
-                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+                     call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
+                  end do
+                  do i = 1, nfamily
+                     if (family(i) == ibiggest) then
+                        iother = ismallest
+                     else
+                        iother = ibiggest
+                     end if
+                     call pl%info(family(i))%set_value(status="Supercatastrophic", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do
                case(HIT_AND_RUN_DISRUPT)
                   call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
-                  plnew%status(2:nfrag) = NEW_PARTICLE
-                  plnew%info(2:nfrag)%origin_type = "Hit and run fragment"
-                  plnew%info(2:nfrag)%origin_time = param%t
                   do i = 2, nfrag
                      write(newname, FRAGFMT) id_frag(i)
-                     plnew%info(i)%name = newname
-                     plnew%info(i)%origin_xh(:) = plnew%xh(:,i)
-                     plnew%info(i)%origin_vh(:) = plnew%vh(:,i)
+                     call plnew%info(i)%set_value(origin_type="Hit and run fragmention", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
                   end do
+                  do i = 1, nfamily
+                     if (family(i) == ibiggest) cycle
+                     iother = ibiggest
+                     call pl%info(family(i))%set_value(status="Hit and run fragmention", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
+                  end do 
                case(MERGED)
                   call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
+                  do i = 1, nfamily
+                     if (family(i) == ibiggest) cycle
+
+                     iother = ibiggest
+                     call pl%info(family(i))%set_value(status="MERGED", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
+                  end do 
                end select
    
                if (param%lrotation) then
@@ -978,13 +983,28 @@ contains
                plnew%levelg(1:nfrag) = pl%levelg(ibiggest)
                plnew%levelm(1:nfrag) = pl%levelm(ibiggest)
    
-               ! Append the new merged body to the list and record how many we made
+               ! Append the new merged body to the list 
                nstart = pl_adds%nbody + 1
                nend = pl_adds%nbody + plnew%nbody
                call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
+               ! Record how many bodies were added in this event
                pl_adds%ncomp(nstart:nend) = plnew%nbody
-   
                call plnew%setup(0, param)
+
+               ! Add the discarded bodies to the discard list
+               pl%status(family(:)) = MERGED
+               lmask(:) = .false.
+               lmask(family(:)) = .true.
+               pl%ldiscard(family(:)) = .true.
+               pl%lcollision(family(:)) = .true.
+   
+               nstart = pl_discards%nbody + 1
+               nend = pl_discards%nbody + nfamily
+               call pl_discards%append(pl, lmask)
+
+               ! Record how many bodies were subtracted in this event
+               pl_discards%ncomp(nstart:nend) = nfamily 
+   
                deallocate(plnew)
             end associate
          end select

@@ -137,33 +137,17 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      logical :: ltrack_origin
       integer(I4B) :: i
 
       associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
 
-         if (param%nciu%ltrack_origin) then
-            cb%info%origin_type = "Initial conditions"
-            cb%info%origin_time = param%t0
-            cb%info%origin_xh(:) = 0.0_DP
-            cb%info%origin_vh(:) = 0.0_DP
-            do i = 1, self%pl%nbody
-               pl%info(i)%origin_type = "Initial conditions"
-               pl%info(i)%origin_time = param%t0
-               pl%info(i)%origin_xh(:) = self%pl%xh(:,i)
-               pl%info(i)%origin_vh(:) = self%pl%vh(:,i)
-            end do
-            do i = 1, self%tp%nbody
-               tp%info(i)%origin_type = "Initial conditions"
-               tp%info(i)%origin_time = param%t0
-               tp%info(i)%origin_xh(:) = self%tp%xh(:,i)
-               tp%info(i)%origin_vh(:) = self%tp%vh(:,i)
-            end do
-         end if
-
-         cb%info%particle_type = CB_TYPE_NAME
-         if (npl > 0) pl%info(1:npl)%particle_type = PL_TYPE_NAME
-         if (ntp > 0) tp%info(1:ntp)%particle_type = TP_TYPE_NAME
+         call cb%info%set_value(particle_type=CB_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP])
+         do i = 1, self%pl%nbody
+            call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%pl%xh(:,i), origin_vh=self%pl%vh(:,i))
+         end do
+         do i = 1, self%tp%nbody
+            call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%tp%xh(:,i), origin_vh=self%tp%vh(:,i))
+         end do
 
       end associate
 
@@ -219,6 +203,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
       ! Internals
       integer(I4B) :: i
+
       self%nbody = n
       if (n <= 0) return
       self%lfirst = .true.
@@ -250,14 +235,22 @@ contains
       allocate(self%lmask(n))
 
       self%id(:)   = 0
-      self%info(:)%name = "UNNAMED"
-      self%info(:)%particle_type = "UKNOWN"
-      self%info(:)%origin_type = "UNKNOWN"
-      self%info(:)%origin_time = -1.0_DP
       do i = 1, n
-         self%info(i)%origin_xh(:) = 0.0_DP
-         self%info(i)%origin_vh(:) = 0.0_DP
+         call self%info(i)%set_value(&
+            name = "UNNAMED", &
+            particle_type = "UNKNOWN", &
+            status = "INACTIVE", & 
+            origin_type = "UNKNOWN", &
+            origin_time = -huge(1.0_DP), & 
+            origin_xh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_time = -huge(1.0_DP), & 
+            discard_xh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_body_id = -1  &
+         )
       end do
+
       self%status(:) = INACTIVE
       self%lmask(:)  = .false.
       self%ldiscard(:) = .false.

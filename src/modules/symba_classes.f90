@@ -369,7 +369,7 @@ module symba_classes
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine symba_io_write_discard
 
       module subroutine symba_kick_getacch_int_pl(self)

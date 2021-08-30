@@ -37,6 +37,7 @@ contains
                   write(idstr, *) pl%id(i)
                   write(timestr, *) param%t
                   write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " too far from the central body at t = " // trim(adjustl(timestr))
+                  call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
@@ -44,6 +45,7 @@ contains
                   write(idstr, *) pl%id(i)
                   write(timestr, *) param%t
                   write(*, *) trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // " too close to the central body at t = " // trim(adjustl(timestr))
+                  call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
                   vb2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -55,6 +57,7 @@ contains
                      write(idstr, *) pl%id(i)
                      write(timestr, *) param%t
                      write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
+                     call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                   end if
                end if
             end if
@@ -275,6 +278,7 @@ contains
                      write(timestr, *) param%t
                      write(idstr, *) pl%id(i)
                      write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ") perihelion distance too small at t = " // trim(adjustl(timestr)) 
+                     call pl%info(i)%set_value(status="DISCARDED_PERI", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=system%cb%id)
                   end if
                end if
             end if
