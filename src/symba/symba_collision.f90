@@ -910,6 +910,8 @@ contains
                plnew%id(1:nfrag) = id_frag(1:nfrag) 
                plnew%xb(:, 1:nfrag) = xb_frag(:, 1:nfrag) 
                plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
+               call pl%vb2vh(cb)
+               call pl%xh2xb(cb)
                do i = 1, nfrag
                   plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
                   plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
