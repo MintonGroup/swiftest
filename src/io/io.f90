@@ -69,6 +69,9 @@ contains
             Merror = (GMtot_now - param%GMtot_orig) / param%GMtot_orig
             if (Merror < -10 * epsilon(Merror)) then
                write(*,*) 'Mass loss! Halting!'
+               call param%nciu%open(param)
+               call pl%write_frame(param%nciu, param)
+               call param%nciu%close(param)
                call util_exit(FAILURE)
             end if
             write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
@@ -1919,7 +1922,6 @@ contains
          call cb%write_frame(iu, param)
          call pl%write_frame(iu, param)
          call tp%write_frame(iu, param)
-
          close(iu, err = 667, iomsg = errmsg)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
          call cb%write_frame(param%nciu, param)
