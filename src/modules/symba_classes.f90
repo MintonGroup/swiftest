@@ -78,6 +78,7 @@ module symba_classes
       procedure :: fill            => symba_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri        => symba_util_peri_pl             !! Determine system pericenter passages for massive bodies
       procedure :: rearray         => symba_util_rearray_pl          !! Clean up the massive body structures to remove discarded bodies and add new bodies
+      procedure :: reset_kinship   => symba_util_reset_kinship       !! Resets the kinship status of bodies
       procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a SyMBA massive body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
@@ -573,6 +574,14 @@ module symba_classes
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_util_rearray_pl
+
+      module subroutine symba_util_reset_kinship(self, idx)
+         implicit none
+         class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
+         integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
+         integer(I4B) :: i, j
+      end subroutine symba_util_reset_kinship
+      
    end interface
 
    interface util_resize

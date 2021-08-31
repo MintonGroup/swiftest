@@ -110,8 +110,7 @@ contains
       self%isperi(:) = 0
       self%peri(:) = 0.0_DP
       self%atp(:) = 0.0_DP
-      self%kin(:)%nchild = 0
-      self%kin(:)%parent = [(i, i=1, n)]
+      call self%reset_kinship([(i, i=1, n)])
       return
    end subroutine symba_setup_pl
 

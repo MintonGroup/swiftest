@@ -236,11 +236,7 @@ contains
                associate(npl => pl%nbody, ntp => tp%nbody)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
-                     pl%kin(1:npl)%parent = [(i, i=1, npl)]
-                     pl%kin(1:npl)%nchild = 0
-                     do i = 1, npl
-                        if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-                     end do
+                     call pl%reset_kinship([(i, i=1, npl)])
                      pl%nplenc(1:npl) = 0
                      pl%ntpenc(1:npl) = 0
                      pl%levelg(1:npl) = -1

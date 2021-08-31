@@ -476,11 +476,7 @@ contains
          call pl%index(param)
 
          ! Reset the kinship trackers
-         pl%kin(1:npl)%nchild = 0
-         pl%kin(1:npl)%parent = [(i, i=1, npl)]
-          do i = 1, npl
-             if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-          end do
+         call pl%reset_kinship([(i, i=1, npl)])
 
          ! Re-build the zero-level encounter list, being sure to save the original level information for all bodies
          allocate(levelg_orig_pl, source=pl%levelg)
@@ -539,6 +535,28 @@ contains
       return
    end subroutine symba_util_rearray_pl
 
+
+   module subroutine symba_util_reset_kinship(self, idx)
+      !! author: David A. Minton
+      !! 
+      !! Resets the kinship status of bodies.
+      !!
+      implicit none
+      class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
+      integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
+      ! Internals
+      integer(I4B) :: i, j
+
+      self%kin(idx(:))%parent = idx(:)
+      self%kin(idx(:))%nchild = 0
+      do j = 1, size(idx(:))
+         i = idx(j)
+         if (allocated(self%kin(i)%child)) deallocate(self%kin(i)%child)
+      end do
+
+      return
+   end subroutine symba_util_reset_kinship
+   
 
    module subroutine symba_util_resize_arr_kin(arr, nnew)
       !! author: David A. Minton

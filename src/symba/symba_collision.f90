@@ -90,6 +90,7 @@ contains
             pl%status(family(:)) = status
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
+            call pl%reset_kinship(family(:))
          end select
       else
          ! Populate the list of new bodies
@@ -201,12 +202,7 @@ contains
             pl%status(family(:)) = ACTIVE
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
-            pl%kin(family(:))%parent = family(:)
-            pl%kin(family(:))%nchild = 0
-            do j = 1, size(family(:))
-               i = family(j)
-               if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-            end do
+            call pl%reset_kinship(family(:))
          end select
       else
          status = HIT_AND_RUN_DISRUPT
@@ -414,12 +410,7 @@ contains
             pl%status(family(:)) = status
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
-            pl%kin(family(:))%parent = family(:)
-            pl%kin(family(:))%nchild = 0
-            do j = 1, size(family(:))
-               i = family(j)
-               if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-            end do
+            call pl%reset_kinship(family(:))
          end select
       else
          ! Populate the list of new bodies
@@ -874,8 +865,7 @@ contains
                pl%kin(j)%parent = index_parent
             end do
          end if
-         if (allocated(pl%kin(index_child)%child)) deallocate(pl%kin(index_child)%child)
-         pl%kin(index_child)%nchild = 0
+         call pl%reset_kinship([index_child])
          ! Add the new child to its parent
          pl%kin(index_child)%parent = index_parent
          temp(nchild_new) = index_child
@@ -906,7 +896,7 @@ contains
       ! Internals
       integer(I4B) :: i, ibiggest, ismallest, iother, nstart, nend, nfamily, nfrag
       logical, dimension(system%pl%nbody)    :: lmask
-      class(symba_pl), allocatable            :: plnew
+      class(symba_pl), allocatable           :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
       character(len=NAMELEN) :: newname
    
@@ -1022,15 +1012,18 @@ contains
                pl%status(family(:)) = MERGED
                pl%ldiscard(family(:)) = .true.
                pl%lcollision(family(:)) = .true.
+               call pl%reset_kinship(family(:))
                lmask(:) = .false.
                lmask(family(:)) = .true.
                
                call plnew%setup(0, param)
-               call pl%spill(plnew, lmask, ldestructive=.false.)
+
+               allocate(plsub, mold=pl)
+               call pl%spill(plsub, lmask, ldestructive=.false.)
    
                nstart = pl_discards%nbody + 1
                nend = pl_discards%nbody + nfamily
-               call pl_discards%append(plnew, lsource_mask=[(.true., i = 1, nfamily)])
+               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nfamily)])
 
                ! Record how many bodies were subtracted in this event
                pl_discards%ncomp(nstart:nend) = nfamily 
@@ -1042,7 +1035,7 @@ contains
    
       return
    end subroutine symba_collision_mergeaddsub
-   
+
 
    module subroutine symba_collision_resolve_fragmentations(self, system, param)
       !! author: David A. Minton
