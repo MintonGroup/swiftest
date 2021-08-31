@@ -895,7 +895,7 @@ contains
          write(param_name, Afmt) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "RHILL_PRESENT"; write(param_value, Lfmt) param%lrhill_present; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "DISCARD_OUT"; write(param_value, Afmt) trim(adjustl(param%discard_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         if (param%discard_out /= "") write(param_name, Afmt) "DISCARD_OUT"; write(param_value, Afmt) trim(adjustl(param%discard_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          if (param%discard_out /= "") write(param_name, Afmt) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
          write(param_name, Afmt) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)

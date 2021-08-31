@@ -453,16 +453,11 @@ contains
          end if
 
          ! Reset all of the status flags for this body
-         where(pl%status(1:npl) /= INACTIVE) 
-            pl%status(1:npl) = ACTIVE
-            pl%info(1:npl)%status = "ACTIVE"
-            pl%ldiscard(1:npl) = .false.
-            pl%lcollision(1:npl) = .false.
-            pl%lmask(1:npl) = .true.
-         elsewhere
-            pl%ldiscard(1:npl) = .true.
-            pl%lmask(1:npl) = .false.
-         end where
+         pl%status(1:npl) = ACTIVE
+         pl%info(1:npl)%status = "ACTIVE"
+         pl%ldiscard(1:npl) = .false.
+         pl%lcollision(1:npl) = .false.
+         pl%lmask(1:npl) = .true.
 
          select type(param)
          class is (symba_parameters)
