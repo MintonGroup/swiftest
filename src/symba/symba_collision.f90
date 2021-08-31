@@ -90,7 +90,6 @@ contains
             pl%status(family(:)) = status
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
-            call pl%reset_kinship(family(:))
          end select
       else
          ! Populate the list of new bodies
@@ -202,7 +201,6 @@ contains
             pl%status(family(:)) = ACTIVE
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
-            call pl%reset_kinship(family(:))
          end select
       else
          status = HIT_AND_RUN_DISRUPT
@@ -410,7 +408,6 @@ contains
             pl%status(family(:)) = status
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
-            call pl%reset_kinship(family(:))
          end select
       else
          ! Populate the list of new bodies
@@ -657,6 +654,7 @@ contains
       if (idx_parent(1) == idx_parent(2)) then
          if (nchild(1) == 0) then ! There is only one valid body recorded in this pair (this could happen due to restructuring of the kinship relationships, though it should be rare)
             lflag = .false. 
+            call pl%reset_kinship([idx_parent(1)])
             return
          end if
          idx_parent(2) = pl%kin(idx_parent(1))%child(nchild(1))
@@ -743,6 +741,9 @@ contains
          if (param%lrotation) Ip(:, j) = Ip(:, j) / mass(j)
       end do
       lflag = .true.
+
+      ! Destroy the kinship relationships for all members of this family
+      call pl%reset_kinship(family(:))
 
       return
    end function symba_collision_consolidate_familes
@@ -921,14 +922,21 @@ contains
                plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
                call pl%vb2vh(cb)
                call pl%xh2xb(cb)
+               ! write(54,*) "Fragment properties"
+               ! write(54,*) "xbcb : ", cb%xb(:)
+               ! write(54,*) "vbcb : ", cb%vb(:)
                do i = 1, nfrag
                   plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
                   plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
+                  ! write(54,*) "index, id: ", i, plnew%id(i)
+                  ! write(54,*) "xb   : ", xb_frag(:,i)
+                  ! write(54,*) "vb   : ", vb_frag(:,i)
                end do
                plnew%mass(1:nfrag) = m_frag(1:nfrag)
                plnew%Gmass(1:nfrag) = param%GU * m_frag(1:nfrag)
                plnew%radius(1:nfrag) = rad_frag(1:nfrag)
                plnew%density(1:nfrag) = m_frag(1:nfrag) / rad_frag(1:nfrag)
+               call plnew%set_rhill(cb)
 
                select case(status)
                case(DISRUPTION)
@@ -993,8 +1001,6 @@ contains
                   plnew%tlag = pl%tlag(ibiggest)
                end if
 
-               call plnew%set_mu(cb)
-               call plnew%set_rhill(cb)
                !Copy over or set integration parameters for new bodies
                plnew%lcollision(1:nfrag) = .false.
                plnew%ldiscard(1:nfrag) = .false.
@@ -1003,8 +1009,8 @@ contains
    
                ! Append the new merged body to the list 
                nstart = pl_adds%nbody + 1
-               nend = pl_adds%nbody + plnew%nbody
-               call pl_adds%append(plnew, lsource_mask=[(.true., i=1, plnew%nbody)])
+               nend = pl_adds%nbody + nfrag
+               call pl_adds%append(plnew, lsource_mask=[(.true., i=1, nfrag)])
                ! Record how many bodies were added in this event
                pl_adds%ncomp(nstart:nend) = plnew%nbody
 
@@ -1012,11 +1018,11 @@ contains
                pl%status(family(:)) = MERGED
                pl%ldiscard(family(:)) = .true.
                pl%lcollision(family(:)) = .true.
-               call pl%reset_kinship(family(:))
                lmask(:) = .false.
                lmask(family(:)) = .true.
                
                call plnew%setup(0, param)
+               deallocate(plnew)
 
                allocate(plsub, mold=pl)
                call pl%spill(plsub, lmask, ldestructive=.false.)
@@ -1028,7 +1034,8 @@ contains
                ! Record how many bodies were subtracted in this event
                pl_discards%ncomp(nstart:nend) = nfamily 
    
-               deallocate(plnew)
+               call plsub%setup(0, param)
+               deallocate(plsub)
             end associate
          end select
       end select
