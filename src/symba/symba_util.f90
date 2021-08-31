@@ -568,18 +568,21 @@ contains
       integer(I4B),                                   intent(in)    :: nnew !! New size
       ! Internals
       type(symba_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-         integer(I4B) :: nold !! Old size
+      integer(I4B) :: nold !! Old size
 
-      if (.not. allocated(arr) .or. nnew < 0) return
-
-      nold = size(arr)
-      if (nnew == nold) return
+      if (nnew < 0) return
 
       if (nnew == 0) then
-         deallocate(arr)
+         if (allocated(arr)) deallocate(arr)
          return
       end if
       
+      if (allocated(arr)) then
+         nold = size(arr)
+      else
+         nold = 0
+      end if
+
       allocate(tmp(nnew))
       if (nnew > nold) then
          tmp(1:nold) = arr(1:nold)
