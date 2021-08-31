@@ -119,7 +119,7 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, nfrag, jproj, jtarg, idstart, ibiggest, nfamily
+      integer(I4B)                            :: i, j, nfrag, jproj, jtarg, idstart, ibiggest, nfamily
       real(DP)                                :: mtot, avg_dens
       real(DP), dimension(NDIM)               :: xcom, vcom
       real(DP), dimension(2)                  :: vol
@@ -201,6 +201,12 @@ contains
             pl%status(family(:)) = ACTIVE
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
+            pl%kin(family(:))%parent = family(:)
+            pl%kin(family(:))%nchild = 0
+            do j = 1, size(family(:))
+               i = family(j)
+               if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
+            end do
          end select
       else
          status = HIT_AND_RUN_DISRUPT
@@ -341,7 +347,7 @@ contains
       ! Result
       integer(I4B)                                   :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, nfrag, ibiggest, nfamily, nstart, nend
+      integer(I4B)                            :: i, j, nfrag, ibiggest, nfamily, nstart, nend
       real(DP)                                :: mtot, avg_dens, min_frag_mass
       real(DP), dimension(NDIM)               :: xcom, vcom
       real(DP), dimension(2)                  :: vol
@@ -408,6 +414,12 @@ contains
             pl%status(family(:)) = status
             pl%ldiscard(family(:)) = .false.
             pl%lcollision(family(:)) = .false.
+            pl%kin(family(:))%parent = family(:)
+            pl%kin(family(:))%nchild = 0
+            do j = 1, size(family(:))
+               i = family(j)
+               if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
+            end do
          end select
       else
          ! Populate the list of new bodies
@@ -1066,8 +1078,7 @@ contains
                   idx_parent(1) = pl%kin(idx1(i))%parent
                   idx_parent(2) = pl%kin(idx2(i))%parent
                   lgoodcollision = symba_collision_consolidate_familes(pl, cb, param, idx_parent, family, x, v, mass, radius, L_spin, Ip)
-                  if (.not. lgoodcollision) cycle
-                  if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
+                  if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLISION)) cycle
    
                   ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them 
                   ! to symba_regime
