@@ -355,7 +355,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: peri   !! Perihelion distance
       real(DP),     dimension(:),   allocatable :: atp    !! Semimajor axis following perihelion passage
       integer(I4B), dimension(:,:), allocatable :: k_pltp !! Index array used to convert flattened the body-body comparison upper triangular matrix
-      integer(I8B)                               :: npltp  !! Number of pl-tp comparisons in the flattened upper triangular matrix
+      integer(I8B)                              :: npltp  !! Number of pl-tp comparisons in the flattened upper triangular matrix
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
       !!    component list, such as setup_tp and util_spill_tp
    contains

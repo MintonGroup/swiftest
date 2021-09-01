@@ -539,7 +539,6 @@ contains
 
                      ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                      pl%lcollision([i, j]) = .true.
-                     pl%ldiscard([i, j]) = .true.
                      pl%status([i, j]) = COLLISION
                      call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                      call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,j), discard_vh=pl%vh(:,j))
@@ -922,15 +921,9 @@ contains
                plnew%vb(:, 1:nfrag) = vb_frag(:, 1:nfrag)
                call pl%vb2vh(cb)
                call pl%xh2xb(cb)
-               write(54,*) "Fragment properties"
-               write(54,*) "xbcb : ", cb%xb(:)
-               write(54,*) "vbcb : ", cb%vb(:)
                do i = 1, nfrag
                   plnew%xh(:,i) = xb_frag(:, i) - cb%xb(:)
                   plnew%vh(:,i) = vb_frag(:, i) - cb%vb(:)
-                  write(54,*) "index, id: ", i, plnew%id(i)
-                  write(54,*) "xb   : ", xb_frag(:,i)
-                  write(54,*) "vb   : ", vb_frag(:,i)
                end do
                plnew%mass(1:nfrag) = m_frag(1:nfrag)
                plnew%Gmass(1:nfrag) = param%GU * m_frag(1:nfrag)

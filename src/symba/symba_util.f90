@@ -409,7 +409,7 @@ contains
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, j, k, npl, nadd, nencmin, idnew1, idnew2, idold1, idold2
+      integer(I4B) :: i, j, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
       logical, dimension(:), allocatable :: lmask, ldump_mask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
@@ -426,7 +426,7 @@ contains
 
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
          allocate(lmask(npl))
-         lmask(1:npl) = pl%ldiscard(1:npl) .or. pl%status(1:npl) == INACTIVE
+         lmask(1:npl) = pl%ldiscard(1:npl)
          allocate(tmp, mold=self)
          call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
          npl = pl%nbody
@@ -435,8 +435,11 @@ contains
          deallocate(lmask)
 
          ! Store the original plplenc list so we don't remove any of the original encounters
-         allocate(plplenc_old, source=system%plplenc_list)
-         call plplenc_old%copy(system%plplenc_list)
+         nenc_old = system%plplenc_list%nenc
+         if (nenc_old > 0) then 
+            allocate(plplenc_old, source=system%plplenc_list)
+            call plplenc_old%copy(system%plplenc_list)
+         end if
 
          ! Add in any new bodies
          if (nadd > 0) then
@@ -502,34 +505,36 @@ contains
          call move_alloc(nplenc_orig_pl, pl%nplenc)
 
          ! Re-index the encounter list as the index values may have changed
-         nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
-         do k = 1, nencmin
-            idnew1 = system%plplenc_list%id1(k)
-            idnew2 = system%plplenc_list%id2(k)
-            idold1 = plplenc_old%id1(k)
-            idold2 = plplenc_old%id2(k)
-            if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
-               ! This is an encounter we already know about, so save the old information
-               system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-               system%plplenc_list%status(k) = plplenc_old%status(k) 
-               system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
-               system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
-               system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
-               system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
-               system%plplenc_list%t(k) = plplenc_old%t(k)
-               system%plplenc_list%level(k) = plplenc_old%level(k)
-            else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
-               ! This is an encounter we already know about, but with the order reversed, so save the old information
-               system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-               system%plplenc_list%status(k) = plplenc_old%status(k) 
-               system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
-               system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
-               system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
-               system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
-               system%plplenc_list%t(k) = plplenc_old%t(k)
-               system%plplenc_list%level(k) = plplenc_old%level(k)
-            end if
-         end do
+         if (nenc_old > 0) then
+            nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
+            do k = 1, nencmin
+               idnew1 = system%plplenc_list%id1(k)
+               idnew2 = system%plplenc_list%id2(k)
+               idold1 = plplenc_old%id1(k)
+               idold2 = plplenc_old%id2(k)
+               if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
+                  ! This is an encounter we already know about, so save the old information
+                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
+                  system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
+                  system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
+                  system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
+                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%level(k) = plplenc_old%level(k)
+               else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
+                  ! This is an encounter we already know about, but with the order reversed, so save the old information
+                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
+                  system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
+                  system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
+                  system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
+                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%level(k) = plplenc_old%level(k)
+               end if
+            end do
+         end if
       end associate
 
       return
