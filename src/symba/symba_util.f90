@@ -289,8 +289,6 @@ contains
 
       associate(pl => self)
          npl = int(self%nbody, kind=I8B)
-         call pl%sort("mass", ascending=.false.)
-
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
 
@@ -476,6 +474,7 @@ contains
          deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 
+         call pl%sort("mass", ascending=.false.)
          call pl%index(param)
 
          ! Reset the kinship trackers

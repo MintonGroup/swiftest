@@ -1,12 +1,13 @@
 module symba_classes
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Definition of classes and methods specific to the Democratic SyMBAcentric Method
-   !! Adapted from David E. Kaufmann's Swifter routine: helio.f90
+   !! Definition of classes and methods specific to the SyMBA integrator
+   !! Adapted from David E. Kaufmann's Swifter routine: module_symba.f90
    use swiftest_globals
    use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter, swiftest_particle_info, netcdf_parameters
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use rmvs_classes,     only : rmvs_chk_ind
+   use fraggle_classes,  only : fraggle_colliders, fraggle_fragments
    implicit none
    public
 
@@ -66,7 +67,7 @@ module symba_classes
       real(DP),                  dimension(:), allocatable :: atp        !! semimajor axis following perihelion passage
       type(symba_kinship),       dimension(:), allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
    contains
-      procedure :: make_family     => symba_collision_make_family_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
+      procedure :: make_colliders  => symba_collision_make_colliders_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
       procedure :: index           => symba_util_index_eucl_plpl     !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: discard         => symba_discard_pl               !! Process massive body discards
       procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
@@ -190,11 +191,11 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine
 
-      module subroutine symba_collision_make_family_pl(self,idx)
+      module subroutine symba_collision_make_colliders_pl(self,idx)
          implicit none
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
          integer(I4B), dimension(2), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision
-      end subroutine symba_collision_make_family_pl
+      end subroutine symba_collision_make_colliders_pl
 
       module subroutine symba_collision_resolve_fragmentations(self, system, param)
          implicit none
@@ -291,50 +292,44 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
-      module function symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casedisruption(system, param, colliders, frag) result(status)
+         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
          implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
-         real(DP),                        intent(inout) :: Qloss            !! Energy lost during collisionn
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
+         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
+         integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casedisruption
    
-      module function symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casehitandrun(system, param, colliders, frag) result(status)
+         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
          implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
-         real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
+         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
+         integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casehitandrun
 
-      module function symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
+      module function symba_collision_casemerge(system, param, colliders, frag) result(status)
+         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
          implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collisio
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
+         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
+         integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casemerge
 
-      module function symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casesupercatastrophic(system, param, colliders, frag)  result(status)
+         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
          implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
-         real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
+         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
+         integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casesupercatastrophic
 
       module subroutine symba_util_index_eucl_plpl(self, param)

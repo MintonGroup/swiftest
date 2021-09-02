@@ -45,9 +45,10 @@
 #******************************************************************************
 
 SWIFTEST_MODULES =   swiftest_globals.f90 \
+                     swiftest_operators.f90 \
 							lambda_function.f90\
                      swiftest_classes.f90 \
-                     swiftest_operators.f90 \
+                     fraggle_classes.f90 \
                      whm_classes.f90 \
                      rmvs_classes.f90 \
                      helio_classes.f90 \
@@ -91,7 +92,7 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTEST_HOME)/src/fragmentation; \
+	cd $(SWIFTEST_HOME)/src/fraggle; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
@@ -193,7 +194,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/modules;  rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTEST_HOME)/src/fragmentation;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/fraggle;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/gr;          rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/helio;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*

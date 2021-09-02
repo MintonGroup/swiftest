@@ -81,7 +81,6 @@ contains
       class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
       integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
 
-      self%nenc = n
       if (n < 0) return
 
       if (allocated(self%lvdotr)) deallocate(self%lvdotr)
@@ -97,6 +96,7 @@ contains
       if (allocated(self%v2)) deallocate(self%v2)
       if (allocated(self%t)) deallocate(self%t)
 
+      self%nenc = n
       if (n == 0) return
 
       allocate(self%lvdotr(n))
@@ -206,7 +206,6 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      self%nbody = n
       if (n < 0) return
 
       self%lfirst = .true.
@@ -234,6 +233,7 @@ contains
       if (allocated(self%omega)) deallocate(self%omega)
       if (allocated(self%capm)) deallocate(self%capm)
 
+      self%nbody = n
       if (n == 0) return
 
       allocate(self%info(n))

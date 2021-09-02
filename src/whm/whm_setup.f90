@@ -81,6 +81,8 @@ contains
       call setup_initialize_system(self, param)
       ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
       call util_set_ir3h(self%pl)
+      call self%pl%sort("ir3h", ascending=.false.)
+      call self%pl%index(param)
 
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(0, param)

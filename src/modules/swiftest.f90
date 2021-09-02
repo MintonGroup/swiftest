@@ -10,6 +10,7 @@ module swiftest
    use rmvs_classes
    use helio_classes
    use symba_classes
+   use fraggle_classes
    use lambda_function
    !use advisor_annotate
    !$ use omp_lib

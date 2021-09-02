@@ -15,6 +15,8 @@ contains
       call whm_setup_initialize_system(self, param)
       call self%pl%h2b(self%cb)
       call self%tp%h2b(self%cb)
+      call self%pl%sort("mass", ascending=.false.)
+      call self%pl%index(param)
 
       return
    end subroutine helio_setup_initialize_system
