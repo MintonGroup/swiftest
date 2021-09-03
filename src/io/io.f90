@@ -623,12 +623,10 @@ contains
                case("GMTOT_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%GMtot_orig 
                case("LTOT_ORIG")
-                  write(*,*) param_value
                   read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(1)
                   do i = 2, NDIM
                      ifirst = ilast + 2
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
-                     write(*,*) param_value
                      read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(i)
                   end do
                case("LORBIT_ORIG")
