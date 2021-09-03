@@ -20,6 +20,7 @@ contains
       real(DP) :: min_mfrag_si, Mcb_si
       real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si
       real(DP) :: mlr, mslr, mtot, dentot, msys, msys_new, Qloss, impact_parameter
+      logical :: fileExists
         
       associate(colliders => self)
          ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them to the regime determination subroutine
@@ -62,6 +63,8 @@ contains
          frag%mtot = sum(colliders%mass(:))
          frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
          frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
+
+         call fraggle_io_log_regime(param, colliders, frag)
       end associate
 
       return

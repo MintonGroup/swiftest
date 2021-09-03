@@ -22,9 +22,9 @@ contains
       integer(I4B)                   :: ilength, ifirst, ilast  !! Variables used to parse input file
       character(STRMAX)              :: line                    !! Line of the input file
       character (len=:), allocatable :: line_trim,param_name, param_value !! Strings used to parse the param file
-      integer(I4B) :: nseeds, nseeds_from_file, i
-      logical                 :: seed_set = .false.      !! Is the random seed set in the input file?
-      character(len=*),parameter    :: linefmt = '(A)'
+      integer(I4B)                   :: nseeds, nseeds_from_file, i
+      logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
+      character(len=*),parameter     :: linefmt = '(A)'
 
       associate(param => self)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
@@ -81,7 +81,6 @@ contains
          end do
          1 continue
 
-
          if (self%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", self%GMTINY
             iostat = -1
@@ -100,6 +99,8 @@ contains
             write(*,*) "SEED: N,VAL    = ",size(param%seed), param%seed(:)
             if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
             write(*,*) "MIN_GMFRAG      = ", self%min_GMfrag
+            ! For the Fraggle log file, delete it if this is a new run and the file exists
+            call fraggle_io_log_start(param)
          end if
 
          if (.not.self%lclose) then

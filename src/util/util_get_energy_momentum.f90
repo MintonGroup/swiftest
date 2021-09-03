@@ -19,7 +19,6 @@ contains
       real(DP), dimension(self%pl%nbody) :: irh, kepl, kespinpl, pecb
       real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
       real(DP), dimension(self%pl%nbody) :: Lplspinx, Lplspiny, Lplspinz
-      logical, dimension(self%pl%nbody)  :: lstatus
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
       real(DP), dimension(:), allocatable :: pepl 
       logical, dimension(:), allocatable :: lstatpl
@@ -41,13 +40,13 @@ contains
          Lplspiny(:) = 0.0_DP
          Lplspinz(:) = 0.0_DP
 
-         lstatus(1:npl) = pl%status(1:npl) /= INACTIVE
+         pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
 
-         system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), lstatus(1:npl)) 
+         system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
          Lcborbit(:) = cb%mass * (cb%xb(:) .cross. cb%vb(:))
 
-         do concurrent (i = 1:npl, lstatus(i))
+         do concurrent (i = 1:npl, pl%lmask(i))
             hx = pl%xb(2,i) * pl%vb(3,i) - pl%xb(3,i) * pl%vb(2,i)
             hy = pl%xb(3,i) * pl%vb(1,i) - pl%xb(1,i) * pl%vb(3,i)
             hz = pl%xb(1,i) * pl%vb(2,i) - pl%xb(2,i) * pl%vb(1,i)
@@ -67,7 +66,7 @@ contains
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
             Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
-            do concurrent (i = 1:npl, lstatus(i))
+            do concurrent (i = 1:npl, pl%lmask(i))
                ! Currently we assume that the rotation pole is the 3rd principal axis
                ! Angular momentum from spin
                Lplspinx(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(1,i)
@@ -83,11 +82,11 @@ contains
          end if
    
          ! Do the central body potential energy component first
-         where(.not. lstatus(1:npl))
+         where(.not. pl%lmask(1:npl))
             pecb(1:npl) = 0.0_DP
          end where
 
-         do concurrent(i = 1:npl, lstatus(i))
+         do concurrent(i = 1:npl, pl%lmask(i))
             pecb(i) = -cb%Gmass * pl%mass(i) / norm2(pl%xb(:,i)) 
          end do
    
@@ -97,7 +96,7 @@ contains
          do concurrent (k = 1:nplpl)
             i = pl%k_plpl(1,k)
             j = pl%k_plpl(2,k)
-            lstatpl(k) = (lstatus(i) .and. lstatus(j))
+            lstatpl(k) = (pl%lmask(i) .and. pl%lmask(j))
          end do
 
          where(.not.lstatpl(1:nplpl)) 
@@ -110,29 +109,26 @@ contains
             pepl(k) = -(pl%Gmass(i) * pl%mass(j)) / norm2(pl%xb(:, i) - pl%xb(:, j))
          end do
    
-         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lstatus(1:npl))
+         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), pl%lmask(1:npl))
          deallocate(lstatpl, pepl)
 
-         system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), lstatus(:)))
-         if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), lstatus(:)))
+         system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
+         if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
    
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
-            do concurrent(i = 1:npl, lstatus(i))
-               irh(i) = 1.0_DP / norm2(pl%xh(:,i))
-            end do
-            call obl_pot(npl, cb%Gmass, pl%mass, cb%j2rp2, cb%j4rp4, pl%xh, irh, oblpot)
-            system%pe = system%pe + oblpot
+            call system%obl_pot()
+            system%pe = system%pe + system%oblpot
          end if
    
-         system%Lorbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), lstatus(1:npl)) 
-         system%Lorbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), lstatus(1:npl)) 
-         system%Lorbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), lstatus(1:npl)) 
+         system%Lorbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
+         system%Lorbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
+         system%Lorbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), pl%lmask(1:npl)) 
   
          if (param%lrotation) then
-            system%Lspin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), lstatus(1:npl)) 
-            system%Lspin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), lstatus(1:npl)) 
-            system%Lspin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), lstatus(1:npl)) 
+            system%Lspin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), pl%lmask(1:npl)) 
+            system%Lspin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), pl%lmask(1:npl)) 
+            system%Lspin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
          end if
 
          system%te = system%ke_orbit + system%ke_spin + system%pe

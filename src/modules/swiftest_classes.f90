@@ -396,6 +396,7 @@ module swiftest_classes
       real(DP)                        :: ke_spin = 0.0_DP     !! System spin kinetic energy
       real(DP)                        :: pe = 0.0_DP          !! System potential energy
       real(DP)                        :: te = 0.0_DP          !! System total energy
+      real(DP)                        :: oblpot = 0.0_DP      !! System potential energy due to oblateness of the central body
       real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
       real(DP), dimension(NDIM)       :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)       :: Ltot = 0.0_DP        !! System angular momentum vector
@@ -417,6 +418,7 @@ module swiftest_classes
       procedure :: write_frame             => io_write_frame_system                  !! Append a frame of output data to file
       procedure :: write_hdr_bin           => io_write_hdr_system                    !! Write a header for an output frame in Fortran binary format
       procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
+      procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
       procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
@@ -927,16 +929,10 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       end subroutine obl_acc_tp
 
-      module subroutine obl_pot(npl, Mcb, Mpl, j2rp2, j4rp4, xh, irh, oblpot)
+      module subroutine obl_pot_system(self)
          implicit none
-         integer(I4B), intent(in) :: npl
-         real(DP), intent(in) :: Mcb
-         real(DP), dimension(:), intent(in) :: Mpl
-         real(DP), intent(in) :: j2rp2, j4rp4
-         real(DP), dimension(:), intent(in)         :: irh
-         real(DP), dimension(:, :), intent(in)      :: xh
-         real(DP), intent(out)                      :: oblpot
-      end subroutine obl_pot
+         class(swiftest_nbody_system), intent(inout)  :: self   !! Swiftest nbody system object
+      end subroutine obl_pot_system
 
       module subroutine orbel_el2xv_vec(self, cb)
          implicit none

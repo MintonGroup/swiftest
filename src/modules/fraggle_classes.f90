@@ -7,7 +7,9 @@ module fraggle_classes
    implicit none
    public
 
-   integer(I4B), parameter :: FRAGGLE_NMASS_DIST = 3 !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
+   integer(I4B),     parameter :: FRAGGLE_NMASS_DIST = 3             !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
+   character(len=*), parameter :: FRAGGLE_LOG_OUT    = "fraggle.log" !! Name of log file for Fraggle diagnostic information
+   integer(I4B),     parameter :: FRAGGLE_LOG_UNIT   = 88            !! Unit number for Fraggle log file
    !********************************************************************************************************************************
    !                                    fraggle_colliders class definitions and method interfaces
    !*******************************************************************************************************************************
@@ -104,6 +106,18 @@ module fraggle_classes
          class(swiftest_parameters),   intent(in)    :: param     !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
+
+      module subroutine fraggle_io_log_regime(param, colliders, frag)
+         implicit none
+         class(swiftest_parameters), intent(in) :: param
+         class(fraggle_colliders),   intent(in) :: colliders
+         class(fraggle_fragments),   intent(in) :: frag
+      end subroutine fraggle_io_log_regime
+
+      module subroutine fraggle_io_log_start(param)
+         implicit none
+         class(swiftest_parameters), intent(in) :: param
+      end subroutine fraggle_io_log_start
 
       !> The following interfaces are placeholders intended to satisfy the required abstract methods given by the parent class
       module subroutine fraggle_placeholder_accel(self, system, param, t, lbeg)

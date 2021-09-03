@@ -61,7 +61,6 @@ program swiftest_driver
          call nbody_system%dump(param)
       end if
 
-
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
       !$ nthreads = omp_get_max_threads() ! In the *parallel* case

@@ -21,14 +21,17 @@ contains
       class(swiftest_parameters),   intent(in)    :: param     !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       ! Internals
-      integer(I4B)                        :: i
-      integer(I4B)                        :: try
-      real(DP)                            :: r_max_start, f_spin, dEtot, dLmag
-      integer(I4B), parameter             :: MAXTRY = 3000
-      character(len=*), parameter         :: fmtlabel = "(A14,10(ES11.4,1X,:))"
-      logical, dimension(size(IEEE_ALL))  :: fpe_halting_modes, fpe_quiet_modes
-      logical                             :: lk_plpl
+      integer(I4B)                         :: i
+      integer(I4B)                         :: try
+      real(DP)                             :: r_max_start, f_spin, dEtot, dLmag
+      integer(I4B), parameter              :: MAXTRY = 3000
+      character(len=*), parameter          :: fmtlabel = "(A14,10(ES11.4,1X,:))"
+      logical                              :: lk_plpl
+      logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
+      logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
 
+      ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
+      ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
       call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
       fpe_quiet_modes(:) = .false.
       call ieee_set_halting_mode(IEEE_ALL,fpe_quiet_modes)
@@ -54,17 +57,22 @@ contains
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
          r_max_start = 1 * norm2(colliders%xb(:,2) - colliders%xb(:,1))
-         try = 1
          lfailure = .false.
+         try = 1
          do while (try < MAXTRY)
+            if (lfailure) then
+               call frag%restructure(colliders, try, f_spin, r_max_start)
+               call frag%reset()
+               try = try + 1
+            end if
+
             lfailure = .false.
+            call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
             call fraggle_generate_pos_vec(frag, colliders, r_max_start)
             call frag%set_coordinate_system(colliders)
 
-            ! Initial velocity guess will be the barycentric velocity of the colliding system. 
-            ! This ensures that our budgets are based on the residual velocities needed in the
-            ! collisional frame
+            ! Initial velocity guess will be the barycentric velocity of the colliding system so that the budgets are based on the much smaller collisional-frame velocities
             do concurrent (i = 1:nfrag)
                frag%vb(:, i) = frag%vbcom(:)
             end do
@@ -73,54 +81,66 @@ contains
             call frag%set_budgets(colliders)
 
             call fraggle_generate_spins(frag, colliders, f_spin, lfailure)
-            if (.not.lfailure) then
-               call fraggle_generate_tan_vel(frag, colliders, lfailure)
-               if (.not. lfailure) then 
-                  call fraggle_generate_rad_vel(frag, colliders, lfailure)
-                  ! if (lfailure) write(*,*) 'Failed to find radial velocities'
-                  if (.not.lfailure) then
-                     call frag%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
-                     dEtot = frag%Etot_after - frag%Etot_before 
-                     dLmag = .mag. (frag%Ltot_after(:) - frag%Ltot_before(:))
-
-                     if ((abs(dEtot + frag%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) then
-                        ! write(*,*) 'Failed due to high energy error: ',dEtot, abs(dEtot + frag%Qloss) / FRAGGLE_ETOL
-                        lfailure = .true.
-                     else if ((abs(dLmag) / (.mag.frag%Ltot_before)) > FRAGGLE_LTOL) then
-                        ! write(*,*) 'Failed due to high angular momentum error: ', dLmag / (.mag.frag%Ltot_before(:))
-                        lfailure = .true.
-                     end if
-                  end if
-               end if
+            if (lfailure) then
+               write(*,*) "Fraggle failed to find spins"
+               cycle
             end if
-      
+
+            call fraggle_generate_tan_vel(frag, colliders, lfailure)
+            if (lfailure) then
+               write(*,*) "Fraggle failed to find tangential velocities"
+               cycle
+            end if
+
+            call fraggle_generate_rad_vel(frag, colliders, lfailure)
+            if (lfailure) then
+               write(*,*) "Fraggle failed to find radial velocities"
+               cycle
+            end if
+
+            call frag%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
+            dEtot = frag%Etot_after - frag%Etot_before 
+            dLmag = .mag. (frag%Ltot_after(:) - frag%Ltot_before(:))
+
+            lfailure = ((abs(dEtot + frag%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
+            if (lfailure) then
+               write(*,*) "Fraggle failed due to high energy error: ",dEtot, abs(dEtot + frag%Qloss) / FRAGGLE_ETOL
+               cycle
+            end if
+
+            lfailure = ((abs(dLmag) / (.mag.frag%Ltot_before)) > FRAGGLE_LTOL) 
+            if (lfailure) then
+               write(*,*) "Fraggle failed due to high angular momentum error: ", dLmag / (.mag.frag%Ltot_before(:))
+               cycle
+            end if
+
+            ! Check if any of the usual floating point exceptions happened, and fail the try if so
+            call ieee_get_flag(ieee_usual, fpe_flag)
+            lfailure = any(fpe_flag) 
             if (.not.lfailure) exit
-            call frag%restructure(colliders, try, f_spin, r_max_start)
-            call frag%reset()
-            try = try + 1
+            write(*,*) "Fraggle failed due to a floating point exception: ", fpe_flag
          end do
 
-         ! write(*,        "(' -------------------------------------------------------------------------------------')")
-         ! write(*,        "('  Final diagnostic')")
-         ! write(*,        "(' -------------------------------------------------------------------------------------')")
+         write(*,        "(' -------------------------------------------------------------------------------------')")
+         write(*,        "('  Fraggle final diagnostic')")
+         write(*,        "(' -------------------------------------------------------------------------------------')")
          if (lfailure) then
             write(*,*) "Fraggle fragment generation failed after: ",try," tries"
          else
             write(*,*) "Fraggle fragment generation succeeded after: ",try," tries"
-            ! write(*,        "(' dL_tot should be very small' )")
-            ! write(*,fmtlabel) ' dL_tot      |', (.mag.(frag%Ltot_after(:) - frag%Ltot_before(:))) / (.mag.frag%Ltot_before(:))
-            ! write(*,        "(' dE_tot should be negative and equal to Qloss' )")
-            ! write(*,fmtlabel) ' dE_tot      |', (frag%Etot_after - frag%Etot_before) / abs(frag%Etot_before)
-            ! write(*,fmtlabel) ' Qloss       |', -frag%Qloss / abs(frag%Etot_before)
-            ! write(*,fmtlabel) ' dE - Qloss  |', (frag%Etot_after - frag%Etot_before + frag%Qloss) / abs(frag%Etot_before)
+            write(*,        "(' dL_tot should be very small' )")
+            write(*,fmtlabel) ' dL_tot      |', (.mag.(frag%Ltot_after(:) - frag%Ltot_before(:))) / (.mag.frag%Ltot_before(:))
+            write(*,        "(' dE_tot should be negative and equal to Qloss' )")
+            write(*,fmtlabel) ' dE_tot      |', (frag%Etot_after - frag%Etot_before) / abs(frag%Etot_before)
+            write(*,fmtlabel) ' Qloss       |', -frag%Qloss / abs(frag%Etot_before)
+            write(*,fmtlabel) ' dE - Qloss  |', (frag%Etot_after - frag%Etot_before + frag%Qloss) / abs(frag%Etot_before)
          end if
-         ! write(*,        "(' -------------------------------------------------------------------------------------')")
+         write(*,        "(' -------------------------------------------------------------------------------------')")
          call frag%set_original_scale(colliders)
 
          ! Restore the big array
          if (lk_plpl) call pl%index(param)
       end associate
-
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
       return 
