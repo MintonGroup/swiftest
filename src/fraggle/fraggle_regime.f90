@@ -60,9 +60,6 @@ contains
          ! Convert quantities back to the system units and save them into the fragment system
          frag%mass_dist(:) = (frag%mass_dist(:) / param%MU2KG) 
          frag%Qloss = frag%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
-         frag%mtot = sum(colliders%mass(:))
-         frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
-         frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
 
          call fraggle_io_log_regime(colliders, frag)
       end associate
