@@ -37,47 +37,28 @@ contains
       class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
       class(fraggle_colliders), intent(inout) :: colliders !! Fraggle collider system object
       ! Internals
-      integer(I4B)              :: i, istart, jproj, jtarg
-      real(DP), dimension(2)    :: vol 
-      real(DP)                  :: min_frag_mass
+      integer(I4B)              :: i, jproj, jtarg
+      real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
      
       associate(frag => self, nfrag => self%nbody)
          ! Get mass weighted mean of Ip and density
-         vol(1:2) = 4._DP / 3._DP * PI * colliders%radius(1:2)**3
-         frag%density(1:nfrag) = frag%mtot / sum(vol(:))
+         volume(1:2) = 4._DP / 3._DP * PI * colliders%radius(1:2)**3
+         frag%density(1:nfrag) = frag%mtot / sum(volume(:))
          Ip_avg(:) = (colliders%mass(1) * colliders%Ip(:,1) + colliders%mass(2) * colliders%Ip(:,2)) / frag%mtot
          do i = 1, nfrag
             frag%Ip(:, i) = Ip_avg(:)
          end do
   
          select case(frag%regime)
-         case(COLLRESOLVE_REGIME_DISRUPTION)
-            ! Distribute the mass among fragments, with a branch to check for the size of the second largest fragment
-            frag%mass(1) = frag%mass_dist(1)
-            if (frag%mass_dist(2) > frag%mass_dist(1) / 3._DP) then
-               frag%mass(2) = frag%mass_dist(2)
-               istart = 3
-            else
-               istart = 2
-            end if
-            ! Distribute remaining mass among the remaining bodies
-            do i = istart, nfrag
-               frag%mass(i) = (frag%mtot - sum(frag%mass(1:istart - 1))) / (nfrag - istart + 1) 
+         case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+            ! Assign the first and second-largest masses that came out of the regime determination subroutine to the first two fragments
+            frag%mass(1:2) = frag%mass_dist(1:2)
+
+            ! Distribute remaining mass among the remaining fragments
+            do i = 3, nfrag
+               frag%mass(i) = (frag%mtot - sum(frag%mass(1:2))) / (nfrag - 2) 
             end do
-            frag%radius(1:nfrag) = (3 * frag%mass(1:nfrag) / (4 * PI * frag%density(1:nfrag)))**(1.0_DP / 3.0_DP)
-         case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-            ! If we are adding the first and largest fragment (lr), check to see if its mass is SMALLER than an equal distribution of 
-            ! mass between all fragments. If so, we will just distribute the mass equally between the fragments
-            min_frag_mass = frag%mtot / nfrag
-            if (frag%mass_dist(1) < min_frag_mass) then
-               frag%mass(:) = min_frag_mass
-            else
-               frag%mass(1) = frag%mass_dist(1)
-               frag%mass(2:nfrag) = (frag%mtot - frag%mass_dist(1)) / (nfrag - 1)
-            end if
-            ! Distribute any residual mass if there is any and set the radius
-            frag%mass(nfrag) = frag%mass(nfrag) + (frag%mtot - sum(frag%mass(:)))
             frag%radius(1:nfrag) = (3 * frag%mass(1:nfrag) / (4 * PI * frag%density(1:nfrag)))**(1.0_DP / 3.0_DP)
          case(COLLRESOLVE_REGIME_HIT_AND_RUN) 
             if (colliders%mass(1) > colliders%mass(2)) then
@@ -89,14 +70,14 @@ contains
             end if
             frag%mass(1) = frag%mass_dist(1)
             frag%radius(1) = colliders%radius(jtarg)
-            frag%density(1) = frag%mass_dist(1) / vol(jtarg)
+            frag%density(1) = frag%mass_dist(1) / volume(jtarg)
 
             frag%mass(2:nfrag) = (frag%mtot - frag%mass(1)) / (nfrag - 1) 
             frag%mass(nfrag) = frag%mass(nfrag) + (frag%mtot - sum(frag%mass(:)))
             frag%radius(2:nfrag) = (3 * frag%mass(2:nfrag) / (4 * PI * frag%density(2:nfrag)))**(1.0_DP / 3.0_DP)
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
             frag%mass(1) = frag%mtot
-            frag%radius(1) = (3 * sum(vol(:)) / (4 * PI))**(1._DP / 3._DP)
+            frag%radius(1) = (3 * sum(volume(:)) / (4 * PI))**(1._DP / 3._DP)
          case default
             write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",frag%regime
          end select

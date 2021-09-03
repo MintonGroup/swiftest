@@ -216,7 +216,6 @@ contains
       write(FRAGGLE_LOG_UNIT, *) "Largest fragment mass        : ", frag%mass_dist(1)
       write(FRAGGLE_LOG_UNIT, *) "Second-largest fragment mass : ", frag%mass_dist(2)
       write(FRAGGLE_LOG_UNIT, *) "Remaining fragment mass      : ", frag%mass_dist(3)
-      write(FRAGGLE_LOG_UNIT, *) "Remaining fragment mass      : ", frag%mass_dist(3)
       write(FRAGGLE_LOG_UNIT, *) "Center of mass position      : ", frag%xbcom(:)
       write(FRAGGLE_LOG_UNIT, *) "Center of mass velocity      : ", frag%vbcom(:)
       write(FRAGGLE_LOG_UNIT, *) "Energy loss                  : ", frag%Qloss
