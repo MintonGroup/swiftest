@@ -24,7 +24,7 @@ contains
       integer(I4B)                         :: i
       integer(I4B)                         :: try
       real(DP)                             :: r_max_start, f_spin, dEtot, dLmag
-      integer(I4B), parameter              :: MAXTRY = 3000
+      integer(I4B), parameter              :: MAXTRY = 100
       logical                              :: lk_plpl
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
