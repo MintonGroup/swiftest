@@ -17,6 +17,7 @@ program swiftest_driver
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
+   integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
 
@@ -51,7 +52,8 @@ program swiftest_driver
       iout = istep_out
       idump = istep_dump
       nloops = ceiling(tstop / dt, kind=I8B)
-      ioutput = ceiling(t0/ dt, kind=I8B) / int(istep_out, kind=I8B)
+      ioutput_t0 = int(t0 / dt / istep_out, kind=I8B)
+      ioutput = ioutput_t0
       ! Prevent duplicate frames from being written if this is a restarted run
       if ((param%lrestart) .and. ((param%out_type == REAL8_TYPE) .or. param%out_type == REAL4_TYPE)) then
          old_t_final = nbody_system%get_old_t_final(param)
@@ -81,7 +83,7 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               ioutput = ceiling(t / dt, kind=I8B) / int(istep_out, kind=I8B)
+               ioutput = ioutput_t0 + iloop / istep_out
                if (t > old_t_final) call nbody_system%write_frame(param)
                iout = istep_out
             end if

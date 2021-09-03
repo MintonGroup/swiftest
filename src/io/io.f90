@@ -623,30 +623,32 @@ contains
                case("GMTOT_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%GMtot_orig 
                case("LTOT_ORIG")
+                  write(*,*) param_value
                   read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(1)
                   do i = 2, NDIM
-                     ifirst = ilast + 1
+                     ifirst = ilast + 2
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
+                     write(*,*) param_value
                      read(param_value, *, err = 667, iomsg = iomsg) param%Ltot_orig(i)
                   end do
                case("LORBIT_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Lorbit_orig(1)
                   do i = 2, NDIM
-                     ifirst = ilast + 1
+                     ifirst = ilast + 2
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
                      read(param_value, *, err = 667, iomsg = iomsg) param%Lorbit_orig(i)
                   end do
                case("LSPIN_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Lspin_orig(1)
                   do i = 2, NDIM
-                     ifirst = ilast + 1
+                     ifirst = ilast + 2
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
                      read(param_value, *, err = 667, iomsg = iomsg) param%Lspin_orig(i)
                   end do
                case("LESCAPE")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Lescape(1)
                   do i = 2, NDIM
-                     ifirst = ilast + 1
+                     ifirst = ilast + 2
                      param_value = io_get_token(line, ifirst, ilast, iostat) 
                      read(param_value, *, err = 667, iomsg = iomsg) param%Lescape(i)
                   end do
@@ -850,10 +852,9 @@ contains
       ! Internals
       character(*),parameter :: Ifmt  = '(I0)'         !! Format label for integer values
       character(*),parameter :: Rfmt  = '(ES25.17)'    !! Format label for real values 
-      character(*),parameter :: Rarrfmt  = '(3(ES25.17,1X))'    !! Format label for real values 
       character(*),parameter :: Lfmt  = '(L1)'         !! Format label for logical values 
-      character(len=*), parameter :: Afmt = '(A25,1X,64(:,A25,1X))'
-      character(256)          :: param_name, param_value
+      character(len=NAMELEN) :: param_name
+      character(LEN=STRMAX)  :: param_value, v1, v2, v3
       type character_array
          character(25) :: value
       end type character_array
@@ -861,64 +862,76 @@ contains
       integer(I4B) :: i
 
       associate(param => self)
-         write(param_name, Afmt) "T0"; write(param_value,Rfmt) param%t0; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TSTOP"; write(param_value, Rfmt) param%tstop; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "DT"; write(param_value, Rfmt) param%dt; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CB_IN"; write(param_value, Afmt) trim(adjustl(param%incbfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "PL_IN"; write(param_value, Afmt) trim(adjustl(param%inplfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TP_IN"; write(param_value, Afmt) trim(adjustl(param%intpfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "IN_TYPE"; write(param_value, Afmt) trim(adjustl(param%in_type)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "IN_FORM"; write(param_value, Afmt) trim(adjustl(param%in_form)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         if (param%istep_dump > 0) write(param_name, Afmt) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, *) "T0"; write(param_value,Rfmt) param%t0; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "TSTOP"; write(param_value, Rfmt) param%tstop; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "DT"; write(param_value, Rfmt) param%dt; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "CB_IN"; write(param_value, *) trim(adjustl(param%incbfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "PL_IN"; write(param_value, *) trim(adjustl(param%inplfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "TP_IN"; write(param_value, *) trim(adjustl(param%intpfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "IN_TYPE"; write(param_value, *) trim(adjustl(param%in_type)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "IN_FORM"; write(param_value, *) trim(adjustl(param%in_form)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         if (param%istep_dump > 0) write(param_name, *) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
          if (param%istep_out > 0) then
-            write(param_name, Afmt) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "BIN_OUT"; write(param_value, Afmt) trim(adjustl(param%outfile)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "OUT_TYPE"; write(param_value, Afmt) trim(adjustl(param%out_type)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "OUT_FORM"; write(param_value, Afmt) trim(adjustl(param%out_form)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "OUT_STAT"; write(param_value, Afmt) "APPEND"; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, *) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "BIN_OUT"; write(param_value, *) trim(adjustl(param%outfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "OUT_TYPE"; write(param_value, *) trim(adjustl(param%out_type)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "OUT_FORM"; write(param_value, *) trim(adjustl(param%out_form)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "OUT_STAT"; write(param_value, *) "APPEND"; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
          end if
-         write(param_name, Afmt) "PARTICLE_OUT"; write(param_value, Afmt) trim(adjustl(param%particle_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "ENC_OUT"; write(param_value, Afmt) trim(adjustl(param%enc_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_EJECT"; write(param_value, Rfmt) param%rmaxu; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_QMIN"; write(param_value, Rfmt) param%qmin; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, *) "PARTICLE_OUT"; write(param_value, *) trim(adjustl(param%particle_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         if (param%enc_out /= "") then
+            write(param_name, *) "ENC_OUT"; write(param_value, *) trim(adjustl(param%enc_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         end if
+         write(param_name, *) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "CHK_EJECT"; write(param_value, Rfmt) param%rmaxu; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "CHK_QMIN"; write(param_value, Rfmt) param%qmin; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
          if (param%qmin >= 0.0_DP) then
-            write(param_name, Afmt) "CHK_QMIN_COORD"; write(param_value, Afmt) trim(adjustl(param%qmin_coord)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, *) "CHK_QMIN_COORD"; write(param_value, *) trim(adjustl(param%qmin_coord)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
             allocate(param_array(2))
             write(param_array(1)%value, Rfmt) param%qmin_alo
             write(param_array(2)%value, Rfmt) param%qmin_ahi
-            write(param_name, Afmt) "CHK_QMIN_RANGE"; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_array(1)%value), adjustl(param_array(2)%value)
+            write(param_name, *) "CHK_QMIN_RANGE"; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_array(1)%value), adjustl(param_array(2)%value)
          end if
-         write(param_name, Afmt) "MU2KG"; write(param_value, Rfmt) param%MU2KG; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TU2S"; write(param_value, Rfmt) param%TU2S ; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "RHILL_PRESENT"; write(param_value, Lfmt) param%lrhill_present; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         if (param%discard_out /= "") write(param_name, Afmt) "DISCARD_OUT"; write(param_value, Afmt) trim(adjustl(param%discard_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         if (param%discard_out /= "") write(param_name, Afmt) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         if (param%lenergy) write(param_name, Afmt) "ENERGY_OUT"; write(param_value, Afmt) trim(adjustl(param%energy_out)); write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, *) "MU2KG"; write(param_value, Rfmt) param%MU2KG; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "TU2S"; write(param_value, Rfmt) param%TU2S ; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "RHILL_PRESENT"; write(param_value, Lfmt) param%lrhill_present; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         if (param%discard_out /= "") then 
+            write(param_name, *) "DISCARD_OUT"; write(param_value, *) trim(adjustl(param%discard_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         end if
+         if (param%discard_out /= "") then
+            write(param_name, *) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         end if
+         write(param_name, *) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         if (param%lenergy .and. (param%energy_out /= "")) then 
+            write(param_name, *) "ENERGY_OUT"; write(param_value, *) trim(adjustl(param%energy_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         end if
+         write(param_name, *) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
 
          if (param%lenergy) then
-            write(param_name, Afmt) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "EORBIT_ORIG"; write(param_value, Rfmt) param%Eorbit_orig; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "GMTOT_ORIG"; write(param_value, Rfmt) param%GMtot_orig; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(unit, '("LTOT_ORIG  ",3(1X,ES25.17))') param%Ltot_orig(:)
-            write(unit, '("LORBIT_ORIG",3(1X,ES25.17))') param%Lorbit_orig(:)
-            write(unit, '("LSPIN_ORIG ",3(1X,ES25.17))') param%Lspin_orig(:)
-            write(unit, '("LESCAPE ",3(1X,ES25.17))') param%Lescape(:)
+            write(param_name, *) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "EORBIT_ORIG"; write(param_value, Rfmt) param%Eorbit_orig; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "GMTOT_ORIG"; write(param_value, Rfmt) param%GMtot_orig; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "LTOT_ORIG"; write(v1, Rfmt) param%Ltot_orig(1); write(v2, Rfmt) param%Ltot_orig(2); write(v3, Rfmt) param%Ltot_orig(3)  
+               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
+            write(param_name, *) "LORBIT_ORIG"; write(v1, Rfmt) param%Lorbit_orig(1); write(v2, Rfmt) param%Lorbit_orig(2); write(v3, Rfmt) param%Lorbit_orig(3)  
+               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
+            write(param_name, *) "LSPIN_ORIG"; write(v1, Rfmt) param%Lspin_orig(1); write(v2, Rfmt) param%Lspin_orig(2); write(v3, Rfmt) param%Lspin_orig(3)  
+               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
+            write(param_name, *) "LESCAPE"; write(v1, Rfmt) param%Lescape(1); write(v2, Rfmt) param%Lescape(2); write(v3, Rfmt) param%Lescape(3)  
+               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
    
-            write(param_name, Afmt) "GMESCAPE"; write(param_value, Rfmt) param%GMescape; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-            write(param_name, Afmt) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+            write(param_name, *) "GMESCAPE"; write(param_value, Rfmt) param%GMescape; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            write(param_name, *) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
          end if
-         write(param_name, Afmt) "FIRSTKICK"; write(param_value, Lfmt) param%lfirstkick; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "MAXID"; write(param_value, Ifmt) param%maxid; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, *) "FIRSTKICK"; write(param_value, Lfmt) param%lfirstkick; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "MAXID"; write(param_value, Ifmt) param%maxid; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
    
          iostat = 0
          iomsg = "UDIO not implemented"

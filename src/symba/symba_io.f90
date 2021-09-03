@@ -63,13 +63,13 @@ contains
                      deallocate(param%seed)
                      allocate(param%seed(nseeds))
                      do i = 1, nseeds
-                        ifirst = ilast + 1
+                        ifirst = ilast + 2
                         param_value = io_get_token(line, ifirst, ilast, iostat) 
                         read(param_value, *) param%seed(i)
                      end do
                   else ! Seed array in file is too small
                      do i = 1, nseeds_from_file
-                        ifirst = ilast + 1
+                        ifirst = ilast + 2
                         param_value = io_get_token(line, ifirst, ilast, iostat) 
                         read(param_value, *) param%seed(i)
                      end do
@@ -138,36 +138,37 @@ contains
       character(*),parameter :: Rfmt  = '(ES25.17)'    !! Format label for real values 
       character(*),parameter :: Rarrfmt  = '(3(ES25.17,1X))'    !! Format label for real values 
       character(*),parameter :: Lfmt  = '(L1)'         !! Format label for logical values 
-      character(len=*), parameter :: Afmt = '(A25,1X,64(:,A25,1X))'
-      character(256)          :: param_name, param_value
+      character(len=NAMELEN) :: param_name
+      character(len=STRMAX)  :: param_value
       type character_array
          character(25) :: value
       end type character_array
       type(character_array), dimension(:), allocatable :: param_array
-      integer(I4B) :: i
+      integer(I4B) :: i, nstr
 
       associate(param => self)
          call io_param_writer(param, unit, iotype, v_list, iostat, iomsg) 
 
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
-         write(param_name, Afmt) "GMTINY"; write(param_value, Rfmt) param%GMTINY; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "MIN_GMFRAG"; write(param_value, Rfmt) param%min_GMfrag; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
-         write(param_name, Afmt) "FRAGMENTATION"; write(param_value, Lfmt)  param%lfragmentation; write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_value)
+         write(param_name, *) "GMTINY"; write(param_value, Rfmt) param%GMTINY; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "MIN_GMFRAG"; write(param_value, Rfmt) param%min_GMfrag; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "FRAGMENTATION"; write(param_value, Lfmt) param%lfragmentation; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
          if (param%lfragmentation) then
-            write(param_name, Afmt) "SEED"
+            write(param_name, *) "SEED"
             if (allocated(param_array)) deallocate(param_array)
             allocate(param_array(0:size(param%seed)))
             write(param_array(0)%value, Ifmt) size(param%seed)
             do i = 1, size(param%seed)
                write(param_array(i)%value, Ifmt) param%seed(i)
             end do
-            write(unit, Afmt, advance='no', err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_array(0)%value)
-            do i = 1, size(param%seed)
+            write(unit, '(" ",A32)', advance='no', err = 667, iomsg = iomsg) adjustl(param_name)
+            do i = 0, size(param%seed)
+               nstr = len(trim(adjustl(param_array(i)%value)))
                if (i < size(param%seed)) then
-                  write(unit, Afmt, advance='no', err = 667, iomsg = iomsg) adjustl(param_array(i)%value)
+                  write(unit, '(A12)', advance='no', err = 667, iomsg = iomsg) trim(adjustl(param_array(i)%value)) // " "
                else
-                  write(unit, Afmt, err = 667, iomsg = iomsg) adjustl(param_array(i)%value)
+                  write(unit, '(A12)', err = 667, iomsg = iomsg) trim(adjustl(param_array(i)%value))
                end if
             end do
          end if
@@ -175,8 +176,9 @@ contains
          iostat = 0
       end associate
 
-      667 continue
       return
+      667 continue
+      write(*,*) "Error writing parameter file for SyMBA: " // trim(adjustl(iomsg))
    end subroutine symba_io_param_writer
 
 
