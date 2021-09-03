@@ -322,16 +322,6 @@ module symba_classes
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casemerge
 
-      module function symba_collision_casesupercatastrophic(system, param, colliders, frag)  result(status)
-         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
-         implicit none
-         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
-         integer(I4B)                             :: status    !! Status flag assigned to this outcome
-      end function symba_collision_casesupercatastrophic
-
       module subroutine symba_util_index_eucl_plpl(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none

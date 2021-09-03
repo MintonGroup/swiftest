@@ -99,8 +99,6 @@ contains
             write(*,*) "SEED: N,VAL    = ",size(param%seed), param%seed(:)
             if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
             write(*,*) "MIN_GMFRAG      = ", self%min_GMfrag
-            ! For the Fraggle log file, delete it if this is a new run and the file exists
-            call fraggle_io_log_start(param)
          end if
 
          if (.not.self%lclose) then
@@ -108,6 +106,8 @@ contains
             iostat = -1
             return
          end if
+         ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
+         call fraggle_io_log_start(param)
       end associate
 
       iostat = 0

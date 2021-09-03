@@ -9,7 +9,8 @@ module fraggle_classes
 
    integer(I4B),     parameter :: FRAGGLE_NMASS_DIST = 3             !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
    character(len=*), parameter :: FRAGGLE_LOG_OUT    = "fraggle.log" !! Name of log file for Fraggle diagnostic information
-   integer(I4B),     parameter :: FRAGGLE_LOG_UNIT   = 88            !! Unit number for Fraggle log file
+   integer(I4B),     parameter :: FRAGGLE_LOG_UNIT   = 76            !! Unit number for Fraggle log file
+
    !********************************************************************************************************************************
    !                                    fraggle_colliders class definitions and method interfaces
    !*******************************************************************************************************************************
@@ -107,9 +108,25 @@ module fraggle_classes
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
 
-      module subroutine fraggle_io_log_regime(param, colliders, frag)
+      module subroutine fraggle_io_log_generate(frag)
          implicit none
-         class(swiftest_parameters), intent(in) :: param
+         class(fraggle_fragments),   intent(in) :: frag
+      end subroutine fraggle_io_log_generate
+
+      module subroutine fraggle_io_log_one_message(message)
+         implicit none
+         character(len=*), intent(in) :: message
+         character(STRMAX) :: errmsg
+      end subroutine fraggle_io_log_one_message
+
+      module subroutine fraggle_io_log_pl(pl, param)
+         implicit none
+         class(swiftest_pl),         intent(in) :: pl    !! Swiftest massive body object (only the new bodies generated in a collision)
+         class(swiftest_parameters), intent(in) :: param !! Current swiftest run configuration parameters
+      end subroutine fraggle_io_log_pl
+
+      module subroutine fraggle_io_log_regime(colliders, frag)
+         implicit none
          class(fraggle_colliders),   intent(in) :: colliders
          class(fraggle_fragments),   intent(in) :: frag
       end subroutine fraggle_io_log_regime

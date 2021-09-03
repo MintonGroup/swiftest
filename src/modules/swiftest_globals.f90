@@ -24,6 +24,8 @@ module swiftest_globals
    real(DP), parameter :: THIRD  = 0.333333333333333333333333333333333333333_DP !! Definition of 1 / 3
    real(DP), parameter :: DEG2RAD = PI / 180.0_DP !! Definition of conversion factor from degrees to radians
    real(DP), parameter :: RAD2DEG = 180.0_DP / PI !! Definition of conversion factor from degrees to radians
+   real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
+   real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
 
    integer(I4B), parameter :: LOWERCASE_BEGIN  = iachar('a') !! ASCII character set parameter for lower to upper conversion - start of lowercase
    integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
@@ -68,7 +70,6 @@ module swiftest_globals
    integer(I4B), parameter :: FAILURE = -1 !! Symbolic name for function return/flag code for failure
    integer(I4B), parameter :: USAGE = -2 !! Symbolic name for function return/flag code for printing the usage message
    integer(I4B), parameter :: HELP  = -3 !! Symbolic name for function return/flag code for printing the usage message
-
 
    character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
    character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
@@ -126,14 +127,10 @@ module swiftest_globals
    character(*), parameter :: PARTICLE_OUTFILE = 'particle.dat'
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
 
-
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM   = 3                  !! Number of dimensions in our reality
    integer(I4B), parameter :: NDIM2  = 2 * NDIM           !! 2x the number of dimensions
    real(DP),     parameter :: VSMALL = 2 * epsilon(1._DP) !! Very small number used to prevent floating underflow
-
-   real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
-   real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
 
    !> NetCDF variable names and constants
    character(*), parameter :: NETCDF_OUTFILE          = 'bin.nc'          !! Default output file name

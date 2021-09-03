@@ -64,7 +64,7 @@ contains
          frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
          frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
 
-         call fraggle_io_log_regime(param, colliders, frag)
+         call fraggle_io_log_regime(colliders, frag)
       end associate
 
       return

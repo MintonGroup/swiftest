@@ -21,14 +21,20 @@ contains
       ! Internals
       integer(I4B)          :: i, nfrag
       logical               :: lfailure
-      character(len=STRMAX) :: collider_message
+      character(len=STRMAX) :: message 
 
-      collider_message = "Disruption between"
-      call symba_collision_collider_message(system%pl, colliders%idx, collider_message)
-      write(*,*) trim(adjustl(collider_message))
+      select case(frag%regime)
+      case(COLLRESOLVE_REGIME_DISRUPTION)
+         message = "Disruption between"
+         nfrag = NFRAG_DISRUPT 
+      case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+         message = "Supercatastrophic disruption between"
+         nfrag = NFRAG_SUPERCAT
+      end select
+      call symba_collision_collider_message(system%pl, colliders%idx, message)
+      call fraggle_io_log_one_message(message)
 
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
-      nfrag = NFRAG_DISRUPT 
       call frag%setup(nfrag, param)
       call frag%set_mass_dist(colliders)
       frag%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
@@ -38,7 +44,7 @@ contains
       call frag%generate_fragments(colliders, system, param, lfailure)
 
       if (lfailure) then
-         write(*,*) 'No fragment solution found, so treat as a pure hit-and-run'
+         call fraggle_io_log_one_message("No fragment solution found, so treat as a pure hit-and-run")
          status = ACTIVE 
          nfrag = 0
          select type(pl => system%pl)
@@ -49,8 +55,14 @@ contains
          end select
       else
          ! Populate the list of new bodies
-         write(*,'("Generating ",I2.0," fragments")') nfrag
-         status = DISRUPTION
+         write(message, *) nfrag
+         call fraggle_io_log_one_message("Generating " // trim(adjustl(message)) // " fragments")
+         select case(frag%regime)
+         case(COLLRESOLVE_REGIME_DISRUPTION)
+            status = DISRUPTION
+         case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+            status = SUPERCATASTROPHIC
+         end select
          call symba_collision_mergeaddsub(system, param, colliders, frag, status)
       end if
 
@@ -74,12 +86,12 @@ contains
       ! Internals
       integer(I4B)                            :: i, ibiggest, nfrag, jtarg, jproj
       logical                                 :: lpure 
-      character(len=STRMAX) :: collider_message
+      character(len=STRMAX) :: message
       character(len=NAMELEN) :: idstr
 
-      collider_message = "Hit and run between"
-      call symba_collision_collider_message(system%pl, colliders%idx, collider_message)
-      write(*,*) trim(adjustl(collider_message))
+      message = "Hit and run between"
+      call symba_collision_collider_message(system%pl, colliders%idx, message)
+      call fraggle_io_log_one_message(trim(adjustl(message)))
 
       if (colliders%mass(1) > colliders%mass(2)) then
          jtarg = 1
@@ -90,7 +102,7 @@ contains
       end if
 
       if (frag%mass_dist(2) > 0.9_DP * colliders%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
-         write(*,*) 'Pure hit and run. No new fragments generated.'
+         call fraggle_io_log_one_message("Pure hit and run. No new fragments generated.")
          nfrag = 0
          lpure = .true.
       else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
@@ -107,10 +119,11 @@ contains
          call frag%generate_fragments(colliders, system, param, lpure)
 
          if (lpure) then
-            write(*,*) 'Should have been a pure hit and run instead'
+            call fraggle_io_log_one_message("Should have been a pure hit and run instead")
             nfrag = 0
          else
-            write(*,'("Generating ",I2.0," fragments")') nfrag
+            write(message, *) nfrag
+            call fraggle_io_log_one_message("Generating " // trim(adjustl(message)) // " fragments")
          end if
       end if
       if (lpure) then ! Reset these bodies back to being active so that nothing further is done to them
@@ -133,7 +146,7 @@ contains
    module function symba_collision_casemerge(system, param, colliders, frag)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
-      !! Merge planets.
+      !! Merge massive bodies.
       !! 
       !! Adapted from David E. Kaufmann's Swifter routines symba_merge_pl.f90 and symba_discard_merge_pl.f90
       !!
@@ -151,12 +164,12 @@ contains
       real(DP), dimension(2)                    :: volume, density
       real(DP)                                  :: pe
       real(DP), dimension(NDIM)                 :: L_spin_new
-      character(len=STRMAX) :: collider_message
       character(len=NAMELEN) :: idstr
+      character(len=STRMAX) :: message
 
-      collider_message = "Merging"
-      call symba_collision_collider_message(system%pl, colliders%idx, collider_message)
-      write(*,*) trim(adjustl(collider_message))
+      message = "Merging"
+      call symba_collision_collider_message(system%pl, colliders%idx, message)
+      call fraggle_io_log_one_message(message)
 
       select type(pl => system%pl)
       class is (symba_pl)
@@ -215,59 +228,6 @@ contains
    end function symba_collision_casemerge
 
 
-   module function symba_collision_casesupercatastrophic(system, param, colliders, frag)  result(status)
-      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Create the fragments resulting from a supercatastrophic collision
-      !! 
-      implicit none
-      ! Arguments
-      class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-      class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-      class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
-      ! Result
-      integer(I4B)                             :: status    !! Status flag assigned to this outcom
-      ! Internals
-      integer(I4B)                            :: i, j, nfrag
-      logical                                 :: lfailure
-      character(len=STRMAX) :: collider_message
-      character(len=NAMELEN) :: idstr
-
-      collider_message = "Supercatastrophic disruption between"
-      call symba_collision_collider_message(system%pl, colliders%idx, collider_message)
-      write(*,*) trim(adjustl(collider_message))
-
-      nfrag = NFRAG_SUPERCAT
-      call frag%setup(nfrag, param)
-      call frag%set_mass_dist(colliders)
-      frag%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
-      param%maxid = frag%id(nfrag)
-
-      ! Generate the position and velocity distributions of the fragments
-      call frag%generate_fragments(colliders, system, param, lfailure)
-
-      if (lfailure) then
-         write(*,*) 'No fragment solution found, so treat as a pure hit-and-run'
-         status = ACTIVE 
-         nfrag = 0
-         select type(pl => system%pl)
-         class is (symba_pl)
-            pl%status(colliders%idx(:)) = status
-            pl%ldiscard(colliders%idx(:)) = .false.
-            pl%lcollision(colliders%idx(:)) = .false.
-         end select
-      else
-         ! Populate the list of new bodies
-         write(*,'("Generating ",I2.0," fragments")') nfrag
-         status = SUPERCATASTROPHIC
-         call symba_collision_mergeaddsub(system, param, colliders, frag, status)
-      end if
-
-      return
-   end function symba_collision_casesupercatastrophic
-
-
    subroutine symba_collision_collider_message(pl, collidx, collider_message)
       !! author: David A. Minton
       !!
@@ -320,7 +280,8 @@ contains
       integer(I4B)                              :: i, j, k, nenc
       real(DP)                                  :: rlim, Gmtot
       logical                                   :: isplpl
-      character(len=STRMAX)                     :: timestr, idstri, idstrj
+      character(len=STRMAX)                     :: timestr, idstri, idstrj, message
+       
 
       lany_collision = .false.
       if (self%nenc == 0) return
@@ -401,9 +362,10 @@ contains
                      write(idstrj, *) tp%id(j)
                      write(timestr, *) t
                      call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_xh=tp%xh(:,j), discard_vh=tp%vh(:,j))
-                     write(*, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
+                     write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                              //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
                              //  " at t = " // trim(adjustl(timestr))
+                     call fraggle_io_log_one_message(message)
                   end if
                end if
             end do
@@ -752,6 +714,7 @@ contains
       class(symba_pl), allocatable           :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
       character(len=NAMELEN) :: newname
+      character(len=STRMAX) :: message
    
       select type(pl => system%pl)
       class is (symba_pl)
@@ -852,6 +815,9 @@ contains
                plnew%ldiscard(1:nfrag) = .false.
                plnew%levelg(1:nfrag) = pl%levelg(ibiggest)
                plnew%levelm(1:nfrag) = pl%levelm(ibiggest)
+
+               ! Log the properties of the new bodies
+               call fraggle_io_log_pl(plnew, param)
    
                ! Append the new merged body to the list 
                nstart = pl_adds%nbody + 1
@@ -924,10 +890,8 @@ contains
                   call colliders%regime(frag, system, param)
    
                   select case (frag%regime)
-                  case (COLLRESOLVE_REGIME_DISRUPTION)
+                  case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                      plplcollision_list%status(i) = symba_collision_casedisruption(system, param, colliders, frag)
-                  case (COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     plplcollision_list%status(i) = symba_collision_casesupercatastrophic(system, param, colliders, frag)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
                      plplcollision_list%status(i) = symba_collision_casehitandrun(system, param, colliders, frag)
                   case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
@@ -1024,7 +988,10 @@ contains
 
                do
                   write(timestr,*) t
-                  write(*, *) "Collision between massive bodies detected at time t = " // trim(adjustl(timestr))
+                  call fraggle_io_log_one_message("")
+                  call fraggle_io_log_one_message("--------------------------------------------------------------------")
+                  call fraggle_io_log_one_message("Collision between massive bodies detected at time t = " // trim(adjustl(timestr)))
+                  call fraggle_io_log_one_message("--------------------------------------------------------------------")
                   allocate(tmp_param, source=param)
                   tmp_param%t = t
                   if (param%lfragmentation) then

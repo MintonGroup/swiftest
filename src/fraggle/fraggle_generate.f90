@@ -25,10 +25,10 @@ contains
       integer(I4B)                         :: try
       real(DP)                             :: r_max_start, f_spin, dEtot, dLmag
       integer(I4B), parameter              :: MAXTRY = 3000
-      character(len=*), parameter          :: fmtlabel = "(A14,10(ES11.4,1X,:))"
       logical                              :: lk_plpl
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
+      character(len=STRMAX)                :: message
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
       ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
@@ -39,7 +39,8 @@ contains
       associate(frag => self, nfrag => self%nbody, pl => system%pl)
 
          if (nfrag < NFRAG_MIN) then
-            write(*,*) "Fraggle needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
+            write(message,*) "Fraggle needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
+            call fraggle_io_log_one_message(message)
             lfailure = .true.
             return
          end if
@@ -60,6 +61,8 @@ contains
          lfailure = .false.
          try = 1
          do while (try < MAXTRY)
+            write(message,*) try
+            call fraggle_io_log_one_message("Fraggle try " // trim(adjustl(message)))
             if (lfailure) then
                call frag%restructure(colliders, try, f_spin, r_max_start)
                call frag%reset()
@@ -82,19 +85,19 @@ contains
 
             call fraggle_generate_spins(frag, colliders, f_spin, lfailure)
             if (lfailure) then
-               write(*,*) "Fraggle failed to find spins"
+               call fraggle_io_log_one_message("Fraggle failed to find spins")
                cycle
             end if
 
             call fraggle_generate_tan_vel(frag, colliders, lfailure)
             if (lfailure) then
-               write(*,*) "Fraggle failed to find tangential velocities"
+               call fraggle_io_log_one_message("Fraggle failed to find tangential velocities")
                cycle
             end if
 
             call fraggle_generate_rad_vel(frag, colliders, lfailure)
             if (lfailure) then
-               write(*,*) "Fraggle failed to find radial velocities"
+               call fraggle_io_log_one_message("Fraggle failed to find radial velocities")
                cycle
             end if
 
@@ -104,13 +107,15 @@ contains
 
             lfailure = ((abs(dEtot + frag%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
             if (lfailure) then
-               write(*,*) "Fraggle failed due to high energy error: ",dEtot, abs(dEtot + frag%Qloss) / FRAGGLE_ETOL
+               write(message, *) dEtot, abs(dEtot + frag%Qloss) / FRAGGLE_ETOL
+               call fraggle_io_log_one_message("Fraggle failed due to high energy error: " // trim(adjustl(message)))
                cycle
             end if
 
             lfailure = ((abs(dLmag) / (.mag.frag%Ltot_before)) > FRAGGLE_LTOL) 
             if (lfailure) then
-               write(*,*) "Fraggle failed due to high angular momentum error: ", dLmag / (.mag.frag%Ltot_before(:))
+               write(message,*) dLmag / (.mag.frag%Ltot_before(:))
+               call fraggle_io_log_one_message("Fraggle failed due to high angular momentum error: " // trim(adjustl(message)))
                cycle
             end if
 
@@ -118,24 +123,18 @@ contains
             call ieee_get_flag(ieee_usual, fpe_flag)
             lfailure = any(fpe_flag) 
             if (.not.lfailure) exit
-            write(*,*) "Fraggle failed due to a floating point exception: ", fpe_flag
+            write(message,*) "Fraggle failed due to a floating point exception: ", fpe_flag
+            call fraggle_io_log_one_message(message)
          end do
 
-         write(*,        "(' -------------------------------------------------------------------------------------')")
-         write(*,        "('  Fraggle final diagnostic')")
-         write(*,        "(' -------------------------------------------------------------------------------------')")
+         write(message,*) try
          if (lfailure) then
-            write(*,*) "Fraggle fragment generation failed after: ",try," tries"
+            call fraggle_io_log_one_message("Fraggle fragment generation failed after " // trim(adjustl(message)) // " tries")
          else
-            write(*,*) "Fraggle fragment generation succeeded after: ",try," tries"
-            write(*,        "(' dL_tot should be very small' )")
-            write(*,fmtlabel) ' dL_tot      |', (.mag.(frag%Ltot_after(:) - frag%Ltot_before(:))) / (.mag.frag%Ltot_before(:))
-            write(*,        "(' dE_tot should be negative and equal to Qloss' )")
-            write(*,fmtlabel) ' dE_tot      |', (frag%Etot_after - frag%Etot_before) / abs(frag%Etot_before)
-            write(*,fmtlabel) ' Qloss       |', -frag%Qloss / abs(frag%Etot_before)
-            write(*,fmtlabel) ' dE - Qloss  |', (frag%Etot_after - frag%Etot_before + frag%Qloss) / abs(frag%Etot_before)
+            call fraggle_io_log_one_message("Fraggle fragment generation succeeded after " // trim(adjustl(message)) // " tries")
+            call fraggle_io_log_generate(frag)
          end if
-         write(*,        "(' -------------------------------------------------------------------------------------')")
+
          call frag%set_original_scale(colliders)
 
          ! Restore the big array
@@ -226,7 +225,8 @@ contains
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
       real(DP), dimension(NDIM) :: L_remainder, rot_L, rot_ke
-      integer(I4B) :: i
+      integer(I4B)              :: i
+      character(len=STRMAX)     :: message
 
       associate(nfrag => frag%nbody)
          lfailure = .false.
@@ -252,6 +252,20 @@ contains
          frag%ke_spin = 0.5_DP * frag%ke_spin
 
          lfailure = ((frag%ke_budget - frag%ke_spin - frag%ke_orbit) < 0.0_DP)
+
+         if (lfailure) then
+            call fraggle_io_log_one_message(" ")
+            call fraggle_io_log_one_message("Spin failure diagnostics")
+            write(message, *) frag%ke_budget
+            call fraggle_io_log_one_message("ke_budget     : " // trim(adjustl(message)))
+            write(message, *) frag%ke_spin
+            call fraggle_io_log_one_message("ke_spin       : " // trim(adjustl(message)))
+            write(message, *) frag%ke_orbit
+            call fraggle_io_log_one_message("ke_orbit      : " // trim(adjustl(message)))
+            write(message, *) frag%ke_budget - frag%ke_spin - frag%ke_orbit
+            call fraggle_io_log_one_message("ke_remainder  : " // trim(adjustl(message)))
+         end if
+
       end associate
 
       return
@@ -286,26 +300,11 @@ contains
       real(DP), dimension(frag%nbody)      :: kefrag
       type(lambda_obj)                     :: spinfunc
       type(lambda_obj_err)                 :: objective_function
-      real(DP), dimension(NDIM)            :: Li, L_remainder
+      real(DP), dimension(NDIM)            :: Li, L_remainder, L_frag_tot
+      character(len=STRMAX)                :: message
 
       associate(nfrag => frag%nbody)
          lfailure = .false.
-
-         ! write(*,*) '***************************************************'
-         ! write(*,*) 'Original dis   : ',norm2(x(:,2) - x(:,1))
-         ! write(*,*) 'r_max          : ',r_max
-         ! write(*,*) 'f_spin         : ',f_spin
-         ! write(*,*) '***************************************************'
-         ! write(*,*) 'Energy balance so far: '
-         ! write(*,*) 'frag%ke_budget : ',frag%ke_budget
-         ! write(*,*) 'ke_orbit_before: ',ke_orbit_before 
-         ! write(*,*) 'ke_orbit_after : ',ke_orbit_after  
-         ! write(*,*) 'ke_spin_before : ',ke_spin_before 
-         ! write(*,*) 'ke_spin_after  : ',ke_spin_after  
-         ! write(*,*) 'pe_before      : ',pe_before 
-         ! write(*,*) 'pe_after       : ',pe_after  
-         ! write(*,*) 'Qloss          : ',Qloss
-         ! write(*,*) '***************************************************'
 
          allocate(v_t_initial, mold=frag%v_t_mag)
          v_t_initial(:) = 0.0_DP
@@ -351,14 +350,22 @@ contains
 
          ! If we are over the energy budget, flag this as a failure so we can try again
          lfailure = ((frag%ke_budget - frag%ke_spin - frag%ke_orbit) < 0.0_DP)
-         ! write(*,*) 'Tangential'
-         ! write(*,*) 'Failure? ',lfailure
-         ! call calculate_fragment_ang_mtm()
-         ! write(*,*) '|L_remainder| : ',.mag.(frag%L_budget(:) - L_frag_tot(:)) / Lmag_before
-         ! write(*,*) 'frag%ke_budget: ',frag%ke_budget
-         ! write(*,*) 'frag%ke_spin  : ',frag%ke_spin
-         ! write(*,*) 'ke_tangential : ',frag%ke_orbit
-         ! write(*,*) 'ke_radial     : ',frag%ke_budget - frag%ke_spin - frag%ke_orbit
+         if (lfailure) then
+            call fraggle_io_log_one_message(" ")
+            call fraggle_io_log_one_message("Tangential velocity failure diagnostics")
+            call frag%get_ang_mtm()
+            L_frag_tot = frag%L_spin(:) + frag%L_orbit(:)
+            write(message, *) .mag.(frag%L_budget(:) - L_frag_tot(:)) / (.mag.frag%Ltot_before(:))
+            call fraggle_io_log_one_message("|L_remainder| : " // trim(adjustl(message)))
+            write(message, *) frag%ke_budget
+            call fraggle_io_log_one_message("ke_budget     : " // trim(adjustl(message)))
+            write(message, *) frag%ke_spin
+            call fraggle_io_log_one_message("ke_spin       : " // trim(adjustl(message)))
+            write(message, *) frag%ke_orbit
+            call fraggle_io_log_one_message("ke_tangential : " // trim(adjustl(message)))
+            write(message, *) frag%ke_budget - frag%ke_spin - frag%ke_orbit
+            call fraggle_io_log_one_message("ke_radial     : " // trim(adjustl(message)))
+         end if
       end associate
 
       return
@@ -465,6 +472,7 @@ contains
       real(DP), dimension(:), allocatable   :: v_r_initial, v_r_sigma
       real(DP), dimension(:,:), allocatable :: v_r
       type(lambda_obj)                      :: objective_function
+      character(len=STRMAX)                 :: message
 
       associate(nfrag => frag%nbody)
          ! Set the "target" ke for the radial component
@@ -497,13 +505,19 @@ contains
       end do
       frag%ke_orbit = 0.5_DP * frag%ke_orbit
 
-      ! write(*,*) 'Radial'
-      ! write(*,*) 'Failure? ',lfailure 
-      ! write(*,*) 'frag%ke_budget: ',frag%ke_budget
-      ! write(*,*) 'frag%ke_spin  : ',frag%ke_spin
-      ! write(*,*) 'frag%ke_orbit : ',frag%ke_orbit
-      ! write(*,*) 'ke_remainder  : ',frag%ke_budget - (frag%ke_orbit + frag%ke_spin)
-      lfailure = .false.
+      lfailure = abs((frag%ke_budget - (frag%ke_orbit + frag%ke_spin)) / frag%ke_budget) > FRAGGLE_ETOL
+      if (lfailure) then
+         call fraggle_io_log_one_message(" ")
+         call fraggle_io_log_one_message("Radial velocity failure diagnostics")
+         write(message, *) frag%ke_budget
+         call fraggle_io_log_one_message("ke_budget     : " // trim(adjustl(message)))
+         write(message, *) frag%ke_spin
+         call fraggle_io_log_one_message("ke_spin       : " // trim(adjustl(message)))
+         write(message, *) frag%ke_orbit
+         call fraggle_io_log_one_message("ke_orbit : " // trim(adjustl(message)))
+         write(message, *) frag%ke_budget - (frag%ke_orbit + frag%ke_spin)
+         call fraggle_io_log_one_message("ke_remainder  : " // trim(adjustl(message)))
+      end if
 
       end associate
       return
