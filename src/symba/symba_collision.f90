@@ -989,9 +989,9 @@ contains
                do
                   write(timestr,*) t
                   call fraggle_io_log_one_message("")
-                  call fraggle_io_log_one_message("--------------------------------------------------------------------")
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
                   call fraggle_io_log_one_message("Collision between massive bodies detected at time t = " // trim(adjustl(timestr)))
-                  call fraggle_io_log_one_message("--------------------------------------------------------------------")
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
                   allocate(tmp_param, source=param)
                   tmp_param%t = t
                   if (param%lfragmentation) then
