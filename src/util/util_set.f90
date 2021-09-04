@@ -116,15 +116,24 @@ contains
       real(DP), dimension(:),        intent(in),    optional :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
       real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
+      ! Internals
+      character(len=NAMELEN) :: lenstr
+      character(len=:), allocatable :: fmtlabel
+
+      write(lenstr, *) NAMELEN
+      fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
 
       if (present(name)) then
-         self%name = name 
+         write(self%name, fmtlabel) trim(adjustl(name))
       end if
       if (present(particle_type)) then
-         self%particle_type = particle_type 
+         write(self%particle_type, fmtlabel) trim(adjustl(particle_type))
       end if 
+      if (present(status)) then
+         write(self%status, fmtlabel) trim(adjustl(status))
+      end if
       if (present(origin_type)) then
-         self%origin_type = origin_type
+         write(self%origin_type, fmtlabel) trim(adjustl(origin_type))
       end if
       if (present(origin_time)) then
          self%origin_time = origin_time
@@ -137,9 +146,6 @@ contains
       end if
       if (present(discard_time)) then
          self%discard_time = discard_time
-      end if
-      if (present(status)) then
-         self%status = status
       end if
       if (present(discard_xh)) then
          self%discard_xh(:) = discard_xh(:)

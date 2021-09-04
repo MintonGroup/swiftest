@@ -455,7 +455,9 @@ contains
 
          ! Reset all of the status flags for this body
          pl%status(1:npl) = ACTIVE
-         pl%info(1:npl)%status = "ACTIVE"
+         do i = 1, npl
+            call pl%info(i)%set_value(status="ACTIVE")
+         end do
          pl%ldiscard(1:npl) = .false.
          pl%lcollision(1:npl) = .false.
          pl%lmask(1:npl) = .true.
