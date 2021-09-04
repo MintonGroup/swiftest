@@ -61,15 +61,15 @@ contains
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
 
-         if (.not.param%lfirstenergy .and. lterminal) then 
+         if (.not.param%lfirstenergy) then 
             Lerror = norm2(Ltot_now(:) - param%Ltot_orig(:)) / norm2(param%Ltot_orig(:))
             Eorbit_error = (Eorbit_now - param%Eorbit_orig) / abs(param%Eorbit_orig)
             Ecoll_error = param%Ecollisions / abs(param%Eorbit_orig)
             Etotal_error = (Eorbit_now - param%Ecollisions - param%Eorbit_orig - param%Euntracked) / abs(param%Eorbit_orig)
             Merror = (GMtot_now - param%GMtot_orig) / param%GMtot_orig
-            write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
-            if (Merror < -10 * epsilon(Merror)) then
-               write(*,*) 'Mass loss! Halting!'
+            if (lterminal) write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
+            if (abs(Merror) > 100 * epsilon(Merror)) then
+               write(*,*) "Severe error! Mass not conserved! Halting!"
                call pl%xv2el(cb)
                call param%nciu%open(param)
                call self%write_hdr(param%nciu, param)

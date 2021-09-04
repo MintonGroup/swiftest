@@ -31,7 +31,7 @@ contains
          end if
 
          if (lpl_discards .or. ltp_discards) call system%write_discard(param)
-         if (lpl_discards .and. param%lenergy) call self%conservation_report(param, lterminal=.true.)
+         if (lpl_discards .and. param%lenergy) call self%conservation_report(param, lterminal=.false.)
          if (lpl_check) call pl_discards%setup(0,param) 
          if (ltp_check) call tp_discards%setup(0,param) 
          
