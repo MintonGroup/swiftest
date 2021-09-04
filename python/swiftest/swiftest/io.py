@@ -704,6 +704,9 @@ def swiftest2xr(param):
 
     return ds
 
+def xstrip(a):
+    func = lambda x: np.char.strip(x)
+    return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'))
 
 def clean_string_values(param, ds):
     """
@@ -719,13 +722,13 @@ def clean_string_values(param, ds):
     ds : xarray dataset with the strings cleaned up
     """  
     if 'name' in ds:
-       ds['name'] =  ds['name'].str.decode(encoding='utf-8')
+       ds['name'] = xstrip(ds['name'])
     if 'particle_type' in ds:
-       ds['particle_type'] =  ds['particle_type'].str.decode(encoding='utf-8')
+       ds['particle_type'] =  xstrip(ds['particle_type'])
     if 'status' in ds:
-       ds['status'] =  ds['status'].str.decode(encoding='utf-8')
+       ds['status'] = xstrip(ds['status'])
     if 'origin_type' in ds:
-       ds['origin_type'] =  ds['origin_type'].str.decode(encoding='utf-8')
+       ds['origin_type'] =  xstrip(ds['origin_type'])
     return ds
 
 
