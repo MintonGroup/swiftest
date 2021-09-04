@@ -37,8 +37,6 @@ contains
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
       call frag%setup(nfrag, param)
       call frag%set_mass_dist(colliders)
-      frag%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
-      param%maxid = frag%id(nfrag)
 
       ! Generate the position and velocity distributions of the fragments
       call frag%generate_fragments(colliders, system, param, lfailure)
@@ -63,6 +61,8 @@ contains
          case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
             status = SUPERCATASTROPHIC
          end select
+         frag%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+         param%maxid = frag%id(nfrag)
          call symba_collision_mergeaddsub(system, param, colliders, frag, status)
       end if
 
@@ -110,10 +110,6 @@ contains
          lpure = .false.
          call frag%setup(nfrag, param)
          call frag%set_mass_dist(colliders)
-         ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
-         frag%id(1) = system%pl%id(ibiggest)
-         frag%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-         param%maxid = frag%id(nfrag)
 
          ! Generate the position and velocity distributions of the fragments
          call frag%generate_fragments(colliders, system, param, lpure)
@@ -135,6 +131,10 @@ contains
             pl%lcollision(colliders%idx(:)) = .false.
          end select
       else
+         ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
+         frag%id(1) = system%pl%id(ibiggest)
+         frag%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
+         param%maxid = frag%id(nfrag)
          status = HIT_AND_RUN_DISRUPT
          call symba_collision_mergeaddsub(system, param, colliders, frag, status)
       end if

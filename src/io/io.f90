@@ -1022,12 +1022,14 @@ contains
       integer(I4B)            :: iu = LUN
       character(len=STRMAX)   :: errmsg
       integer(I4B)            :: ierr, idold
+      character(len=NAMELEN)  :: name
 
       if (param%in_type == 'ASCII') then
          self%id = 0
          param%maxid = 0
          open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         read(iu, *, err = 667, iomsg = errmsg) self%info%name
+         read(iu, *, err = 667, iomsg = errmsg) name
+         call self%info%set_value(name=name)
          read(iu, *, err = 667, iomsg = errmsg) self%Gmass
          self%mass = real(self%Gmass / param%GU, kind=DP)
          read(iu, *, err = 667, iomsg = errmsg) self%radius
@@ -1133,6 +1135,7 @@ contains
       integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       character(len=STRMAX)   :: errmsg
+      character(len=NAMELEN), dimension(self%nbody)  :: name
       integer(I4B) :: i
       real(QP)                      :: val
 
@@ -1157,9 +1160,10 @@ contains
          select case(param%in_type)
          case (REAL4_TYPE, REAL8_TYPE)
             read(iu, err = 667, iomsg = errmsg) self%id(:)
-            associate(name => self%info%name)
-               read(iu, err = 667, iomsg = errmsg) name(:)
-            end associate
+            read(iu, err = 667, iomsg = errmsg) name(:)
+            do i = 1, n
+               call self%info(i)%set_value(name=name(i))
+            end do
 
             select case (param%in_form)
             case (XV)
@@ -1205,10 +1209,11 @@ contains
                select type(self)
                class is (swiftest_pl)
                   if (param%lrhill_present) then
-                     read(iu, *, err = 667, iomsg = errmsg) self%info(i)%name, val, self%rhill(i)
+                     read(iu, *, err = 667, iomsg = errmsg) name(i), val, self%rhill(i)
                   else
-                     read(iu, *, err = 667, iomsg = errmsg) self%info(i)%name, val
+                     read(iu, *, err = 667, iomsg = errmsg) name(i), val
                   end if
+                  call self%info(i)%set_value(name=name(i))
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
                   read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
@@ -1280,10 +1285,12 @@ contains
       ! Result
       integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      character(len=STRMAX)   :: errmsg
+      character(len=STRMAX)  :: errmsg
+      character(len=NAMELEN) :: name
 
       read(iu, err = 667, iomsg = errmsg) self%id
-      read(iu, err = 667, iomsg = errmsg) self%info%name
+      read(iu, err = 667, iomsg = errmsg) name
+      call self%info%set_value(name=name)
       read(iu, err = 667, iomsg = errmsg) self%Gmass
       self%mass = self%Gmass / param%GU
       read(iu, err = 667, iomsg = errmsg) self%radius
