@@ -6,8 +6,8 @@ CB_IN          cb.in
 PL_IN          mars.in
 TP_IN          tp.in
 IN_TYPE        ASCII
-ISTEP_OUT      1
-ISTEP_DUMP     1
+ISTEP_OUT      100
+ISTEP_DUMP     100
 BIN_OUT        bin.nc 
 PARTICLE_OUT   particle.dat
 OUT_TYPE       NETCDF_DOUBLE
@@ -22,8 +22,8 @@ CHK_QMIN_COORD HELIO
 CHK_QMIN_RANGE 3389500.0 338950000000.0
 EXTRA_FORCE    no
 RHILL_PRESENT  yes
-GMTINY         1000.0
-MIN_GMFRAG     10.0
+GMTINY         10000.0
+MIN_GMFRAG     1000.0
 ENERGY         yes
 FRAGMENTATION  yes 
 ROTATION       yes
