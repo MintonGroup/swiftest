@@ -71,8 +71,7 @@ class AnimatedScatter(object):
         self.s1 = slist[1]
         self.s2 = slist[2]
         self.s3 = slist[3]
-        leg = self.ax.legend(loc='lower right')
-        leg = plt.legend(loc="lower left", scatterpoints=1, fontsize=10)
+        leg = plt.legend(loc="lower right", scatterpoints=1, fontsize=10)
         for i,l in enumerate(leg.legendHandles):
            leg.legendHandles[i]._sizes = [20]
         return self.s0, self.s1, self.s2, self.s3, self.title
