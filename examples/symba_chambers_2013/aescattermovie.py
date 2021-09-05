@@ -12,7 +12,8 @@ xmin = 0.0
 xmax = 2.00
 ymin = 1e-4
 ymax = 1.0
-framejump = 10
+framejump = 1
+ncutoff = 1e20
 
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
@@ -22,8 +23,7 @@ class AnimatedScatter(object):
         nframes = int(ds['time'].size / framejump)
         self.ds = ds
         self.param = param
-        self.ds['radmarker'] = self.ds['radius'].fillna(0)
-        self.ds['radmarker'] = self.ds['radmarker'] / self.ds['radmarker'].max() * radscale
+        self.Rcb = self.ds['radius'].sel(id=0, time=0).values
 
         self.clist = {'Initial conditions' : 'xkcd:faded blue',
                       'Disruption' : 'xkcd:marigold',
@@ -38,14 +38,15 @@ class AnimatedScatter(object):
         self.ax.set_xlim(xmin, xmax)
         self.ax.set_ylim(ymin, ymax)
         fig.add_axes(self.ax)
-        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=False)
+        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=True)
+        #self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'libx264'])
         self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'mpeg4'])
         print('Finished writing aescattter.mp4')
 
     def scatters(self, pl, radmarker, origin):
         scat = []
         for key, value in self.clist.items():
-            idx = origin == value
+            idx = origin == key
             s = self.ax.scatter(pl[idx, 0], pl[idx, 1], marker='o', s=radmarker[idx], c=value, alpha=0.75, label=key)
             scat.append(s)
         return scat
@@ -70,19 +71,25 @@ class AnimatedScatter(object):
         self.s1 = slist[1]
         self.s2 = slist[2]
         self.s3 = slist[3]
-        self.ax.legend(loc='lower right')
+        leg = self.ax.legend(loc='lower right')
+        leg = plt.legend(loc="lower left", scatterpoints=1, fontsize=10)
+        for i,l in enumerate(leg.legendHandles):
+           leg.legendHandles[i]._sizes = [20]
         return self.s0, self.s1, self.s2, self.s3, self.title
 
     def data_stream(self, frame=0):
         while True:
             d = self.ds.isel(time = frame)
-            d = d.where(np.invert(np.isnan(d['a'])), drop=True)
+            d = d.where(d['radius'] < self.Rcb, drop=True)
+            d['radmarker'] = (d['radius'] / self.Rcb) * radscale
+            radius = d['radmarker'].values
+
             radius = d['radmarker'].values
             Gmass = d['Gmass'].values
             a = d['a'].values / AU
             e = d['e'].values
             name = d['id'].values
-            npl = d.id.count().values
+            npl = d['npl'].values[0]
             radmarker = d['radmarker']
             origin = d['origin_type']
 
