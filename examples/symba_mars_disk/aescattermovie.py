@@ -71,7 +71,9 @@ class AnimatedScatter(object):
         self.s1 = slist[1]
         self.s2 = slist[2]
         self.s3 = slist[3]
-        self.ax.legend(loc='upper right')
+        leg = plt.legend(loc="upper right", scatterpoints=1, fontsize=10)
+        for i,l in enumerate(leg.legendHandles):
+           leg.legendHandles[i]._sizes = [20]
         return self.s0, self.s1, self.s2, self.s3, self.title
 
     def data_stream(self, frame=0):
@@ -85,7 +87,7 @@ class AnimatedScatter(object):
             Gmass = d['Gmass'].values
             a = d['a'].values / self.Rcb
             e = d['e'].values
-            name = d['id'].values
+            name = d['name'].values
             npl = d['npl'].values[0]
             radmarker = d['radmarker']
             origin = d['origin_type'].values
