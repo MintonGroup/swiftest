@@ -27,60 +27,106 @@ contains
    end subroutine fraggle_set_budgets_fragments
 
 
-   module subroutine fraggle_set_mass_dist_fragments(self, colliders)
+   module subroutine fraggle_set_mass_dist_fragments(self, colliders, param)
       !! author: David A. Minton
       !!
       !! Sets the mass of fragments based on the mass distribution returned by the regime calculation.
       !! This subroutine must be run after the the setup rourtine has been run on the fragments
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(inout) :: colliders !! Fraggle collider system object
+      class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
+      class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle collider system object
+      class(swiftest_parameters),   intent(in)    :: param     !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, jproj, jtarg
+      integer(I4B)              :: i, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
+      real(DP) :: mfrag, mremaining, min_mfrag
+      real(DP), parameter :: BETA = 2.85_DP
+      integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
+      integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
+      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
      
-      associate(frag => self, nfrag => self%nbody)
+      associate(frag => self)
          ! Get mass weighted mean of Ip and density
          volume(1:2) = 4._DP / 3._DP * PI * colliders%radius(1:2)**3
-         frag%density(1:nfrag) = frag%mtot / sum(volume(:))
          Ip_avg(:) = (colliders%mass(1) * colliders%Ip(:,1) + colliders%mass(2) * colliders%Ip(:,2)) / frag%mtot
-         do i = 1, nfrag
-            frag%Ip(:, i) = Ip_avg(:)
-         end do
+         if (colliders%mass(1) > colliders%mass(2)) then
+            jtarg = 1
+            jproj = 2
+         else
+            jtarg = 2
+            jproj = 1
+         end if
+
+         select type(param)
+         class is (symba_parameters)
+            min_mfrag = (param%min_GMfrag / param%GU) 
+            nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(frag%mtot / min_mfrag))
+            nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
+         class default
+            min_mfrag = 0.0_DP
+            nfrag = NFRAGMAX
+         end select
   
          select case(frag%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-            ! Assign the first and second-largest masses that came out of the regime determination subroutine to the first two fragments
-            frag%mass(1:2) = frag%mass_dist(1:2)
-
-            ! Distribute remaining mass among the remaining fragments
-            do i = 3, nfrag
-               frag%mass(i) = (frag%mtot - sum(frag%mass(1:2))) / (nfrag - 2) 
-            end do
-            frag%radius(1:nfrag) = (3 * frag%mass(1:nfrag) / (4 * PI * frag%density(1:nfrag)))**(1.0_DP / 3.0_DP)
-         case(COLLRESOLVE_REGIME_HIT_AND_RUN) 
-            if (colliders%mass(1) > colliders%mass(2)) then
-               jtarg = 1
-               jproj = 2
-            else
-               jtarg = 2
-               jproj = 1
-            end if
+            istart = 2
+         case(COLLRESOLVE_REGIME_HIT_AND_RUN)
+            istart = 1
+         case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
+            call frag%setup(1, param)
             frag%mass(1) = frag%mass_dist(1)
             frag%radius(1) = colliders%radius(jtarg)
             frag%density(1) = frag%mass_dist(1) / volume(jtarg)
-
-            frag%mass(2:nfrag) = (frag%mtot - frag%mass(1)) / (nfrag - 1) 
-            frag%mass(nfrag) = frag%mass(nfrag) + (frag%mtot - sum(frag%mass(:)))
-            frag%radius(2:nfrag) = (3 * frag%mass(2:nfrag) / (4 * PI * frag%density(2:nfrag)))**(1.0_DP / 3.0_DP)
-         case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
-            frag%mass(1) = frag%mtot
-            frag%radius(1) = (3 * sum(volume(:)) / (4 * PI))**(1._DP / 3._DP)
+            frag%Ip(:, 1) = colliders%Ip(:,1)
+            return
          case default
             write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",frag%regime
          end select
+
+         i = istart 
+         mremaining = max(frag%mtot - sum(frag%mass_dist(1:istart)), 0.0_DP)
+         do while (i <= NFRAGMAX)
+            mfrag = (i - istart + 1)**(-3._DP / BETA) * frag%mass_dist(istart)
+            if (mremaining - mfrag < 0.0_DP) exit
+            mremaining = mremaining - mfrag
+            i = i + 1
+         end do
+
+         call frag%setup(nfrag, param)
+         frag%mass(1:istart) = frag%mass_dist(1:istart)
+         mremaining = max(frag%mtot - sum(frag%mass_dist(1:istart)), 0.0_DP)
+         do i = istart + 1, nfrag
+            mfrag = (i - istart + 1)**(-3._DP / BETA) * frag%mass_dist(istart)
+            mfrag = min(mfrag, mremaining)
+            frag%mass(i) = mfrag
+            mremaining = mremaining - mfrag
+         end do
+         select case(frag%regime)
+         case(COLLRESOLVE_REGIME_HIT_AND_RUN) 
+            frag%mass(1) = frag%mass_dist(1)
+            frag%radius(1) = colliders%radius(jtarg)
+            frag%density(1) = frag%mass_dist(1) / volume(jtarg)
+            frag%Ip(:, 1) = colliders%Ip(:,1)
+            istart = 2
+         case default
+            istart = 1
+         end select
+         if (mremaining > 0.0_DP) then
+            ! Distribute remaining mass among the fragments
+            mfrag = 1._DP + mremaining / sum(frag%mass(istart:nfrag))
+            do i = istart, nfrag
+               frag%mass(i) = frag%mass(i) * mfrag
+            end do
+            mremaining = frag%mtot - sum(frag%mass(1:nfrag))
+            frag%mass(nfrag) = frag%mass(nfrag) + mremaining
+         end if
+         frag%density(istart:nfrag) = frag%mtot / sum(volume(:))
+         frag%radius(istart:nfrag) = (3 * frag%mass(istart:nfrag) / (4 * PI * frag%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
+         do i = istart, nfrag
+            frag%Ip(:, i) = Ip_avg(:)
+         end do
 
       end associate
 
@@ -181,7 +227,6 @@ contains
 
       associate(frag => self)
          ! Find the center of mass of the collisional system	
-         frag%mtot = sum(colliders%mass(:)) 
          frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot
          frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
 

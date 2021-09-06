@@ -21,7 +21,8 @@ ENC_OUT        enc.supercatastrophic_off_axis.dat
 EXTRA_FORCE    no                ! no extra user-defined forces
 BIG_DISCARD    no                ! output all planets if anything discarded
 RHILL_PRESENT  yes               ! Hill's sphere radii in input file
-GMTINY          1.0e-16
+GMTINY         1.0e-16
+MIN_GMFRAG     1.0e-11
 FRAGMENTATION  yes
 MU2KG          1.98908e30
 TU2S           3.1556925e7

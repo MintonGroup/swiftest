@@ -1,8 +1,6 @@
 submodule (symba_classes) s_symba_collision
    use swiftest
 
-   integer(I4B), parameter :: NFRAG_DISRUPT = 12
-   integer(I4B), parameter :: NFRAG_SUPERCAT = 20
 contains
 
    module function symba_collision_casedisruption(system, param, colliders, frag)  result(status)
@@ -26,17 +24,14 @@ contains
       select case(frag%regime)
       case(COLLRESOLVE_REGIME_DISRUPTION)
          message = "Disruption between"
-         nfrag = NFRAG_DISRUPT 
       case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
          message = "Supercatastrophic disruption between"
-         nfrag = NFRAG_SUPERCAT
       end select
       call symba_collision_collider_message(system%pl, colliders%idx, message)
       call fraggle_io_log_one_message(message)
 
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
-      call frag%setup(nfrag, param)
-      call frag%set_mass_dist(colliders)
+      call frag%set_mass_dist(colliders, param)
 
       ! Generate the position and velocity distributions of the fragments
       call frag%generate_fragments(colliders, system, param, lfailure)
@@ -53,6 +48,7 @@ contains
          end select
       else
          ! Populate the list of new bodies
+         nfrag = frag%nbody
          write(message, *) nfrag
          call fraggle_io_log_one_message("Generating " // trim(adjustl(message)) // " fragments")
          select case(frag%regime)
@@ -106,10 +102,8 @@ contains
          nfrag = 0
          lpure = .true.
       else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
-         nfrag = NFRAG_DISRUPT - 1
          lpure = .false.
-         call frag%setup(nfrag, param)
-         call frag%set_mass_dist(colliders)
+         call frag%set_mass_dist(colliders, param)
 
          ! Generate the position and velocity distributions of the fragments
          call frag%generate_fragments(colliders, system, param, lpure)
@@ -118,6 +112,7 @@ contains
             call fraggle_io_log_one_message("Should have been a pure hit and run instead")
             nfrag = 0
          else
+            nfrag = frag%nbody
             write(message, *) nfrag
             call fraggle_io_log_one_message("Generating " // trim(adjustl(message)) // " fragments")
          end if
@@ -174,8 +169,7 @@ contains
       select type(pl => system%pl)
       class is (symba_pl)
 
-         call frag%setup(1, param)
-         call frag%set_mass_dist(colliders)
+         call frag%set_mass_dist(colliders, param)
          ibiggest = colliders%idx(maxloc(pl%Gmass(colliders%idx(:)), dim=1))
          frag%id(1) = pl%id(ibiggest)
          frag%xb(:,1) = frag%xbcom(:)
@@ -723,7 +717,7 @@ contains
             associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody)
                ! Add the colliders%idx bodies to the subtraction list
                ncolliders = colliders%ncoll
-               nfrag   = size(frag%mass(:))
+               nfrag = frag%nbody
 
                ! Setup new bodies
                allocate(plnew, mold=pl)

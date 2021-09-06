@@ -173,7 +173,7 @@ module fraggle_classes
          class(fraggle_colliders),     intent(inout) :: self   !! Fraggle colliders object
          class(fraggle_fragments),     intent(inout) :: frag   !! Fraggle fragment system object
          class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameter
+         class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
       end subroutine fraggle_regime_colliders
 
       module subroutine fraggle_set_budgets_fragments(self, colliders)
@@ -188,10 +188,11 @@ module fraggle_classes
          class(fraggle_colliders), intent(inout) :: colliders !! Fraggle collider system object
       end subroutine fraggle_set_coordinate_system
 
-      module subroutine fraggle_set_mass_dist_fragments(self, colliders)
+      module subroutine fraggle_set_mass_dist_fragments(self, colliders, param)
          implicit none
-         class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
-         class(fraggle_colliders), intent(inout) :: colliders !! Fraggle collider system object
+         class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
+         class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle collider system object
+         class(swiftest_parameters),   intent(in)    :: param     !! Current Swiftest run configuration parameters
       end subroutine fraggle_set_mass_dist_fragments
 
       module subroutine fraggle_set_natural_scale_factors(self, colliders)

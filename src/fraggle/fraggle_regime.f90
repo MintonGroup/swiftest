@@ -56,6 +56,7 @@ contains
          frag%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
          frag%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
          frag%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+         frag%mtot = sum(frag%mass_dist(1:3))
 
          ! Convert quantities back to the system units and save them into the fragment system
          frag%mass_dist(:) = (frag%mass_dist(:) / param%MU2KG) 
@@ -98,6 +99,7 @@ contains
       real(DP), parameter   :: DENSITY1 = 1000.0_DP !standard density parameter from LS12 [kg/m3]
       real(DP), parameter   :: MU_BAR = 0.37_DP !0.385#0.37#0.3333# 3.978 # 1/3 material parameter for hydrodynamic planet-size bodies (LS12)
       real(DP), parameter   :: BETA = 2.85_DP !slope of sfd for remnants from LS12 2.85
+      real(DP), parameter   :: ETA = -1.50_DP !! LS12 eq. (44)
       real(DP), parameter   :: C1 = 2.43_DP  !! Kokubo & Genda (2010) eq. (3)
       real(DP), parameter   :: C2 = -0.0408_DP !! Kokubo & Genda (2010) eq. (3)
       real(DP), parameter   :: C3 = 1.86_DP !! Kokubo & Genda (2010) eq. (3)
@@ -108,7 +110,7 @@ contains
       real(DP)           :: a1, alpha, aint, b, bcrit, c_star, egy, zeta, l, lint, mu, phi, theta
       real(DP)           :: Qr, Qrd_pstar, Qr_erosion, Qr_supercat
       real(DP)           :: Vhr, Verosion, Vescp, Vhill, Vimp, Vsupercat
-      real(DP)           :: Mint, Mtot
+      real(DP)           :: Mint, Mtot, Mtmp
       real(DP)           :: Rp, rhill 
       real(DP)           :: Mresidual
       real(DP)           :: U_binding
@@ -157,7 +159,7 @@ contains
       Qr = mu*(Vimp**2) / Mtot / 2.0_DP
 
       !calculate mass largest remnant Mlr 
-      Mlr = (1.0_DP - Qr / Qrd_pstar / 2.0_DP) * Mtot  ! [kg] # LS12 eq (5)
+      Mlr = max((1.0_DP - Qr / Qrd_pstar / 2.0_DP) * Mtot, min_mfrag) ! [kg] # LS12 eq (5)
 
       !calculate Vsupercat
       Qr_supercat = SUPERCAT_QRATIO * Qrd_pstar ! See LS12 Section 4.1 
@@ -196,7 +198,7 @@ contains
                Qloss = 0.0_DP
             else
                Mlr = m1
-               Mslr = calc_Qrd_rev(m2, m1, Mint, den1, den2, Vimp, c_star)
+               Mslr = max(calc_Qrd_rev(m2, m1, Mint, den1, den2, Vimp, c_star), min_mfrag)
                regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
                Qloss = (c_star + 1.0_DP) * U_binding ! Qr 
             end if 
@@ -207,19 +209,25 @@ contains
                Mslr = 0.0_DP
                Qloss = 0.0_DP
             else 
-               Mslr = Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA)  ! LS12 eq (37)
+               Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA), min_mfrag)  ! LS12 eq (37)
                regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
                Qloss = (c_star + 1.0_DP) * U_binding ! Qr - Qr_erosion
             end if 
          else if (Vimp > Vsupercat) then 
-            Mlr = Mtot * 0.1_DP * (Qr / (Qrd_pstar * SUPERCAT_QRATIO))**(-1.5_DP)   !LS12 eq (44)
-            Mslr = Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA)  !LS12 eq (37)
+            Mlr = max(Mtot * 0.1_DP * (Qr / (Qrd_pstar * SUPERCAT_QRATIO))**(ETA), min_mfrag)   !LS12 eq (44)
+            Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
             regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
             Qloss = (c_star + 1.0_DP) * U_binding ! Qr - Qr_supercat
          else 
             write(*,*) "Error no regime found in symba_regime"
          end if 
       end if 
+
+      if (Mslr > Mlr) then ! The second-largest fragment is actually larger than the largest, so we will swap them
+         Mtmp = Mlr
+         Mlr = Mslr
+         Mslr = Mtmp
+      end if
 
       Mresidual = Mtot - Mlr - Mslr
       if (Mresidual < 0.0_DP) then ! prevents final masses from going negative
