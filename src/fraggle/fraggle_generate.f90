@@ -38,6 +38,8 @@ contains
 
       associate(frag => self, nfrag => self%nbody, pl => system%pl)
 
+         write(message,*) nfrag
+         call fraggle_io_log_one_message("Fraggle generating " // trim(adjustl(message)) // " fragments.")
          if (nfrag < NFRAG_MIN) then
             write(message,*) "Fraggle needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
             call fraggle_io_log_one_message(message)
@@ -294,10 +296,11 @@ contains
       integer(I4B) :: i
       real(DP), parameter                  :: TOL_MIN = 1e-1_DP ! This doesn't have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.
       real(DP), parameter                  :: TOL_INIT = 1e-14_DP
+      real(DP), parameter                  :: VNOISE_MAG = 1e-3_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter              :: MAXLOOP = 10
-      real(DP)                             :: tol
+      real(DP)                             :: tol, ke_remainder
       real(DP), dimension(:), allocatable  :: v_t_initial
-      real(DP), dimension(frag%nbody)      :: kefrag
+      real(DP), dimension(frag%nbody)      :: kefrag, vnoise
       type(lambda_obj)                     :: spinfunc
       type(lambda_obj_err)                 :: objective_function
       real(DP), dimension(NDIM)            :: Li, L_remainder, L_frag_tot
@@ -332,6 +335,9 @@ contains
             v_t_initial(7:nfrag) = frag%v_t_mag(7:nfrag)
             if (.not.lfailure) exit
             tol = tol * 2_DP ! Keep increasing the tolerance until we converge on a solution
+            call random_number(vnoise(1:nfrag)) ! Adding a bit of noise to the initial conditions helps it find a solution more often
+            vnoise(:) = 1.0_DP + VNOISE_MAG * (2 * vnoise(:) - 1._DP)
+            v_t_initial(:) = v_t_initial(:) * vnoise(:)
          end do
          frag%v_t_mag(1:nfrag) = solve_fragment_tan_vel(v_t_mag_input=v_t_initial(7:nfrag), lfailure=lfailure)
 
@@ -466,11 +472,13 @@ contains
       ! Internals
       real(DP), parameter                   :: TOL_MIN = FRAGGLE_ETOL   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
       real(DP), parameter                   :: TOL_INIT = 1e-14_DP
+      real(DP), parameter                   :: VNOISE_MAG = 1e-10_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter               :: MAXLOOP = 100
       real(DP)                              :: ke_radial, tol 
       integer(I4B)                          :: i, j
-      real(DP), dimension(:), allocatable   :: v_r_initial, v_r_sigma
+      real(DP), dimension(:), allocatable   :: v_r_initial
       real(DP), dimension(:,:), allocatable :: v_r
+      real(DP), dimension(frag%nbody)       :: vnoise
       type(lambda_obj)                      :: objective_function
       character(len=STRMAX)                 :: message
 
@@ -479,11 +487,10 @@ contains
          ke_radial = frag%ke_budget - frag%ke_spin - frag%ke_orbit
          
          allocate(v_r_initial, source=frag%v_r_mag)
-         ! Initialize radial velocity magnitudes with a random value that is approximately 10% of that found by distributing the kinetic energy equally
-         allocate(v_r_sigma, source=frag%v_r_mag)
-         call random_number(v_r_sigma(1:nfrag))
-         v_r_sigma(1:nfrag) = sqrt(1.0_DP + 2 * (v_r_sigma(1:nfrag) - 0.5_DP) * 1e-4_DP) 
-         v_r_initial(1:nfrag) = v_r_sigma(1:nfrag) * sqrt(abs(2 * ke_radial) / (frag%mass(1:nfrag) * nfrag)) 
+         ! Initialize radial velocity magnitudes with a random value that related to equipartition of kinetic energy with some noise
+         call random_number(vnoise(1:nfrag))
+         vnoise(:) = 1.0_DP + VNOISE_MAG * (2 * vnoise(:) - 1.0_DP) 
+         v_r_initial(1:nfrag) = sqrt(abs(2 * ke_radial) / (frag%mass(1:nfrag) * nfrag)) * vnoise(1:nfrag)
 
          ! Initialize the lambda function using a structure constructor that calls the init method
          ! Minimize the ke objective function using the BFGS optimizer
@@ -494,30 +501,33 @@ contains
             if (.not.lfailure) exit
             tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
             v_r_initial(:) = frag%v_r_mag(:)
+            call random_number(vnoise(1:nfrag)) ! Adding a bit of noise to the initial conditions helps it find a solution more often
+            vnoise(:) = 1.0_DP + VNOISE_MAG * (2 * vnoise(:) - 1._DP)
+            v_r_initial(:) = v_r_initial(:) * vnoise(:)
          end do
          
          ! Shift the radial velocity vectors to align with the center of mass of the collisional system (the origin)
          frag%ke_orbit = 0.0_DP
          frag%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(frag%v_r_mag(1:nfrag), frag%v_r_unit(:,1:nfrag), frag%v_t_mag(1:nfrag), frag%v_t_unit(:,1:nfrag), frag%mass(1:nfrag), frag%vbcom(:)) 
-      do i = 1, nfrag
-         frag%v_coll(:, i) = frag%vb(:, i) - frag%vbcom(:)
-         frag%ke_orbit = frag%ke_orbit + frag%mass(i) * dot_product(frag%vb(:, i), frag%vb(:, i))
-      end do
-      frag%ke_orbit = 0.5_DP * frag%ke_orbit
+         do i = 1, nfrag
+            frag%v_coll(:, i) = frag%vb(:, i) - frag%vbcom(:)
+            frag%ke_orbit = frag%ke_orbit + frag%mass(i) * dot_product(frag%vb(:, i), frag%vb(:, i))
+         end do
+         frag%ke_orbit = 0.5_DP * frag%ke_orbit
 
-      lfailure = abs((frag%ke_budget - (frag%ke_orbit + frag%ke_spin)) / frag%ke_budget) > FRAGGLE_ETOL
-      if (lfailure) then
-         call fraggle_io_log_one_message(" ")
-         call fraggle_io_log_one_message("Radial velocity failure diagnostics")
-         write(message, *) frag%ke_budget
-         call fraggle_io_log_one_message("ke_budget     : " // trim(adjustl(message)))
-         write(message, *) frag%ke_spin
-         call fraggle_io_log_one_message("ke_spin       : " // trim(adjustl(message)))
-         write(message, *) frag%ke_orbit
-         call fraggle_io_log_one_message("ke_orbit : " // trim(adjustl(message)))
-         write(message, *) frag%ke_budget - (frag%ke_orbit + frag%ke_spin)
-         call fraggle_io_log_one_message("ke_remainder  : " // trim(adjustl(message)))
-      end if
+         lfailure = abs((frag%ke_budget - (frag%ke_orbit + frag%ke_spin)) / frag%ke_budget) > FRAGGLE_ETOL
+         if (lfailure) then
+            call fraggle_io_log_one_message(" ")
+            call fraggle_io_log_one_message("Radial velocity failure diagnostics")
+            write(message, *) frag%ke_budget
+            call fraggle_io_log_one_message("ke_budget     : " // trim(adjustl(message)))
+            write(message, *) frag%ke_spin
+            call fraggle_io_log_one_message("ke_spin       : " // trim(adjustl(message)))
+            write(message, *) frag%ke_orbit
+            call fraggle_io_log_one_message("ke_orbit : " // trim(adjustl(message)))
+            write(message, *) frag%ke_budget - (frag%ke_orbit + frag%ke_spin)
+            call fraggle_io_log_one_message("ke_remainder  : " // trim(adjustl(message)))
+         end if
 
       end associate
       return
