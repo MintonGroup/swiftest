@@ -46,6 +46,9 @@ contains
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
       integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
+      integer(I4B), parameter :: iMlr = 1
+      integer(I4B), parameter :: iMslr = 2
+      integer(I4B), parameter :: iMrem = 3
      
       associate(frag => self)
          ! Get mass weighted mean of Ip and density
@@ -62,6 +65,9 @@ contains
          select type(param)
          class is (symba_parameters)
             min_mfrag = (param%min_GMfrag / param%GU) 
+            ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
+            ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
+            ! code from getting an overwhelmingly large number of fragments
             nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(frag%mtot / min_mfrag))
             nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
          class default
@@ -70,10 +76,22 @@ contains
          end select
   
          select case(frag%regime)
-         case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-            istart = 2
-         case(COLLRESOLVE_REGIME_HIT_AND_RUN)
-            istart = 1
+         case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
+            ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of fraggle_regime.
+            ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
+            ! the limits bracketed above and the model size distribution of fragments.
+            ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
+            i = iMrem
+            mremaining = frag%mass_dist(iMrem)
+            do while (i <= nfrag)
+               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * frag%mass_dist(iMslr)
+               if (mremaining - mfrag < 0.0_DP) exit
+               mremaining = mremaining - mfrag
+               i = i + 1
+            end do
+            if (i < nfrag) nfrag = max(i, NFRAGMIN)  ! The sfd would actually give us fewer fragments than our maximum
+    
+            call frag%setup(nfrag, param)
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
             call frag%setup(1, param)
             frag%mass(1) = frag%mass_dist(1)
@@ -85,43 +103,41 @@ contains
             write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",frag%regime
          end select
 
-         i = istart 
-         mremaining = max(frag%mtot - sum(frag%mass_dist(1:istart)), 0.0_DP)
-         do while (i <= NFRAGMAX)
-            mfrag = (i - istart + 1)**(-3._DP / BETA) * frag%mass_dist(istart)
-            if (mremaining - mfrag < 0.0_DP) exit
-            mremaining = mremaining - mfrag
-            i = i + 1
-         end do
+         ! Make the first two bins the same as the Mlr and Mslr values that came from fraggle_regime
+         frag%mass(1) = frag%mass_dist(iMlr) 
+         frag%mass(2) = frag%mass_dist(iMslr) 
 
-         call frag%setup(nfrag, param)
-         frag%mass(1:istart) = frag%mass_dist(1:istart)
-         mremaining = max(frag%mtot - sum(frag%mass_dist(1:istart)), 0.0_DP)
-         do i = istart + 1, nfrag
-            mfrag = (i - istart + 1)**(-3._DP / BETA) * frag%mass_dist(istart)
-            mfrag = min(mfrag, mremaining)
+         ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
+         mremaining = frag%mass_dist(iMrem)
+         do i = iMrem, nfrag
+            mfrag = (1 + i - iMslr)**(-3._DP / BETA) * frag%mass_dist(iMslr)
             frag%mass(i) = mfrag
             mremaining = mremaining - mfrag
          end do
+
+         ! If there is any residual mass (either positive or negative) we will distribute remaining mass proportionally among the the fragments
+         if (mremaining < 0.0_DP) then ! If the remainder is negative, this means that that the number of fragments required by the SFD is smaller than our lower limit set by fraggle_generate. 
+            istart = iMrem ! We will reduce the mass of the 3:nfrag bodies to prevent the second-largest fragment from going smaller
+         else ! If the remainder is postiive, this means that the number of fragments required by the SFD is larger than our upper limit set by computational expediency. 
+            istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment remains the second largest
+         end if
+         mfrag = 1._DP + mremaining / sum(frag%mass(istart:nfrag))
+         frag%mass(istart:nfrag) = frag%mass(istart:nfrag) * mfrag
+
+         ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
+         mremaining = frag%mtot - sum(frag%mass(1:nfrag))
+         frag%mass(nfrag) = frag%mass(nfrag) + mremaining
+
+         ! Compute physical properties of the new fragments
          select case(frag%regime)
-         case(COLLRESOLVE_REGIME_HIT_AND_RUN) 
-            frag%mass(1) = frag%mass_dist(1)
+         case(COLLRESOLVE_REGIME_HIT_AND_RUN)  ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical properties of the first fragment
             frag%radius(1) = colliders%radius(jtarg)
-            frag%density(1) = frag%mass_dist(1) / volume(jtarg)
+            frag%density(1) = frag%mass_dist(iMlr) / volume(jtarg)
             frag%Ip(:, 1) = colliders%Ip(:,1)
             istart = 2
          case default
             istart = 1
          end select
-         if (mremaining > 0.0_DP) then
-            ! Distribute remaining mass among the fragments
-            mfrag = 1._DP + mremaining / sum(frag%mass(istart:nfrag))
-            do i = istart, nfrag
-               frag%mass(i) = frag%mass(i) * mfrag
-            end do
-            mremaining = frag%mtot - sum(frag%mass(1:nfrag))
-            frag%mass(nfrag) = frag%mass(nfrag) + mremaining
-         end if
          frag%density(istart:nfrag) = frag%mtot / sum(volume(:))
          frag%radius(istart:nfrag) = (3 * frag%mass(istart:nfrag) / (4 * PI * frag%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
          do i = istart, nfrag
@@ -226,10 +242,6 @@ contains
       integer(I4B) :: i
 
       associate(frag => self)
-         ! Find the center of mass of the collisional system	
-         frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot
-         frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
-
          ! Set scale factors
          frag%Escale = 0.5_DP * (colliders%mass(1) * dot_product(colliders%vb(:,1), colliders%vb(:,1)) + colliders%mass(2) * dot_product(colliders%vb(:,2), colliders%vb(:,2)))
          frag%dscale = sum(colliders%radius(:))

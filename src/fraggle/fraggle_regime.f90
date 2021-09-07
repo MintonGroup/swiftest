@@ -56,7 +56,11 @@ contains
          frag%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
          frag%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
          frag%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
-         frag%mtot = sum(frag%mass_dist(1:3))
+
+         ! Find the center of mass of the collisional system	
+         frag%mtot = sum(colliders%mass(:))
+         frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
+         frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
 
          ! Convert quantities back to the system units and save them into the fragment system
          frag%mass_dist(:) = (frag%mass_dist(:) / param%MU2KG) 
