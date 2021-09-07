@@ -234,10 +234,8 @@ contains
          lfailure = .false.
 
          ! Start the first two bodies with the same rotation as the original two impactors, then distribute the remaining angular momentum among the rest
-         frag%rot(:,1:2) = colliders%rot(:, :)
-         frag%rot(:,3:nfrag) = 0.0_DP
-         call frag%get_ang_mtm()
-         L_remainder(:) = frag%L_budget(:) - frag%L_spin(:)
+         L_remainder(:) = frag%L_budget(:)
+         frag%rot(:,:) = 0.0_DP
 
          frag%ke_spin = 0.0_DP
          do i = 1, nfrag
@@ -245,9 +243,9 @@ contains
             rot_ke(:) = sqrt(2 * f_spin * frag%ke_budget / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))) * L_remainder(:) / norm2(L_remainder(:))
             rot_L(:) = f_spin * L_remainder(:) / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))
             if (norm2(rot_ke) < norm2(rot_L)) then
-               frag%rot(:,i) = frag%rot(:, i) + rot_ke(:)
+               frag%rot(:,i) = rot_ke(:)
             else
-               frag%rot(:, i) = frag%rot(:, i) + rot_L(:)
+               frag%rot(:, i) = rot_L(:)
             end if
             frag%ke_spin = frag%ke_spin + frag%mass(i) * frag%Ip(3, i) * frag%radius(i)**2 * dot_product(frag%rot(:, i), frag%rot(:, i))
          end do
@@ -296,7 +294,7 @@ contains
       integer(I4B) :: i
       real(DP), parameter                  :: TOL_MIN = 1e-1_DP ! This doesn't have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.
       real(DP), parameter                  :: TOL_INIT = 1e-14_DP
-      real(DP), parameter                  :: VNOISE_MAG = 1e-2_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
+      real(DP), parameter                  :: VNOISE_MAG = 1e-3_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter              :: MAXLOOP = 10
       real(DP)                             :: tol, ke_remainder
       real(DP), dimension(:), allocatable  :: v_t_initial
