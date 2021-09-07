@@ -296,7 +296,7 @@ contains
       integer(I4B) :: i
       real(DP), parameter                  :: TOL_MIN = 1e-1_DP ! This doesn't have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.
       real(DP), parameter                  :: TOL_INIT = 1e-14_DP
-      real(DP), parameter                  :: VNOISE_MAG = 1e-3_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
+      real(DP), parameter                  :: VNOISE_MAG = 1e-2_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter              :: MAXLOOP = 10
       real(DP)                             :: tol, ke_remainder
       real(DP), dimension(:), allocatable  :: v_t_initial
