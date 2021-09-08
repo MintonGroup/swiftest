@@ -5,6 +5,7 @@
 #SBATCH --time=14-00:00:00
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=12
+#SBATCH --mem=96G
 #SBATCH --job-name=high_high
 #SBATCH --no-requeue
 #SBATCH -o %x.out
