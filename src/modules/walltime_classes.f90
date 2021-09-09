@@ -71,7 +71,7 @@ module walltime_classes
          wall_main = count_delta_main / (self%count_rate * 1.0_DP)
          wall_per_substep = wall_step / nsubsteps
 
-         fmt = '("' //  trim(adjustl(message)) // '",' // walltimefmt // ')'
+         fmt = '("' //  adjustl(message) // '",' // walltimefmt // ')'
          write(*,trim(adjustl(fmt))) wall_main, wall_per_substep
 
          call self%start()
