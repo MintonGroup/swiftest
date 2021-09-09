@@ -14,8 +14,8 @@ framejump = 1
 ncutoff = 1e20
 radscale = 2000
 
-cases = ['supercat_head', 'supercat_off', 'disruption_head', 'disruption_off']
-#cases = ['supercat_head']
+#cases = ['supercat_head', 'supercat_off', 'disruption_head', 'disruption_off']
+cases = ['disruption_off']
 
 def scale_sim(ds, Rcb):
     dst0 = ds.isel(time=0)
@@ -100,8 +100,8 @@ class AnimatedScatter(object):
         # Then setup FuncAnimation.
         self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes,
                                           init_func=self.setup_plot, blit=False)
-        self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'mpeg4'])
-        #self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
+        #self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'mpeg4'])
+        self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
         print(f"Finished writing {animfile}")
 
     def plot_pl_circles(self, pl, radmarker):
@@ -264,7 +264,7 @@ class AnimatedScatter(object):
             origin = d['origin_type'].values
 
             t = self.ds.coords['time'].values[frame]
-            self.mask = np.logical_not(radius > self.Rcb)
+            self.mask = np.logical_not(radius == 0.0)
 
             x = np.nan_to_num(x, copy=False)
             y = np.nan_to_num(y, copy=False)

@@ -1504,3 +1504,52 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"
 
     return swifter_param
+
+
+def swifter2swift_param(swifter_param, J2=0.0, J4=0.0):
+    swift_param = {
+        '! VERSION': f"Swift parameter input file converted from Swifter",
+        'T0': 0.0,
+        'TSTOP': 0.0,
+        'DT': 0.0,
+        'DTOUT': 0.0,
+        'DTDUMP': 0.0,
+        'L1': "F",
+        'L1': "F",
+        'L2': "F",
+        'L3': "F",
+        'L4': "F",
+        'L5': "T",
+        'L6': "F",
+        'RMIN': -1,
+        'RMAX': -1,
+        'RMAXU': -1,
+        'QMIN': -1,
+        'LCLOSE': "F",
+        'BINARY_OUTPUTFILE': "bin.dat",
+        'STATUS_FLAG_FOR_OPEN_STATEMENTS': "NEW",
+    }
+    
+    swift_param['T0'] = swifter_param['T0']
+    swift_param['TSTOP'] = swifter_param['TSTOP']
+    swift_param['DT'] = swifter_param['DT']
+    # Convert the parameter file values
+    swift_param['DTOUT'] = swifter_param['ISTEP_OUT'] * swifter_param['DT']
+    swift_param['DTDUMP'] = swifter_param['ISTEP_DUMP'] * swifter_param['DT']
+    swift_param['BINARY_OUTPUTFILE'] = swifter_param['BIN_OUT']
+    swift_param['STATUS_FLAG_FOR_OPEN_STATEMENTS'] = swifter_param['OUT_STAT']
+
+    if swifter_param['CHK_CLOSE'] == "YES":
+        swift_param['LCLOSE'] = "T"
+    else:
+        swift_param['LCLOSE'] = "F"
+
+    swift_param['RMIN'] = swifter_param['CHK_RMIN']
+    swift_param['RMAX'] = swifter_param['CHK_RMAX']
+    swift_param['QMIN'] = swifter_param['CHK_QMIN']
+    
+    if swift_param['RMIN'] > 0 or swift_param['RMAX'] > 0 or swift_param['QMIN'] > 0:
+        swift_param['L2'] = 'T'
+        
+
+    return swift_param
