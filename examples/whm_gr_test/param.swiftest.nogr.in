@@ -11,7 +11,7 @@ IN_TYPE          ASCII
 PL_IN            pl.swiftest.in
 TP_IN            tp.swiftest.in
 CB_IN            cb.swiftest.in
-BIN_OUT          bin.swiftest.nc
+BIN_OUT          bin.swiftest.nogr.nc
 CHK_QMIN         0.004650467260962157
 CHK_RMIN         0.004650467260962157
 CHK_RMAX         1000.0
@@ -22,9 +22,7 @@ MU2KG            1.988409870698051e+30
 TU2S             31557600.0
 DU2M             149597870700.0
 IN_FORM          EL
-ENC_OUT          enc.dat
 EXTRA_FORCE      NO
-DISCARD_OUT      discard.out
 BIG_DISCARD      NO
 CHK_CLOSE        YES
 RHILL_PRESENT    YES
@@ -32,4 +30,4 @@ FRAGMENTATION    NO
 ROTATION         NO
 TIDES            NO
 ENERGY           NO
-GR               YES
+GR               NO 

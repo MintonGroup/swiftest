@@ -13,12 +13,9 @@ sim.param['TU2S'] = swiftest.YR2S
 sim.param['DU2M'] = swiftest.AU2M
 sim.param['T0'] = 0.0
 sim.param['DT'] = 0.25 * swiftest.JD2S / swiftest.YR2S
-#sim.param['TSTOP'] = 1000.0
-#sim.param['ISTEP_OUT']  = 1461
-#sim.param['ISTEP_DUMP'] = 1461
-sim.param['TSTOP'] = 2*sim.param['DT']
-sim.param['ISTEP_OUT']  = 1
-sim.param['ISTEP_DUMP'] = 1
+sim.param['TSTOP'] = 1000.0
+sim.param['ISTEP_OUT']  = 1461
+sim.param['ISTEP_DUMP'] = 1461
 
 sim.param['CHK_QMIN_COORD'] = "HELIO"
 sim.param['CHK_QMIN'] = swiftest.RSun / swiftest.AU2M
