@@ -775,7 +775,7 @@ contains
                   plnew%status(1) = OLD_PARTICLE
                   do i = 2, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Hit and run fragmention", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
+                     call plnew%info(i)%set_value(origin_type="Hit and run fragment", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) cycle
