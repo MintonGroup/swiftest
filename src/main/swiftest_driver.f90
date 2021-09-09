@@ -52,7 +52,7 @@ program swiftest_driver
       iloop = 0
       iout = istep_out
       idump = istep_dump
-      nloops = ceiling(tstop / dt, kind=I8B)
+      nloops = ceiling((tstop - t0) / dt, kind=I8B)
       ioutput_t0 = int(t0 / dt / istep_out, kind=I8B)
       ioutput = ioutput_t0
       ! Prevent duplicate frames from being written if this is a restarted run
