@@ -7,7 +7,6 @@ module swiftest_classes
    implicit none
    public
 
-
    type :: netcdf_parameters
       integer(I4B) :: out_type              !! NetCDF output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B) :: ncid                  !! NetCDF ID for the output file

@@ -275,18 +275,12 @@ contains
       integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
                                                             !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
-      real(DP)                      :: deltawall, wallperstep, tfrac
-      integer(I8B)                  :: clock_count, count_rate, count_max
+      real(DP)                      :: tfrac
       character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
       character(*),     parameter   :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
-      character(len=*), parameter   :: walltimefmt = '("      Wall time (s): ", es12.5, "; Wall time/step in this interval (s):  ", es12.5)'
       logical, save                 :: lfirst = .true.
-      real(DP), save                :: start, finish
     
       if (lfirst) then
-         call system_clock(clock_count, count_rate, count_max)
-         start = clock_count / (count_rate * 1.0_DP)
-         finish = start
          lfirst = .false.
          if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
       else
@@ -312,17 +306,12 @@ contains
 
          tfrac = (param%t - param%t0) / (param%tstop - param%t0)
          
-         call system_clock(clock_count, count_rate, count_max)
-         deltawall = clock_count / (count_rate * 1.0_DP) - finish
-         wallperstep = deltawall / param%istep_dump
-         finish = clock_count / (count_rate * 1.0_DP)
          select type(pl => self%pl)
          class is (symba_pl)
             write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, self%tp%nbody
          class default
             write(*, statusfmt) param%t, tfrac, pl%nbody, self%tp%nbody
          end select
-         write(*, walltimefmt) finish - start, wallperstep
       end if
 
       return

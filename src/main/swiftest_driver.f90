@@ -20,6 +20,7 @@ program swiftest_driver
    integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
+   type(walltimer)                            :: timer            !! Object used for computing elapsed wall time
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -69,6 +70,7 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
+      call timer%reset()
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, nloops
          !> Step the system forward in time
@@ -84,7 +86,9 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
+               call timer%finish(nsubsteps=istep_out, message="Integration steps:")
                if (t > old_t_final) call nbody_system%write_frame(param)
+               call timer%finish(nsubsteps=1,         message="File I/O:         ")
                iout = istep_out
             end if
          end if
