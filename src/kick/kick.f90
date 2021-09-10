@@ -98,6 +98,7 @@ contains
          if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
       end do
       !$omp end parallel do
+      
       acc(:,1:npl) = acc(:,1:npl) + ahi(:,1:npl) + ahj(:,1:npl)
       return
    end subroutine kick_getacch_int_all_pl

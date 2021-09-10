@@ -2,33 +2,6 @@ submodule(symba_classes) s_symba_util
    use swiftest
 contains
 
-   module subroutine symba_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
-
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
-      else
-         call util_resize(arr, nold + nnew)
-      end if
-
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine symba_util_append_arr_info
-
 
    module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
@@ -106,7 +79,6 @@ contains
             call util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
             call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
             call util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
-            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
 
             call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
          end associate
@@ -175,7 +147,6 @@ contains
             call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
             call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
             call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
-            call util_append(self%info, source%info, nold, nsrc, lsource_mask)
 
             call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
          end associate
@@ -208,26 +179,6 @@ contains
    
       return
    end subroutine symba_util_copy_encounter
-
-
-   module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of particle origin information types
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      type(symba_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
-   
-      return
-   end subroutine symba_util_fill_arr_info
 
 
    module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -276,7 +227,6 @@ contains
             call util_fill(keeps%peri, inserts%peri, lfill_list)
             call util_fill(keeps%atp, inserts%atp, lfill_list)
             call util_fill(keeps%kin, inserts%kin, lfill_list)
-            call util_fill(keeps%info, inserts%info, lfill_list)
             
             call util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
@@ -307,7 +257,6 @@ contains
             call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-            call util_fill(keeps%info, inserts%info, lfill_list)
             
             call util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
@@ -336,23 +285,17 @@ contains
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       ! Internals
-      integer(I8B) :: i, j, counter, npl, nplm
+      integer(I8B) :: i, j, counter, npl, nplm, nplpl, nplplm
 
-      associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
+      associate(pl => self)
          npl = int(self%nbody, kind=I8B)
-         call pl%sort("mass", ascending=.false.)
-
-         select type(param)
-         class is (symba_parameters)
-            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
-         end select
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
 
-         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
-         nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
+         pl%nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
+         pl%nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
          if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
-         allocate(self%k_plpl(2, nplpl))
+         allocate(self%k_plpl(2, pl%nplpl))
          do i = 1, npl
             counter = (i - 1_I8B) * npl - i * (i - 1_I8B) / 2_I8B + 1_I8B
             do j = i + 1_I8B, npl
@@ -461,25 +404,27 @@ contains
       ! Arguments
       class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
       class(symba_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, j, k, npl
-      logical, dimension(:), allocatable :: lmask
+      integer(I4B) :: i, j, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
+      logical, dimension(:), allocatable :: lmask, ldump_mask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
       integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp, nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
 
-      associate(pl => self, pl_adds => system%pl_adds, nadd => system%pl_adds%nbody)
+      associate(pl => self, pl_adds => system%pl_adds)
 
          npl = pl%nbody
+         nadd = pl_adds%nbody
+         if (npl == 0) return
          ! Deallocate any temporary variables
          if (allocated(pl%xbeg)) deallocate(pl%xbeg)
          if (allocated(pl%xend)) deallocate(pl%xend)
 
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
          allocate(lmask(npl))
-         lmask(1:npl) = pl%ldiscard(1:npl) .or. pl%status(1:npl) == INACTIVE
+         lmask(1:npl) = pl%ldiscard(1:npl)
          allocate(tmp, mold=self)
          call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
          npl = pl%nbody
@@ -488,50 +433,64 @@ contains
          deallocate(lmask)
 
          ! Store the original plplenc list so we don't remove any of the original encounters
-         allocate(plplenc_old, source=system%plplenc_list)
-         call plplenc_old%copy(system%plplenc_list)
+         nenc_old = system%plplenc_list%nenc
+         if (nenc_old > 0) then 
+            allocate(plplenc_old, source=system%plplenc_list)
+            call plplenc_old%copy(system%plplenc_list)
+         end if
 
          ! Add in any new bodies
          if (nadd > 0) then
             ! Append the adds to the main pl object
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, nadd)])
+
+            allocate(ldump_mask(npl+nadd))  ! This mask is used only to append the original Fortran binary particle.dat file with new bodies. This is ignored for NetCDF output
+            ldump_mask(1:npl) = .false.
+            ldump_mask(npl+1:npl+nadd) = pl%status(npl+1:npl+nadd) == NEW_PARTICLE
             npl = pl%nbody
-
-            allocate(lmask(npl)) 
-            lmask(1:npl) = pl%status(1:npl) == NEW_PARTICLE
-
-            call symba_io_dump_particle_info(system, param, plidx=pack([(i, i=1, npl)], lmask))
-
-            deallocate(lmask)
+         else
+            allocate(ldump_mask(npl))
+            ldump_mask(:) = .false.
          end if
 
          ! Reset all of the status flags for this body
-         where(pl%status(1:npl) /= INACTIVE) 
-            pl%status(1:npl) = ACTIVE
-            pl%ldiscard(1:npl) = .false.
-            pl%lcollision(1:npl) = .false.
-            pl%lmask(1:npl) = .true.
-         elsewhere
-            pl%ldiscard(1:npl) = .true.
-            pl%lmask(1:npl) = .false.
-         end where
+         pl%status(1:npl) = ACTIVE
+         do i = 1, npl
+            call pl%info(i)%set_value(status="ACTIVE")
+         end do
+         pl%ldiscard(1:npl) = .false.
+         pl%lcollision(1:npl) = .false.
+         pl%lmask(1:npl) = .true.
+
+         select type(param)
+         class is (symba_parameters)
+            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
+            where(pl%lmtiny(1:npl))
+               pl%info(1:npl)%particle_type = PL_TINY_TYPE_NAME 
+            elsewhere
+               pl%info(1:npl)%particle_type = PL_TYPE_NAME 
+            end where
+         end select
+
+         call pl%dump_particle_info(param, idx=pack([(i, i=1, npl)], ldump_mask))
+         deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 
+         call pl%sort("mass", ascending=.false.)
          call pl%index(param)
 
          ! Reset the kinship trackers
-         pl%kin(1:npl)%nchild = 0
-         pl%kin(1:npl)%parent = [(i, i=1, npl)]
+         call pl%reset_kinship([(i, i=1, npl)])
 
          ! Re-build the zero-level encounter list, being sure to save the original level information for all bodies
          allocate(levelg_orig_pl, source=pl%levelg)
          allocate(levelm_orig_pl, source=pl%levelm)
          allocate(nplenc_orig_pl, source=pl%nplenc)
-         allocate(ntpenc_orig_pl, source=pl%ntpenc)
          lencounter = pl%encounter_check(system, param%dt, 0) 
          if (system%tp%nbody > 0) then
             select type(tp => system%tp)
             class is (symba_tp)
+               allocate(ntpenc_orig_pl, source=pl%ntpenc)
                allocate(levelg_orig_tp, source=tp%levelg)
                allocate(levelm_orig_tp, source=tp%levelm)
                allocate(nplenc_orig_tp, source=tp%nplenc)
@@ -539,15 +498,22 @@ contains
                call move_alloc(levelg_orig_tp, tp%levelg)
                call move_alloc(levelm_orig_tp, tp%levelm)
                call move_alloc(nplenc_orig_tp, tp%nplenc)
+               call move_alloc(ntpenc_orig_pl, pl%ntpenc)
             end select
          end if
          call move_alloc(levelg_orig_pl, pl%levelg)
          call move_alloc(levelm_orig_pl, pl%levelm)
          call move_alloc(nplenc_orig_pl, pl%nplenc)
 
-         associate(idnew1 => system%plplenc_list%id1, idnew2 => system%plplenc_list%id2, idold1 => plplenc_old%id1, idold2 => plplenc_old%id2)
-            do k = 1, system%plplenc_list%nenc
-               if ((idnew1(k) == idold1(k)) .and. (idnew2(k) == idold2(k))) then
+         ! Re-index the encounter list as the index values may have changed
+         if (nenc_old > 0) then
+            nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
+            do k = 1, nencmin
+               idnew1 = system%plplenc_list%id1(k)
+               idnew2 = system%plplenc_list%id2(k)
+               idold1 = plplenc_old%id1(k)
+               idold2 = plplenc_old%id2(k)
+               if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
                   ! This is an encounter we already know about, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
@@ -557,7 +523,7 @@ contains
                   system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
                   system%plplenc_list%t(k) = plplenc_old%t(k)
                   system%plplenc_list%level(k) = plplenc_old%level(k)
-               else if (((idnew1(k) == idold2(k)) .and. (idnew2(k) == idold1(k)))) then
+               else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
                   ! This is an encounter we already know about, but with the order reversed, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
@@ -569,47 +535,34 @@ contains
                   system%plplenc_list%level(k) = plplenc_old%level(k)
                end if
             end do
-         end associate
-
+         end if
       end associate
 
       return
    end subroutine symba_util_rearray_pl
 
 
-   module subroutine symba_util_resize_arr_info(arr, nnew)
+   module subroutine symba_util_reset_kinship(self, idx)
       !! author: David A. Minton
+      !! 
+      !! Resets the kinship status of bodies.
       !!
-      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
       implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                                         intent(in)    :: nnew !! New size
+      class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
+      integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
       ! Internals
-      type(symba_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
+      integer(I4B) :: i, j
 
-      if (.not. allocated(arr) .or. nnew < 0) return
-
-      nold = size(arr)
-      if (nnew == nold) return
-
-      if (nnew == 0) then
-         deallocate(arr)
-         return
-      end if
-      
-      allocate(tmp(nnew))
-      if (nnew > nold) then
-         tmp(1:nold) = arr(1:nold)
-      else
-         tmp(1:nnew) = arr(1:nnew)
-      end if
-      call move_alloc(tmp, arr)
+      self%kin(idx(:))%parent = idx(:)
+      self%kin(idx(:))%nchild = 0
+      do j = 1, size(idx(:))
+         i = idx(j)
+         if (allocated(self%kin(i)%child)) deallocate(self%kin(i)%child)
+      end do
 
       return
-   end subroutine symba_util_resize_arr_info
-
+   end subroutine symba_util_reset_kinship
+   
 
    module subroutine symba_util_resize_arr_kin(arr, nnew)
       !! author: David A. Minton
@@ -623,16 +576,19 @@ contains
       type(symba_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
       integer(I4B) :: nold !! Old size
 
-      if (.not. allocated(arr) .or. nnew < 0) return
-
-      nold = size(arr)
-      if (nnew == nold) return
+      if (nnew < 0) return
 
       if (nnew == 0) then
-         deallocate(arr)
+         if (allocated(arr)) deallocate(arr)
          return
       end if
       
+      if (allocated(arr)) then
+         nold = size(arr)
+      else
+         nold = 0
+      end if
+
       allocate(tmp(nnew))
       if (nnew > nold) then
          tmp(1:nold) = arr(1:nold)
@@ -682,7 +638,6 @@ contains
       call util_resize(self%peri, nnew)
       call util_resize(self%atp, nnew)
       call util_resize(self%kin, nnew)
-      call util_resize(self%info, nnew)
 
       call util_resize_pl(self, nnew)
 
@@ -702,7 +657,6 @@ contains
       call util_resize(self%nplenc, nnew)
       call util_resize(self%levelg, nnew)
       call util_resize(self%levelm, nnew)
-      call util_resize(self%info, nnew)
 
       call util_resize_tp(self, nnew)
 
@@ -721,7 +675,7 @@ contains
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
 
       if (self%nbody == 0) return
@@ -733,6 +687,7 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
          select case(sortby)
          case("nplenc")
             call util_sort(direction * pl%nplenc(1:npl), ind(1:npl))
@@ -771,7 +726,7 @@ contains
       character(*),    intent(in)    :: sortby    !! Sorting attribute
       logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
 
       if (self%nbody == 0) return
@@ -783,6 +738,7 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
+         allocate(ind(ntp))
          select case(sortby)
          case("nplenc")
             call util_sort(direction * tp%nplenc(1:ntp), ind(1:ntp))
@@ -801,26 +757,6 @@ contains
       return
    end subroutine symba_util_sort_tp
 
-
-   module subroutine symba_util_sort_rearrange_arr_info(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of particle information type in-place from an index list.
-      implicit none
-      ! Arguments
-      type(symba_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B),              dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      type(symba_particle_info), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, source=arr)
-      tmp(1:n) = arr(ind(1:n))
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine symba_util_sort_rearrange_arr_info
 
 
    module subroutine symba_util_sort_rearrange_arr_kin(arr, ind, n)
@@ -874,7 +810,6 @@ contains
          call util_sort_rearrange(pl%isperi,     ind, npl)
          call util_sort_rearrange(pl%peri,       ind, npl)
          call util_sort_rearrange(pl%atp,        ind, npl)
-         call util_sort_rearrange(pl%info,       ind, npl)
          call util_sort_rearrange(pl%kin,        ind, npl)
 
          call util_sort_rearrange_pl(pl,ind)
@@ -898,52 +833,12 @@ contains
          call util_sort_rearrange(tp%nplenc, ind, ntp)
          call util_sort_rearrange(tp%levelg, ind, ntp)
          call util_sort_rearrange(tp%levelm, ind, ntp)
-         call util_sort_rearrange(tp%info,   ind, ntp)
 
          call util_sort_rearrange_tp(tp,ind)
       end associate
       
       return
    end subroutine symba_util_sort_rearrange_tp
-
-
-   module subroutine symba_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of particle origin information types
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,                   dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-      logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine symba_util_spill_arr_info
 
 
    module subroutine symba_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)
@@ -996,8 +891,6 @@ contains
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
@@ -1014,7 +907,6 @@ contains
             call util_spill(keeps%isperi, discards%isperi, lspill_list, ldestructive)
             call util_spill(keeps%peri, discards%peri, lspill_list, ldestructive)
             call util_spill(keeps%atp, discards%atp, lspill_list, ldestructive)
-            call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
             call util_spill(keeps%kin, discards%kin, lspill_list, ldestructive)
 
             call util_spill_pl(keeps, discards, lspill_list, ldestructive)
@@ -1039,10 +931,8 @@ contains
       class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
   
-      associate(keeps => self, nenc => self%nenc)
+      associate(keeps => self)
          select type(discards)
          class is (symba_encounter)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
@@ -1068,8 +958,6 @@ contains
       class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      ! Internals
-      integer(I4B) :: i
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
@@ -1079,7 +967,6 @@ contains
             call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
             call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
-            call util_spill(keeps%info, discards%info, lspill_list, ldestructive)
 
             call util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default

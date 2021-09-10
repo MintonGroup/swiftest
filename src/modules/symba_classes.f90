@@ -1,12 +1,13 @@
 module symba_classes
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Definition of classes and methods specific to the Democratic SyMBAcentric Method
-   !! Adapted from David E. Kaufmann's Swifter routine: helio.f90
+   !! Definition of classes and methods specific to the SyMBA integrator
+   !! Adapted from David E. Kaufmann's Swifter routine: module_symba.f90
    use swiftest_globals
-   use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter
+   use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter, swiftest_particle_info, netcdf_parameters
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use rmvs_classes,     only : rmvs_chk_ind
+   use fraggle_classes,  only : fraggle_colliders, fraggle_fragments
    implicit none
    public
 
@@ -14,11 +15,8 @@ module symba_classes
    integer(I4B), private, parameter :: NTENC            = 3
    real(DP),     private, parameter :: RHSCALE          = 6.5_DP
    real(DP),     private, parameter :: RSHELL           = 0.48075_DP
-   character(*),          parameter :: PARTICLE_OUTFILE = 'particle.dat'
-   integer(I4B),          parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
 
    type, extends(swiftest_parameters) :: symba_parameters
-      character(STRMAX)                       :: particle_out   = PARTICLE_OUTFILE !! Name of output particle information file
       real(DP)                                :: GMTINY         = -1.0_DP          !! Smallest G*mass that is fully gravitating
       real(DP)                                :: min_GMfrag     = -1.0_DP           !! Smallest G*mass that can be produced in a fragmentation event
       integer(I4B), dimension(:), allocatable :: seed                             !! Random seeds
@@ -27,19 +25,6 @@ module symba_classes
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
    end type symba_parameters
-
-   !********************************************************************************************************************************
-   !                                    symba_particle_info class definitions and method interfaces
-   !*******************************************************************************************************************************
-   !> Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
-   !> of fragments produced in collisional events.
-   type :: symba_particle_info
-      sequence
-      character(len=32)         :: origin_type !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
-      real(DP)                  :: origin_time !! The time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_xh   !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_vh   !! The heliocentric velocity vector at the time of the particle's formation
-   end type symba_particle_info
 
    !********************************************************************************************************************************
    !                                    symba_kinship class definitions and method interfaces
@@ -60,7 +45,6 @@ module symba_classes
       real(DP) :: dGM  = 0.0_DP !! Change in G*mass of the central body
       real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
-      type(symba_particle_info) :: info
    contains
    end type symba_cb
 
@@ -82,9 +66,8 @@ module symba_classes
       real(DP),                  dimension(:), allocatable :: peri       !! perihelion distance
       real(DP),                  dimension(:), allocatable :: atp        !! semimajor axis following perihelion passage
       type(symba_kinship),       dimension(:), allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
-      type(symba_particle_info), dimension(:), allocatable :: info
    contains
-      procedure :: make_family     => symba_collision_make_family_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
+      procedure :: make_colliders  => symba_collision_make_colliders_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
       procedure :: index           => symba_util_index_eucl_plpl     !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: discard         => symba_discard_pl               !! Process massive body discards
       procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
@@ -96,6 +79,7 @@ module symba_classes
       procedure :: fill            => symba_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri        => symba_util_peri_pl             !! Determine system pericenter passages for massive bodies
       procedure :: rearray         => symba_util_rearray_pl          !! Clean up the massive body structures to remove discarded bodies and add new bodies
+      procedure :: reset_kinship   => symba_util_reset_kinship       !! Resets the kinship status of bodies
       procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a SyMBA massive body against the requested size and resizes it if it is too small.
       procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
@@ -118,7 +102,6 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: nplenc  !! number of encounters with planets this time step
       integer(I4B), dimension(:), allocatable :: levelg  !! level at which this particle should be moved
       integer(I4B), dimension(:), allocatable :: levelm  !! deepest encounter level achieved this time step
-      type(symba_particle_info), dimension(:), allocatable :: info
    contains
       procedure :: drift           => symba_drift_tp               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
@@ -173,19 +156,19 @@ module symba_classes
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_merger),  allocatable :: pl_adds !! List of added bodies in mergers or collisions
-      class(symba_pltpenc), allocatable :: pltpenc_list  !! List of massive body-test particle encounters in a single step 
-      class(symba_plplenc), allocatable :: plplenc_list  !! List of massive body-massive body encounters in a single step
-      class(symba_plplenc), allocatable :: plplcollision_list  !! List of massive body-massive body collisions in a single step
-      integer(I4B)                      :: irec          !! System recursion level
+      class(symba_merger),  allocatable :: pl_adds            !! List of added bodies in mergers or collisions
+      class(symba_pltpenc), allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
+      class(symba_plplenc), allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
+      class(symba_plplenc), allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
+      integer(I4B)                      :: irec               !! System recursion level
    contains
-      procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
-      procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
-      procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
-      procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
-      procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
-      procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
-      procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
+      procedure :: write_discard      => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
+      procedure :: initialize         => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
+      procedure :: step               => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
+      procedure :: interp             => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
+      procedure :: set_recur_levels   => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
+      procedure :: recursive_step     => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
+      procedure :: reset              => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
    end type symba_nbody_system
 
    interface
@@ -208,11 +191,11 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine
 
-      module subroutine symba_collision_make_family_pl(self,idx)
+      module subroutine symba_collision_make_colliders_pl(self,idx)
          implicit none
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
          integer(I4B), dimension(2), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision
-      end subroutine symba_collision_make_family_pl
+      end subroutine symba_collision_make_colliders_pl
 
       module subroutine symba_collision_resolve_fragmentations(self, system, param)
          implicit none
@@ -309,51 +292,35 @@ module symba_classes
          logical                                  :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
-      module function symba_collision_casedisruption(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casedisruption(system, param, colliders, frag) result(status)
+         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
          implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
-         real(DP),                        intent(inout) :: Qloss            !! Energy lost during collisionn
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
+         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
+         integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casedisruption
    
-      module function symba_collision_casehitandrun(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
+      module function symba_collision_casehitandrun(system, param, colliders, frag) result(status)
+         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
          implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
-         real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
+         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
+         integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casehitandrun
 
-      module function symba_collision_casemerge(system, param, family, x, v, mass, radius, L_spin, Ip)  result(status)
+      module function symba_collision_casemerge(system, param, colliders, frag) result(status)
+         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
          implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(in)    :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(in)    :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collisio
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
+         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
+         integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casemerge
-
-      module function symba_collision_casesupercatastrophic(system, param, family, x, v, mass, radius, L_spin, Ip, mass_res, Qloss)  result(status)
-         implicit none
-         class(symba_nbody_system),       intent(inout) :: system           !! SyMBA nbody system object
-         class(symba_parameters),         intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         integer(I4B),    dimension(:),   intent(in)    :: family           !! List of indices of all bodies inovlved in the collision
-         real(DP),        dimension(:,:), intent(inout) :: x, v, L_spin, Ip !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass, radius     !! Input values that represent a 2-body equivalent of a possibly 2+ body collision
-         real(DP),        dimension(:),   intent(inout) :: mass_res         !! The distribution of fragment mass obtained by the regime calculation 
-         real(DP),                        intent(inout) :: Qloss            !! Energy lost during collision
-         integer(I4B)                                   :: status           !! Status flag assigned to this outcome
-      end function symba_collision_casesupercatastrophic
 
       module subroutine symba_util_index_eucl_plpl(self, param)
          use swiftest_classes, only : swiftest_parameters
@@ -362,22 +329,6 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_util_index_eucl_plpl
 
-      module subroutine symba_io_write_discard(self, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      end subroutine symba_io_write_discard
-
-      module subroutine symba_io_dump_particle_info(system, param, lincludecb, tpidx, plidx) 
-         implicit none
-         class(symba_nbody_system),             intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),               intent(in)    :: param  !! Current run configuration parameters with SyMBA extensions
-         logical,                     optional, intent(in)    :: lincludecb  !! Set to true to include the central body (default is false)
-         integer(I4B), dimension(:),  optional, intent(in)    :: tpidx  !! Array of test particle indices to append to the particle file
-         integer(I4B), dimension(:),  optional, intent(in)    :: plidx  !! Array of massive body indices to append to the particle file
-      end subroutine symba_io_dump_particle_info
-   
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
          class(symba_parameters), intent(inout) :: self       !! Current run configuration parameters with SyMBA additionss
@@ -400,11 +351,12 @@ module symba_classes
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
 
-      module subroutine symba_io_read_particle(system, param)
+      module subroutine symba_io_write_discard(self, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system file
-         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
-      end subroutine symba_io_read_particle
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine symba_io_write_discard
 
       module subroutine symba_kick_getacch_int_pl(self)
          implicit none
@@ -439,12 +391,6 @@ module symba_classes
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_encounter
-   
-      module subroutine symba_setup_initialize_particle_info(system, param) 
-         implicit none
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA extensions
-      end subroutine symba_setup_initialize_particle_info
 
       module subroutine symba_setup_initialize_system(self, param)
          use swiftest_classes, only : swiftest_parameters
@@ -524,14 +470,6 @@ module symba_classes
    end interface
 
    interface util_append
-      module subroutine symba_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         type(symba_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                         intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,                   dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine symba_util_append_arr_info
-     
       module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
@@ -582,13 +520,6 @@ module symba_classes
    end interface 
 
    interface util_fill
-      module subroutine symba_util_fill_arr_info(keeps, inserts, lfill_list)
-         implicit none
-         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         type(symba_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,                   dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine symba_util_fill_arr_info
-
       module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
@@ -626,17 +557,19 @@ module symba_classes
          implicit none
          class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(in)    :: param  !! Current run configuration parameters with SyMBA additions
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine symba_util_rearray_pl
+
+      module subroutine symba_util_reset_kinship(self, idx)
+         implicit none
+         class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
+         integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
+         integer(I4B) :: i, j
+      end subroutine symba_util_reset_kinship
+      
    end interface
 
    interface util_resize
-      module subroutine symba_util_resize_arr_info(arr, nnew)
-         implicit none
-         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                                         intent(in)    :: nnew !! New size
-      end subroutine symba_util_resize_arr_info
-
       module subroutine symba_util_resize_arr_kin(arr, nnew)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
@@ -679,13 +612,6 @@ module symba_classes
    end interface
 
    interface util_sort_rearrange
-      module subroutine symba_util_sort_rearrange_arr_info(arr, ind, n)
-         implicit none
-         type(symba_particle_info),   dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine symba_util_sort_rearrange_arr_info
-
       module subroutine symba_util_sort_rearrange_arr_kin(arr, ind, n)
          implicit none
          type(symba_kinship),         dimension(:), allocatable, intent(inout) :: arr !! Destination array 
@@ -709,14 +635,6 @@ module symba_classes
    end interface
 
    interface util_spill
-      module subroutine symba_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         type(symba_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,                    dimension(:),             intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                              intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine symba_util_spill_arr_info
-
       module subroutine symba_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 

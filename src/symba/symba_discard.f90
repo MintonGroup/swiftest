@@ -20,7 +20,7 @@ contains
       ! Internals
       integer(I4B) :: i, j
       real(DP)     :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
-      character(len=STRMAX) :: idstr, timestr
+      character(len=STRMAX) :: idstr, timestr, message
    
       associate(npl => pl%nbody, cb => system%cb)
          call system%set_msys()
@@ -36,14 +36,26 @@ contains
                   pl%status(i) = DISCARDED_RMAX
                   write(idstr, *) pl%id(i)
                   write(timestr, *) param%t
-                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too far from the central body at t = " // trim(adjustl(timestr))
+                  write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " too far from the central body at t = " // trim(adjustl(timestr))
+                  call fraggle_io_log_one_message("")
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message(message)
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message("")
+                  call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMIN
                   write(idstr, *) pl%id(i)
                   write(timestr, *) param%t
-                  write(*, *) "Massive body " // trim(adjustl(idstr)) // " too close to the central body at t = " // trim(adjustl(timestr))
+                  write(message, *) trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // " too close to the central body at t = " // trim(adjustl(timestr))
+                  call fraggle_io_log_one_message("")
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message(message)
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message("")
+                  call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
                   vb2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -54,7 +66,13 @@ contains
                      pl%status(i) = DISCARDED_RMAXU
                      write(idstr, *) pl%id(i)
                      write(timestr, *) param%t
-                     write(*, *) "Massive body " // trim(adjustl(idstr)) // " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
+                     write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
+                     call fraggle_io_log_one_message("")
+                     call fraggle_io_log_one_message("***********************************************************************************************************************")
+                     call fraggle_io_log_one_message(message)
+                     call fraggle_io_log_one_message("***********************************************************************************************************************")
+                     call fraggle_io_log_one_message("")
+                     call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                   end if
                end if
             end if
@@ -181,19 +199,32 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       ! Internals
       logical, dimension(pl%nbody) ::  ldiscard
+      integer(I4B) :: i, nstart, nend, nsub
+      class(symba_pl), allocatable            :: plsub
     
       ! First check for collisions with the central body
       associate(npl => pl%nbody, cb => system%cb)
          if (npl == 0) return 
-         ldiscard(1:npl) = pl%ldiscard(1:npl) ! Don't include any bodies that were previously flagged for discard in here
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-            call symba_discard_cb_pl(pl, system, param)
-         end if
-         if (param%qmin >= 0.0_DP .and. npl > 0) call symba_discard_peri_pl(pl, system, param)
-         if (any(.not.ldiscard(1:npl) .and. pl%ldiscard(1:npl))) then
-            ldiscard(1:npl) = .not.ldiscard(1:npl) .and. pl%ldiscard(1:npl)
-            call system%pl_discards%append(pl, ldiscard) 
-         end if
+         select type(pl_discards => system%pl_discards)
+         class is (symba_merger)
+            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
+               call symba_discard_cb_pl(pl, system, param)
+            end if
+            if (param%qmin >= 0.0_DP) call symba_discard_peri_pl(pl, system, param)
+            if (any(pl%ldiscard(1:npl))) then
+               ldiscard(1:npl) = pl%ldiscard(1:npl)
+                  
+               allocate(plsub, mold=pl)
+               call pl%spill(plsub, ldiscard, ldestructive=.false.)
+               nsub = plsub%nbody
+               nstart = pl_discards%nbody + 1
+               nend = pl_discards%nbody + nsub
+               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
+   
+               ! Record how many bodies were subtracted in this event
+               pl_discards%ncomp(nstart:nend) = nsub
+            end if
+         end select
       end associate
 
       return
@@ -255,6 +286,7 @@ contains
       logical, save      :: lfirst = .true.
       logical            :: lfirst_orig
       integer(I4B)       :: i
+      character(len=STRMAX) :: timestr, idstr
 
 
       lfirst_orig = pl%lfirst
@@ -271,7 +303,10 @@ contains
                      pl%ldiscard(i) = .true.
                      pl%lcollision(i) = .false.
                      pl%status(i) = DISCARDED_PERI
-                     write(*, *) "Particle ", pl%id(i), " perihelion distance too small at t = ", param%t
+                     write(timestr, *) param%t
+                     write(idstr, *) pl%id(i)
+                     write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ") perihelion distance too small at t = " // trim(adjustl(timestr)) 
+                     call pl%info(i)%set_value(status="DISCARDED_PERI", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=system%cb%id)
                   end if
                end if
             end if
@@ -314,6 +349,9 @@ contains
                end if
 
                call symba_discard_nonplpl_conservation(self, system, param)
+
+               ! Save the add/discard information to file
+               call system%write_discard(param)
 
                call pl%rearray(system, param)
 

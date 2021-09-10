@@ -13,8 +13,10 @@ contains
       character(*),         intent(in)    :: sortby    !! Sorting attribute
       logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -23,6 +25,7 @@ contains
       end if
 
       associate(body => self, n => self%nbody)
+         allocate(ind(n))
          select case(sortby)
          case("id")
             call util_sort(direction * body%id(1:n), ind(1:n))
@@ -53,7 +56,6 @@ contains
 
       return
    end subroutine util_sort_body
-
 
 
    module subroutine util_sort_dp(arr)
@@ -235,8 +237,10 @@ contains
       character(*),       intent(in)    :: sortby    !! Sorting attribute
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -245,6 +249,7 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
          select case(sortby)
          case("Gmass","mass")
             call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
@@ -286,8 +291,10 @@ contains
       character(*),       intent(in)    :: sortby    !! Sorting attribute
       logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -296,6 +303,7 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
+         allocate(ind(ntp))
          select case(sortby)
          case("peri")
             call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
@@ -328,7 +336,7 @@ contains
 
       associate(n => self%nbody)
          call util_sort_rearrange(self%id,       ind, n)
-         call util_sort_rearrange(self%name,     ind, n)
+         call util_sort_rearrange(self%info,     ind, n)
          call util_sort_rearrange(self%status,   ind, n)
          call util_sort_rearrange(self%ldiscard, ind, n)
          call util_sort_rearrange(self%xh,       ind, n)
@@ -459,6 +467,30 @@ contains
    end subroutine util_sort_rearrange_arr_logical
 
 
+   module subroutine util_sort_rearrange_arr_info(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of particle information type in-place from an index list.
+      implicit none
+      ! Arguments
+      type(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),                  dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      type(swiftest_particle_info),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+      integer(I4B) :: i
+
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+
+      call util_copy_particle_info_arr(arr, tmp, ind)
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_info
+
+
    module subroutine util_sort_rearrange_pl(self, ind)
       !! author: David A. Minton
       !!
@@ -481,6 +513,8 @@ contains
          call util_sort_rearrange(pl%k2,      ind, npl)
          call util_sort_rearrange(pl%Q,       ind, npl)
          call util_sort_rearrange(pl%tlag,    ind, npl)
+
+         if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
 
          call util_sort_rearrange_body(pl, ind)
       end associate

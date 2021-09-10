@@ -931,12 +931,12 @@ contains
       capom = 0.0_DP
       omega = 0.0_DP
       capm = 0.0_DP
-      r = sqrt(dot_product(x(:), x(:))) 
+      r = .mag. x(:)
       v2 = dot_product(v(:), v(:))
       hvec = x(:) .cross. v(:)
       h2 = dot_product(hvec(:), hvec(:)) 
-      h = sqrt(h2)
-      if (h2 == 0.0_DP) return
+      h = .mag. hvec(:)
+      if (h2 <= 10 * tiny(0.0_DP)) return
       rdotv = dot_product(x(:), v(:))
       energy = 0.5_DP * v2 - mu / r
       fac = hvec(3) / h

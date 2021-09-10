@@ -10,7 +10,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-      class(swiftest_parameters),                  intent(in)    :: param     !! Swiftest parameters
+      class(swiftest_parameters),                  intent(inout) :: param     !! Swiftest parameters
 
       select case(param%integrator)
       case (BS)
@@ -81,8 +81,7 @@ contains
       class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
       integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
 
-      self%nenc = n
-      if (n == 0) return
+      if (n < 0) return
 
       if (allocated(self%lvdotr)) deallocate(self%lvdotr)
       if (allocated(self%status)) deallocate(self%status)
@@ -96,6 +95,9 @@ contains
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
       if (allocated(self%t)) deallocate(self%t)
+
+      self%nenc = n
+      if (n == 0) return
 
       allocate(self%lvdotr(n))
       allocate(self%status(n))
@@ -127,6 +129,34 @@ contains
    end subroutine setup_encounter
 
 
+   module subroutine setup_initialize_particle_info_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Setup up particle information metadata from initial conditions
+      !
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      integer(I4B) :: i
+
+      associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
+
+         call cb%info%set_value(particle_type=CB_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP])
+         do i = 1, self%pl%nbody
+            call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%pl%xh(:,i), origin_vh=self%pl%vh(:,i))
+         end do
+         do i = 1, self%tp%nbody
+            call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%tp%xh(:,i), origin_vh=self%tp%vh(:,i))
+         end do
+
+      end associate
+
+      return
+   end subroutine setup_initialize_particle_info_system
+
+
    module subroutine setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -152,6 +182,12 @@ contains
       if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
       self%pl%lfirst = param%lfirstkick
       self%tp%lfirst = param%lfirstkick
+
+      if (param%lrestart) then
+         call self%read_particle_info(param)
+      else
+         call self%init_particle_info(param)
+      end if
       return
    end subroutine setup_initialize_system
 
@@ -167,39 +203,69 @@ contains
       class(swiftest_body),       intent(inout) :: self  !! Swiftest generic body object
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
 
-      self%nbody = n
-      if (n <= 0) return
+      if (n < 0) return
+
       self%lfirst = .true.
 
+      if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%id)) deallocate(self%id)
-      if (allocated(self%name)) deallocate(self%name)
       if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%ldiscard)) deallocate(self%ldiscard)
+      if (allocated(self%lmask)) deallocate(self%lmask)
+      if (allocated(self%mu)) deallocate(self%mu)
       if (allocated(self%xh)) deallocate(self%xh)
       if (allocated(self%vh)) deallocate(self%vh)
       if (allocated(self%xb)) deallocate(self%xb)
       if (allocated(self%vb)) deallocate(self%vb)
       if (allocated(self%ah)) deallocate(self%ah)
+      if (allocated(self%aobl)) deallocate(self%aobl)
+      if (allocated(self%agr)) deallocate(self%lmask)
+      if (allocated(self%atide)) deallocate(self%lmask)
       if (allocated(self%ir3h)) deallocate(self%ir3h)
-      if (allocated(self%mu)) deallocate(self%mu)
-      if (allocated(self%lmask)) deallocate(self%lmask)
+      if (allocated(self%a)) deallocate(self%a)
+      if (allocated(self%e)) deallocate(self%e)
+      if (allocated(self%e)) deallocate(self%e)
+      if (allocated(self%inc)) deallocate(self%inc)
+      if (allocated(self%capom)) deallocate(self%capom)
+      if (allocated(self%omega)) deallocate(self%omega)
+      if (allocated(self%capm)) deallocate(self%capm)
 
+      self%nbody = n
+      if (n == 0) return
+
+      allocate(self%info(n))
       allocate(self%id(n))
-      allocate(self%name(n))
       allocate(self%status(n))
       allocate(self%ldiscard(n))
+      allocate(self%lmask(n))
+      allocate(self%mu(n))
       allocate(self%xh(NDIM, n))
       allocate(self%vh(NDIM, n))
       allocate(self%xb(NDIM, n))
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
-      allocate(self%mu(n))
-      allocate(self%lmask(n))
 
-      self%id(:)   = 0
-      self%name(:) = "UNNAMED"
+      self%id(:) = 0
+      do i = 1, n
+         call self%info(i)%set_value(&
+            name = "UNNAMED", &
+            particle_type = "UNKNOWN", &
+            status = "INACTIVE", & 
+            origin_type = "UNKNOWN", &
+            origin_time = -huge(1.0_DP), & 
+            origin_xh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_time = -huge(1.0_DP), & 
+            discard_xh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_body_id = -1  &
+         )
+      end do
+
       self%status(:) = INACTIVE
       self%lmask(:)  = .false.
       self%ldiscard(:) = .false.
@@ -212,17 +278,14 @@ contains
       self%mu(:)     = 0.0_DP
 
       if (param%loblatecb) then
-         if (allocated(self%aobl)) deallocate(self%aobl)
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if
       if (param%ltides) then
-         if (allocated(self%atide)) deallocate(self%lmask)
          allocate(self%atide(NDIM, n))
          self%atide(:,:) = 0.0_DP
       end if
       if (param%lgr) then
-         if (allocated(self%agr)) deallocate(self%lmask)
          allocate(self%agr(NDIM, n))
          self%agr(:,:) = 0.0_DP
       end if
@@ -245,11 +308,20 @@ contains
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
-      if (n <= 0) return 
+      if (n < 0) return 
 
       if (allocated(self%mass)) deallocate(self%mass)
       if (allocated(self%Gmass)) deallocate(self%Gmass)
       if (allocated(self%rhill)) deallocate(self%rhill)
+      if (allocated(self%radius)) deallocate(self%radius)
+      if (allocated(self%density)) deallocate(self%density)
+      if (allocated(self%rot)) deallocate(self%rot)
+      if (allocated(self%Ip)) deallocate(self%Ip)
+      if (allocated(self%k2)) deallocate(self%k2)
+      if (allocated(self%Q)) deallocate(self%Q)
+      if (allocated(self%tlag)) deallocate(self%tlag)
+
+      if (n == 0) return
 
       allocate(self%mass(n))
       allocate(self%Gmass(n))
@@ -262,8 +334,6 @@ contains
       self%nplpl = 0   
 
       if (param%lclose) then
-         if (allocated(self%radius)) deallocate(self%radius)
-         if (allocated(self%density)) deallocate(self%density)
          allocate(self%radius(n))
          allocate(self%density(n))
          self%radius(:) = 0.0_DP
@@ -271,8 +341,6 @@ contains
       end if
 
       if (param%lrotation) then
-         if (allocated(self%rot)) deallocate(self%rot)
-         if (allocated(self%Ip)) deallocate(self%Ip)
          allocate(self%rot(NDIM, n))
          allocate(self%Ip(NDIM, n))
          self%rot(:,:) = 0.0_DP
@@ -280,9 +348,6 @@ contains
       end if
 
       if (param%ltides) then
-         if (allocated(self%k2)) deallocate(self%k2)
-         if (allocated(self%Q)) deallocate(self%Q)
-         if (allocated(self%tlag)) deallocate(self%tlag)
          allocate(self%k2(n))
          allocate(self%Q(n))
          allocate(self%tlag(n))
@@ -309,11 +374,13 @@ contains
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%isperi)) deallocate(self%isperi)
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
+
+      if (n == 0) return
 
       allocate(self%isperi(n))
       allocate(self%peri(n))

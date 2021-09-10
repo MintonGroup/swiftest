@@ -1,15 +1,15 @@
 T0             0.0e0
-TSTOP          0.000100            ! simulation length in seconds = 100 years
+TSTOP          0.0001000           ! simulation length in seconds = 100 years
 DT             0.0000001              ! stepsize in seconds
 CB_IN          cb.in
 PL_IN          disruption_off_axis.in
 TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1                 ! output cadence every year
-BIN_OUT        bin.disruption_off_axis.dat
+BIN_OUT        bin.disruption_off_axis.nc
 PARTICLE_OUT   particle.disruption_off_axis.dat
-OUT_TYPE       REAL8             ! double precision real output
-OUT_FORM       XV                ! osculating element output
+OUT_TYPE       NETCDF_DOUBLE     ! double precision real output
+OUT_FORM       XVEL              ! osculating element output
 OUT_STAT       REPLACE
 ISTEP_DUMP     1                 ! system dump cadence
 CHK_CLOSE      yes               ! check for planetary close encounters
@@ -22,7 +22,8 @@ DISCARD_OUT    discard.disruption_off_axis.out
 EXTRA_FORCE    no                ! no extra user-defined forces
 BIG_DISCARD    no                ! output all planets if anything discarded
 RHILL_PRESENT  yes               ! Hill's sphere radii in input file
-GMTINY          1.0e-16
+GMTINY         1.0e-11
+MIN_GMFRAG     1.0e-11
 FRAGMENTATION  yes
 MU2KG          1.98908e30
 TU2S           3.1556925e7

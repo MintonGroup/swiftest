@@ -17,9 +17,10 @@ program swiftest_driver
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
+   integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
-   integer(I4B)                               :: iu               !! Unit number of binary file
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
+   type(walltimer)                            :: timer            !! Object used for computing elapsed wall time
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -43,23 +44,25 @@ program swiftest_driver
              dt         => param%dt, &
              tstop      => param%tstop, &
              istep_out  => param%istep_out, &
-             istep_dump => param%istep_dump)  
+             istep_dump => param%istep_dump, &
+             ioutput    => param%ioutput)  
 
       call nbody_system%initialize(param)
       t = t0
       iloop = 0
       iout = istep_out
       idump = istep_dump
-      nloops = ceiling(tstop / dt, kind=I8B)
+      nloops = ceiling((tstop - t0) / dt, kind=I8B)
+      ioutput_t0 = int(t0 / dt / istep_out, kind=I8B)
+      ioutput = ioutput_t0
       ! Prevent duplicate frames from being written if this is a restarted run
-      if (param%lrestart) then
+      if ((param%lrestart) .and. ((param%out_type == REAL8_TYPE) .or. param%out_type == REAL4_TYPE)) then
          old_t_final = nbody_system%get_old_t_final(param)
       else
          old_t_final = t0
-         if (istep_out > 0) call nbody_system%write_frame(iu, param)
+         if (istep_out > 0) call nbody_system%write_frame(param)
          call nbody_system%dump(param)
       end if
-
 
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
@@ -67,6 +70,7 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
+      call timer%reset()
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, nloops
          !> Step the system forward in time
@@ -81,7 +85,10 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               if (t > old_t_final) call nbody_system%write_frame(iu, param)
+               ioutput = ioutput_t0 + iloop / istep_out
+               call timer%finish(nsubsteps=istep_out, message="Integration steps:")
+               if (t > old_t_final) call nbody_system%write_frame(param)
+               call timer%finish(nsubsteps=1,         message="File I/O:         ")
                iout = istep_out
             end if
          end if
