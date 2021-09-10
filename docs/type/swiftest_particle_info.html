@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West (someday, hopefully)">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>swiftest_particle_info &ndash; swiftest </title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/swiftest_driver.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/swiftest_driver.html">Program</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>swiftest_particle_info
+    <small>Derived Type</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title="<p> 2.5% of total for derived types.</p>Including implementation: 18 statements,  2.0% of total for derived types.">18 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/swiftest_classes.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+     <li><a href='../sourcefile/swiftest_classes.f90.html'>swiftest_classes.f90</a></li>
+    
+     <li><a href='../module/swiftest_classes.html'>swiftest_classes</a></li>
+    
+  
+     <li class="active">swiftest_particle_info</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-0">Variables</a></h3></div>
+  <div id="vars-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-name">name</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-particle_type">particle_type</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_type">origin_type</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_time">origin_time</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_xh">origin_xh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_vh">origin_vh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_time">discard_time</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-status~3">status</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_xh">discard_xh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_vh">discard_vh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_body_id">discard_body_id</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#boundprocs-0">Type-Bound Procedures</a></h3></div>
+  <div id="boundprocs-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-dump~4">dump</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-read_in~4">read_in</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-copy~2">copy</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-set_value">set_value</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+</div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+      <h2>type, public :: swiftest_particle_info</h2>
+    <p>Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
+ of fragments produced in collisional events.</p>
+    <br>
+    
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Inherited by</h3>
+      </div>
+      <div class="panel-body">
+     <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: type~~swiftest_particle_info~~InheritedByGraph Pages: 1 -->
+<svg id="typeswiftest_particle_infoInheritedByGraph" width="641pt" height="174pt"
+ viewBox="0.00 0.00 641.00 173.50" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~swiftest_particle_info~~InheritedByGraph" class="graph" transform="scale(0.54 0.54) rotate(0) translate(4 320)">
+<title>type~~swiftest_particle_info~~InheritedByGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-320 1193,-320 1193,4 -4,4"/>
+<!-- type~swiftest_particle_info -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node1" class="node">
+<title>type~swiftest_particle_info</title>
+<polygon fill="none" stroke="black" points="112,-169 0,-169 0,-145 112,-145 112,-169"/>
+<text text-anchor="middle" x="56" y="-154.6" font-family="Helvetica,sans-Serif" font-size="10.50">swiftest_particle_info</text>
+</g>
+<!-- type~swiftest_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node2" class="node">
+<title>type~swiftest_cb</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node2"><a xlink:href=".././type/swiftest_cb.html" xlink:title="swiftest_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="235,-191 170,-191 170,-167 235,-167 235,-191"/>
+<text text-anchor="middle" x="202.5" y="-176.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_cb</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_cb&#45;&gt;type~swiftest_particle_info -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge1" class="edge">
+<title>type~swiftest_cb&#45;&gt;type~swiftest_particle_info</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M169.79,-174.17C155.82,-172.05 138.87,-169.46 122.39,-166.96"/>
+<polygon fill="#000000" stroke="#000000" points="122.64,-163.45 112.23,-165.41 121.59,-170.37 122.64,-163.45"/>
+<text text-anchor="middle" x="138" y="-171.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
+</g>
+<!-- type~swiftest_body -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node3" class="node">
+<title>type~swiftest_body</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node3"><a xlink:href=".././type/swiftest_body.html" xlink:title="swiftest_body">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="241,-149 164,-149 164,-125 241,-125 241,-149"/>
+<text text-anchor="middle" x="202.5" y="-134.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_body</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_body&#45;&gt;type~swiftest_particle_info -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge2" class="edge">
+<title>type~swiftest_body&#45;&gt;type~swiftest_particle_info</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M163.96,-140.12C152.99,-141.18 141,-142.48 130,-144 127.49,-144.35 124.93,-144.72 122.35,-145.1"/>
+<polygon fill="#000000" stroke="#000000" points="121.67,-141.67 112.33,-146.68 122.75,-148.58 121.67,-141.67"/>
+<text text-anchor="middle" x="138" y="-146.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
+</g>
+<!-- type~helio_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node4" class="node">
+<title>type~helio_cb</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node4"><a xlink:href=".././type/helio_cb.html" xlink:title="helio_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="336.5,-274 282.5,-274 282.5,-250 336.5,-250 336.5,-274"/>
+<text text-anchor="middle" x="309.5" y="-259.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_cb</text>
+</a>
+</g>
+</g>
+<!-- type~helio_cb&#45;&gt;type~swiftest_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge4" class="edge">
+<title>type~helio_cb&#45;&gt;type~swiftest_cb</title>
+<path fill="none" stroke="#000000" d="M289.31,-274.04C278.14,-280.32 265.25,-286.11 260,-283"/>
+<path fill="none" stroke="#000000" d="M259,-283C229.4,-265.47 214.74,-226.11 208.16,-201.15"/>
+<polygon fill="#000000" stroke="#000000" points="211.5,-200.04 205.75,-191.14 204.69,-201.68 211.5,-200.04"/>
+</g>
+<!-- type~swiftest_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node5" class="node">
+<title>type~swiftest_nbody_system</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node5"><a xlink:href=".././type/swiftest_nbody_system.html" xlink:title="swiftest_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="563,-148 440,-148 440,-124 563,-124 563,-148"/>
+<text text-anchor="middle" x="501.5" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge3" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_cb</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M439.83,-134.81C394.7,-135.13 331.86,-138.12 278,-150 264.63,-152.95 250.51,-157.93 238.19,-162.94"/>
+<polygon fill="#000000" stroke="#000000" points="236.6,-159.81 228.75,-166.93 239.32,-166.26 236.6,-159.81"/>
+<text text-anchor="middle" x="309.5" y="-152.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb</text>
+</g>
+<!-- type~swiftest_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node6" class="node">
+<title>type~swiftest_pl</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node6"><a xlink:href=".././type/swiftest_pl.html" xlink:title="swiftest_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="340.5,-105 278.5,-105 278.5,-81 340.5,-81 340.5,-105"/>
+<text text-anchor="middle" x="309.5" y="-90.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge10" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M451.55,-123.95C441.77,-121.6 431.57,-119.19 422,-117 398.44,-111.62 372.01,-105.91 350.79,-101.41"/>
+<polygon fill="#000000" stroke="#000000" points="351.34,-97.95 340.83,-99.31 349.89,-104.8 351.34,-97.95"/>
+<text text-anchor="middle" x="390.5" y="-119.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl, pl_discards</text>
+</g>
+<!-- type~swiftest_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node7" class="node">
+<title>type~swiftest_tp</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node7"><a xlink:href=".././type/swiftest_tp.html" xlink:title="swiftest_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="341,-193 278,-193 278,-169 341,-169 341,-193"/>
+<text text-anchor="middle" x="309.5" y="-178.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_tp</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge14" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_tp</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M451.1,-148.02C441.45,-150.35 431.41,-152.76 422,-155 398.57,-160.57 372.34,-166.69 351.21,-171.59"/>
+<polygon fill="#000000" stroke="#000000" points="350.23,-168.23 341.28,-173.9 351.81,-175.05 350.23,-168.23"/>
+<text text-anchor="middle" x="390.5" y="-171.4" font-family="Helvetica,sans-Serif" font-size="9.50">tp, tp_discards</text>
+</g>
+<!-- type~swiftest_pl&#45;&gt;type~swiftest_body -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge7" class="edge">
+<title>type~swiftest_pl&#45;&gt;type~swiftest_body</title>
+<path fill="none" stroke="#000000" d="M279.81,-105.02C268,-109.97 254.16,-115.77 241.53,-121.07"/>
+<polygon fill="#000000" stroke="#000000" points="240.03,-117.9 232.16,-124.99 242.73,-124.35 240.03,-117.9"/>
+</g>
+<!-- type~swiftest_tp&#45;&gt;type~swiftest_body -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge6" class="edge">
+<title>type~swiftest_tp&#45;&gt;type~swiftest_body</title>
+<path fill="none" stroke="#000000" d="M279.81,-168.98C268,-164.03 254.16,-158.23 241.53,-152.93"/>
+<polygon fill="#000000" stroke="#000000" points="242.73,-149.65 232.16,-149.01 240.03,-156.1 242.73,-149.65"/>
+</g>
+<!-- type~whm_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node8" class="node">
+<title>type~whm_cb</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node8"><a xlink:href=".././type/whm_cb.html" xlink:title="whm_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="336.5,-316 282.5,-316 282.5,-292 336.5,-292 336.5,-316"/>
+<text text-anchor="middle" x="309.5" y="-301.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_cb</text>
+</a>
+</g>
+</g>
+<!-- type~whm_cb&#45;&gt;type~swiftest_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge5" class="edge">
+<title>type~whm_cb&#45;&gt;type~swiftest_cb</title>
+<path fill="none" stroke="#000000" d="M282.48,-294.16C275.03,-290.97 267.03,-287.16 260,-283"/>
+</g>
+<!-- type~symba_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node9" class="node">
+<title>type~symba_cb</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node9"><a xlink:href=".././type/symba_cb.html" xlink:title="symba_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="532,-274 471,-274 471,-250 532,-250 532,-274"/>
+<text text-anchor="middle" x="501.5" y="-259.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_cb</text>
+</a>
+</g>
+</g>
+<!-- type~symba_cb&#45;&gt;type~helio_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge8" class="edge">
+<title>type~symba_cb&#45;&gt;type~helio_cb</title>
+<path fill="none" stroke="#000000" d="M470.81,-262C437.28,-262 382.71,-262 346.7,-262"/>
+<polygon fill="#000000" stroke="#000000" points="346.62,-258.5 336.62,-262 346.62,-265.5 346.62,-258.5"/>
+</g>
+<!-- type~whm_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node10" class="node">
+<title>type~whm_nbody_system</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node10"><a xlink:href=".././type/whm_nbody_system.html" xlink:title="whm_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="773,-148 663,-148 663,-124 773,-124 773,-148"/>
+<text text-anchor="middle" x="718" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge9" class="edge">
+<title>type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system</title>
+<path fill="none" stroke="#000000" d="M662.87,-136C635.67,-136 602.37,-136 573.18,-136"/>
+<polygon fill="#000000" stroke="#000000" points="573.04,-132.5 563.04,-136 573.04,-139.5 573.04,-132.5"/>
+</g>
+<!-- type~whm_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node11" class="node">
+<title>type~whm_pl</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node11"><a xlink:href=".././type/whm_pl.html" xlink:title="whm_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="845,-24 791,-24 791,0 845,0 845,-24"/>
+<text text-anchor="middle" x="818" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_pl</text>
+</a>
+</g>
+</g>
+<!-- type~whm_pl&#45;&gt;type~swiftest_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge11" class="edge">
+<title>type~whm_pl&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" d="M389.5,-52C370.57,-56.46 351.15,-66.45 336.31,-75.45"/>
+<polygon fill="#000000" stroke="#000000" points="334.3,-72.57 327.7,-80.86 338.03,-78.5 334.3,-72.57"/>
+<path fill="none" stroke="#000000" d="M790.96,-10.16C729.11,-6.47 568.91,-0.89 440,-31 417.13,-36.34 414.36,-46.62 391.5,-52"/>
+</g>
+<!-- type~helio_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node12" class="node">
+<title>type~helio_tp</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node12"><a xlink:href=".././type/helio_tp.html" xlink:title="helio_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="528.5,-190 474.5,-190 474.5,-166 528.5,-166 528.5,-190"/>
+<text text-anchor="middle" x="501.5" y="-175.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_tp</text>
+</a>
+</g>
+</g>
+<!-- type~helio_tp&#45;&gt;type~swiftest_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge15" class="edge">
+<title>type~helio_tp&#45;&gt;type~swiftest_tp</title>
+<path fill="none" stroke="#000000" d="M474.41,-186.57C444.88,-196.09 399.78,-210.01 391.5,-209"/>
+<path fill="none" stroke="#000000" d="M389.5,-209C374.39,-207.16 358.44,-202.14 344.85,-196.86"/>
+<polygon fill="#000000" stroke="#000000" points="346.01,-193.55 335.43,-193.01 343.36,-200.03 346.01,-193.55"/>
+</g>
+<!-- type~rmvs_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node13" class="node">
+<title>type~rmvs_cb</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node13"><a xlink:href=".././type/rmvs_cb.html" xlink:title="rmvs_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="528.5,-316 474.5,-316 474.5,-292 528.5,-292 528.5,-316"/>
+<text text-anchor="middle" x="501.5" y="-301.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_cb</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_cb&#45;&gt;type~whm_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge17" class="edge">
+<title>type~rmvs_cb&#45;&gt;type~whm_cb</title>
+<path fill="none" stroke="#000000" d="M474.48,-304C441.46,-304 384.31,-304 346.95,-304"/>
+<polygon fill="#000000" stroke="#000000" points="346.51,-300.5 336.51,-304 346.51,-307.5 346.51,-300.5"/>
+</g>
+<!-- type~whm_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node14" class="node">
+<title>type~whm_tp</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node14"><a xlink:href=".././type/whm_tp.html" xlink:title="whm_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="528.5,-232 474.5,-232 474.5,-208 528.5,-208 528.5,-232"/>
+<text text-anchor="middle" x="501.5" y="-217.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_tp</text>
+</a>
+</g>
+</g>
+<!-- type~whm_tp&#45;&gt;type~swiftest_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge16" class="edge">
+<title>type~whm_tp&#45;&gt;type~swiftest_tp</title>
+<path fill="none" stroke="#000000" d="M474.48,-217.68C452.37,-215.64 419.82,-212.46 391.5,-209"/>
+</g>
+<!-- type~helio_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node15" class="node">
+<title>type~helio_pl</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node15"><a xlink:href=".././type/helio_pl.html" xlink:title="helio_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="528.5,-106 474.5,-106 474.5,-82 528.5,-82 528.5,-106"/>
+<text text-anchor="middle" x="501.5" y="-91.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_pl</text>
+</a>
+</g>
+</g>
+<!-- type~helio_pl&#45;&gt;type~swiftest_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge13" class="edge">
+<title>type~helio_pl&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" d="M474.44,-85.43C463.71,-81.78 451.19,-77.36 440,-73 418.11,-64.48 414.36,-46.62 391.5,-52"/>
+</g>
+<!-- type~fraggle_fragments -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node16" class="node">
+<title>type~fraggle_fragments</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node16"><a xlink:href=".././type/fraggle_fragments.html" xlink:title="fraggle_fragments">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="551.5,-64 451.5,-64 451.5,-40 551.5,-40 551.5,-64"/>
+<text text-anchor="middle" x="501.5" y="-49.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_fragments</text>
+</a>
+</g>
+</g>
+<!-- type~fraggle_fragments&#45;&gt;type~swiftest_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge12" class="edge">
+<title>type~fraggle_fragments&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" d="M451.38,-47.24C432.45,-46.63 410.75,-47.47 391.5,-52"/>
+</g>
+<!-- type~rmvs_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node17" class="node">
+<title>type~rmvs_pl</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node17"><a xlink:href=".././type/rmvs_pl.html" xlink:title="rmvs_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1156.5,-67 1102.5,-67 1102.5,-43 1156.5,-43 1156.5,-67"/>
+<text text-anchor="middle" x="1129.5" y="-52.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_pl</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~whm_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge20" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~whm_pl</title>
+<path fill="none" stroke="#000000" d="M1102.29,-50.67C1071.59,-45.65 1019.17,-37.28 974,-31 933.35,-25.35 886.57,-19.74 855.13,-16.1"/>
+<polygon fill="#000000" stroke="#000000" points="855.42,-12.61 845.09,-14.94 854.62,-19.56 855.42,-12.61"/>
+</g>
+<!-- type~rmvs_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node22" class="node">
+<title>type~rmvs_nbody_system</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node22"><a xlink:href=".././type/rmvs_nbody_system.html" xlink:title="rmvs_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="974,-106 863,-106 863,-82 974,-82 974,-106"/>
+<text text-anchor="middle" x="918.5" y="-91.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~rmvs_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge27" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~rmvs_nbody_system</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1102.27,-55.23C1074.54,-55.94 1029.71,-58.48 992,-67 988.43,-67.81 974.73,-72.83 960.19,-78.33"/>
+<polygon fill="#000000" stroke="#000000" points="958.71,-75.15 950.61,-81.97 961.2,-81.69 958.71,-75.15"/>
+<text text-anchor="middle" x="1022" y="-69.4" font-family="Helvetica,sans-Serif" font-size="9.50">planetocentric</text>
+</g>
+<!-- type~symba_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node18" class="node">
+<title>type~symba_tp</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node18"><a xlink:href=".././type/symba_tp.html" xlink:title="symba_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="747.5,-190 688.5,-190 688.5,-166 747.5,-166 747.5,-190"/>
+<text text-anchor="middle" x="718" y="-175.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_tp</text>
+</a>
+</g>
+</g>
+<!-- type~symba_tp&#45;&gt;type~helio_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge21" class="edge">
+<title>type~symba_tp&#45;&gt;type~helio_tp</title>
+<path fill="none" stroke="#000000" d="M688.07,-178C649.38,-178 580.79,-178 538.72,-178"/>
+<polygon fill="#000000" stroke="#000000" points="538.62,-174.5 528.62,-178 538.62,-181.5 538.62,-174.5"/>
+</g>
+<!-- type~symba_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node19" class="node">
+<title>type~symba_pl</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node19"><a xlink:href=".././type/symba_pl.html" xlink:title="symba_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="747,-106 689,-106 689,-82 747,-82 747,-106"/>
+<text text-anchor="middle" x="718" y="-91.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pl</text>
+</a>
+</g>
+</g>
+<!-- type~symba_pl&#45;&gt;type~helio_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge24" class="edge">
+<title>type~symba_pl&#45;&gt;type~helio_pl</title>
+<path fill="none" stroke="#000000" d="M688.96,-94C650.43,-94 581.1,-94 538.7,-94"/>
+<polygon fill="#000000" stroke="#000000" points="538.53,-90.5 528.53,-94 538.53,-97.5 538.53,-90.5"/>
+</g>
+<!-- type~helio_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node20" class="node">
+<title>type~helio_nbody_system</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node20"><a xlink:href=".././type/helio_nbody_system.html" xlink:title="helio_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="973.5,-148 863.5,-148 863.5,-124 973.5,-124 973.5,-148"/>
+<text text-anchor="middle" x="918.5" y="-133.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~helio_nbody_system&#45;&gt;type~whm_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge18" class="edge">
+<title>type~helio_nbody_system&#45;&gt;type~whm_nbody_system</title>
+<path fill="none" stroke="#000000" d="M863.46,-134C848.99,-134.01 833.37,-134.51 819,-136"/>
+</g>
+<!-- type~rmvs_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node21" class="node">
+<title>type~rmvs_tp</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node21"><a xlink:href=".././type/rmvs_tp.html" xlink:title="rmvs_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="745,-280 691,-280 691,-256 745,-256 745,-280"/>
+<text text-anchor="middle" x="718" y="-265.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_tp</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_tp&#45;&gt;type~rmvs_cb -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge22" class="edge">
+<title>type~rmvs_tp&#45;&gt;type~rmvs_cb</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M690.7,-272.41C652.56,-278.81 581.78,-290.69 538.73,-297.92"/>
+<polygon fill="#000000" stroke="#000000" points="537.96,-294.5 528.68,-299.61 539.12,-301.4 537.96,-294.5"/>
+<text text-anchor="middle" x="613" y="-292.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb_heliocentric</text>
+</g>
+<!-- type~rmvs_tp&#45;&gt;type~whm_tp -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge23" class="edge">
+<title>type~rmvs_tp&#45;&gt;type~whm_tp</title>
+<path fill="none" stroke="#000000" d="M690.7,-262.11C652.48,-253.56 581.48,-237.67 538.46,-228.05"/>
+<polygon fill="#000000" stroke="#000000" points="539.2,-224.63 528.68,-225.86 537.68,-231.46 539.2,-224.63"/>
+</g>
+<!-- type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge19" class="edge">
+<title>type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system</title>
+<path fill="none" stroke="#000000" d="M817,-136C806.12,-137.12 794.52,-137.68 783.25,-137.89"/>
+<polygon fill="#000000" stroke="#000000" points="782.98,-134.39 773.02,-137.99 783.05,-141.39 782.98,-134.39"/>
+<path fill="none" stroke="#000000" d="M885.06,-106.03C877.76,-108.86 870.08,-111.95 863,-115 843.1,-123.57 840.55,-133.77 819,-136"/>
+</g>
+<!-- type~symba_merger -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node23" class="node">
+<title>type~symba_merger</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node23"><a xlink:href=".././type/symba_merger.html" xlink:title="symba_merger">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="961,-64 876,-64 876,-40 961,-40 961,-64"/>
+<text text-anchor="middle" x="918.5" y="-49.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_merger</text>
+</a>
+</g>
+</g>
+<!-- type~symba_merger&#45;&gt;type~symba_pl -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge25" class="edge">
+<title>type~symba_merger&#45;&gt;type~symba_pl</title>
+<path fill="none" stroke="#000000" d="M875.89,-60.8C840.86,-68.22 791.17,-78.73 757.15,-85.93"/>
+<polygon fill="#000000" stroke="#000000" points="756.19,-82.55 747.13,-88.05 757.64,-89.4 756.19,-82.55"/>
+</g>
+<!-- type~symba_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_node24" class="node">
+<title>type~symba_nbody_system</title>
+<g id="a_type~~swiftest_particle_info~~InheritedByGraph_node24"><a xlink:href=".././type/symba_nbody_system.html" xlink:title="symba_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1189,-121 1070,-121 1070,-97 1189,-97 1189,-121"/>
+<text text-anchor="middle" x="1129.5" y="-106.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~symba_nbody_system&#45;&gt;type~helio_nbody_system -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge26" class="edge">
+<title>type~symba_nbody_system&#45;&gt;type~helio_nbody_system</title>
+<path fill="none" stroke="#000000" d="M1069.73,-116.59C1042.96,-120.05 1011.21,-124.15 983.81,-127.69"/>
+<polygon fill="#000000" stroke="#000000" points="983.01,-124.27 973.54,-129.02 983.91,-131.21 983.01,-124.27"/>
+</g>
+<!-- type~symba_nbody_system&#45;&gt;type~symba_merger -->
+<g id="type~~swiftest_particle_info~~InheritedByGraph_edge28" class="edge">
+<title>type~symba_nbody_system&#45;&gt;type~symba_merger</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1071.38,-96.97C1046.8,-91.45 1017.84,-84.46 992,-77 982.12,-74.15 971.6,-70.74 961.73,-67.37"/>
+<polygon fill="#000000" stroke="#000000" points="962.71,-64.01 952.12,-64.04 960.42,-70.62 962.71,-64.01"/>
+<text text-anchor="middle" x="1022" y="-94.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl_adds</text>
+</g>
+</g>
+</svg>
+</div><script>var pantypeswiftest_particle_infoInheritedByGraph = svgPanZoom('#typeswiftest_particle_infoInheritedByGraph', {zoomEnabled: true,controlIconsEnabled: true, fit: true, center: true,}); </script><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="178pt" height="32pt"
+ viewBox="0.00 0.00 177.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 173.5,-28 173.5,4 -4,4"/>
+<!-- Type -->
+<g id="node1" class="node">
+<title>Type</title>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="169.5,-24 72.5,-24 72.5,0 169.5,0 169.5,-24"/>
+<text text-anchor="middle" x="121" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a derived type to the parent type which it
+    extends. Dashed arrows point from a derived type to the other
+    types it contains as a components, with a label listing the name(s) of
+    said component(s).
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+    
+    <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#vars-1">Variables</a></h3></div>
+  <div id="vars-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-name">name</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-particle_type">particle_type</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_type">origin_type</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_time">origin_time</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_xh">origin_xh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-origin_vh">origin_vh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_time">discard_time</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-status~3">status</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_xh">discard_xh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_vh">discard_vh</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#variable-discard_body_id">discard_body_id</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#boundprocs-1">Type-Bound Procedures</a></h3></div>
+  <div id="boundprocs-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-dump~4">dump</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-read_in~4">read_in</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-copy~2">copy</a>
+      
+      <a class="list-group-item" href="../type/swiftest_particle_info.html#boundprocedure-set_value">set_value</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    
+    <section>
+    <h2>Components</h2>
+    
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th><th>Visibility</th>
+
+<th>Attributes</th><th></th><th>Name</th><th></th><th>Initial</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-name"></span>character(len=NAMELEN),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-particle_type"></span>character(len=NAMELEN),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>particle_type</strong></td><td></td><td></td><td><p>String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-origin_type"></span>character(len=NAMELEN),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>origin_type</strong></td><td></td><td></td><td><p>String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-origin_time"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>origin_time</strong></td><td></td><td></td><td><p>The time of the particle's formation</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-origin_xh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>origin_xh</strong></td><td></td><td></td><td><p>The heliocentric distance vector at the time of the particle's formation</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-origin_vh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>origin_vh</strong></td><td></td><td></td><td><p>The heliocentric velocity vector at the time of the particle's formation</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-discard_time"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>discard_time</strong></td><td></td><td></td><td><p>The time of the particle's discard</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-status~3"></span>character(len=NAMELEN),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>status</strong></td><td></td><td></td><td><p>Particle status description: Active, Merged, Fragmented, etc.</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-discard_xh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>discard_xh</strong></td><td></td><td></td><td><p>The heliocentric distance vector at the time of the particle's discard</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-discard_vh"></span>real(kind=DP),</td>
+  
+  <td>public,</td>
+  <td>dimension(NDIM)</td><td>::</td>
+  <td><strong>discard_vh</strong></td><td></td><td></td><td><p>The heliocentric velocity vector at the time of the particle's discard</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-discard_body_id"></span>integer(kind=I4B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>discard_body_id</strong></td><td></td><td></td><td><p>The id of the other body involved in the discard (0 if no other body involved)</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+    </section>
+    <br>
+    
+    
+    
+    
+    
+    
+     
+    <section>
+    <h2>Type-Bound Procedures</h2>
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-dump~4"></span><h3>procedure, public :: <strong>dump</strong>  => <a href='../interface/io_dump_particle_info.html'>io_dump_particle_info</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Dumps contents of particle information to file</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_dump_particle_info(self, iu)
+    
+    
+   
+   <a href='../proc/io_dump_particle_info.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest particle info metadata object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>iu</strong></td><td><p>Open unformatted file unit number</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-read_in~4"></span><h3>procedure, public :: <strong>read_in</strong>  => <a href='../interface/io_read_in_particle_info.html'>io_read_in_particle_info</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Read in a particle information object from an open file</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_read_in_particle_info(self, iu)
+    
+    
+   
+   <a href='../proc/io_read_in_particle_info.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Particle metadata information object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>iu</strong></td><td><p>Open file unit number</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-copy~2"></span><h3>procedure, public :: <strong>copy</strong>  => <a href='../interface/util_copy_particle_info.html'>util_copy_particle_info</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Copies one set of information object components into another, component-by-component</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine util_copy_particle_info(self, source)
+    
+    
+   
+   <a href='../proc/util_copy_particle_info.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>source</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-set_value"></span><h3>procedure, public :: <strong>set_value</strong>  => <a href='../interface/util_set_particle_info.html'>util_set_particle_info</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Sets one or more values of the particle information metadata object</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+    
+    
+   
+   <a href='../proc/util_set_particle_info.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>character(len=*),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>name</strong></td><td><p>Non-unique name</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>character(len=*),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>particle_type</strong></td><td><p>String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>character(len=*),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>status</strong></td><td><p>Particle status description: Active, Merged, Fragmented, etc.</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>character(len=*),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>origin_type</strong></td><td><p>String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>origin_time</strong></td><td><p>The time of the particle's formation</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>origin_xh</strong></td><td><p>The heliocentric distance vector at the time of the particle's formation</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>origin_vh</strong></td><td><p>The heliocentric velocity vector at the time of the particle's formation</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>discard_time</strong></td><td><p>The time of the particle's discard</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>discard_xh</strong></td><td><p>The heliocentric distance vector at the time of the particle's discard</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>real(kind=DP),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td>dimension(:)</td><td>::</td>
+  <td><strong>discard_vh</strong></td><td><p>The heliocentric velocity vector at the time of the particle's discard</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(in),</td>
+  <td>optional</td>
+  
+  <td></td><td>::</td>
+  <td><strong>discard_body_id</strong></td><td><p>The id of the other body involved in the discard (0 if no other body involved)</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+    </section>
+    
+    
+    
+    
+    </div>
+  </div>
+
+
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>

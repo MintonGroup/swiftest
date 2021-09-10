@@ -136,7 +136,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 1.4% of total for modules and submodules.">192 statements</a>
+    title=" 1.1% of total for modules and submodules.">173 statements</a>
      </li> 
      
      
@@ -186,14 +186,6 @@
   <div id="inters-0" class="panel-collapse collapse">
     <div class="list-group">
       
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_pl">helio_coord_vb2vh_pl</a>
-      
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_tp">helio_coord_vb2vh_tp</a>
-      
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_pl">helio_coord_vh2vb_pl</a>
-      
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_tp">helio_coord_vh2vb_tp</a>
-      
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_body">helio_drift_body</a>
       
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_pl">helio_drift_pl</a>
@@ -219,6 +211,8 @@
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_pl">helio_kick_vb_pl</a>
       
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_tp">helio_kick_vb_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_setup_initialize_system">helio_setup_initialize_system</a>
       
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_pl">helio_step_pl</a>
       
@@ -267,7 +261,7 @@
     
     <div class="col-md-9" id='text'>
     <p>Definition of classes and methods specific to the Democratic Heliocentric Method
- Adapted from David E. Kaufmann's Swifter routine: helio.f90</p>
+ Adapted from David E. Kaufmann's Swifter routine: module_helio.f90</p>
 <hr>
 <p>helio_nbody_system class definitions and method interfaces</p>
 <hr>
@@ -329,26 +323,10 @@
 <polygon fill="none" stroke="black" points="560,-57.04 484,-57.04 484,-33.04 560,-33.04 560,-57.04"/>
 <text text-anchor="middle" x="522" y="-42.64" font-family="Helvetica,sans-Serif" font-size="10.50">helio_classes</text>
 </g>
-<!-- module~swiftest_classes -->
-<g id="module~~helio_classes~~UsesGraph_node2" class="node">
-<title>module~swiftest_classes</title>
-<g id="a_module~~helio_classes~~UsesGraph_node2"><a xlink:href=".././module/swiftest_classes.html" xlink:title="swiftest_classes">
-<polygon fill="#337ab7" stroke="#337ab7" points="336,-37.04 247,-37.04 247,-13.04 336,-13.04 336,-37.04"/>
-<text text-anchor="middle" x="291.5" y="-22.64" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_classes</text>
-</a>
-</g>
-</g>
-<!-- module~helio_classes&#45;&gt;module~swiftest_classes -->
-<g id="module~~helio_classes~~UsesGraph_edge3" class="edge">
-<title>module~helio_classes&#45;&gt;module~swiftest_classes</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M409,-65.04C378.5,-65.19 345.82,-52.75 322.86,-41.71"/>
-<polygon fill="#000000" stroke="#000000" points="324.16,-38.45 313.65,-37.11 321.03,-44.71 324.16,-38.45"/>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M483.88,-55.13C462.7,-60.04 435.55,-64.93 411,-65.04"/>
-</g>
 <!-- module~swiftest_globals -->
-<g id="module~~helio_classes~~UsesGraph_node3" class="node">
+<g id="module~~helio_classes~~UsesGraph_node2" class="node">
 <title>module~swiftest_globals</title>
-<g id="a_module~~helio_classes~~UsesGraph_node3"><a xlink:href=".././module/swiftest_globals.html" xlink:title="swiftest_globals">
+<g id="a_module~~helio_classes~~UsesGraph_node2"><a xlink:href=".././module/swiftest_globals.html" xlink:title="swiftest_globals">
 <polygon fill="#337ab7" stroke="#337ab7" points="211,-37.04 123,-37.04 123,-13.04 211,-13.04 211,-37.04"/>
 <text text-anchor="middle" x="167" y="-22.64" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_globals</text>
 </a>
@@ -360,6 +338,22 @@
 <path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M409,-65.04C336.51,-65.39 318.21,-59.61 247,-46.04 237.79,-44.29 228.06,-42.04 218.71,-39.67"/>
 <polygon fill="#000000" stroke="#000000" points="219.31,-36.21 208.75,-37.06 217.54,-42.98 219.31,-36.21"/>
 </g>
+<!-- module~swiftest_classes -->
+<g id="module~~helio_classes~~UsesGraph_node3" class="node">
+<title>module~swiftest_classes</title>
+<g id="a_module~~helio_classes~~UsesGraph_node3"><a xlink:href=".././module/swiftest_classes.html" xlink:title="swiftest_classes">
+<polygon fill="#337ab7" stroke="#337ab7" points="336,-37.04 247,-37.04 247,-13.04 336,-13.04 336,-37.04"/>
+<text text-anchor="middle" x="291.5" y="-22.64" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_classes</text>
+</a>
+</g>
+</g>
+<!-- module~helio_classes&#45;&gt;module~swiftest_classes -->
+<g id="module~~helio_classes~~UsesGraph_edge2" class="edge">
+<title>module~helio_classes&#45;&gt;module~swiftest_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M409,-65.04C378.5,-65.19 345.82,-52.75 322.86,-41.71"/>
+<polygon fill="#000000" stroke="#000000" points="324.16,-38.45 313.65,-37.11 321.03,-44.71 324.16,-38.45"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M483.88,-55.13C462.7,-60.04 435.55,-64.93 411,-65.04"/>
+</g>
 <!-- module~whm_classes -->
 <g id="module~~helio_classes~~UsesGraph_node4" class="node">
 <title>module~whm_classes</title>
@@ -370,16 +364,10 @@
 </g>
 </g>
 <!-- module~helio_classes&#45;&gt;module~whm_classes -->
-<g id="module~~helio_classes~~UsesGraph_edge2" class="edge">
+<g id="module~~helio_classes~~UsesGraph_edge3" class="edge">
 <title>module~helio_classes&#45;&gt;module~whm_classes</title>
 <path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M483.76,-38.27C475.52,-36.77 466.68,-35.17 458.1,-33.61"/>
 <polygon fill="#000000" stroke="#000000" points="458.67,-30.15 448.2,-31.81 457.42,-37.04 458.67,-30.15"/>
-</g>
-<!-- module~swiftest_classes&#45;&gt;module~swiftest_globals -->
-<g id="module~~helio_classes~~UsesGraph_edge4" class="edge">
-<title>module~swiftest_classes&#45;&gt;module~swiftest_globals</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M246.97,-25.04C238.75,-25.04 230.07,-25.04 221.59,-25.04"/>
-<polygon fill="#000000" stroke="#000000" points="221.39,-21.54 211.39,-25.04 221.39,-28.54 221.39,-21.54"/>
 </g>
 <!-- iso_fortran_env -->
 <g id="module~~helio_classes~~UsesGraph_node5" class="node">
@@ -391,22 +379,28 @@
 </g>
 </g>
 <!-- module~swiftest_globals&#45;&gt;iso_fortran_env -->
-<g id="module~~helio_classes~~UsesGraph_edge5" class="edge">
+<g id="module~~helio_classes~~UsesGraph_edge4" class="edge">
 <title>module~swiftest_globals&#45;&gt;iso_fortran_env</title>
 <path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M122.82,-25.04C114.58,-25.04 105.86,-25.04 97.36,-25.04"/>
 <polygon fill="#000000" stroke="#000000" points="97.13,-21.54 87.13,-25.04 97.13,-28.54 97.13,-21.54"/>
 </g>
-<!-- module~whm_classes&#45;&gt;module~swiftest_classes -->
-<g id="module~~helio_classes~~UsesGraph_edge7" class="edge">
-<title>module~whm_classes&#45;&gt;module~swiftest_classes</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.82,-25.04C363.68,-25.04 354.91,-25.04 346.27,-25.04"/>
-<polygon fill="#000000" stroke="#000000" points="346.24,-21.54 336.24,-25.04 346.24,-28.54 346.24,-21.54"/>
+<!-- module~swiftest_classes&#45;&gt;module~swiftest_globals -->
+<g id="module~~helio_classes~~UsesGraph_edge5" class="edge">
+<title>module~swiftest_classes&#45;&gt;module~swiftest_globals</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M246.97,-25.04C238.75,-25.04 230.07,-25.04 221.59,-25.04"/>
+<polygon fill="#000000" stroke="#000000" points="221.39,-21.54 211.39,-25.04 221.39,-28.54 221.39,-21.54"/>
 </g>
 <!-- module~whm_classes&#45;&gt;module~swiftest_globals -->
 <g id="module~~helio_classes~~UsesGraph_edge6" class="edge">
 <title>module~whm_classes&#45;&gt;module~swiftest_globals</title>
 <path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.53,-12.98C362.49,-9.35 348.8,-5.85 336,-4.04 296.83,1.48 286.22,1.08 247,-4.04 236.55,-5.41 225.51,-7.75 215.11,-10.38"/>
 <polygon fill="#000000" stroke="#000000" points="214.14,-7.02 205.37,-12.98 215.94,-13.78 214.14,-7.02"/>
+</g>
+<!-- module~whm_classes&#45;&gt;module~swiftest_classes -->
+<g id="module~~helio_classes~~UsesGraph_edge7" class="edge">
+<title>module~whm_classes&#45;&gt;module~swiftest_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.82,-25.04C363.68,-25.04 354.91,-25.04 346.27,-25.04"/>
+<polygon fill="#000000" stroke="#000000" points="346.24,-21.54 336.24,-25.04 346.24,-28.54 346.24,-21.54"/>
 </g>
 </g>
 </svg>
@@ -486,13 +480,13 @@
     <ul class="list-inline">
       <li><h5>Descendants:</h5></li>
       
-      <li><a href='../module/s_helio_coord.html'>s_helio_coord</a></li>
-      
       <li><a href='../module/s_helio_drift.html'>s_helio_drift</a></li>
       
       <li><a href='../module/s_helio_gr.html'>s_helio_gr</a></li>
       
       <li><a href='../module/s_helio_kick.html'>s_helio_kick</a></li>
+      
+      <li><a href='../module/s_helio_setup.html'>s_helio_setup</a></li>
       
       <li><a href='../module/s_helio_step.html'>s_helio_step</a></li>
       
@@ -507,1049 +501,1162 @@
 <!-- Generated by graphviz version 2.47.1 (20210417.1919)
  -->
 <!-- Title: module~~helio_classes~~UsedByGraph Pages: 1 -->
-<svg id="modulehelio_classesUsedByGraph" width="488pt" height="2552pt"
- viewBox="0.00 0.00 488.00 2552.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="module~~helio_classes~~UsedByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 2548)">
+<svg id="modulehelio_classesUsedByGraph" width="488pt" height="2888pt"
+ viewBox="0.00 0.00 488.00 2888.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~helio_classes~~UsedByGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 2884)">
 <title>module~~helio_classes~~UsedByGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-2548 484,-2548 484,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-2884 484,-2884 484,4 -4,4"/>
 <!-- module~helio_classes -->
 <g id="module~~helio_classes~~UsedByGraph_node1" class="node">
 <title>module~helio_classes</title>
-<polygon fill="none" stroke="black" points="76,-1305 0,-1305 0,-1281 76,-1281 76,-1305"/>
-<text text-anchor="middle" x="38" y="-1290.6" font-family="Helvetica,sans-Serif" font-size="10.50">helio_classes</text>
+<polygon fill="none" stroke="black" points="76,-2060 0,-2060 0,-2036 76,-2036 76,-2060"/>
+<text text-anchor="middle" x="38" y="-2045.6" font-family="Helvetica,sans-Serif" font-size="10.50">helio_classes</text>
+</g>
+<!-- module~s_helio_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node2" class="node">
+<title>module~s_helio_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node2"><a xlink:href=".././module/s_helio_setup.html" xlink:title="s_helio_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2880 362,-2880 362,-2856 441,-2856 441,-2880"/>
+<text text-anchor="middle" x="401.5" y="-2865.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_helio_setup&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge3" class="edge">
+<title>module~s_helio_setup&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" d="M361.71,-2863.97C348.32,-2860.99 333.95,-2855.86 323,-2847 255,-2791.99 266.11,-2752.95 233,-2672 139.48,-2443.34 64.69,-2152.19 44.43,-2070.31"/>
+<polygon fill="#000000" stroke="#000000" points="47.73,-2069.04 41.94,-2060.17 40.93,-2070.72 47.73,-2069.04"/>
 </g>
 <!-- module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_node2" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node7" class="node">
 <title>module~swiftest</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node2"><a xlink:href=".././module/swiftest.html" xlink:title="swiftest">
-<polygon fill="#337ab7" stroke="#337ab7" points="287,-1305 233,-1305 233,-1281 287,-1281 287,-1305"/>
-<text text-anchor="middle" x="260" y="-1290.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node7"><a xlink:href=".././module/swiftest.html" xlink:title="swiftest">
+<polygon fill="#337ab7" stroke="#337ab7" points="287,-1431 233,-1431 233,-1407 287,-1407 287,-1431"/>
+<text text-anchor="middle" x="260" y="-1416.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest</text>
 </a>
 </g>
 </g>
-<!-- module~swiftest&#45;&gt;module~helio_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge1" class="edge">
-<title>module~swiftest&#45;&gt;module~helio_classes</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M153.5,-2444C35.69,-2439.26 37.67,-1474.44 38.8,-1315.15"/>
-<polygon fill="#000000" stroke="#000000" points="42.3,-1315.12 38.88,-1305.09 35.3,-1315.07 42.3,-1315.12"/>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M258.57,-1305.17C254.14,-1428.45 215.77,-2446.43 155.5,-2444"/>
+<!-- module~s_helio_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge13" class="edge">
+<title>module~s_helio_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.77,-2866.78C347.39,-2864.23 332.32,-2858.65 323,-2847 277.16,-2789.7 263.1,-1618.98 261.23,-1441.47"/>
+<polygon fill="#000000" stroke="#000000" points="264.72,-1441.2 261.12,-1431.24 257.72,-1441.27 264.72,-1441.2"/>
 </g>
-<!-- module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_node4" class="node">
-<title>module~symba_classes</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node4"><a xlink:href=".././module/symba_classes.html" xlink:title="symba_classes">
-<polygon fill="#337ab7" stroke="#337ab7" points="197,-1305 112,-1305 112,-1281 197,-1281 197,-1305"/>
-<text text-anchor="middle" x="154.5" y="-1290.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_classes</text>
+<!-- module~s_helio_step -->
+<g id="module~~helio_classes~~UsedByGraph_node3" class="node">
+<title>module~s_helio_step</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node3"><a xlink:href=".././module/s_helio_step.html" xlink:title="s_helio_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-150 365,-150 365,-126 438,-126 438,-150"/>
+<text text-anchor="middle" x="401.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_step</text>
 </a>
 </g>
 </g>
-<!-- module~swiftest&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge69" class="edge">
-<title>module~swiftest&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M232.88,-1293C225.13,-1293 216.36,-1293 207.58,-1293"/>
-<polygon fill="#000000" stroke="#000000" points="207.32,-1289.5 197.32,-1293 207.32,-1296.5 207.32,-1289.5"/>
+<!-- module~s_helio_step&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge4" class="edge">
+<title>module~s_helio_step&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" d="M364.87,-128.84C351.67,-125.32 336.6,-121.14 323,-117 295.17,-108.52 290.01,-93.86 261,-96"/>
+</g>
+<!-- module~s_helio_step&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge18" class="edge">
+<title>module~s_helio_step&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.61,-138.79C349.42,-141.1 332.96,-146.62 323,-159 282.64,-209.14 264.12,-1229.92 261.37,-1396.2"/>
+<polygon fill="#000000" stroke="#000000" points="257.86,-1396.61 261.19,-1406.67 264.86,-1396.72 257.86,-1396.61"/>
 </g>
 <!-- module~s_helio_kick -->
-<g id="module~~helio_classes~~UsedByGraph_node3" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node4" class="node">
 <title>module~s_helio_kick</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node3"><a xlink:href=".././module/s_helio_kick.html" xlink:title="s_helio_kick">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-2544 366.5,-2544 366.5,-2520 436.5,-2520 436.5,-2544"/>
-<text text-anchor="middle" x="401.5" y="-2529.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_kick</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node4"><a xlink:href=".././module/s_helio_kick.html" xlink:title="s_helio_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-108 366.5,-108 366.5,-84 436.5,-84 436.5,-108"/>
+<text text-anchor="middle" x="401.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_kick</text>
 </a>
 </g>
 </g>
 <!-- module~s_helio_kick&#45;&gt;module~helio_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge3" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge5" class="edge">
 <title>module~s_helio_kick&#45;&gt;module~helio_classes</title>
-<path fill="none" stroke="#000000" d="M366.29,-2523.64C352.71,-2520.09 337.01,-2515.68 323,-2511 246.96,-2485.58 235.61,-2447.22 155.5,-2444"/>
+<path fill="none" stroke="#000000" d="M366.34,-94.6C338.06,-93.78 296.87,-93.35 261,-96"/>
 </g>
 <!-- module~s_helio_kick&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge13" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge23" class="edge">
 <title>module~s_helio_kick&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.22,-2531.44C350.6,-2529.27 333.32,-2523.81 323,-2511 283.99,-2462.61 264.37,-1477.83 261.4,-1315.55"/>
-<polygon fill="#000000" stroke="#000000" points="264.9,-1315.24 261.21,-1305.31 257.9,-1315.37 264.9,-1315.24"/>
-</g>
-<!-- module~symba_classes&#45;&gt;module~helio_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge2" class="edge">
-<title>module~symba_classes&#45;&gt;module~helio_classes</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M111.84,-1293C103.57,-1293 94.82,-1293 86.37,-1293"/>
-<polygon fill="#000000" stroke="#000000" points="86.27,-1289.5 76.27,-1293 86.27,-1296.5 86.27,-1289.5"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.2,-96.55C350.57,-98.71 333.3,-104.18 323,-117 281.26,-168.95 263.84,-1227.92 261.32,-1396.48"/>
+<polygon fill="#000000" stroke="#000000" points="257.82,-1396.61 261.17,-1406.66 264.82,-1396.71 257.82,-1396.61"/>
 </g>
 <!-- module~s_helio_gr -->
 <g id="module~~helio_classes~~UsedByGraph_node5" class="node">
 <title>module~s_helio_gr</title>
 <g id="a_module~~helio_classes~~UsedByGraph_node5"><a xlink:href=".././module/s_helio_gr.html" xlink:title="s_helio_gr">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="432.5,-150 370.5,-150 370.5,-126 432.5,-126 432.5,-150"/>
-<text text-anchor="middle" x="401.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_gr</text>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432.5,-66 370.5,-66 370.5,-42 432.5,-42 432.5,-66"/>
+<text text-anchor="middle" x="401.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_gr</text>
 </a>
 </g>
 </g>
 <!-- module~s_helio_gr&#45;&gt;module~helio_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge4" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge6" class="edge">
 <title>module~s_helio_gr&#45;&gt;module~helio_classes</title>
-<path fill="none" stroke="#000000" d="M370.2,-130.25C355.83,-126.46 338.47,-121.71 323,-117 295.17,-108.52 290.01,-93.86 261,-96"/>
+<path fill="none" stroke="#000000" d="M370.2,-61.75C355.83,-65.54 338.47,-70.29 323,-75 295.17,-83.48 290.01,-93.86 261,-96"/>
 </g>
 <!-- module~s_helio_gr&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge14" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge26" class="edge">
 <title>module~s_helio_gr&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.17,-138.1C353.6,-139.88 334.23,-145.13 323,-159 286.7,-203.86 264.94,-1115.27 261.48,-1270.59"/>
-<polygon fill="#000000" stroke="#000000" points="257.98,-1270.73 261.26,-1280.8 264.98,-1270.88 257.98,-1270.73"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.12,-54.06C353.54,-55.83 334.17,-61.08 323,-75 279.89,-128.74 263.58,-1225.13 261.29,-1396.55"/>
+<polygon fill="#000000" stroke="#000000" points="257.79,-1396.63 261.15,-1406.68 264.79,-1396.72 257.79,-1396.63"/>
 </g>
 <!-- module~s_helio_drift -->
 <g id="module~~helio_classes~~UsedByGraph_node6" class="node">
 <title>module~s_helio_drift</title>
 <g id="a_module~~helio_classes~~UsedByGraph_node6"><a xlink:href=".././module/s_helio_drift.html" xlink:title="s_helio_drift">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-108 366.5,-108 366.5,-84 436.5,-84 436.5,-108"/>
-<text text-anchor="middle" x="401.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_drift</text>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-24 366.5,-24 366.5,0 436.5,0 436.5,-24"/>
+<text text-anchor="middle" x="401.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_drift</text>
 </a>
 </g>
 </g>
 <!-- module~s_helio_drift&#45;&gt;module~helio_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge5" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge7" class="edge">
 <title>module~s_helio_drift&#45;&gt;module~helio_classes</title>
-<path fill="none" stroke="#000000" d="M366.34,-94.6C338.06,-93.78 296.87,-93.35 261,-96"/>
+<path fill="none" stroke="#000000" d="M259,-96C213.12,-99.39 201.44,-93.73 155.5,-96"/>
+<path fill="none" stroke="#000000" d="M153.5,-96C51.9,-101.01 40.18,-1808.13 39.1,-2025.36"/>
+<polygon fill="#000000" stroke="#000000" points="35.6,-2025.55 39.05,-2035.57 42.6,-2025.59 35.6,-2025.55"/>
+<path fill="none" stroke="#000000" d="M366.16,-17.24C352.11,-20.39 336.12,-25.33 323,-33 289.08,-52.83 300.18,-93.11 261,-96"/>
 </g>
 <!-- module~s_helio_drift&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge46" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge63" class="edge">
 <title>module~s_helio_drift&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.23,-96.57C350.61,-98.74 333.34,-104.2 323,-117 285.32,-163.64 264.63,-1112.56 261.44,-1270.74"/>
-<polygon fill="#000000" stroke="#000000" points="257.94,-1270.67 261.24,-1280.74 264.94,-1270.81 257.94,-1270.67"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.18,-12.54C350.55,-14.7 333.28,-20.16 323,-33 278.51,-88.53 263.33,-1222.55 261.25,-1396.65"/>
+<polygon fill="#000000" stroke="#000000" points="257.75,-1396.67 261.14,-1406.71 264.75,-1396.75 257.75,-1396.67"/>
 </g>
-<!-- module~s_helio_coord -->
-<g id="module~~helio_classes~~UsedByGraph_node7" class="node">
-<title>module~s_helio_coord</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node7"><a xlink:href=".././module/s_helio_coord.html" xlink:title="s_helio_coord">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-66 362,-66 362,-42 441,-42 441,-66"/>
-<text text-anchor="middle" x="401.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_coord</text>
-</a>
+<!-- module~swiftest&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge1" class="edge">
+<title>module~swiftest&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M258.71,-1406.71C255.48,-1272.99 224.96,-92.57 155.5,-96"/>
 </g>
-</g>
-<!-- module~s_helio_coord&#45;&gt;module~helio_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge6" class="edge">
-<title>module~s_helio_coord&#45;&gt;module~helio_classes</title>
-<path fill="none" stroke="#000000" d="M361.73,-64C349.31,-67.34 335.54,-71.18 323,-75 295.17,-83.48 290.01,-93.86 261,-96"/>
-</g>
-<!-- module~s_helio_coord&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge39" class="edge">
-<title>module~s_helio_coord&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.81,-55.26C347.44,-57.81 332.36,-63.39 323,-75 283.99,-123.39 264.37,-1108.17 261.4,-1270.45"/>
-<polygon fill="#000000" stroke="#000000" points="257.9,-1270.63 261.21,-1280.69 264.9,-1270.76 257.9,-1270.63"/>
-</g>
-<!-- module~s_helio_step -->
+<!-- module~symba_classes -->
 <g id="module~~helio_classes~~UsedByGraph_node8" class="node">
-<title>module~s_helio_step</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node8"><a xlink:href=".././module/s_helio_step.html" xlink:title="s_helio_step">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-24 365,-24 365,0 438,0 438,-24"/>
-<text text-anchor="middle" x="401.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_helio_step</text>
+<title>module~symba_classes</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node8"><a xlink:href=".././module/symba_classes.html" xlink:title="symba_classes">
+<polygon fill="#337ab7" stroke="#337ab7" points="197,-2060 112,-2060 112,-2036 197,-2036 197,-2060"/>
+<text text-anchor="middle" x="154.5" y="-2045.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_classes</text>
 </a>
 </g>
 </g>
-<!-- module~s_helio_step&#45;&gt;module~helio_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge7" class="edge">
-<title>module~s_helio_step&#45;&gt;module~helio_classes</title>
-<path fill="none" stroke="#000000" d="M259,-96C135.15,-105.14 53.23,-1107.09 40.68,-1270.57"/>
-<polygon fill="#000000" stroke="#000000" points="37.17,-1270.63 39.9,-1280.86 44.15,-1271.16 37.17,-1270.63"/>
-<path fill="none" stroke="#000000" d="M365,-17.5C351.24,-20.66 335.76,-25.54 323,-33 289.08,-52.83 291.3,-70.99 261,-96"/>
+<!-- module~swiftest&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge77" class="edge">
+<title>module~swiftest&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M257.02,-1431C244.47,-1507.29 175.81,-1924.57 159.15,-2025.85"/>
+<polygon fill="#000000" stroke="#000000" points="155.67,-2025.43 157.5,-2035.87 162.57,-2026.57 155.67,-2025.43"/>
 </g>
-<!-- module~s_helio_step&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge20" class="edge">
-<title>module~s_helio_step&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.61,-12.79C349.42,-15.1 332.96,-20.62 323,-33 282.64,-83.14 264.12,-1103.92 261.37,-1270.2"/>
-<polygon fill="#000000" stroke="#000000" points="257.86,-1270.61 261.19,-1280.67 264.86,-1270.72 257.86,-1270.61"/>
+<!-- module~symba_classes&#45;&gt;module~helio_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge2" class="edge">
+<title>module~symba_classes&#45;&gt;module~helio_classes</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M111.84,-2048C103.57,-2048 94.82,-2048 86.37,-2048"/>
+<polygon fill="#000000" stroke="#000000" points="86.27,-2044.5 76.27,-2048 86.27,-2051.5 86.27,-2044.5"/>
 </g>
-<!-- module~whm_drift -->
+<!-- module~s_symba_kick -->
 <g id="module~~helio_classes~~UsedByGraph_node9" class="node">
-<title>module~whm_drift</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node9"><a xlink:href=".././module/whm_drift.html" xlink:title="whm_drift">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="431,-2292 372,-2292 372,-2268 431,-2268 431,-2292"/>
-<text text-anchor="middle" x="401.5" y="-2277.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_drift</text>
+<title>module~s_symba_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node9"><a xlink:href=".././module/s_symba_kick.html" xlink:title="s_symba_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2586 362,-2586 362,-2562 441,-2562 441,-2586"/>
+<text text-anchor="middle" x="401.5" y="-2571.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_kick</text>
 </a>
 </g>
 </g>
-<!-- module~whm_drift&#45;&gt;module~swiftest -->
+<!-- module~s_symba_kick&#45;&gt;module~swiftest -->
 <g id="module~~helio_classes~~UsedByGraph_edge8" class="edge">
-<title>module~whm_drift&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.76,-2280.02C354.88,-2278.39 334.64,-2273.25 323,-2259 261.39,-2183.61 260.52,-1453.15 260.9,-1315.36"/>
-<polygon fill="#000000" stroke="#000000" points="264.41,-1315.18 260.94,-1305.17 257.41,-1315.16 264.41,-1315.18"/>
+<title>module~s_symba_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.84,-2572.72C347.46,-2570.17 332.38,-2564.59 323,-2553 286.7,-2508.14 264.94,-1596.73 261.48,-1441.41"/>
+<polygon fill="#000000" stroke="#000000" points="264.98,-1441.12 261.26,-1431.2 257.98,-1441.27 264.98,-1441.12"/>
 </g>
-<!-- module~s_gr -->
+<!-- module~s_symba_kick&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge78" class="edge">
+<title>module~s_symba_kick&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M361.85,-2580.25C348.92,-2583.41 334.79,-2588.11 323,-2595 289.08,-2614.83 291.05,-2683.3 261,-2658"/>
+</g>
+<!-- module~s_symba_drift -->
 <g id="module~~helio_classes~~UsedByGraph_node10" class="node">
-<title>module~s_gr</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node10"><a xlink:href=".././module/s_gr.html" xlink:title="s_gr">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-2250 374.5,-2250 374.5,-2226 428.5,-2226 428.5,-2250"/>
-<text text-anchor="middle" x="401.5" y="-2235.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_gr</text>
+<title>module~s_symba_drift</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node10"><a xlink:href=".././module/s_symba_drift.html" xlink:title="s_symba_drift">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2544 362,-2544 362,-2520 441,-2520 441,-2544"/>
+<text text-anchor="middle" x="401.5" y="-2529.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_drift</text>
 </a>
 </g>
 </g>
-<!-- module~s_gr&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge9" class="edge">
-<title>module~s_gr&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.43,-2238.24C357.08,-2236.89 335.28,-2231.99 323,-2217 264.14,-2145.18 261.02,-1450.53 260.97,-1315.63"/>
-<polygon fill="#000000" stroke="#000000" points="264.47,-1315.29 260.98,-1305.29 257.47,-1315.29 264.47,-1315.29"/>
-</g>
-<!-- module~s_symba_setup -->
-<g id="module~~helio_classes~~UsedByGraph_node11" class="node">
-<title>module~s_symba_setup</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node11"><a xlink:href=".././module/s_symba_setup.html" xlink:title="s_symba_setup">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="445.5,-2502 357.5,-2502 357.5,-2478 445.5,-2478 445.5,-2502"/>
-<text text-anchor="middle" x="401.5" y="-2487.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_setup</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_setup&#45;&gt;module~swiftest -->
+<!-- module~s_symba_drift&#45;&gt;module~swiftest -->
 <g id="module~~helio_classes~~UsedByGraph_edge11" class="edge">
-<title>module~s_symba_setup&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M357.38,-2487.84C344.41,-2484.97 331.41,-2479.41 323,-2469 285.32,-2422.36 264.63,-1473.44 261.44,-1315.26"/>
-<polygon fill="#000000" stroke="#000000" points="264.94,-1315.19 261.24,-1305.26 257.94,-1315.33 264.94,-1315.19"/>
+<title>module~s_symba_drift&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.85,-2530.71C347.48,-2528.15 332.4,-2522.58 323,-2511 288.06,-2467.92 265.25,-1593.73 261.54,-1441.51"/>
+<polygon fill="#000000" stroke="#000000" points="265.03,-1441.02 261.28,-1431.11 258.03,-1441.19 265.03,-1441.02"/>
 </g>
-<!-- module~s_symba_setup&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge70" class="edge">
-<title>module~s_symba_setup&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M357.33,-2482.85C345.64,-2479.73 333.37,-2475.29 323,-2469 302.83,-2456.77 303.68,-2446.68 287,-2430 275.88,-2418.88 272.63,-2416.58 261,-2406"/>
+<!-- module~s_symba_drift&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge79" class="edge">
+<title>module~s_symba_drift&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M361.99,-2536.39C348.63,-2539.4 334.2,-2544.47 323,-2553 279.89,-2585.84 302.46,-2692.9 261,-2658"/>
+</g>
+<!-- module~s_util_exit -->
+<g id="module~~helio_classes~~UsedByGraph_node11" class="node">
+<title>module~s_util_exit</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node11"><a xlink:href=".././module/s_util_exit.html" xlink:title="s_util_exit">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="431.5,-2418 371.5,-2418 371.5,-2394 431.5,-2394 431.5,-2418"/>
+<text text-anchor="middle" x="401.5" y="-2403.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_exit</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_exit&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge9" class="edge">
+<title>module~s_util_exit&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.38,-2405.98C354.58,-2404.31 334.56,-2399.14 323,-2385 261.39,-2309.61 260.52,-1579.15 260.9,-1441.36"/>
+<polygon fill="#000000" stroke="#000000" points="264.41,-1441.18 260.94,-1431.17 257.41,-1441.16 264.41,-1441.18"/>
+</g>
+<!-- proc~ge_wpp -->
+<g id="module~~helio_classes~~UsedByGraph_node12" class="node">
+<title>proc~ge_wpp</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node12"><a xlink:href=".././proc/ge_wpp.html" xlink:title="ge_wpp">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="428.5,-2376 374.5,-2376 374.5,-2352 428.5,-2352 428.5,-2376"/>
+<text text-anchor="middle" x="401.5" y="-2361.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ge_wpp</text>
+</a>
+</g>
+</g>
+<!-- proc~ge_wpp&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge10" class="edge">
+<title>proc~ge_wpp&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.43,-2364.24C357.08,-2362.89 335.28,-2357.99 323,-2343 264.14,-2271.18 261.02,-1576.53 260.97,-1441.63"/>
+<polygon fill="#000000" stroke="#000000" points="264.47,-1441.29 260.98,-1431.29 257.47,-1441.29 264.47,-1441.29"/>
+</g>
+<!-- module~s_whm_util -->
+<g id="module~~helio_classes~~UsedByGraph_node13" class="node">
+<title>module~s_whm_util</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node13"><a xlink:href=".././module/s_whm_util.html" xlink:title="s_whm_util">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="434.5,-2334 368.5,-2334 368.5,-2310 434.5,-2310 434.5,-2334"/>
+<text text-anchor="middle" x="401.5" y="-2319.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_util</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_util&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge12" class="edge">
+<title>module~s_whm_util&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.3,-2321.61C352.21,-2319.61 333.89,-2314.24 323,-2301 266.81,-2232.66 261.54,-1572.11 261.05,-1441.41"/>
+<polygon fill="#000000" stroke="#000000" points="264.55,-1441.04 261.02,-1431.05 257.55,-1441.06 264.55,-1441.04"/>
+</g>
+<!-- module~s_netcdf -->
+<g id="module~~helio_classes~~UsedByGraph_node14" class="node">
+<title>module~s_netcdf</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node14"><a xlink:href=".././module/s_netcdf.html" xlink:title="s_netcdf">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-2292 374.5,-2292 374.5,-2268 428.5,-2268 428.5,-2292"/>
+<text text-anchor="middle" x="401.5" y="-2277.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_netcdf</text>
+</a>
+</g>
+</g>
+<!-- module~s_netcdf&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge16" class="edge">
+<title>module~s_netcdf&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.46,-2280.22C357.12,-2278.85 335.33,-2273.95 323,-2259 269.47,-2194.13 262.08,-1567.48 261.13,-1441.13"/>
+<polygon fill="#000000" stroke="#000000" points="264.63,-1441.07 261.06,-1431.09 257.63,-1441.11 264.63,-1441.07"/>
+</g>
+<!-- module~s_util_solve -->
+<g id="module~~helio_classes~~UsedByGraph_node15" class="node">
+<title>module~s_util_solve</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node15"><a xlink:href=".././module/s_util_solve.html" xlink:title="s_util_solve">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="435.5,-2250 367.5,-2250 367.5,-2226 435.5,-2226 435.5,-2250"/>
+<text text-anchor="middle" x="401.5" y="-2235.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_solve</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_solve&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge14" class="edge">
+<title>module~s_util_solve&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M367.16,-2237.42C351.37,-2235.3 333.67,-2229.88 323,-2217 272.17,-2155.65 262.65,-1563.77 261.22,-1441.16"/>
+<polygon fill="#000000" stroke="#000000" points="264.72,-1441.04 261.11,-1431.08 257.72,-1441.12 264.72,-1441.04"/>
 </g>
 <!-- module~s_whm_setup -->
-<g id="module~~helio_classes~~UsedByGraph_node12" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node16" class="node">
 <title>module~s_whm_setup</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node12"><a xlink:href=".././module/s_whm_setup.html" xlink:title="s_whm_setup">
+<g id="a_module~~helio_classes~~UsedByGraph_node16"><a xlink:href=".././module/s_whm_setup.html" xlink:title="s_whm_setup">
 <polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2208 362,-2208 362,-2184 441,-2184 441,-2208"/>
 <text text-anchor="middle" x="401.5" y="-2193.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_setup</text>
 </a>
 </g>
 </g>
 <!-- module~s_whm_setup&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge10" class="edge">
-<title>module~s_whm_setup&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.93,-2194.65C347.57,-2192.08 332.47,-2186.52 323,-2175 266.81,-2106.66 261.54,-1446.11 261.05,-1315.41"/>
-<polygon fill="#000000" stroke="#000000" points="264.55,-1315.04 261.02,-1305.05 257.55,-1315.06 264.55,-1315.04"/>
-</g>
-<!-- module~s_util_append -->
-<g id="module~~helio_classes~~UsedByGraph_node13" class="node">
-<title>module~s_util_append</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node13"><a xlink:href=".././module/s_util_append.html" xlink:title="s_util_append">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2166 362,-2166 362,-2142 441,-2142 441,-2166"/>
-<text text-anchor="middle" x="401.5" y="-2151.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_append</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_append&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge12" class="edge">
-<title>module~s_util_append&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.95,-2152.63C347.59,-2150.06 332.49,-2144.5 323,-2133 269.47,-2068.13 262.08,-1441.48 261.13,-1315.13"/>
-<polygon fill="#000000" stroke="#000000" points="264.63,-1315.07 261.06,-1305.09 257.63,-1315.11 264.63,-1315.07"/>
-</g>
-<!-- module~s_symba_discard -->
-<g id="module~~helio_classes~~UsedByGraph_node14" class="node">
-<title>module~s_symba_discard</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node14"><a xlink:href=".././module/s_symba_discard.html" xlink:title="s_symba_discard">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="449.5,-2460 353.5,-2460 353.5,-2436 449.5,-2436 449.5,-2460"/>
-<text text-anchor="middle" x="401.5" y="-2445.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_discard</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_discard&#45;&gt;module~swiftest -->
 <g id="module~~helio_classes~~UsedByGraph_edge15" class="edge">
-<title>module~s_symba_discard&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M353.34,-2444.85C341.76,-2441.75 330.54,-2436.32 323,-2427 286.7,-2382.14 264.94,-1470.73 261.48,-1315.41"/>
-<polygon fill="#000000" stroke="#000000" points="264.98,-1315.12 261.26,-1305.2 257.98,-1315.27 264.98,-1315.12"/>
-</g>
-<!-- module~s_symba_discard&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge72" class="edge">
-<title>module~s_symba_discard&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M353.39,-2444.12C323.67,-2439.4 286.26,-2428.98 261,-2406"/>
-</g>
-<!-- module~s_rmvs_util -->
-<g id="module~~helio_classes~~UsedByGraph_node15" class="node">
-<title>module~s_rmvs_util</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node15"><a xlink:href=".././module/s_rmvs_util.html" xlink:title="s_rmvs_util">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="435,-2124 368,-2124 368,-2100 435,-2100 435,-2124"/>
-<text text-anchor="middle" x="401.5" y="-2109.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_util</text>
-</a>
-</g>
-</g>
-<!-- module~s_rmvs_util&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge16" class="edge">
-<title>module~s_rmvs_util&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M367.95,-2111.53C351.96,-2109.48 333.85,-2104.1 323,-2091 272.17,-2029.65 262.65,-1437.77 261.22,-1315.16"/>
-<polygon fill="#000000" stroke="#000000" points="264.72,-1315.04 261.11,-1305.08 257.72,-1315.12 264.72,-1315.04"/>
-</g>
-<!-- module~s_obl -->
-<g id="module~~helio_classes~~UsedByGraph_node16" class="node">
-<title>module~s_obl</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node16"><a xlink:href=".././module/s_obl.html" xlink:title="s_obl">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-2082 374.5,-2082 374.5,-2058 428.5,-2058 428.5,-2082"/>
-<text text-anchor="middle" x="401.5" y="-2067.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_obl</text>
-</a>
-</g>
-</g>
-<!-- module~s_obl&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge17" class="edge">
-<title>module~s_obl&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.5,-2070.18C357.18,-2068.81 335.39,-2063.89 323,-2049 274.86,-1991.14 263.25,-1433.66 261.32,-1315.1"/>
-<polygon fill="#000000" stroke="#000000" points="264.82,-1314.97 261.17,-1305.03 257.82,-1315.08 264.82,-1314.97"/>
-</g>
-<!-- module~s_rmvs_setup -->
-<g id="module~~helio_classes~~UsedByGraph_node17" class="node">
-<title>module~s_rmvs_setup</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node17"><a xlink:href=".././module/s_rmvs_setup.html" xlink:title="s_rmvs_setup">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-2040 362,-2040 362,-2016 441,-2016 441,-2040"/>
-<text text-anchor="middle" x="401.5" y="-2025.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_setup</text>
-</a>
-</g>
-</g>
-<!-- module~s_rmvs_setup&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge18" class="edge">
-<title>module~s_rmvs_setup&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.62,-2026.5C347.39,-2023.88 332.48,-2018.34 323,-2007 277.57,-1952.67 263.91,-1430.27 261.44,-1315.3"/>
-<polygon fill="#000000" stroke="#000000" points="264.94,-1315.13 261.23,-1305.21 257.94,-1315.28 264.94,-1315.13"/>
-</g>
-<!-- module~s_util_set -->
-<g id="module~~helio_classes~~UsedByGraph_node18" class="node">
-<title>module~s_util_set</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node18"><a xlink:href=".././module/s_util_set.html" xlink:title="s_util_set">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="430.5,-1998 372.5,-1998 372.5,-1974 430.5,-1974 430.5,-1998"/>
-<text text-anchor="middle" x="401.5" y="-1983.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_set</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_set&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge19" class="edge">
-<title>module~s_util_set&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M372.28,-1985.94C355.38,-1984.31 334.93,-1979.19 323,-1965 280.26,-1914.17 264.59,-1426.27 261.57,-1315.36"/>
-<polygon fill="#000000" stroke="#000000" points="265.06,-1314.94 261.3,-1305.03 258.06,-1315.12 265.06,-1314.94"/>
-</g>
-<!-- module~s_util_exit -->
-<g id="module~~helio_classes~~UsedByGraph_node19" class="node">
-<title>module~s_util_exit</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node19"><a xlink:href=".././module/s_util_exit.html" xlink:title="s_util_exit">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="431.5,-1956 371.5,-1956 371.5,-1932 431.5,-1932 431.5,-1956"/>
-<text text-anchor="middle" x="401.5" y="-1941.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_exit</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_exit&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge21" class="edge">
-<title>module~s_util_exit&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.16,-1943.8C354.51,-1942.03 334.7,-1936.84 323,-1923 282.94,-1875.64 265.32,-1421.8 261.71,-1315.29"/>
-<polygon fill="#000000" stroke="#000000" points="265.2,-1314.95 261.37,-1305.07 258.21,-1315.18 265.2,-1314.95"/>
+<title>module~s_whm_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M362,-2194.59C347.64,-2192.02 332.54,-2186.47 323,-2175 274.86,-2117.14 263.25,-1559.66 261.32,-1441.1"/>
+<polygon fill="#000000" stroke="#000000" points="264.82,-1440.97 261.17,-1431.03 257.82,-1441.08 264.82,-1440.97"/>
 </g>
 <!-- module~s_rmvs_step -->
-<g id="module~~helio_classes~~UsedByGraph_node20" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node17" class="node">
 <title>module~s_rmvs_step</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node20"><a xlink:href=".././module/s_rmvs_step.html" xlink:title="s_rmvs_step">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-1914 365,-1914 365,-1890 438,-1890 438,-1914"/>
-<text text-anchor="middle" x="401.5" y="-1899.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_step</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node17"><a xlink:href=".././module/s_rmvs_step.html" xlink:title="s_rmvs_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-2166 365,-2166 365,-2142 438,-2142 438,-2166"/>
+<text text-anchor="middle" x="401.5" y="-2151.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_step</text>
 </a>
 </g>
 </g>
 <!-- module~s_rmvs_step&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge22" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge65" class="edge">
 <title>module~s_rmvs_step&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.93,-1900.95C349.8,-1898.58 333.31,-1893.1 323,-1881 285.58,-1837.08 266.07,-1416.8 261.87,-1315.09"/>
-<polygon fill="#000000" stroke="#000000" points="265.36,-1314.88 261.46,-1305.03 258.37,-1315.16 265.36,-1314.88"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.83,-2153.04C349.68,-2150.69 333.19,-2145.19 323,-2133 277.57,-2078.67 263.91,-1556.27 261.44,-1441.3"/>
+<polygon fill="#000000" stroke="#000000" points="264.94,-1441.13 261.23,-1431.21 257.94,-1441.28 264.94,-1441.13"/>
 </g>
-<!-- module~s_symba_fragmentation -->
-<g id="module~~helio_classes~~UsedByGraph_node21" class="node">
-<title>module~s_symba_fragmentation</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node21"><a xlink:href=".././module/s_symba_fragmentation.html" xlink:title="s_symba_fragmentation">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="465,-2418 338,-2418 338,-2394 465,-2394 465,-2418"/>
-<text text-anchor="middle" x="401.5" y="-2403.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_fragmentation</text>
+<!-- module~s_io -->
+<g id="module~~helio_classes~~UsedByGraph_node18" class="node">
+<title>module~s_io</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node18"><a xlink:href=".././module/s_io.html" xlink:title="s_io">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-2124 374.5,-2124 374.5,-2100 428.5,-2100 428.5,-2124"/>
+<text text-anchor="middle" x="401.5" y="-2109.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_io</text>
 </a>
 </g>
 </g>
-<!-- module~s_symba_fragmentation&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge23" class="edge">
-<title>module~s_symba_fragmentation&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M337.76,-2396.84C332.13,-2393.85 327.04,-2389.98 323,-2385 288.06,-2341.92 265.25,-1467.73 261.54,-1315.51"/>
-<polygon fill="#000000" stroke="#000000" points="265.03,-1315.02 261.28,-1305.11 258.03,-1315.19 265.03,-1315.02"/>
-</g>
-<!-- module~s_symba_fragmentation&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge71" class="edge">
-<title>module~s_symba_fragmentation&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M364.54,-2418.03C333.18,-2426.03 288.5,-2431.02 261,-2406"/>
-</g>
-<!-- module~s_util_coord -->
-<g id="module~~helio_classes~~UsedByGraph_node22" class="node">
-<title>module~s_util_coord</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node22"><a xlink:href=".././module/s_util_coord.html" xlink:title="s_util_coord">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-1872 366.5,-1872 366.5,-1848 436.5,-1848 436.5,-1872"/>
-<text text-anchor="middle" x="401.5" y="-1857.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_coord</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_coord&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge24" class="edge">
-<title>module~s_util_coord&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.17,-1859.09C350.73,-1856.82 333.63,-1851.37 323,-1839 288.32,-1798.62 266.99,-1413.73 262.09,-1315.65"/>
-<polygon fill="#000000" stroke="#000000" points="265.57,-1315.21 261.58,-1305.39 258.58,-1315.55 265.57,-1315.21"/>
-</g>
-<!-- proc~ge_wpp -->
-<g id="module~~helio_classes~~UsedByGraph_node23" class="node">
-<title>proc~ge_wpp</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node23"><a xlink:href=".././proc/ge_wpp.html" xlink:title="ge_wpp">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="428.5,-1830 374.5,-1830 374.5,-1806 428.5,-1806 428.5,-1830"/>
-<text text-anchor="middle" x="401.5" y="-1815.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ge_wpp</text>
-</a>
-</g>
-</g>
-<!-- proc~ge_wpp&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge25" class="edge">
-<title>proc~ge_wpp&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.31,-1817.99C357.14,-1816.5 335.6,-1811.53 323,-1797 259.37,-1723.62 259.34,-1403.18 260.57,-1315.34"/>
-<polygon fill="#000000" stroke="#000000" points="264.07,-1315.22 260.73,-1305.17 257.07,-1315.11 264.07,-1315.22"/>
-</g>
-<!-- module~s_util_sort -->
-<g id="module~~helio_classes~~UsedByGraph_node24" class="node">
-<title>module~s_util_sort</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node24"><a xlink:href=".././module/s_util_sort.html" xlink:title="s_util_sort">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-1788 371,-1788 371,-1764 432,-1764 432,-1788"/>
-<text text-anchor="middle" x="401.5" y="-1773.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_sort</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_sort&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge26" class="edge">
-<title>module~s_util_sort&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.96,-1775.61C354.44,-1773.75 334.85,-1768.52 323,-1755 264.6,-1688.39 260.74,-1397.8 260.85,-1315.06"/>
-<polygon fill="#000000" stroke="#000000" points="264.35,-1315.02 260.89,-1305.01 257.35,-1315 264.35,-1315.02"/>
-</g>
-<!-- module~s_util_copy -->
-<g id="module~~helio_classes~~UsedByGraph_node25" class="node">
-<title>module~s_util_copy</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node25"><a xlink:href=".././module/s_util_copy.html" xlink:title="s_util_copy">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="434.5,-1746 368.5,-1746 368.5,-1722 434.5,-1722 434.5,-1746"/>
-<text text-anchor="middle" x="401.5" y="-1731.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_copy</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_copy&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge27" class="edge">
-<title>module~s_util_copy&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.31,-1733.21C352.43,-1731.08 334.3,-1725.71 323,-1713 269.93,-1653.26 262.28,-1393.4 261.18,-1315.29"/>
-<polygon fill="#000000" stroke="#000000" points="264.68,-1315.09 261.06,-1305.13 257.68,-1315.17 264.68,-1315.09"/>
-</g>
-<!-- module~s_symba_util -->
-<g id="module~~helio_classes~~UsedByGraph_node26" class="node">
-<title>module~s_symba_util</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node26"><a xlink:href=".././module/s_symba_util.html" xlink:title="s_symba_util">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="439,-2376 364,-2376 364,-2352 439,-2352 439,-2376"/>
-<text text-anchor="middle" x="401.5" y="-2361.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_util</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_util&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge28" class="edge">
-<title>module~s_symba_util&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M363.87,-2363.04C348.91,-2360.65 332.85,-2355.11 323,-2343 255.99,-2260.57 259.57,-1460.44 260.78,-1315.47"/>
-<polygon fill="#000000" stroke="#000000" points="264.28,-1315.19 260.87,-1305.16 257.28,-1315.12 264.28,-1315.19"/>
-</g>
-<!-- module~s_symba_util&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge73" class="edge">
-<title>module~s_symba_util&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M363.7,-2373.47C350.78,-2376.93 336.2,-2380.98 323,-2385 295.17,-2393.48 282.52,-2425.58 261,-2406"/>
-</g>
-<!-- module~s_symba_encounter_check -->
-<g id="module~~helio_classes~~UsedByGraph_node27" class="node">
-<title>module~s_symba_encounter_check</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node27"><a xlink:href=".././module/s_symba_encounter_check.html" xlink:title="s_symba_encounter_check">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="473,-2334 330,-2334 330,-2310 473,-2310 473,-2334"/>
-<text text-anchor="middle" x="401.5" y="-2319.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_encounter_check</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_encounter_check&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge29" class="edge">
-<title>module~s_symba_encounter_check&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M332.8,-2309.84C329.14,-2307.38 325.82,-2304.46 323,-2301 258.69,-2222.1 260.04,-1456.9 260.84,-1315.43"/>
-<polygon fill="#000000" stroke="#000000" points="264.34,-1315.03 260.91,-1305.01 257.34,-1314.99 264.34,-1315.03"/>
-</g>
-<!-- module~s_symba_encounter_check&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge74" class="edge">
-<title>module~s_symba_encounter_check&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M259,-2406C175.23,-2329.8 158.18,-1467.25 155.82,-1315.67"/>
-<polygon fill="#000000" stroke="#000000" points="159.31,-1315.25 155.66,-1305.3 152.31,-1315.35 159.31,-1315.25"/>
-<path fill="none" stroke="#000000" d="M342.4,-2334.08C335.64,-2336.54 329.02,-2339.48 323,-2343 289.08,-2362.83 290.06,-2432.44 261,-2406"/>
-</g>
-<!-- module~s_whm_kick -->
-<g id="module~~helio_classes~~UsedByGraph_node28" class="node">
-<title>module~s_whm_kick</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node28"><a xlink:href=".././module/s_whm_kick.html" xlink:title="s_whm_kick">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-1704 366.5,-1704 366.5,-1680 436.5,-1680 436.5,-1704"/>
-<text text-anchor="middle" x="401.5" y="-1689.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_kick</text>
-</a>
-</g>
-</g>
-<!-- module~s_whm_kick&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge30" class="edge">
-<title>module~s_whm_kick&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.43,-1690.86C351.06,-1688.53 333.93,-1683.11 323,-1671 275.2,-1618.05 263.97,-1388.41 261.59,-1315.38"/>
-<polygon fill="#000000" stroke="#000000" points="265.08,-1314.95 261.28,-1305.06 258.08,-1315.16 265.08,-1314.95"/>
-</g>
-<!-- module~s_util_fill -->
-<g id="module~~helio_classes~~UsedByGraph_node29" class="node">
-<title>module~s_util_fill</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node29"><a xlink:href=".././module/s_util_fill.html" xlink:title="s_util_fill">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1662 374.5,-1662 374.5,-1638 428.5,-1638 428.5,-1662"/>
-<text text-anchor="middle" x="401.5" y="-1647.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_fill</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_fill&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge31" class="edge">
-<title>module~s_util_fill&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.22,-1649.71C357.22,-1648.07 335.94,-1643.05 323,-1629 280.45,-1582.81 265.87,-1383.15 262.1,-1315.51"/>
-<polygon fill="#000000" stroke="#000000" points="265.58,-1314.95 261.55,-1305.15 258.59,-1315.32 265.58,-1314.95"/>
-</g>
-<!-- module~s_symba_io -->
-<g id="module~~helio_classes~~UsedByGraph_node30" class="node">
-<title>module~s_symba_io</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node30"><a xlink:href=".././module/s_symba_io.html" xlink:title="s_symba_io">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-360 366.5,-360 366.5,-336 436.5,-336 436.5,-360"/>
-<text text-anchor="middle" x="401.5" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_io</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_io&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge32" class="edge">
-<title>module~s_symba_io&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.31,-348.64C350.71,-350.82 333.43,-356.28 323,-369 264.14,-440.82 261.02,-1135.47 260.97,-1270.37"/>
-<polygon fill="#000000" stroke="#000000" points="257.47,-1270.71 260.98,-1280.71 264.47,-1270.71 257.47,-1270.71"/>
-</g>
-<!-- module~s_symba_io&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge75" class="edge">
-<title>module~s_symba_io&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M366.46,-341.35C352.62,-337.99 336.68,-333.28 323,-327 292.75,-313.12 284.02,-260.96 261,-285"/>
-</g>
-<!-- module~drift_implementation -->
-<g id="module~~helio_classes~~UsedByGraph_node31" class="node">
-<title>module~drift_implementation</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node31"><a xlink:href=".././module/drift_implementation.html" xlink:title="drift_implementation">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="456,-1620 347,-1620 347,-1596 456,-1596 456,-1620"/>
-<text text-anchor="middle" x="401.5" y="-1605.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">drift_implementation</text>
-</a>
-</g>
-</g>
-<!-- module~drift_implementation&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge33" class="edge">
-<title>module~drift_implementation&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346.64,-1601.66C337.78,-1598.46 329.41,-1593.79 323,-1587 285.65,-1547.47 268.01,-1377.28 262.75,-1315.51"/>
-<polygon fill="#000000" stroke="#000000" points="266.22,-1314.97 261.91,-1305.29 259.24,-1315.54 266.22,-1314.97"/>
+<!-- module~s_io&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge17" class="edge">
+<title>module~s_io&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.17,-2112.11C356.93,-2110.68 335.38,-2105.72 323,-2091 280.26,-2040.17 264.59,-1552.27 261.57,-1441.36"/>
+<polygon fill="#000000" stroke="#000000" points="265.06,-1440.94 261.3,-1431.03 258.06,-1441.12 265.06,-1440.94"/>
 </g>
 <!-- module~s_symba_collision -->
-<g id="module~~helio_classes~~UsedByGraph_node32" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node19" class="node">
 <title>module~s_symba_collision</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node32"><a xlink:href=".././module/s_symba_collision.html" xlink:title="s_symba_collision">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="451,-318 352,-318 352,-294 451,-294 451,-318"/>
-<text text-anchor="middle" x="401.5" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_collision</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node19"><a xlink:href=".././module/s_symba_collision.html" xlink:title="s_symba_collision">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="451,-2502 352,-2502 352,-2478 451,-2478 451,-2502"/>
+<text text-anchor="middle" x="401.5" y="-2487.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_collision</text>
 </a>
 </g>
 </g>
 <!-- module~s_symba_collision&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge34" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge21" class="edge">
 <title>module~s_symba_collision&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M351.79,-309.65C340.78,-312.81 330.23,-318.15 323,-327 261.39,-402.39 260.52,-1132.85 260.9,-1270.64"/>
-<polygon fill="#000000" stroke="#000000" points="257.41,-1270.84 260.94,-1280.83 264.41,-1270.82 257.41,-1270.84"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M351.75,-2486.38C340.75,-2483.21 330.21,-2477.87 323,-2469 255.99,-2386.57 259.57,-1586.44 260.78,-1441.47"/>
+<polygon fill="#000000" stroke="#000000" points="264.28,-1441.19 260.87,-1431.16 257.28,-1441.12 264.28,-1441.19"/>
 </g>
 <!-- module~s_symba_collision&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge76" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge82" class="edge">
 <title>module~s_symba_collision&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M351.82,-294.77C314.15,-286.72 267.35,-278.37 261,-285"/>
+<path fill="none" stroke="#000000" d="M351.67,-2496.08C341.31,-2499.22 331.08,-2503.94 323,-2511 269.61,-2557.66 315.24,-2703.67 261,-2658"/>
+<path fill="none" stroke="#000000" d="M259,-2658C166.92,-2580.48 156.74,-2171.19 155.63,-2070.43"/>
+<polygon fill="#000000" stroke="#000000" points="159.13,-2070.16 155.54,-2060.19 152.13,-2070.22 159.13,-2070.16"/>
 </g>
-<!-- module~s_tides_step_spin -->
-<g id="module~~helio_classes~~UsedByGraph_node33" class="node">
-<title>module~s_tides_step_spin</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node33"><a xlink:href=".././module/s_tides_step_spin.html" xlink:title="s_tides_step_spin">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="450.5,-1578 352.5,-1578 352.5,-1554 450.5,-1554 450.5,-1578"/>
-<text text-anchor="middle" x="401.5" y="-1563.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_tides_step_spin</text>
+<!-- module~orbel -->
+<g id="module~~helio_classes~~UsedByGraph_node20" class="node">
+<title>module~orbel</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node20"><a xlink:href=".././module/orbel.html" xlink:title="orbel">
+<polygon fill="#337ab7" stroke="#337ab7" points="428.5,-2082 374.5,-2082 374.5,-2058 428.5,-2058 428.5,-2082"/>
+<text text-anchor="middle" x="401.5" y="-2067.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">orbel</text>
 </a>
 </g>
 </g>
-<!-- module~s_tides_step_spin&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge35" class="edge">
-<title>module~s_tides_step_spin&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M352.43,-1561.3C341.55,-1558.15 330.89,-1553.08 323,-1545 290.75,-1511.98 270.41,-1370.4 263.57,-1315.18"/>
-<polygon fill="#000000" stroke="#000000" points="267.02,-1314.57 262.35,-1305.06 260.07,-1315.41 267.02,-1314.57"/>
+<!-- module~orbel&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge19" class="edge">
+<title>module~orbel&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.2,-2070.09C356.97,-2068.64 335.42,-2063.69 323,-2049 282.94,-2001.64 265.32,-1547.8 261.71,-1441.29"/>
+<polygon fill="#000000" stroke="#000000" points="265.2,-1440.95 261.37,-1431.07 258.21,-1441.18 265.2,-1440.95"/>
 </g>
-<!-- module~s_user_kick_getacch -->
-<g id="module~~helio_classes~~UsedByGraph_node34" class="node">
-<title>module~s_user_kick_getacch</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node34"><a xlink:href=".././module/s_user_kick_getacch.html" xlink:title="s_user_kick_getacch">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="457.5,-1536 345.5,-1536 345.5,-1512 457.5,-1512 457.5,-1536"/>
-<text text-anchor="middle" x="401.5" y="-1521.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_user_kick_getacch</text>
+<!-- module~s_symba_util -->
+<g id="module~~helio_classes~~UsedByGraph_node21" class="node">
+<title>module~s_symba_util</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node21"><a xlink:href=".././module/s_symba_util.html" xlink:title="s_symba_util">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="439,-2838 364,-2838 364,-2814 439,-2814 439,-2838"/>
+<text text-anchor="middle" x="401.5" y="-2823.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_util</text>
 </a>
 </g>
 </g>
-<!-- module~s_user_kick_getacch&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge36" class="edge">
-<title>module~s_user_kick_getacch&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M345.48,-1516.66C337.16,-1513.53 329.28,-1509.14 323,-1503 270.48,-1451.65 261.92,-1358.17 260.88,-1315.42"/>
-<polygon fill="#000000" stroke="#000000" points="264.38,-1315.2 260.76,-1305.24 257.38,-1315.28 264.38,-1315.2"/>
+<!-- module~s_symba_util&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge20" class="edge">
+<title>module~s_symba_util&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M363.79,-2825.11C348.82,-2822.73 332.76,-2817.18 323,-2805 278.51,-2749.47 263.33,-1615.45 261.25,-1441.35"/>
+<polygon fill="#000000" stroke="#000000" points="264.75,-1441.25 261.14,-1431.29 257.75,-1441.33 264.75,-1441.25"/>
 </g>
-<!-- module~s_util_version -->
-<g id="module~~helio_classes~~UsedByGraph_node35" class="node">
-<title>module~s_util_version</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node35"><a xlink:href=".././module/s_util_version.html" xlink:title="s_util_version">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="440.5,-1494 362.5,-1494 362.5,-1470 440.5,-1470 440.5,-1494"/>
-<text text-anchor="middle" x="401.5" y="-1479.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_version</text>
+<!-- module~s_symba_util&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge83" class="edge">
+<title>module~s_symba_util&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M363.71,-2822.91C349.61,-2820.09 334.23,-2814.81 323,-2805 269.61,-2758.34 315.24,-2703.67 261,-2658"/>
+</g>
+<!-- module~s_symba_encounter_check -->
+<g id="module~~helio_classes~~UsedByGraph_node22" class="node">
+<title>module~s_symba_encounter_check</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node22"><a xlink:href=".././module/s_symba_encounter_check.html" xlink:title="s_symba_encounter_check">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="473,-2796 330,-2796 330,-2772 473,-2772 473,-2796"/>
+<text text-anchor="middle" x="401.5" y="-2781.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_encounter_check</text>
 </a>
 </g>
 </g>
-<!-- module~s_util_version&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge37" class="edge">
-<title>module~s_util_version&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M362.29,-1478.93C348.49,-1476.09 333.7,-1470.79 323,-1461 280.38,-1422.01 266.97,-1351.14 262.82,-1315.19"/>
-<polygon fill="#000000" stroke="#000000" points="266.3,-1314.82 261.8,-1305.22 259.33,-1315.53 266.3,-1314.82"/>
+<!-- module~s_symba_encounter_check&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge22" class="edge">
+<title>module~s_symba_encounter_check&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M332.74,-2771.89C329.1,-2769.42 325.79,-2766.48 323,-2763 279.89,-2709.26 263.58,-1612.87 261.29,-1441.45"/>
+<polygon fill="#000000" stroke="#000000" points="264.79,-1441.28 261.15,-1431.32 257.79,-1441.37 264.79,-1441.28"/>
 </g>
-<!-- module~s_util_spill -->
-<g id="module~~helio_classes~~UsedByGraph_node36" class="node">
-<title>module~s_util_spill</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node36"><a xlink:href=".././module/s_util_spill.html" xlink:title="s_util_spill">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-1452 371,-1452 371,-1428 432,-1428 432,-1452"/>
-<text text-anchor="middle" x="401.5" y="-1437.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_spill</text>
+<!-- module~s_symba_encounter_check&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge81" class="edge">
+<title>module~s_symba_encounter_check&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M338.34,-2771.95C332.87,-2769.5 327.66,-2766.55 323,-2763 279.89,-2730.16 302.46,-2692.9 261,-2658"/>
+</g>
+<!-- module~s_rmvs_chk -->
+<g id="module~~helio_classes~~UsedByGraph_node23" class="node">
+<title>module~s_rmvs_chk</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node23"><a xlink:href=".././module/s_rmvs_chk.html" xlink:title="s_rmvs_chk">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-2040 366.5,-2040 366.5,-2016 436.5,-2016 436.5,-2040"/>
+<text text-anchor="middle" x="401.5" y="-2025.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_chk</text>
 </a>
 </g>
 </g>
-<!-- module~s_util_spill&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge38" class="edge">
-<title>module~s_util_spill&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.95,-1437.83C355.24,-1435.35 336.45,-1430.08 323,-1419 290.13,-1391.92 273.25,-1343.13 265.84,-1314.87"/>
-<polygon fill="#000000" stroke="#000000" points="269.24,-1314.01 263.45,-1305.13 262.44,-1315.67 269.24,-1314.01"/>
+<!-- module~s_rmvs_chk&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge58" class="edge">
+<title>module~s_rmvs_chk&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.12,-2027.13C350.67,-2024.87 333.58,-2019.42 323,-2007 285.58,-1963.08 266.07,-1542.8 261.87,-1441.09"/>
+<polygon fill="#000000" stroke="#000000" points="265.36,-1440.88 261.46,-1431.03 258.37,-1441.16 265.36,-1440.88"/>
+</g>
+<!-- module~s_symba_step -->
+<g id="module~~helio_classes~~UsedByGraph_node24" class="node">
+<title>module~s_symba_step</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node24"><a xlink:href=".././module/s_symba_step.html" xlink:title="s_symba_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="442.5,-2754 360.5,-2754 360.5,-2730 442.5,-2730 442.5,-2754"/>
+<text text-anchor="middle" x="401.5" y="-2739.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_step</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_step&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge24" class="edge">
+<title>module~s_symba_step&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M360.18,-2740.46C346.3,-2737.78 331.99,-2732.19 323,-2721 281.26,-2669.05 263.84,-1610.08 261.32,-1441.52"/>
+<polygon fill="#000000" stroke="#000000" points="264.82,-1441.29 261.17,-1431.34 257.82,-1441.39 264.82,-1441.29"/>
+</g>
+<!-- module~s_symba_step&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge85" class="edge">
+<title>module~s_symba_step&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M360.26,-2735.36C347.77,-2732.2 334.31,-2727.61 323,-2721 289.08,-2701.17 291.05,-2683.3 261,-2658"/>
+</g>
+<!-- module~s_whm_step -->
+<g id="module~~helio_classes~~UsedByGraph_node25" class="node">
+<title>module~s_whm_step</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node25"><a xlink:href=".././module/s_whm_step.html" xlink:title="s_whm_step">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-1998 365,-1998 365,-1974 438,-1974 438,-1998"/>
+<text text-anchor="middle" x="401.5" y="-1983.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_step</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_step&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge25" class="edge">
+<title>module~s_whm_step&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.98,-1984.91C349.86,-1982.54 333.35,-1977.06 323,-1965 288.32,-1924.62 266.99,-1539.73 262.09,-1441.65"/>
+<polygon fill="#000000" stroke="#000000" points="265.57,-1441.21 261.58,-1431.39 258.58,-1441.55 265.57,-1441.21"/>
+</g>
+<!-- module~s_symba_discard -->
+<g id="module~~helio_classes~~UsedByGraph_node26" class="node">
+<title>module~s_symba_discard</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node26"><a xlink:href=".././module/s_symba_discard.html" xlink:title="s_symba_discard">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="449.5,-2712 353.5,-2712 353.5,-2688 449.5,-2688 449.5,-2712"/>
+<text text-anchor="middle" x="401.5" y="-2697.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_discard</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_discard&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge27" class="edge">
+<title>module~s_symba_discard&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M353.31,-2696.87C341.73,-2693.77 330.52,-2688.34 323,-2679 282.64,-2628.86 264.12,-1608.08 261.37,-1441.8"/>
+<polygon fill="#000000" stroke="#000000" points="264.86,-1441.28 261.19,-1431.33 257.86,-1441.39 264.86,-1441.28"/>
+</g>
+<!-- module~s_symba_discard&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge86" class="edge">
+<title>module~s_symba_discard&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M353.32,-2695.35C323.93,-2690.31 286.93,-2679.83 261,-2658"/>
 </g>
 <!-- module~s_rmvs_discard -->
-<g id="module~~helio_classes~~UsedByGraph_node37" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node27" class="node">
 <title>module~s_rmvs_discard</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node37"><a xlink:href=".././module/s_rmvs_discard.html" xlink:title="s_rmvs_discard">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="445.5,-1410 357.5,-1410 357.5,-1386 445.5,-1386 445.5,-1410"/>
-<text text-anchor="middle" x="401.5" y="-1395.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_discard</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node27"><a xlink:href=".././module/s_rmvs_discard.html" xlink:title="s_rmvs_discard">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="445.5,-1956 357.5,-1956 357.5,-1932 445.5,-1932 445.5,-1956"/>
+<text text-anchor="middle" x="401.5" y="-1941.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_discard</text>
 </a>
 </g>
 </g>
 <!-- module~s_rmvs_discard&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge40" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge28" class="edge">
 <title>module~s_rmvs_discard&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M357.26,-1391.68C345.45,-1388.57 333.13,-1383.92 323,-1377 299.58,-1360.98 281.62,-1333.14 271.2,-1313.93"/>
-<polygon fill="#000000" stroke="#000000" points="274.29,-1312.29 266.57,-1305.03 268.08,-1315.52 274.29,-1312.29"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M357.39,-1941.4C344.58,-1938.48 331.68,-1933.01 323,-1923 259.37,-1849.62 259.34,-1529.18 260.57,-1441.34"/>
+<polygon fill="#000000" stroke="#000000" points="264.07,-1441.22 260.73,-1431.17 257.07,-1441.11 264.07,-1441.22"/>
 </g>
-<!-- module~s_orbel -->
+<!-- module~whm_drift -->
+<g id="module~~helio_classes~~UsedByGraph_node28" class="node">
+<title>module~whm_drift</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node28"><a xlink:href=".././module/whm_drift.html" xlink:title="whm_drift">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="431,-1914 372,-1914 372,-1890 431,-1890 431,-1914"/>
+<text text-anchor="middle" x="401.5" y="-1899.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_drift</text>
+</a>
+</g>
+</g>
+<!-- module~whm_drift&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge29" class="edge">
+<title>module~whm_drift&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M371.72,-1901.69C355.05,-1899.91 335.04,-1894.73 323,-1881 264.6,-1814.39 260.74,-1523.8 260.85,-1441.06"/>
+<polygon fill="#000000" stroke="#000000" points="264.35,-1441.02 260.89,-1431.01 257.35,-1441 264.35,-1441.02"/>
+</g>
+<!-- module~s_rmvs_util -->
+<g id="module~~helio_classes~~UsedByGraph_node29" class="node">
+<title>module~s_rmvs_util</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node29"><a xlink:href=".././module/s_rmvs_util.html" xlink:title="s_rmvs_util">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="435,-1872 368,-1872 368,-1848 435,-1848 435,-1872"/>
+<text text-anchor="middle" x="401.5" y="-1857.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_util</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_util&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge30" class="edge">
+<title>module~s_rmvs_util&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M367.92,-1859.16C352.13,-1856.99 334.2,-1851.61 323,-1839 269.93,-1779.26 262.28,-1519.4 261.18,-1441.29"/>
+<polygon fill="#000000" stroke="#000000" points="264.68,-1441.09 261.06,-1431.13 257.68,-1441.17 264.68,-1441.09"/>
+</g>
+<!-- module~s_fraggle_io -->
+<g id="module~~helio_classes~~UsedByGraph_node30" class="node">
+<title>module~s_fraggle_io</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node30"><a xlink:href=".././module/s_fraggle_io.html" xlink:title="s_fraggle_io">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="437,-1830 366,-1830 366,-1806 437,-1806 437,-1830"/>
+<text text-anchor="middle" x="401.5" y="-1815.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fraggle_io</text>
+</a>
+</g>
+</g>
+<!-- module~s_fraggle_io&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge31" class="edge">
+<title>module~s_fraggle_io&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M365.64,-1816.73C350.47,-1814.35 333.74,-1808.9 323,-1797 275.2,-1744.05 263.97,-1514.41 261.59,-1441.38"/>
+<polygon fill="#000000" stroke="#000000" points="265.08,-1440.95 261.28,-1431.06 258.08,-1441.16 265.08,-1440.95"/>
+</g>
+<!-- module~s_util_append -->
+<g id="module~~helio_classes~~UsedByGraph_node31" class="node">
+<title>module~s_util_append</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node31"><a xlink:href=".././module/s_util_append.html" xlink:title="s_util_append">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-1788 362,-1788 362,-1764 441,-1764 441,-1788"/>
+<text text-anchor="middle" x="401.5" y="-1773.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_append</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_append&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge32" class="edge">
+<title>module~s_util_append&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.77,-1773.94C347.74,-1771.23 332.92,-1765.77 323,-1755 280.45,-1708.81 265.87,-1509.15 262.1,-1441.51"/>
+<polygon fill="#000000" stroke="#000000" points="265.58,-1440.95 261.55,-1431.15 258.59,-1441.32 265.58,-1440.95"/>
+</g>
+<!-- module~s_rmvs_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node32" class="node">
+<title>module~s_rmvs_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node32"><a xlink:href=".././module/s_rmvs_kick.html" xlink:title="s_rmvs_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="437,-1746 366,-1746 366,-1722 437,-1722 437,-1746"/>
+<text text-anchor="middle" x="401.5" y="-1731.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge33" class="edge">
+<title>module~s_rmvs_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M365.89,-1732.51C350.77,-1730.07 334.01,-1724.65 323,-1713 285.65,-1673.47 268.01,-1503.28 262.75,-1441.51"/>
+<polygon fill="#000000" stroke="#000000" points="266.22,-1440.97 261.91,-1431.29 259.24,-1441.54 266.22,-1440.97"/>
+</g>
+<!-- module~s_util_fill -->
+<g id="module~~helio_classes~~UsedByGraph_node33" class="node">
+<title>module~s_util_fill</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node33"><a xlink:href=".././module/s_util_fill.html" xlink:title="s_util_fill">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1704 374.5,-1704 374.5,-1680 428.5,-1680 428.5,-1704"/>
+<text text-anchor="middle" x="401.5" y="-1689.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_fill</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_fill&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge34" class="edge">
+<title>module~s_util_fill&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.48,-1691.46C357.6,-1689.71 336.35,-1684.66 323,-1671 290.75,-1637.98 270.41,-1496.4 263.57,-1441.18"/>
+<polygon fill="#000000" stroke="#000000" points="267.02,-1440.57 262.35,-1431.06 260.07,-1441.41 267.02,-1440.57"/>
+</g>
+<!-- module~s_rmvs_io -->
+<g id="module~~helio_classes~~UsedByGraph_node34" class="node">
+<title>module~s_rmvs_io</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node34"><a xlink:href=".././module/s_rmvs_io.html" xlink:title="s_rmvs_io">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-1662 371,-1662 371,-1638 432,-1638 432,-1662"/>
+<text text-anchor="middle" x="401.5" y="-1647.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_io</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_io&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge35" class="edge">
+<title>module~s_rmvs_io&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.94,-1648.81C354.83,-1646.64 335.66,-1641.38 323,-1629 270.48,-1577.65 261.92,-1484.17 260.88,-1441.42"/>
+<polygon fill="#000000" stroke="#000000" points="264.38,-1441.2 260.76,-1431.24 257.38,-1441.28 264.38,-1441.2"/>
+</g>
+<!-- module~s_fraggle_placeholder -->
+<g id="module~~helio_classes~~UsedByGraph_node35" class="node">
+<title>module~s_fraggle_placeholder</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node35"><a xlink:href=".././module/s_fraggle_placeholder.html" xlink:title="s_fraggle_placeholder">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="460.5,-1620 342.5,-1620 342.5,-1596 460.5,-1596 460.5,-1620"/>
+<text text-anchor="middle" x="401.5" y="-1605.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fraggle_placeholder</text>
+</a>
+</g>
+</g>
+<!-- module~s_fraggle_placeholder&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge36" class="edge">
+<title>module~s_fraggle_placeholder&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M342.26,-1598.9C335.21,-1595.95 328.55,-1592.08 323,-1587 280.38,-1548.01 266.97,-1477.14 262.82,-1441.19"/>
+<polygon fill="#000000" stroke="#000000" points="266.3,-1440.82 261.8,-1431.22 259.33,-1441.53 266.3,-1440.82"/>
+</g>
+<!-- module~s_rmvs_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node36" class="node">
+<title>module~s_rmvs_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node36"><a xlink:href=".././module/s_rmvs_setup.html" xlink:title="s_rmvs_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-1578 362,-1578 362,-1554 441,-1554 441,-1578"/>
+<text text-anchor="middle" x="401.5" y="-1563.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_rmvs_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge37" class="edge">
+<title>module~s_rmvs_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.62,-1562.07C348.22,-1559.11 333.87,-1553.95 323,-1545 290.13,-1517.92 273.25,-1469.13 265.84,-1440.87"/>
+<polygon fill="#000000" stroke="#000000" points="269.24,-1440.01 263.45,-1431.13 262.44,-1441.67 269.24,-1440.01"/>
+</g>
+<!-- module~s_whm_gr -->
+<g id="module~~helio_classes~~UsedByGraph_node37" class="node">
+<title>module~s_whm_gr</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node37"><a xlink:href=".././module/s_whm_gr.html" xlink:title="s_whm_gr">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432.5,-1536 370.5,-1536 370.5,-1512 432.5,-1512 432.5,-1536"/>
+<text text-anchor="middle" x="401.5" y="-1521.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_gr</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_gr&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge38" class="edge">
+<title>module~s_whm_gr&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.19,-1520.58C355,-1517.73 336.92,-1512.52 323,-1503 299.58,-1486.98 281.62,-1459.14 271.2,-1439.93"/>
+<polygon fill="#000000" stroke="#000000" points="274.29,-1438.29 266.57,-1431.03 268.08,-1441.52 274.29,-1438.29"/>
+</g>
+<!-- module~s_tides_step_spin -->
 <g id="module~~helio_classes~~UsedByGraph_node38" class="node">
-<title>module~s_orbel</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node38"><a xlink:href=".././module/s_orbel.html" xlink:title="s_orbel">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1368 374.5,-1368 374.5,-1344 428.5,-1344 428.5,-1368"/>
-<text text-anchor="middle" x="401.5" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_orbel</text>
+<title>module~s_tides_step_spin</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node38"><a xlink:href=".././module/s_tides_step_spin.html" xlink:title="s_tides_step_spin">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="450.5,-1494 352.5,-1494 352.5,-1470 450.5,-1470 450.5,-1494"/>
+<text text-anchor="middle" x="401.5" y="-1479.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_tides_step_spin</text>
 </a>
 </g>
 </g>
-<!-- module~s_orbel&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge41" class="edge">
-<title>module~s_orbel&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.27,-1351.16C358.9,-1347.77 339.35,-1342.5 323,-1335 309.25,-1328.69 295.19,-1319.45 283.95,-1311.23"/>
-<polygon fill="#000000" stroke="#000000" points="286.04,-1308.43 275.95,-1305.22 281.84,-1314.02 286.04,-1308.43"/>
+<!-- module~s_tides_step_spin&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge39" class="edge">
+<title>module~s_tides_step_spin&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M352.49,-1471.65C342.53,-1468.77 332.25,-1465.24 323,-1461 309.25,-1454.69 295.19,-1445.45 283.95,-1437.23"/>
+<polygon fill="#000000" stroke="#000000" points="286.04,-1434.43 275.95,-1431.22 281.84,-1440.02 286.04,-1434.43"/>
 </g>
-<!-- module~s_util_valid -->
+<!-- module~s_obl -->
 <g id="module~~helio_classes~~UsedByGraph_node39" class="node">
-<title>module~s_util_valid</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node39"><a xlink:href=".././module/s_util_valid.html" xlink:title="s_util_valid">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="434,-1326 369,-1326 369,-1302 434,-1302 434,-1326"/>
-<text text-anchor="middle" x="401.5" y="-1311.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_valid</text>
+<title>module~s_obl</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node39"><a xlink:href=".././module/s_obl.html" xlink:title="s_obl">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1452 374.5,-1452 374.5,-1428 428.5,-1428 428.5,-1452"/>
+<text text-anchor="middle" x="401.5" y="-1437.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_obl</text>
 </a>
 </g>
 </g>
-<!-- module~s_util_valid&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge42" class="edge">
-<title>module~s_util_valid&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.85,-1309.23C347.61,-1306.04 319.58,-1301.82 297.42,-1298.48"/>
-<polygon fill="#000000" stroke="#000000" points="297.79,-1295 287.38,-1296.97 296.75,-1301.92 297.79,-1295"/>
+<!-- module~s_obl&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge40" class="edge">
+<title>module~s_obl&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.26,-1436.05C352.54,-1432.78 321.43,-1428.1 297.32,-1424.47"/>
+<polygon fill="#000000" stroke="#000000" points="297.53,-1420.96 287.12,-1422.93 296.49,-1427.88 297.53,-1420.96"/>
 </g>
-<!-- module~s_eucl -->
+<!-- module~s_discard -->
 <g id="module~~helio_classes~~UsedByGraph_node40" class="node">
-<title>module~s_eucl</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node40"><a xlink:href=".././module/s_eucl.html" xlink:title="s_eucl">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1284 374.5,-1284 374.5,-1260 428.5,-1260 428.5,-1284"/>
-<text text-anchor="middle" x="401.5" y="-1269.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_eucl</text>
+<title>module~s_discard</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node40"><a xlink:href=".././module/s_discard.html" xlink:title="s_discard">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="430.5,-1410 372.5,-1410 372.5,-1386 430.5,-1386 430.5,-1410"/>
+<text text-anchor="middle" x="401.5" y="-1395.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_discard</text>
 </a>
 </g>
 </g>
-<!-- module~s_eucl&#45;&gt;module~swiftest -->
+<!-- module~s_discard&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge41" class="edge">
+<title>module~s_discard&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M372.27,-1402.25C350.63,-1405.51 320.61,-1410.03 297.21,-1413.55"/>
+<polygon fill="#000000" stroke="#000000" points="296.67,-1410.09 287.3,-1415.04 297.71,-1417.01 296.67,-1410.09"/>
+</g>
+<!-- module~s_util_resize -->
+<g id="module~~helio_classes~~UsedByGraph_node41" class="node">
+<title>module~s_util_resize</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node41"><a xlink:href=".././module/s_util_resize.html" xlink:title="s_util_resize">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="437.5,-1368 365.5,-1368 365.5,-1344 437.5,-1344 437.5,-1368"/>
+<text text-anchor="middle" x="401.5" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_resize</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_resize&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge42" class="edge">
+<title>module~s_util_resize&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M365.3,-1362.93C351.73,-1366.27 336.3,-1370.9 323,-1377 309.25,-1383.31 295.19,-1392.55 283.95,-1400.77"/>
+<polygon fill="#000000" stroke="#000000" points="281.84,-1397.98 275.95,-1406.78 286.04,-1403.57 281.84,-1397.98"/>
+</g>
+<!-- module~drift_implementation -->
+<g id="module~~helio_classes~~UsedByGraph_node42" class="node">
+<title>module~drift_implementation</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node42"><a xlink:href=".././module/drift_implementation.html" xlink:title="drift_implementation">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="456,-1326 347,-1326 347,-1302 456,-1302 456,-1326"/>
+<text text-anchor="middle" x="401.5" y="-1311.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">drift_implementation</text>
+</a>
+</g>
+</g>
+<!-- module~drift_implementation&#45;&gt;module~swiftest -->
 <g id="module~~helio_classes~~UsedByGraph_edge43" class="edge">
-<title>module~s_eucl&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.26,-1275.95C352.54,-1279.22 321.43,-1283.9 297.32,-1287.53"/>
-<polygon fill="#000000" stroke="#000000" points="296.49,-1284.12 287.12,-1289.07 297.53,-1291.04 296.49,-1284.12"/>
+<title>module~drift_implementation&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346.73,-1323.5C338.36,-1326.37 330.13,-1330.12 323,-1335 299.58,-1351.02 281.62,-1378.86 271.2,-1398.07"/>
+<polygon fill="#000000" stroke="#000000" points="268.08,-1396.48 266.57,-1406.97 274.29,-1399.71 268.08,-1396.48"/>
+</g>
+<!-- module~s_fraggle_generate -->
+<g id="module~~helio_classes~~UsedByGraph_node43" class="node">
+<title>module~s_fraggle_generate</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node43"><a xlink:href=".././module/s_fraggle_generate.html" xlink:title="s_fraggle_generate">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="454.5,-1284 348.5,-1284 348.5,-1260 454.5,-1260 454.5,-1284"/>
+<text text-anchor="middle" x="401.5" y="-1269.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fraggle_generate</text>
+</a>
+</g>
+</g>
+<!-- module~s_fraggle_generate&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge44" class="edge">
+<title>module~s_fraggle_generate&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M348.34,-1279.59C339.21,-1282.67 330.32,-1286.97 323,-1293 290.13,-1320.08 273.25,-1368.87 265.84,-1397.13"/>
+<polygon fill="#000000" stroke="#000000" points="262.44,-1396.33 263.45,-1406.87 269.24,-1397.99 262.44,-1396.33"/>
 </g>
 <!-- module~s_operator_cross -->
-<g id="module~~helio_classes~~UsedByGraph_node41" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node44" class="node">
 <title>module~s_operator_cross</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node41"><a xlink:href=".././module/s_operator_cross.html" xlink:title="s_operator_cross">
+<g id="a_module~~helio_classes~~UsedByGraph_node44"><a xlink:href=".././module/s_operator_cross.html" xlink:title="s_operator_cross">
 <polygon fill="#5bc0de" stroke="#5bc0de" points="449.5,-1242 353.5,-1242 353.5,-1218 449.5,-1218 449.5,-1242"/>
 <text text-anchor="middle" x="401.5" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_operator_cross</text>
 </a>
 </g>
 </g>
 <!-- module~s_operator_cross&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge44" class="edge">
-<title>module~s_operator_cross&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M353.31,-1240.11C343.09,-1243.03 332.5,-1246.64 323,-1251 309.25,-1257.31 295.19,-1266.55 283.95,-1274.77"/>
-<polygon fill="#000000" stroke="#000000" points="281.84,-1271.98 275.95,-1280.78 286.04,-1277.57 281.84,-1271.98"/>
-</g>
-<!-- module~s_discard -->
-<g id="module~~helio_classes~~UsedByGraph_node42" class="node">
-<title>module~s_discard</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node42"><a xlink:href=".././module/s_discard.html" xlink:title="s_discard">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="430.5,-1200 372.5,-1200 372.5,-1176 430.5,-1176 430.5,-1200"/>
-<text text-anchor="middle" x="401.5" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_discard</text>
-</a>
-</g>
-</g>
-<!-- module~s_discard&#45;&gt;module~swiftest -->
 <g id="module~~helio_classes~~UsedByGraph_edge45" class="edge">
-<title>module~s_discard&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M372.43,-1191.01C356.8,-1193.76 337.61,-1199.01 323,-1209 299.58,-1225.02 281.62,-1252.86 271.2,-1272.07"/>
-<polygon fill="#000000" stroke="#000000" points="268.08,-1270.48 266.57,-1280.97 274.29,-1273.71 268.08,-1270.48"/>
+<title>module~s_operator_cross&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M353.45,-1235.22C342.42,-1238.36 331.43,-1243.28 323,-1251 280.38,-1289.99 266.97,-1360.86 262.82,-1396.81"/>
+<polygon fill="#000000" stroke="#000000" points="259.33,-1396.47 261.8,-1406.78 266.3,-1397.18 259.33,-1396.47"/>
 </g>
-<!-- program~swiftest_driver -->
-<g id="module~~helio_classes~~UsedByGraph_node43" class="node">
-<title>program~swiftest_driver</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node43"><a xlink:href=".././program/swiftest_driver.html" xlink:title="swiftest_driver">
-<polygon fill="#f0ad4e" stroke="#f0ad4e" points="442,-1158 361,-1158 361,-1134 442,-1134 442,-1158"/>
-<text text-anchor="middle" x="401.5" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_driver</text>
-</a>
-</g>
-</g>
-<!-- program~swiftest_driver&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge47" class="edge">
-<title>program~swiftest_driver&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M360.83,-1150.11C347.66,-1153.1 333.65,-1158.23 323,-1167 290.13,-1194.08 273.25,-1242.87 265.84,-1271.13"/>
-<polygon fill="#000000" stroke="#000000" points="262.44,-1270.33 263.45,-1280.87 269.24,-1271.99 262.44,-1270.33"/>
-</g>
-<!-- module~s_util_solve -->
-<g id="module~~helio_classes~~UsedByGraph_node44" class="node">
-<title>module~s_util_solve</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node44"><a xlink:href=".././module/s_util_solve.html" xlink:title="s_util_solve">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="435.5,-1116 367.5,-1116 367.5,-1092 435.5,-1092 435.5,-1116"/>
-<text text-anchor="middle" x="401.5" y="-1101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_solve</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_solve&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge48" class="edge">
-<title>module~s_util_solve&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M367.41,-1106.11C352.26,-1108.66 335.03,-1113.99 323,-1125 280.38,-1163.99 266.97,-1234.86 262.82,-1270.81"/>
-<polygon fill="#000000" stroke="#000000" points="259.33,-1270.47 261.8,-1280.78 266.3,-1271.18 259.33,-1270.47"/>
-</g>
-<!-- module~s_whm_util -->
+<!-- module~s_symba_setup -->
 <g id="module~~helio_classes~~UsedByGraph_node45" class="node">
-<title>module~s_whm_util</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node45"><a xlink:href=".././module/s_whm_util.html" xlink:title="s_whm_util">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="434.5,-1074 368.5,-1074 368.5,-1050 434.5,-1050 434.5,-1074"/>
-<text text-anchor="middle" x="401.5" y="-1059.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_util</text>
+<title>module~s_symba_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node45"><a xlink:href=".././module/s_symba_setup.html" xlink:title="s_symba_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="445.5,-2670 357.5,-2670 357.5,-2646 445.5,-2646 445.5,-2670"/>
+<text text-anchor="middle" x="401.5" y="-2655.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_setup</text>
 </a>
 </g>
 </g>
-<!-- module~s_whm_util&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge49" class="edge">
-<title>module~s_whm_util&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.25,-1063.58C352.74,-1065.96 334.96,-1071.31 323,-1083 270.48,-1134.35 261.92,-1227.83 260.88,-1270.58"/>
-<polygon fill="#000000" stroke="#000000" points="257.38,-1270.72 260.76,-1280.76 264.38,-1270.8 257.38,-1270.72"/>
+<!-- module~s_symba_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge46" class="edge">
+<title>module~s_symba_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M357.36,-2655.85C344.4,-2652.98 331.4,-2647.42 323,-2637 283.99,-2588.61 264.37,-1603.83 261.4,-1441.55"/>
+<polygon fill="#000000" stroke="#000000" points="264.9,-1441.24 261.21,-1431.31 257.9,-1441.37 264.9,-1441.24"/>
 </g>
-<!-- module~s_setup -->
-<g id="module~~helio_classes~~UsedByGraph_node46" class="node">
-<title>module~s_setup</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node46"><a xlink:href=".././module/s_setup.html" xlink:title="s_setup">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1032 374.5,-1032 374.5,-1008 428.5,-1008 428.5,-1032"/>
-<text text-anchor="middle" x="401.5" y="-1017.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_setup</text>
-</a>
-</g>
-</g>
-<!-- module~s_setup&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge50" class="edge">
-<title>module~s_setup&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.48,-1020.54C357.6,-1022.29 336.35,-1027.34 323,-1041 290.75,-1074.02 270.41,-1215.6 263.57,-1270.82"/>
-<polygon fill="#000000" stroke="#000000" points="260.07,-1270.59 262.35,-1280.94 267.02,-1271.43 260.07,-1270.59"/>
-</g>
-<!-- module~s_symba_kick -->
-<g id="module~~helio_classes~~UsedByGraph_node47" class="node">
-<title>module~s_symba_kick</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node47"><a xlink:href=".././module/s_symba_kick.html" xlink:title="s_symba_kick">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-276 362,-276 362,-252 441,-252 441,-276"/>
-<text text-anchor="middle" x="401.5" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_kick</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_kick&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge51" class="edge">
-<title>module~s_symba_kick&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.88,-265.31C347.51,-267.87 332.42,-273.44 323,-285 258.69,-363.9 260.04,-1129.1 260.84,-1270.57"/>
-<polygon fill="#000000" stroke="#000000" points="257.34,-1271.01 260.91,-1280.99 264.34,-1270.97 257.34,-1271.01"/>
-</g>
-<!-- module~s_symba_kick&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge77" class="edge">
-<title>module~s_symba_kick&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M361.94,-258.2C330.23,-255.8 286.5,-258.38 261,-285"/>
+<!-- module~s_symba_setup&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge84" class="edge">
+<title>module~s_symba_setup&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M362.85,-2670.03C331.91,-2677.38 288.79,-2681.4 261,-2658"/>
 </g>
 <!-- proc~solve_wbs -->
-<g id="module~~helio_classes~~UsedByGraph_node48" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node46" class="node">
 <title>proc~solve_wbs</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node48"><a xlink:href=".././proc/solve_wbs.html" xlink:title="solve_wbs">
-<polygon fill="#d94e8f" stroke="#d94e8f" points="432.5,-990 370.5,-990 370.5,-966 432.5,-966 432.5,-990"/>
-<text text-anchor="middle" x="401.5" y="-975.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">solve_wbs</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node46"><a xlink:href=".././proc/solve_wbs.html" xlink:title="solve_wbs">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="432.5,-1200 370.5,-1200 370.5,-1176 432.5,-1176 432.5,-1200"/>
+<text text-anchor="middle" x="401.5" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">solve_wbs</text>
 </a>
 </g>
 </g>
 <!-- proc~solve_wbs&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge52" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge47" class="edge">
 <title>proc~solve_wbs&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.17,-978.87C354.03,-980.95 335.06,-986.23 323,-999 285.65,-1038.53 268.01,-1208.72 262.75,-1270.49"/>
-<polygon fill="#000000" stroke="#000000" points="259.24,-1270.46 261.91,-1280.71 266.22,-1271.03 259.24,-1270.46"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.18,-1189.3C354.23,-1191.53 335.46,-1196.82 323,-1209 270.48,-1260.35 261.92,-1353.83 260.88,-1396.58"/>
+<polygon fill="#000000" stroke="#000000" points="257.38,-1396.72 260.76,-1406.76 264.38,-1396.8 257.38,-1396.72"/>
 </g>
-<!-- module~s_kick -->
+<!-- module~s_fraggle_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node47" class="node">
+<title>module~s_fraggle_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node47"><a xlink:href=".././module/s_fraggle_setup.html" xlink:title="s_fraggle_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="446,-1158 357,-1158 357,-1134 446,-1134 446,-1158"/>
+<text text-anchor="middle" x="401.5" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fraggle_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_fraggle_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge48" class="edge">
+<title>module~s_fraggle_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M356.87,-1149.52C344.49,-1152.53 331.96,-1157.83 323,-1167 290.75,-1200.02 270.41,-1341.6 263.57,-1396.82"/>
+<polygon fill="#000000" stroke="#000000" points="260.07,-1396.59 262.35,-1406.94 267.02,-1397.43 260.07,-1396.59"/>
+</g>
+<!-- module~s_util_sort -->
+<g id="module~~helio_classes~~UsedByGraph_node48" class="node">
+<title>module~s_util_sort</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node48"><a xlink:href=".././module/s_util_sort.html" xlink:title="s_util_sort">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-1116 371,-1116 371,-1092 432,-1092 432,-1116"/>
+<text text-anchor="middle" x="401.5" y="-1101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_sort</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_sort&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge74" class="edge">
+<title>module~s_util_sort&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.94,-1104.77C354.63,-1106.78 335.25,-1112.03 323,-1125 285.65,-1164.53 268.01,-1334.72 262.75,-1396.49"/>
+<polygon fill="#000000" stroke="#000000" points="259.24,-1396.46 261.91,-1406.71 266.22,-1397.03 259.24,-1396.46"/>
+</g>
+<!-- program~swiftest_driver -->
 <g id="module~~helio_classes~~UsedByGraph_node49" class="node">
-<title>module~s_kick</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node49"><a xlink:href=".././module/s_kick.html" xlink:title="s_kick">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-948 374.5,-948 374.5,-924 428.5,-924 428.5,-948"/>
-<text text-anchor="middle" x="401.5" y="-933.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_kick</text>
+<title>program~swiftest_driver</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node49"><a xlink:href=".././program/swiftest_driver.html" xlink:title="swiftest_driver">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="442,-1074 361,-1074 361,-1050 442,-1050 442,-1074"/>
+<text text-anchor="middle" x="401.5" y="-1059.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_driver</text>
 </a>
 </g>
 </g>
-<!-- module~s_kick&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge53" class="edge">
-<title>module~s_kick&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.22,-936.29C357.22,-937.93 335.94,-942.95 323,-957 280.45,-1003.19 265.87,-1202.85 262.1,-1270.49"/>
-<polygon fill="#000000" stroke="#000000" points="258.59,-1270.68 261.55,-1280.85 265.58,-1271.05 258.59,-1270.68"/>
+<!-- program~swiftest_driver&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge49" class="edge">
+<title>program~swiftest_driver&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M360.97,-1064.22C347.17,-1066.98 332.73,-1072.44 323,-1083 280.45,-1129.19 265.87,-1328.85 262.1,-1396.49"/>
+<polygon fill="#000000" stroke="#000000" points="258.59,-1396.68 261.55,-1406.85 265.58,-1397.05 258.59,-1396.68"/>
 </g>
-<!-- module~s_tides_kick_getacch -->
+<!-- module~s_gr -->
 <g id="module~~helio_classes~~UsedByGraph_node50" class="node">
-<title>module~s_tides_kick_getacch</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node50"><a xlink:href=".././module/s_tides_kick_getacch.html" xlink:title="s_tides_kick_getacch">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="458.5,-906 344.5,-906 344.5,-882 458.5,-882 458.5,-906"/>
-<text text-anchor="middle" x="401.5" y="-891.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_tides_kick_getacch</text>
+<title>module~s_gr</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node50"><a xlink:href=".././module/s_gr.html" xlink:title="s_gr">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-1032 374.5,-1032 374.5,-1008 428.5,-1008 428.5,-1032"/>
+<text text-anchor="middle" x="401.5" y="-1017.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_gr</text>
 </a>
 </g>
 </g>
-<!-- module~s_tides_kick_getacch&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge54" class="edge">
-<title>module~s_tides_kick_getacch&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M344.41,-900.85C336.32,-904.05 328.79,-908.58 323,-915 275.2,-967.95 263.97,-1197.59 261.59,-1270.62"/>
-<polygon fill="#000000" stroke="#000000" points="258.08,-1270.84 261.28,-1280.94 265.08,-1271.05 258.08,-1270.84"/>
+<!-- module~s_gr&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge50" class="edge">
+<title>module~s_gr&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.5,-1020.17C357.4,-1021.73 335.89,-1026.72 323,-1041 275.2,-1093.95 263.97,-1323.59 261.59,-1396.62"/>
+<polygon fill="#000000" stroke="#000000" points="258.08,-1396.84 261.28,-1406.94 265.08,-1397.05 258.08,-1396.84"/>
 </g>
-<!-- module~s_rmvs_chk -->
+<!-- module~s_user_kick_getacch -->
 <g id="module~~helio_classes~~UsedByGraph_node51" class="node">
-<title>module~s_rmvs_chk</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node51"><a xlink:href=".././module/s_rmvs_chk.html" xlink:title="s_rmvs_chk">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-864 366.5,-864 366.5,-840 436.5,-840 436.5,-864"/>
-<text text-anchor="middle" x="401.5" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_chk</text>
+<title>module~s_user_kick_getacch</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node51"><a xlink:href=".././module/s_user_kick_getacch.html" xlink:title="s_user_kick_getacch">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="457.5,-990 345.5,-990 345.5,-966 457.5,-966 457.5,-990"/>
+<text text-anchor="middle" x="401.5" y="-975.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_user_kick_getacch</text>
 </a>
 </g>
 </g>
-<!-- module~s_rmvs_chk&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge55" class="edge">
-<title>module~s_rmvs_chk&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.35,-853.07C350.95,-855.37 333.83,-860.81 323,-873 269.93,-932.74 262.28,-1192.6 261.18,-1270.71"/>
-<polygon fill="#000000" stroke="#000000" points="257.68,-1270.83 261.06,-1280.87 264.68,-1270.91 257.68,-1270.83"/>
+<!-- module~s_user_kick_getacch&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge51" class="edge">
+<title>module~s_user_kick_getacch&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M345.11,-984.46C336.73,-987.68 328.93,-992.33 323,-999 269.93,-1058.74 262.28,-1318.6 261.18,-1396.71"/>
+<polygon fill="#000000" stroke="#000000" points="257.68,-1396.83 261.06,-1406.87 264.68,-1396.91 257.68,-1396.83"/>
 </g>
-<!-- module~s_util_minimize_bfgs -->
+<!-- module~s_util_rescale -->
 <g id="module~~helio_classes~~UsedByGraph_node52" class="node">
-<title>module~s_util_minimize_bfgs</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node52"><a xlink:href=".././module/s_util_minimize_bfgs.html" xlink:title="s_util_minimize_bfgs">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="457.5,-822 345.5,-822 345.5,-798 457.5,-798 457.5,-822"/>
-<text text-anchor="middle" x="401.5" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_minimize_bfgs</text>
+<title>module~s_util_rescale</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node52"><a xlink:href=".././module/s_util_rescale.html" xlink:title="s_util_rescale">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="440.5,-948 362.5,-948 362.5,-924 440.5,-924 440.5,-948"/>
+<text text-anchor="middle" x="401.5" y="-933.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_rescale</text>
 </a>
 </g>
 </g>
-<!-- module~s_util_minimize_bfgs&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge56" class="edge">
-<title>module~s_util_minimize_bfgs&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M345.43,-816.25C336.91,-819.48 328.97,-824.19 323,-831 264.6,-897.61 260.74,-1188.2 260.85,-1270.94"/>
-<polygon fill="#000000" stroke="#000000" points="257.35,-1271 260.89,-1280.99 264.35,-1270.98 257.35,-1271"/>
+<!-- module~s_util_rescale&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge52" class="edge">
+<title>module~s_util_rescale&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M362.29,-937.66C347.99,-940.28 332.83,-945.78 323,-957 264.6,-1023.61 260.74,-1314.2 260.85,-1396.94"/>
+<polygon fill="#000000" stroke="#000000" points="257.35,-1397 260.89,-1406.99 264.35,-1396.98 257.35,-1397"/>
 </g>
 <!-- module~s_util_get_energy_momentum -->
 <g id="module~~helio_classes~~UsedByGraph_node53" class="node">
 <title>module~s_util_get_energy_momentum</title>
 <g id="a_module~~helio_classes~~UsedByGraph_node53"><a xlink:href=".././module/s_util_get_energy_momentum.html" xlink:title="s_util_get_energy_momentum">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="480,-780 323,-780 323,-756 480,-756 480,-780"/>
-<text text-anchor="middle" x="401.5" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_get_energy_momentum</text>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="480,-906 323,-906 323,-882 480,-882 480,-906"/>
+<text text-anchor="middle" x="401.5" y="-891.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_get_energy_momentum</text>
 </a>
 </g>
 </g>
 <!-- module~s_util_get_energy_momentum&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge57" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge53" class="edge">
 <title>module~s_util_get_energy_momentum&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M333.39,-780.13C329.54,-782.6 326.01,-785.52 323,-789 259.37,-862.38 259.34,-1182.82 260.57,-1270.66"/>
-<polygon fill="#000000" stroke="#000000" points="257.07,-1270.89 260.73,-1280.83 264.07,-1270.78 257.07,-1270.89"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M333.39,-906.13C329.54,-908.6 326.01,-911.52 323,-915 259.37,-988.38 259.34,-1308.82 260.57,-1396.66"/>
+<polygon fill="#000000" stroke="#000000" points="257.07,-1396.89 260.73,-1406.83 264.07,-1396.78 257.07,-1396.89"/>
+</g>
+<!-- module~s_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node54" class="node">
+<title>module~s_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node54"><a xlink:href=".././module/s_kick.html" xlink:title="s_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-864 374.5,-864 374.5,-840 428.5,-840 428.5,-864"/>
+<text text-anchor="middle" x="401.5" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge54" class="edge">
+<title>module~s_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.27,-851.97C357.08,-853.44 335.53,-858.41 323,-873 288.32,-913.38 266.99,-1298.27 262.09,-1396.35"/>
+<polygon fill="#000000" stroke="#000000" points="258.58,-1396.45 261.58,-1406.61 265.57,-1396.79 258.58,-1396.45"/>
 </g>
 <!-- module~s_whm_coord -->
-<g id="module~~helio_classes~~UsedByGraph_node54" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node55" class="node">
 <title>module~s_whm_coord</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node54"><a xlink:href=".././module/s_whm_coord.html" xlink:title="s_whm_coord">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-738 362,-738 362,-714 441,-714 441,-738"/>
-<text text-anchor="middle" x="401.5" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_coord</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node55"><a xlink:href=".././module/s_whm_coord.html" xlink:title="s_whm_coord">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-822 362,-822 362,-798 441,-798 441,-822"/>
+<text text-anchor="middle" x="401.5" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_coord</text>
 </a>
 </g>
 </g>
 <!-- module~s_whm_coord&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge58" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge55" class="edge">
 <title>module~s_whm_coord&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.77,-727.63C347.57,-730.26 332.63,-735.79 323,-747 288.32,-787.38 266.99,-1172.27 262.09,-1270.35"/>
-<polygon fill="#000000" stroke="#000000" points="258.58,-1270.45 261.58,-1280.61 265.57,-1270.79 258.58,-1270.45"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.73,-811.6C347.52,-814.22 332.58,-819.75 323,-831 285.58,-874.92 266.07,-1295.2 261.87,-1396.91"/>
+<polygon fill="#000000" stroke="#000000" points="258.37,-1396.84 261.46,-1406.97 265.36,-1397.12 258.37,-1396.84"/>
 </g>
-<!-- module~s_util_resize -->
-<g id="module~~helio_classes~~UsedByGraph_node55" class="node">
-<title>module~s_util_resize</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node55"><a xlink:href=".././module/s_util_resize.html" xlink:title="s_util_resize">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="437.5,-696 365.5,-696 365.5,-672 437.5,-672 437.5,-696"/>
-<text text-anchor="middle" x="401.5" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_resize</text>
-</a>
-</g>
-</g>
-<!-- module~s_util_resize&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge59" class="edge">
-<title>module~s_util_resize&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M365.33,-684.99C350.09,-687.32 333.4,-692.8 323,-705 285.58,-748.92 266.07,-1169.2 261.87,-1270.91"/>
-<polygon fill="#000000" stroke="#000000" points="258.37,-1270.84 261.46,-1280.97 265.36,-1271.12 258.37,-1270.84"/>
-</g>
-<!-- module~s_util_rescale -->
+<!-- module~s_util_index -->
 <g id="module~~helio_classes~~UsedByGraph_node56" class="node">
-<title>module~s_util_rescale</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node56"><a xlink:href=".././module/s_util_rescale.html" xlink:title="s_util_rescale">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="440.5,-654 362.5,-654 362.5,-630 440.5,-630 440.5,-654"/>
-<text text-anchor="middle" x="401.5" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_rescale</text>
+<title>module~s_util_index</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node56"><a xlink:href=".././module/s_util_index.html" xlink:title="s_util_index">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436,-780 367,-780 367,-756 436,-756 436,-780"/>
+<text text-anchor="middle" x="401.5" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_index</text>
 </a>
 </g>
 </g>
-<!-- module~s_util_rescale&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge60" class="edge">
-<title>module~s_util_rescale&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M362.49,-643.42C348.04,-645.97 332.72,-651.51 323,-663 282.94,-710.36 265.32,-1164.2 261.71,-1270.71"/>
-<polygon fill="#000000" stroke="#000000" points="258.21,-1270.82 261.37,-1280.93 265.2,-1271.05 258.21,-1270.82"/>
+<!-- module~s_util_index&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge56" class="edge">
+<title>module~s_util_index&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.87,-768.72C351.21,-770.91 333.71,-776.34 323,-789 282.94,-836.36 265.32,-1290.2 261.71,-1396.71"/>
+<polygon fill="#000000" stroke="#000000" points="258.21,-1396.82 261.37,-1406.93 265.2,-1397.05 258.21,-1396.82"/>
 </g>
-<!-- module~s_whm_gr -->
+<!-- module~s_util_valid -->
 <g id="module~~helio_classes~~UsedByGraph_node57" class="node">
-<title>module~s_whm_gr</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node57"><a xlink:href=".././module/s_whm_gr.html" xlink:title="s_whm_gr">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="432.5,-612 370.5,-612 370.5,-588 432.5,-588 432.5,-612"/>
-<text text-anchor="middle" x="401.5" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_gr</text>
+<title>module~s_util_valid</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node57"><a xlink:href=".././module/s_util_valid.html" xlink:title="s_util_valid">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="434,-738 369,-738 369,-714 434,-714 434,-738"/>
+<text text-anchor="middle" x="401.5" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_valid</text>
 </a>
 </g>
 </g>
-<!-- module~s_whm_gr&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge61" class="edge">
-<title>module~s_whm_gr&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.36,-600.26C353.86,-602.09 334.48,-607.34 323,-621 280.26,-671.83 264.59,-1159.73 261.57,-1270.64"/>
-<polygon fill="#000000" stroke="#000000" points="258.06,-1270.88 261.3,-1280.97 265.06,-1271.06 258.06,-1270.88"/>
+<!-- module~s_util_valid&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge57" class="edge">
+<title>module~s_util_valid&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.81,-726.44C352.65,-728.43 334.12,-733.77 323,-747 280.26,-797.83 264.59,-1285.73 261.57,-1396.64"/>
+<polygon fill="#000000" stroke="#000000" points="258.06,-1396.88 261.3,-1406.97 265.06,-1397.06 258.06,-1396.88"/>
 </g>
-<!-- module~s_rmvs_kick -->
+<!-- module~s_util_coord -->
 <g id="module~~helio_classes~~UsedByGraph_node58" class="node">
-<title>module~s_rmvs_kick</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node58"><a xlink:href=".././module/s_rmvs_kick.html" xlink:title="s_rmvs_kick">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="437,-570 366,-570 366,-546 437,-546 437,-570"/>
-<text text-anchor="middle" x="401.5" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_rmvs_kick</text>
+<title>module~s_util_coord</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node58"><a xlink:href=".././module/s_util_coord.html" xlink:title="s_util_coord">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-696 366.5,-696 366.5,-672 436.5,-672 436.5,-696"/>
+<text text-anchor="middle" x="401.5" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_coord</text>
 </a>
 </g>
 </g>
-<!-- module~s_rmvs_kick&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge62" class="edge">
-<title>module~s_rmvs_kick&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M365.62,-558.84C350.26,-561.12 333.37,-566.59 323,-579 277.57,-633.33 263.91,-1155.73 261.44,-1270.7"/>
-<polygon fill="#000000" stroke="#000000" points="257.94,-1270.72 261.23,-1280.79 264.94,-1270.87 257.94,-1270.72"/>
+<!-- module~s_util_coord&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge59" class="edge">
+<title>module~s_util_coord&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.42,-684.73C350.84,-686.93 333.55,-692.38 323,-705 277.57,-759.33 263.91,-1281.73 261.44,-1396.7"/>
+<polygon fill="#000000" stroke="#000000" points="257.94,-1396.72 261.23,-1406.79 264.94,-1396.87 257.94,-1396.72"/>
 </g>
-<!-- module~s_whm_step -->
+<!-- module~s_util_set -->
 <g id="module~~helio_classes~~UsedByGraph_node59" class="node">
-<title>module~s_whm_step</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node59"><a xlink:href=".././module/s_whm_step.html" xlink:title="s_whm_step">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="438,-528 365,-528 365,-504 438,-504 438,-528"/>
-<text text-anchor="middle" x="401.5" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_step</text>
+<title>module~s_util_set</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node59"><a xlink:href=".././module/s_util_set.html" xlink:title="s_util_set">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="430.5,-654 372.5,-654 372.5,-630 430.5,-630 430.5,-654"/>
+<text text-anchor="middle" x="401.5" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_set</text>
 </a>
 </g>
 </g>
-<!-- module~s_whm_step&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge63" class="edge">
-<title>module~s_whm_step&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M364.8,-516.94C349.64,-519.28 333.16,-524.78 323,-537 274.86,-594.86 263.25,-1152.34 261.32,-1270.9"/>
-<polygon fill="#000000" stroke="#000000" points="257.82,-1270.92 261.17,-1280.97 264.82,-1271.03 257.82,-1270.92"/>
-</g>
-<!-- module~s_fragmentation -->
-<g id="module~~helio_classes~~UsedByGraph_node60" class="node">
-<title>module~s_fragmentation</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node60"><a xlink:href=".././module/s_fragmentation.html" xlink:title="s_fragmentation">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="446.5,-486 356.5,-486 356.5,-462 446.5,-462 446.5,-486"/>
-<text text-anchor="middle" x="401.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fragmentation</text>
-</a>
-</g>
-</g>
-<!-- module~s_fragmentation&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge64" class="edge">
-<title>module~s_fragmentation&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M356.31,-476.56C343.76,-479.52 331.27,-485.02 323,-495 272.17,-556.35 262.65,-1148.23 261.22,-1270.84"/>
-<polygon fill="#000000" stroke="#000000" points="257.72,-1270.88 261.11,-1280.92 264.72,-1270.96 257.72,-1270.88"/>
-</g>
-<!-- module~s_symba_drift -->
-<g id="module~~helio_classes~~UsedByGraph_node61" class="node">
-<title>module~s_symba_drift</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node61"><a xlink:href=".././module/s_symba_drift.html" xlink:title="s_symba_drift">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="441,-234 362,-234 362,-210 441,-210 441,-234"/>
-<text text-anchor="middle" x="401.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_drift</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_drift&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge65" class="edge">
-<title>module~s_symba_drift&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M361.86,-223.3C347.49,-225.86 332.41,-231.43 323,-243 255.99,-325.43 259.57,-1125.56 260.78,-1270.53"/>
-<polygon fill="#000000" stroke="#000000" points="257.28,-1270.88 260.87,-1280.84 264.28,-1270.81 257.28,-1270.88"/>
-</g>
-<!-- module~s_symba_drift&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge78" class="edge">
-<title>module~s_symba_drift&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M361.78,-229.82C349.1,-233.07 335.16,-237.42 323,-243 292.75,-256.88 284.02,-260.96 261,-285"/>
-</g>
-<!-- module~s_symba_step -->
-<g id="module~~helio_classes~~UsedByGraph_node62" class="node">
-<title>module~s_symba_step</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node62"><a xlink:href=".././module/s_symba_step.html" xlink:title="s_symba_step">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="442.5,-192 360.5,-192 360.5,-168 442.5,-168 442.5,-192"/>
-<text text-anchor="middle" x="401.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_step</text>
-</a>
-</g>
-</g>
-<!-- module~s_symba_step&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge66" class="edge">
-<title>module~s_symba_step&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M360.23,-181.59C346.36,-184.27 332.04,-189.85 323,-201 288.06,-244.08 265.25,-1118.27 261.54,-1270.49"/>
-<polygon fill="#000000" stroke="#000000" points="258.03,-1270.81 261.28,-1280.89 265.03,-1270.98 258.03,-1270.81"/>
-</g>
-<!-- module~s_symba_step&#45;&gt;module~symba_classes -->
-<g id="module~~helio_classes~~UsedByGraph_edge79" class="edge">
-<title>module~s_symba_step&#45;&gt;module~symba_classes</title>
-<path fill="none" stroke="#000000" d="M259,-285C188.28,-358.83 160.65,-1129.69 156.17,-1270.86"/>
-<polygon fill="#000000" stroke="#000000" points="152.67,-1270.82 155.86,-1280.92 159.67,-1271.03 152.67,-1270.82"/>
-<path fill="none" stroke="#000000" d="M360.47,-185.5C347.71,-188.6 334.05,-193.45 323,-201 284.7,-227.19 293.1,-251.49 261,-285"/>
-</g>
-<!-- module~s_io -->
-<g id="module~~helio_classes~~UsedByGraph_node63" class="node">
-<title>module~s_io</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node63"><a xlink:href=".././module/s_io.html" xlink:title="s_io">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-444 374.5,-444 374.5,-420 428.5,-420 428.5,-444"/>
-<text text-anchor="middle" x="401.5" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_io</text>
-</a>
-</g>
-</g>
-<!-- module~s_io&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge67" class="edge">
-<title>module~s_io&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.46,-431.78C357.12,-433.15 335.33,-438.05 323,-453 269.47,-517.87 262.08,-1144.52 261.13,-1270.87"/>
-<polygon fill="#000000" stroke="#000000" points="257.63,-1270.89 261.06,-1280.91 264.63,-1270.93 257.63,-1270.89"/>
+<!-- module~s_util_set&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge60" class="edge">
+<title>module~s_util_set&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M372.23,-642.02C355.31,-643.64 334.86,-648.75 323,-663 274.86,-720.86 263.25,-1278.34 261.32,-1396.9"/>
+<polygon fill="#000000" stroke="#000000" points="257.82,-1396.92 261.17,-1406.97 264.82,-1397.03 257.82,-1396.92"/>
 </g>
 <!-- module~s_util_peri -->
-<g id="module~~helio_classes~~UsedByGraph_node64" class="node">
+<g id="module~~helio_classes~~UsedByGraph_node60" class="node">
 <title>module~s_util_peri</title>
-<g id="a_module~~helio_classes~~UsedByGraph_node64"><a xlink:href=".././module/s_util_peri.html" xlink:title="s_util_peri">
-<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-402 371,-402 371,-378 432,-378 432,-402"/>
-<text text-anchor="middle" x="401.5" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_peri</text>
+<g id="a_module~~helio_classes~~UsedByGraph_node60"><a xlink:href=".././module/s_util_peri.html" xlink:title="s_util_peri">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-612 371,-612 371,-588 432,-588 432,-612"/>
+<text text-anchor="middle" x="401.5" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_peri</text>
 </a>
 </g>
 </g>
 <!-- module~s_util_peri&#45;&gt;module~swiftest -->
-<g id="module~~helio_classes~~UsedByGraph_edge68" class="edge">
+<g id="module~~helio_classes~~UsedByGraph_edge61" class="edge">
 <title>module~s_util_peri&#45;&gt;module~swiftest</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.64,-390.12C354.01,-391.89 334.42,-397.11 323,-411 266.81,-479.34 261.54,-1139.89 261.05,-1270.59"/>
-<polygon fill="#000000" stroke="#000000" points="257.55,-1270.94 261.02,-1280.95 264.55,-1270.96 257.55,-1270.94"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.67,-600.15C354.06,-601.93 334.47,-607.15 323,-621 272.17,-682.35 262.65,-1274.23 261.22,-1396.84"/>
+<polygon fill="#000000" stroke="#000000" points="257.72,-1396.88 261.11,-1406.92 264.72,-1396.96 257.72,-1396.88"/>
+</g>
+<!-- module~s_util_minimize_bfgs -->
+<g id="module~~helio_classes~~UsedByGraph_node61" class="node">
+<title>module~s_util_minimize_bfgs</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node61"><a xlink:href=".././module/s_util_minimize_bfgs.html" xlink:title="s_util_minimize_bfgs">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="457.5,-570 345.5,-570 345.5,-546 457.5,-546 457.5,-570"/>
+<text text-anchor="middle" x="401.5" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_minimize_bfgs</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_minimize_bfgs&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge62" class="edge">
+<title>module~s_util_minimize_bfgs&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M345.47,-563.81C336.84,-567.07 328.86,-571.9 323,-579 269.47,-643.87 262.08,-1270.52 261.13,-1396.87"/>
+<polygon fill="#000000" stroke="#000000" points="257.63,-1396.89 261.06,-1406.91 264.63,-1396.93 257.63,-1396.89"/>
+</g>
+<!-- module~s_util_spill -->
+<g id="module~~helio_classes~~UsedByGraph_node62" class="node">
+<title>module~s_util_spill</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node62"><a xlink:href=".././module/s_util_spill.html" xlink:title="s_util_spill">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="432,-528 371,-528 371,-504 432,-504 432,-528"/>
+<text text-anchor="middle" x="401.5" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_spill</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_spill&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge66" class="edge">
+<title>module~s_util_spill&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M370.64,-516.12C354.01,-517.89 334.42,-523.11 323,-537 266.81,-605.34 261.54,-1265.89 261.05,-1396.59"/>
+<polygon fill="#000000" stroke="#000000" points="257.55,-1396.94 261.02,-1406.95 264.55,-1396.96 257.55,-1396.94"/>
+</g>
+<!-- module~s_whm_kick -->
+<g id="module~~helio_classes~~UsedByGraph_node63" class="node">
+<title>module~s_whm_kick</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node63"><a xlink:href=".././module/s_whm_kick.html" xlink:title="s_whm_kick">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-486 366.5,-486 366.5,-462 436.5,-462 436.5,-486"/>
+<text text-anchor="middle" x="401.5" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_whm_kick</text>
+</a>
+</g>
+</g>
+<!-- module~s_whm_kick&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge67" class="edge">
+<title>module~s_whm_kick&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.31,-474.64C350.71,-476.82 333.43,-482.28 323,-495 264.14,-566.82 261.02,-1261.47 260.97,-1396.37"/>
+<polygon fill="#000000" stroke="#000000" points="257.47,-1396.71 260.98,-1406.71 264.47,-1396.71 257.47,-1396.71"/>
+</g>
+<!-- module~s_util_copy -->
+<g id="module~~helio_classes~~UsedByGraph_node64" class="node">
+<title>module~s_util_copy</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node64"><a xlink:href=".././module/s_util_copy.html" xlink:title="s_util_copy">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="434.5,-444 368.5,-444 368.5,-420 434.5,-420 434.5,-444"/>
+<text text-anchor="middle" x="401.5" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_copy</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_copy&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge68" class="edge">
+<title>module~s_util_copy&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M368.27,-432.36C352.16,-434.36 333.85,-439.72 323,-453 261.39,-528.39 260.52,-1258.85 260.9,-1396.64"/>
+<polygon fill="#000000" stroke="#000000" points="257.41,-1396.84 260.94,-1406.83 264.41,-1396.82 257.41,-1396.84"/>
+</g>
+<!-- module~s_orbel -->
+<g id="module~~helio_classes~~UsedByGraph_node65" class="node">
+<title>module~s_orbel</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node65"><a xlink:href=".././module/s_orbel.html" xlink:title="s_orbel">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-402 374.5,-402 374.5,-378 428.5,-378 428.5,-402"/>
+<text text-anchor="middle" x="401.5" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_orbel</text>
+</a>
+</g>
+</g>
+<!-- module~s_orbel&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge69" class="edge">
+<title>module~s_orbel&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.4,-389.74C357.04,-391.08 335.24,-395.98 323,-411 258.69,-489.9 260.04,-1255.1 260.84,-1396.57"/>
+<polygon fill="#000000" stroke="#000000" points="257.34,-1397.01 260.91,-1406.99 264.34,-1396.97 257.34,-1397.01"/>
+</g>
+<!-- module~s_tides_kick_getacch -->
+<g id="module~~helio_classes~~UsedByGraph_node66" class="node">
+<title>module~s_tides_kick_getacch</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node66"><a xlink:href=".././module/s_tides_kick_getacch.html" xlink:title="s_tides_kick_getacch">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="458.5,-360 344.5,-360 344.5,-336 458.5,-336 458.5,-360"/>
+<text text-anchor="middle" x="401.5" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_tides_kick_getacch</text>
+</a>
+</g>
+</g>
+<!-- module~s_tides_kick_getacch&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge70" class="edge">
+<title>module~s_tides_kick_getacch&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M344.22,-354.19C336.05,-357.45 328.54,-362.19 323,-369 255.99,-451.43 259.57,-1251.56 260.78,-1396.53"/>
+<polygon fill="#000000" stroke="#000000" points="257.28,-1396.88 260.87,-1406.84 264.28,-1396.81 257.28,-1396.88"/>
+</g>
+<!-- module~s_symba_io -->
+<g id="module~~helio_classes~~UsedByGraph_node67" class="node">
+<title>module~s_symba_io</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node67"><a xlink:href=".././module/s_symba_io.html" xlink:title="s_symba_io">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="436.5,-2628 366.5,-2628 366.5,-2604 436.5,-2604 436.5,-2628"/>
+<text text-anchor="middle" x="401.5" y="-2613.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_symba_io</text>
+</a>
+</g>
+</g>
+<!-- module~s_symba_io&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge71" class="edge">
+<title>module~s_symba_io&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M366.23,-2615.43C350.61,-2613.26 333.34,-2607.8 323,-2595 285.32,-2548.36 264.63,-1599.44 261.44,-1441.26"/>
+<polygon fill="#000000" stroke="#000000" points="264.94,-1441.19 261.24,-1431.26 257.94,-1441.33 264.94,-1441.19"/>
+</g>
+<!-- module~s_symba_io&#45;&gt;module~symba_classes -->
+<g id="module~~helio_classes~~UsedByGraph_edge80" class="edge">
+<title>module~s_symba_io&#45;&gt;module~symba_classes</title>
+<path fill="none" stroke="#000000" d="M366.42,-2624.75C352.85,-2628.36 337.14,-2632.7 323,-2637 295.17,-2645.48 283.26,-2676.74 261,-2658"/>
+</g>
+<!-- module~s_fraggle_regime -->
+<g id="module~~helio_classes~~UsedByGraph_node68" class="node">
+<title>module~s_fraggle_regime</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node68"><a xlink:href=".././module/s_fraggle_regime.html" xlink:title="s_fraggle_regime">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="449.5,-318 353.5,-318 353.5,-294 449.5,-294 449.5,-318"/>
+<text text-anchor="middle" x="401.5" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fraggle_regime</text>
+</a>
+</g>
+</g>
+<!-- module~s_fraggle_regime&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge72" class="edge">
+<title>module~s_fraggle_regime&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M353.35,-309.16C341.78,-312.26 330.55,-317.69 323,-327 288.06,-370.08 265.25,-1244.27 261.54,-1396.49"/>
+<polygon fill="#000000" stroke="#000000" points="258.03,-1396.81 261.28,-1406.89 265.03,-1396.98 258.03,-1396.81"/>
+</g>
+<!-- module~s_setup -->
+<g id="module~~helio_classes~~UsedByGraph_node69" class="node">
+<title>module~s_setup</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node69"><a xlink:href=".././module/s_setup.html" xlink:title="s_setup">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="428.5,-276 374.5,-276 374.5,-252 428.5,-252 428.5,-276"/>
+<text text-anchor="middle" x="401.5" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_setup</text>
+</a>
+</g>
+</g>
+<!-- module~s_setup&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge73" class="edge">
+<title>module~s_setup&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M374.37,-263.71C356.99,-265.04 335.19,-269.94 323,-285 286.7,-329.86 264.94,-1241.27 261.48,-1396.59"/>
+<polygon fill="#000000" stroke="#000000" points="257.98,-1396.73 261.26,-1406.8 264.98,-1396.88 257.98,-1396.73"/>
+</g>
+<!-- module~s_fraggle_set -->
+<g id="module~~helio_classes~~UsedByGraph_node70" class="node">
+<title>module~s_fraggle_set</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node70"><a xlink:href=".././module/s_fraggle_set.html" xlink:title="s_fraggle_set">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="440,-234 363,-234 363,-210 440,-210 440,-234"/>
+<text text-anchor="middle" x="401.5" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fraggle_set</text>
+</a>
+</g>
+</g>
+<!-- module~s_fraggle_set&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge64" class="edge">
+<title>module~s_fraggle_set&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M362.63,-223.13C348.01,-225.62 332.55,-231.18 323,-243 285.32,-289.64 264.63,-1238.56 261.44,-1396.74"/>
+<polygon fill="#000000" stroke="#000000" points="257.94,-1396.67 261.24,-1406.74 264.94,-1396.81 257.94,-1396.67"/>
+</g>
+<!-- module~s_util_version -->
+<g id="module~~helio_classes~~UsedByGraph_node71" class="node">
+<title>module~s_util_version</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node71"><a xlink:href=".././module/s_util_version.html" xlink:title="s_util_version">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="440.5,-192 362.5,-192 362.5,-168 440.5,-168 440.5,-192"/>
+<text text-anchor="middle" x="401.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_util_version</text>
+</a>
+</g>
+</g>
+<!-- module~s_util_version&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge75" class="edge">
+<title>module~s_util_version&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M362.22,-181.19C347.72,-183.71 332.45,-189.28 323,-201 283.99,-249.39 264.37,-1234.17 261.4,-1396.45"/>
+<polygon fill="#000000" stroke="#000000" points="257.9,-1396.63 261.21,-1406.69 264.9,-1396.76 257.9,-1396.63"/>
+</g>
+<!-- module~s_fraggle_util -->
+<g id="module~~helio_classes~~UsedByGraph_node72" class="node">
+<title>module~s_fraggle_util</title>
+<g id="a_module~~helio_classes~~UsedByGraph_node72"><a xlink:href=".././module/s_fraggle_util.html" xlink:title="s_fraggle_util">
+<polygon fill="#5bc0de" stroke="#5bc0de" points="439.5,-2460 363.5,-2460 363.5,-2436 439.5,-2436 439.5,-2460"/>
+<text text-anchor="middle" x="401.5" y="-2445.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">s_fraggle_util</text>
+</a>
+</g>
+</g>
+<!-- module~s_fraggle_util&#45;&gt;module~swiftest -->
+<g id="module~~helio_classes~~UsedByGraph_edge76" class="edge">
+<title>module~s_fraggle_util&#45;&gt;module~swiftest</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M363.48,-2446.96C348.64,-2444.54 332.78,-2438.99 323,-2427 258.69,-2348.1 260.04,-1582.9 260.84,-1441.43"/>
+<polygon fill="#000000" stroke="#000000" points="264.34,-1441.03 260.91,-1431.01 257.34,-1440.99 264.34,-1441.03"/>
 </g>
 </g>
 </svg>
@@ -1638,14 +1745,6 @@
   <div id="inters-1" class="panel-collapse collapse">
     <div class="list-group">
       
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_pl">helio_coord_vb2vh_pl</a>
-      
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vb2vh_tp">helio_coord_vb2vh_tp</a>
-      
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_pl">helio_coord_vh2vb_pl</a>
-      
-      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_coord_vh2vb_tp">helio_coord_vh2vb_tp</a>
-      
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_body">helio_drift_body</a>
       
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_drift_pl">helio_drift_pl</a>
@@ -1671,6 +1770,8 @@
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_pl">helio_kick_vb_pl</a>
       
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_kick_vb_tp">helio_kick_vb_tp</a>
+      
+      <a class="list-group-item" href="../module/helio_classes.html#interface-helio_setup_initialize_system">helio_setup_initialize_system</a>
       
       <a class="list-group-item" href="../module/helio_classes.html#interface-helio_step_pl">helio_step_pl</a>
       
@@ -1726,314 +1827,6 @@
     <section>
    <h2>Interfaces</h2>
    
-     
-<div class="panel panel-default">
-  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vb2vh_pl"></span><h3>interface 
-    
-  </h3></div>
-  
-  <ul class="list-group">
-  
-    <li class="list-group-item">
-    
-    
-    <h3>
-public module subroutine helio_coord_vb2vh_pl(self, cb)
-    
-    
-   
-   <a href='../proc/helio_coord_vb2vh_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
-    
-</h3>
-    
-    
-    <h4>Arguments</h4>
-    
-      
-      
-<table class="table table-striped varlist">
-<thead><tr><th>Type</th>
-<th>Intent</th><th>Optional</th>
-<th>Attributes</th><th></th><th>Name</th><th></th></thead>
-
-
-
-<tbody>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
-  
-</tr>
-
-</tbody>
-</table>
-
-      
-    
-    
-
-    </li>
-  
-  </ul>
-</div>
-
-    
-     
-<div class="panel panel-default">
-  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vb2vh_tp"></span><h3>interface 
-    
-  </h3></div>
-  
-  <ul class="list-group">
-  
-    <li class="list-group-item">
-    
-    
-    <h3>
-public module subroutine helio_coord_vb2vh_tp(self, vbcb)
-    
-    
-   
-   <a href='../proc/helio_coord_vb2vh_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
-    
-</h3>
-    
-    
-    <h4>Arguments</h4>
-    
-      
-      
-<table class="table table-striped varlist">
-<thead><tr><th>Type</th>
-<th>Intent</th><th>Optional</th>
-<th>Attributes</th><th></th><th>Name</th><th></th></thead>
-
-
-
-<tbody>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>real(kind=DP),</td>
-  <td>intent(in),</td>
-  <td></td>
-  
-  <td>dimension(:)</td><td>::</td>
-  <td><strong>vbcb</strong></td><td><p>Barycentric velocity of the central body</p></td>
-  
-</tr>
-
-</tbody>
-</table>
-
-      
-    
-    
-
-    </li>
-  
-  </ul>
-</div>
-
-    
-     
-<div class="panel panel-default">
-  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vh2vb_pl"></span><h3>interface 
-    
-  </h3></div>
-  
-  <ul class="list-group">
-  
-    <li class="list-group-item">
-    
-    
-    <h3>
-public module subroutine helio_coord_vh2vb_pl(self, cb)
-    
-    
-   
-   <a href='../proc/helio_coord_vh2vb_pl.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
-    
-</h3>
-    
-    
-    <h4>Arguments</h4>
-    
-      
-      
-<table class="table table-striped varlist">
-<thead><tr><th>Type</th>
-<th>Intent</th><th>Optional</th>
-<th>Attributes</th><th></th><th>Name</th><th></th></thead>
-
-
-
-<tbody>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>class(<a href='../type/helio_pl.html'>helio_pl</a>),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>cb</strong></td><td><p>Swiftest central body object</p></td>
-  
-</tr>
-
-</tbody>
-</table>
-
-      
-    
-    
-
-    </li>
-  
-  </ul>
-</div>
-
-    
-     
-<div class="panel panel-default">
-  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_coord_vh2vb_tp"></span><h3>interface 
-    
-  </h3></div>
-  
-  <ul class="list-group">
-  
-    <li class="list-group-item">
-    
-    
-    <h3>
-public module subroutine helio_coord_vh2vb_tp(self, vbcb)
-    
-    
-   
-   <a href='../proc/helio_coord_vh2vb_tp.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
-    
-</h3>
-    
-    
-    <h4>Arguments</h4>
-    
-      
-      
-<table class="table table-striped varlist">
-<thead><tr><th>Type</th>
-<th>Intent</th><th>Optional</th>
-<th>Attributes</th><th></th><th>Name</th><th></th></thead>
-
-
-
-<tbody>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>class(<a href='../type/helio_tp.html'>helio_tp</a>),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>self</strong></td><td><p>Helio massive body object</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" ></span>real(kind=DP),</td>
-  <td>intent(in),</td>
-  <td></td>
-  
-  <td>dimension(:)</td><td>::</td>
-  <td><strong>vbcb</strong></td><td><p>Barycentric velocity of the central body</p></td>
-  
-</tr>
-
-</tbody>
-</table>
-
-      
-    
-    
-
-    </li>
-  
-  </ul>
-</div>
-
-    
      
 <div class="panel panel-default">
   <div class="panel-heading codesum"><span class="anchor" id="interface-helio_drift_body"></span><h3>interface 
@@ -3427,6 +3220,83 @@ public module subroutine helio_kick_vb_tp(self, system, param, t, dt, lbeg)
     
      
 <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="interface-helio_setup_initialize_system"></span><h3>interface 
+    
+  </h3></div>
+  
+  <ul class="list-group">
+  
+    <li class="list-group-item">
+    
+    
+    <h3>
+public module subroutine helio_setup_initialize_system(self, param)
+    
+    
+   
+   <a href='../proc/helio_setup_initialize_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/helio_nbody_system.html'>helio_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Helio nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(swiftest_parameters),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+    </li>
+  
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
   <div class="panel-heading codesum"><span class="anchor" id="interface-helio_step_pl"></span><h3>interface 
     
   </h3></div>
@@ -3811,20 +3681,6 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
 <tr>
   
-  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
   <td><span class="anchor" id="variable-cb"></span>class(<a href='../type/swiftest_cb.html'>swiftest_cb</a>),</td>
   
   <td>public,</td>
@@ -3899,7 +3755,7 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>Gmtot</strong></td><td> =</td><td>0.0_DP</td><td><p>Total system mass - used for barycentric coordinate conversion</p></td>
+  <td><strong>GMtot</strong></td><td> =</td><td>0.0_DP</td><td><p>Total system mass - used for barycentric coordinate conversion</p></td>
   
 </tr>
 
@@ -3965,6 +3821,20 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
 <tr>
   
+  <td><span class="anchor" id="variable-oblpot"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>oblpot</strong></td><td> =</td><td>0.0_DP</td><td><p>System potential energy due to oblateness of the central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
   <td><span class="anchor" id="variable-lorbit"></span>real(kind=DP),</td>
   
   <td>public,</td>
@@ -3993,53 +3863,11 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
 <tr>
   
-  <td><span class="anchor" id="variable-lescape"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-ltot"></span>real(kind=DP),</td>
   
   <td>public,</td>
   <td>dimension(NDIM)</td><td>::</td>
-  <td><strong>Lescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Angular momentum of bodies that escaped the system (used for bookeeping)</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-mescape"></span>real(kind=DP),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>Mescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Mass of bodies that escaped the system (used for bookeeping)</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-ecollisions"></span>real(kind=DP),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>Ecollisions</strong></td><td> =</td><td>0.0_DP</td><td><p>Energy lost from system due to collisions</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-euntracked"></span>real(kind=DP),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>Euntracked</strong></td><td> =</td><td>0.0_DP</td><td><p>Energy gained from system due to escaped bodies</p></td>
+  <td><strong>Ltot</strong></td><td> =</td><td>0.0_DP</td><td><p>System angular momentum vector</p></td>
   
 </tr>
 
@@ -4056,20 +3884,6 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   <td><strong>lbeg</strong></td><td></td><td></td><td><p>True if this is the beginning of a step. This is used so that test particle steps can be calculated 
     separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
     the test particles</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-maxid"></span>integer(kind=I4B),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>maxid</strong></td><td> =</td><td>-1</td><td><p>The current maximum particle id number </p></td>
   
 </tr>
 
@@ -4093,14 +3907,32 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-dump'>dump</a></strong>  => io_dump_system </td>
        <td><p>Dump the state of the system to a file</p></td></tr>
       
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-get_old_t_final'>get_old_t_final</a></strong>  => io_get_old_t_final_system </td>
+       <td><p>Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.</p></td></tr>
+      
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-read_frame'>read_frame</a></strong>  => io_read_frame_system </td>
        <td><p>Read in a frame of input data from file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-read_particle_info'>read_particle_info</a></strong>  => io_read_particle_info_system </td>
+       <td><p>Read in particle metadata from file</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-write_discard'>write_discard</a></strong>  => io_write_discard </td>
        <td><p>Write out information about discarded test particles</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-write_frame'>write_frame</a></strong>  => io_write_frame_system </td>
        <td><p>Append a frame of output data to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-write_hdr_bin'>write_hdr_bin</a></strong>  => io_write_hdr_system </td>
+       <td><p>Write a header for an output frame in Fortran binary format</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-write_hdr_netcdf'>write_hdr_netcdf</a></strong>  => netcdf_write_hdr_system </td>
+       <td><p>Write a header for an output frame in NetCDF format</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-obl_pot'>obl_pot</a></strong>  => obl_pot_system </td>
+       <td><p>Compute the contribution to the total gravitational potential due solely to the oblateness of the central body</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-init_particle_info'>init_particle_info</a></strong>  => setup_initialize_particle_info_system </td>
+       <td><p>Initialize the system from input files</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-step_spin'>step_spin</a></strong>  => tides_step_spin_system </td>
        <td><p>Steps the spins of the massive &amp; central bodies due to tides.</p></td></tr>
@@ -4117,12 +3949,14 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_nbody_system.html#boundprocedure-validate_ids'>validate_ids</a></strong>  => util_valid_id_system </td>
        <td><p>Validate the numerical ids passed to the system and save the maximum value</p></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/whm_nbody_system.html#boundprocedure-initialize~4'>initialize</a></strong>  => whm_setup_initialize_system </td>
-       <td><p>Replace the abstract procedures with concrete ones
- Performs WHM-specific initilization steps, like calculating the Jacobi masses</p></td></tr>
+       <tr><td>generic, public :: <strong><a href='../type/helio_nbody_system.html#boundprocedure-write_hdr~2'>write_hdr</a></strong>  => write_hdr_bin, write_hdr_netcdf </td>
+       <td><p>Generic method call for writing headers</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/helio_nbody_system.html#boundprocedure-step~4'>step</a></strong>  => helio_step_system </td>
        <td><p>Advance the Helio nbody system forward in time by one step</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/helio_nbody_system.html#boundprocedure-initialize~2'>initialize</a></strong>  => helio_setup_initialize_system </td>
+       <td><p>Performs Helio-specific initilization steps, including converting to DH coordinates</p></td></tr>
       
        </tbody>
        </table>
@@ -4159,25 +3993,11 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
 <tr>
   
-  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
+  <td><span class="anchor" id="variable-info"></span>type(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-name"></span>character(len=STRMAX),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  <td><strong>info</strong></td><td></td><td></td><td><p>Particle metadata information</p></td>
   
 </tr>
 
@@ -4542,17 +4362,32 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
       <table class="table table-striped varlist">
       <tbody>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_swiftest </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_base </td>
+       <td><p>Dump contents to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump_particle_info'>dump_particle_info</a></strong>  => io_dump_particle_info_base </td>
+       <td><p>Dump contents of particle information metadata to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-write_frame_netcdf'>write_frame_netcdf</a></strong>  => netcdf_write_frame_base </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-write_particle_info_netcdf'>write_particle_info_netcdf</a></strong>  => netcdf_write_particle_info_base </td>
+       <td><p>Writes out the particle information metadata to NetCDF file</p></td></tr>
+      
+       <tr><td>generic, public :: <strong><a href='../type/helio_cb.html#boundprocedure-write_particle_info~4'>write_particle_info</a></strong>  => write_particle_info_netcdf </td>
        <td></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-initialize~2'>initialize</a></strong>  => io_read_cb_in </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-read_in'>read_in</a></strong>  => io_read_in_cb </td>
        <td><p>I/O routine for reading in central body data</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-read_frame~2'>read_frame</a></strong>  => io_read_frame_cb </td>
        <td><p>I/O routine for reading out a single frame of time-series data for the central body</p></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-write_frame~2'>write_frame</a></strong>  => io_write_frame_cb </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_cb.html#boundprocedure-write_frame_bin'>write_frame_bin</a></strong>  => io_write_frame_cb </td>
        <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
+      
+       <tr><td>generic, public :: <strong><a href='../type/helio_cb.html#boundprocedure-write_frame~5'>write_frame</a></strong>  => write_frame_netcdf, write_frame_bin </td>
+       <td><p>Write a frame (either binary or NetCDF, using generic procedures)</p></td></tr>
       
        </tbody>
        </table>
@@ -4579,20 +4414,6 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
 
 
 <tbody>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
-  
-</tr>
 
   
   
@@ -4628,11 +4449,11 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
 <tr>
   
-  <td><span class="anchor" id="variable-name~2"></span>character(len=STRMAX),</td>
+  <td><span class="anchor" id="variable-info~2"></span>type(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
   
   <td>public,</td>
   <td>dimension(:), allocatable</td><td>::</td>
-  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  <td><strong>info</strong></td><td></td><td></td><td><p>Particle metadata information</p></td>
   
 </tr>
 
@@ -4716,7 +4537,7 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
   <td>public,</td>
   <td>dimension(:,:), allocatable</td><td>::</td>
-  <td><strong>xh</strong></td><td></td><td></td><td><p>Heliocentric position</p></td>
+  <td><strong>xh</strong></td><td></td><td></td><td><p>Swiftestcentric position</p></td>
   
 </tr>
 
@@ -4730,7 +4551,7 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
   <td>public,</td>
   <td>dimension(:,:), allocatable</td><td>::</td>
-  <td><strong>vh</strong></td><td></td><td></td><td><p>Heliocentric velocity</p></td>
+  <td><strong>vh</strong></td><td></td><td></td><td><p>Swiftestcentric velocity</p></td>
   
 </tr>
 
@@ -5141,7 +4962,19 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
       <table class="table table-striped varlist">
       <tbody>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_swiftest </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_base </td>
+       <td><p>Dump contents to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump_particle_info'>dump_particle_info</a></strong>  => io_dump_particle_info_base </td>
+       <td><p>Dump contents of particle information metadata to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-write_frame_netcdf'>write_frame_netcdf</a></strong>  => netcdf_write_frame_base </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-write_particle_info_netcdf'>write_particle_info_netcdf</a></strong>  => netcdf_write_particle_info_base </td>
+       <td><p>Writes out the particle information metadata to NetCDF file</p></td></tr>
+      
+       <tr><td>generic, public :: <strong><a href='../type/helio_pl.html#boundprocedure-write_particle_info~5'>write_particle_info</a></strong>  => write_particle_info_netcdf </td>
        <td></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-v2pv'>v2pv</a></strong>  => gr_vh2pv_body </td>
@@ -5150,13 +4983,13 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-pv2v'>pv2v</a></strong>  => gr_pv2vh_body </td>
        <td><p>Converts from psudeovelocity to velocity for GR calculations using symplectic integrators</p></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-initialize~3'>initialize</a></strong>  => io_read_body_in </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-read_in~2'>read_in</a></strong>  => io_read_in_body </td>
        <td><p>Read in body initial conditions from a file</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-read_frame~3'>read_frame</a></strong>  => io_read_frame_body </td>
        <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-write_frame~3'>write_frame</a></strong>  => io_write_frame_body </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-write_frame_bin~2'>write_frame_bin</a></strong>  => io_write_frame_body </td>
        <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-el2xv'>el2xv</a></strong>  => orbel_el2xv_vec </td>
@@ -5171,10 +5004,13 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-set_ir3'>set_ir3</a></strong>  => util_set_ir3h </td>
        <td><p>Sets the inverse heliocentric radius term (1/rh**3)</p></td></tr>
       
+       <tr><td>generic, public :: <strong><a href='../type/helio_pl.html#boundprocedure-write_frame~6'>write_frame</a></strong>  => write_frame_netcdf, write_frame_bin </td>
+       <td><p>Add the generic write frame for Fortran binary files</p></td></tr>
+      
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-discard~3'>discard</a></strong>  => discard_pl </td>
        <td><p>Placeholder method for discarding massive bodies </p></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-eucl_index'>eucl_index</a></strong>  => eucl_dist_index_plpl </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-index~2'>index</a></strong>  => util_index_eucl_plpl </td>
        <td><p>Sets up the (i, j) -&gt; k indexing used for the single-loop blocking Euclidean distance matrix</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-accel_int~2'>accel_int</a></strong>  => kick_getacch_int_pl </td>
@@ -5197,6 +5033,15 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-b2h~2'>b2h</a></strong>  => util_coord_b2h_pl </td>
        <td><p>Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-vh2vb~2'>vh2vb</a></strong>  => util_coord_vh2vb_pl </td>
+       <td><p>Convert massive bodies from heliocentric to barycentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-vb2vh~2'>vb2vh</a></strong>  => util_coord_vb2vh_pl </td>
+       <td><p>Convert massive bodies from barycentric to heliocentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-xh2xb~2'>xh2xb</a></strong>  => util_coord_xh2xb_pl </td>
+       <td><p>Convert massive bodies from heliocentric to barycentric coordinates (position only)</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-fill~3'>fill</a></strong>  => util_fill_pl </td>
        <td><p>"Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)</p></td></tr>
@@ -5221,12 +5066,6 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_pl.html#boundprocedure-spill~3'>spill</a></strong>  => util_spill_pl </td>
        <td><p>"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)</p></td></tr>
-      
-       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-vh2vb'>vh2vb</a></strong>  => helio_coord_vh2vb_pl </td>
-       <td><p>Convert massive bodies from heliocentric to barycentric coordinates (velocity only)</p></td></tr>
-      
-       <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-vb2vh'>vb2vh</a></strong>  => helio_coord_vb2vh_pl </td>
-       <td><p>Convert massive bodies from barycentric to heliocentric coordinates (velocity only)</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/helio_pl.html#boundprocedure-drift~3'>drift</a></strong>  => helio_drift_pl </td>
        <td><p>Method for Danby drift in Democratic Heliocentric coordinates </p></td></tr>
@@ -5281,20 +5120,6 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
 <tr>
   
-  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
   <td><span class="anchor" id="variable-lfirst"></span>logical,</td>
   
   <td>public</td>
@@ -5323,11 +5148,11 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
 <tr>
   
-  <td><span class="anchor" id="variable-name~2"></span>character(len=STRMAX),</td>
+  <td><span class="anchor" id="variable-info~2"></span>type(<a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a>),</td>
   
   <td>public,</td>
   <td>dimension(:), allocatable</td><td>::</td>
-  <td><strong>name</strong></td><td></td><td></td><td><p>Non-unique name</p></td>
+  <td><strong>info</strong></td><td></td><td></td><td><p>Particle metadata information</p></td>
   
 </tr>
 
@@ -5411,7 +5236,7 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
   <td>public,</td>
   <td>dimension(:,:), allocatable</td><td>::</td>
-  <td><strong>xh</strong></td><td></td><td></td><td><p>Heliocentric position</p></td>
+  <td><strong>xh</strong></td><td></td><td></td><td><p>Swiftestcentric position</p></td>
   
 </tr>
 
@@ -5425,7 +5250,7 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
   <td>public,</td>
   <td>dimension(:,:), allocatable</td><td>::</td>
-  <td><strong>vh</strong></td><td></td><td></td><td><p>Heliocentric velocity</p></td>
+  <td><strong>vh</strong></td><td></td><td></td><td><p>Swiftestcentric velocity</p></td>
   
 </tr>
 
@@ -5651,7 +5476,35 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
   
   <td>public,</td>
   <td>dimension(:), allocatable</td><td>::</td>
-  <td><strong>atp</strong></td><td></td><td></td><td><p>Semimajor axis following perihelion passage
+  <td><strong>atp</strong></td><td></td><td></td><td><p>Semimajor axis following perihelion passage</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-k_pltp"></span>integer(kind=I4B),</td>
+  
+  <td>public,</td>
+  <td>dimension(:,:), allocatable</td><td>::</td>
+  <td><strong>k_pltp</strong></td><td></td><td></td><td><p>Index array used to convert flattened the body-body comparison upper triangular matrix</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-npltp"></span>integer(kind=I8B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>npltp</strong></td><td></td><td></td><td><p>Number of pl-tp comparisons in the flattened upper triangular matrix
  Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
     component list, such as setup_tp and util_spill_tp</p></td>
   
@@ -5668,7 +5521,19 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
       <table class="table table-striped varlist">
       <tbody>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_swiftest </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump~2'>dump</a></strong>  => io_dump_base </td>
+       <td><p>Dump contents to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-dump_particle_info'>dump_particle_info</a></strong>  => io_dump_particle_info_base </td>
+       <td><p>Dump contents of particle information metadata to file</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-write_frame_netcdf'>write_frame_netcdf</a></strong>  => netcdf_write_frame_base </td>
+       <td><p>I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  </p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_base.html#boundprocedure-write_particle_info_netcdf'>write_particle_info_netcdf</a></strong>  => netcdf_write_particle_info_base </td>
+       <td><p>Writes out the particle information metadata to NetCDF file</p></td></tr>
+      
+       <tr><td>generic, public :: <strong><a href='../type/helio_tp.html#boundprocedure-write_particle_info~6'>write_particle_info</a></strong>  => write_particle_info_netcdf </td>
        <td></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-v2pv'>v2pv</a></strong>  => gr_vh2pv_body </td>
@@ -5677,13 +5542,13 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-pv2v'>pv2v</a></strong>  => gr_pv2vh_body </td>
        <td><p>Converts from psudeovelocity to velocity for GR calculations using symplectic integrators</p></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-initialize~3'>initialize</a></strong>  => io_read_body_in </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-read_in~2'>read_in</a></strong>  => io_read_in_body </td>
        <td><p>Read in body initial conditions from a file</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-read_frame~3'>read_frame</a></strong>  => io_read_frame_body </td>
        <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
       
-       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-write_frame~3'>write_frame</a></strong>  => io_write_frame_body </td>
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-write_frame_bin~2'>write_frame_bin</a></strong>  => io_write_frame_body </td>
        <td><p>I/O routine for writing out a single frame of time-series data for the central body</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-el2xv'>el2xv</a></strong>  => orbel_el2xv_vec </td>
@@ -5697,6 +5562,9 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_body.html#boundprocedure-set_ir3'>set_ir3</a></strong>  => util_set_ir3h </td>
        <td><p>Sets the inverse heliocentric radius term (1/rh**3)</p></td></tr>
+      
+       <tr><td>generic, public :: <strong><a href='../type/helio_tp.html#boundprocedure-write_frame~7'>write_frame</a></strong>  => write_frame_netcdf, write_frame_bin </td>
+       <td><p>Add the generic write frame for Fortran binary files</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-discard~4'>discard</a></strong>  => discard_tp </td>
        <td><p>Check to see if test particles should be discarded based on their positions relative to the massive bodies</p></td></tr>
@@ -5719,6 +5587,15 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-b2h'>b2h</a></strong>  => util_coord_b2h_tp </td>
        <td><p>Convert test particles from barycentric to heliocentric coordinates (position and velocity)</p></td></tr>
       
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-vb2vh'>vb2vh</a></strong>  => util_coord_vb2vh_tp </td>
+       <td><p>Convert test particles from barycentric to heliocentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-vh2vb'>vh2vb</a></strong>  => util_coord_vh2vb_tp </td>
+       <td><p>Convert test particles from heliocentric to barycentric coordinates (velocity only)</p></td></tr>
+      
+       <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-xh2xb'>xh2xb</a></strong>  => util_coord_xh2xb_tp </td>
+       <td><p>Convert test particles from heliocentric to barycentric coordinates (position only)</p></td></tr>
+      
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-fill~4'>fill</a></strong>  => util_fill_tp </td>
        <td><p>"Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)</p></td></tr>
       
@@ -5739,12 +5616,6 @@ public module subroutine helio_step_tp(self, system, param, t, dt)
       
        <tr><td>procedure, public :: <strong><a href='../type/swiftest_tp.html#boundprocedure-spill~4'>spill</a></strong>  => util_spill_tp </td>
        <td><p>"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)</p></td></tr>
-      
-       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-vh2vb~2'>vh2vb</a></strong>  => helio_coord_vh2vb_tp </td>
-       <td><p>Convert test particles from heliocentric to barycentric coordinates (velocity only)</p></td></tr>
-      
-       <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-vb2vh~2'>vb2vh</a></strong>  => helio_coord_vb2vh_tp </td>
-       <td><p>Convert test particles from barycentric to heliocentric coordinates (velocity only)</p></td></tr>
       
        <tr><td>procedure, public :: <strong><a href='../type/helio_tp.html#boundprocedure-lindrift~2'>lindrift</a></strong>  => helio_drift_linear_tp </td>
        <td><p>Method for linear drift of massive bodies due to barycentric momentum of Sun</p></td></tr>

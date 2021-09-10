@@ -19,7 +19,13 @@ contains
       !> Call allocation method for parent class
       associate(pl => self)
          call whm_setup_pl(pl, n, param) 
-         if (n <= 0) return
+         if (n < 0) return
+
+         if (allocated(pl%outer)) deallocate(pl%outer)
+         if (allocated(pl%inner)) deallocate(pl%inner)
+         if (allocated(pl%nenc))  deallocate(pl%nenc)
+
+         if (n == 0) return
 
          allocate(pl%outer(0:NTENC))
          allocate(pl%inner(0:NTPHENC))
@@ -145,11 +151,13 @@ contains
 
       !> Call allocation method for parent class. In this case, whm does not have its own setup method, so we use the base method for swiftest_tp
       call setup_tp(self, n, param) 
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%lperi)) deallocate(self%lperi)
       if (allocated(self%plperP)) deallocate(self%plperP)
       if (allocated(self%plencP)) deallocate(self%plencP)
+
+      if (n == 0) return
 
       allocate(self%lperi(n))
       allocate(self%plperP(n))

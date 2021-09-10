@@ -13,8 +13,10 @@ contains
       character(*),         intent(in)    :: sortby    !! Sorting attribute
       logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -23,6 +25,7 @@ contains
       end if
 
       associate(body => self, n => self%nbody)
+         allocate(ind(n))
          select case(sortby)
          case("id")
             call util_sort(direction * body%id(1:n), ind(1:n))
@@ -53,200 +56,6 @@ contains
 
       return
    end subroutine util_sort_body
-
-
-   module subroutine util_sort_pl(self, sortby, ascending)
-      !! author: David A. Minton
-      !!
-      !! Sort a Swiftest massive body object in-place. 
-      !! sortby is a string indicating which array component to sort.
-      implicit none
-      ! Arguments
-      class(swiftest_pl), intent(inout) :: self      !! Swiftest massive body object
-      character(*),       intent(in)    :: sortby    !! Sorting attribute
-      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
-      ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
-      integer(I4B)                        :: direction
-
-      if (ascending) then
-         direction = 1
-      else
-         direction = -1
-      end if
-
-      associate(pl => self, npl => self%nbody)
-         select case(sortby)
-         case("Gmass","mass")
-            call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
-         case("rhill")
-            call util_sort(direction * pl%rhill(1:npl), ind(1:npl))
-         case("radius")
-            call util_sort(direction * pl%radius(1:npl), ind(1:npl))
-         case("density")
-            call util_sort(direction * pl%density(1:npl), ind(1:npl))
-         case("k2")
-            call util_sort(direction * pl%k2(1:npl), ind(1:npl))
-         case("Q")
-            call util_sort(direction * pl%Q(1:npl), ind(1:npl))
-         case("tlag")
-            call util_sort(direction * pl%tlag(1:npl), ind(1:npl))
-         case("xbeg", "xend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
-            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
-         case default ! Look for components in the parent class
-            call util_sort_body(pl, sortby, ascending)
-            return
-         end select
-
-         call pl%rearrange(ind)
-
-      end associate
-
-      return
-   end subroutine util_sort_pl
-
-
-   module subroutine util_sort_tp(self, sortby, ascending)
-      !! author: David A. Minton
-      !!
-      !! Sort a Swiftest test particle object  in-place. 
-      !! sortby is a string indicating which array component to sort.
-      implicit none
-      ! Arguments
-      class(swiftest_tp), intent(inout) :: self      !! Swiftest test particle object
-      character(*),       intent(in)    :: sortby    !! Sorting attribute
-      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
-      ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
-      integer(I4B)                        :: direction
-
-      if (ascending) then
-         direction = 1
-      else
-         direction = -1
-      end if
-
-      associate(tp => self, ntp => self%nbody)
-         select case(sortby)
-         case("peri")
-            call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
-         case("atp")
-            call util_sort(direction * tp%atp(1:ntp), ind(1:ntp))
-         case("isperi")
-            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
-         case default ! Look for components in the parent class
-            call util_sort_body(tp, sortby, ascending)
-            return
-         end select
-
-         call tp%rearrange(ind)
-
-      end associate
-
-      return
-   end subroutine util_sort_tp
-
-
-   module subroutine util_sort_rearrange_body(self, ind)
-      !! author: David A. Minton
-      !!
-      !! Rearrange Swiftest body structure in-place from an index list.
-      !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
-      implicit none
-      ! Arguments
-      class(swiftest_body),               intent(inout) :: self !! Swiftest body object
-      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      class(swiftest_body), allocatable :: body_sorted  !! Temporary holder for sorted body
-
-      associate(n => self%nbody)
-         allocate(body_sorted, source=self)
-         if (allocated(self%id))       self%id(1:n) = body_sorted%id(ind(1:n))
-         if (allocated(self%name))     self%name(1:n) = body_sorted%name(ind(1:n))
-         if (allocated(self%status))   self%status(1:n) = body_sorted%status(ind(1:n))
-         if (allocated(self%ldiscard)) self%ldiscard(1:n) = body_sorted%ldiscard(ind(1:n))
-         if (allocated(self%xh))       self%xh(:,1:n) = body_sorted%xh(:,ind(1:n))
-         if (allocated(self%vh))       self%vh(:,1:n) = body_sorted%vh(:,ind(1:n))
-         if (allocated(self%xb))       self%xb(:,1:n) = body_sorted%xb(:,ind(1:n))
-         if (allocated(self%vb))       self%vb(:,1:n) = body_sorted%vb(:,ind(1:n))
-         if (allocated(self%ah))       self%ah(:,1:n) = body_sorted%ah(:,ind(1:n))
-         if (allocated(self%ir3h))     self%ir3h(1:n) = body_sorted%ir3h(ind(1:n))
-         if (allocated(self%mu))       self%mu(1:n) = body_sorted%mu(ind(1:n))
-         if (allocated(self%lmask))    self%lmask(1:n) = body_sorted%lmask(ind(1:n))
-         if (allocated(self%a))        self%a(1:n) = body_sorted%a(ind(1:n))
-         if (allocated(self%e))        self%e(1:n) = body_sorted%e(ind(1:n))
-         if (allocated(self%inc))      self%inc(1:n) = body_sorted%inc(ind(1:n))
-         if (allocated(self%capom))    self%capom(1:n) = body_sorted%capom(ind(1:n))
-         if (allocated(self%omega))    self%omega(1:n) = body_sorted%omega(ind(1:n))
-         if (allocated(self%capm))     self%capm(1:n) = body_sorted%capm(ind(1:n))
-         if (allocated(self%aobl))     self%aobl(:,1:n) = body_sorted%aobl(:,ind(1:n))
-         if (allocated(self%atide))    self%atide(:,1:n) = body_sorted%atide(:,ind(1:n))
-         if (allocated(self%agr))      self%agr(:,1:n) = body_sorted%agr(:,ind(1:n))
-         deallocate(body_sorted)
-      end associate
-
-      return
-   end subroutine util_sort_rearrange_body
-
-
-   module subroutine util_sort_rearrange_pl(self, ind)
-      !! author: David A. Minton
-      !!
-      !! Rearrange Swiftest massive body structure in-place from an index list.
-      !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
-      implicit none
-      class(swiftest_pl),               intent(inout) :: self !! Swiftest massive body object
-      integer(I4B),       dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      class(swiftest_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
-
-      associate(pl => self, npl => self%nbody)
-         call util_sort_rearrange_body(pl,ind)
-         allocate(pl_sorted, source=self)
-         if (allocated(pl%mass))    pl%mass(1:npl) = pl_sorted%mass(ind(1:npl))
-         if (allocated(pl%Gmass))   pl%Gmass(1:npl) = pl_sorted%Gmass(ind(1:npl))
-         if (allocated(pl%rhill))   pl%rhill(1:npl) = pl_sorted%rhill(ind(1:npl))
-         if (allocated(pl%xbeg))    pl%xbeg(:,1:npl) = pl_sorted%xbeg(:,ind(1:npl))
-         if (allocated(pl%xend))    pl%xend(:,1:npl) = pl_sorted%xend(:,ind(1:npl))
-         if (allocated(pl%vbeg))    pl%vbeg(:,1:npl) = pl_sorted%vbeg(:,ind(1:npl))
-         if (allocated(pl%radius))  pl%radius(1:npl) = pl_sorted%radius(ind(1:npl))
-         if (allocated(pl%density)) pl%density(1:npl) = pl_sorted%density(ind(1:npl))
-         if (allocated(pl%Ip))      pl%Ip(:,1:npl) = pl_sorted%Ip(:,ind(1:npl))
-         if (allocated(pl%rot))     pl%rot(:,1:npl) = pl_sorted%rot(:,ind(1:npl))
-         if (allocated(pl%k2))      pl%k2(1:npl) = pl_sorted%k2(ind(1:npl))
-         if (allocated(pl%Q))       pl%Q(1:npl) = pl_sorted%Q(ind(1:npl))
-         if (allocated(pl%tlag))    pl%tlag(1:npl) = pl_sorted%tlag(ind(1:npl))
-
-         deallocate(pl_sorted)
-      end associate
-
-      return
-   end subroutine util_sort_rearrange_pl
-
-
-   module subroutine util_sort_rearrange_tp(self, ind)
-      !! author: David A. Minton
-      !!
-      !! Rearrange Swiftest massive body structure in-place from an index list.
-      !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
-      implicit none
-      ! Arguments
-      class(swiftest_tp),                 intent(inout) :: self !! Swiftest test particle object
-      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      class(swiftest_tp), allocatable :: tp_sorted  !! Temporary holder for sorted body
-
-      associate(tp => self, ntp => self%nbody)
-         call util_sort_rearrange_body(tp,ind)
-         allocate(tp_sorted, source=self)
-         if (allocated(tp%isperi))  tp%isperi(1:ntp) = tp_sorted%isperi(ind(1:ntp))
-         if (allocated(tp%peri))    tp%peri(1:ntp) = tp_sorted%peri(ind(1:ntp))
-         if (allocated(tp%atp))     tp%atp(1:ntp) = tp_sorted%atp(ind(1:ntp))
-         deallocate(tp_sorted)
-      end associate
-
-      return
-   end subroutine util_sort_rearrange_tp
 
 
    module subroutine util_sort_dp(arr)
@@ -415,5 +224,324 @@ contains
 
       return
    end subroutine util_sort_index_sp
+
+
+   module subroutine util_sort_pl(self, sortby, ascending)
+      !! author: David A. Minton
+      !!
+      !! Sort a Swiftest massive body object in-place. 
+      !! sortby is a string indicating which array component to sort.
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self      !! Swiftest massive body object
+      character(*),       intent(in)    :: sortby    !! Sorting attribute
+      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      ! Internals
+      integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
+
+      associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
+         select case(sortby)
+         case("Gmass","mass")
+            call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
+         case("rhill")
+            call util_sort(direction * pl%rhill(1:npl), ind(1:npl))
+         case("radius")
+            call util_sort(direction * pl%radius(1:npl), ind(1:npl))
+         case("density")
+            call util_sort(direction * pl%density(1:npl), ind(1:npl))
+         case("k2")
+            call util_sort(direction * pl%k2(1:npl), ind(1:npl))
+         case("Q")
+            call util_sort(direction * pl%Q(1:npl), ind(1:npl))
+         case("tlag")
+            call util_sort(direction * pl%tlag(1:npl), ind(1:npl))
+         case("xbeg", "xend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+         case default ! Look for components in the parent class
+            call util_sort_body(pl, sortby, ascending)
+            return
+         end select
+
+         call pl%rearrange(ind)
+
+      end associate
+
+      return
+   end subroutine util_sort_pl
+
+
+   module subroutine util_sort_tp(self, sortby, ascending)
+      !! author: David A. Minton
+      !!
+      !! Sort a Swiftest test particle object  in-place. 
+      !! sortby is a string indicating which array component to sort.
+      implicit none
+      ! Arguments
+      class(swiftest_tp), intent(inout) :: self      !! Swiftest test particle object
+      character(*),       intent(in)    :: sortby    !! Sorting attribute
+      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      ! Internals
+      integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B)                        :: direction
+
+      if (self%nbody == 0) return
+
+      if (ascending) then
+         direction = 1
+      else
+         direction = -1
+      end if
+
+      associate(tp => self, ntp => self%nbody)
+         allocate(ind(ntp))
+         select case(sortby)
+         case("peri")
+            call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
+         case("atp")
+            call util_sort(direction * tp%atp(1:ntp), ind(1:ntp))
+         case("isperi")
+            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+         case default ! Look for components in the parent class
+            call util_sort_body(tp, sortby, ascending)
+            return
+         end select
+
+         call tp%rearrange(ind)
+
+      end associate
+
+      return
+   end subroutine util_sort_tp
+
+
+   module subroutine util_sort_rearrange_body(self, ind)
+      !! author: David A. Minton
+      !!
+      !! Rearrange Swiftest body structure in-place from an index list.
+      !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
+      implicit none
+      ! Arguments
+      class(swiftest_body),               intent(inout) :: self !! Swiftest body object
+      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+
+      associate(n => self%nbody)
+         call util_sort_rearrange(self%id,       ind, n)
+         call util_sort_rearrange(self%info,     ind, n)
+         call util_sort_rearrange(self%status,   ind, n)
+         call util_sort_rearrange(self%ldiscard, ind, n)
+         call util_sort_rearrange(self%xh,       ind, n)
+         call util_sort_rearrange(self%vh,       ind, n)
+         call util_sort_rearrange(self%xb,       ind, n)
+         call util_sort_rearrange(self%vb,       ind, n)
+         call util_sort_rearrange(self%ah,       ind, n)
+         call util_sort_rearrange(self%ir3h,     ind, n)
+         call util_sort_rearrange(self%mu,       ind, n)
+         call util_sort_rearrange(self%lmask,    ind, n)
+         call util_sort_rearrange(self%a,        ind, n)
+         call util_sort_rearrange(self%e,        ind, n)
+         call util_sort_rearrange(self%inc,      ind, n)
+         call util_sort_rearrange(self%capom,    ind, n)
+         call util_sort_rearrange(self%omega,    ind, n)
+         call util_sort_rearrange(self%capm,     ind, n)
+         call util_sort_rearrange(self%aobl,     ind, n)
+         call util_sort_rearrange(self%atide,    ind, n)
+         call util_sort_rearrange(self%agr,      ind, n)
+      end associate
+
+      return
+   end subroutine util_sort_rearrange_body
+
+
+   module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of character string in-place from an index list.
+      implicit none
+      ! Arguments
+      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      character(len=STRMAX), dimension(:), allocatable                :: tmp !! Temporary copy of arry used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+      tmp(1:n) = arr(ind(1:n))
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_char_string
+
+
+   module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of DP type in-place from an index list.
+      implicit none
+      ! Arguments
+      real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
+      integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      real(DP), dimension(:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+      tmp(1:n) = arr(ind(1:n))
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_DP
+
+
+   module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of (NDIM,n) DP-type vectors in-place from an index list.
+      implicit none
+      ! Arguments
+      real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      real(DP), dimension(:,:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+      tmp(:,1:n) = arr(:, ind(1:n))
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_DPvec
+
+
+   module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of integers in-place from an index list.
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      integer(I4B), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+      tmp(1:n) = arr(ind(1:n))
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_I4B
+
+
+   module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of logicals in-place from an index list.
+      implicit none
+      ! Arguments
+      logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      logical, dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+      tmp(1:n) = arr(ind(1:n))
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_logical
+
+
+   module subroutine util_sort_rearrange_arr_info(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of particle information type in-place from an index list.
+      implicit none
+      ! Arguments
+      type(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),                  dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      type(swiftest_particle_info),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+      integer(I4B) :: i
+
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+
+      call util_copy_particle_info_arr(arr, tmp, ind)
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_info
+
+
+   module subroutine util_sort_rearrange_pl(self, ind)
+      !! author: David A. Minton
+      !!
+      !! Rearrange Swiftest massive body structure in-place from an index list.
+      !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
+      implicit none
+      class(swiftest_pl),               intent(inout) :: self !! Swiftest massive body object
+      integer(I4B),       dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+
+      associate(pl => self, npl => self%nbody)
+         call util_sort_rearrange(pl%mass,    ind, npl)
+         call util_sort_rearrange(pl%Gmass,   ind, npl)
+         call util_sort_rearrange(pl%rhill,   ind, npl)
+         call util_sort_rearrange(pl%xbeg,    ind, npl)
+         call util_sort_rearrange(pl%vbeg,    ind, npl)
+         call util_sort_rearrange(pl%radius,  ind, npl)
+         call util_sort_rearrange(pl%density, ind, npl)
+         call util_sort_rearrange(pl%Ip,      ind, npl)
+         call util_sort_rearrange(pl%rot,     ind, npl)
+         call util_sort_rearrange(pl%k2,      ind, npl)
+         call util_sort_rearrange(pl%Q,       ind, npl)
+         call util_sort_rearrange(pl%tlag,    ind, npl)
+
+         if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
+
+         call util_sort_rearrange_body(pl, ind)
+      end associate
+
+      return
+   end subroutine util_sort_rearrange_pl
+
+
+   module subroutine util_sort_rearrange_tp(self, ind)
+      !! author: David A. Minton
+      !!
+      !! Rearrange Swiftest massive body structure in-place from an index list.
+      !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
+      implicit none
+      ! Arguments
+      class(swiftest_tp),                 intent(inout) :: self !! Swiftest test particle object
+      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+
+      associate(tp => self, ntp => self%nbody)
+         call util_sort_rearrange(tp%isperi, ind, ntp)
+         call util_sort_rearrange(tp%peri,   ind, ntp)
+         call util_sort_rearrange(tp%atp,    ind, ntp)
+
+         call util_sort_rearrange_body(tp, ind)
+      end associate
+
+      return
+   end subroutine util_sort_rearrange_tp
 
 end submodule s_util_sort

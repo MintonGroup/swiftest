@@ -136,7 +136,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.8% of total for procedures.">366 statements</a>
+    title=" 0.7% of total for procedures.">465 statements</a>
      </li> 
      
      
@@ -235,7 +235,7 @@
 <g id="interface~~io_read_frame_system~~CallsGraph_node2" class="node">
 <title>proc~io_read_frame_system</title>
 <g id="a_interface~~io_read_frame_system~~CallsGraph_node2"><a xlink:href=".././proc/io_read_frame_system.html" xlink:title="io_read_frame_system">
-<polygon fill="#d9534f" stroke="#d9534f" points="280,-24 158,-24 158,0 280,0 280,-24"/>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="280,-24 158,-24 158,0 280,0 280,-24"/>
 <text text-anchor="middle" x="219" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io_read_frame_system</text>
 </a>
 </g>
@@ -330,7 +330,7 @@
     <br>
     
       <h2>
-public module subroutine io_read_frame_system(self, iu, param, form, ierr)
+public module function io_read_frame_system(self, iu, param) result(ierr)
     
     
    
@@ -361,7 +361,7 @@ public module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-self~138"></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td><span class="anchor" id="variable-self~146"></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -376,7 +376,7 @@ public module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-iu~7"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-iu~5"></span>integer(kind=I4B),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -391,7 +391,7 @@ public module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-param~98"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td><span class="anchor" id="variable-param~94"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -400,40 +400,19 @@ public module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 </tr>
 
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-form~4"></span>character(len=*),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>form</strong></td><td><p>Input format code ("XV" or "EL")</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-ierr~8"></span>integer(kind=I4B),</td>
-  <td>intent(out)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>ierr</strong></td><td><p>Error code</p></td>
-  
-</tr>
-
 </tbody>
 </table>
 
     
+    
+    
+    
+    
+    
+    
+      <h3>Return Value <span class="anchor" id="variable-ierr~8"></span><small>integer(kind=I4B)
+  </small></h3>
+    <p>Error code: returns 0 if the read is successful</p>
     
     
     <br>
