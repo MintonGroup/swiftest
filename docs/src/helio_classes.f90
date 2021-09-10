@@ -2,7 +2,7 @@ module helio_classes
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of classes and methods specific to the Democratic Heliocentric Method
-   !! Adapted from David E. Kaufmann's Swifter routine: helio.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: module_helio.f90
    use swiftest_globals
    use swiftest_classes, only : swiftest_cb, swiftest_pl, swiftest_tp, swiftest_nbody_system
    use whm_classes, only : whm_nbody_system
@@ -15,7 +15,8 @@ module helio_classes
    !********************************************************************************************************************************
    type, extends(whm_nbody_system) :: helio_nbody_system
    contains
-      procedure :: step => helio_step_system  !! Advance the Helio nbody system forward in time by one step
+      procedure :: step       => helio_step_system             !! Advance the Helio nbody system forward in time by one step
+      procedure :: initialize => helio_setup_initialize_system !! Performs Helio-specific initilization steps, including converting to DH coordinates
    end type helio_nbody_system
 
    !********************************************************************************************************************************
@@ -35,8 +36,6 @@ module helio_classes
    !! Helio massive body particle class
    type, extends(swiftest_pl) :: helio_pl
    contains
-      procedure :: vh2vb       => helio_coord_vh2vb_pl     !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
-      procedure :: vb2vh       => helio_coord_vb2vh_pl     !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
       procedure :: drift       => helio_drift_pl           !! Method for Danby drift in Democratic Heliocentric coordinates 
       procedure :: lindrift    => helio_drift_linear_pl    !! Method for linear drift of massive bodies due to barycentric momentum of Sun
       procedure :: accel_gr    => helio_gr_kick_getacch_pl !! Acceleration term arising from the post-Newtonian correction
@@ -53,8 +52,6 @@ module helio_classes
    !! Helio test particle class
    type, extends(swiftest_tp) :: helio_tp
    contains
-      procedure :: vh2vb       => helio_coord_vh2vb_tp     !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure :: vb2vh       => helio_coord_vb2vh_tp     !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: lindrift    => helio_drift_linear_tp    !! Method for linear drift of massive bodies due to barycentric momentum of Sun
       procedure :: drift       => helio_drift_tp           !! Method for Danby drift in Democratic Heliocentric coordinates 
       procedure :: accel_gr    => helio_gr_kick_getacch_tp !! Acceleration term arising from the post-Newtonian correction
@@ -65,32 +62,6 @@ module helio_classes
    end type helio_tp
 
    interface
-      module subroutine helio_coord_vb2vh_pl(self, cb)
-         use swiftest_classes, only : swiftest_cb
-         implicit none
-         class(helio_pl),              intent(inout) :: self !! Helio massive body object
-         class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
-      end subroutine helio_coord_vb2vh_pl
-   
-      module subroutine helio_coord_vb2vh_tp(self, vbcb)
-         implicit none
-         class(helio_tp),              intent(inout) :: self !! Helio massive body object
-         real(DP), dimension(:),       intent(in)    :: vbcb  !! Barycentric velocity of the central body
-      end subroutine helio_coord_vb2vh_tp
-   
-      module subroutine helio_coord_vh2vb_pl(self, cb)
-         use swiftest_classes, only : swiftest_cb
-         implicit none
-         class(helio_pl),        intent(inout) :: self !! Helio massive body object
-         class(swiftest_cb),     intent(inout) :: cb   !! Swiftest central body object
-      end subroutine helio_coord_vh2vb_pl
-   
-      module subroutine helio_coord_vh2vb_tp(self, vbcb)
-         implicit none
-         class(helio_tp),        intent(inout) :: self !! Helio massive body object
-         real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
-      end subroutine helio_coord_vh2vb_tp
-
       module subroutine helio_drift_body(self, system, param, dt)
          use swiftest_classes, only : swiftest_body, swiftest_nbody_system, swiftest_parameters
          implicit none
@@ -206,6 +177,13 @@ module helio_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine helio_kick_vb_tp
 
+      module subroutine helio_setup_initialize_system(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine helio_setup_initialize_system
+
       module subroutine helio_step_pl(self, system, param, t, dt)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
@@ -234,6 +212,7 @@ module helio_classes
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsizee
       end subroutine helio_step_tp
+
    end interface
 
 end module helio_classes

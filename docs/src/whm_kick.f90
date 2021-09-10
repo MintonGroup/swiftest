@@ -80,17 +80,17 @@ contains
          system%lbeg = lbeg
 
          if (lbeg) then
-            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xbeg(:,:), npl)
+            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%xbeg(:, 1:npl), npl)
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
-            call tp%accel_int(pl%Gmass(:), pl%xbeg(:,:), npl)
+            call tp%accel_int(pl%Gmass(1:npl), pl%xbeg(:, 1:npl), npl)
          else
-            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(:), pl%xend(:,:), npl)
+            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
-            call tp%accel_int(pl%Gmass(:), pl%xend(:,:), npl)
+            call tp%accel_int(pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
          end if
 
          if (param%loblatecb) call tp%accel_obl(system)
@@ -213,13 +213,13 @@ contains
          if (lbeg) then
             if (pl%lfirst) then
                call pl%h2j(cb)
-               pl%ah(:,:) = 0.0_DP
+               pl%ah(:, 1:npl) = 0.0_DP
                call pl%accel(system, param, t, lbeg)
                pl%lfirst = .false.
             end if
             call pl%set_beg_end(xbeg = pl%xh)
          else
-            pl%ah(:,:) = 0.0_DP
+            pl%ah(:, 1:npl) = 0.0_DP
             call pl%accel(system, param, t, lbeg)
             call pl%set_beg_end(xend = pl%xh)
          end if
@@ -254,20 +254,16 @@ contains
 
       associate(tp => self, ntp => self%nbody)
          if (tp%lfirst) then
-            where(tp%lmask(1:ntp)) 
-               tp%ah(1,1:ntp) = 0.0_DP
-               tp%ah(2,1:ntp) = 0.0_DP
-               tp%ah(3,1:ntp) = 0.0_DP
-            end where
+            do concurrent(i = 1:ntp, tp%lmask(i))
+               tp%ah(:, i) = 0.0_DP
+            end do
             call tp%accel(system, param, t, lbeg=.true.)
             tp%lfirst = .false.
          end if
          if (.not.lbeg) then
-            where(tp%lmask(1:ntp)) 
-               tp%ah(1,1:ntp) = 0.0_DP
-               tp%ah(2,1:ntp) = 0.0_DP
-               tp%ah(3,1:ntp) = 0.0_DP
-            end where
+            do concurrent(i = 1:ntp, tp%lmask(i))
+               tp%ah(:, i) = 0.0_DP
+            end do
             call tp%accel(system, param, t, lbeg)
          end if
          do concurrent(i = 1:ntp, tp%lmask(i))

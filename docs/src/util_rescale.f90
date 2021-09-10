@@ -20,9 +20,11 @@ contains
       ! Calculate the G for the system units
       param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-      ! Calculate the inverse speed of light in the system units
-      param%inv_c2 = einsteinC * param%TU2S / param%DU2M
-      param%inv_c2 = (param%inv_c2)**(-2)
+      if (param%lgr) then
+         ! Calculate the inverse speed of light in the system units
+         param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+         param%inv_c2 = (param%inv_c2)**(-2)
+      end if
 
       vscale = dscale / tscale
 

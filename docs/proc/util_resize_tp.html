@@ -215,7 +215,7 @@ module subroutine util_resize_tp(self, nnew)
 
 
     
-    <p>Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.</p>
+    <p>Checks the current size of a Swiftest test particle against the requested size and resizes it if it is too small.</p>
     
 
     <h3>Arguments</h3>
@@ -236,12 +236,12 @@ module subroutine util_resize_tp(self, nnew)
   
 <tr>
   
-  <td><span class="anchor" id="variable-self~262"></span>class(<a href='../type/swiftest_tp.html'>swiftest_tp</a>),</td>
+  <td><span class="anchor" id="variable-self~322"></span>class(<a href='../type/swiftest_tp.html'>swiftest_tp</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>self</strong></td><td><p>Swiftest massive body object</p></td>
+  <td><strong>self</strong></td><td><p>Swiftest test particle object</p></td>
   
 </tr>
 
@@ -251,7 +251,7 @@ module subroutine util_resize_tp(self, nnew)
   
 <tr>
   
-  <td><span class="anchor" id="variable-nnew~20"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-nnew~21"></span>integer(kind=I4B),</td>
   <td>intent(in)</td>
   <td></td>
   
@@ -288,59 +288,59 @@ module subroutine util_resize_tp(self, nnew)
 <!-- proc~util_resize_tp -->
 <g id="proc~~util_resize_tp~~CallsGraph_node1" class="node">
 <title>proc~util_resize_tp</title>
-<polygon fill="none" stroke="black" points="76,-44 0,-44 0,-20 76,-20 76,-44"/>
-<text text-anchor="middle" x="38" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50">util_resize_tp</text>
-</g>
-<!-- interface~util_resize~2 -->
-<g id="proc~~util_resize_tp~~CallsGraph_node2" class="node">
-<title>interface~util_resize~2</title>
-<g id="a_proc~~util_resize_tp~~CallsGraph_node2"><a xlink:href=".././interface/util_resize~2.html" xlink:title="util_resize">
-<polygon fill="#a7506f" stroke="#a7506f" points="425,-44 364,-44 364,-20 425,-20 425,-44"/>
-<text text-anchor="middle" x="394.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize</text>
-</a>
-</g>
-</g>
-<!-- proc~util_resize_tp&#45;&gt;interface~util_resize~2 -->
-<g id="proc~~util_resize_tp~~CallsGraph_edge1" class="edge">
-<title>proc~util_resize_tp&#45;&gt;interface~util_resize~2</title>
-<path fill="none" stroke="#000000" d="M76.14,-32.61C87.63,-32.77 100.34,-32.92 112,-33 208,-33.66 232,-33.73 328,-33 336.33,-32.94 345.25,-32.83 353.75,-32.7"/>
-<polygon fill="#000000" stroke="#000000" points="353.88,-36.2 363.83,-32.55 353.78,-29.2 353.88,-36.2"/>
+<polygon fill="none" stroke="black" points="76,-24 0,-24 0,0 76,0 76,-24"/>
+<text text-anchor="middle" x="38" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">util_resize_tp</text>
 </g>
 <!-- interface~util_resize_body -->
-<g id="proc~~util_resize_tp~~CallsGraph_node3" class="node">
+<g id="proc~~util_resize_tp~~CallsGraph_node2" class="node">
 <title>interface~util_resize_body</title>
-<g id="a_proc~~util_resize_tp~~CallsGraph_node3"><a xlink:href=".././interface/util_resize_body.html" xlink:title="util_resize_body">
-<polygon fill="#a7506f" stroke="#a7506f" points="202,-24 112,-24 112,0 202,0 202,-24"/>
-<text text-anchor="middle" x="157" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize_body</text>
+<g id="a_proc~~util_resize_tp~~CallsGraph_node2"><a xlink:href=".././interface/util_resize_body.html" xlink:title="util_resize_body">
+<polygon fill="#a7506f" stroke="#a7506f" points="202,-44 112,-44 112,-20 202,-20 202,-44"/>
+<text text-anchor="middle" x="157" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize_body</text>
 </a>
 </g>
 </g>
 <!-- proc~util_resize_tp&#45;&gt;interface~util_resize_body -->
-<g id="proc~~util_resize_tp~~CallsGraph_edge2" class="edge">
+<g id="proc~~util_resize_tp~~CallsGraph_edge1" class="edge">
 <title>proc~util_resize_tp&#45;&gt;interface~util_resize_body</title>
-<path fill="none" stroke="#000000" d="M76.02,-25.67C84.2,-24.27 93.03,-22.76 101.74,-21.28"/>
-<polygon fill="#000000" stroke="#000000" points="102.58,-24.68 111.85,-19.55 101.4,-17.78 102.58,-24.68"/>
+<path fill="none" stroke="#000000" d="M76.02,-18.33C84.2,-19.73 93.03,-21.24 101.74,-22.72"/>
+<polygon fill="#000000" stroke="#000000" points="101.4,-26.22 111.85,-24.45 102.58,-19.32 101.4,-26.22"/>
+</g>
+<!-- interface~util_resize~2 -->
+<g id="proc~~util_resize_tp~~CallsGraph_node3" class="node">
+<title>interface~util_resize~2</title>
+<g id="a_proc~~util_resize_tp~~CallsGraph_node3"><a xlink:href=".././interface/util_resize~2.html" xlink:title="util_resize">
+<polygon fill="#a7506f" stroke="#a7506f" points="425,-24 364,-24 364,0 425,0 425,-24"/>
+<text text-anchor="middle" x="394.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize</text>
+</a>
+</g>
+</g>
+<!-- proc~util_resize_tp&#45;&gt;interface~util_resize~2 -->
+<g id="proc~~util_resize_tp~~CallsGraph_edge2" class="edge">
+<title>proc~util_resize_tp&#45;&gt;interface~util_resize~2</title>
+<path fill="none" stroke="#000000" d="M76.14,-11.39C87.63,-11.23 100.34,-11.08 112,-11 208,-10.34 232,-10.27 328,-11 336.33,-11.06 345.25,-11.17 353.75,-11.3"/>
+<polygon fill="#000000" stroke="#000000" points="353.78,-14.8 363.83,-11.45 353.88,-7.8 353.78,-14.8"/>
 </g>
 <!-- proc~util_resize_body -->
 <g id="proc~~util_resize_tp~~CallsGraph_node4" class="node">
 <title>proc~util_resize_body</title>
 <g id="a_proc~~util_resize_tp~~CallsGraph_node4"><a xlink:href=".././proc/util_resize_body.html" xlink:title="util_resize_body">
-<polygon fill="#d9534f" stroke="#d9534f" points="328,-24 238,-24 238,0 328,0 328,-24"/>
-<text text-anchor="middle" x="283" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize_body</text>
+<polygon fill="#d9534f" stroke="#d9534f" points="328,-44 238,-44 238,-20 328,-20 328,-44"/>
+<text text-anchor="middle" x="283" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize_body</text>
 </a>
 </g>
 </g>
 <!-- interface~util_resize_body&#45;&gt;proc~util_resize_body -->
 <g id="proc~~util_resize_tp~~CallsGraph_edge3" class="edge">
 <title>interface~util_resize_body&#45;&gt;proc~util_resize_body</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M202.07,-12C210.28,-12 218.96,-12 227.44,-12"/>
-<polygon fill="#000000" stroke="#000000" points="227.66,-15.5 237.66,-12 227.66,-8.5 227.66,-15.5"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M202.07,-32C210.28,-32 218.96,-32 227.44,-32"/>
+<polygon fill="#000000" stroke="#000000" points="227.66,-35.5 237.66,-32 227.66,-28.5 227.66,-35.5"/>
 </g>
 <!-- proc~util_resize_body&#45;&gt;interface~util_resize~2 -->
 <g id="proc~~util_resize_tp~~CallsGraph_edge4" class="edge">
 <title>proc~util_resize_body&#45;&gt;interface~util_resize~2</title>
-<path fill="none" stroke="#000000" d="M328.22,-20.08C336.75,-21.63 345.62,-23.26 353.99,-24.78"/>
-<polygon fill="#000000" stroke="#000000" points="353.41,-28.23 363.87,-26.59 354.66,-21.35 353.41,-28.23"/>
+<path fill="none" stroke="#000000" d="M328.22,-23.92C336.75,-22.37 345.62,-20.74 353.99,-19.22"/>
+<polygon fill="#000000" stroke="#000000" points="354.66,-22.65 363.87,-17.41 353.41,-15.77 354.66,-22.65"/>
 </g>
 </g>
 </svg>

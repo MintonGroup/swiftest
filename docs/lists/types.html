@@ -124,6 +124,10 @@ All Types &ndash; swiftest
 			 <tr><th>Type</th><th>Location</th><th>Extends</th><th>Description</th></tr>
 			 </thead><tbody>
 			 
+			   <tr><td><a href='../type/fraggle_colliders.html'>fraggle_colliders</a></td><td><a href='../module/fraggle_classes.html'>fraggle_classes</a></td><td>None</td><td><p>Class definition for the variables that describe the bodies involved in the collision</p></td></tr>
+			 
+			   <tr><td><a href='../type/fraggle_fragments.html'>fraggle_fragments</a></td><td><a href='../module/fraggle_classes.html'>fraggle_classes</a></td><td><a href='../type/swiftest_pl.html'>swiftest_pl</a></td><td><p>Class definition for the variables that describe a collection of fragments by Fraggle barycentric coordinates</p></td></tr>
+			 
 			   <tr><td><a href='../type/helio_cb.html'>helio_cb</a></td><td><a href='../module/helio_classes.html'>helio_classes</a></td><td><a href='../type/swiftest_cb.html'>swiftest_cb</a></td><td><p>Helio central body particle class</p></td></tr>
 			 
 			   <tr><td><a href='../type/helio_nbody_system.html'>helio_nbody_system</a></td><td><a href='../module/helio_classes.html'>helio_classes</a></td><td><a href='../type/whm_nbody_system.html'>whm_nbody_system</a></td><td></td></tr>
@@ -138,6 +142,8 @@ All Types &ndash; swiftest
 			 
 			   <tr><td><a href='../type/lambda_obj_tvar.html'>lambda_obj_tvar</a></td><td><a href='../module/lambda_function.html'>lambda_function</a></td><td><a href='../type/lambda_obj.html'>lambda_obj</a></td><td><p>Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers</p></td></tr>
 			 
+			   <tr><td><a href='../type/netcdf_parameters.html'>netcdf_parameters</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td>None</td><td></td></tr>
+			 
 			   <tr><td><a href='../type/rmvs_cb.html'>rmvs_cb</a></td><td><a href='../module/rmvs_classes.html'>rmvs_classes</a></td><td><a href='../type/whm_cb.html'>whm_cb</a></td><td><p>RMVS central body particle class </p></td></tr>
 			 
 			   <tr><td><a href='../type/rmvs_interp.html'>rmvs_interp</a></td><td><a href='../module/rmvs_classes.html'>rmvs_classes</a></td><td>None</td><td></td></tr>
@@ -149,7 +155,7 @@ All Types &ndash; swiftest
 			   <tr><td><a href='../type/rmvs_tp.html'>rmvs_tp</a></td><td><a href='../module/rmvs_classes.html'>rmvs_classes</a></td><td><a href='../type/whm_tp.html'>whm_tp</a></td><td><p>Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
     component list, such as rmvs_setup_tp and rmvs_util_spill_tp</p></td></tr>
 			 
-			   <tr><td><a href='../type/swiftest_base.html'>swiftest_base</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td>None</td><td><p>An superclass for a generic Swiftest object
+			   <tr><td><a href='../type/swiftest_base.html'>swiftest_base</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td>None</td><td><p>An abstract superclass for a generic Swiftest object
  The minimal methods that all systems must have</p></td></tr>
 			 
 			   <tr><td><a href='../type/swiftest_body.html'>swiftest_body</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td><a href='../type/swiftest_base.html'>swiftest_base</a></td><td><p>An abstract class for a generic collection of Swiftest bodies
@@ -159,11 +165,14 @@ All Types &ndash; swiftest
 			 
 			   <tr><td><a href='../type/swiftest_encounter.html'>swiftest_encounter</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td>None</td><td></td></tr>
 			 
-			   <tr><td><a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td><a href='../type/swiftest_base.html'>swiftest_base</a></td><td><p>An abstract class for a basic Swiftest nbody system 
+			   <tr><td><a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td>None</td><td><p>An abstract class for a basic Swiftest nbody system 
   This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)</p></td></tr>
 			 
 			   <tr><td><a href='../type/swiftest_parameters.html'>swiftest_parameters</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td>None</td><td><p>User defined parameters that are read in from the parameters input file. 
     Each paramter is initialized to a default values. </p></td></tr>
+			 
+			   <tr><td><a href='../type/swiftest_particle_info.html'>swiftest_particle_info</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td>None</td><td><p>Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
+ of fragments produced in collisional events.</p></td></tr>
 			 
 			   <tr><td><a href='../type/swiftest_pl.html'>swiftest_pl</a></td><td><a href='../module/swiftest_classes.html'>swiftest_classes</a></td><td><a href='../type/swiftest_body.html'>swiftest_body</a></td><td><p>An abstract class for a generic collection of Swiftest massive bodies
  Superclass that defines the generic elements of a Swiftest particle </p></td></tr>
@@ -173,6 +182,8 @@ All Types &ndash; swiftest
 			 
 			   <tr><td><a href='../type/symba_cb.html'>symba_cb</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/helio_cb.html'>helio_cb</a></td><td><p>SyMBA central body particle class</p></td></tr>
 			 
+			   <tr><td><a href='../type/symba_encounter.html'>symba_encounter</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/swiftest_encounter.html'>swiftest_encounter</a></td><td><p>SyMBA class for tracking close encounters in a step</p></td></tr>
+			 
 			   <tr><td><a href='../type/symba_kinship.html'>symba_kinship</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td>None</td><td><p>Class definition for the kinship relationships used in bookkeeping multiple collisions bodies in a single time step.</p></td></tr>
 			 
 			   <tr><td><a href='../type/symba_merger.html'>symba_merger</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/symba_pl.html'>symba_pl</a></td><td></td></tr>
@@ -181,18 +192,17 @@ All Types &ndash; swiftest
 			 
 			   <tr><td><a href='../type/symba_parameters.html'>symba_parameters</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/swiftest_parameters.html'>swiftest_parameters</a></td><td></td></tr>
 			 
-			   <tr><td><a href='../type/symba_particle_info.html'>symba_particle_info</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td>None</td><td><p>Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
- of fragments produced in collisional events.</p></td></tr>
-			 
 			   <tr><td><a href='../type/symba_pl.html'>symba_pl</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/helio_pl.html'>helio_pl</a></td><td><p>SyMBA massive body class</p></td></tr>
 			 
-			   <tr><td><a href='../type/symba_plplenc.html'>symba_plplenc</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/symba_pltpenc.html'>symba_pltpenc</a></td><td><p>SyMBA class for tracking pl-pl close encounters in a step</p></td></tr>
+			   <tr><td><a href='../type/symba_plplenc.html'>symba_plplenc</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/symba_encounter.html'>symba_encounter</a></td><td><p>SyMBA class for tracking pl-pl close encounters in a step</p></td></tr>
 			 
-			   <tr><td><a href='../type/symba_pltpenc.html'>symba_pltpenc</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/swiftest_encounter.html'>swiftest_encounter</a></td><td><p>SyMBA class for tracking pl-tp close encounters in a step</p></td></tr>
+			   <tr><td><a href='../type/symba_pltpenc.html'>symba_pltpenc</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/symba_encounter.html'>symba_encounter</a></td><td><p>SyMBA class for tracking pl-tp close encounters in a step</p></td></tr>
 			 
 			   <tr><td><a href='../type/symba_tp.html'>symba_tp</a></td><td><a href='../module/symba_classes.html'>symba_classes</a></td><td><a href='../type/helio_tp.html'>helio_tp</a></td><td><p>SyMBA test particle class</p></td></tr>
 			 
 			   <tr><td><a href='../type/tides_derivs_func.html'>tides_derivs_func</a></td><td><a href='../module/s_tides_step_spin.html'>s_tides_step_spin</a></td><td>lambda_obj_tvar</td><td><p>Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers</p></td></tr>
+			 
+			   <tr><td><a href='../type/walltimer.html'>walltimer</a></td><td><a href='../module/walltime_classes.html'>walltime_classes</a></td><td>None</td><td></td></tr>
 			 
 			   <tr><td><a href='../type/whm_cb.html'>whm_cb</a></td><td><a href='../module/whm_classes.html'>whm_classes</a></td><td><a href='../type/swiftest_cb.html'>swiftest_cb</a></td><td><p>Swiftest central body particle class</p></td></tr>
 			 
@@ -210,113 +220,209 @@ All Types &ndash; swiftest
 <!-- Generated by graphviz version 2.47.1 (20210417.1919)
  -->
 <!-- Title: type~~graph~~TypeGraph Pages: 1 -->
-<svg id="typegraphTypeGraph" width="855pt" height="452pt"
- viewBox="0.00 0.00 855.00 452.43" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="type~~graph~~TypeGraph" class="graph" transform="scale(0.74 0.74) rotate(0) translate(4 604)">
+<svg id="typegraphTypeGraph" width="855pt" height="397pt"
+ viewBox="0.00 0.00 855.00 397.38" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~graph~~TypeGraph" class="graph" transform="scale(0.68 0.68) rotate(0) translate(4 583)">
 <title>type~~graph~~TypeGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-604 1145,-604 1145,4 -4,4"/>
-<!-- type~rmvs_pl -->
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-583 1259,-583 1259,4 -4,4"/>
+<!-- type~walltimer -->
 <g id="type~~graph~~TypeGraph_node1" class="node">
-<title>type~rmvs_pl</title>
-<g id="a_type~~graph~~TypeGraph_node1"><a xlink:href=".././type/rmvs_pl.html" xlink:title="rmvs_pl">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="1108.5,-432 1054.5,-432 1054.5,-408 1108.5,-408 1108.5,-432"/>
-<text text-anchor="middle" x="1081.5" y="-417.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_pl</text>
+<title>type~walltimer</title>
+<g id="a_type~~graph~~TypeGraph_node1"><a xlink:href=".././type/walltimer.html" xlink:title="walltimer">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1223,-24 1168,-24 1168,0 1223,0 1223,-24"/>
+<text text-anchor="middle" x="1195.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">walltimer</text>
 </a>
 </g>
 </g>
-<!-- type~whm_pl -->
-<g id="type~~graph~~TypeGraph_node5" class="node">
-<title>type~whm_pl</title>
-<g id="a_type~~graph~~TypeGraph_node5"><a xlink:href=".././type/whm_pl.html" xlink:title="whm_pl">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="792,-460 738,-460 738,-436 792,-436 792,-460"/>
-<text text-anchor="middle" x="765" y="-445.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_pl</text>
+<!-- type~symba_parameters -->
+<g id="type~~graph~~TypeGraph_node2" class="node">
+<title>type~symba_parameters</title>
+<g id="a_type~~graph~~TypeGraph_node2"><a xlink:href=".././type/symba_parameters.html" xlink:title="symba_parameters">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1248,-66 1143,-66 1143,-42 1248,-42 1248,-66"/>
+<text text-anchor="middle" x="1195.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_parameters</text>
 </a>
 </g>
 </g>
-<!-- type~rmvs_pl&#45;&gt;type~whm_pl -->
+<!-- type~swiftest_parameters -->
+<g id="type~~graph~~TypeGraph_node21" class="node">
+<title>type~swiftest_parameters</title>
+<g id="a_type~~graph~~TypeGraph_node21"><a xlink:href=".././type/swiftest_parameters.html" xlink:title="swiftest_parameters">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="979,-66 870,-66 870,-42 979,-42 979,-66"/>
+<text text-anchor="middle" x="924.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_parameters</text>
+</a>
+</g>
+</g>
+<!-- type~symba_parameters&#45;&gt;type~swiftest_parameters -->
+<g id="type~~graph~~TypeGraph_edge1" class="edge">
+<title>type~symba_parameters&#45;&gt;type~swiftest_parameters</title>
+<path fill="none" stroke="#000000" d="M1142.95,-54C1099.18,-54 1036.17,-54 989.23,-54"/>
+<polygon fill="#000000" stroke="#000000" points="989.18,-50.5 979.18,-54 989.18,-57.5 989.18,-50.5"/>
+</g>
+<!-- type~symba_cb -->
+<g id="type~~graph~~TypeGraph_node3" class="node">
+<title>type~symba_cb</title>
+<g id="a_type~~graph~~TypeGraph_node3"><a xlink:href=".././type/symba_cb.html" xlink:title="symba_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="538,-495 477,-495 477,-471 538,-471 538,-495"/>
+<text text-anchor="middle" x="507.5" y="-480.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_cb</text>
+</a>
+</g>
+</g>
+<!-- type~helio_cb -->
+<g id="type~~graph~~TypeGraph_node32" class="node">
+<title>type~helio_cb</title>
+<g id="a_type~~graph~~TypeGraph_node32"><a xlink:href=".././type/helio_cb.html" xlink:title="helio_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="339.5,-472 285.5,-472 285.5,-448 339.5,-448 339.5,-472"/>
+<text text-anchor="middle" x="312.5" y="-457.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_cb</text>
+</a>
+</g>
+</g>
+<!-- type~symba_cb&#45;&gt;type~helio_cb -->
+<g id="type~~graph~~TypeGraph_edge2" class="edge">
+<title>type~symba_cb&#45;&gt;type~helio_cb</title>
+<path fill="none" stroke="#000000" d="M476.77,-479.46C442.6,-475.39 386.54,-468.7 349.82,-464.33"/>
+<polygon fill="#000000" stroke="#000000" points="349.9,-460.81 339.55,-463.1 349.07,-467.76 349.9,-460.81"/>
+</g>
+<!-- type~symba_pl -->
+<g id="type~~graph~~TypeGraph_node4" class="node">
+<title>type~symba_pl</title>
+<g id="a_type~~graph~~TypeGraph_node4"><a xlink:href=".././type/symba_pl.html" xlink:title="symba_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="753,-108 695,-108 695,-84 753,-84 753,-108"/>
+<text text-anchor="middle" x="724" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pl</text>
+</a>
+</g>
+</g>
+<!-- type~symba_kinship -->
+<g id="type~~graph~~TypeGraph_node11" class="node">
+<title>type~symba_kinship</title>
+<g id="a_type~~graph~~TypeGraph_node11"><a xlink:href=".././type/symba_kinship.html" xlink:title="symba_kinship">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="549,-108 466,-108 466,-84 549,-84 549,-108"/>
+<text text-anchor="middle" x="507.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_kinship</text>
+</a>
+</g>
+</g>
+<!-- type~symba_pl&#45;&gt;type~symba_kinship -->
 <g id="type~~graph~~TypeGraph_edge3" class="edge">
-<title>type~rmvs_pl&#45;&gt;type~whm_pl</title>
-<path fill="none" stroke="#000000" d="M1054.39,-425.39C1039.65,-428.28 1020.86,-431.71 1004,-434 933.04,-443.66 849.28,-446.66 802.44,-447.58"/>
-<polygon fill="#000000" stroke="#000000" points="802.12,-444.09 792.19,-447.77 802.25,-451.09 802.12,-444.09"/>
+<title>type~symba_pl&#45;&gt;type~symba_kinship</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M694.96,-96C660.55,-96 601.56,-96 559.14,-96"/>
+<polygon fill="#000000" stroke="#000000" points="559,-92.5 549,-96 559,-99.5 559,-92.5"/>
+<text text-anchor="middle" x="619" y="-98.4" font-family="Helvetica,sans-Serif" font-size="9.50">kin</text>
+</g>
+<!-- type~helio_pl -->
+<g id="type~~graph~~TypeGraph_node37" class="node">
+<title>type~helio_pl</title>
+<g id="a_type~~graph~~TypeGraph_node37"><a xlink:href=".././type/helio_pl.html" xlink:title="helio_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="534.5,-66 480.5,-66 480.5,-42 534.5,-42 534.5,-66"/>
+<text text-anchor="middle" x="507.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_pl</text>
+</a>
+</g>
+</g>
+<!-- type~symba_pl&#45;&gt;type~helio_pl -->
+<g id="type~~graph~~TypeGraph_edge4" class="edge">
+<title>type~symba_pl&#45;&gt;type~helio_pl</title>
+<path fill="none" stroke="#000000" d="M694.96,-90.51C656.35,-82.95 586.81,-69.33 544.43,-61.04"/>
+<polygon fill="#000000" stroke="#000000" points="545.02,-57.58 534.53,-59.1 543.68,-64.45 545.02,-57.58"/>
+</g>
+<!-- type~whm_cb -->
+<g id="type~~graph~~TypeGraph_node5" class="node">
+<title>type~whm_cb</title>
+<g id="a_type~~graph~~TypeGraph_node5"><a xlink:href=".././type/whm_cb.html" xlink:title="whm_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="339.5,-388 285.5,-388 285.5,-364 339.5,-364 339.5,-388"/>
+<text text-anchor="middle" x="312.5" y="-373.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_cb</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_cb -->
+<g id="type~~graph~~TypeGraph_node39" class="node">
+<title>type~swiftest_cb</title>
+<g id="a_type~~graph~~TypeGraph_node39"><a xlink:href=".././type/swiftest_cb.html" xlink:title="swiftest_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="235,-358 170,-358 170,-334 235,-334 235,-358"/>
+<text text-anchor="middle" x="202.5" y="-343.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_cb</text>
+</a>
+</g>
+</g>
+<!-- type~whm_cb&#45;&gt;type~swiftest_cb -->
+<g id="type~~graph~~TypeGraph_edge5" class="edge">
+<title>type~whm_cb&#45;&gt;type~swiftest_cb</title>
+<path fill="none" stroke="#000000" d="M294.16,-363.81C284.51,-357.58 272.05,-350.4 260,-346"/>
+</g>
+<!-- type~symba_encounter -->
+<g id="type~~graph~~TypeGraph_node6" class="node">
+<title>type~symba_encounter</title>
+<g id="a_type~~graph~~TypeGraph_node6"><a xlink:href=".././type/symba_encounter.html" xlink:title="symba_encounter">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="773,-192 675,-192 675,-168 773,-168 773,-192"/>
+<text text-anchor="middle" x="724" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_encounter</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_encounter -->
+<g id="type~~graph~~TypeGraph_node18" class="node">
+<title>type~swiftest_encounter</title>
+<g id="a_type~~graph~~TypeGraph_node18"><a xlink:href=".././type/swiftest_encounter.html" xlink:title="swiftest_encounter">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="558.5,-192 456.5,-192 456.5,-168 558.5,-168 558.5,-192"/>
+<text text-anchor="middle" x="507.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_encounter</text>
+</a>
+</g>
+</g>
+<!-- type~symba_encounter&#45;&gt;type~swiftest_encounter -->
+<g id="type~~graph~~TypeGraph_edge6" class="edge">
+<title>type~symba_encounter&#45;&gt;type~swiftest_encounter</title>
+<path fill="none" stroke="#000000" d="M674.86,-180C643.52,-180 602.38,-180 568.86,-180"/>
+<polygon fill="#000000" stroke="#000000" points="568.71,-176.5 558.71,-180 568.71,-183.5 568.71,-176.5"/>
+</g>
+<!-- type~swiftest_particle_info -->
+<g id="type~~graph~~TypeGraph_node7" class="node">
+<title>type~swiftest_particle_info</title>
+<g id="a_type~~graph~~TypeGraph_node7"><a xlink:href=".././type/swiftest_particle_info.html" xlink:title="swiftest_particle_info">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="112,-367 0,-367 0,-343 112,-343 112,-367"/>
+<text text-anchor="middle" x="56" y="-352.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_particle_info</text>
+</a>
+</g>
 </g>
 <!-- type~rmvs_nbody_system -->
-<g id="type~~graph~~TypeGraph_node25" class="node">
+<g id="type~~graph~~TypeGraph_node8" class="node">
 <title>type~rmvs_nbody_system</title>
-<g id="a_type~~graph~~TypeGraph_node25"><a xlink:href=".././type/rmvs_nbody_system.html" xlink:title="rmvs_nbody_system">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="926,-432 815,-432 815,-408 926,-408 926,-432"/>
-<text text-anchor="middle" x="870.5" y="-417.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_nbody_system</text>
+<g id="a_type~~graph~~TypeGraph_node8"><a xlink:href=".././type/rmvs_nbody_system.html" xlink:title="rmvs_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="980,-318 869,-318 869,-294 980,-294 980,-318"/>
+<text text-anchor="middle" x="924.5" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_nbody_system</text>
 </a>
 </g>
 </g>
-<!-- type~rmvs_pl&#45;&gt;type~rmvs_nbody_system -->
-<g id="type~~graph~~TypeGraph_edge2" class="edge">
-<title>type~rmvs_pl&#45;&gt;type~rmvs_nbody_system</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1054.45,-420C1025.06,-420 976.15,-420 936.29,-420"/>
-<polygon fill="#000000" stroke="#000000" points="936.11,-416.5 926.11,-420 936.11,-423.5 936.11,-416.5"/>
-<text text-anchor="middle" x="974" y="-422.4" font-family="Helvetica,sans-Serif" font-size="9.50">planetocentric</text>
+<!-- type~whm_nbody_system -->
+<g id="type~~graph~~TypeGraph_node22" class="node">
+<title>type~whm_nbody_system</title>
+<g id="a_type~~graph~~TypeGraph_node22"><a xlink:href=".././type/whm_nbody_system.html" xlink:title="whm_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="779,-318 669,-318 669,-294 779,-294 779,-318"/>
+<text text-anchor="middle" x="724" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system -->
+<g id="type~~graph~~TypeGraph_edge7" class="edge">
+<title>type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system</title>
+<path fill="none" stroke="#000000" d="M869,-306C844.27,-306 814.87,-306 789.09,-306"/>
+<polygon fill="#000000" stroke="#000000" points="789.04,-302.5 779.04,-306 789.04,-309.5 789.04,-302.5"/>
+</g>
+<!-- type~symba_merger -->
+<g id="type~~graph~~TypeGraph_node9" class="node">
+<title>type~symba_merger</title>
+<g id="a_type~~graph~~TypeGraph_node9"><a xlink:href=".././type/symba_merger.html" xlink:title="symba_merger">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="967,-108 882,-108 882,-84 967,-84 967,-108"/>
+<text text-anchor="middle" x="924.5" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_merger</text>
+</a>
+</g>
+</g>
+<!-- type~symba_merger&#45;&gt;type~symba_pl -->
+<g id="type~~graph~~TypeGraph_edge8" class="edge">
+<title>type~symba_merger&#45;&gt;type~symba_pl</title>
+<path fill="none" stroke="#000000" d="M881.89,-96C846.86,-96 797.17,-96 763.15,-96"/>
+<polygon fill="#000000" stroke="#000000" points="763.13,-92.5 753.13,-96 763.13,-99.5 763.13,-92.5"/>
 </g>
 <!-- type~rmvs_interp -->
-<g id="type~~graph~~TypeGraph_node27" class="node">
+<g id="type~~graph~~TypeGraph_node10" class="node">
 <title>type~rmvs_interp</title>
-<g id="a_type~~graph~~TypeGraph_node27"><a xlink:href=".././type/rmvs_interp.html" xlink:title="rmvs_interp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="488,-364 419,-364 419,-340 488,-340 488,-364"/>
-<text text-anchor="middle" x="453.5" y="-349.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_interp</text>
-</a>
-</g>
-</g>
-<!-- type~rmvs_pl&#45;&gt;type~rmvs_interp -->
-<g id="type~~graph~~TypeGraph_edge1" class="edge">
-<title>type~rmvs_pl&#45;&gt;type~rmvs_interp</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1058.56,-407.95C1029.34,-392.63 975.55,-366.99 926,-357 771.32,-325.82 582.26,-338.76 498.29,-347.06"/>
-<polygon fill="#000000" stroke="#000000" points="497.7,-343.6 488.1,-348.09 498.41,-350.56 497.7,-343.6"/>
-<text text-anchor="middle" x="765" y="-342.4" font-family="Helvetica,sans-Serif" font-size="9.50">outer, inner</text>
-</g>
-<!-- type~rmvs_tp -->
-<g id="type~~graph~~TypeGraph_node2" class="node">
-<title>type~rmvs_tp</title>
-<g id="a_type~~graph~~TypeGraph_node2"><a xlink:href=".././type/rmvs_tp.html" xlink:title="rmvs_tp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="897.5,-222 843.5,-222 843.5,-198 897.5,-198 897.5,-222"/>
-<text text-anchor="middle" x="870.5" y="-207.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_tp</text>
-</a>
-</g>
-</g>
-<!-- type~whm_tp -->
-<g id="type~~graph~~TypeGraph_node17" class="node">
-<title>type~whm_tp</title>
-<g id="a_type~~graph~~TypeGraph_node17"><a xlink:href=".././type/whm_tp.html" xlink:title="whm_tp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="587,-262 533,-262 533,-238 587,-238 587,-262"/>
-<text text-anchor="middle" x="560" y="-247.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_tp</text>
-</a>
-</g>
-</g>
-<!-- type~rmvs_tp&#45;&gt;type~whm_tp -->
-<g id="type~~graph~~TypeGraph_edge5" class="edge">
-<title>type~rmvs_tp&#45;&gt;type~whm_tp</title>
-<path fill="none" stroke="#000000" d="M843.41,-215.57C829.65,-218.37 812.46,-221.66 797,-224 726.67,-234.65 643.93,-242.75 597.46,-246.91"/>
-<polygon fill="#000000" stroke="#000000" points="596.94,-243.44 587.28,-247.81 597.55,-250.41 596.94,-243.44"/>
-</g>
-<!-- type~rmvs_cb -->
-<g id="type~~graph~~TypeGraph_node34" class="node">
-<title>type~rmvs_cb</title>
-<g id="a_type~~graph~~TypeGraph_node34"><a xlink:href=".././type/rmvs_cb.html" xlink:title="rmvs_cb">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="687,-222 633,-222 633,-198 687,-198 687,-222"/>
-<text text-anchor="middle" x="660" y="-207.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_cb</text>
-</a>
-</g>
-</g>
-<!-- type~rmvs_tp&#45;&gt;type~rmvs_cb -->
-<g id="type~~graph~~TypeGraph_edge4" class="edge">
-<title>type~rmvs_tp&#45;&gt;type~rmvs_cb</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M843.09,-210C806.2,-210 739.08,-210 697.45,-210"/>
-<polygon fill="#000000" stroke="#000000" points="697.19,-206.5 687.19,-210 697.19,-213.5 697.19,-206.5"/>
-<text text-anchor="middle" x="765" y="-212.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb_heliocentric</text>
-</g>
-<!-- type~swiftest_pl -->
-<g id="type~~graph~~TypeGraph_node3" class="node">
-<title>type~swiftest_pl</title>
-<g id="a_type~~graph~~TypeGraph_node3"><a xlink:href=".././type/swiftest_pl.html" xlink:title="swiftest_pl">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="291.5,-366 229.5,-366 229.5,-342 291.5,-342 291.5,-366"/>
-<text text-anchor="middle" x="260.5" y="-351.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl</text>
+<g id="a_type~~graph~~TypeGraph_node10"><a xlink:href=".././type/rmvs_interp.html" xlink:title="rmvs_interp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="347,-430 278,-430 278,-406 347,-406 347,-430"/>
+<text text-anchor="middle" x="312.5" y="-415.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_interp</text>
 </a>
 </g>
 </g>
@@ -324,483 +430,436 @@ All Types &ndash; swiftest
 <g id="type~~graph~~TypeGraph_node12" class="node">
 <title>type~swiftest_body</title>
 <g id="a_type~~graph~~TypeGraph_node12"><a xlink:href=".././type/swiftest_body.html" xlink:title="swiftest_body">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="191,-366 114,-366 114,-342 191,-342 191,-366"/>
-<text text-anchor="middle" x="152.5" y="-351.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_body</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="241,-300 164,-300 164,-276 241,-276 241,-300"/>
+<text text-anchor="middle" x="202.5" y="-285.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_body</text>
 </a>
 </g>
 </g>
-<!-- type~swiftest_pl&#45;&gt;type~swiftest_body -->
-<g id="type~~graph~~TypeGraph_edge6" class="edge">
-<title>type~swiftest_pl&#45;&gt;type~swiftest_body</title>
-<path fill="none" stroke="#000000" d="M229.47,-352.09C223,-352.21 216.23,-352.74 210,-354"/>
-</g>
-<!-- type~helio_tp -->
-<g id="type~~graph~~TypeGraph_node4" class="node">
-<title>type~helio_tp</title>
-<g id="a_type~~graph~~TypeGraph_node4"><a xlink:href=".././type/helio_tp.html" xlink:title="helio_tp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="480.5,-116 426.5,-116 426.5,-92 480.5,-92 480.5,-116"/>
-<text text-anchor="middle" x="453.5" y="-101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_tp</text>
-</a>
-</g>
-</g>
-<!-- type~swiftest_tp -->
-<g id="type~~graph~~TypeGraph_node6" class="node">
-<title>type~swiftest_tp</title>
-<g id="a_type~~graph~~TypeGraph_node6"><a xlink:href=".././type/swiftest_tp.html" xlink:title="swiftest_tp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="292,-323 229,-323 229,-299 292,-299 292,-323"/>
-<text text-anchor="middle" x="260.5" y="-308.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_tp</text>
-</a>
-</g>
-</g>
-<!-- type~helio_tp&#45;&gt;type~swiftest_tp -->
-<g id="type~~graph~~TypeGraph_edge7" class="edge">
-<title>type~helio_tp&#45;&gt;type~swiftest_tp</title>
-<path fill="none" stroke="#000000" d="M341.5,-270C327.36,-278.72 311.15,-287.28 297.04,-294.3"/>
-<polygon fill="#000000" stroke="#000000" points="295.09,-291.36 287.65,-298.9 298.17,-297.64 295.09,-291.36"/>
-<path fill="none" stroke="#000000" d="M426.27,-106.81C414.05,-109.51 400.39,-114.77 392,-125 354.74,-170.45 409.03,-208.81 374,-256 365.11,-267.98 356.19,-262.17 343.5,-270"/>
-</g>
-<!-- type~whm_pl&#45;&gt;type~swiftest_pl -->
-<g id="type~~graph~~TypeGraph_edge8" class="edge">
-<title>type~whm_pl&#45;&gt;type~swiftest_pl</title>
-<path fill="none" stroke="#000000" d="M737.91,-448.15C676.67,-447.96 519.29,-444.4 392,-415 354.44,-406.32 345.62,-400.95 311,-384 303.51,-380.33 295.68,-375.89 288.51,-371.57"/>
-<polygon fill="#000000" stroke="#000000" points="290.2,-368.5 279.86,-366.21 286.52,-374.45 290.2,-368.5"/>
-</g>
-<!-- type~swiftest_tp&#45;&gt;type~swiftest_body -->
+<!-- type~swiftest_body&#45;&gt;type~swiftest_particle_info -->
 <g id="type~~graph~~TypeGraph_edge9" class="edge">
-<title>type~swiftest_tp&#45;&gt;type~swiftest_body</title>
-<path fill="none" stroke="#000000" d="M240.58,-323.05C236.29,-326.1 231.86,-329.51 228,-333 218.89,-341.25 222.05,-351.56 210,-354"/>
-<path fill="none" stroke="#000000" d="M209,-354C206.48,-354.51 203.88,-354.91 201.25,-355.23"/>
-<polygon fill="#000000" stroke="#000000" points="200.72,-351.76 191.02,-356.03 201.26,-358.74 200.72,-351.76"/>
-</g>
-<!-- type~whm_nbody_system -->
-<g id="type~~graph~~TypeGraph_node7" class="node">
-<title>type~whm_nbody_system</title>
-<g id="a_type~~graph~~TypeGraph_node7"><a xlink:href=".././type/whm_nbody_system.html" xlink:title="whm_nbody_system">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="715,-411 605,-411 605,-387 715,-387 715,-411"/>
-<text text-anchor="middle" x="660" y="-396.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_nbody_system</text>
-</a>
-</g>
-</g>
-<!-- type~swiftest_nbody_system -->
-<g id="type~~graph~~TypeGraph_node33" class="node">
-<title>type~swiftest_nbody_system</title>
-<g id="a_type~~graph~~TypeGraph_node33"><a xlink:href=".././type/swiftest_nbody_system.html" xlink:title="swiftest_nbody_system">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="515,-406 392,-406 392,-382 515,-382 515,-406"/>
-<text text-anchor="middle" x="453.5" y="-391.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_nbody_system</text>
-</a>
-</g>
-</g>
-<!-- type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system -->
-<g id="type~~graph~~TypeGraph_edge10" class="edge">
-<title>type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system</title>
-<path fill="none" stroke="#000000" d="M604.73,-397.67C580.4,-397.08 551.36,-396.37 525.34,-395.73"/>
-<polygon fill="#000000" stroke="#000000" points="525.24,-392.23 515.15,-395.48 525.06,-399.23 525.24,-392.23"/>
-</g>
-<!-- type~swiftest_cb -->
-<g id="type~~graph~~TypeGraph_node8" class="node">
-<title>type~swiftest_cb</title>
-<g id="a_type~~graph~~TypeGraph_node8"><a xlink:href=".././type/swiftest_cb.html" xlink:title="swiftest_cb">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="293,-257 228,-257 228,-233 293,-233 293,-257"/>
-<text text-anchor="middle" x="260.5" y="-242.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_cb</text>
-</a>
-</g>
+<title>type~swiftest_body&#45;&gt;type~swiftest_particle_info</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M175.33,-300.13C152.11,-310.9 117.99,-326.72 92.35,-338.61"/>
+<polygon fill="#000000" stroke="#000000" points="90.57,-335.58 82.97,-342.96 93.52,-341.93 90.57,-335.58"/>
+<text text-anchor="middle" x="138" y="-321.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
 </g>
 <!-- type~swiftest_base -->
-<g id="type~~graph~~TypeGraph_node26" class="node">
+<g id="type~~graph~~TypeGraph_node25" class="node">
 <title>type~swiftest_base</title>
-<g id="a_type~~graph~~TypeGraph_node26"><a xlink:href=".././type/swiftest_base.html" xlink:title="swiftest_base">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="77,-366 0,-366 0,-342 77,-342 77,-366"/>
-<text text-anchor="middle" x="38.5" y="-351.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_base</text>
+<g id="a_type~~graph~~TypeGraph_node25"><a xlink:href=".././type/swiftest_base.html" xlink:title="swiftest_base">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="94.5,-313 17.5,-313 17.5,-289 94.5,-289 94.5,-313"/>
+<text text-anchor="middle" x="56" y="-298.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_base</text>
 </a>
 </g>
-</g>
-<!-- type~swiftest_cb&#45;&gt;type~swiftest_base -->
-<g id="type~~graph~~TypeGraph_edge11" class="edge">
-<title>type~swiftest_cb&#45;&gt;type~swiftest_base</title>
-<path fill="none" stroke="#000000" d="M95,-354C92.47,-354 89.88,-354 87.26,-354"/>
-<polygon fill="#000000" stroke="#000000" points="87.12,-350.5 77.12,-354 87.12,-357.5 87.12,-350.5"/>
-<path fill="none" stroke="#000000" d="M234.5,-257C204.19,-272.23 152.4,-300.46 114,-333 104.62,-340.95 108.29,-354 96,-354"/>
-</g>
-<!-- type~helio_pl -->
-<g id="type~~graph~~TypeGraph_node9" class="node">
-<title>type~helio_pl</title>
-<g id="a_type~~graph~~TypeGraph_node9"><a xlink:href=".././type/helio_pl.html" xlink:title="helio_pl">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="480.5,-242 426.5,-242 426.5,-218 480.5,-218 480.5,-242"/>
-<text text-anchor="middle" x="453.5" y="-227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_pl</text>
-</a>
-</g>
-</g>
-<!-- type~helio_pl&#45;&gt;type~swiftest_pl -->
-<g id="type~~graph~~TypeGraph_edge12" class="edge">
-<title>type~helio_pl&#45;&gt;type~swiftest_pl</title>
-<path fill="none" stroke="#000000" d="M437.84,-242.06C424.77,-253.3 405.65,-271 392,-289 381.91,-302.31 387.05,-311.57 374,-322 353.41,-338.45 324.78,-346.45 301.56,-350.33"/>
-<polygon fill="#000000" stroke="#000000" points="301.02,-346.87 291.64,-351.8 302.05,-353.8 301.02,-346.87"/>
-</g>
-<!-- type~lambda_obj -->
-<g id="type~~graph~~TypeGraph_node10" class="node">
-<title>type~lambda_obj</title>
-<g id="a_type~~graph~~TypeGraph_node10"><a xlink:href=".././type/lambda_obj.html" xlink:title="lambda_obj">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="904.5,-516 836.5,-516 836.5,-492 904.5,-492 904.5,-516"/>
-<text text-anchor="middle" x="870.5" y="-501.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj</text>
-</a>
-</g>
-</g>
-<!-- type~lambda_obj_err -->
-<g id="type~~graph~~TypeGraph_node11" class="node">
-<title>type~lambda_obj_err</title>
-<g id="a_type~~graph~~TypeGraph_node11"><a xlink:href=".././type/lambda_obj_err.html" xlink:title="lambda_obj_err">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="1125.5,-516 1037.5,-516 1037.5,-492 1125.5,-492 1125.5,-516"/>
-<text text-anchor="middle" x="1081.5" y="-501.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj_err</text>
-</a>
-</g>
-</g>
-<!-- type~lambda_obj_err&#45;&gt;type~lambda_obj -->
-<g id="type~~graph~~TypeGraph_edge13" class="edge">
-<title>type~lambda_obj_err&#45;&gt;type~lambda_obj</title>
-<path fill="none" stroke="#000000" d="M1037.29,-502.12C1018.16,-501.78 995.42,-502.02 975,-504"/>
 </g>
 <!-- type~swiftest_body&#45;&gt;type~swiftest_base -->
-<g id="type~~graph~~TypeGraph_edge14" class="edge">
+<g id="type~~graph~~TypeGraph_edge10" class="edge">
 <title>type~swiftest_body&#45;&gt;type~swiftest_base</title>
-<path fill="none" stroke="#000000" d="M113.88,-354C107.9,-354 101.78,-354 96,-354"/>
+<path fill="none" stroke="#000000" d="M163.98,-288.91C153.01,-289.35 141.01,-290.02 130,-291 121.85,-291.73 113.21,-292.72 104.84,-293.79"/>
+<polygon fill="#000000" stroke="#000000" points="104.26,-290.34 94.81,-295.13 105.19,-297.27 104.26,-290.34"/>
 </g>
-<!-- type~swiftest_encounter -->
+<!-- type~fraggle_fragments -->
 <g id="type~~graph~~TypeGraph_node13" class="node">
-<title>type~swiftest_encounter</title>
-<g id="a_type~~graph~~TypeGraph_node13"><a xlink:href=".././type/swiftest_encounter.html" xlink:title="swiftest_encounter">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="504.5,-322 402.5,-322 402.5,-298 504.5,-298 504.5,-322"/>
-<text text-anchor="middle" x="453.5" y="-307.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_encounter</text>
+<title>type~fraggle_fragments</title>
+<g id="a_type~~graph~~TypeGraph_node13"><a xlink:href=".././type/fraggle_fragments.html" xlink:title="fraggle_fragments">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="557.5,-150 457.5,-150 457.5,-126 557.5,-126 557.5,-150"/>
+<text text-anchor="middle" x="507.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_fragments</text>
 </a>
 </g>
 </g>
-<!-- type~symba_plplenc -->
-<g id="type~~graph~~TypeGraph_node14" class="node">
-<title>type~symba_plplenc</title>
-<g id="a_type~~graph~~TypeGraph_node14"><a xlink:href=".././type/symba_plplenc.html" xlink:title="symba_plplenc">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="912.5,-264 828.5,-264 828.5,-240 912.5,-240 912.5,-264"/>
-<text text-anchor="middle" x="870.5" y="-249.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_plplenc</text>
+<!-- type~swiftest_pl -->
+<g id="type~~graph~~TypeGraph_node33" class="node">
+<title>type~swiftest_pl</title>
+<g id="a_type~~graph~~TypeGraph_node33"><a xlink:href=".././type/swiftest_pl.html" xlink:title="swiftest_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="343.5,-258 281.5,-258 281.5,-234 343.5,-234 343.5,-258"/>
+<text text-anchor="middle" x="312.5" y="-243.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl</text>
 </a>
 </g>
 </g>
-<!-- type~symba_pltpenc -->
-<g id="type~~graph~~TypeGraph_node18" class="node">
-<title>type~symba_pltpenc</title>
-<g id="a_type~~graph~~TypeGraph_node18"><a xlink:href=".././type/symba_pltpenc.html" xlink:title="symba_pltpenc">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="702.5,-310 617.5,-310 617.5,-286 702.5,-286 702.5,-310"/>
-<text text-anchor="middle" x="660" y="-295.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pltpenc</text>
-</a>
-</g>
-</g>
-<!-- type~symba_plplenc&#45;&gt;type~symba_pltpenc -->
-<g id="type~~graph~~TypeGraph_edge15" class="edge">
-<title>type~symba_plplenc&#45;&gt;type~symba_pltpenc</title>
-<path fill="none" stroke="#000000" d="M844.07,-264.04C814.11,-278.19 768.12,-299.78 766,-300"/>
-<path fill="none" stroke="#000000" d="M764,-300C747.51,-301.69 729.45,-301.9 713.13,-301.47"/>
-<polygon fill="#000000" stroke="#000000" points="712.81,-297.96 702.69,-301.11 712.56,-304.95 712.81,-297.96"/>
-</g>
-<!-- type~helio_cb -->
-<g id="type~~graph~~TypeGraph_node15" class="node">
-<title>type~helio_cb</title>
-<g id="a_type~~graph~~TypeGraph_node15"><a xlink:href=".././type/helio_cb.html" xlink:title="helio_cb">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="480.5,-24 426.5,-24 426.5,0 480.5,0 480.5,-24"/>
-<text text-anchor="middle" x="453.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_cb</text>
-</a>
-</g>
-</g>
-<!-- type~helio_cb&#45;&gt;type~swiftest_cb -->
-<g id="type~~graph~~TypeGraph_edge16" class="edge">
-<title>type~helio_cb&#45;&gt;type~swiftest_cb</title>
-<path fill="none" stroke="#000000" d="M426.32,-19.31C414.41,-23.83 401,-30.77 392,-41 346.57,-92.67 398.73,-146.98 343.5,-188"/>
-<path fill="none" stroke="#000000" d="M341.5,-188C323.48,-201.39 302.84,-216.07 287.04,-227.19"/>
-<polygon fill="#000000" stroke="#000000" points="284.98,-224.36 278.81,-232.96 289,-230.09 284.98,-224.36"/>
-</g>
-<!-- type~symba_nbody_system -->
-<g id="type~~graph~~TypeGraph_node16" class="node">
-<title>type~symba_nbody_system</title>
-<g id="a_type~~graph~~TypeGraph_node16"><a xlink:href=".././type/symba_nbody_system.html" xlink:title="symba_nbody_system">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="1141,-264 1022,-264 1022,-240 1141,-240 1141,-264"/>
-<text text-anchor="middle" x="1081.5" y="-249.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_nbody_system</text>
-</a>
-</g>
-</g>
-<!-- type~symba_nbody_system&#45;&gt;type~symba_plplenc -->
-<g id="type~~graph~~TypeGraph_edge19" class="edge">
-<title>type~symba_nbody_system&#45;&gt;type~symba_plplenc</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1021.73,-252C990.62,-252 952.78,-252 922.86,-252"/>
-<polygon fill="#000000" stroke="#000000" points="922.64,-248.5 912.64,-252 922.64,-255.5 922.64,-248.5"/>
-<text text-anchor="middle" x="974" y="-254.4" font-family="Helvetica,sans-Serif" font-size="9.50">plplenc_list</text>
-</g>
-<!-- type~symba_nbody_system&#45;&gt;type~symba_pltpenc -->
-<g id="type~~graph~~TypeGraph_edge18" class="edge">
-<title>type~symba_nbody_system&#45;&gt;type~symba_pltpenc</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M973,-300C887.91,-334.99 857.52,-290.6 766,-300"/>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1054.12,-264.18C1032.82,-273.97 1002.04,-288.02 975,-300"/>
-<text text-anchor="middle" x="870.5" y="-315.4" font-family="Helvetica,sans-Serif" font-size="9.50">pltpenc_list</text>
-</g>
-<!-- type~helio_nbody_system -->
-<g id="type~~graph~~TypeGraph_node22" class="node">
-<title>type~helio_nbody_system</title>
-<g id="a_type~~graph~~TypeGraph_node22"><a xlink:href=".././type/helio_nbody_system.html" xlink:title="helio_nbody_system">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="925.5,-390 815.5,-390 815.5,-366 925.5,-366 925.5,-390"/>
-<text text-anchor="middle" x="870.5" y="-375.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_nbody_system</text>
-</a>
-</g>
-</g>
-<!-- type~symba_nbody_system&#45;&gt;type~helio_nbody_system -->
-<g id="type~~graph~~TypeGraph_edge20" class="edge">
-<title>type~symba_nbody_system&#45;&gt;type~helio_nbody_system</title>
-<path fill="none" stroke="#000000" d="M973,-300C940.3,-313.45 909.05,-340.3 890.07,-358.71"/>
-<polygon fill="#000000" stroke="#000000" points="887.58,-356.25 882.95,-365.78 892.51,-361.21 887.58,-356.25"/>
-</g>
-<!-- type~symba_merger -->
-<g id="type~~graph~~TypeGraph_node35" class="node">
-<title>type~symba_merger</title>
-<g id="a_type~~graph~~TypeGraph_node35"><a xlink:href=".././type/symba_merger.html" xlink:title="symba_merger">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="913,-179 828,-179 828,-155 913,-155 913,-179"/>
-<text text-anchor="middle" x="870.5" y="-164.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_merger</text>
-</a>
-</g>
-</g>
-<!-- type~symba_nbody_system&#45;&gt;type~symba_merger -->
-<g id="type~~graph~~TypeGraph_edge17" class="edge">
-<title>type~symba_nbody_system&#45;&gt;type~symba_merger</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1050.89,-239.89C1019.8,-227.18 969.48,-206.64 926,-189 921.16,-187.04 916.08,-184.98 911.04,-182.94"/>
-<polygon fill="#000000" stroke="#000000" points="912.07,-179.59 901.49,-179.08 909.45,-186.08 912.07,-179.59"/>
-<text text-anchor="middle" x="974" y="-222.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl_adds</text>
-</g>
-<!-- type~whm_tp&#45;&gt;type~swiftest_tp -->
-<g id="type~~graph~~TypeGraph_edge21" class="edge">
-<title>type~whm_tp&#45;&gt;type~swiftest_tp</title>
-<path fill="none" stroke="#000000" d="M532.86,-251.13C478.98,-253.64 359.29,-260.26 343.5,-270"/>
-</g>
-<!-- type~symba_pltpenc&#45;&gt;type~swiftest_encounter -->
-<g id="type~~graph~~TypeGraph_edge22" class="edge">
-<title>type~symba_pltpenc&#45;&gt;type~swiftest_encounter</title>
-<path fill="none" stroke="#000000" d="M617.12,-300.46C587.7,-302.18 547.9,-304.52 515.03,-306.45"/>
-<polygon fill="#000000" stroke="#000000" points="514.41,-302.98 504.63,-307.06 514.82,-309.97 514.41,-302.98"/>
-</g>
-<!-- type~swiftest_parameters -->
-<g id="type~~graph~~TypeGraph_node19" class="node">
-<title>type~swiftest_parameters</title>
-<g id="a_type~~graph~~TypeGraph_node19"><a xlink:href=".././type/swiftest_parameters.html" xlink:title="swiftest_parameters">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="925,-558 816,-558 816,-534 925,-534 925,-558"/>
-<text text-anchor="middle" x="870.5" y="-543.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_parameters</text>
-</a>
-</g>
-</g>
-<!-- type~tides_derivs_func -->
-<g id="type~~graph~~TypeGraph_node20" class="node">
-<title>type~tides_derivs_func</title>
-<g id="a_type~~graph~~TypeGraph_node20"><a xlink:href=".././type/tides_derivs_func.html" xlink:title="tides_derivs_func">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="1129.5,-600 1033.5,-600 1033.5,-576 1129.5,-576 1129.5,-600"/>
-<text text-anchor="middle" x="1081.5" y="-585.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tides_derivs_func</text>
-</a>
-</g>
-</g>
-<!-- lambda_obj_tvar -->
-<g id="type~~graph~~TypeGraph_node36" class="node">
-<title>lambda_obj_tvar</title>
-<polygon fill="#5cb85c" stroke="#5cb85c" points="916.5,-600 824.5,-600 824.5,-576 916.5,-576 916.5,-600"/>
-<text text-anchor="middle" x="870.5" y="-585.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj_tvar</text>
-</g>
-<!-- type~tides_derivs_func&#45;&gt;lambda_obj_tvar -->
-<g id="type~~graph~~TypeGraph_edge23" class="edge">
-<title>type~tides_derivs_func&#45;&gt;lambda_obj_tvar</title>
-<path fill="none" stroke="#000000" d="M1033.34,-588C1001.69,-588 959.9,-588 926.7,-588"/>
-<polygon fill="#000000" stroke="#000000" points="926.7,-584.5 916.7,-588 926.7,-591.5 926.7,-584.5"/>
-</g>
-<!-- type~symba_particle_info -->
-<g id="type~~graph~~TypeGraph_node21" class="node">
-<title>type~symba_particle_info</title>
-<g id="a_type~~graph~~TypeGraph_node21"><a xlink:href=".././type/symba_particle_info.html" xlink:title="symba_particle_info">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="507.5,-74 399.5,-74 399.5,-50 507.5,-50 507.5,-74"/>
-<text text-anchor="middle" x="453.5" y="-59.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_particle_info</text>
-</a>
-</g>
-</g>
-<!-- type~helio_nbody_system&#45;&gt;type~whm_nbody_system -->
-<g id="type~~graph~~TypeGraph_edge24" class="edge">
-<title>type~helio_nbody_system&#45;&gt;type~whm_nbody_system</title>
-<path fill="none" stroke="#000000" d="M764,-415C751.36,-415 737.96,-413.8 725.14,-412.07"/>
-<polygon fill="#000000" stroke="#000000" points="725.42,-408.57 715.01,-410.58 724.4,-415.5 725.42,-408.57"/>
-<path fill="none" stroke="#000000" d="M837.54,-390.01C808.56,-400.82 769.78,-415 766,-415"/>
-</g>
-<!-- type~whm_cb -->
-<g id="type~~graph~~TypeGraph_node23" class="node">
-<title>type~whm_cb</title>
-<g id="a_type~~graph~~TypeGraph_node23"><a xlink:href=".././type/whm_cb.html" xlink:title="whm_cb">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="480.5,-200 426.5,-200 426.5,-176 480.5,-176 480.5,-200"/>
-<text text-anchor="middle" x="453.5" y="-185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_cb</text>
-</a>
-</g>
-</g>
-<!-- type~whm_cb&#45;&gt;type~swiftest_cb -->
-<g id="type~~graph~~TypeGraph_edge25" class="edge">
-<title>type~whm_cb&#45;&gt;type~swiftest_cb</title>
-<path fill="none" stroke="#000000" d="M426.45,-179.94C402.49,-174.25 367.2,-170.4 343.5,-188"/>
-</g>
-<!-- type~lambda_obj_tvar -->
-<g id="type~~graph~~TypeGraph_node24" class="node">
-<title>type~lambda_obj_tvar</title>
-<g id="a_type~~graph~~TypeGraph_node24"><a xlink:href=".././type/lambda_obj_tvar.html" xlink:title="lambda_obj_tvar">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="1127.5,-474 1035.5,-474 1035.5,-450 1127.5,-450 1127.5,-474"/>
-<text text-anchor="middle" x="1081.5" y="-459.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj_tvar</text>
-</a>
-</g>
-</g>
-<!-- type~lambda_obj_tvar&#45;&gt;type~lambda_obj -->
-<g id="type~~graph~~TypeGraph_edge26" class="edge">
-<title>type~lambda_obj_tvar&#45;&gt;type~lambda_obj</title>
-<path fill="none" stroke="#000000" d="M973,-504C954.09,-505.83 933.1,-506.12 915.14,-505.84"/>
-<polygon fill="#000000" stroke="#000000" points="915.02,-502.34 904.95,-505.62 914.87,-509.33 915.02,-502.34"/>
-<path fill="none" stroke="#000000" d="M1045.69,-474.01C1037.86,-476.85 1029.61,-479.94 1022,-483 1000.77,-491.54 997.77,-501.8 975,-504"/>
-</g>
-<!-- type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system -->
-<g id="type~~graph~~TypeGraph_edge27" class="edge">
-<title>type~rmvs_nbody_system&#45;&gt;type~whm_nbody_system</title>
-<path fill="none" stroke="#000000" d="M814.74,-416.37C799.01,-415.6 781.83,-415.01 766,-415"/>
-</g>
-<!-- type~symba_pl -->
-<g id="type~~graph~~TypeGraph_node28" class="node">
-<title>type~symba_pl</title>
-<g id="a_type~~graph~~TypeGraph_node28"><a xlink:href=".././type/symba_pl.html" xlink:title="symba_pl">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="689,-173 631,-173 631,-149 689,-149 689,-173"/>
-<text text-anchor="middle" x="660" y="-158.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pl</text>
-</a>
-</g>
-</g>
-<!-- type~symba_pl&#45;&gt;type~helio_pl -->
-<g id="type~~graph~~TypeGraph_edge30" class="edge">
-<title>type~symba_pl&#45;&gt;type~helio_pl</title>
-<path fill="none" stroke="#000000" d="M630.99,-170.45C594.39,-182.8 530.24,-204.45 490.19,-217.96"/>
-<polygon fill="#000000" stroke="#000000" points="488.91,-214.7 480.55,-221.21 491.15,-221.33 488.91,-214.7"/>
-</g>
-<!-- type~symba_pl&#45;&gt;type~symba_particle_info -->
-<g id="type~~graph~~TypeGraph_edge29" class="edge">
-<title>type~symba_pl&#45;&gt;type~symba_particle_info</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M639.02,-148.82C611.68,-132.48 560.79,-103.19 515,-83 510.82,-81.16 506.43,-79.37 502,-77.66"/>
-<polygon fill="#000000" stroke="#000000" points="502.9,-74.26 492.3,-74.06 500.46,-80.82 502.9,-74.26"/>
-<text text-anchor="middle" x="560" y="-119.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
-</g>
-<!-- type~symba_kinship -->
-<g id="type~~graph~~TypeGraph_node29" class="node">
-<title>type~symba_kinship</title>
-<g id="a_type~~graph~~TypeGraph_node29"><a xlink:href=".././type/symba_kinship.html" xlink:title="symba_kinship">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="495,-158 412,-158 412,-134 495,-134 495,-158"/>
-<text text-anchor="middle" x="453.5" y="-143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_kinship</text>
-</a>
-</g>
-</g>
-<!-- type~symba_pl&#45;&gt;type~symba_kinship -->
-<g id="type~~graph~~TypeGraph_edge28" class="edge">
-<title>type~symba_pl&#45;&gt;type~symba_kinship</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M630.99,-158.95C598.69,-156.58 544.94,-152.63 505.23,-149.72"/>
-<polygon fill="#000000" stroke="#000000" points="505.43,-146.23 495.2,-148.99 504.92,-153.21 505.43,-146.23"/>
-<text text-anchor="middle" x="560" y="-158.4" font-family="Helvetica,sans-Serif" font-size="9.50">kin</text>
-</g>
-<!-- type~symba_parameters -->
-<g id="type~~graph~~TypeGraph_node30" class="node">
-<title>type~symba_parameters</title>
-<g id="a_type~~graph~~TypeGraph_node30"><a xlink:href=".././type/symba_parameters.html" xlink:title="symba_parameters">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="1134,-558 1029,-558 1029,-534 1134,-534 1134,-558"/>
-<text text-anchor="middle" x="1081.5" y="-543.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_parameters</text>
-</a>
-</g>
-</g>
-<!-- type~symba_parameters&#45;&gt;type~swiftest_parameters -->
-<g id="type~~graph~~TypeGraph_edge31" class="edge">
-<title>type~symba_parameters&#45;&gt;type~swiftest_parameters</title>
-<path fill="none" stroke="#000000" d="M1028.84,-546C1000.61,-546 965.42,-546 935.47,-546"/>
-<polygon fill="#000000" stroke="#000000" points="935.12,-542.5 925.12,-546 935.12,-549.5 935.12,-542.5"/>
-</g>
-<!-- type~symba_cb -->
-<g id="type~~graph~~TypeGraph_node31" class="node">
-<title>type~symba_cb</title>
-<g id="a_type~~graph~~TypeGraph_node31"><a xlink:href=".././type/symba_cb.html" xlink:title="symba_cb">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="690.5,-32 629.5,-32 629.5,-8 690.5,-8 690.5,-32"/>
-<text text-anchor="middle" x="660" y="-17.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_cb</text>
-</a>
-</g>
-</g>
-<!-- type~symba_cb&#45;&gt;type~helio_cb -->
-<g id="type~~graph~~TypeGraph_edge33" class="edge">
-<title>type~symba_cb&#45;&gt;type~helio_cb</title>
-<path fill="none" stroke="#000000" d="M629.23,-18.73C616.26,-18.19 600.88,-17.55 587,-17 554.51,-15.71 517.54,-14.32 490.92,-13.34"/>
-<polygon fill="#000000" stroke="#000000" points="491.02,-9.84 480.9,-12.97 490.76,-16.83 491.02,-9.84"/>
-</g>
-<!-- type~symba_cb&#45;&gt;type~symba_particle_info -->
-<g id="type~~graph~~TypeGraph_edge32" class="edge">
-<title>type~symba_cb&#45;&gt;type~symba_particle_info</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M629.26,-26.11C600.2,-32.08 555.04,-41.35 517.91,-48.98"/>
-<polygon fill="#000000" stroke="#000000" points="516.76,-45.64 507.67,-51.08 518.17,-52.5 516.76,-45.64"/>
-<text text-anchor="middle" x="560" y="-47.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
+<!-- type~fraggle_fragments&#45;&gt;type~swiftest_pl -->
+<g id="type~~graph~~TypeGraph_edge11" class="edge">
+<title>type~fraggle_fragments&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" d="M462.43,-150.01C456.65,-152.51 451,-155.48 446,-159 417.94,-178.71 428.03,-203.39 397.5,-219"/>
 </g>
 <!-- type~symba_tp -->
-<g id="type~~graph~~TypeGraph_node32" class="node">
+<g id="type~~graph~~TypeGraph_node14" class="node">
 <title>type~symba_tp</title>
-<g id="a_type~~graph~~TypeGraph_node32"><a xlink:href=".././type/symba_tp.html" xlink:title="symba_tp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="689.5,-94 630.5,-94 630.5,-70 689.5,-70 689.5,-94"/>
-<text text-anchor="middle" x="660" y="-79.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_tp</text>
+<g id="a_type~~graph~~TypeGraph_node14"><a xlink:href=".././type/symba_tp.html" xlink:title="symba_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="753.5,-272 694.5,-272 694.5,-248 753.5,-248 753.5,-272"/>
+<text text-anchor="middle" x="724" y="-257.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_tp</text>
+</a>
+</g>
+</g>
+<!-- type~helio_tp -->
+<g id="type~~graph~~TypeGraph_node38" class="node">
+<title>type~helio_tp</title>
+<g id="a_type~~graph~~TypeGraph_node38"><a xlink:href=".././type/helio_tp.html" xlink:title="helio_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="534.5,-272 480.5,-272 480.5,-248 534.5,-248 534.5,-272"/>
+<text text-anchor="middle" x="507.5" y="-257.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_tp</text>
 </a>
 </g>
 </g>
 <!-- type~symba_tp&#45;&gt;type~helio_tp -->
-<g id="type~~graph~~TypeGraph_edge35" class="edge">
+<g id="type~~graph~~TypeGraph_edge12" class="edge">
 <title>type~symba_tp&#45;&gt;type~helio_tp</title>
-<path fill="none" stroke="#000000" d="M630.13,-85.11C593.55,-89.04 530.47,-95.83 490.7,-100.11"/>
-<polygon fill="#000000" stroke="#000000" points="490.2,-96.64 480.63,-101.19 490.95,-103.6 490.2,-96.64"/>
+<path fill="none" stroke="#000000" d="M694.07,-260C655.38,-260 586.79,-260 544.72,-260"/>
+<polygon fill="#000000" stroke="#000000" points="544.62,-256.5 534.62,-260 544.62,-263.5 544.62,-256.5"/>
 </g>
-<!-- type~symba_tp&#45;&gt;type~symba_particle_info -->
-<g id="type~~graph~~TypeGraph_edge34" class="edge">
-<title>type~symba_tp&#45;&gt;type~symba_particle_info</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M630.37,-76.52C617.2,-74.18 601.35,-71.63 587,-70 564.56,-67.46 539.89,-65.69 517.98,-64.48"/>
-<polygon fill="#000000" stroke="#000000" points="517.97,-60.97 507.8,-63.94 517.6,-67.96 517.97,-60.97"/>
-<text text-anchor="middle" x="560" y="-72.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
+<!-- type~whm_pl -->
+<g id="type~~graph~~TypeGraph_node15" class="node">
+<title>type~whm_pl</title>
+<g id="a_type~~graph~~TypeGraph_node15"><a xlink:href=".././type/whm_pl.html" xlink:title="whm_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="851,-271 797,-271 797,-247 851,-247 851,-271"/>
+<text text-anchor="middle" x="824" y="-256.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_pl</text>
+</a>
 </g>
-<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_pl -->
-<g id="type~~graph~~TypeGraph_edge37" class="edge">
-<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_pl</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M417.25,-381.95C403.83,-377.7 388.33,-373.19 374,-370 350.34,-364.73 323.47,-360.84 301.92,-358.21"/>
-<polygon fill="#000000" stroke="#000000" points="302.15,-354.71 291.81,-357.02 301.33,-361.66 302.15,-354.71"/>
-<text text-anchor="middle" x="342.5" y="-372.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl, pl_discards</text>
 </g>
-<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_tp -->
-<g id="type~~graph~~TypeGraph_edge38" class="edge">
-<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_tp</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M406.82,-381.91C401.54,-379.45 396.46,-376.51 392,-373 380.37,-363.85 385.81,-353.91 374,-345 353.24,-329.33 325.26,-320.84 302.4,-316.26"/>
-<polygon fill="#000000" stroke="#000000" points="302.76,-312.77 292.3,-314.42 301.51,-319.65 302.76,-312.77"/>
-<text text-anchor="middle" x="342.5" y="-347.4" font-family="Helvetica,sans-Serif" font-size="9.50">tp, tp_discards</text>
+<!-- type~whm_pl&#45;&gt;type~swiftest_pl -->
+<g id="type~~graph~~TypeGraph_edge13" class="edge">
+<title>type~whm_pl&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" d="M800.75,-246.94C793.95,-243.8 786.34,-240.79 779,-239 696.53,-218.86 473.09,-180.35 397.5,-219"/>
 </g>
-<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_cb -->
-<g id="type~~graph~~TypeGraph_edge36" class="edge">
-<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_cb</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M402.29,-381.89C398.42,-379.45 394.9,-376.52 392,-373 355.77,-328.99 416.88,-283.57 374,-246 355.06,-229.41 326.66,-229.27 303.14,-233.23"/>
-<polygon fill="#000000" stroke="#000000" points="302.2,-229.85 293.06,-235.21 303.55,-236.71 302.2,-229.85"/>
-<text text-anchor="middle" x="342.5" y="-248.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb</text>
+<!-- type~netcdf_parameters -->
+<g id="type~~graph~~TypeGraph_node16" class="node">
+<title>type~netcdf_parameters</title>
+<g id="a_type~~graph~~TypeGraph_node16"><a xlink:href=".././type/netcdf_parameters.html" xlink:title="netcdf_parameters">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="775.5,-66 672.5,-66 672.5,-42 775.5,-42 775.5,-66"/>
+<text text-anchor="middle" x="724" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">netcdf_parameters</text>
+</a>
 </g>
-<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_base -->
-<g id="type~~graph~~TypeGraph_edge39" class="edge">
-<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_base</title>
-<path fill="none" stroke="#000000" d="M391.74,-404.3C321.07,-413.29 202.78,-418.89 114,-375 102.98,-369.55 108.29,-353.71 96,-354"/>
+</g>
+<!-- type~lambda_obj -->
+<g id="type~~graph~~TypeGraph_node17" class="node">
+<title>type~lambda_obj</title>
+<g id="a_type~~graph~~TypeGraph_node17"><a xlink:href=".././type/lambda_obj.html" xlink:title="lambda_obj">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="958.5,-495 890.5,-495 890.5,-471 958.5,-471 958.5,-495"/>
+<text text-anchor="middle" x="924.5" y="-480.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj</text>
+</a>
+</g>
+</g>
+<!-- type~lambda_obj_err -->
+<g id="type~~graph~~TypeGraph_node19" class="node">
+<title>type~lambda_obj_err</title>
+<g id="a_type~~graph~~TypeGraph_node19"><a xlink:href=".././type/lambda_obj_err.html" xlink:title="lambda_obj_err">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1239.5,-495 1151.5,-495 1151.5,-471 1239.5,-471 1239.5,-495"/>
+<text text-anchor="middle" x="1195.5" y="-480.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj_err</text>
+</a>
+</g>
+</g>
+<!-- type~lambda_obj_err&#45;&gt;type~lambda_obj -->
+<g id="type~~graph~~TypeGraph_edge14" class="edge">
+<title>type~lambda_obj_err&#45;&gt;type~lambda_obj</title>
+<path fill="none" stroke="#000000" d="M1151.41,-481.34C1124.76,-480.72 1089.85,-480.66 1059,-483"/>
+</g>
+<!-- type~symba_pltpenc -->
+<g id="type~~graph~~TypeGraph_node20" class="node">
+<title>type~symba_pltpenc</title>
+<g id="a_type~~graph~~TypeGraph_node20"><a xlink:href=".././type/symba_pltpenc.html" xlink:title="symba_pltpenc">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="967,-192 882,-192 882,-168 967,-168 967,-192"/>
+<text text-anchor="middle" x="924.5" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_pltpenc</text>
+</a>
+</g>
+</g>
+<!-- type~symba_pltpenc&#45;&gt;type~symba_encounter -->
+<g id="type~~graph~~TypeGraph_edge15" class="edge">
+<title>type~symba_pltpenc&#45;&gt;type~symba_encounter</title>
+<path fill="none" stroke="#000000" d="M881.71,-178.1C864.15,-177.8 843.54,-178.08 825,-180"/>
+</g>
+<!-- type~swiftest_parameters&#45;&gt;type~netcdf_parameters -->
+<g id="type~~graph~~TypeGraph_edge16" class="edge">
+<title>type~swiftest_parameters&#45;&gt;type~netcdf_parameters</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M869.78,-54C843.82,-54 812.55,-54 785.73,-54"/>
+<polygon fill="#000000" stroke="#000000" points="785.68,-50.5 775.68,-54 785.68,-57.5 785.68,-50.5"/>
+<text text-anchor="middle" x="824" y="-56.4" font-family="Helvetica,sans-Serif" font-size="9.50">nciu</text>
+</g>
+<!-- type~swiftest_nbody_system -->
+<g id="type~~graph~~TypeGraph_node34" class="node">
+<title>type~swiftest_nbody_system</title>
+<g id="a_type~~graph~~TypeGraph_node34"><a xlink:href=".././type/swiftest_nbody_system.html" xlink:title="swiftest_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="569,-320 446,-320 446,-296 569,-296 569,-320"/>
+<text text-anchor="middle" x="507.5" y="-305.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system -->
+<g id="type~~graph~~TypeGraph_edge17" class="edge">
+<title>type~whm_nbody_system&#45;&gt;type~swiftest_nbody_system</title>
+<path fill="none" stroke="#000000" d="M668.87,-306.5C641.67,-306.76 608.37,-307.07 579.18,-307.34"/>
+<polygon fill="#000000" stroke="#000000" points="579.01,-303.84 569.04,-307.44 579.08,-310.84 579.01,-303.84"/>
+</g>
+<!-- type~swiftest_tp -->
+<g id="type~~graph~~TypeGraph_node23" class="node">
+<title>type~swiftest_tp</title>
+<g id="a_type~~graph~~TypeGraph_node23"><a xlink:href=".././type/swiftest_tp.html" xlink:title="swiftest_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="344,-300 281,-300 281,-276 344,-276 344,-300"/>
+<text text-anchor="middle" x="312.5" y="-285.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_tp</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_tp&#45;&gt;type~swiftest_body -->
+<g id="type~~graph~~TypeGraph_edge18" class="edge">
+<title>type~swiftest_tp&#45;&gt;type~swiftest_body</title>
+<path fill="none" stroke="#000000" d="M280.82,-286.11C273.93,-286.21 266.67,-286.73 260,-288"/>
+</g>
+<!-- type~tides_derivs_func -->
+<g id="type~~graph~~TypeGraph_node24" class="node">
+<title>type~tides_derivs_func</title>
+<g id="a_type~~graph~~TypeGraph_node24"><a xlink:href=".././type/tides_derivs_func.html" xlink:title="tides_derivs_func">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1243.5,-537 1147.5,-537 1147.5,-513 1243.5,-513 1243.5,-537"/>
+<text text-anchor="middle" x="1195.5" y="-522.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tides_derivs_func</text>
+</a>
+</g>
+</g>
+<!-- lambda_obj_tvar -->
+<g id="type~~graph~~TypeGraph_node41" class="node">
+<title>lambda_obj_tvar</title>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="970.5,-537 878.5,-537 878.5,-513 970.5,-513 970.5,-537"/>
+<text text-anchor="middle" x="924.5" y="-522.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj_tvar</text>
+</g>
+<!-- type~tides_derivs_func&#45;&gt;lambda_obj_tvar -->
+<g id="type~~graph~~TypeGraph_edge19" class="edge">
+<title>type~tides_derivs_func&#45;&gt;lambda_obj_tvar</title>
+<path fill="none" stroke="#000000" d="M1147.34,-525C1100.91,-525 1030.04,-525 980.94,-525"/>
+<polygon fill="#000000" stroke="#000000" points="980.81,-521.5 970.81,-525 980.81,-528.5 980.81,-521.5"/>
+</g>
+<!-- type~symba_plplenc -->
+<g id="type~~graph~~TypeGraph_node26" class="node">
+<title>type~symba_plplenc</title>
+<g id="a_type~~graph~~TypeGraph_node26"><a xlink:href=".././type/symba_plplenc.html" xlink:title="symba_plplenc">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="966.5,-150 882.5,-150 882.5,-126 966.5,-126 966.5,-150"/>
+<text text-anchor="middle" x="924.5" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_plplenc</text>
+</a>
+</g>
+</g>
+<!-- type~symba_plplenc&#45;&gt;type~symba_encounter -->
+<g id="type~~graph~~TypeGraph_edge20" class="edge">
+<title>type~symba_plplenc&#45;&gt;type~symba_encounter</title>
+<path fill="none" stroke="#000000" d="M823,-180C810.25,-181.32 796.51,-181.86 783.47,-181.97"/>
+<polygon fill="#000000" stroke="#000000" points="783.2,-178.47 773.2,-181.97 783.2,-185.47 783.2,-178.47"/>
+<path fill="none" stroke="#000000" d="M891.06,-150.03C883.76,-152.86 876.08,-155.95 869,-159 849.1,-167.57 846.55,-177.77 825,-180"/>
+</g>
+<!-- type~rmvs_pl -->
+<g id="type~~graph~~TypeGraph_node27" class="node">
+<title>type~rmvs_pl</title>
+<g id="a_type~~graph~~TypeGraph_node27"><a xlink:href=".././type/rmvs_pl.html" xlink:title="rmvs_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1222.5,-318 1168.5,-318 1168.5,-294 1222.5,-294 1222.5,-318"/>
+<text text-anchor="middle" x="1195.5" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_pl</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~rmvs_nbody_system -->
+<g id="type~~graph~~TypeGraph_edge22" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~rmvs_nbody_system</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1168.22,-306C1127.31,-306 1047.2,-306 990.21,-306"/>
+<polygon fill="#000000" stroke="#000000" points="990.21,-302.5 980.21,-306 990.21,-309.5 990.21,-302.5"/>
+<text text-anchor="middle" x="1058" y="-308.4" font-family="Helvetica,sans-Serif" font-size="9.50">planetocentric</text>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~rmvs_interp -->
+<g id="type~~graph~~TypeGraph_edge21" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~rmvs_interp</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1181.7,-318.16C1145.01,-351.69 1035.04,-443 925.5,-443 925.5,-443 925.5,-443 506.5,-443 454.86,-443 396.09,-434.09 357.1,-426.91"/>
+<polygon fill="#000000" stroke="#000000" points="357.62,-423.44 347.15,-425.03 356.33,-430.32 357.62,-423.44"/>
+<text text-anchor="middle" x="724" y="-445.4" font-family="Helvetica,sans-Serif" font-size="9.50">outer, inner</text>
+</g>
+<!-- type~rmvs_pl&#45;&gt;type~whm_pl -->
+<g id="type~~graph~~TypeGraph_edge23" class="edge">
+<title>type~rmvs_pl&#45;&gt;type~whm_pl</title>
+<path fill="none" stroke="#000000" d="M1168.22,-302.66C1103.48,-294.42 936.15,-273.14 861.68,-263.67"/>
+<polygon fill="#000000" stroke="#000000" points="861.75,-260.15 851.39,-262.36 860.87,-267.09 861.75,-260.15"/>
+</g>
+<!-- type~symba_nbody_system -->
+<g id="type~~graph~~TypeGraph_node28" class="node">
+<title>type~symba_nbody_system</title>
+<g id="a_type~~graph~~TypeGraph_node28"><a xlink:href=".././type/symba_nbody_system.html" xlink:title="symba_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1255,-173 1136,-173 1136,-149 1255,-149 1255,-173"/>
+<text text-anchor="middle" x="1195.5" y="-158.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~symba_nbody_system&#45;&gt;type~symba_merger -->
+<g id="type~~graph~~TypeGraph_edge24" class="edge">
+<title>type~symba_nbody_system&#45;&gt;type~symba_merger</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1168.78,-149C1154.16,-142.58 1135.35,-134.99 1118,-130 1071.14,-116.53 1016.25,-107.47 977.1,-102.11"/>
+<polygon fill="#000000" stroke="#000000" points="977.38,-98.62 967,-100.77 976.45,-105.56 977.38,-98.62"/>
+<text text-anchor="middle" x="1058" y="-132.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl_adds</text>
+</g>
+<!-- type~symba_nbody_system&#45;&gt;type~symba_pltpenc -->
+<g id="type~~graph~~TypeGraph_edge25" class="edge">
+<title>type~symba_nbody_system&#45;&gt;type~symba_pltpenc</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1135.8,-165.15C1088.61,-168.48 1022.95,-173.12 977.61,-176.32"/>
+<polygon fill="#000000" stroke="#000000" points="977.13,-172.84 967.4,-177.04 977.62,-179.83 977.13,-172.84"/>
+<text text-anchor="middle" x="1058" y="-177.4" font-family="Helvetica,sans-Serif" font-size="9.50">pltpenc_list</text>
+</g>
+<!-- type~symba_nbody_system&#45;&gt;type~symba_plplenc -->
+<g id="type~~graph~~TypeGraph_edge26" class="edge">
+<title>type~symba_nbody_system&#45;&gt;type~symba_plplenc</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1135.63,-154.68C1129.67,-154.09 1123.72,-153.52 1118,-153 1070.19,-148.64 1015.64,-144.46 976.84,-141.63"/>
+<polygon fill="#000000" stroke="#000000" points="977.06,-138.14 966.83,-140.9 976.55,-145.12 977.06,-138.14"/>
+<text text-anchor="middle" x="1058" y="-155.4" font-family="Helvetica,sans-Serif" font-size="9.50">plplenc_list, plplcollision_list</text>
+</g>
+<!-- type~helio_nbody_system -->
+<g id="type~~graph~~TypeGraph_node31" class="node">
+<title>type~helio_nbody_system</title>
+<g id="a_type~~graph~~TypeGraph_node31"><a xlink:href=".././type/helio_nbody_system.html" xlink:title="helio_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="979.5,-236 869.5,-236 869.5,-212 979.5,-212 979.5,-236"/>
+<text text-anchor="middle" x="924.5" y="-221.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~symba_nbody_system&#45;&gt;type~helio_nbody_system -->
+<g id="type~~graph~~TypeGraph_edge27" class="edge">
+<title>type~symba_nbody_system&#45;&gt;type~helio_nbody_system</title>
+<path fill="none" stroke="#000000" d="M1165.09,-173.1C1151.02,-178.55 1133.83,-184.7 1118,-189 1075.9,-200.44 1027.6,-209.21 989.91,-215.11"/>
+<polygon fill="#000000" stroke="#000000" points="988.92,-211.72 979.57,-216.7 989.99,-218.64 988.92,-211.72"/>
+</g>
+<!-- type~rmvs_cb -->
+<g id="type~~graph~~TypeGraph_node29" class="node">
+<title>type~rmvs_cb</title>
+<g id="a_type~~graph~~TypeGraph_node29"><a xlink:href=".././type/rmvs_cb.html" xlink:title="rmvs_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="534.5,-414 480.5,-414 480.5,-390 534.5,-390 534.5,-414"/>
+<text text-anchor="middle" x="507.5" y="-399.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_cb</text>
+</a>
+</g>
 </g>
 <!-- type~rmvs_cb&#45;&gt;type~whm_cb -->
-<g id="type~~graph~~TypeGraph_edge41" class="edge">
+<g id="type~~graph~~TypeGraph_edge29" class="edge">
 <title>type~rmvs_cb&#45;&gt;type~whm_cb</title>
-<path fill="none" stroke="#000000" d="M632.68,-207.17C596.56,-203.28 531.47,-196.28 490.76,-191.9"/>
-<polygon fill="#000000" stroke="#000000" points="491.03,-188.41 480.72,-190.82 490.28,-195.37 491.03,-188.41"/>
+<path fill="none" stroke="#000000" d="M480.47,-398.49C446.8,-393.96 387.96,-386.03 349.88,-380.9"/>
+<polygon fill="#000000" stroke="#000000" points="350.11,-377.4 339.73,-379.53 349.18,-384.34 350.11,-377.4"/>
 </g>
 <!-- type~rmvs_cb&#45;&gt;type~rmvs_interp -->
-<g id="type~~graph~~TypeGraph_edge40" class="edge">
+<g id="type~~graph~~TypeGraph_edge28" class="edge">
 <title>type~rmvs_cb&#45;&gt;type~rmvs_interp</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M643.6,-222.17C619.57,-241.26 571.91,-279.64 533,-314 524.75,-321.28 524.41,-325.29 515,-331 509.64,-334.26 503.7,-337.1 497.7,-339.55"/>
-<polygon fill="#000000" stroke="#000000" points="496.42,-336.29 488.29,-343.08 498.88,-342.84 496.42,-336.29"/>
-<text text-anchor="middle" x="560" y="-316.4" font-family="Helvetica,sans-Serif" font-size="9.50">outer, inner</text>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M480.47,-404.16C448.96,-406.77 395.42,-411.21 357.47,-414.35"/>
+<polygon fill="#000000" stroke="#000000" points="356.89,-410.89 347.21,-415.21 357.46,-417.87 356.89,-410.89"/>
+<text text-anchor="middle" x="396.5" y="-415.4" font-family="Helvetica,sans-Serif" font-size="9.50">outer, inner</text>
 </g>
-<!-- type~symba_merger&#45;&gt;type~symba_pl -->
+<!-- type~lambda_obj_tvar -->
+<g id="type~~graph~~TypeGraph_node30" class="node">
+<title>type~lambda_obj_tvar</title>
+<g id="a_type~~graph~~TypeGraph_node30"><a xlink:href=".././type/lambda_obj_tvar.html" xlink:title="lambda_obj_tvar">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1241.5,-453 1149.5,-453 1149.5,-429 1241.5,-429 1241.5,-453"/>
+<text text-anchor="middle" x="1195.5" y="-438.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_obj_tvar</text>
+</a>
+</g>
+</g>
+<!-- type~lambda_obj_tvar&#45;&gt;type~lambda_obj -->
+<g id="type~~graph~~TypeGraph_edge30" class="edge">
+<title>type~lambda_obj_tvar&#45;&gt;type~lambda_obj</title>
+<path fill="none" stroke="#000000" d="M1161.46,-453.11C1128.17,-464.97 1078.95,-481.49 1059,-483"/>
+<path fill="none" stroke="#000000" d="M1057,-483C1027.59,-485.23 994.37,-485.21 968.68,-484.64"/>
+<polygon fill="#000000" stroke="#000000" points="968.6,-481.14 958.52,-484.38 968.42,-488.14 968.6,-481.14"/>
+</g>
+<!-- type~helio_nbody_system&#45;&gt;type~whm_nbody_system -->
+<g id="type~~graph~~TypeGraph_edge31" class="edge">
+<title>type~helio_nbody_system&#45;&gt;type~whm_nbody_system</title>
+<path fill="none" stroke="#000000" d="M869.31,-221.09C845.11,-222.39 817.5,-227.77 797,-243 782,-254.14 792.27,-267.84 779,-281 776.11,-283.86 772.83,-286.44 769.35,-288.74"/>
+<polygon fill="#000000" stroke="#000000" points="767.3,-285.89 760.4,-293.94 770.81,-291.95 767.3,-285.89"/>
+</g>
+<!-- type~helio_cb&#45;&gt;type~swiftest_cb -->
+<g id="type~~graph~~TypeGraph_edge32" class="edge">
+<title>type~helio_cb&#45;&gt;type~swiftest_cb</title>
+<path fill="none" stroke="#000000" d="M286.75,-447.89C283.41,-445.35 280.33,-442.4 278,-439 254.19,-404.28 299.55,-360.44 260,-346"/>
+</g>
+<!-- type~swiftest_pl&#45;&gt;type~swiftest_body -->
+<g id="type~~graph~~TypeGraph_edge33" class="edge">
+<title>type~swiftest_pl&#45;&gt;type~swiftest_body</title>
+<path fill="none" stroke="#000000" d="M259,-288C256.52,-288.47 253.96,-288.85 251.37,-289.15"/>
+<polygon fill="#000000" stroke="#000000" points="251,-285.66 241.3,-289.91 251.53,-292.64 251,-285.66"/>
+<path fill="none" stroke="#000000" d="M289.91,-258.18C285.79,-260.87 281.64,-263.86 278,-267 268.69,-275.02 272.07,-285.7 260,-288"/>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_tp -->
+<g id="type~~graph~~TypeGraph_edge36" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_tp</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M445.96,-301.73C416.1,-298.63 380.87,-294.98 354.26,-292.22"/>
+<polygon fill="#000000" stroke="#000000" points="354.45,-288.73 344.15,-291.18 353.73,-295.69 354.45,-288.73"/>
+<text text-anchor="middle" x="396.5" y="-301.4" font-family="Helvetica,sans-Serif" font-size="9.50">tp, tp_discards</text>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_pl -->
+<g id="type~~graph~~TypeGraph_edge35" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M475.36,-295.9C461.02,-290.48 443.74,-284.17 428,-279 403.46,-270.94 375.61,-262.89 353.53,-256.76"/>
+<polygon fill="#000000" stroke="#000000" points="354.39,-253.37 343.82,-254.09 352.53,-260.12 354.39,-253.37"/>
+<text text-anchor="middle" x="396.5" y="-281.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl, pl_discards</text>
+</g>
+<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_cb -->
+<g id="type~~graph~~TypeGraph_edge34" class="edge">
+<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_cb</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M259,-346C254.71,-344.43 250.1,-343.45 245.45,-342.88"/>
+<polygon fill="#000000" stroke="#000000" points="245.48,-339.37 235.28,-342.24 245.04,-346.36 245.48,-339.37"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M445.71,-318.1C374.14,-329.89 264.37,-347.6 260,-346"/>
+<text text-anchor="middle" x="312.5" y="-346.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb</text>
+</g>
+<!-- type~whm_tp -->
+<g id="type~~graph~~TypeGraph_node35" class="node">
+<title>type~whm_tp</title>
+<g id="a_type~~graph~~TypeGraph_node35"><a xlink:href=".././type/whm_tp.html" xlink:title="whm_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="534.5,-372 480.5,-372 480.5,-348 534.5,-348 534.5,-372"/>
+<text text-anchor="middle" x="507.5" y="-357.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_tp</text>
+</a>
+</g>
+</g>
+<!-- type~whm_tp&#45;&gt;type~swiftest_tp -->
+<g id="type~~graph~~TypeGraph_edge37" class="edge">
+<title>type~whm_tp&#45;&gt;type~swiftest_tp</title>
+<path fill="none" stroke="#000000" d="M480.31,-352.43C451.62,-343.88 404.44,-329.04 365,-313 358.84,-310.49 352.38,-307.59 346.19,-304.66"/>
+<polygon fill="#000000" stroke="#000000" points="347.32,-301.32 336.79,-300.11 344.27,-307.62 347.32,-301.32"/>
+</g>
+<!-- type~rmvs_tp -->
+<g id="type~~graph~~TypeGraph_node36" class="node">
+<title>type~rmvs_tp</title>
+<g id="a_type~~graph~~TypeGraph_node36"><a xlink:href=".././type/rmvs_tp.html" xlink:title="rmvs_tp">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="751,-394 697,-394 697,-370 751,-370 751,-394"/>
+<text text-anchor="middle" x="724" y="-379.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_tp</text>
+</a>
+</g>
+</g>
+<!-- type~rmvs_tp&#45;&gt;type~rmvs_cb -->
+<g id="type~~graph~~TypeGraph_edge38" class="edge">
+<title>type~rmvs_tp&#45;&gt;type~rmvs_cb</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M696.7,-384.45C658.56,-388.01 587.78,-394.61 544.73,-398.62"/>
+<polygon fill="#000000" stroke="#000000" points="544.31,-395.15 534.68,-399.56 544.96,-402.12 544.31,-395.15"/>
+<text text-anchor="middle" x="619" y="-396.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb_heliocentric</text>
+</g>
+<!-- type~rmvs_tp&#45;&gt;type~whm_tp -->
+<g id="type~~graph~~TypeGraph_edge39" class="edge">
+<title>type~rmvs_tp&#45;&gt;type~whm_tp</title>
+<path fill="none" stroke="#000000" d="M696.7,-379.3C658.56,-375.39 587.78,-368.13 544.73,-363.72"/>
+<polygon fill="#000000" stroke="#000000" points="544.99,-360.22 534.68,-362.69 544.27,-367.19 544.99,-360.22"/>
+</g>
+<!-- type~helio_pl&#45;&gt;type~swiftest_pl -->
+<g id="type~~graph~~TypeGraph_edge40" class="edge">
+<title>type~helio_pl&#45;&gt;type~swiftest_pl</title>
+<path fill="none" stroke="#000000" d="M395.5,-219C382.29,-225.75 367.04,-231.32 353.3,-235.61"/>
+<polygon fill="#000000" stroke="#000000" points="352.19,-232.29 343.61,-238.51 354.19,-238.99 352.19,-232.29"/>
+<path fill="none" stroke="#000000" d="M480.46,-57.68C468.58,-60.58 455.16,-65.76 446,-75 398.47,-122.97 457.63,-188.26 397.5,-219"/>
+</g>
+<!-- type~helio_tp&#45;&gt;type~swiftest_tp -->
+<g id="type~~graph~~TypeGraph_edge41" class="edge">
+<title>type~helio_tp&#45;&gt;type~swiftest_tp</title>
+<path fill="none" stroke="#000000" d="M480.41,-255.42C451.61,-251.32 404.14,-247.43 365,-258 362.25,-258.74 352.33,-264.4 341.92,-270.61"/>
+<polygon fill="#000000" stroke="#000000" points="339.97,-267.7 333.21,-275.85 343.58,-273.69 339.97,-267.7"/>
+</g>
+<!-- type~swiftest_cb&#45;&gt;type~swiftest_particle_info -->
 <g id="type~~graph~~TypeGraph_edge42" class="edge">
-<title>type~symba_merger&#45;&gt;type~symba_pl</title>
-<path fill="none" stroke="#000000" d="M827.81,-165.8C790.38,-164.72 735.89,-163.16 699.49,-162.11"/>
-<polygon fill="#000000" stroke="#000000" points="699.36,-158.6 689.27,-161.81 699.16,-165.6 699.36,-158.6"/>
+<title>type~swiftest_cb&#45;&gt;type~swiftest_particle_info</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M169.79,-347.98C155.82,-348.84 138.87,-349.9 122.39,-350.93"/>
+<polygon fill="#000000" stroke="#000000" points="121.99,-347.45 112.23,-351.56 122.43,-354.43 121.99,-347.45"/>
+<text text-anchor="middle" x="138" y="-352.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
+</g>
+<!-- type~swiftest_cb&#45;&gt;type~swiftest_base -->
+<g id="type~~graph~~TypeGraph_edge43" class="edge">
+<title>type~swiftest_cb&#45;&gt;type~swiftest_base</title>
+<path fill="none" stroke="#000000" d="M169.79,-336.12C150.55,-330.13 125.65,-322.38 104.14,-315.68"/>
+<polygon fill="#000000" stroke="#000000" points="105.11,-312.32 94.52,-312.69 103.03,-319 105.11,-312.32"/>
+</g>
+<!-- type~fraggle_colliders -->
+<g id="type~~graph~~TypeGraph_node40" class="node">
+<title>type~fraggle_colliders</title>
+<g id="a_type~~graph~~TypeGraph_node40"><a xlink:href=".././type/fraggle_colliders.html" xlink:title="fraggle_colliders">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="1241,-579 1150,-579 1150,-555 1241,-555 1241,-579"/>
+<text text-anchor="middle" x="1195.5" y="-564.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_colliders</text>
+</a>
+</g>
 </g>
 </g>
 </svg>

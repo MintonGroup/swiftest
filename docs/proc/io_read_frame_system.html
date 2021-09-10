@@ -117,7 +117,7 @@
   
   <div class="row">
     <h1>io_read_frame_system
-      <small>Module Subroutine</small>
+      <small>Module Function</small>
     
     </h1>
     
@@ -136,7 +136,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.1% of total for procedures.">31 statements</a>
+    title=" 0.1% of total for procedures.">35 statements</a>
      </li> 
      
      
@@ -203,7 +203,7 @@
     
     <div class="col-md-9" id='text'>
     <h2>
-module subroutine io_read_frame_system(self, iu, param, form, ierr)
+module function io_read_frame_system(self, iu, param) result(ierr)
     
     
    <a href='../interface/io_read_frame_system.html'><button type="button" class="btn btn-info depwarn">Interface &rarr;</button></a>
@@ -236,7 +236,7 @@ module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-self~304"></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td><span class="anchor" id="variable-self~356"></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -251,7 +251,7 @@ module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-iu~13"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-iu~18"></span>integer(kind=I4B),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -266,7 +266,7 @@ module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-param~168"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td><span class="anchor" id="variable-param~192"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -275,40 +275,19 @@ module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 </tr>
 
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-form~7"></span>character(len=*),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>form</strong></td><td><p>Input format code ("XV" or "EL")</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-ierr~13"></span>integer(kind=I4B),</td>
-  <td>intent(out)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>ierr</strong></td><td><p>Error code</p></td>
-  
-</tr>
-
 </tbody>
 </table>
 
     
+    
+    
+    
+    
+    
+    
+   <h3>Return Value <small><span class="anchor" id="variable-ierr~13"></span>integer(kind=I4B)
+  </small></h3>
+    <p>Error code: returns 0 if the read is successful</p>
     
     
     <br>
