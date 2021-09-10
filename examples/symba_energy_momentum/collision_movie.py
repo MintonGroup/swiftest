@@ -10,44 +10,50 @@ xmin = -20.0
 xmax = 20.0
 ymin = -20.0
 ymax = 20.0
+framejump = 1
+ncutoff = 1e20
+radscale = 2000
 
-cases = ['supercat_head', 'supercat_off', 'disruption_head', 'disruption_off']
+#cases = ['supercat_head', 'supercat_off', 'disruption_head', 'disruption_off']
+cases = ['disruption_off']
 
-def scale_sim(ds):
-
+def scale_sim(ds, Rcb):
+    dst0 = ds.isel(time=0)
+    dst0 = dst0.where(dst0['radius'] < Rcb, drop=True)
+    dst0 = dst0.where(dst0.id > 0, drop=True)
+    GMtot = dst0['Gmass'].sum(skipna=True, dim="id")
     dsscale = ds.where(ds.id > 0, drop=True) # Remove the central body
+    
+    rscale = ds['radius'].sel(id=1, time=0).values
+    dsscale['radius'] /= rscale
 
-    GMtot = dsscale['GMass'].sum(skipna=True, dim="id").isel(time=0)
-    rscale = ds['Radius'].sel(id=1, time=0)
-    dsscale['Radius'] /= rscale
+    dsscale['radmarker'] = dsscale['radius'].fillna(0)
 
-    dsscale['radmarker'] = dsscale['Radius'].fillna(0)
+    dsscale['xhx'] /= rscale
+    dsscale['xhy'] /= rscale
+    dsscale['xhz'] /= rscale
 
-    dsscale['px'] /= rscale
-    dsscale['py'] /= rscale
-    dsscale['pz'] /= rscale
-
-    mpx = dsscale['GMass'] * dsscale['px']
-    mpy = dsscale['GMass'] * dsscale['py']
-    mpz = dsscale['GMass'] * dsscale['pz']
-    xbsys = mpx.sum(skipna=True, dim="id") / GMtot
+    mxhx = dsscale['Gmass'] * dsscale['xhx']
+    mpy = dsscale['Gmass'] * dsscale['xhy']
+    mpz = dsscale['Gmass'] * dsscale['xhz']
+    xbsys = mxhx.sum(skipna=True, dim="id") / GMtot
     ybsys = mpy.sum(skipna=True, dim="id") / GMtot
     zbsys = mpz.sum(skipna=True, dim="id") / GMtot
 
-    mvx = dsscale['GMass'] * dsscale['vx']
-    mvy = dsscale['GMass'] * dsscale['vy']
-    mvz = dsscale['GMass'] * dsscale['vz']
-    vxbsys = mvx.sum(skipna=True, dim="id") / GMtot
-    vybsys = mvy.sum(skipna=True, dim="id") / GMtot
-    vzbsys = mvz.sum(skipna=True, dim="id") / GMtot
+    mvx = dsscale['Gmass'] * dsscale['vhx']
+    mvy = dsscale['Gmass'] * dsscale['vhy']
+    mvz = dsscale['Gmass'] * dsscale['vhz']
+    vhxbsys = mvx.sum(skipna=True, dim="id") / GMtot
+    vhybsys = mvy.sum(skipna=True, dim="id") / GMtot
+    vhzbsys = mvz.sum(skipna=True, dim="id") / GMtot
 
-    dsscale['pxb'] = dsscale['px'] - xbsys
-    dsscale['pyb'] = dsscale['py'] - ybsys
-    dsscale['pzb'] = dsscale['pz'] - zbsys
+    dsscale['xhxb'] = dsscale['xhx'] - xbsys
+    dsscale['pyb'] = dsscale['xhy'] - ybsys
+    dsscale['pzb'] = dsscale['xhz'] - zbsys
 
-    dsscale['vxb'] = dsscale['vx'] - vxbsys
-    dsscale['vyb'] = dsscale['vy'] - vybsys
-    dsscale['vzb'] = dsscale['vz'] - vzbsys
+    dsscale['vhxb'] = dsscale['vhx'] - vhxbsys
+    dsscale['vhyb'] = dsscale['vhy'] - vhybsys
+    dsscale['vhzb'] = dsscale['vhz'] - vhzbsys
 
     return dsscale
 
@@ -64,12 +70,12 @@ class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
     def __init__(self, ds, param):
-
         frame = 0
-        nframes = ds['time'].size
-        self.ds = scale_sim(ds)
+        nframes = int(ds['time'].size / framejump)
         self.param = param
+        self.Rcb = ds['radius'].sel(id=0, time=0).values
         self.rot_angle = {}
+        self.ds = scale_sim(ds, self.Rcb)
 
         self.clist = {'Initial conditions' : 'xkcd:windows blue',
                       'Disruption' : 'xkcd:baby poop',
@@ -94,8 +100,9 @@ class AnimatedScatter(object):
         # Then setup FuncAnimation.
         self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes,
                                           init_func=self.setup_plot, blit=False)
-        self.ani.save(animfile, fps=60, dpi=300,
-                      extra_args=['-vcodec', 'libx264'])
+        #self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'mpeg4'])
+        self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
+        print(f"Finished writing {animfile}")
 
     def plot_pl_circles(self, pl, radmarker):
         patches = []
@@ -155,27 +162,27 @@ class AnimatedScatter(object):
         return cval
 
     def velocity_vectors(self, pl, r):
-        px = pl[:, 0]
+        xhx = pl[:, 0]
         py = pl[:, 1]
-        vx = pl[:, 2]
-        vy = pl[:, 3]
-        vmag = np.sqrt(vx ** 2 + vy ** 2)
-        ux = np.zeros_like(vx)
-        uy = np.zeros_like(vx)
+        vhx = pl[:, 2]
+        vhy = pl[:, 3]
+        vmag = np.sqrt(vhx ** 2 + vhy ** 2)
+        ux = np.zeros_like(vhx)
+        uy = np.zeros_like(vhx)
         goodv = vmag > 0.0
-        ux[goodv] = vx[goodv] / vmag[goodv]
-        uy[goodv] = vy[goodv] / vmag[goodv]
+        ux[goodv] = vhx[goodv] / vmag[goodv]
+        uy[goodv] = vhy[goodv] / vmag[goodv]
         varrowend = []
         varrowtip = []
         for i in range(pl.shape[0]):
-            vend = (px[i], py[i])
-            vtip = (px[i] + vx[i] * self.v_length, py[i] + vy[i] * self.v_length)
+            vend = (xhx[i], py[i])
+            vtip = (xhx[i] + vhx[i] * self.v_length, py[i] + vhy[i] * self.v_length)
             varrowend.append(vend)
             varrowtip.append(vtip)
         return varrowend, varrowtip
 
     def spin_arrows(self, pl, id, len):
-        px = pl[:, 0]
+        xhx = pl[:, 0]
         py = pl[:, 1]
         sarrowend = []
         sarrowtip = []
@@ -185,8 +192,8 @@ class AnimatedScatter(object):
             r = R.from_rotvec(self.rot_angle[id[i]])
             endrel = r.apply(endrel)
             tiprel = r.apply(tiprel)
-            send = (px[i] + endrel[0], py[i] + endrel[1])
-            stip = (px[i] + tiprel[0], py[i] + tiprel[1])
+            send = (xhx[i] + endrel[0], py[i] + endrel[1])
+            stip = (xhx[i] + tiprel[0], py[i] + tiprel[1])
             sarrowend.append(send)
             sarrowtip.append(stip)
         return sarrowend, sarrowtip
@@ -194,7 +201,7 @@ class AnimatedScatter(object):
     def setup_plot(self):
         # First frame
         """Initial drawing of the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(0))
+        t, name, Gmass, radius, npl, pl, radmarker, origin = next(self.data_stream(0))
 
         cval = self.origin_to_color(origin)
 
@@ -220,7 +227,7 @@ class AnimatedScatter(object):
 
     def update(self,frame):
         """Update the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(frame))
+        t, name, Gmass, radius, npl, pl, radmarker, origin = next(self.data_stream(frame))
         cval = self.origin_to_color(origin)
         varrowend, varrowtip = self.velocity_vectors(pl, radmarker)
         sarrowend, sarrowtip = self.spin_arrows(pl, name, radmarker)
@@ -239,32 +246,33 @@ class AnimatedScatter(object):
     def data_stream(self, frame=0):
         while True:
             d = self.ds.isel(time=frame)
-            Radius = d['radmarker'].values
-            GMass = d['GMass'].values
-            x = d['pxb'].values
+            #d = d.where(d['radius'] > 0.0, drop=True)
+            radius = d['radius'].values
+            Gmass = d['Gmass'].values
+            x = d['xhxb'].values
             y = d['pyb'].values
-            vx = d['vxb'].values
-            vy = d['vyb'].values
+            vhx = d['vhxb'].values
+            vhy = d['vhyb'].values
             name = d['id'].values
-            npl = d.id.count().values
+            npl = d['npl'].values[0]
             id = d['id'].values
-            rotx = d['rot_x'].values
-            roty = d['rot_y'].values
-            rotz = d['rot_z'].values
+            rotx = d['rotx'].values
+            roty = d['roty'].values
+            rotz = d['rotz'].values
 
             radmarker = d['radmarker'].values
             origin = d['origin_type'].values
 
             t = self.ds.coords['time'].values[frame]
-            self.mask = np.logical_not(np.isnan(x))
+            self.mask = np.logical_not(radius == 0.0)
 
             x = np.nan_to_num(x, copy=False)
             y = np.nan_to_num(y, copy=False)
-            vx = np.nan_to_num(vx, copy=False)
-            vy = np.nan_to_num(vy, copy=False)
+            vhx = np.nan_to_num(vhx, copy=False)
+            vhy = np.nan_to_num(vhy, copy=False)
             radmarker = np.nan_to_num(radmarker, copy=False)
-            GMass = np.nan_to_num(GMass, copy=False)
-            Radius = np.nan_to_num(Radius, copy=False)
+            Gmass = np.nan_to_num(Gmass, copy=False)
+            radius = np.nan_to_num(radius, copy=False)
             rotx = np.nan_to_num(rotx, copy=False)
             roty = np.nan_to_num(roty, copy=False)
             rotz = np.nan_to_num(rotz, copy=False)
@@ -281,7 +289,7 @@ class AnimatedScatter(object):
                 for i in id[idxactive]:
                     self.rot_angle[i] = self.rot_angle[i] + dt * np.array(self.rotvec[i])
             frame += 1
-            yield t, name, GMass, Radius, npl, np.c_[x, y, vx, vy], radmarker, origin
+            yield t, name, Gmass, radius, npl, np.c_[x, y, vhx, vhy], radmarker, origin
 
 for case in cases:
     if case == 'supercat_off':
@@ -304,6 +312,10 @@ for case in cases:
         animfile = 'movies/merger.mp4'
         titletext = "Merger"
         paramfile = 'param.merger.in'
+    elif case == 'hit_and_run':
+        animfile = 'movies/hitandrun.mp4'
+        titletext = "Hit and run with fragmentation"
+        paramfile = 'param.hitandrun.in'
     else:
         print(f'{case} is an unknown case')
         exit(-1)

@@ -1,0 +1,33 @@
+!Parameter file for the SyMBA-RINGMOONS test
+T0             0.0 
+TSTOP          4200.0 
+DT             600.0
+PL_IN          pl.swiftest.in
+TP_IN          tp.in
+IN_TYPE        ASCII
+ISTEP_OUT      1
+ISTEP_DUMP     1
+BIN_OUT        bin.swiftest.dat
+PARTICLE_OUT   particle.dat
+OUT_TYPE       REAL8
+OUT_FORM       XV
+OUT_STAT       REPLACE
+CHK_CLOSE      yes
+CHK_RMIN       3389500.0
+CHK_RMAX       3389500000.0
+CHK_EJECT      3389500000.0
+CHK_QMIN       3389500.0
+CHK_QMIN_COORD HELIO
+CHK_QMIN_RANGE 3389500.0 338950000000.0
+EXTRA_FORCE    no
+BIG_DISCARD    no
+RHILL_PRESENT  yes
+GMTINY         1000.0
+ENERGY         yes
+ENERGY_OUT     energy.dat
+FRAGMENTATION  yes
+ROTATION       yes
+MU2KG          1.0
+DU2M           1.0
+TU2S           1.0
+SEED           2 3080983 2220830

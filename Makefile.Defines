@@ -51,27 +51,29 @@ ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vec -vecabi=cmdtarget -simd -shared-intel 
 VTUNE_FLAGS = -g -O2 -vec -simd -shared-intel -qopenmp -debug inline-debug-info -parallel-source-info=2 -parallel -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -qopenmp -fp-model no-except -mp1 -xhost -traceback 
 #Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
 
-IDEBUG = -O0 -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin -init=snan,arrays 
+IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin
 STRICTREAL = -fp-model strict -fp-model no-except -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -prec-div -prec-sqrt -assume protect-parens
-PAR = -parallel -qopenmp 
+PAR = -qopenmp #-parallel  #Something goes wrong in SyMBA at the moment with auto-paralellization enabled
 HEAPARR = -heap-arrays 1048576 
-OPTIMIZE = -qopt-report=5 
+OPTREPORT = -qopt-report=5 
+IPRODUCTION = -init=snan,arrays  -no-wrap-margin -O3 $(STRICTREAL) $(PAR) $(SIMDVEC) $(HEAPARR) 
 
 #gfortran flags
-GDEBUG = -g -O0 -fbacktrace -fbounds-check 
-GPRODUCTION = -O3
-GPAR = -fopenmp -ftree-parallelize-loops=4
-GMEM = -fsanitize=undefined -fsanitize=address -fsanitize=leak 
+GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
+GPAR = -fopenmp #-ftree-parallelize-loops=4
+GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-strict -fsanitize=undefined -fsanitize=signed-integer-overflow -fsanitize=object-size -fstack-protector-all
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
+GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
-#FFLAGS  = $(IDEBUG) $(HEAPARR)
-FFLAGS  = -init=snan,arrays -no-wrap-margin -O3 $(STRICTREAL) $(SIMDVEC) $(PAR) 
+#FFLAGS  = $(IDEBUG) $(HEAPARR) $(SIMDVEC) $(PAR)
+FFLAGS  = $(IPRODUCTION) $(OPTREPORT)
 FORTRAN = ifort
 #AR     = xiar
 
 #FORTRAN = gfortran
-#FFLAGS =  -ffree-line-length-none $(GDEBUG) #$(GMEM)
+#FFLAGS =  $(GDEBUG) $(GMEM) $(GPAR)
+#FFLAGS =  $(GPRODUCTION) -g -fbacktrace #-fcheck=all #-Wall 
 AR     = ar
 
 # DO NOT include in CFLAGS the "-c" option to compile object only

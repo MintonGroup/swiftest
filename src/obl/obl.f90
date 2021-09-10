@@ -106,7 +106,8 @@ contains
 
    end subroutine obl_acc_tp
 
-   module subroutine obl_pot(npl, Mcb, Mpl, j2rp2, j4rp4, xh, irh, oblpot)
+
+   module subroutine obl_pot_system(self) 
       !! author: David A. Minton
       !!
       !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
@@ -118,33 +119,59 @@ contains
       !! Adapted from Hal Levison's Swift routine obl_pot.f 
       implicit none
       ! Arguments
-      integer(I4B), intent(in) :: npl
-      real(DP), intent(in) :: Mcb
-      real(DP), dimension(:), intent(in) :: Mpl
-      real(DP), intent(in) :: j2rp2, j4rp4
-      real(DP), dimension(:), intent(in)         :: irh
-      real(DP), dimension(:, :), intent(in)      :: xh
-      real(DP), intent(out)                      :: oblpot
+      class(swiftest_nbody_system), intent(inout)  :: self   !! Swiftest nbody system object
+      ! Internals
+      integer(I4B) :: i
+      real(DP), dimension(self%pl%nbody) :: oblpot_arr
+
+      associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+         if (.not. any(pl%lmask(1:npl))) return
+         do concurrent (i = 1:npl, pl%lmask(i))
+            oblpot_arr(i) = obl_pot_one(npl, cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%xh(3,i), 1.0_DP / norm2(pl%xh(:,i)))
+         end do
+         system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))
+      end associate
+         
+      return
+   end subroutine obl_pot_system
+
+
+   elemental function obl_pot_one(npl, GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
+      !! author: David A. Minton
+      !!
+      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a single massive body
+      !!    Returned value does not include monopole term or terms higher than J4
+      !!
+      !!    Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
+      !!
+      !! Adapted from David E. Kaufmann's Swifter routine: obl_pot.f90 
+      !! Adapted from Hal Levison's Swift routine obl_pot.f 
+      implicit none
+      ! Arguments
+      integer(I4B), intent(in)  :: npl    !! Number of massive bodies
+      real(DP),     intent(in)  :: GMcb   !! G*mass of the central body
+      real(DP),     intent(in)  :: GMpl   !! G*mass of the massive body
+      real(DP),     intent(in)  :: j2rp2  !! J_2 / R**2 of the central body
+      real(DP),     intent(in)  :: j4rp4  !! J_2 / R**4 of the central body
+      real(DP),     intent(in)  :: zh     !! z-component of the heliocentric distance vector of the massive body
+      real(DP),     intent(in)  :: irh    !! Inverse of the heliocentric distance magnitude of the massive body
+      ! Result
+      real(DP)                  :: oblpot !! Gravitational potential
          
       ! Internals
       integer(I4B)              :: i
       real(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4, mu
          
-      oblpot = 0.0_DP
-      mu = Mcb
-      do i = 1, npl
-         rinv2 = irh(i)**2
-         t0 = mu * Mpl(i) * rinv2 * irh(i)
-         t1 = j2rp2
-         t2 = xh(3, i) * xh(3, i) * rinv2
-         t3 = j4rp4 * rinv2
-         p2 = 0.5_DP * (3 * t2 - 1.0_DP)
-         p4 = 0.125_DP * ((35 * t2 - 30.0_DP) * t2 + 3.0_DP)
-         oblpot = oblpot + t0 * (t1 * p2 + t3 * p4)
-      end do
+      rinv2 = irh**2
+      t0 = GMcb * GMpl * rinv2 * irh
+      t1 = j2rp2
+      t2 = zh**2 * rinv2
+      t3 = j4rp4 * rinv2
+      p2 = 0.5_DP * (3 * t2 - 1.0_DP)
+      p4 = 0.125_DP * ((35 * t2 - 30.0_DP) * t2 + 3.0_DP)
+      oblpot = t0 * (t1 * p2 + t3 * p4)
          
       return
-   end subroutine obl_pot
-
+   end function obl_pot_one
 
 end submodule s_obl

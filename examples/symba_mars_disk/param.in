@@ -1,16 +1,17 @@
 !Parameter file for the SyMBA-RINGMOONS test
 T0             0.0 
-TSTOP          6000.0 
+TSTOP          1.0e12 
 DT             600.0
+CB_IN          cb.in
 PL_IN          mars.in
 TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1
 ISTEP_DUMP     1
-BIN_OUT        bin.dat
+BIN_OUT        bin.nc 
 PARTICLE_OUT   particle.dat
-OUT_TYPE       REAL8
-OUT_FORM       XV
+OUT_TYPE       NETCDF_DOUBLE
+OUT_FORM       XVEL
 OUT_STAT       REPLACE
 CHK_CLOSE      yes
 CHK_RMIN       3389500.0
@@ -19,13 +20,12 @@ CHK_EJECT      3389500000.0
 CHK_QMIN       3389500.0
 CHK_QMIN_COORD HELIO
 CHK_QMIN_RANGE 3389500.0 338950000000.0
-ENC_OUT        /dev/null
 EXTRA_FORCE    no
-BIG_DISCARD    no
 RHILL_PRESENT  yes
-GMTINY          1000.0
+GMTINY         10000.0
+MIN_GMFRAG     1000.0
 ENERGY         yes
-FRAGMENTATION  yes
+FRAGMENTATION  yes 
 ROTATION       yes
 MU2KG          1.0
 DU2M           1.0

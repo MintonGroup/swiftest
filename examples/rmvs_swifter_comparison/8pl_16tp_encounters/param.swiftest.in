@@ -1,9 +1,9 @@
 ! VERSION        Swiftest parameter input
 T0               0.0
-TSTOP            3652.5
+TSTOP            9500.0
 DT               1.0
-ISTEP_OUT        10
-ISTEP_DUMP       10
+ISTEP_OUT        100
+ISTEP_DUMP       100
 OUT_FORM         XV
 OUT_TYPE         REAL8
 OUT_STAT         UNKNOWN
@@ -12,7 +12,6 @@ PL_IN            pl.swiftest.in
 TP_IN            tp.in
 CB_IN            cb.swiftest.in
 BIN_OUT          bin.swiftest.dat
-ENC_OUT          enc.swiftest.dat
 CHK_QMIN         0.004650467260962157
 CHK_RMIN         0.004650467260962157
 CHK_RMAX         1000.0
@@ -22,7 +21,9 @@ CHK_QMIN_RANGE   0.004650467260962157 1000.0
 MU2KG            1.988409870698051e+30
 TU2S             86400
 DU2M             149597870700.0
+ENC_OUT          enc.swiftest.dat
 EXTRA_FORCE      NO
+DISCARD_OUT      discard.swiftest.out
 BIG_DISCARD      NO
 CHK_CLOSE        YES
 RHILL_PRESENT    YES
@@ -31,6 +32,3 @@ ROTATION         NO
 TIDES            NO
 ENERGY           NO
 GR               NO
-YARKOVSKY        NO
-YORP             NO
-MTINY            0.0

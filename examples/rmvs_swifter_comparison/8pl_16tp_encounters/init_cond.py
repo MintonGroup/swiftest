@@ -19,12 +19,13 @@ swiftest_pl    = "pl.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
 swiftest_enc   = "enc.swiftest.dat"
+swiftest_disc  = "discard.swiftest.out"
 
 sim = swiftest.Simulation()
 
 sim.param['T0'] = 0.0
 sim.param['DT'] = 1.0 
-sim.param['TSTOP'] = 365.25e1
+sim.param['TSTOP'] = 365.25e2
 sim.param['ISTEP_OUT']  = 10
 sim.param['ISTEP_DUMP'] = 10
 sim.param['CHK_QMIN_COORD'] = "HELIO"
@@ -83,16 +84,16 @@ p6 = []
 
 for i in pl.id:
     pli = pl.sel(id=i)
-    rstart = 2 * np.double(pli['Radius'])  # Start the test particles at a multiple of the planet radius away
-    vstart = 1.5 * np.sqrt(2 * np.double(pli['Mass'])  / rstart)  # Start the test particle velocities at a multiple of the escape speed
+    rstart = 2 * np.double(pli['radius'])  # Start the test particles at a multiple of the planet radius away
+    vstart = 1.5 * np.sqrt(2 * np.double(pli['Gmass'])  / rstart)  # Start the test particle velocities at a multiple of the escape speed
     xvstart = np.array([rstart / np.sqrt(2.0), rstart / np.sqrt(2.0), 0.0, vstart, 0.0, 0.0])
     # The positions and velocities of each pair of test particles will be in reference to a planet
-    plvec = np.array([np.double(pli['px']),
-                      np.double(pli['py']),
-                      np.double(pli['pz']),
-                      np.double(pli['vx']),
-                      np.double(pli['vy']),
-                      np.double(pli['vz'])])
+    plvec = np.array([np.double(pli['xhx']),
+                      np.double(pli['xhy']),
+                      np.double(pli['xhz']),
+                      np.double(pli['vhx']),
+                      np.double(pli['vhy']),
+                      np.double(pli['vhz'])])
     tpxv1 = plvec + xvstart
     tpxv2 = plvec - xvstart
     p1.append(tpxv1[0])
@@ -124,6 +125,7 @@ sim.param['TP_IN'] = tpin
 sim.param['CB_IN'] = swiftest_cb
 sim.param['BIN_OUT'] = swiftest_bin
 sim.param['ENC_OUT'] = swiftest_enc
+sim.param['DISCARD_OUT'] = swiftest_disc
 sim.save(swiftest_input)
 
 sim.param['PL_IN'] = swifter_pl

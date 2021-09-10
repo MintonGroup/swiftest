@@ -125,8 +125,10 @@ contains
       character(*),  intent(in)    :: sortby    !! Sorting attribute
       logical,       intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B) :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -135,6 +137,7 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
          select case(sortby)
          case("eta")
             call util_sort(direction * pl%eta(1:npl), ind(1:npl))
@@ -165,21 +168,17 @@ contains
       ! Arguments
       class(whm_pl),               intent(inout) :: self !! WHM massive body object
       integer(I4B),  dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      class(whm_pl), allocatable :: pl_sorted  !! Temporary holder for sorted body
-      integer(I4B) :: i
 
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
+         call util_sort_rearrange(pl%eta,  ind, npl)
+         call util_sort_rearrange(pl%xj,   ind, npl)
+         call util_sort_rearrange(pl%vj,   ind, npl)
+         call util_sort_rearrange(pl%muj,  ind, npl)
+         call util_sort_rearrange(pl%ir3j, ind, npl)
+
          call util_sort_rearrange_pl(pl,ind)
-         allocate(pl_sorted, source=self)
-         if (allocated(pl%eta))  pl%eta(1:npl) = pl_sorted%eta(ind(1:npl))
-         if (allocated(pl%xj))   pl%xj(:,1:npl) = pl_sorted%xj(:,ind(1:npl))
-         if (allocated(pl%vj))   pl%vj(:,1:npl) = pl_sorted%vj(:,ind(1:npl))
-         if (allocated(pl%muj))  pl%muj(1:npl) = pl_sorted%muj(ind(1:npl))
-         if (allocated(pl%ir3j)) pl%ir3j(1:npl) = pl_sorted%ir3j(ind(1:npl))
-         deallocate(pl_sorted)
       end associate
 
       return

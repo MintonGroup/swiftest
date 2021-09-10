@@ -73,8 +73,8 @@ module whm_classes
    type, extends(swiftest_nbody_system) :: whm_nbody_system
    contains
       !> Replace the abstract procedures with concrete ones
-      procedure :: initialize   => whm_setup_initialize_system      !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-      procedure :: step         => whm_step_system       !! Advance the WHM nbody system forward in time by one step
+      procedure :: initialize   => whm_setup_initialize_system ! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure :: step         => whm_step_system             !! Advance the WHM nbody system forward in time by one step
    end type whm_nbody_system
 
    interface
@@ -108,6 +108,13 @@ module whm_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
+      module subroutine whm_util_index_eucl_plpl(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(whm_pl),            intent(inout) :: self  !! WHM massive body object
+         class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters
+      end subroutine whm_util_index_eucl_plpl
+   
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters

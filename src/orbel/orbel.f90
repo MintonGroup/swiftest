@@ -5,7 +5,8 @@ contains
    module subroutine orbel_el2xv_vec(self, cb)
       !! author: David A. Minton
       !!
-      !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
+      !! A wrapper method that converts all of the orbital element vectors into cartesian position and velocity vectors for a Swiftest body object.
+      !! This method deallocates all of the orbital elements after it is finished.
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self !! Swiftest body object
@@ -16,10 +17,12 @@ contains
       if (self%nbody == 0) return
 
       call self%set_mu(cb)
-      do i = 1, self%nbody
+      do concurrent (i = 1:self%nbody)
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
                            self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
       end do
+      deallocate(self%a, self%e, self%inc, self%capom, self%omega, self%capm)
+      return
    end subroutine orbel_el2xv_vec
 
 
@@ -288,7 +291,7 @@ contains
       end if
 
       return
-   end function  orbel_flon
+   end function orbel_flon
 
 
    !**********************************************************************
@@ -358,7 +361,7 @@ contains
 
       !write(*,*) 'fget : returning without complete convergence'
       return
-   end function  orbel_fget
+   end function orbel_fget
 
 
    !**********************************************************************
@@ -878,19 +881,20 @@ contains
       if (self%nbody == 0) return
 
       call self%set_mu(cb)
-      if (.not.allocated(self%a))     allocate(self%a(self%nbody))
-      if (.not.allocated(self%e))     allocate(self%e(self%nbody))
-      if (.not.allocated(self%inc))   allocate(self%inc(self%nbody))
-      if (.not.allocated(self%capom)) allocate(self%capom(self%nbody))
-      if (.not.allocated(self%omega)) allocate(self%omega(self%nbody))
-      if (.not.allocated(self%capm))  allocate(self%capm(self%nbody))
-      do i = 1, self%nbody
+      if (allocated(self%a)) deallocate(self%a); allocate(self%a(self%nbody))
+      if (allocated(self%e)) deallocate(self%e); allocate(self%e(self%nbody))
+      if (allocated(self%inc)) deallocate(self%inc); allocate(self%inc(self%nbody))
+      if (allocated(self%capom)) deallocate(self%capom); allocate(self%capom(self%nbody))
+      if (allocated(self%omega)) deallocate(self%omega); allocate(self%omega(self%nbody))
+      if (allocated(self%capm)) deallocate(self%capm);  allocate(self%capm(self%nbody))
+      do concurrent (i = 1:self%nbody)
          call orbel_xv2el(self%mu(i), self%xh(:, i), self%vh(:, i), self%a(i), self%e(i), self%inc(i),  &
                           self%capom(i), self%omega(i), self%capm(i))
       end do
    end subroutine orbel_xv2el_vec 
 
-   pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
+
+   module pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -906,9 +910,17 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2el.f90
       !! Adapted from Martin Duncan's Swift routine orbel_xv2el.f
       implicit none
-      real(DP), intent(in)  :: mu
-      real(DP), dimension(:), intent(in)  :: x, v
-      real(DP), intent(out) :: a, e, inc, capom, omega, capm
+      ! Arguments
+      real(DP),               intent(in)  :: mu    !! Gravitational constant
+      real(DP), dimension(:), intent(in)  :: x     !! Position vector
+      real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
+      real(DP),               intent(out) :: a     !! semimajor axis
+      real(DP),               intent(out) :: e     !! eccentricity
+      real(DP),               intent(out) :: inc   !! inclination
+      real(DP),               intent(out) :: capom !! longitude of ascending node
+      real(DP),               intent(out) :: omega !! argument of periapsis
+      real(DP),               intent(out) :: capm  !! mean anomaly
+      ! Internals
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, cape, tmpf, capf
       real(DP), dimension(NDIM) :: hvec
@@ -919,12 +931,12 @@ contains
       capom = 0.0_DP
       omega = 0.0_DP
       capm = 0.0_DP
-      r = sqrt(dot_product(x(:), x(:))) 
+      r = .mag. x(:)
       v2 = dot_product(v(:), v(:))
       hvec = x(:) .cross. v(:)
       h2 = dot_product(hvec(:), hvec(:)) 
-      h = sqrt(h2)
-      if (h2 == 0.0_DP) return
+      h = .mag. hvec(:)
+      if (h2 <= 10 * tiny(0.0_DP)) return
       rdotv = dot_product(x(:), v(:))
       energy = 0.5_DP * v2 - mu / r
       fac = hvec(3) / h

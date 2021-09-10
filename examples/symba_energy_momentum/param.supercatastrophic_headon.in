@@ -6,10 +6,10 @@ CB_IN          cb.in
 TP_IN          tp.in
 IN_TYPE        ASCII
 ISTEP_OUT      1                 ! output cadence every year
-BIN_OUT        bin.supercatastrophic_headon.dat
+BIN_OUT        bin.supercatastrophic_headon.nc
 PARTICLE_OUT   particle.supercatastrophic_headon.dat
-OUT_TYPE       REAL8             ! double precision real output
-OUT_FORM       XV                ! osculating element output
+OUT_TYPE       NETCDF_DOUBLE     ! double precision real output
+OUT_FORM       XVEL              ! osculating element output
 OUT_STAT       REPLACE
 ISTEP_DUMP     1                 ! system dump cadence
 CHK_CLOSE      yes               ! check for planetary close encounters
@@ -17,11 +17,11 @@ CHK_RMIN       0.005
 CHK_RMAX       1e6
 CHK_EJECT      -1.0              ! ignore this check
 CHK_QMIN       -1.0              ! ignore this check
-ENC_OUT        enc.supercatastrophic_headon.dat
 EXTRA_FORCE    no                ! no extra user-defined forces
 BIG_DISCARD    no                ! output all planets if anything discarded
 RHILL_PRESENT  yes               ! Hill's sphere radii in input file
-GMTINY          1.0e-16
+GMTINY         1.0e-11
+MIN_GMFRAG     1.0e-11
 FRAGMENTATION  yes
 MU2KG          1.98908e30
 TU2S           3.1556925e7
