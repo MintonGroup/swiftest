@@ -312,6 +312,10 @@ for case in cases:
         animfile = 'movies/merger.mp4'
         titletext = "Merger"
         paramfile = 'param.merger.in'
+    elif case == 'hit_and_run':
+        animfile = 'movies/hitandrun.mp4'
+        titletext = "Hit and run with fragmentation"
+        paramfile = 'param.hitandrun.in'
     else:
         print(f'{case} is an unknown case')
         exit(-1)
