@@ -1,5 +1,5 @@
 T0             0.0e0
-TSTOP          0.0000100           ! simulation length in seconds = 100 years
+TSTOP          0.0001000           ! simulation length in seconds = 100 years
 DT             0.0000001              ! stepsize in seconds
 CB_IN          cb.in
 PL_IN          disruption_off_axis.in

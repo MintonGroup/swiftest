@@ -1,6 +1,6 @@
 T0             0.0e0
-TSTOP          0.000100            ! simulation length in seconds = 100 years
-DT             0.0000001              ! stepsize in seconds
+TSTOP          0.0001000            ! simulation length in seconds = 100 years
+DT             0.0000001            ! stepsize in seconds
 CB_IN          cb.in
 PL_IN          disruption_headon.in
 TP_IN          tp.in
@@ -21,8 +21,8 @@ ENC_OUT        enc.disruption_headon.dat
 EXTRA_FORCE    no                ! no extra user-defined forces
 BIG_DISCARD    no                ! output all planets if anything discarded
 RHILL_PRESENT  yes               ! Hill's sphere radii in input file
-GMTINY         1.0e-16
-MIN_GMFRAG     1.0e-10
+GMTINY         1.0e-11
+MIN_GMFRAG     1.0e-11
 FRAGMENTATION  yes
 MU2KG          1.98908e30
 TU2S           3.1556925e7
