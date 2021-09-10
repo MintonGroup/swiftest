@@ -67,22 +67,6 @@ contains
    end subroutine whm_util_fill_pl
 
 
-   module subroutine whm_util_index_eucl_plpl(self, param)
-      !! author: David A. Minton
-      !!
-      !! Wrapper for the indexing method for WHM massive bodies. Sorts the massive bodies by heliocentric distance and then flattens the pl-pl upper triangular matrix
-      implicit none
-      ! Arguments
-      class(whm_pl),              intent(inout) :: self  !! WHM massive body object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-
-      call self%sort("ir3h", ascending=.false.)
-      call util_index_eucl_plpl(self, param)
-
-      return
-   end subroutine whm_util_index_eucl_plpl
-
-
    module subroutine whm_util_resize_pl(self, nnew)
       !! author: David A. Minton
       !!
@@ -141,8 +125,10 @@ contains
       character(*),  intent(in)    :: sortby    !! Sorting attribute
       logical,       intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
-      integer(I4B), dimension(self%nbody) :: ind
+      integer(I4B), dimension(:), allocatable :: ind
       integer(I4B) :: direction
+
+      if (self%nbody == 0) return
 
       if (ascending) then
          direction = 1
@@ -151,6 +137,7 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
+         allocate(ind(npl))
          select case(sortby)
          case("eta")
             call util_sort(direction * pl%eta(1:npl), ind(1:npl))

@@ -226,7 +226,7 @@ contains
       class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
       class(symba_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, nenc_old
 
       associate(system => self)
          select type(pl => system%pl)
@@ -236,11 +236,7 @@ contains
                associate(npl => pl%nbody, ntp => tp%nbody)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
-                     pl%kin(1:npl)%parent = [(i, i=1, npl)]
-                     pl%kin(1:npl)%nchild = 0
-                     do i = 1, npl
-                        if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-                     end do
+                     call pl%reset_kinship([(i, i=1, npl)])
                      pl%nplenc(1:npl) = 0
                      pl%ntpenc(1:npl) = 0
                      pl%levelg(1:npl) = -1
@@ -249,8 +245,11 @@ contains
                      pl%lcollision(1:npl) = .false.
                      pl%ldiscard(1:npl) = .false.
                      pl%lmask(1:npl) = .true.
+                     nenc_old = system%plplenc_list%nenc
+                     call system%plplenc_list%setup(0)
+                     call system%plplenc_list%setup(nenc_old)
                      system%plplenc_list%nenc = 0
-                     system%plplcollision_list%nenc = 0
+                     call system%plplcollision_list%setup(0)
                   end if
             
                   if (ntp > 0) then
@@ -258,7 +257,10 @@ contains
                      tp%levelg(1:ntp) = -1
                      tp%levelm(1:ntp) = -1
                      tp%lmask(1:ntp) = .true.
-                     pl%ldiscard(1:npl) = .false.
+                     tp%ldiscard(1:npl) = .false.
+                     nenc_old = system%pltpenc_list%nenc
+                     call system%pltpenc_list%setup(0)
+                     call system%pltpenc_list%setup(nenc_old)
                      system%pltpenc_list%nenc = 0
                   end if
 

@@ -5,8 +5,7 @@ sim = swiftest.Simulation()
 sim.param['PL_IN'] = "pl.swiftest.in"
 sim.param['TP_IN'] = "tp.swiftest.in"
 sim.param['CB_IN'] = "cb.swiftest.in"
-sim.param['BIN_OUT'] = "bin.swiftest.dat"
-sim.param['ENC_OUT'] = "enc.swiftest.dat"
+sim.param['BIN_OUT'] = "bin.swiftest.nc"
 
 sim.param['MU2KG'] = swiftest.MSun
 sim.param['TU2S'] = swiftest.YR2S
@@ -22,9 +21,11 @@ sim.param['CHK_QMIN_RANGE'] = f"{swiftest.RSun / swiftest.AU2M} 1000.0"
 sim.param['CHK_RMIN'] = swiftest.RSun / swiftest.AU2M
 sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
-sim.param['OUT_FORM'] = "EL"
 sim.param['OUT_STAT'] = "UNKNOWN"
-sim.param['RHILL_PRESENT'] = "NO"
+sim.param['IN_FORM'] = "EL"
+sim.param['OUT_FORM'] = "XVEL"
+sim.param['OUT_TYPE'] = "NETCDF_DOUBLE"
+sim.param['RHILL_PRESENT'] = "YES"
 sim.param['GR'] = 'YES'
 
 bodyid = {

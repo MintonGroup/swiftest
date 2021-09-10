@@ -34,7 +34,6 @@ module whm_classes
       procedure :: j2h         => whm_coord_j2h_pl           !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
       procedure :: vh2vj       => whm_coord_vh2vj_pl         !! Convert velocity vectors from heliocentric to Jacobi coordinates 
       procedure :: drift       => whm_drift_pl               !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
-      procedure :: index       => whm_util_index_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: accel_gr    => whm_gr_kick_getacch_pl     !! Acceleration term arising from the post-Newtonian correction
       procedure :: gr_pos_kick => whm_gr_p4_pl               !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies

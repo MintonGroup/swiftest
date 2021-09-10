@@ -2,62 +2,6 @@ submodule(symba_classes) s_symba_setup
    use swiftest
 contains
 
-   module subroutine symba_setup_initialize_particle_info(system, param) 
-      !! author: David A. Minton
-      !!
-      !! Initializes a new particle information data structure with initial conditions recorded
-      implicit none
-      ! Argumets
-      class(symba_nbody_system), intent(inout) :: system  !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param !! Current run configuration parameters with SyMBA extensions
-      ! Internals
-      integer(I4B) :: i
-      integer(I4B), dimension(:), allocatable :: idx
-
-      select type(cb => system%cb)
-      class is (symba_cb)
-         cb%info%origin_type = "Central body"
-         cb%info%origin_time = param%t0
-         cb%info%origin_xh(:) = 0.0_DP
-         cb%info%origin_vh(:) = 0.0_DP
-         call symba_io_dump_particle_info(system, param, lincludecb=.true.)
-      end select
-
-      select type(pl => system%pl)
-      class is (symba_pl)
-         do i = 1, pl%nbody
-            pl%info(i)%origin_type = "Initial conditions"
-            pl%info(i)%origin_time = param%t0
-            pl%info(i)%origin_xh(:) = pl%xh(:,i)
-            pl%info(i)%origin_vh(:) = pl%vh(:,i)
-         end do
-         if (pl%nbody > 0) then
-            allocate(idx(pl%nbody))
-            call symba_io_dump_particle_info(system, param, plidx=[(i, i=1, pl%nbody)])
-            deallocate(idx)
-         end if
-      end select
-
-      select type(tp => system%tp)
-      class is (symba_tp)
-         do i = 1, tp%nbody
-            tp%info(i)%origin_type = "Initial conditions"
-            tp%info(i)%origin_time = param%t0
-            tp%info(i)%origin_xh(:) = tp%xh(:,i)
-            tp%info(i)%origin_vh(:) = tp%vh(:,i)
-         end do
-         if (tp%nbody > 0) then
-            allocate(idx(tp%nbody))
-            call symba_io_dump_particle_info(system, param, tpidx=[(i, i=1, tp%nbody)])
-            deallocate(idx)
-         end if
-      end select
-
-
-      return
-   end subroutine symba_setup_initialize_particle_info
-
-
    module subroutine symba_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -77,14 +21,6 @@ contains
          call system%pltpenc_list%setup(0)
          call system%plplenc_list%setup(0)
          call system%plplcollision_list%setup(0)
-         select type(param)
-         class is (symba_parameters)
-            if (param%lrestart) then
-               call symba_io_read_particle(system, param)
-            else
-               call symba_setup_initialize_particle_info(system, param) 
-            end if
-         end select
       end associate
 
       return
@@ -107,9 +43,12 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call symba_setup_pl(self, n, param) 
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%ncomp)) deallocate(self%ncomp)
+
+      if (n == 0) return
+
       allocate(self%ncomp(n))
       self%ncomp(:) = 0
 
@@ -133,7 +72,7 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call setup_pl(self, n, param) 
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%lcollision)) deallocate(self%lcollision)
       if (allocated(self%lencounter)) deallocate(self%lencounter)
@@ -146,7 +85,8 @@ contains
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
       if (allocated(self%kin)) deallocate(self%kin)
-      if (allocated(self%info)) deallocate(self%info)
+
+      if (n == 0) return
 
       allocate(self%lcollision(n))
       allocate(self%lencounter(n))
@@ -159,7 +99,6 @@ contains
       allocate(self%peri(n))
       allocate(self%atp(n))
       allocate(self%kin(n))
-      allocate(self%info(n))
 
       self%lcollision(:) = .false.
       self%lencounter(:) = .false.
@@ -171,8 +110,7 @@ contains
       self%isperi(:) = 0
       self%peri(:) = 0.0_DP
       self%atp(:) = 0.0_DP
-      self%kin(:)%nchild = 0
-      self%kin(:)%parent = [(i, i=1, n)]
+      call self%reset_kinship([(i, i=1, n)])
       return
    end subroutine symba_setup_pl
 
@@ -188,9 +126,12 @@ contains
       integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
 
       call setup_encounter(self, n)
-      if (n == 0) return
+      if (n < 0) return
 
       if (allocated(self%level)) deallocate(self%level)
+
+      if (n ==0) return
+
       allocate(self%level(n))
 
       self%level(:) = -1
@@ -213,12 +154,14 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_tp does not have its own setup method so we use the base method for swiftest_tp
       call setup_tp(self, n, param) 
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%nplenc)) deallocate(self%nplenc)
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
       if (allocated(self%info)) deallocate(self%info)
+
+      if (n == 0) return
 
       allocate(self%nplenc(n))
       allocate(self%levelg(n))

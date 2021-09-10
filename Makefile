@@ -45,9 +45,11 @@
 #******************************************************************************
 
 SWIFTEST_MODULES =   swiftest_globals.f90 \
-							lambda_function.f90\
-                     swiftest_classes.f90 \
                      swiftest_operators.f90 \
+							lambda_function.f90\
+							walltime_classes.f90 \
+                     swiftest_classes.f90 \
+                     fraggle_classes.f90 \
                      whm_classes.f90 \
                      rmvs_classes.f90 \
                      helio_classes.f90 \
@@ -57,13 +59,13 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
 
 include Makefile.Defines
 
-MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES)
+MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES) 
 
 .PHONY : all mod lib libdir drivers bin clean force 
 
 % : %.f90 force
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include $< -o $@ \
-	  -L$(SWIFTEST_HOME)/lib -lswiftest 
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include  $< -o $@ \
+	  -L$(SWIFTEST_HOME)/lib -lswiftest -L$(NETCDF_FORTRAN_HOME)/lib -lnetcdf -lnetcdff
 	$(INSTALL_PROGRAM) $@ $(SWIFTEST_HOME)/bin
 	rm -f $@
 
@@ -75,7 +77,7 @@ all:
 
 mod:
 	cd $(SWIFTEST_HOME)/src/modules/; \
-	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c $(MODULES); \
+	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -c $(MODULES); \
 	  $(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o; \
 	  $(INSTALL_DATA) *.mod *.smod $(SWIFTEST_HOME)/include; \
 	  rm -f *.o *.mod  *.smod
@@ -91,7 +93,7 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTEST_HOME)/src/fragmentation; \
+	cd $(SWIFTEST_HOME)/src/fraggle; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
@@ -107,6 +109,11 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
 	cd $(SWIFTEST_HOME)/src/kick; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make libdir
+	cd $(SWIFTEST_HOME)/src/netcdf; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
@@ -168,7 +175,7 @@ lib:
 	  make libdir
 
 libdir:
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -c *.f90; \
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -c *.f90; \
 	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
 	$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
 	rm -f *.o *.smod
@@ -188,12 +195,13 @@ clean:
 	cd $(SWIFTEST_HOME)/src/modules;  rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
-	cd $(SWIFTEST_HOME)/src/fragmentation;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/fraggle;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/gr;          rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/helio;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/io;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/kick;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/main;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/netcdf;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/obl;     rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/operators;      rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/orbel;   rm -f Makefile.Defines Makefile *.gc*

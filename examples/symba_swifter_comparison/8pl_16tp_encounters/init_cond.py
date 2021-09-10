@@ -85,16 +85,16 @@ p6 = []
 
 for i in pl.id:
     pli = pl.sel(id=i)
-    rstart = 2 * np.double(pli['Radius'])  # Start the test particles at a multiple of the planet radius away
+    rstart = 2 * np.double(pli['radius'])  # Start the test particles at a multiple of the planet radius away
     vstart = 1.5 * np.sqrt(2 * np.double(pli['Mass'])  / rstart)  # Start the test particle velocities at a multiple of the escape speed
     xvstart = np.array([rstart / np.sqrt(2.0), rstart / np.sqrt(2.0), 0.0, vstart, 0.0, 0.0])
     # The positions and velocities of each pair of test particles will be in reference to a planet
-    plvec = np.array([np.double(pli['px']),
-                      np.double(pli['py']),
-                      np.double(pli['pz']),
-                      np.double(pli['vx']),
-                      np.double(pli['vy']),
-                      np.double(pli['vz'])])
+    plvec = np.array([np.double(pli['xhx']),
+                      np.double(pli['xhy']),
+                      np.double(pli['xhz']),
+                      np.double(pli['vhx']),
+                      np.double(pli['vhy']),
+                      np.double(pli['vhz'])])
     tpxv1 = plvec + xvstart
     tpxv2 = plvec - xvstart
     p1.append(tpxv1[0])

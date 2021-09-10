@@ -13,18 +13,18 @@ xmax = 10.0
 ymin = 1e-6
 ymax = 1.0
 framejump = 1
+ncutoff = 1e20
 
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
     def __init__(self, ds, param):
 
         frame = 0
-        nframes = int(ds['time'].size / framejump)
+        self.ds = ds
+        self.nframes = int(ds['time'].size / framejump)
+        self.Rcb = self.ds['radius'].sel(id=0, time=0).values
         self.ds = ds
         self.param = param
-        self.ds['radmarker'] = self.ds['Radius'].fillna(0)
-        self.ds['radmarker'] = self.ds['radmarker'] / self.ds['radmarker'].max() * radscale
-
         self.clist = {'Initial conditions' : 'xkcd:faded blue',
                       'Disruption' : 'xkcd:marigold',
                       'Supercatastrophic' : 'xkcd:shocking pink',
@@ -38,14 +38,15 @@ class AnimatedScatter(object):
         self.ax.set_xlim(xmin, xmax)
         self.ax.set_ylim(ymin, ymax)
         fig.add_axes(self.ax)
-        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=False)
+        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=self.nframes, init_func=self.setup_plot, blit=True)
+        #self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'libx264'])
         self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'mpeg4'])
         print('Finished writing aescattter.mp4')
 
     def scatters(self, pl, radmarker, origin):
         scat = []
         for key, value in self.clist.items():
-            idx = origin == value
+            idx = origin == key
             s = self.ax.scatter(pl[idx, 0], pl[idx, 1], marker='o', s=radmarker[idx], c=value, alpha=0.75, label=key)
             scat.append(s)
         return scat
@@ -53,7 +54,7 @@ class AnimatedScatter(object):
     def setup_plot(self):
         # First frame
         """Initial drawing of the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(0))
+        t, name, Gmass, radius, npl, pl, radmarker, origin = next(self.data_stream(0))
 
         # set up the figure
         self.ax.margins(x=10, y=1)
@@ -62,7 +63,7 @@ class AnimatedScatter(object):
         self.ax.set_yscale('log')
 
         self.title = self.ax.text(0.50, 1.05, "", bbox={'facecolor': 'w', 'alpha': 0.5, 'pad': 5}, transform=self.ax.transAxes,
-                        ha="center")
+                        ha="center", animated=True)
 
         self.title.set_text(f"{titletext} - Time = ${t / 24 / 3600:4.1f}$ days with ${npl:f}$ particles")
         slist = self.scatters(pl, radmarker, origin)
@@ -70,30 +71,35 @@ class AnimatedScatter(object):
         self.s1 = slist[1]
         self.s2 = slist[2]
         self.s3 = slist[3]
-        self.ax.legend(loc='upper right')
+        leg = plt.legend(loc="upper right", scatterpoints=1, fontsize=10)
+        for i,l in enumerate(leg.legendHandles):
+           leg.legendHandles[i]._sizes = [20]
         return self.s0, self.s1, self.s2, self.s3, self.title
 
     def data_stream(self, frame=0):
         while True:
             d = self.ds.isel(time=frame)
-            d = d.where(np.invert(np.isnan(d['a'])), drop=True)
-            Radius = d['radmarker'].values
-            GMass = d['GMass'].values
-            a = d['a'].values / RMars
+
+            d = d.where(d['radius'] < self.Rcb, drop=True)
+            d['radmarker'] = (d['radius'] / self.Rcb) * radscale
+            radius = d['radmarker'].values
+
+            Gmass = d['Gmass'].values
+            a = d['a'].values / self.Rcb
             e = d['e'].values
-            name = d['id'].values
-            npl = d.id.count().values
+            name = d['name'].values
+            npl = d['npl'].values[0]
             radmarker = d['radmarker']
-            origin = d['origin_type']
+            origin = d['origin_type'].values
 
             t = self.ds.coords['time'].values[frame]
 
             frame += 1
-            yield t, name, GMass, Radius, npl, np.c_[a, e], radmarker, origin
+            yield t, name, Gmass, radius, npl, np.c_[a, e], radmarker, origin
 
     def update(self,frame):
         """Update the scatter plot."""
-        t, name, GMass, Radius, npl, pl, radmarker, origin = next(self.data_stream(framejump * frame))
+        t, name, Gmass, radius, npl, pl, radmarker, origin = next(self.data_stream(framejump * frame))
 
         self.title.set_text(f"{titletext} - Time = ${t / 24 / 3600:4.1f}$ days with ${npl:4.0f}$ particles")
 

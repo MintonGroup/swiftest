@@ -21,12 +21,12 @@ class Simulation:
             'TP_IN': "tp.in",
             'CB_IN': "cb.in",
             'IN_TYPE': "ASCII",
-            'IN_FORM': "XV",
+            'IN_FORM': "EL",
             'ISTEP_OUT': "1",
             'ISTEP_DUMP': "1",
-            'BIN_OUT': "bin.dat",
-            'OUT_TYPE': 'REAL8',
-            'OUT_FORM': "EL",
+            'BIN_OUT': "bin.nc",
+            'OUT_TYPE': 'NETCDF_DOUBLE',
+            'OUT_FORM': "XVEL",
             'OUT_STAT': "REPLACE",
             'CHK_RMAX': "-1.0",
             'CHK_EJECT': "-1.0",
@@ -74,7 +74,7 @@ class Simulation:
         return
     
     
-    def addp(self, idvals, t1, t2, t3, t4, t5, t6, GMpl=None, Rpl=None, Rhill=None, Ip_x=None, Ip_y=None, Ip_z=None, rot_x=None, rot_y=None, rot_z=None):
+    def addp(self, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None):
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress
@@ -85,21 +85,21 @@ class Simulation:
            t1     : xh for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
            t2     : yh for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
            t3     : zh for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
-           t4     : vxh for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
-           t5     : vyh for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
-           t6     : vzh for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
+           t4     : vhxh for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
+           t5     : vhyh for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
+           t6     : vhzh for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
            Gmass  : Optional: Array of G*mass values if these are massive bodies
            radius : Optional: Array radius values if these are massive bodies
-           Rhill  : Optional: Array Rhill values if these are massive bodies
-           Ip_x,y,z : Optional: Principal axes moments of inertia
-           rot_x,y,z: Optional: Rotation rate vector components
+           rhill  : Optional: Array rhill values if these are massive bodies
+           Ip1,y,z : Optional: Principal axes moments of inertia
+           rotx,y,z: Optional: Rotation rate vector components
         Returns
         -------
         self.ds : xarray dataset
         """
         t = self.param['T0']
 
-        dsnew = init_cond.vec2xr(self.param, idvals, t1, t2, t3, t4, t5, t6, GMpl, Rpl, Rhill, Ip_x, Ip_y, Ip_z, rot_x, rot_y, rot_z, t)
+        dsnew = init_cond.vec2xr(self.param, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl, Rpl, rhill, Ip1, Ip2, Ip3, rotx, roty, rotz, t)
         if dsnew is not None:
             self.ds = xr.combine_by_coords([self.ds, dsnew])
         return

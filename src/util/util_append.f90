@@ -116,6 +116,39 @@ contains
    end subroutine util_append_arr_I4B
 
 
+   module subroutine util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+      implicit none
+      ! Arguments
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      integer(I4B),                                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+      logical,                       dimension(:),             intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew, i
+      integer(I4B), dimension(:), allocatable :: idx
+
+      if (.not. allocated(source)) return
+
+      nnew = count(lsource_mask(1:nsrc))
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nnew))
+      else
+         call util_resize(arr, nold + nnew)
+      end if
+
+      allocate(idx(nnew))
+
+      idx = pack([(i, i = 1, nsrc)], lsource_mask(1:nsrc))
+
+      call util_copy_particle_info_arr(source(1:nsrc), arr(nold+1:nold+nnew), idx)
+
+      return
+   end subroutine util_append_arr_info
+
+
    module subroutine util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
       !!
@@ -151,34 +184,39 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_body),            intent(inout) :: self         !! Swiftest body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_body),  intent(inout) :: self         !! Swiftest body object
+      class(swiftest_body),  intent(in)    :: source       !! Source object to append
+      logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nold, nsrc, nnew
 
-      associate(nold => self%nbody, nsrc => source%nbody)
-         call util_append(self%name, source%name, nold, nsrc, lsource_mask)
-         call util_append(self%id, source%id, nold, nsrc, lsource_mask)
-         call util_append(self%status, source%status, nold, nsrc, lsource_mask)
-         call util_append(self%ldiscard, source%ldiscard, nold, nsrc, lsource_mask)
-         call util_append(self%lmask, source%lmask, nold, nsrc, lsource_mask)
-         call util_append(self%mu, source%mu, nold, nsrc, lsource_mask)
-         call util_append(self%xh, source%xh, nold, nsrc, lsource_mask)
-         call util_append(self%vh, source%vh, nold, nsrc, lsource_mask)
-         call util_append(self%xb, source%xb, nold, nsrc, lsource_mask)
-         call util_append(self%vb, source%vb, nold, nsrc, lsource_mask)
-         call util_append(self%ah, source%ah, nold, nsrc, lsource_mask)
-         call util_append(self%aobl, source%aobl, nold, nsrc, lsource_mask)
-         call util_append(self%atide, source%atide, nold, nsrc, lsource_mask)
-         call util_append(self%agr, source%agr, nold, nsrc, lsource_mask)
-         call util_append(self%ir3h, source%ir3h, nold, nsrc, lsource_mask)
-         call util_append(self%a, source%a, nold, nsrc, lsource_mask)
-         call util_append(self%e, source%e, nold, nsrc, lsource_mask)
-         call util_append(self%inc, source%inc, nold, nsrc, lsource_mask)
-         call util_append(self%capom, source%capom, nold, nsrc, lsource_mask)
-         call util_append(self%omega, source%omega, nold, nsrc, lsource_mask)
-         call util_append(self%capm, source%capm, nold, nsrc, lsource_mask)
-         self%nbody = nold + count(lsource_mask(:))
-      end associate
+      nold = self%nbody
+      nsrc = source%nbody
+      nnew = count(lsource_mask(1:nsrc))
+
+      call util_append(self%info, source%info, nold, nsrc, lsource_mask)
+      call util_append(self%id, source%id, nold, nsrc, lsource_mask)
+      call util_append(self%status, source%status, nold, nsrc, lsource_mask)
+      call util_append(self%ldiscard, source%ldiscard, nold, nsrc, lsource_mask)
+      call util_append(self%lmask, source%lmask, nold, nsrc, lsource_mask)
+      call util_append(self%mu, source%mu, nold, nsrc, lsource_mask)
+      call util_append(self%xh, source%xh, nold, nsrc, lsource_mask)
+      call util_append(self%vh, source%vh, nold, nsrc, lsource_mask)
+      call util_append(self%xb, source%xb, nold, nsrc, lsource_mask)
+      call util_append(self%vb, source%vb, nold, nsrc, lsource_mask)
+      call util_append(self%ah, source%ah, nold, nsrc, lsource_mask)
+      call util_append(self%aobl, source%aobl, nold, nsrc, lsource_mask)
+      call util_append(self%atide, source%atide, nold, nsrc, lsource_mask)
+      call util_append(self%agr, source%agr, nold, nsrc, lsource_mask)
+      call util_append(self%ir3h, source%ir3h, nold, nsrc, lsource_mask)
+      call util_append(self%a, source%a, nold, nsrc, lsource_mask)
+      call util_append(self%e, source%e, nold, nsrc, lsource_mask)
+      call util_append(self%inc, source%inc, nold, nsrc, lsource_mask)
+      call util_append(self%capom, source%capom, nold, nsrc, lsource_mask)
+      call util_append(self%omega, source%omega, nold, nsrc, lsource_mask)
+      call util_append(self%capm, source%capm, nold, nsrc, lsource_mask)
+
+      self%nbody = nold + nnew
 
       return
    end subroutine util_append_body
@@ -194,21 +232,23 @@ contains
       class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list object
       class(swiftest_encounter), intent(in)    :: source       !! Source object to append
       logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nold, nsrc
 
-      associate(nold => self%nenc, nsrc => source%nenc)
-         call util_append(self%lvdotr, source%lvdotr, nold, nsrc, lsource_mask)
-         call util_append(self%status, source%status, nold, nsrc, lsource_mask)
-         call util_append(self%index1, source%index1, nold, nsrc, lsource_mask)
-         call util_append(self%index2, source%index2, nold, nsrc, lsource_mask)
-         call util_append(self%id1, source%id1, nold, nsrc, lsource_mask)
-         call util_append(self%id2, source%id2, nold, nsrc, lsource_mask)
-         call util_append(self%x1, source%x1, nold, nsrc, lsource_mask)
-         call util_append(self%x2, source%x2, nold, nsrc, lsource_mask)
-         call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
-         call util_append(self%v2, source%v2, nold, nsrc, lsource_mask)
-         call util_append(self%t, source%t, nold, nsrc, lsource_mask)
-         self%nenc = nold + count(lsource_mask(:))
-      end associate
+      nold = self%nenc
+      nsrc = source%nenc
+      call util_append(self%lvdotr, source%lvdotr, nold, nsrc, lsource_mask)
+      call util_append(self%status, source%status, nold, nsrc, lsource_mask)
+      call util_append(self%index1, source%index1, nold, nsrc, lsource_mask)
+      call util_append(self%index2, source%index2, nold, nsrc, lsource_mask)
+      call util_append(self%id1, source%id1, nold, nsrc, lsource_mask)
+      call util_append(self%id2, source%id2, nold, nsrc, lsource_mask)
+      call util_append(self%x1, source%x1, nold, nsrc, lsource_mask)
+      call util_append(self%x2, source%x2, nold, nsrc, lsource_mask)
+      call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
+      call util_append(self%v2, source%v2, nold, nsrc, lsource_mask)
+      call util_append(self%t, source%t, nold, nsrc, lsource_mask)
+      self%nenc = nold + count(lsource_mask(1:nsrc))
 
       return
    end subroutine util_append_encounter
@@ -224,7 +264,6 @@ contains
       class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
       class(swiftest_body),            intent(in)    :: source       !! Source object to append
       logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-
 
       select type(source)
       class is (swiftest_pl)
@@ -242,6 +281,8 @@ contains
             call util_append(self%k2, source%k2, nold, nsrc, lsource_mask)
             call util_append(self%Q, source%Q, nold, nsrc, lsource_mask)
             call util_append(self%tlag, source%tlag, nold, nsrc, lsource_mask)
+
+            if (allocated(self%k_plpl)) deallocate(self%k_plpl)
 
             call util_append_body(self, source, lsource_mask)
          end associate
