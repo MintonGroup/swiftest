@@ -32,8 +32,6 @@ contains
          vzr = v(3, j) - v(3, i)
          rhill1 = rhill(i)
          rhill2 = rhill(j)
-         lencounter(k) = .false.
-         loc_lvdotr(k) = .false.
          call symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter(k), loc_lvdotr(k))
       end do
       !$omp end parallel do
@@ -58,7 +56,8 @@ contains
       ! Internals
       integer(I8B) :: k, nplplm
       integer(I4B) :: i, j, nenc
-      logical, dimension(:), allocatable :: lencounter, loc_lvdotr
+      logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
+      integer(I8B), dimension(:), allocatable :: kidx 
   
       if (self%nbody == 0) return
 
@@ -76,9 +75,13 @@ contains
          lany_encounter = nenc > 0
          if (lany_encounter) then 
             associate(plplenc_list => system%plplenc_list)
+               allocate(lvdotr(nenc))
+               allocate(kidx(nenc))
+               lvdotr(:) = pack(loc_lvdotr(:), lencounter(:))
+               kidx(:) = pack([(k, k = 1_I8B, nplplm)], lencounter(:))
+               call move_alloc(lvdotr, plplenc_list%lvdotr)
+               call move_alloc(kidx, plplenc_list%kidx)
                call plplenc_list%resize(nenc)
-               plplenc_list%lvdotr(1:nenc) = pack(loc_lvdotr(1:nplplm), lencounter(1:nplplm))
-               plplenc_list%kidx(1:nenc) = pack([(k, k = 1_I8B, nplplm)], lencounter(1:nplplm))
                deallocate(lencounter, loc_lvdotr)
                plplenc_list%index1(1:nenc) = pl%k_plpl(1,plplenc_list%kidx(1:nenc))
                plplenc_list%index2(1:nenc) = pl%k_plpl(2,plplenc_list%kidx(1:nenc))
@@ -120,11 +123,12 @@ contains
       integer(I4B),              intent(in)    :: irec       !! Current recursion level 
       logical                                  :: lany_encounter !! Returns true if there is at least one close encounter  
       ! Internals
-      integer(I4B)              :: i, j,k
+      integer(I4B)              :: i, j, k, lidx, nenc_enc
       real(DP), dimension(NDIM) :: xr, vr
       logical                   :: lencounter, isplpl
       real(DP)                  :: rlim2, rji2
       logical, dimension(:), allocatable :: lencmask
+      integer(I4B), dimension(:), allocatable :: encidx
 
       lany_encounter = .false.
       if (self%nenc == 0) return
@@ -142,8 +146,14 @@ contains
          class is (symba_tp)
             allocate(lencmask(self%nenc))
             lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
-            if (.not.any(lencmask(:))) return
-            do concurrent(k = 1:self%nenc, lencmask(k))
+            nenc_enc = count(lencmask(:))
+            if (nenc_enc == 0) return
+
+            allocate(encidx(nenc_enc))
+            encidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
+
+            do lidx = 1, nenc_enc
+               k = encidx(lidx)
                i = self%index1(k)
                j = self%index2(k)
                if (isplpl) then
@@ -211,8 +221,12 @@ contains
    
          do j = 1, npl
             do i = 1, ntp
-               xr(:) = tp%xh(:, i) - pl%xh(:, j)
-               vr(:) = tp%vh(:, i) - pl%vh(:, j)
+               xr(1) = tp%xh(1, i) - pl%xh(1, j)
+               xr(2) = tp%xh(2, i) - pl%xh(2, j)
+               xr(3) = tp%xh(3, i) - pl%xh(3, j)
+               vr(1) = tp%vh(1, i) - pl%vh(1, j)
+               vr(2) = tp%vh(2, i) - pl%vh(2, j)
+               vr(3) = tp%vh(3, i) - pl%vh(3, j)
                call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(j), 0.0_DP, dt, irec, lencounter(i,j), loc_lvdotr(i,j))
             end do
          end do
@@ -252,7 +266,7 @@ contains
    end function symba_encounter_check_tp
 
 
-   module pure elemental subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+   module pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for an encounter.
@@ -266,15 +280,11 @@ contains
       integer(I4B), intent(in)  :: irec
       logical,      intent(out) :: lencounter, lvdotr
       ! Internals
-      real(DP)     :: r2, v2, rcrit, r2crit, vdotr
+      real(DP)     :: r2crit
 
-      rcrit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
-      r2crit = rcrit**2
-      r2 = xr**2 + yr**2 + zr**2
-      v2 = vxr**2 + vyr**2 + vzr**2
-      vdotr = xr * vxr + yr * vyr + zr * vzr
-      lencounter = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit)
-      lvdotr = (vdotr < 0.0_DP)
+      r2crit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
+      r2crit = r2crit**2
+      call rmvs_chk_ind(xr, yr, zr, vxr, vyr, vzr, dt, r2crit, lencounter, lvdotr)
 
       return
    end subroutine symba_encounter_check_one

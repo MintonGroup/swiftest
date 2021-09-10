@@ -43,7 +43,7 @@ contains
    end subroutine drift_body
 
 
-   module pure subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
+   module subroutine drift_all(mu, x, v, n, param, dt, lmask, iflag)
       !! author: David A. Minton
       !!
       !! Loop bodies and call Danby drift routine on all bodies for the given position and velocity vector.
@@ -55,9 +55,9 @@ contains
       real(DP), dimension(:),     intent(in)    :: mu    !! Vector of gravitational constants
       real(DP), dimension(:,:),   intent(inout) :: x, v  !! Position and velocity vectors
       integer(I4B),               intent(in)    :: n     !! number of bodies
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       real(DP),                   intent(in)    :: dt    !! Stepsize
-      logical, dimension(:),      intent(in)    :: mask  !! Logical mask of size self%nbody that determines which bodies to drift.
+      logical, dimension(:),      intent(in)    :: lmask !! Logical mask of size self%nbody that determines which bodies to drift.
       integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
       ! Internals
       integer(I4B)                              :: i   
@@ -68,18 +68,21 @@ contains
 
       allocate(dtp(n))
       if (param%lgr) then
-         do concurrent(i = 1:n, mask(i))
+         do concurrent(i = 1:n, lmask(i))
             rmag = norm2(x(:, i))
             vmag2 = dot_product(v(:, i), v(:, i))
             energy = 0.5_DP * vmag2 - mu(i) / rmag
             dtp(i) = dt * (1.0_DP + 3 * param%inv_c2 * energy)
          end do
       else
-         where(mask(1:n)) dtp(1:n) = dt
+         where(lmask(1:n)) dtp(1:n) = dt
       end if 
-      do concurrent(i = 1:n, mask(i))
-         call drift_one(mu(i), x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), dtp(i), iflag(i))
+      !$omp parallel do default(private) &
+      !$omp shared(n, lmask, mu, x, v, dtp, iflag)
+      do i = 1,n
+         if (lmask(i)) call drift_one(mu(i), x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), dtp(i), iflag(i))
       end do
+      !$omp end parallel do
 
       return
    end subroutine drift_all
