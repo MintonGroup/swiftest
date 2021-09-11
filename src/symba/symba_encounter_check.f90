@@ -75,13 +75,13 @@ contains
          lany_encounter = nenc > 0
          if (lany_encounter) then 
             associate(plplenc_list => system%plplenc_list)
+               call plplenc_list%resize(nenc)
                allocate(lvdotr(nenc))
                allocate(kidx(nenc))
                lvdotr(:) = pack(loc_lvdotr(:), lencounter(:))
                kidx(:) = pack([(k, k = 1_I8B, nplplm)], lencounter(:))
                call move_alloc(lvdotr, plplenc_list%lvdotr)
                call move_alloc(kidx, plplenc_list%kidx)
-               call plplenc_list%resize(nenc)
                deallocate(lencounter, loc_lvdotr)
                plplenc_list%index1(1:nenc) = pl%k_plpl(1,plplenc_list%kidx(1:nenc))
                plplenc_list%index2(1:nenc) = pl%k_plpl(2,plplenc_list%kidx(1:nenc))
