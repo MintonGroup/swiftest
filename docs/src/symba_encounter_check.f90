@@ -202,20 +202,20 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_chk.f
       implicit none
       ! Arguments
-      real(DP),     intent(in)  :: xr, yr, zr, vxr, vyr, vzr
-      real(DP),     intent(in)  :: rhill1, rhill2, dt
-      integer(I4B), intent(in)  :: irec
-      logical,      intent(out) :: lencounter, lvdotr
+      real(DP),     intent(in)  :: xr, yr, zr     !! Relative distance vector components
+      real(DP),     intent(in)  :: vxr, vyr, vzr  !! Relative velocity vector components
+      real(DP),     intent(in)  :: rhill1, rhill2 !! Hill spheres of the two bodies
+      real(DP),     intent(in)  :: dt             !! Step size
+      integer(I4B), intent(in)  :: irec           !! Current SyMBA recursion level
+      real(DP),     intent(in)  :: r2crit         !! Square of the critical encounter distance
+      logical,      intent(out) :: lencounter     !! Flag indicating that an encounter has occurred
+      logical,      intent(out) :: lvdotr         !! Logical flag indicating the direction of the v .dot. r vector
       ! Internals
-      real(DP)     :: r2, v2, rcrit, r2crit, vdotr
+      real(DP)     :: r2crit
 
-      rcrit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
-      r2crit = rcrit**2
-      r2 = xr**2 + yr**2 + zr**2
-      v2 = vxr**2 + vyr**2 + vzr**2
-      vdotr = xr * vxr + yr * vyr + zr * vzr
-      lencounter = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit)
-      lvdotr = (vdotr < 0.0_DP)
+      r2crit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
+      r2crit = r2crit**2
+      call rmvs_chk_ind(xr, yr, zr, vxr, vyr, vzr, dt, r2crit, lencounter, lvdotr)
 
       return
    end subroutine symba_encounter_check_one

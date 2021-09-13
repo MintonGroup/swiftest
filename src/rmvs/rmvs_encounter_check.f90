@@ -59,6 +59,7 @@ contains
 
 
    module pure subroutine rmvs_chk_ind(xr, yr, zr, vxr, vyr, vzr, dt, r2crit, lencounter, lvdotr)
+      !$omp declare simd(rmvs_chk_ind)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step

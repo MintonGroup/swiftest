@@ -285,7 +285,8 @@ contains
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       ! Internals
-      integer(I8B) :: i, j, counter, npl, nplm, nplpl, nplplm
+      integer(I8B) :: k, nplpl, nplplm
+      integer(I4B) :: i, j, npl, nplm, ip, jp
 
       associate(pl => self)
          npl = int(self%nbody, kind=I8B)
@@ -296,12 +297,11 @@ contains
          pl%nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
          if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
          allocate(self%k_plpl(2, pl%nplpl))
-         do i = 1, npl
-            counter = (i - 1_I8B) * npl - i * (i - 1_I8B) / 2_I8B + 1_I8B
-            do j = i + 1_I8B, npl
-               self%k_plpl(1, counter) = i
-               self%k_plpl(2, counter) = j
-               counter = counter + 1_I8B
+         do concurrent (i = 1:npl)
+            do concurrent (j = i+1:npl)
+               call util_index_eucl_ij_to_k(npl, i, j, k)
+               self%k_plpl(1, k) = i
+               self%k_plpl(2, k) = j
             end do
          end do
       end associate
