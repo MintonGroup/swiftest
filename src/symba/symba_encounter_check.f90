@@ -55,8 +55,8 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      integer(I8B) :: k, nplplm
-      integer(I4B) :: i, j, nenc
+      integer(I8B) :: k, nplplm, kenc
+      integer(I4B) :: i, j, nenc, npl
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
   
@@ -64,6 +64,7 @@ contains
 
       associate(pl => self)
          nplplm = pl%nplplm
+         npl = pl%nbody
          allocate(lencounter(nplplm))
          allocate(loc_lvdotr(nplplm))
   
@@ -88,6 +89,8 @@ contains
                do k = 1, nenc
                   i = plplenc_list%index1(k)
                   j = plplenc_list%index2(k)
+                  call util_index_eucl_ij_to_k(npl, i, j, kenc)
+                  plplenc_list%kidx(k) = kenc
                   plplenc_list%id1(k) = pl%id(plplenc_list%index1(k))					
                   plplenc_list%id2(k) = pl%id(plplenc_list%index2(k))					
                   plplenc_list%status(k) = ACTIVE

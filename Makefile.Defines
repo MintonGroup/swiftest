@@ -66,9 +66,9 @@ GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-stri
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O2 -ffree-line-length-none $(GPAR)
 
-#FFLAGS  = $(IPRODUCTION) $(OPTREPORT)
+#FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
 #FFLAGS = $(IPRODUCTION) $(OPTREPORT) $(ADVIXE_FLAGS)
-FFLAGS = -O3 $(PAR)  $(OPTREPORT)  $(SIMDVEC) -shared-intel  -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -traceback -g
+FFLAGS = -O3 $(PAR)  $(OPTREPORT)  $(SIMDVEC) # -shared-intel  -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -traceback -g
 FORTRAN = ifort
 #AR     = xiar
 
