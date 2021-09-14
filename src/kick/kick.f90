@@ -113,7 +113,8 @@ contains
       integer(I4B) :: i, j
 
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(npl, ntp, lmask, xtp, xpl, acc)
+      !$omp shared(npl, ntp, lmask, xtp, xpl) &
+      !$omp reduction(-:acc)
       do i = 1, ntp
          if (lmask(i)) then
             do j = 1, npl
