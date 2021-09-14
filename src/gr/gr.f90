@@ -43,7 +43,7 @@ contains
    end subroutine gr_kick_getaccb_ns_body
 
 
-   module subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
+   module pure subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies

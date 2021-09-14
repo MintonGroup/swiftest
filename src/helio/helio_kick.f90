@@ -107,7 +107,9 @@ contains
             call pl%set_beg_end(xend = pl%xh)
          end if
          do concurrent(i = 1:npl, pl%lmask(i)) 
-            pl%vb(:, i) = pl%vb(:, i) + pl%ah(:, i) * dt
+            pl%vb(1, i) = pl%vb(1, i) + pl%ah(1, i) * dt
+            pl%vb(2, i) = pl%vb(2, i) + pl%ah(2, i) * dt
+            pl%vb(3, i) = pl%vb(3, i) + pl%ah(3, i) * dt
          end do
       end associate
    

@@ -90,7 +90,7 @@ contains
             do k = 1, npltpenc
                i = pltpenc_list%index1(k)
                j = pltpenc_list%index2(k)
-               if (tp%lmask(j)) THEN
+               if (tp%lmask(j)) then
                   if (lbeg) then
                      dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
                   else
@@ -99,7 +99,7 @@ contains
                   rjj = dot_product(dx(:), dx(:))
                   fac = pl%Gmass(i) / (rjj * sqrt(rjj))
                   tp%ah(:,j) = tp%ah(:,j) + fac * dx(:)
-               end IF
+               end if
             end do
          end associate
       end select
