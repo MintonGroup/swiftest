@@ -545,14 +545,18 @@ contains
             integer(I4B)                          :: i
             real(DP), dimension(:,:), allocatable :: v_shift
             real(DP), dimension(frag%nbody)       :: kearr
-            real(DP)                              :: keo, ke_radial
+            real(DP)                              :: keo, ke_radial, rotmag2, vmag2
       
             associate(nfrag => frag%nbody)
                allocate(v_shift, mold=frag%vb)
                v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, frag%v_r_unit, frag%v_t_mag, frag%v_t_unit, frag%mass, frag%vbcom) 
-               do concurrent(i = 1:nfrag)
-                  kearr(i) = frag%mass(i) * (frag%Ip(3, i) * frag%radius(i)**2 * dot_product(frag%rot(:, i), frag%rot(:, i)) + dot_product(v_shift(:, i), v_shift(:, i)))
+               !$omp do simd 
+               do i = 1,nfrag
+                  rotmag2 = frag%rot(1,i)**2 + frag%rot(2,i)**2 + frag%rot(3,i)**2
+                  vmag2 = v_shift(1,i)**2 + v_shift(2,i)**2 + v_shift(3,i)**2
+                  kearr(i) = frag%mass(i) * (frag%Ip(3, i) * frag%radius(i)**2 * rotmag2 + vmag2) 
                end do
+               !$omp end do simd
                keo = 2 * frag%ke_budget - sum(kearr(:))
                ke_radial = frag%ke_budget - frag%ke_orbit - frag%ke_spin
                ! The following ensures that fval = 0 is a local minimum, which is what the BFGS method is searching for

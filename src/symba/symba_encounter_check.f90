@@ -284,9 +284,14 @@ contains
       integer(I4B), intent(in)  :: irec
       logical,      intent(out) :: lencounter, lvdotr
       ! Internals
-      real(DP)     :: r2crit
+      real(DP)     :: r2crit, rshell_irec
+      integer(I4B) :: i
 
-      r2crit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
+      rshell_irec = 1._DP
+      do i = 1, irec
+         rshell_irec = rshell_irec * RSHELL
+      end do
+      r2crit = (rhill1 + rhill2) * RHSCALE * rshell_irec
       r2crit = r2crit**2
       call rmvs_chk_ind(xr, yr, zr, vxr, vyr, vzr, dt, r2crit, lencounter, lvdotr)
 

@@ -66,7 +66,7 @@ contains
       ahi(:,:) = 0.0_DP
       ahj(:,:) = 0.0_DP
 
-      !$omp parallel do simd default(private) schedule(static)&
+      !$omp parallel do default(private) schedule(static)&
       !$omp shared(nplpl, k_plpl, x, Gmass, radius) &
       !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
       !$omp reduction(+:ahi) &
@@ -81,8 +81,7 @@ contains
          rlim2 = (radius(i) + radius(j))**2
          if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
       end do
-      !$omp end parallel do simd
-
+      !$omp end parallel do 
      
       do concurrent(i = 1:npl)
          acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
