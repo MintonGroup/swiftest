@@ -11,11 +11,13 @@ tpin = "tp.in"
 
 swifter_input  = "param.swifter.in"
 swifter_pl     = "pl.swifter.in"
+swifter_tp     = "tp.swifter.in"
 swifter_bin    = "bin.swifter.dat"
 swifter_enc    = "enc.swifter.dat"
 
 swiftest_input = "param.swiftest.in"
 swiftest_pl    = "pl.swiftest.in"
+swiftest_tp    = "tp.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
 swiftest_bin   = "bin.swiftest.dat"
 swiftest_enc   = "enc.swiftest.dat"
@@ -34,12 +36,12 @@ sim.param['CHK_QMIN_RANGE'] = f"{swiftest.RSun / swiftest.AU2M} 1000.0"
 sim.param['CHK_RMIN'] = swiftest.RSun / swiftest.AU2M
 sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
-sim.param['OUT_FORM'] = "XV"
 sim.param['OUT_STAT'] = "UNKNOWN"
 sim.param['GR'] = 'NO'
 sim.param['CHK_CLOSE'] = 'YES'
 sim.param['RHILL_PRESENT'] = 'YES'
 sim.param['GMTINY'] = 1.0e-12
+sim.param['IN_FORM'] = 'XV'
 
 sim.param['MU2KG'] = swiftest.MSun
 sim.param['TU2S'] = swiftest.JD2S
@@ -69,10 +71,14 @@ ntp = 16
 dims = ['time', 'id', 'vec']
 tp = []
 t = np.array([0.0])
+sim.param['OUT_FORM'] = "XV"
 clab, plab, tlab = swio.make_swiftest_labels(sim.param)
 
 # For each planet, we will initialize a pair of test particles. One on its way in, and one on its way out. We will also initialize two additional particles that don't encounter anything
-tpnames = np.arange(101, 101 + ntp)
+tpidlist = np.arange(9,9+ntp)
+tpnames = []
+for i in tpidlist:
+   tpnames.append(f"SmallBody{i+1:0.4g}")
 tpxv1 = np.empty((6))
 tpxv2 = np.empty((6))
 
@@ -86,7 +92,7 @@ p6 = []
 for i in pl.id:
     pli = pl.sel(id=i)
     rstart = 2 * np.double(pli['radius'])  # Start the test particles at a multiple of the planet radius away
-    vstart = 1.5 * np.sqrt(2 * np.double(pli['Mass'])  / rstart)  # Start the test particle velocities at a multiple of the escape speed
+    vstart = 1.5 * np.sqrt(2 * np.double(pli['Gmass'])  / rstart)  # Start the test particle velocities at a multiple of the escape speed
     xvstart = np.array([rstart / np.sqrt(2.0), rstart / np.sqrt(2.0), 0.0, vstart, 0.0, 0.0])
     # The positions and velocities of each pair of test particles will be in reference to a planet
     plvec = np.array([np.double(pli['xhx']),
@@ -110,9 +116,11 @@ for i in pl.id:
     p6.append(tpxv1[5])
     p6.append(tpxv2[5])
 
+
 tvec = np.vstack([p1, p2, p3, p4, p5, p6])
 tpframe = np.expand_dims(tvec.T, axis=0)
-tpxr = xr.DataArray(tpframe, dims = dims, coords = {'time' : t, 'id' : tpnames, 'vec' : tlab})
+tpxr = xr.DataArray(tpframe, dims = dims, coords = {'time' : t, 'id' : tpidlist, 'vec' : tlab})
+tpxr = tpxr.assign_coords(name=('id', tpnames))
 
 tp = [tpxr]
 tpda = xr.concat(tp,dim='time')
@@ -122,7 +130,7 @@ sim.ds = xr.combine_by_coords([sim.ds, tpds])
 swio.swiftest_xr2infile(sim.ds, sim.param)
 
 sim.param['PL_IN'] = swiftest_pl
-sim.param['TP_IN'] = tpin
+sim.param['TP_IN'] = swiftest_tp
 sim.param['CB_IN'] = swiftest_cb
 sim.param['BIN_OUT'] = swiftest_bin
 sim.param['ENC_OUT'] = swiftest_enc
@@ -130,7 +138,7 @@ sim.param['DISCARD_OUT'] = swiftest_dis
 sim.save(swiftest_input)
 
 sim.param['PL_IN'] = swifter_pl
-sim.param['TP_IN'] = tpin
+sim.param['TP_IN'] = swifter_tp
 sim.param['BIN_OUT'] = swifter_bin
 sim.param['ENC_OUT'] = swifter_enc
 sim.save(swifter_input, codename="Swifter")

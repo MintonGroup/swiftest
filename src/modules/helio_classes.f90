@@ -105,14 +105,14 @@ module helio_classes
          logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_drift_linear_tp
 
-      module subroutine helio_gr_kick_getacch_pl(self, param) 
+      module pure subroutine helio_gr_kick_getacch_pl(self, param) 
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(helio_pl),            intent(inout) :: self   !! Helio massive body particle data structure
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine helio_gr_kick_getacch_pl
    
-      module subroutine helio_gr_kick_getacch_tp(self, param)
+      module pure subroutine helio_gr_kick_getacch_tp(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(helio_tp),            intent(inout) :: self   !! Helio massive body particle data structure
