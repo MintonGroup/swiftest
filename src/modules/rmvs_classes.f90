@@ -104,6 +104,7 @@ module rmvs_classes
 
    interface
       module pure subroutine rmvs_chk_ind(xr, yr, zr, vxr, vyr, vzr, dt, r2crit, lencounter, lvdotr)
+         !$omp declare simd(rmvs_chk_ind)
          implicit none
          real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
          real(DP), intent(in)  :: vxr, vyr, vzr !! Relative velocity vector components

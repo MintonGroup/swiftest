@@ -60,22 +60,10 @@ contains
       do i = 1, maxloop 
          !check for convergence
          conv = count(abs(grad1(:)) > eps)
-         ! write(*,*) 'loop: ', i
-         ! write(*,*) 'conv: ', conv
-         ! write(*,*) 'grad1 / eps'
-         ! do j = 1, N
-         !    write(*,*) j, abs(grad1(j)) / eps
-         ! end do
-         if (conv == 0) then
-            ! write(*,*) "BFGS converged on gradient after ",i," iterations" 
-            exit 
-         end if
+         if (conv == 0) exit 
          S(:) = -matmul(H(:,:), grad1(:))
          astar = minimize1D(f, x1, S, N, graddelta, lerr)
-         if (lerr) then
-            ! write(*,*) "Exiting BFGS with error in minimize1D step"
-            exit
-         end if
+         if (lerr) exit
          ! Get new x values 
          P(:) = astar * S(:) 
          x1(:) = x1(:) + P(:)
@@ -86,19 +74,23 @@ contains
          Py = sum(P(:) * y(:))
          ! set up factors for H matrix update 
          yHy = 0._DP
+         !$omp do simd schedule(static)&
+         !$omp firstprivate(N, y, H) &
+         !$omp reduction(+:yHy)
          do k = 1, N 
             do j = 1, N
                yHy = yHy + y(j) * H(j,k) * y(k)
             end do
          end do
+         !$omp end do simd
          ! prevent divide by zero (convergence) 
-         if (abs(Py) < tiny(Py)) then
-            ! write(*,*) "BFGS Converged on tiny Py after ",i," iterations"
-            exit
-         end if
+         if (abs(Py) < tiny(Py)) exit
          ! set up update 
          PyH(:,:) = 0._DP
          HyP(:,:) = 0._DP
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(N, PP, P, y, H) &
+         !$omp reduction(+:PyH, HyP)
          do k = 1, N 
             do j = 1, N
                PP(j, k) = P(j) * P(k)
@@ -108,6 +100,7 @@ contains
                end do
             end do
          end do
+         !$omp end parallel do 
          ! update H matrix 
          H(:,:) = H(:,:) + ((1._DP - yHy / Py) * PP(:,:) - PyH(:,:) - HyP(:,:)) / Py
          ! Normalize to prevent it from blowing up if it takes many iterations to find a solution
@@ -117,13 +110,10 @@ contains
          if (any(fpe_flag)) exit 
          if (i == maxloop) then
             lerr = .true.
-            ! write(*,*) "BFGS ran out of loops!"
          end if
       end do
       call ieee_get_flag(ieee_usual, fpe_flag)
       lerr = lerr .or. any(fpe_flag)  
-      ! if (any(fpe_flag)) write(*,*) 'BFGS did not converge due to fpe'
-      ! if (lerr) write(*,*) "BFGS did not converge!"
       call ieee_set_status(original_fpe_status)
 
       return 

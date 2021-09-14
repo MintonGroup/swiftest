@@ -561,6 +561,23 @@ module swiftest_classes
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
+      module pure subroutine util_index_eucl_ij_to_k(n, i, j, k)
+         !$omp declare simd(util_index_eucl_ij_to_k)
+         implicit none
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I4B), intent(in)  :: i !! Index of the ith body
+         integer(I4B), intent(in)  :: j !! Index of the jth body
+         integer(I8B), intent(out) :: k !! Index of the flattened matrix
+      end subroutine util_index_eucl_ij_to_k
+
+      module pure subroutine util_index_eucl_k_to_ij(n, k, i, j)
+         implicit none
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I8B), intent(in)  :: k !! Index of the flattened matrix
+         integer(I4B), intent(out) :: i !! Index of the ith body
+         integer(I4B), intent(out) :: j !! Index of the jth body
+      end subroutine util_index_eucl_k_to_ij
+
       module subroutine util_index_eucl_plpl(self, param)
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
@@ -859,6 +876,7 @@ module swiftest_classes
       end subroutine kick_getacch_int_all_tp
 
       module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+         !$omp declare simd(kick_getacch_int_one_pl)
          implicit none
          real(DP), intent(in)  :: rji2            !! Square of distance between the two bodies
          real(DP), intent(in)  :: xr, yr, zr      !! Distances between the two bodies in x, y, and z directions
@@ -869,6 +887,7 @@ module swiftest_classes
       end subroutine kick_getacch_int_one_pl
 
       module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, Gmpl, ax, ay, az)
+         !$omp declare simd(kick_getacch_int_one_tp)
          implicit none
          real(DP), intent(in)  :: rji2         !! Square of distance between the test particle and massive body
          real(DP), intent(in)  :: xr, yr, zr   !! Distances between the two bodies in x, y, and z directions
