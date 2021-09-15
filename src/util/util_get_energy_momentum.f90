@@ -139,19 +139,13 @@ contains
          pecb(i) = -GMcb * mass(i) / norm2(xb(:,i)) 
       end do
 
-      ! Do the potential energy between pairs of massive bodies
-      do concurrent (k = 1:nplpl)
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(nplpl, k_plpl, xb, mass, Gmass, pepl, lstatpl, lmask)
+      do k = 1, nplpl
          i = k_plpl(1,k)
          j = k_plpl(2,k)
          lstatpl(k) = (lmask(i) .and. lmask(j))
-      end do
-
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(nplpl, k_plpl, xb, mass, Gmass, pepl, lstatpl)
-      do k = 1, nplpl
          if (lstatpl(k)) then
-            i = k_plpl(1,k)
-            j = k_plpl(2,k)
             pepl(k) = -(Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
          else
             pepl(k) = 0.0_DP
