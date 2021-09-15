@@ -79,8 +79,7 @@ class AnimatedScatter(object):
     def data_stream(self, frame=0):
         while True:
             d = self.ds.isel(time=frame)
-
-            d = d.where(d['radius'] < self.Rcb, drop=True)
+            d = d.where(np.invert(np.isnan(d['a'])), drop=True)
             d['radmarker'] = (d['radius'] / self.Rcb) * radscale
             radius = d['radmarker'].values
 
