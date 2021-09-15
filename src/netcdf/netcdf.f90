@@ -38,17 +38,20 @@ contains
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Initialize a NetCDF file system and defines all variables.
+      use, intrinsic :: ieee_arithmetic
       implicit none
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param           !! Current run configuration parameters 
       ! Internals
       logical :: fileExists
-      integer(I4B) :: old_mode
+      integer(I4B) :: old_mode, nvar, varid, vartype
+      real(DP) :: nan
+
+      nan = ieee_value(nan, IEEE_QUIET_NAN)
 
       !! Create the new output file, deleting any previously existing output file of the same name
       call check( nf90_create(param%outfile, NF90_NETCDF4, self%ncid) )
-      call check( nf90_set_fill(self%ncid, nf90_nofill, old_mode) )
 
       ! Define the NetCDF dimensions with particle name as the record dimension
       call check( nf90_def_dim(self%ncid, ID_DIMNAME, NF90_UNLIMITED, self%id_dimid) )     ! 'x' dimension
@@ -138,6 +141,12 @@ contains
       call check( nf90_def_var(self%ncid, DISCARD_VHZ_VARNAME, self%out_type, self%id_dimid,  self%discard_vhz_varid) )
       call check( nf90_def_var(self%ncid, DISCARD_BODY_ID_VARNAME, NF90_INT, self%id_dimid, self%discard_body_id_varid) )
 
+      ! Set fill mode to NaN for all variables
+      call check( nf90_inquire(self%ncid, nVariables=nvar) )
+      do varid = 1, nvar
+         call check( nf90_def_var_fill(self%ncid, varid, 0, nan) )
+      end do
+
       return
    end subroutine netcdf_initialize_output
 
@@ -150,11 +159,8 @@ contains
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
-      ! Internals
-      integer(I4B) :: old_mode
 
       call check( nf90_open(param%outfile, nf90_write, self%ncid) )
-      call check( nf90_set_fill(self%ncid, nf90_nofill, old_mode) )
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid))
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid))
@@ -249,7 +255,7 @@ contains
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot
+      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
 
@@ -257,6 +263,7 @@ contains
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
+      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
       select type(self)
          class is (swiftest_body)
          associate(n => self%nbody)
@@ -332,6 +339,7 @@ contains
          end if
 
       end select
+      call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
 
       return
    end subroutine netcdf_write_frame_base
@@ -346,13 +354,14 @@ contains
       class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot
+      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
       character(len=NAMELEN)                    :: emptystr, lenstr
       character(len=:), allocatable :: fmtlabel
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
+      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
       write(lenstr, *) NAMELEN
       fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
       write(emptystr, fmtlabel) " "
@@ -448,6 +457,7 @@ contains
          call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
       end select
 
+      call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
       return
    end subroutine netcdf_write_particle_info_base
 
@@ -464,12 +474,11 @@ contains
       class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: tslot, old_mode
+      integer(I4B) :: tslot
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
       call check( nf90_open(param%outfile, nf90_write, iu%ncid) )
-      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
 
       call check( nf90_put_var(iu%ncid, iu%time_varid, param%t, start=[tslot]) )
       call check( nf90_put_var(iu%ncid, iu%npl_varid, self%pl%nbody, start=[tslot]) )
