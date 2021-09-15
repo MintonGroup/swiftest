@@ -46,9 +46,11 @@ contains
       ! Internals
       logical :: fileExists
       integer(I4B) :: old_mode, nvar, varid, vartype
-      real(DP) :: nan
+      real(DP) :: dfill
+      real(SP) :: sfill
 
-      nan = ieee_value(nan, IEEE_QUIET_NAN)
+      dfill = ieee_value(dfill, IEEE_QUIET_NAN)
+      sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
       !! Create the new output file, deleting any previously existing output file of the same name
       call check( nf90_create(param%outfile, NF90_NETCDF4, self%ncid) )
@@ -144,7 +146,17 @@ contains
       ! Set fill mode to NaN for all variables
       call check( nf90_inquire(self%ncid, nVariables=nvar) )
       do varid = 1, nvar
-         call check( nf90_def_var_fill(self%ncid, varid, 0, nan) )
+         call check( nf90_inquire_variable(self%ncid, varid, xtype=vartype) )
+         select case(vartype)
+         case(NF90_INT)
+            call check( nf90_def_var_fill(self%ncid, varid, 0, NF90_FILL_INT) )
+         case(NF90_FLOAT)
+            call check( nf90_def_var_fill(self%ncid, varid, 0, sfill) )
+         case(NF90_DOUBLE)
+            call check( nf90_def_var_fill(self%ncid, varid, 0, dfill) )
+         case(NF90_CHAR)
+            call check( nf90_def_var_fill(self%ncid, varid, 0, 0) )
+         end select
       end do
 
       return
