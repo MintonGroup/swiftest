@@ -694,7 +694,7 @@ def swiftest2xr(param):
         ds = xr.combine_by_coords([cbds, plds, tpds])
 
     elif ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
-        print('\nCreating Dataset')
+        print('\nCreating Dataset from NetCDF file')
         ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
         ds = clean_string_values(param, ds)
     else:
