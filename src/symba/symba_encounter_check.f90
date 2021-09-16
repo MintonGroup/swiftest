@@ -115,17 +115,18 @@ contains
    end subroutine symba_encounter_check_all_triangular
 
 
-   module function symba_encounter_check_pl(self, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check_pl(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between massive bodies.
       !!
       implicit none
       ! Arguments
-      class(symba_pl),           intent(inout)  :: self           !! SyMBA test particle object  
-      class(symba_nbody_system), intent(inout)  :: system         !! SyMBA nbody system object
-      real(DP),                  intent(in)     :: dt             !! step size
-      integer(I4B),              intent(in)     :: irec           !! Current recursion level
+      class(symba_pl),            intent(inout)  :: self   !! SyMBA test particle object  
+      class(swiftest_parameters), intent(in)     :: param  !! Current swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout)  :: system !! SyMBA nbody system object
+      real(DP),                   intent(in)     :: dt     !! step size
+      integer(I4B),               intent(in)     :: irec   !! Current recursion level
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
@@ -185,7 +186,7 @@ contains
    end function symba_encounter_check_pl
 
 
-   module function symba_encounter_check(self, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies in the pltpenc list.
@@ -194,11 +195,12 @@ contains
       !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
       implicit none
       ! Arguments
-      class(symba_encounter),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
-      class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
-      real(DP),                  intent(in)    :: dt         !! step size
-      integer(I4B),              intent(in)    :: irec       !! Current recursion level 
-      logical                                  :: lany_encounter !! Returns true if there is at least one close encounter  
+      class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
+      class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt             !! step size
+      integer(I4B),               intent(in)    :: irec           !! Current recursion level 
+      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter  
       ! Internals
       integer(I4B)              :: i, j, k, lidx, nenc_enc
       real(DP), dimension(NDIM) :: xr, vr
@@ -271,17 +273,18 @@ contains
    end function symba_encounter_check
 
 
-   module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies.
       !!
       implicit none
       ! Arguments
-      class(symba_tp),           intent(inout) :: self       !! SyMBA test particle object  
-      class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
-      real(DP),                  intent(in)    :: dt         !! step size
-      integer(I4B),              intent(in)    :: irec           !! Current recursion level
+      class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
+      class(swiftest_parameters), intent(in)    :: param  !! Current swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt     !! step size
+      integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
@@ -343,7 +346,7 @@ contains
    end function symba_encounter_check_tp
 
 
-   module pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+   pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
       !$omp declare simd(symba_encounter_check_one)
       !! author: David A. Minton
       !!

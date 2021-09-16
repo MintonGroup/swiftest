@@ -486,7 +486,7 @@ contains
          allocate(levelg_orig_pl, source=pl%levelg)
          allocate(levelm_orig_pl, source=pl%levelm)
          allocate(nplenc_orig_pl, source=pl%nplenc)
-         lencounter = pl%encounter_check(system, param%dt, 0) 
+         lencounter = pl%encounter_check(param, system, param%dt, 0) 
          if (system%tp%nbody > 0) then
             select type(tp => system%tp)
             class is (symba_tp)
@@ -494,7 +494,7 @@ contains
                allocate(levelg_orig_tp, source=tp%levelg)
                allocate(levelm_orig_tp, source=tp%levelm)
                allocate(nplenc_orig_tp, source=tp%nplenc)
-               lencounter = tp%encounter_check(system, param%dt, 0)
+               lencounter = tp%encounter_check(param, system, param%dt, 0)
                call move_alloc(levelg_orig_tp, tp%levelg)
                call move_alloc(levelm_orig_tp, tp%levelm)
                call move_alloc(nplenc_orig_tp, tp%nplenc)

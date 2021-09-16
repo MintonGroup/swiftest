@@ -26,7 +26,7 @@ contains
             select type(param)
             class is (symba_parameters)
                call self%reset(param)
-               lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
+               lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                if (lencounter) then
                   call self%interp(param, t, dt)
                   param%lfirstkick = .true.
@@ -173,7 +173,7 @@ contains
                   nloops = NTENC
                end if
                do j = 1, nloops
-                  lencounter = plplenc_list%encounter_check(system, dtl, irecp) .or. pltpenc_list%encounter_check(system, dtl, irecp)
+                  lencounter = plplenc_list%encounter_check(param, system, dtl, irecp) .or. pltpenc_list%encounter_check(param, system, dtl, irecp)
                    
                   call plplenc_list%kick(system, dth, irecp, 1)
                   call pltpenc_list%kick(system, dth, irecp, 1)
