@@ -13,7 +13,7 @@ contains
       ! Arguments
       class(symba_pl), intent(inout) :: self
 
-      call kick_getacch_int_all_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+      call kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
 
       return
    end subroutine symba_kick_getacch_int_pl
@@ -52,7 +52,7 @@ contains
                allocate(k_plpl_enc(2,nplplenc))
                k_plpl_enc(:,1:nplplenc) = pl%k_plpl(:,plplenc_list%kidx(1:nplplenc))
                ah_enc(:,:) = 0.0_DP
-               call kick_getacch_int_all_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
+               call kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
 

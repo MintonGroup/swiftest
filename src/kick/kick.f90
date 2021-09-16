@@ -13,7 +13,7 @@ contains
       ! Arguments
       class(swiftest_pl),       intent(inout) :: self !! Swiftest massive body object
 
-      call kick_getacch_int_all_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+      call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
 
       return
    end subroutine kick_getacch_int_pl
@@ -41,10 +41,11 @@ contains
    end subroutine kick_getacch_int_tp
 
 
-   module subroutine kick_getacch_int_all_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
+   module subroutine kick_getacch_int_all_flat_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
       !! author: David A. Minton
       !!
-      !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization
+      !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
+      !! This is the flattened (single loop) version that uses the k_plpl interaction pair index array
       !!
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
@@ -88,7 +89,55 @@ contains
       end do
 
       return
-   end subroutine kick_getacch_int_all_pl
+   end subroutine kick_getacch_int_all_flat_pl
+
+
+   module subroutine kick_getacch_int_all_triangular_pl(npl, x, Gmass, radius, acc)
+      !! author: David A. Minton
+      !!
+      !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
+      !! This is the upper triangular matrix (double loop) version.
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch_ah3.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
+      implicit none
+      integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
+      real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
+      real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
+      real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
+      real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+      ! Internals
+      real(DP), dimension(NDIM,npl) :: ahi, ahj
+      integer(I4B) :: i, j
+      real(DP)     :: rji2, rlim2
+      real(DP)     :: xr, yr, zr
+
+      ahi(:,:) = 0.0_DP
+      ahj(:,:) = 0.0_DP
+
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(npl, x, Gmass, radius) &
+      !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
+      !$omp reduction(+:ahi) &
+      !$omp reduction(-:ahj) 
+      do i = 1, npl
+         do concurrent(j = i+1:npl)
+            xr = x(1, j) - x(1, i) 
+            yr = x(2, j) - x(2, i) 
+            zr = x(3, j) - x(3, i) 
+            rji2 = xr**2 + yr**2 + zr**2
+            rlim2 = (radius(i) + radius(j))**2
+            if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         end do
+      end do
+      !$omp end parallel do
+     
+      do concurrent(i = 1:npl)
+         acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
+      end do
+
+      return
+   end subroutine kick_getacch_int_all_triangular_pl
 
 
    module subroutine kick_getacch_int_all_tp(ntp, npl, xtp, xpl, GMpl, lmask, acc)

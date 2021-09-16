@@ -2,10 +2,11 @@ submodule (symba_classes) s_symba_encounter_check
    use swiftest
 contains
 
-   subroutine symba_encounter_check_all(nplplm, k_plpl, x, v, rhill,  dt, irec, lencounter, loc_lvdotr)
+   subroutine symba_encounter_check_all_flat(nplplm, k_plpl, x, v, rhill,  dt, irec, lencounter, loc_lvdotr)
       !! author: David A. Minton
       !!
-      !! Check for encounters between massive bodies. Split off from the main subroutine for performance
+      !! Check for encounters between massive bodies. Split off from the main subroutine for performance.
+      !! This is the flat (single loop) version.
       implicit none
       integer(I8B), intent(in) :: nplplm
       integer(I4B), dimension(:,:), intent(in) :: k_plpl
@@ -38,7 +39,80 @@ contains
       !$omp end parallel do simd
 
       return
-   end subroutine symba_encounter_check_all
+   end subroutine symba_encounter_check_all_flat
+
+
+   subroutine symba_encounter_check_all_triangular(npl, nplm, x, v, rhill,  dt, irec, loc_lvdotr, k_plplenc, nenc)
+      !! author: David A. Minton
+      !!
+      !! Check for encounters between massive bodies. Split off from the main subroutine for performance
+      !! This is the upper triangular (double loop) version.
+      implicit none
+      integer(I4B), intent(in) :: npl, nplm
+      real(DP), dimension(:,:), intent(in) :: x, v
+      real(DP), dimension(:), intent(in) :: rhill
+      real(DP), intent(in) :: dt
+      integer(I4B), intent(in) :: irec
+      logical, dimension(:), allocatable, intent(out) :: loc_lvdotr
+      integer(I4B), dimension(:,:), allocatable, intent(out) :: k_plplenc
+      integer(I4B), intent(out) :: nenc
+      ! Internals
+      integer(I4B) :: i, j, nenci, j0, j1
+      real(DP) :: xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2
+      logical, dimension(npl) :: lencounteri, loc_lvdotri
+      integer(I4B), dimension(npl) :: ind_arr
+      type lenctype
+         logical, dimension(:), allocatable :: loc_lvdotr
+         integer(I4B), dimension(:), allocatable :: index2
+         integer(I4B) :: nenc
+      end type
+      type(lenctype), dimension(nplm) :: lenc
+     
+      ind_arr(:) = [(i, i = 1, npl)]
+      !$omp parallel do simd default(private) schedule(static)&
+      !$omp shared(npl, nplm, x, v, rhill,  dt, irec, lenc) &
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, lencounteri, loc_lvdotri)
+      do i = 1, nplm
+         do concurrent(j = i+1:npl)
+            xr = x(1, j) - x(1, i)
+            yr = x(2, j) - x(2, i)
+            zr = x(3, j) - x(3, i)
+            vxr = v(1, j) - v(1, i)
+            vyr = v(2, j) - v(2, i)
+            vzr = v(3, j) - v(3, i)
+            rhill1 = rhill(i)
+            rhill2 = rhill(j)
+            call symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounteri(j), loc_lvdotri(j))
+         end do
+         lenc(i)%nenc = count(lencounteri(i+1:npl))
+         if (lenc(i)%nenc > 0) then
+            allocate(lenc(i)%loc_lvdotr(nenci), lenc(i)%index2(nenci))
+            lenc(i)%loc_lvdotr(:) = pack(loc_lvdotri(i+1:npl), lencounteri(i+1:npl)) 
+            lenc(i)%index2(:) = pack(ind_arr(i+1:npl), lencounteri(i+1:npl)) 
+         end if
+      end do
+      !$omp end parallel do simd
+
+      associate(nenc_arr => lenc(:)%nenc)
+         nenc = sum(nenc_arr(1:nplm))
+      end associate
+      if (nenc > 0) then
+         allocate(loc_lvdotr(nenc))
+         allocate(k_plplenc(2,nenc))
+         j0 = 1
+         do i = 1, nplm
+            if (lenc(i)%nenc > 0) then
+               j1 = j0 + lenc(i)%nenc - 1
+               loc_lvdotr(j0:j1) = lenc(i)%loc_lvdotr(:)
+               k_plplenc(1,j0:j1) = i
+               k_plplenc(2,j0:j1) = lenc(i)%index2(:)
+               j0 = j1 + 1
+            end if
+         end do
+      end if
+
+      return
+   end subroutine symba_encounter_check_all_triangular
 
 
    module function symba_encounter_check_pl(self, system, dt, irec) result(lany_encounter)
@@ -68,7 +142,7 @@ contains
          allocate(lencounter(nplplm))
          allocate(loc_lvdotr(nplplm))
   
-         call symba_encounter_check_all(nplplm, pl%k_plpl, pl%xh, pl%vh, pl%rhill, dt, irec, lencounter, loc_lvdotr)
+         call symba_encounter_check_all_flat(nplplm, pl%k_plpl, pl%xh, pl%vh, pl%rhill, dt, irec, lencounter, loc_lvdotr)
 
          nenc = count(lencounter(:))
 

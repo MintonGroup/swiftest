@@ -853,7 +853,7 @@ module swiftest_classes
          integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
       end subroutine kick_getacch_int_tp
 
-      module subroutine kick_getacch_int_all_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
+      module subroutine kick_getacch_int_all_flat_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
          implicit none
          integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
          integer(I8B),                 intent(in)    :: nplpl  !! Number of massive body interactions to compute
@@ -862,7 +862,16 @@ module swiftest_classes
          real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
          real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
          real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
-      end subroutine kick_getacch_int_all_pl
+      end subroutine kick_getacch_int_all_flat_pl
+
+      module subroutine kick_getacch_int_all_triangular_pl(npl, x, Gmass, radius, acc)
+         implicit none
+         integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
+         real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
+         real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
+         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+      end subroutine kick_getacch_int_all_triangular_pl
 
       module subroutine kick_getacch_int_all_tp(ntp, npl, xtp, xpl, GMpl, lmask, acc)
          implicit none
