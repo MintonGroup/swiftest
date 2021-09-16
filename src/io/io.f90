@@ -601,6 +601,9 @@ contains
                case ("TIDES")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
+               case ("FLATTEN_INTERACTIONS")
+                  call io_toupper(param_value)
+                  if (param_value == "NO" .or. param_value == 'F') param%lflatten_interactions = .false.
                case ("FIRSTKICK")
                   call io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
@@ -755,9 +758,10 @@ contains
          if ((param%qmin_alo > 0.0_DP) .or. (param%qmin_ahi > 0.0_DP))  write(*,*) "CHK_QMIN_RANGE = ",param%qmin_alo, param%qmin_ahi
          write(*,*) "EXTRA_FORCE    = ",param%lextra_force
          write(*,*) "RHILL_PRESENT  = ",param%lrhill_present
-         write(*,*) "ROTATION      = ", param%lrotation
-         write(*,*) "TIDES         = ", param%ltides
+         write(*,*) "ROTATION       = ", param%lrotation
+         write(*,*) "TIDES          = ", param%ltides
          write(*,*) "ENERGY         = ",param%lenergy
+         write(*,*) "FLATTEN_INTERACTIONS = ",param%lflatten_interactions
          if (param%lenergy) write(*,*) "ENERGY_OUT     = ",trim(adjustl(param%energy_out))
          write(*,*) "MU2KG          = ",param%MU2KG       
          write(*,*) "TU2S           = ",param%TU2S        
@@ -899,6 +903,7 @@ contains
          write(param_name, *) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
          write(param_name, *) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
          write(param_name, *) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         write(param_name, *) "FLATTEN_INTERACTIONS"; write(param_value, Lfmt)  param%lflatten_interactions; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
 
          if (param%lenergy) then
             write(param_name, *) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
