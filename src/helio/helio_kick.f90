@@ -20,7 +20,7 @@ contains
       if (self%nbody == 0) return
 
       associate(cb => system%cb, pl => self, npl => self%nbody)
-         call pl%accel_int()
+         call pl%accel_int(param)
          if (param%loblatecb) then 
             call pl%accel_obl(system)
             if (lbeg) then
@@ -65,9 +65,9 @@ contains
       associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
          system%lbeg = lbeg
          if (system%lbeg) then
-            call tp%accel_int(pl%Gmass(1:npl), pl%xbeg(:,1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%xbeg(:,1:npl), npl)
          else
-            call tp%accel_int(pl%Gmass(1:npl), pl%xend(:,1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%xend(:,1:npl), npl)
          end if
          if (param%loblatecb) call tp%accel_obl(system)
          if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)

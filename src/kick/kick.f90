@@ -2,7 +2,7 @@ submodule(swiftest_classes) s_kick
    use swiftest
 contains
 
-   module subroutine kick_getacch_int_pl(self)
+   module subroutine kick_getacch_int_pl(self, param)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of massive bodies
@@ -11,7 +11,8 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f90
       implicit none
       ! Arguments
-      class(swiftest_pl),       intent(inout) :: self !! Swiftest massive body object
+      class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
 
       call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
 
@@ -19,7 +20,7 @@ contains
    end subroutine kick_getacch_int_pl
 
 
-   module subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
+   module subroutine kick_getacch_int_tp(self, param, GMpl, xhp, npl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
@@ -28,10 +29,11 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int_tp.f90
       implicit none
       ! Arguments
-      class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle object
-      real(DP), dimension(:),   intent(in)    :: GMpl !! Massive body masses
-      real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
-      integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
+      class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+      real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
+      real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
+      integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
 
       if ((self%nbody == 0) .or. (npl == 0)) return
 

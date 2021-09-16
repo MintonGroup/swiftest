@@ -358,9 +358,10 @@ module symba_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine symba_io_write_discard
 
-      module subroutine symba_kick_getacch_int_pl(self)
+      module subroutine symba_kick_getacch_int_pl(self, param)
          implicit none
-         class(symba_pl), intent(inout) :: self
+         class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
       end subroutine symba_kick_getacch_int_pl
 
       module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)

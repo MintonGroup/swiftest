@@ -841,17 +841,19 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
       end subroutine io_write_hdr_system
 
-      module subroutine kick_getacch_int_pl(self)
+      module subroutine kick_getacch_int_pl(self, param)
          implicit none
-         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
       end subroutine kick_getacch_int_pl
 
-      module subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
+      module subroutine kick_getacch_int_tp(self, param, GMpl, xhp, npl)
          implicit none
-         class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle
-         real(DP), dimension(:),   intent(in)    :: GMpl !! Massive body masses
-         real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
-         integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
+         class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+         real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
+         real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
+         integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
       end subroutine kick_getacch_int_tp
 
       module subroutine kick_getacch_int_all_flat_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)

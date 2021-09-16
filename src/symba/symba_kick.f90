@@ -2,7 +2,7 @@ submodule(symba_classes) s_symba_kick
    use swiftest
 contains
 
-   module subroutine symba_kick_getacch_int_pl(self)
+   module subroutine symba_kick_getacch_int_pl(self, param)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of massive bodies, with no mutual interactions between bodies below GMTINY
@@ -11,7 +11,8 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine helio_kick_getacch_int.f90
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self
+      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameter
 
       call kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
 
