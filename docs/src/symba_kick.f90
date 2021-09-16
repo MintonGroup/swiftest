@@ -46,14 +46,15 @@ contains
          associate(pl => self, npl => self%nbody, plplenc_list => system%plplenc_list, radius => self%radius)
             ! Apply kicks to all bodies (including those in the encounter list)
             call helio_kick_getacch_pl(pl, system, param, t, lbeg)
-
-            ! Remove kicks from bodies involved currently in the encounter list, as these are dealt with separately.
-            nplplenc = int(plplenc_list%nenc, kind=I8B)
-            allocate(k_plpl_enc(2,nplplenc))
-            k_plpl_enc(:,1:nplplenc) = pl%k_plpl(:,plplenc_list%kidx(1:nplplenc))
-            ah_enc(:,:) = 0.0_DP
-            call kick_getacch_int_all_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
-            pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
+            if (plplenc_list%nenc > 0) then 
+               ! Remove kicks from bodies involved currently in the encounter list, as these are dealt with separately.
+               nplplenc = int(plplenc_list%nenc, kind=I8B)
+               allocate(k_plpl_enc(2,nplplenc))
+               k_plpl_enc(:,1:nplplenc) = pl%k_plpl(:,plplenc_list%kidx(1:nplplenc))
+               ah_enc(:,:) = 0.0_DP
+               call kick_getacch_int_all_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
+               pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
+            end if
 
          end associate
       end select
@@ -90,7 +91,7 @@ contains
             do k = 1, npltpenc
                i = pltpenc_list%index1(k)
                j = pltpenc_list%index2(k)
-               if (tp%lmask(j)) THEN
+               if (tp%lmask(j)) then
                   if (lbeg) then
                      dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
                   else
@@ -99,7 +100,7 @@ contains
                   rjj = dot_product(dx(:), dx(:))
                   fac = pl%Gmass(i) / (rjj * sqrt(rjj))
                   tp%ah(:,j) = tp%ah(:,j) + fac * dx(:)
-               end IF
+               end if
             end do
          end associate
       end select

@@ -203,7 +203,7 @@
     
     <div class="col-md-9" id='text'>
     <h2>
-pure module subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
+module subroutine drift_all(mu, x, v, n, param, dt, lmask, iflag)
     
     
    <a href='../interface/drift_all.html'><button type="button" class="btn btn-info depwarn">Interface &rarr;</button></a>
@@ -283,7 +283,7 @@ pure module subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
   
 <tr>
   
-  <td><span class="anchor" id="variable-n~31"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-n~35"></span>integer(kind=I4B),</td>
   <td>intent(in)</td>
   <td></td>
   
@@ -328,12 +328,12 @@ pure module subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
   
 <tr>
   
-  <td><span class="anchor" id="variable-mask~2"></span>logical,</td>
+  <td><span class="anchor" id="variable-lmask~8"></span>logical,</td>
   <td>intent(in),</td>
   <td></td>
   
   <td>dimension(:)</td><td>::</td>
-  <td><strong>mask</strong></td><td><p>Logical mask of size self%nbody that determines which bodies to drift.</p></td>
+  <td><strong>lmask</strong></td><td><p>Logical mask of size self%nbody that determines which bodies to drift.</p></td>
   
 </tr>
 

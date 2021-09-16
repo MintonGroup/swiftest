@@ -16,12 +16,10 @@ contains
       integer(I4B) :: i, j
       integer(I8B) :: k, nplpl
       real(DP) :: oblpot, kecb, kespincb
-      real(DP), dimension(self%pl%nbody) :: irh, kepl, kespinpl, pecb
+      real(DP), dimension(self%pl%nbody) :: irh, kepl, kespinpl
       real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
       real(DP), dimension(self%pl%nbody) :: Lplspinx, Lplspiny, Lplspinz
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
-      real(DP), dimension(:), allocatable :: pepl 
-      logical, dimension(:), allocatable :: lstatpl
       real(DP) :: hx, hy, hz
 
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
@@ -81,45 +79,16 @@ contains
             kespinpl(:) = 0.0_DP
          end if
    
-         ! Do the central body potential energy component first
-         where(.not. pl%lmask(1:npl))
-            pecb(1:npl) = 0.0_DP
-         end where
+         call util_get_energy_potential(npl, nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
 
-         do concurrent(i = 1:npl, pl%lmask(i))
-            pecb(i) = -cb%Gmass * pl%mass(i) / norm2(pl%xb(:,i)) 
-         end do
-   
-         ! Do the potential energy between pairs of massive bodies
-         allocate(lstatpl(nplpl))
-         allocate(pepl(nplpl))
-         do concurrent (k = 1:nplpl)
-            i = pl%k_plpl(1,k)
-            j = pl%k_plpl(2,k)
-            lstatpl(k) = (pl%lmask(i) .and. pl%lmask(j))
-         end do
-
-         where(.not.lstatpl(1:nplpl)) 
-            pepl(1:nplpl) = 0.0_DP
-         end where
-
-         do concurrent (k = 1:nplpl, lstatpl(k))
-            i = pl%k_plpl(1,k)
-            j = pl%k_plpl(2,k)
-            pepl(k) = -(pl%Gmass(i) * pl%mass(j)) / norm2(pl%xb(:, i) - pl%xb(:, j))
-         end do
-   
-         system%pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), pl%lmask(1:npl))
-         deallocate(lstatpl, pepl)
-
-         system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
-         if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
-   
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
             call system%obl_pot()
             system%pe = system%pe + system%oblpot
          end if
+
+         system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
+         if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
    
          system%Lorbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
          system%Lorbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
@@ -137,5 +106,56 @@ contains
 
       return
    end subroutine util_get_energy_momentum_system
+
+
+   subroutine util_get_energy_potential(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, xb, pe)
+      !! author: David A. Minton
+      !!
+      !! Compute total system potential energy
+      implicit none
+      ! Arguments
+      integer(I4B),                 intent(in)  :: npl
+      integer(I8B),                 intent(in)  :: nplpl
+      integer(I4B), dimension(:,:), intent(in)  :: k_plpl
+      logical,      dimension(:),   intent(in)  :: lmask
+      real(DP),                     intent(in)  :: GMcb
+      real(DP),     dimension(:),   intent(in)  :: Gmass
+      real(DP),     dimension(:),   intent(in)  :: mass
+      real(DP),     dimension(:,:), intent(in)  :: xb
+      real(DP),                     intent(out) :: pe
+      ! Internals
+      integer(I4B) :: i, j
+      integer(I8B) :: k
+      real(DP), dimension(npl) :: pecb
+      real(DP), dimension(nplpl) :: pepl 
+      logical, dimension(nplpl) :: lstatpl
+
+      ! Do the central body potential energy component first
+      where(.not. lmask(1:npl))
+         pecb(1:npl) = 0.0_DP
+      end where
+
+      do concurrent(i = 1:npl, lmask(i))
+         pecb(i) = -GMcb * mass(i) / norm2(xb(:,i)) 
+      end do
+
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(nplpl, k_plpl, xb, mass, Gmass, pepl, lstatpl, lmask)
+      do k = 1, nplpl
+         i = k_plpl(1,k)
+         j = k_plpl(2,k)
+         lstatpl(k) = (lmask(i) .and. lmask(j))
+         if (lstatpl(k)) then
+            pepl(k) = -(Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+         else
+            pepl(k) = 0.0_DP
+         end if
+      end do
+      !$omp end parallel do 
+
+      pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lmask(1:npl))
+
+      return
+   end subroutine util_get_energy_potential
 
 end submodule s_util_get_energy_momentum

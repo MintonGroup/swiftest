@@ -6,7 +6,6 @@ module symba_classes
    use swiftest_globals
    use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter, swiftest_particle_info, netcdf_parameters
    use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
-   use rmvs_classes,     only : rmvs_chk_ind
    use fraggle_classes,  only : fraggle_colliders, fraggle_fragments
    implicit none
    public
@@ -257,7 +256,8 @@ module symba_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine symba_drift_tp
 
-      module pure elemental subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+      module pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+         !$omp declare simd(symba_encounter_check_one)
          implicit none
          real(DP),     intent(in)  :: xr, yr, zr, vxr, vyr, vzr
          real(DP),     intent(in)  :: rhill1, rhill2, dt

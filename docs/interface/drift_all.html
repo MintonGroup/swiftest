@@ -136,7 +136,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.7% of total for procedures.">465 statements</a>
+    title=" 0.7% of total for procedures.">489 statements</a>
      </li> 
      
      
@@ -431,7 +431,7 @@
     <br>
     
       <h2>
-public pure module subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
+public module subroutine drift_all(mu, x, v, n, param, dt, lmask, iflag)
     
     
    
@@ -552,12 +552,12 @@ public pure module subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
   
 <tr>
   
-  <td><span class="anchor" id="variable-mask"></span>logical,</td>
+  <td><span class="anchor" id="variable-lmask~3"></span>logical,</td>
   <td>intent(in),</td>
   <td></td>
   
   <td>dimension(:)</td><td>::</td>
-  <td><strong>mask</strong></td><td><p>Logical mask of size self%nbody that determines which bodies to drift.</p></td>
+  <td><strong>lmask</strong></td><td><p>Logical mask of size self%nbody that determines which bodies to drift.</p></td>
   
 </tr>
 

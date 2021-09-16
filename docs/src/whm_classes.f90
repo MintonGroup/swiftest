@@ -159,14 +159,14 @@ module whm_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine whm_kick_vh_tp
 
-      module subroutine whm_gr_kick_getacch_pl(self, param)
+      module pure subroutine whm_gr_kick_getacch_pl(self, param)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_pl),              intent(inout) :: self  !! WHM massive body particle data structure
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine whm_gr_kick_getacch_pl
 
-      module subroutine whm_gr_kick_getacch_tp(self, param)
+      module pure subroutine whm_gr_kick_getacch_tp(self, param)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_tp),              intent(inout) :: self  !! WHM test particle data structure

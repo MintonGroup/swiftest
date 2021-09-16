@@ -1202,13 +1202,13 @@ contains
                   else
                      read(iu, *, err = 667, iomsg = errmsg) name(i), val
                   end if
-                  call self%info(i)%set_value(name=name(i))
                   self%Gmass(i) = real(val, kind=DP)
                   self%mass(i) = real(val / param%GU, kind=DP)
                   read(iu, *, err = 667, iomsg = errmsg) self%radius(i)
                class is (swiftest_tp)
-                  read(iu, *, err = 667, iomsg = errmsg) self%id(i)
+                  read(iu, *, err = 667, iomsg = errmsg) name(i)
                end select
+               call self%info(i)%set_value(name=name(i))
 
                select case(param%in_form)
                case (XV)
