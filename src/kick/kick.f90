@@ -14,7 +14,11 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
 
-      call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+      if (param%lflatten_interactions) then
+         call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+      else
+         call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, self%radius, self%ah)
+      end if
 
       return
    end subroutine kick_getacch_int_pl
@@ -94,7 +98,7 @@ contains
    end subroutine kick_getacch_int_all_flat_pl
 
 
-   module subroutine kick_getacch_int_all_triangular_pl(npl, x, Gmass, radius, acc)
+   module subroutine kick_getacch_int_all_triangular_pl(npl, nplm, x, Gmass, radius, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -103,7 +107,8 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
+      integer(I4B),                 intent(in)    :: npl    !! Total number of massive bodies
+      integer(I4B),                 intent(in)    :: nplm   !! Number of fully interacting massive bodies 
       real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
       real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
       real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
@@ -118,11 +123,11 @@ contains
       ahj(:,:) = 0.0_DP
 
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(npl, x, Gmass, radius) &
+      !$omp shared(npl, nplm, x, Gmass, radius) &
       !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
       !$omp reduction(+:ahi) &
       !$omp reduction(-:ahj) 
-      do i = 1, npl
+      do i = 1, nplm
          do concurrent(j = i+1:npl)
             xr = x(1, j) - x(1, i) 
             yr = x(2, j) - x(2, i) 

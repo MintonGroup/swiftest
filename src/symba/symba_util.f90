@@ -292,18 +292,19 @@ contains
          npl = int(self%nbody, kind=I8B)
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
-
          pl%nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
          pl%nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
-         if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
-         allocate(self%k_plpl(2, pl%nplpl))
-         do concurrent (i = 1:npl)
-            do concurrent (j = i+1:npl)
-               call util_index_eucl_ij_to_k(npl, i, j, k)
-               self%k_plpl(1, k) = i
-               self%k_plpl(2, k) = j
+         if (param%lflatten_interactions) then
+            if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
+            allocate(self%k_plpl(2, pl%nplpl))
+            do concurrent (i = 1:npl)
+               do concurrent (j = i+1:npl)
+                  call util_index_eucl_ij_to_k(npl, i, j, k)
+                  self%k_plpl(1, k) = i
+                  self%k_plpl(2, k) = j
+               end do
             end do
-         end do
+         end if
       end associate
 
       return
