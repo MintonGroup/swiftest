@@ -54,10 +54,10 @@ VTUNE_FLAGS = -g -O2 -qopt-report=5 -simd -shared-intel -qopenmp -debug inline-d
 IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin
 STRICTREAL = -fp-model strict -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -fp-model no-except 
-PAR = -qopenmp #-parallel  #Something goes wrong in SyMBA at the moment with auto-paralellization enabled
+PAR = -qopenmp -parallel  
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
-IPRODUCTION = -init=snan,arrays  -no-wrap-margin -O3 $(PAR) $(SIMDVEC) $(STRICTREAL) #$(HEAPARR)
+IPRODUCTION = -no-wrap-margin -O3 $(PAR) $(SIMDVEC) #$(HEAPARR)
 
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
@@ -66,8 +66,10 @@ GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-stri
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O2 -ffree-line-length-none $(GPAR)
 
+
 #FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
-FFLAGS = $(IPRODUCTION) $(OPTREPORT) #$(ADVIXE_FLAGS)
+FFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT) 
+FFASTFLAGS = $(IPRODUCTION) -fp-model fast $(OPTREPORT)
 FORTRAN = ifort
 #AR     = xiar
 
