@@ -36,10 +36,7 @@ contains
                   if ((.not.tp%lmask(i)).or.(tp%plencP(i) /= 0)) cycle
                   xr(:) = tp%xh(:, i) - pl%xbeg(:, j)
                   vr(:) = tp%vh(:, i) - pl%vbeg(:, j)
-                  r2 = dot_product(xr(:), xr(:))
-                  v2 = dot_product(vr(:), vr(:))
-                  vdotr = dot_product(vr(:), xr(:))
-                  lflag = rmvs_chk_ind(r2, v2, vdotr, dt, r2crit(j))
+                  lflag = rmvs_chk_ind(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), dt, r2crit(j))
                   if (lflag) tp%plencP(i) = j
                end do
                pl%nenc(j) = count(tp%plencP(1:ntp) == j)

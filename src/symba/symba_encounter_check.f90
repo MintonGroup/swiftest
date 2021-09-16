@@ -18,9 +18,10 @@ contains
       integer(I8B) :: k
       integer(I4B) :: i, j
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2
-
-      !$omp parallel do default(private)&
-      !$omp shared(nplplm, k_plpl, x, v, rhill, dt, irec, lencounter, loc_lvdotr)
+      
+      !$omp parallel do simd default(private) schedule(static)&
+      !$omp shared(nplplm, k_plpl, x, v, rhill,  dt, irec, lencounter, loc_lvdotr) &
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2)
       do k = 1_I8B, nplplm
          i = k_plpl(1, k)
          j = k_plpl(2, k)
@@ -34,7 +35,7 @@ contains
          rhill2 = rhill(j)
          call symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter(k), loc_lvdotr(k))
       end do
-      !$omp end parallel do
+      !$omp end parallel do simd
 
       return
    end subroutine symba_encounter_check_all
@@ -54,42 +55,44 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      integer(I8B) :: k, nplplm
-      integer(I4B) :: i, j, nenc
+      integer(I8B) :: k, nplplm, kenc
+      integer(I4B) :: i, j, nenc, npl
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
-      integer(I8B), dimension(:), allocatable :: kidx 
+      integer(I4B), dimension(:), allocatable :: index1, index2
   
       if (self%nbody == 0) return
 
       associate(pl => self)
          nplplm = pl%nplplm
+         npl = pl%nbody
          allocate(lencounter(nplplm))
          allocate(loc_lvdotr(nplplm))
   
          call symba_encounter_check_all(nplplm, pl%k_plpl, pl%xh, pl%vh, pl%rhill, dt, irec, lencounter, loc_lvdotr)
 
-         !$omp parallel workshare
          nenc = count(lencounter(:))
-         !$omp end parallel workshare
 
          lany_encounter = nenc > 0
          if (lany_encounter) then 
             associate(plplenc_list => system%plplenc_list)
                call plplenc_list%resize(nenc)
-               allocate(lvdotr(nenc))
-               allocate(kidx(nenc))
-               lvdotr(:) = pack(loc_lvdotr(:), lencounter(:))
-               kidx(:) = pack([(k, k = 1_I8B, nplplm)], lencounter(:))
-               call move_alloc(lvdotr, plplenc_list%lvdotr)
-               call move_alloc(kidx, plplenc_list%kidx)
-               deallocate(lencounter, loc_lvdotr)
-               plplenc_list%index1(1:nenc) = pl%k_plpl(1,plplenc_list%kidx(1:nenc))
-               plplenc_list%index2(1:nenc) = pl%k_plpl(2,plplenc_list%kidx(1:nenc))
-               plplenc_list%id1(1:nenc) = pl%id(plplenc_list%index1(1:nenc))
-               plplenc_list%id2(1:nenc) = pl%id(plplenc_list%index2(1:nenc))
+               allocate(lvdotr(nenc))					
+               allocate(index1(nenc))					
+               allocate(index2(nenc))					
+               lvdotr(:) = pack(loc_lvdotr(:), lencounter(:))					
+               index1(:) = pack(pl%k_plpl(1,1:nplplm), lencounter(:)) 					
+               index2(:) = pack(pl%k_plpl(2,1:nplplm), lencounter(:)) 					
+               deallocate(lencounter, loc_lvdotr)					
+               call move_alloc(lvdotr, plplenc_list%lvdotr)					
+               call move_alloc(index1, plplenc_list%index1) 					
+               call move_alloc(index2, plplenc_list%index2) 					
                do k = 1, nenc
                   i = plplenc_list%index1(k)
                   j = plplenc_list%index2(k)
+                  call util_index_eucl_ij_to_k(npl, i, j, kenc)
+                  plplenc_list%kidx(k) = kenc
+                  plplenc_list%id1(k) = pl%id(plplenc_list%index1(k))					
+                  plplenc_list%id2(k) = pl%id(plplenc_list%index2(k))					
                   plplenc_list%status(k) = ACTIVE
                   plplenc_list%level(k) = irec
                   pl%lencounter(i) = .true.
@@ -267,6 +270,7 @@ contains
 
 
    module pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+      !$omp declare simd(symba_encounter_check_one)
       !! author: David A. Minton
       !!
       !! Check for an encounter.
@@ -280,9 +284,14 @@ contains
       integer(I4B), intent(in)  :: irec
       logical,      intent(out) :: lencounter, lvdotr
       ! Internals
-      real(DP)     :: r2crit
+      real(DP)     :: r2crit, rshell_irec
+      integer(I4B) :: i
 
-      r2crit = (rhill1 + rhill2)*RHSCALE*(RSHELL**(irec))
+      rshell_irec = 1._DP
+      do i = 1, irec
+         rshell_irec = rshell_irec * RSHELL
+      end do
+      r2crit = (rhill1 + rhill2) * RHSCALE * rshell_irec
       r2crit = r2crit**2
       call rmvs_chk_ind(xr, yr, zr, vxr, vyr, vzr, dt, r2crit, lencounter, lvdotr)
 

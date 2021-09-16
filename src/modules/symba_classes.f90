@@ -257,6 +257,7 @@ module symba_classes
       end subroutine symba_drift_tp
 
       module pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+         !$omp declare simd(symba_encounter_check_one)
          implicit none
          real(DP),     intent(in)  :: xr, yr, zr, vxr, vyr, vzr
          real(DP),     intent(in)  :: rhill1, rhill2, dt

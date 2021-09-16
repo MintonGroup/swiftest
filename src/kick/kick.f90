@@ -63,24 +63,25 @@ contains
       real(DP)     :: rji2, rlim2
       real(DP)     :: xr, yr, zr
 
-
       ahi(:,:) = 0.0_DP
       ahj(:,:) = 0.0_DP
-      !$omp parallel do default(private)&
-      !$omp shared(nplpl, k_plpl, x, Gmass, radius)  &
+
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(nplpl, k_plpl, x, Gmass, radius) &
+      !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
       !$omp reduction(+:ahi) &
       !$omp reduction(-:ahj) 
       do k = 1_I8B, nplpl
-         i = k_plpl(1,k)
-         j = k_plpl(2,k)
-         xr = x(1, j) - x(1, i)
-         yr = x(2, j) - x(2, i)
-         zr = x(3, j) - x(3, i)
+         i = k_plpl(1, k)
+         j = k_plpl(2, k)
+         xr = x(1, j) - x(1, i) 
+         yr = x(2, j) - x(2, i) 
+         zr = x(3, j) - x(3, i) 
          rji2 = xr**2 + yr**2 + zr**2
          rlim2 = (radius(i) + radius(j))**2
          if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
       end do
-      !$omp end parallel do
+      !$omp end parallel do 
      
       do concurrent(i = 1:npl)
          acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
@@ -110,8 +111,9 @@ contains
       real(DP)     :: xr, yr, zr
       integer(I4B) :: i, j
 
-      !$omp parallel do default(private)&
-      !$omp shared(npl, ntp, lmask, xtp, xpl, acc)
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(npl, ntp, lmask, xtp, xpl) &
+      !$omp reduction(-:acc)
       do i = 1, ntp
          if (lmask(i)) then
             do j = 1, npl
@@ -119,7 +121,7 @@ contains
                yr = xtp(2, i) - xpl(2, j)
                zr = xtp(3, i) - xpl(3, j)
                rji2 = xr**2 + yr**2 + zr**2
-               call kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl(i), acc(1,i), acc(2,i), acc(3,i))
+               call kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl(j), acc(1,i), acc(2,i), acc(3,i))
             end do
          end if
       end do
@@ -130,6 +132,7 @@ contains
 
 
    module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+      !$omp declare simd(kick_getacch_int_one_pl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for a single pair of massive bodies
@@ -161,6 +164,7 @@ contains
 
 
    module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl, ax, ay, az)
+      !$omp declare simd(kick_getacch_int_one_tp)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of a single test particle massive body pair.

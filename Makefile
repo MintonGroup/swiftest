@@ -59,13 +59,17 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
 
 include Makefile.Defines
 
+MKL_ROOT = /apps/spack/bell/apps/intel-parallel-studio/cluster.2019.5-intel-19.0.5-4brgqlf/mkl/lib
+IMKL = -I$(MKLROOT)/include
+LMKL = -L$(MKLROOT)/lib/intel64 -qopt-matmul 
+
 MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES) 
 
-.PHONY : all mod lib libdir drivers bin clean force 
+.PHONY : all mod lib libdir fast drivers bin clean force 
 
 % : %.f90 force
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include  $< -o $@ \
-	  -L$(SWIFTEST_HOME)/lib -lswiftest -L$(NETCDF_FORTRAN_HOME)/lib -lnetcdf -lnetcdff
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) $< -o $@ \
+	  -L$(SWIFTEST_HOME)/lib -lswiftest -L$(NETCDF_FORTRAN_HOME)/lib -lnetcdf -lnetcdff $(LMKL)
 	$(INSTALL_PROGRAM) $@ $(SWIFTEST_HOME)/bin
 	rm -f $@
 
@@ -73,11 +77,12 @@ all:
 	cd $(SWIFTEST_HOME); \
 	  make mod; \
 	  make lib; \
+	  make fast; \
 	  make drivers; \
 
 mod:
 	cd $(SWIFTEST_HOME)/src/modules/; \
-	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -c $(MODULES); \
+	  $(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) -c $(MODULES); \
 	  $(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o; \
 	  $(INSTALL_DATA) *.mod *.smod $(SWIFTEST_HOME)/include; \
 	  rm -f *.o *.mod  *.smod
@@ -89,11 +94,6 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
 	cd $(SWIFTEST_HOME)/src/drift; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
-	cd $(SWIFTEST_HOME)/src/fraggle; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
@@ -143,11 +143,6 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTEST_HOME)/src/util; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTEST_HOME)/src/whm; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -174,8 +169,39 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
 
+fast:
+	cd $(SWIFTEST_HOME)/src/fraggle; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make fastdir
+
+	cd $(SWIFTEST_HOME)/src/util; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make fastdir
+
+	cd $(SWIFTEST_HOME)/src/rmvs; \
+		$(FORTRAN) $(FFASTFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) -c rmvs_encounter_check.f90; \
+		$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
+		$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
+		rm -f *.o *.smod	
+
+	cd $(SWIFTEST_HOME)/src/symba; \
+		$(FORTRAN) $(FFASTFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) -c symba_encounter_check.f90; \
+		$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
+		$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
+		rm -f *.o *.smod
+
 libdir:
-	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -c *.f90; \
+	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) -c *.f90; \
+	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
+	$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
+	rm -f *.o *.smod
+
+fastdir:
+	$(FORTRAN) $(FFASTFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) -c *.f90; \
 	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
 	$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
 	rm -f *.o *.smod
