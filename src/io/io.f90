@@ -603,7 +603,7 @@ contains
                   if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
                case ("FLATTEN_INTERACTIONS")
                   call io_toupper(param_value)
-                  if (param_value == "YES" .or. param_value == 'T') param%lflatten_interactions = .false.
+                  if (param_value == "NO" .or. param_value == 'F') param%lflatten_interactions = .false.
                case ("FIRSTKICK")
                   call io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
