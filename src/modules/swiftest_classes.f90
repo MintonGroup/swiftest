@@ -196,8 +196,10 @@ module swiftest_classes
       procedure :: dump                       => io_dump_base                 !! Dump contents to file
       procedure :: dump_particle_info         => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      procedure :: read_frame_netcdf          => netcdf_read_frame_base       !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
       generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
+      generic   :: read_frame                 => read_frame_netcdf            !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
       generic   :: write_particle_info        => write_particle_info_netcdf
    end type swiftest_base
 
@@ -232,9 +234,10 @@ module swiftest_classes
       real(DP), dimension(NDIM)                  :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
       procedure :: read_in         => io_read_in_cb     !! I/O routine for reading in central body data
-      procedure :: read_frame      => io_read_frame_cb  !! I/O routine for reading out a single frame of time-series data for the central body
+      procedure :: read_frame_bin  => io_read_frame_cb  !! I/O routine for reading out a single frame of time-series data for the central body
       procedure :: write_frame_bin => io_write_frame_cb !! I/O routine for writing out a single frame of time-series data for the central body
       generic   :: write_frame     => write_frame_bin   !! Write a frame (either binary or NetCDF, using generic procedures)
+      generic   :: read_frame      => read_frame_bin    !! Write a frame (either binary or NetCDF, using generic procedures)
    end type swiftest_cb
 
    !********************************************************************************************************************************
@@ -279,7 +282,7 @@ module swiftest_classes
       procedure :: v2pv            => gr_vh2pv_body                !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
       procedure :: pv2v            => gr_pv2vh_body                !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
       procedure :: read_in         => io_read_in_body              !! Read in body initial conditions from a file
-      procedure :: read_frame      => io_read_frame_body           !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure :: read_frame_bin  => io_read_frame_body           !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: write_frame_bin => io_write_frame_body          !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: accel_obl       => obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: el2xv           => orbel_el2xv_vec              !! Convert orbital elements to position and velocity vectors
@@ -294,6 +297,7 @@ module swiftest_classes
       procedure :: rearrange       => util_sort_rearrange_body     !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => util_spill_body              !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: write_frame     => write_frame_bin              !! Add the generic write frame for Fortran binary files
+      generic   :: read_frame      => read_frame_bin               !! Add the generic read frame for Fortran binary files
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -411,12 +415,16 @@ module swiftest_classes
       procedure :: conservation_report     => io_conservation_report                 !! Compute energy and momentum and print out the change with time
       procedure :: dump                    => io_dump_system                         !! Dump the state of the system to a file
       procedure :: get_old_t_final         => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
-      procedure :: read_frame              => io_read_frame_system                   !! Read in a frame of input data from file
+      procedure :: read_frame_bin          => io_read_frame_system                   !! Read in a frame of input data from file
+      procedure :: write_frame_bin         => io_write_frame_system                  !! Append a frame of output data to file
+      procedure :: read_frame_netcdf       => netcdf_read_frame_system               !! Read in a frame of input data from file
+      procedure :: write_frame_netcdf      => netcdf_write_frame_system              !! Write a frame of input data from file
+      procedure :: write_hdr_bin           => io_write_hdr_system                    !! Write a header for an output frame in Fortran binary format
+      !procedure :: read_hdr_bin            => io_read_hdr                            !! Read a header for an output frame in Fortran binary format
+      procedure :: read_hdr_netcdf         => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
+      procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
       procedure :: read_particle_info      => io_read_particle_info_system           !! Read in particle metadata from file
       procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
-      procedure :: write_frame             => io_write_frame_system                  !! Append a frame of output data to file
-      procedure :: write_hdr_bin           => io_write_hdr_system                    !! Write a header for an output frame in Fortran binary format
-      procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
@@ -426,6 +434,9 @@ module swiftest_classes
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
       generic   :: write_hdr               => write_hdr_bin, write_hdr_netcdf        !! Generic method call for writing headers
+      generic   :: read_hdr                => read_hdr_netcdf          !! Generic method call for reading headers
+      generic   :: read_frame              => read_frame_bin, read_frame_netcdf      !! Generic method call for reading a frame of output data
+      generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
 
    type :: swiftest_encounter
@@ -913,6 +924,29 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine netcdf_open
 
+      module function netcdf_read_frame_base(self, iu, param) result(ierr)
+         implicit none
+         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
+         class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
+      end function netcdf_read_frame_base
+
+      module function netcdf_read_frame_system(self, iu, param) result(ierr)
+         implicit none
+         class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
+         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
+         integer(I4B)                                 :: ierr  !! Error code: returns 0 if the read is successful
+      end function netcdf_read_frame_system
+
+      module subroutine netcdf_read_hdr_system(self, iu, param) 
+         implicit none
+         class(swiftest_nbody_system), intent(inout)    :: self  !! Swiftest nbody system object
+         class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      end subroutine netcdf_read_hdr_system
+
       module subroutine netcdf_write_frame_base(self, iu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
@@ -923,7 +957,7 @@ module swiftest_classes
       module subroutine netcdf_write_frame_system(self, iu, param)
          implicit none
          class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
-         integer(I4B),                  intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_system
 
