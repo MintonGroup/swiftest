@@ -116,6 +116,7 @@ module swiftest_globals
    character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'   ]
    character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'   ]
    character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_NC_FILE    = ['dump_bin1.nc',   'dump_bin2.nc'   ]
    character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.in',  'dump_param2.in']
 
    !> Default file names that can be changed by the user in the parameters file

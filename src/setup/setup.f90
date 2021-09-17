@@ -166,10 +166,16 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      integer(I4B)                                :: ierr
  
-      call self%cb%read_in(param)
-      call self%pl%read_in(param)
-      call self%tp%read_in(param)
+      if ((param%in_type == REAL8_TYPE) .or. (param%in_type == REAL4_TYPE)) then
+         call self%cb%read_in(param)
+         call self%pl%read_in(param)
+         call self%tp%read_in(param)
+      else if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) then
+         ierr = self%read_frame(self%nciu, param)
+      end if
+
       call self%validate_ids(param)
       call self%set_msys()
       call self%pl%set_mu(self%cb) 
