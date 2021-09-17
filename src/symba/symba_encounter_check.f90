@@ -75,8 +75,7 @@ contains
      
       ind_arr(:) = [(i, i = 1, npl)]
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(npl, nplm, x, v, rhill,  dt, irec, lenc) &
-      !$omp firstprivate(ind_arr) &
+      !$omp shared(npl, nplm, x, v, rhill,  dt, irec, lenc, ind_arr) &
       !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, lencounteri, lvdotri)
       do i = 1, nplm
          do concurrent(j = i+1:npl)
@@ -90,9 +89,10 @@ contains
             rhill2 = rhill(j)
             call symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounteri(j), lvdotri(j))
          end do
-         lenc(i)%nenc = count(lencounteri(i+1:npl))
-         if (lenc(i)%nenc > 0) then
+         nenci = count(lencounteri(i+1:npl))
+         if (nenci > 0) then
             allocate(lenc(i)%lvdotr(nenci), lenc(i)%index2(nenci))
+            lenc(i)%nenc = nenci
             lenc(i)%lvdotr(:) = pack(lvdotri(i+1:npl), lencounteri(i+1:npl)) 
             lenc(i)%index2(:) = pack(ind_arr(i+1:npl), lencounteri(i+1:npl)) 
          end if
@@ -175,6 +175,7 @@ contains
             call symba_encounter_check_all_triangular(npl, nplm, pl%xh, pl%vh, pl%rhill, dt, irec, lvdotr, index1, index2, nenc)
             lany_encounter = nenc > 0
             if (lany_encounter) then
+               call plplenc_list%resize(nenc)
                call move_alloc(lvdotr, plplenc_list%lvdotr)
                call move_alloc(index1, plplenc_list%index1)
                call move_alloc(index2, plplenc_list%index2)
