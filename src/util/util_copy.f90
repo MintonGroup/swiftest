@@ -15,7 +15,6 @@ contains
          self%nenc = n
          self%lvdotr(1:n) = source%lvdotr(1:n) 
          self%status(1:n) = source%status(1:n) 
-         self%kidx(1:n) = source%kidx(1:n)
          self%index1(1:n) = source%index1(1:n)
          self%index2(1:n) = source%index2(1:n)
          self%id1(1:n) = source%id1(1:n)

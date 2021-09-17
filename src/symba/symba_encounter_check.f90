@@ -173,9 +173,12 @@ contains
          else
             nplm = pl%nplm
             call symba_encounter_check_all_triangular(npl, nplm, pl%xh, pl%vh, pl%rhill, dt, irec, lvdotr, index1, index2, nenc)
-            call move_alloc(lvdotr, plplenc_list%lvdotr)					
-            call move_alloc(index1, plplenc_list%index1) 					
-            call move_alloc(index2, plplenc_list%index2)
+            lany_encounter = nenc > 0
+            if (lany_encounter) then
+               call move_alloc(lvdotr, plplenc_list%lvdotr)					
+               call move_alloc(index1, plplenc_list%index1) 					
+               call move_alloc(index2, plplenc_list%index2)
+            end if
          end if
 
          if (lany_encounter) then 
@@ -183,7 +186,6 @@ contains
                i = plplenc_list%index1(k)
                j = plplenc_list%index2(k)
                call util_index_eucl_ij_to_k(npl, i, j, kenc)
-               plplenc_list%kidx(k) = kenc
                plplenc_list%id1(k) = pl%id(plplenc_list%index1(k))					
                plplenc_list%id2(k) = pl%id(plplenc_list%index2(k))					
                plplenc_list%status(k) = ACTIVE

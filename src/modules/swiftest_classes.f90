@@ -433,7 +433,6 @@ module swiftest_classes
       integer(I4B)                              :: nenc   !! Total number of encounters
       logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
-      integer(I8B), dimension(:),   allocatable :: kidx   !! index value of the encounter from the master k_plpl encounter list
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
       integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
       integer(I4B), dimension(:),   allocatable :: id1    !! id of the first body in the encounter

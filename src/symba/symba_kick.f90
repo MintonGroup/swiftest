@@ -56,7 +56,8 @@ contains
                ah_enc(:,:) = 0.0_DP
                nplplenc = int(plplenc_list%nenc, kind=I8B)
                allocate(k_plpl_enc(2,nplplenc))
-               k_plpl_enc(:,1:nplplenc) = pl%k_plpl(:,plplenc_list%kidx(1:nplplenc))
+               k_plpl_enc(1,1:nplplenc) = plplenc_list%index1(1:nplplenc)
+               k_plpl_enc(2,1:nplplenc) = plplenc_list%index2(1:nplplenc)
                call kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
