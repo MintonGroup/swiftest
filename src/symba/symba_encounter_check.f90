@@ -188,6 +188,7 @@ contains
                j = plplenc_list%index2(k)
                plplenc_list%id1(k) = pl%id(i)
                plplenc_list%id2(k) = pl%id(j)
+               plplenc_list%status(k) = ACTIVE
                plplenc_list%level(k) = irec
                pl%lencounter(i) = .true.
                pl%lencounter(j) = .true.
