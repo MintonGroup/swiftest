@@ -133,7 +133,7 @@ module swiftest_classes
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
-      logical :: lflatten_interactions = .true. !! Use the flattened upper triangular matrix for pl-pl interactions (turning this on improves the speed but uses more memory)
+      logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interactions (turning this on improves the speed but uses more memory)
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
