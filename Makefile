@@ -47,13 +47,13 @@
 SWIFTEST_MODULES =   swiftest_globals.f90 \
                      swiftest_operators.f90 \
 							lambda_function.f90\
-							walltime_classes.f90 \
                      swiftest_classes.f90 \
                      fraggle_classes.f90 \
                      whm_classes.f90 \
                      rmvs_classes.f90 \
                      helio_classes.f90 \
                      symba_classes.f90 \
+							walltime_classes.f90 \
                      swiftest.f90 
 
 
