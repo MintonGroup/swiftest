@@ -373,7 +373,6 @@ contains
       associate(keeps => self)
          call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)
          call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
-         call util_spill(keeps%kidx, discards%kidx, lspill_list, ldestructive)
          call util_spill(keeps%index1, discards%index1, lspill_list, ldestructive)
          call util_spill(keeps%index2, discards%index2, lspill_list, ldestructive)
          call util_spill(keeps%id1, discards%id1, lspill_list, ldestructive)

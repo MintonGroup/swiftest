@@ -32,7 +32,7 @@ contains
 
          call whm_kick_getacch_ah1(cb, pl) 
          call whm_kick_getacch_ah2(cb, pl) 
-         call pl%accel_int() 
+         call pl%accel_int(param) 
 
          if (param%loblatecb) then
             call pl%accel_obl(system)
@@ -84,13 +84,13 @@ contains
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
-            call tp%accel_int(pl%Gmass(1:npl), pl%xbeg(:, 1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%xbeg(:, 1:npl), npl)
          else
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
-            call tp%accel_int(pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
          end if
 
          if (param%loblatecb) call tp%accel_obl(system)

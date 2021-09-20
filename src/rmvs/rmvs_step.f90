@@ -35,7 +35,7 @@ contains
                   call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
                   ! ****** Check for close encounters ***** !
                   system%rts = RHSCALE
-                  lencounter = tp%encounter_check(system, dt)
+                  lencounter = tp%encounter_check(param, system, dt)
                   if (lencounter) then
                      lfirstpl = pl%lfirst
                      pl%outer(0)%x(:, 1:npl) = xbeg(:, 1:npl)
@@ -178,7 +178,7 @@ contains
                                 vbeg = pl%outer(outer_index - 1)%v(:, 1:npl), &
                                 xend = pl%outer(outer_index    )%x(:, 1:npl))
             system%rts = RHPSCALE
-            lencounter = tp%encounter_check(system, dto) 
+            lencounter = tp%encounter_check(param, system, dto) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
                call rmvs_interp_in(cb, pl, system, param, dto, outer_index) 
