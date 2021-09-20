@@ -279,12 +279,18 @@ contains
                end if
 
                if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
-                  call check( nf90_get_var(iu%ncid, iu%a_varid,     self%a(j),               start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%e_varid,     self%e(j),               start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%inc_varid,   self%inc(j) * RAD2DEG,   start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%capom_varid, self%capom(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%omega_varid, self%omega(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%capm_varid,  self%capm(j) * RAD2DEG,  start=[idslot, tslot]) ) 
+                  call check( nf90_get_var(iu%ncid, iu%a_varid,     self%a(j),     start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%e_varid,     self%e(j),     start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%inc_varid,   self%inc(j),   start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%capom_varid, self%capom(j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%omega_varid, self%omega(j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%capm_varid,  self%capm(j),  start=[idslot, tslot]) ) 
+
+                  self%inc(j) = self%inc(j) * RAD2DEG
+                  self%capom(j) = self%capom(j) * RAD2DEG
+                  self%omega(j) = self%omega(j) * RAD2DEG
+                  self%capm(j) = self%capm(j) * RAD2DEG
+
                end if
 
                select type(self)  
