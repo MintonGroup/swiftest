@@ -122,12 +122,13 @@ module rmvs_classes
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine rmvs_discard_tp
 
-      module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)
+      module function rmvs_encounter_check_tp(self, param, system, dt) result(lencounter)
          implicit none
-         class(rmvs_tp),           intent(inout) :: self       !! RMVS test particle object  
-         class(rmvs_nbody_system), intent(inout) :: system     !! RMVS nbody system object
-         real(DP),                 intent(in)    :: dt         !! step size
-         logical                                 :: lencounter !! Returns true if there is at least one close encounter      
+         class(rmvs_tp),             intent(inout) :: self       !! RMVS test particle object  
+         class(swiftest_parameters), intent(in)    :: param      !! Current run configuration parameters 
+         class(rmvs_nbody_system),   intent(inout) :: system     !! RMVS nbody system object
+         real(DP),                   intent(in)    :: dt         !! step size
+         logical                                   :: lencounter !! Returns true if there is at least one close encounter      
       end function rmvs_encounter_check_tp
 
       module subroutine rmvs_io_write_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2, enc_out)

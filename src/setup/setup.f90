@@ -85,7 +85,6 @@ contains
 
       if (allocated(self%lvdotr)) deallocate(self%lvdotr)
       if (allocated(self%status)) deallocate(self%status)
-      if (allocated(self%kidx)) deallocate(self%kidx)
       if (allocated(self%index1)) deallocate(self%index1)
       if (allocated(self%index2)) deallocate(self%index2)
       if (allocated(self%id1)) deallocate(self%id1)
@@ -101,7 +100,6 @@ contains
 
       allocate(self%lvdotr(n))
       allocate(self%status(n))
-      allocate(self%kidx(n))
       allocate(self%index1(n))
       allocate(self%index2(n))
       allocate(self%id1(n))
@@ -114,7 +112,6 @@ contains
 
       self%lvdotr(:) = .false.
       self%status(:) = INACTIVE
-      self%kidx(:) = 0_I8B
       self%index1(:) = 0
       self%index2(:) = 0
       self%id1(:) = 0

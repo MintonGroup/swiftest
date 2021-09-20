@@ -2,7 +2,7 @@ submodule (rmvs_classes) s_rmvs_chk
    use swiftest
 contains
 
-   module function rmvs_encounter_check_tp(self, system, dt) result(lencounter)
+   module function rmvs_encounter_check_tp(self, param, system, dt) result(lencounter)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -11,9 +11,10 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_chk.f
       implicit none
       ! Arguments
-      class(rmvs_tp),           intent(inout) :: self   !! RMVS test particle object  
-      class(rmvs_nbody_system), intent(inout) :: system !! RMVS nbody system object
-      real(DP),                 intent(in)    :: dt     !! step size
+      class(rmvs_tp),             intent(inout) :: self   !! RMVS test particle object  
+      class(swiftest_parameters), intent(in)    :: param  !! Current swiftest run configuration parameters
+      class(rmvs_nbody_system),   intent(inout) :: system !! RMVS nbody system object
+      real(DP),                   intent(in)    :: dt     !! step size
       ! Result
       logical                                 :: lencounter  !! Returns true if there is at least one close encounter
       ! Internals
