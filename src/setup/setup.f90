@@ -164,33 +164,36 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       integer(I4B)                                :: ierr
- 
-      if ((param%in_type == REAL8_TYPE) .or. (param%in_type == REAL4_TYPE)) then
-         call self%cb%read_in(param)
-         call self%pl%read_in(param)
-         call self%tp%read_in(param)
-      else if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) then
-         ierr = self%read_frame(param%nciu, param)
-      end if
+      
+      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+         if ((param%in_type == REAL8_TYPE) .or. (param%in_type == REAL4_TYPE)) then
+            call cb%read_in(param)
+            call pl%read_in(param)
+            call tp%read_in(param)
+         else if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) then
+            ierr = system%read_frame(param%nciu, param)
+         end if
 
-      call self%validate_ids(param)
-      call self%set_msys()
-      call self%pl%set_mu(self%cb) 
-      call self%tp%set_mu(self%cb) 
-      if (param%in_form == EL) then
-         call self%pl%el2xv(self%cb)
-         call self%tp%el2xv(self%cb)
-      end if
-      call self%pl%index(param)
-      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
-      self%pl%lfirst = param%lfirstkick
-      self%tp%lfirst = param%lfirstkick
+         call system%validate_ids(param)
+         call system%set_msys()
+         call pl%set_mu(cb) 
+         call tp%set_mu(cb) 
+         if (param%in_form == EL) then
+            call pl%el2xv(cb)
+            call tp%el2xv(cb)
+         end if
+         call pl%index(param)
+         if (.not.param%lrhill_present) call pl%set_rhill(cb)
+         pl%lfirst = param%lfirstkick
+         tp%lfirst = param%lfirstkick
 
-      if (param%lrestart) then
-         call self%read_particle_info(param)
-      else
-         call self%init_particle_info(param)
-      end if
+         if (param%lrestart) then
+            call system%read_particle_info(param)
+         else
+            call system%init_particle_info(param)
+         end if
+      end associate
+
       return
    end subroutine setup_initialize_system
 
