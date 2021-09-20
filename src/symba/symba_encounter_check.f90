@@ -2,18 +2,21 @@ submodule (symba_classes) s_symba_encounter_check
    use swiftest
 contains
 
-   subroutine symba_encounter_check_all(nplplm, k_plpl, x, v, rhill,  dt, irec, lencounter, loc_lvdotr)
+   subroutine symba_encounter_check_all_flat(nplplm, k_plpl, x, v, rhill,  dt, irec, lencounter, loc_lvdotr)
       !! author: David A. Minton
       !!
-      !! Check for encounters between massive bodies. Split off from the main subroutine for performance
+      !! Check for encounters between massive bodies. Split off from the main subroutine for performance.
+      !! This is the flat (single loop) version.
       implicit none
-      integer(I8B), intent(in) :: nplplm
-      integer(I4B), dimension(:,:), intent(in) :: k_plpl
-      real(DP), dimension(:,:), intent(in) :: x, v
-      real(DP), dimension(:), intent(in) :: rhill
-      real(DP), intent(in) :: dt
-      integer(I4B), intent(in) :: irec
-      logical, dimension(:), intent(out) :: lencounter, loc_lvdotr
+      integer(I8B),                 intent(in)  :: nplplm     !! Total number of plm-pl interactions
+      integer(I4B), dimension(:,:), intent(in)  :: k_plpl     !! List of all pl-pl interactions
+      real(DP),     dimension(:,:), intent(in)  :: x          !! Position vectors of massive bodies
+      real(DP),     dimension(:,:), intent(in)  :: v          !! Velocity vectors of massive bodies
+      real(DP),     dimension(:),   intent(in)  :: rhill      !! Hill's radii of massive bodies
+      real(DP),                     intent(in)  :: dt         !! Step size
+      integer(I4B),                 intent(in)  :: irec       !! Current recursion depth
+      logical,      dimension(:),   intent(out) :: lencounter !! Logical array indicating which pair is in an encounter state
+      logical,      dimension(:),   intent(out) :: loc_lvdotr !! Logical array indicating the sign of v .dot. x for each encounter
       ! Internals
       integer(I8B) :: k
       integer(I4B) :: i, j
@@ -38,43 +41,123 @@ contains
       !$omp end parallel do simd
 
       return
-   end subroutine symba_encounter_check_all
+   end subroutine symba_encounter_check_all_flat
 
 
-   module function symba_encounter_check_pl(self, system, dt, irec) result(lany_encounter)
+   subroutine symba_encounter_check_all_triangular(npl, nplm, x, v, rhill,  dt, irec, lvdotr, index1, index2, nenc)
+      !! author: David A. Minton
+      !!
+      !! Check for encounters between massive bodies. Split off from the main subroutine for performance
+      !! This is the upper triangular (double loop) version.
+      implicit none
+      integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
+      integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
+      real(DP),     dimension(:),              intent(in)  :: rhill  !! Hill's radii of massive bodies
+      real(DP),                                intent(in)  :: dt     !! Step size
+      integer(I4B),                            intent(in)  :: irec   !! Current recursion depth
+      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each interaction
+      integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each interaction
+      integer(I4B),                            intent(out) :: nenc   !! Total number of interactions
+      ! Internals
+      integer(I4B) :: i, j, nenci, j0, j1
+      real(DP) :: xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2
+      logical, dimension(npl) :: lencounteri, lvdotri
+      integer(I4B), dimension(npl) :: ind_arr
+      type lenctype
+         logical, dimension(:), allocatable :: lvdotr
+         integer(I4B), dimension(:), allocatable :: index2
+         integer(I4B) :: nenc
+      end type
+      type(lenctype), dimension(nplm) :: lenc
+     
+      ind_arr(:) = [(i, i = 1, npl)]
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(npl, nplm, x, v, rhill,  dt, irec, lenc, ind_arr) &
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, lencounteri, lvdotri)
+      do i = 1, nplm
+         do concurrent(j = i+1:npl)
+            xr = x(1, j) - x(1, i)
+            yr = x(2, j) - x(2, i)
+            zr = x(3, j) - x(3, i)
+            vxr = v(1, j) - v(1, i)
+            vyr = v(2, j) - v(2, i)
+            vzr = v(3, j) - v(3, i)
+            rhill1 = rhill(i)
+            rhill2 = rhill(j)
+            call symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounteri(j), lvdotri(j))
+         end do
+         nenci = count(lencounteri(i+1:npl))
+         if (nenci > 0) then
+            allocate(lenc(i)%lvdotr(nenci), lenc(i)%index2(nenci))
+            lenc(i)%nenc = nenci
+            lenc(i)%lvdotr(:) = pack(lvdotri(i+1:npl), lencounteri(i+1:npl)) 
+            lenc(i)%index2(:) = pack(ind_arr(i+1:npl), lencounteri(i+1:npl)) 
+         end if
+      end do
+      !$omp end parallel do
+
+      associate(nenc_arr => lenc(:)%nenc)
+         nenc = sum(nenc_arr(1:nplm))
+      end associate
+      if (nenc > 0) then
+         allocate(lvdotr(nenc))
+         allocate(index1(nenc))
+         allocate(index2(nenc))
+         j0 = 1
+         do i = 1, nplm
+            if (lenc(i)%nenc > 0) then
+               j1 = j0 + lenc(i)%nenc - 1
+               lvdotr(j0:j1) = lenc(i)%lvdotr(:)
+               index1(j0:j1) = i
+               index2(j0:j1) = lenc(i)%index2(:)
+               j0 = j1 + 1
+            end if
+         end do
+      end if
+
+      return
+   end subroutine symba_encounter_check_all_triangular
+
+
+   module function symba_encounter_check_pl(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between massive bodies.
       !!
       implicit none
       ! Arguments
-      class(symba_pl),           intent(inout)  :: self           !! SyMBA test particle object  
-      class(symba_nbody_system), intent(inout)  :: system         !! SyMBA nbody system object
-      real(DP),                  intent(in)     :: dt             !! step size
-      integer(I4B),              intent(in)     :: irec           !! Current recursion level
+      class(symba_pl),            intent(inout)  :: self   !! SyMBA test particle object  
+      class(swiftest_parameters), intent(in)     :: param  !! Current swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout)  :: system !! SyMBA nbody system object
+      real(DP),                   intent(in)     :: dt     !! step size
+      integer(I4B),               intent(in)     :: irec   !! Current recursion level
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       integer(I8B) :: k, nplplm, kenc
-      integer(I4B) :: i, j, nenc, npl
+      integer(I4B) :: i, j, nenc, npl, nplm
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
+      integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
   
       if (self%nbody == 0) return
 
-      associate(pl => self)
-         nplplm = pl%nplplm
+      associate(pl => self, plplenc_list => system%plplenc_list)
          npl = pl%nbody
-         allocate(lencounter(nplplm))
-         allocate(loc_lvdotr(nplplm))
+         if (param%lflatten_interactions) then
+            nplplm = pl%nplplm
+            allocate(lencounter(nplplm))
+            allocate(loc_lvdotr(nplplm))
   
-         call symba_encounter_check_all(nplplm, pl%k_plpl, pl%xh, pl%vh, pl%rhill, dt, irec, lencounter, loc_lvdotr)
+            call symba_encounter_check_all_flat(nplplm, pl%k_plpl, pl%xh, pl%vh, pl%rhill, dt, irec, lencounter, loc_lvdotr)
 
-         nenc = count(lencounter(:))
+            nenc = count(lencounter(:))
 
-         lany_encounter = nenc > 0
-         if (lany_encounter) then 
-            associate(plplenc_list => system%plplenc_list)
+            lany_encounter = nenc > 0
+            if (lany_encounter) then 
                call plplenc_list%resize(nenc)
                allocate(lvdotr(nenc))					
                allocate(index1(nenc))					
@@ -85,33 +168,45 @@ contains
                deallocate(lencounter, loc_lvdotr)					
                call move_alloc(lvdotr, plplenc_list%lvdotr)					
                call move_alloc(index1, plplenc_list%index1) 					
-               call move_alloc(index2, plplenc_list%index2) 					
-               do k = 1, nenc
-                  i = plplenc_list%index1(k)
-                  j = plplenc_list%index2(k)
-                  call util_index_eucl_ij_to_k(npl, i, j, kenc)
-                  plplenc_list%kidx(k) = kenc
-                  plplenc_list%id1(k) = pl%id(plplenc_list%index1(k))					
-                  plplenc_list%id2(k) = pl%id(plplenc_list%index2(k))					
-                  plplenc_list%status(k) = ACTIVE
-                  plplenc_list%level(k) = irec
-                  pl%lencounter(i) = .true.
-                  pl%lencounter(j) = .true.
-                  pl%levelg(i) = irec
-                  pl%levelm(i) = irec
-                  pl%levelg(j) = irec
-                  pl%levelm(j) = irec
-                  pl%nplenc(i) = pl%nplenc(i) + 1
-                  pl%nplenc(j) = pl%nplenc(j) + 1
-               end do
-            end associate
+               call move_alloc(index2, plplenc_list%index2) 
+            end if					
+         else
+            nplm = pl%nplm
+            call symba_encounter_check_all_triangular(npl, nplm, pl%xh, pl%vh, pl%rhill, dt, irec, lvdotr, index1, index2, nenc)
+            lany_encounter = nenc > 0
+            if (lany_encounter) then
+               call plplenc_list%resize(nenc)
+               call move_alloc(lvdotr, plplenc_list%lvdotr)
+               call move_alloc(index1, plplenc_list%index1)
+               call move_alloc(index2, plplenc_list%index2)
+            end if
+         end if
+
+         if (lany_encounter) then 
+            do k = 1, nenc
+               i = plplenc_list%index1(k)
+               j = plplenc_list%index2(k)
+               plplenc_list%id1(k) = pl%id(i)
+               plplenc_list%id2(k) = pl%id(j)
+               plplenc_list%status(k) = ACTIVE
+               plplenc_list%level(k) = irec
+               pl%lencounter(i) = .true.
+               pl%lencounter(j) = .true.
+               pl%levelg(i) = irec
+               pl%levelm(i) = irec
+               pl%levelg(j) = irec
+               pl%levelm(j) = irec
+               pl%nplenc(i) = pl%nplenc(i) + 1
+               pl%nplenc(j) = pl%nplenc(j) + 1
+            end do
          end if
       end associate
+
       return
    end function symba_encounter_check_pl
 
 
-   module function symba_encounter_check(self, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies in the pltpenc list.
@@ -120,11 +215,12 @@ contains
       !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
       implicit none
       ! Arguments
-      class(symba_encounter),      intent(inout) :: self       !! SyMBA pl-pl encounter list object
-      class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
-      real(DP),                  intent(in)    :: dt         !! step size
-      integer(I4B),              intent(in)    :: irec       !! Current recursion level 
-      logical                                  :: lany_encounter !! Returns true if there is at least one close encounter  
+      class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
+      class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt             !! step size
+      integer(I4B),               intent(in)    :: irec           !! Current recursion level 
+      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter  
       ! Internals
       integer(I4B)              :: i, j, k, lidx, nenc_enc
       real(DP), dimension(NDIM) :: xr, vr
@@ -197,17 +293,18 @@ contains
    end function symba_encounter_check
 
 
-   module function symba_encounter_check_tp(self, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies.
       !!
       implicit none
       ! Arguments
-      class(symba_tp),           intent(inout) :: self       !! SyMBA test particle object  
-      class(symba_nbody_system), intent(inout) :: system     !! SyMBA nbody system object
-      real(DP),                  intent(in)    :: dt         !! step size
-      integer(I4B),              intent(in)    :: irec           !! Current recursion level
+      class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
+      class(swiftest_parameters), intent(in)    :: param  !! Current swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt     !! step size
+      integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
@@ -269,7 +366,7 @@ contains
    end function symba_encounter_check_tp
 
 
-   module pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
+   pure subroutine symba_encounter_check_one(xr, yr, zr, vxr, vyr, vzr, rhill1, rhill2, dt, irec, lencounter, lvdotr)
       !$omp declare simd(symba_encounter_check_one)
       !! author: David A. Minton
       !!

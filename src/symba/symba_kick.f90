@@ -2,7 +2,7 @@ submodule(symba_classes) s_symba_kick
    use swiftest
 contains
 
-   module subroutine symba_kick_getacch_int_pl(self)
+   module subroutine symba_kick_getacch_int_pl(self, param)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of massive bodies, with no mutual interactions between bodies below GMTINY
@@ -11,9 +11,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine helio_kick_getacch_int.f90
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self
+      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameter
 
-      call kick_getacch_int_all_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+      if (param%lflatten_interactions) then
+         call kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+      else
+         call kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%xh, self%Gmass, self%radius, self%ah)
+      end if
 
       return
    end subroutine symba_kick_getacch_int_pl
@@ -43,16 +48,17 @@ contains
       if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
-         associate(pl => self, npl => self%nbody, plplenc_list => system%plplenc_list, radius => self%radius)
+         associate(pl => self, npl => self%nbody, nplm => self%nplm, plplenc_list => system%plplenc_list, radius => self%radius)
             ! Apply kicks to all bodies (including those in the encounter list)
             call helio_kick_getacch_pl(pl, system, param, t, lbeg)
             if (plplenc_list%nenc > 0) then 
                ! Remove kicks from bodies involved currently in the encounter list, as these are dealt with separately.
+               ah_enc(:,:) = 0.0_DP
                nplplenc = int(plplenc_list%nenc, kind=I8B)
                allocate(k_plpl_enc(2,nplplenc))
-               k_plpl_enc(:,1:nplplenc) = pl%k_plpl(:,plplenc_list%kidx(1:nplplenc))
-               ah_enc(:,:) = 0.0_DP
-               call kick_getacch_int_all_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
+               k_plpl_enc(1,1:nplplenc) = plplenc_list%index1(1:nplplenc)
+               k_plpl_enc(2,1:nplplenc) = plplenc_list%index2(1:nplplenc)
+               call kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
 
@@ -61,7 +67,6 @@ contains
 
       return
    end subroutine symba_kick_getacch_pl
-
 
    module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
       !! author: David A. Minton
