@@ -113,9 +113,9 @@ module swiftest_globals
 
    !> Standard file names
    integer(I4B), parameter :: NDUMPFILES = 2
-   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'   ]
-   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'   ]
-   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'  ]
+   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'  ]
+   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'  ]
    character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.in',  'dump_param2.in']
 
    !> Default file names that can be changed by the user in the parameters file
@@ -126,6 +126,7 @@ module swiftest_globals
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    character(*), parameter :: PARTICLE_OUTFILE = 'particle.dat'
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
+   integer(I4B), parameter :: LUN              = 42 !! File unit number for files that are opened and closed within a single subroutine call, and therefore should not collide
 
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM   = 3                  !! Number of dimensions in our reality

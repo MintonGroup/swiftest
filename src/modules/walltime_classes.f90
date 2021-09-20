@@ -27,11 +27,25 @@ module walltime_classes
       integer(I4B)           :: step_counter
       integer(I8B)           :: count_previous
       character(len=NAMELEN) :: current_style
+      logical                :: lflatten_interaction_old
    contains
-
+      procedure :: reset  => walltime_interaction_reset  !! Resets the interaction loop timer, and saves the current value of the array flatten parameter
    end type interaction_timer
 
    interface
+      module subroutine walltime_interaction_reset(self, param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(interaction_timer),   intent(inout) :: self  !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      end subroutine walltime_interaction_reset 
+
+      module subroutine walltime_interaction_io_log_start(param)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(swiftest_parameters), intent(in) :: param
+      end subroutine walltime_interaction_io_log_start
+
       module subroutine walltime_finish(self, nsubsteps, message, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -57,6 +71,23 @@ module walltime_classes
    end interface
 
    contains
+
+      module subroutine walltime_interaction_reset(self, param)
+         !! author: David A. Minton
+         !!
+         !! Resets the interaction loop timer, and saves the current value of the array flatten parameter
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         ! Arguments
+         class(interaction_timer),   intent(inout) :: self  !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+
+         self%lflatten_interaction_old = param%lflatten_interactions
+         call walltime_reset(self, param)
+
+         return
+      end subroutine walltime_interaction_reset 
+
 
       module subroutine walltime_finish(self, nsubsteps, message, param)
          !! author: David A. Minton

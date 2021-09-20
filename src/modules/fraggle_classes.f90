@@ -113,12 +113,6 @@ module fraggle_classes
          class(fraggle_fragments),   intent(in) :: frag
       end subroutine fraggle_io_log_generate
 
-      module subroutine fraggle_io_log_one_message(message)
-         implicit none
-         character(len=*), intent(in) :: message
-         character(STRMAX) :: errmsg
-      end subroutine fraggle_io_log_one_message
-
       module subroutine fraggle_io_log_pl(pl, param)
          implicit none
          class(swiftest_pl),         intent(in) :: pl    !! Swiftest massive body object (only the new bodies generated in a collision)
@@ -130,11 +124,6 @@ module fraggle_classes
          class(fraggle_colliders),   intent(in) :: colliders
          class(fraggle_fragments),   intent(in) :: frag
       end subroutine fraggle_io_log_regime
-
-      module subroutine fraggle_io_log_start(param)
-         implicit none
-         class(swiftest_parameters), intent(in) :: param
-      end subroutine fraggle_io_log_start
 
       !> The following interfaces are placeholders intended to satisfy the required abstract methods given by the parent class
       module subroutine fraggle_placeholder_accel(self, system, param, t, lbeg)

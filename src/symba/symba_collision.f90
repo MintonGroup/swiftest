@@ -28,7 +28,7 @@ contains
          message = "Supercatastrophic disruption between"
       end select
       call symba_collision_collider_message(system%pl, colliders%idx, message)
-      call fraggle_io_log_one_message(message)
+      call io_log_one_message(FRAGGLE_LOG_OUT, message)
 
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
       call frag%set_mass_dist(colliders, param)
@@ -37,7 +37,7 @@ contains
       call frag%generate_fragments(colliders, system, param, lfailure)
 
       if (lfailure) then
-         call fraggle_io_log_one_message("No fragment solution found, so treat as a pure hit-and-run")
+         call io_log_one_message(FRAGGLE_LOG_OUT, "No fragment solution found, so treat as a pure hit-and-run")
          status = ACTIVE 
          nfrag = 0
          select type(pl => system%pl)
@@ -50,7 +50,7 @@ contains
          ! Populate the list of new bodies
          nfrag = frag%nbody
          write(message, *) nfrag
-         call fraggle_io_log_one_message("Generating " // trim(adjustl(message)) // " fragments")
+         call io_log_one_message(FRAGGLE_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
          select case(frag%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION)
             status = DISRUPTION
@@ -87,7 +87,7 @@ contains
 
       message = "Hit and run between"
       call symba_collision_collider_message(system%pl, colliders%idx, message)
-      call fraggle_io_log_one_message(trim(adjustl(message)))
+      call io_log_one_message(FRAGGLE_LOG_OUT, trim(adjustl(message)))
 
       if (colliders%mass(1) > colliders%mass(2)) then
          jtarg = 1
@@ -98,7 +98,7 @@ contains
       end if
 
       if (frag%mass_dist(2) > 0.9_DP * colliders%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
-         call fraggle_io_log_one_message("Pure hit and run. No new fragments generated.")
+         call io_log_one_message(FRAGGLE_LOG_OUT, "Pure hit and run. No new fragments generated.")
          nfrag = 0
          lpure = .true.
       else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
@@ -109,12 +109,12 @@ contains
          call frag%generate_fragments(colliders, system, param, lpure)
 
          if (lpure) then
-            call fraggle_io_log_one_message("Should have been a pure hit and run instead")
+            call io_log_one_message(FRAGGLE_LOG_OUT, "Should have been a pure hit and run instead")
             nfrag = 0
          else
             nfrag = frag%nbody
             write(message, *) nfrag
-            call fraggle_io_log_one_message("Generating " // trim(adjustl(message)) // " fragments")
+            call io_log_one_message(FRAGGLE_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
          end if
       end if
       if (lpure) then ! Reset these bodies back to being active so that nothing further is done to them
@@ -164,7 +164,7 @@ contains
 
       message = "Merging"
       call symba_collision_collider_message(system%pl, colliders%idx, message)
-      call fraggle_io_log_one_message(message)
+      call io_log_one_message(FRAGGLE_LOG_OUT, message)
 
       select type(pl => system%pl)
       class is (symba_pl)
@@ -358,7 +358,7 @@ contains
                      write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                              //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
                              //  " at t = " // trim(adjustl(timestr))
-                     call fraggle_io_log_one_message(message)
+                     call io_log_one_message(FRAGGLE_LOG_OUT, message)
                   end if
                end if
             end do
@@ -984,10 +984,10 @@ contains
 
                do
                   write(timestr,*) t
-                  call fraggle_io_log_one_message("")
-                  call fraggle_io_log_one_message("***********************************************************************************************************************")
-                  call fraggle_io_log_one_message("Collision between massive bodies detected at time t = " // trim(adjustl(timestr)))
-                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "Collision between massive bodies detected at time t = " // trim(adjustl(timestr)))
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
                   allocate(tmp_param, source=param)
                   tmp_param%t = t
                   if (param%lfragmentation) then

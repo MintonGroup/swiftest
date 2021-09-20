@@ -101,7 +101,6 @@ contains
       class(swiftest_parameters),intent(in) :: self    !! Output collection of parameters
       character(len=*),          intent(in) :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
-      integer(I4B), parameter  :: LUN = 7       !! Unit number of output file
       character(STRMAX)        :: errmsg !! Error message in UDIO procedure
       integer(I4B)             :: ierr
 
@@ -160,7 +159,6 @@ contains
 
       ! Internals
       logical, save             :: lfirst = .true.
-      integer(I4B), parameter   :: LUN = 22
       integer(I4B)              :: i
       character(STRMAX)         :: errmsg
 
@@ -228,7 +226,6 @@ contains
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
-      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
       integer(I4B)                   :: iu = LUN
       character(len=:), allocatable  :: dump_file_name
       character(STRMAX)              :: errmsg 
@@ -395,7 +392,6 @@ contains
       ! Internals
       class(swiftest_nbody_system), allocatable :: tmpsys
       class(swiftest_parameters),   allocatable :: tmpparam
-      integer(I4B), parameter :: LUN = 76
       integer(I4B) :: ierr, iu = LUN
       character(len=STRMAX)            :: errmsg
 
@@ -411,6 +407,7 @@ contains
       end do
       if (is_iostat_end(ierr)) then
          old_t_final = tmpparam%t
+         close(iu)
          return
       end if
 
@@ -467,6 +464,53 @@ contains
 
       return
    end function io_get_token
+
+   module subroutine io_log_one_message(file, message)
+      !! author: David A. Minton
+      !!
+      !! Writes a single message to a log file
+      implicit none
+      ! Arguments
+      character(len=*), intent(in) :: file   !! Name of file to log
+      character(len=*), intent(in) :: message
+      ! Internals
+      character(STRMAX) :: errmsg
+
+      open(unit=LUN, file=file, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      write(LUN, *) trim(adjustl(message)) 
+      close(LUN)
+
+      return
+      667 continue
+      write(*,*) "Error writing  message to log file: " // trim(adjustl(errmsg))
+   end subroutine io_log_one_message
+
+
+   module subroutine io_log_start(param, file, header)
+      !! author: David A. Minton
+      !!
+      !! Checks to see if a log file needs to be created if this is a new run, or appended if this is a restarted run
+      implicit none
+      ! Arguments
+      class(swiftest_parameters), intent(in) :: param  !! Current Swiftest run configuration parameters
+      character(len=*),           intent(in) :: file   !! Name of file to log
+      character(len=*),           intent(in) :: header !! Header to print at top of log file
+      ! Internals
+      character(STRMAX) :: errmsg
+      logical           :: fileExists
+
+      inquire(file=file, exist=fileExists)
+      if (.not.param%lrestart .or. .not.fileExists) then
+         open(unit=LUN, file=file, status="REPLACE", err = 667, iomsg = errmsg)
+         write(LUN, *, err = 667, iomsg = errmsg) trim(adjustl(header))
+      end if
+      close(LUN)
+
+      return
+
+      667 continue
+      write(*,*) "Error writing log file: " // trim(adjustl(errmsg))
+   end subroutine io_log_start
 
 
    module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
@@ -766,12 +810,22 @@ contains
          end associate
 
          select case(trim(adjustl(param%interaction_loops)))
-         case("ADAPTIVE", "FLAT", "TRIANGULAR")
+         case("ADAPTIVE")
+            param%ladaptive_interactions = .true.
+            param%lflatten_interactions = .true.
+         case("TRIANGULAR")
+            param%ladaptive_interactions = .false.
+            param%lflatten_interactions = .false.
+         case("FLAT")
+            param%ladaptive_interactions = .false.
+            param%lflatten_interactions = .true.
          case default
             write(*,*) "Unknown value for parameter INTERACTION_LOOPS: -> ",trim(adjustl(param%interaction_loops))
             write(*,*) "Must be one of the following: TRIANGULAR, FLAT, or ADAPTIVE"
             write(*,*) "Using default value of ADAPTIVE"
             param%interaction_loops = "ADAPTIVE"
+            param%ladaptive_interactions = .true.
+            param%lflatten_interactions = .true.
          end select
 
          iostat = 0
@@ -1092,7 +1146,6 @@ contains
       class(swiftest_body),       intent(inout) :: self   !! Swiftest particle object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
       integer(I4B)                  :: iu = LUN
       integer(I4B)                  :: i, nbody
       logical                       :: is_ascii, is_pl
@@ -1157,7 +1210,6 @@ contains
       class(swiftest_cb),         intent(inout) :: self
       class(swiftest_parameters), intent(inout) :: param
       ! Internals
-      integer(I4B), parameter :: LUN = 7              !! Unit number of input file
       integer(I4B)            :: iu = LUN
       character(len=STRMAX)   :: errmsg
       integer(I4B)            :: ierr, idold
@@ -1225,7 +1277,6 @@ contains
       integer(I4B)         :: ierr
       ! Internals
       logical , save    :: lfirst = .true.
-      integer(I4B), parameter :: lun = 30
       integer(I4B), save    :: iu = lun
 
       if (lfirst) then
@@ -1561,7 +1612,6 @@ contains
       class(swiftest_parameters),intent(inout) :: self             !! Current run configuration parameters
       character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
-      integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
       integer(I4B)            :: ierr = 0                !! Input error code
       character(STRMAX)       :: errmsg           !! Error message in UDIO procedure
 
@@ -1619,8 +1669,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B), parameter       :: LUN = 22
-      integer(I4B)                  :: i,  id, idx
+      integer(I4B)                  :: i, id, idx
       logical                       :: lmatch  
       character(STRMAX)             :: errmsg
       type(swiftest_particle_info), allocatable :: tmpinfo
@@ -1715,7 +1764,6 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param   !! Current run configuration parameters 
       ! Internals
-      integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: i
       logical, save :: lfirst = .true. 
       real(DP), dimension(:,:), allocatable :: vh
@@ -1800,7 +1848,6 @@ contains
       class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
       ! Internals
       logical , save          :: lfirst = .true.
-      integer(I4B), parameter :: LUN = 30
       integer(I4B)            :: k, ierr
       character(len=STRMAX)   :: errmsg
 

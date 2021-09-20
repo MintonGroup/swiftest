@@ -123,6 +123,9 @@ module swiftest_classes
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
       character(STRMAX)    :: energy_out     = ""                 !! Name of output energy and momentum report file
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
+      ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
+      logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
+      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -133,7 +136,6 @@ module swiftest_classes
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
-      logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interactions (turning this on improves the speed but uses more memory)
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
@@ -706,6 +708,19 @@ module swiftest_classes
          integer(I4B),     intent(out)   :: ierr           !! Error code
          character(len=:), allocatable   :: token          !! Returned token string
       end function io_get_token
+
+      module subroutine io_log_one_message(file, message)
+         implicit none
+         character(len=*), intent(in) :: file   !! Name of file to log
+         character(len=*), intent(in) :: message
+      end subroutine io_log_one_message
+   
+      module subroutine io_log_start(param, file, header)
+         implicit none
+         class(swiftest_parameters), intent(in) :: param  !! Current Swiftest run configuration parameters
+         character(len=*),           intent(in) :: file   !! Name of file to log
+         character(len=*),           intent(in) :: header !! Header to print at top of log file
+      end subroutine io_log_start
 
       module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none

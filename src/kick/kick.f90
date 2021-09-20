@@ -17,9 +17,7 @@ contains
       type(interaction_timer), save :: itimer
       logical, save :: lfirst
 
-      if (lfirst) then
-         call itimer%reset(param)
-      end if
+      if (lfirst) call itimer%reset(param)
       if (param%lflatten_interactions) then
          call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
       else

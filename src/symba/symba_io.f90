@@ -96,7 +96,7 @@ contains
          end if
 
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
-         call fraggle_io_log_start(param)
+         call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
@@ -155,7 +155,6 @@ contains
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: iadd, isub, j, nsub, nadd
       logical, save :: lfirst = .true. 
       real(DP), dimension(:,:), allocatable :: vh
