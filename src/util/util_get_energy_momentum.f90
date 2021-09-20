@@ -78,8 +78,12 @@ contains
             kespincb = 0.0_DP
             kespinpl(:) = 0.0_DP
          end if
-   
-         call util_get_energy_potential(npl, nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
+  
+         if (param%lflatten_interactions) then
+            call util_get_energy_potential_flat(npl, nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
+         else
+            call util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
+         end if
 
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
@@ -108,7 +112,7 @@ contains
    end subroutine util_get_energy_momentum_system
 
 
-   subroutine util_get_energy_potential(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, xb, pe)
+   subroutine util_get_energy_potential_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, xb, pe)
       !! author: David A. Minton
       !!
       !! Compute total system potential energy
@@ -156,6 +160,41 @@ contains
       pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lmask(1:npl))
 
       return
-   end subroutine util_get_energy_potential
+   end subroutine util_get_energy_potential_flat
+
+
+   subroutine util_get_energy_potential_triangular(npl, lmask, GMcb, Gmass, mass, xb, pe)
+      !! author: David A. Minton
+      !!
+      !! Compute total system potential energy
+      implicit none
+      ! Arguments
+      integer(I4B),                 intent(in)  :: npl
+      logical,      dimension(:),   intent(in)  :: lmask
+      real(DP),                     intent(in)  :: GMcb
+      real(DP),     dimension(:),   intent(in)  :: Gmass
+      real(DP),     dimension(:),   intent(in)  :: mass
+      real(DP),     dimension(:,:), intent(in)  :: xb
+      real(DP),                     intent(out) :: pe
+      ! Internals
+      integer(I4B) :: i, j
+      real(DP), dimension(npl) :: pecb
+
+      ! Do the central body potential energy component first
+      where(.not. lmask(1:npl))
+         pecb(1:npl) = 0.0_DP
+      end where
+
+      do concurrent(i = 1:npl, lmask(i))
+         pecb(i) = -GMcb * mass(i) / norm2(xb(:,i)) 
+      end do
+
+      pe = sum(pecb(1:npl), lmask(1:npl))
+      do concurrent(i = 1:npl, j = 1:npl, (j > i) .and. lmask(i) .and. lmask(j))
+         pe = pe - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+      end do
+
+      return
+   end subroutine util_get_energy_potential_triangular
 
 end submodule s_util_get_energy_momentum

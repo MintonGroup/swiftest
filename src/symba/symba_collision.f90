@@ -292,7 +292,6 @@ contains
          select type(tp => system%tp)
          class is (symba_tp)
             nenc = self%nenc
-            nenc = self%nenc
             allocate(lmask(nenc))
             lmask(:) = ((self%status(1:nenc) == ACTIVE) .and. (pl%levelg(self%index1(1:nenc)) >= irec))
             if (isplpl) then
