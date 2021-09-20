@@ -8,6 +8,7 @@ module walltime_classes
    public
 
    integer(I4B) :: INTERACTION_TIMER_CADENCE = 1000 !! Minimum number of steps to wait before timing an interaction loop in ADAPTIVE mode
+   character(len=*), parameter :: INTERACTION_TIMER_LOG_OUT  = "interaction_timer.log" !! Name of log file for recording results of interaction loop timing
 
    type :: walltimer
       integer(I8B) :: count_rate                 !! Rate at wich the clock ticks

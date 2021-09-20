@@ -9,7 +9,6 @@ module fraggle_classes
 
    integer(I4B),     parameter :: FRAGGLE_NMASS_DIST = 3             !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
    character(len=*), parameter :: FRAGGLE_LOG_OUT    = "fraggle.log" !! Name of log file for Fraggle diagnostic information
-   integer(I4B),     parameter :: FRAGGLE_LOG_UNIT   = 76            !! Unit number for Fraggle log file
 
    !********************************************************************************************************************************
    !                                    fraggle_colliders class definitions and method interfaces

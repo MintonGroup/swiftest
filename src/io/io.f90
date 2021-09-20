@@ -813,6 +813,7 @@ contains
          case("ADAPTIVE")
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
+            call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
          case("TRIANGULAR")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .false.
