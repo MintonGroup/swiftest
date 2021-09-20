@@ -335,9 +335,6 @@ contains
 
       return
 
-      667 continue
-      write(*,*) "Error reading system frame: " // trim(adjustl(errmsg))
-
    end function netcdf_read_frame_base
 
    module function netcdf_read_frame_system(self, iu, param) result(ierr)
@@ -540,9 +537,6 @@ contains
       call iu%close(param)
 
       return
-
-      667 continue
-      write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
    end subroutine netcdf_write_frame_system
 
    module subroutine netcdf_write_particle_info_base(self, iu)
