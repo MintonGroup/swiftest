@@ -463,7 +463,7 @@ module swiftest_classes
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
@@ -473,7 +473,7 @@ module swiftest_classes
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system objec
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
@@ -903,13 +903,13 @@ module swiftest_classes
       module subroutine kick_getacch_int_pl(self, param)
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       end subroutine kick_getacch_int_pl
 
       module subroutine kick_getacch_int_tp(self, param, GMpl, xhp, npl)
          implicit none
          class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
          real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
          real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
          integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies

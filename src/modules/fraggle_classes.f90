@@ -142,7 +142,7 @@ module fraggle_classes
          implicit none
          class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object 
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine fraggle_placeholder_accel
@@ -152,7 +152,7 @@ module fraggle_classes
          implicit none
          class(fraggle_fragments),     intent(inout) :: self   !! Fraggle fragment system object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system objec
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 

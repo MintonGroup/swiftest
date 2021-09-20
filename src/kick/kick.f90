@@ -12,8 +12,14 @@ contains
       implicit none
       ! Arguments
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
+      ! Internals
+      type(interaction_timer), save :: itimer
+      logical, save :: lfirst
 
+      if (lfirst) then
+         call itimer%reset(param)
+      end if
       if (param%lflatten_interactions) then
          call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
       else
@@ -34,7 +40,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
       real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
       integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies

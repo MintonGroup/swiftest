@@ -3,6 +3,7 @@ module walltime_classes
    !!
    !! Classes and methods used to compute elasped wall time
    use swiftest_globals
+   use swiftest_classes, only : swiftest_parameters
    implicit none
    public
 
@@ -31,36 +32,42 @@ module walltime_classes
    end type interaction_timer
 
    interface
-      module subroutine walltime_finish(self, nsubsteps, message)
+      module subroutine walltime_finish(self, nsubsteps, message, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(walltimer), intent(inout) :: self      !! Walltimer object
-         integer(I4B),     intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
-         character(len=*), intent(in)    :: message   !! Message to prepend to the wall time terminal output
+         class(walltimer),           intent(inout) :: self      !! Walltimer object
+         integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
+         character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
+         class(swiftest_parameters), intent(inout) :: param     !! Current run configuration parameters
       end subroutine walltime_finish
 
-      module subroutine walltime_reset(self)
+      module subroutine walltime_reset(self, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(walltimer), intent(inout) :: self  !! Walltimer object
+         class(walltimer),           intent(inout) :: self  !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine walltime_reset 
 
-      module subroutine walltime_start(self)
+      module subroutine walltime_start(self, param)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(walltimer), intent(inout) :: self  !! Walltimer object
+         class(walltimer),           intent(inout) :: self  !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine walltime_start
    end interface
 
    contains
 
-      module subroutine walltime_finish(self, nsubsteps, message)
+      module subroutine walltime_finish(self, nsubsteps, message, param)
          !! author: David A. Minton
          !!
          !! Ends the timer, setting step_finish to the current ticker value and printing the elapsed time information to the terminal
-         use swiftest_globals
          implicit none
          ! Arguments
-         class(walltimer), intent(inout) :: self      !! Walltimer object
-         integer(I4B),     intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
-         character(len=*), intent(in)    :: message   !! Message to prepend to the wall time terminal output
+         class(walltimer),           intent(inout) :: self      !! Walltimer object
+         integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
+         character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
+         class(swiftest_parameters), intent(inout) :: param     !! Current run configuration parameters
          ! Internals
          character(len=*), parameter     :: walltimefmt = '" Wall time (s): ", es12.5, "; Wall time/step in this interval (s):  ", es12.5'
          character(len=STRMAX)           :: fmt
@@ -85,36 +92,37 @@ module walltime_classes
          fmt = '("' //  adjustl(message) // '",' // walltimefmt // ')'
          write(*,trim(adjustl(fmt))) wall_main, wall_per_substep
 
-         call self%start()
+         call self%start(param)
 
          return
       end subroutine walltime_finish
 
-      module subroutine walltime_reset(self)
+
+      module subroutine walltime_reset(self, param)
          !! author: David A. Minton
          !!
          !! Resets the clock ticker, settting main_start to the current ticker value
-         use swiftest_globals
          implicit none
          ! Arguments
-         class(walltimer), intent(inout) :: self
+         class(walltimer),           intent(inout) :: self  !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
          
          call system_clock(self%count_start_main, self%count_rate, self%count_max)
          self%lmain_is_started = .true.
-         call self%start()
+         call self%start(param)
 
          return
       end subroutine walltime_reset 
 
 
-      module subroutine walltime_start(self)
+      module subroutine walltime_start(self, param)
          !! author: David A. Minton
          !!
          !! Starts the timer, setting step_start to the current ticker value
-         use swiftest_globals
          implicit none
          ! Arguments
-         class(walltimer), intent(inout) :: self
+         class(walltimer),           intent(inout) :: self  !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
 
          if (.not.self%lmain_is_started) then
             write(*,*) "Wall timer error: Cannot start the step time until reset is called at least once!"

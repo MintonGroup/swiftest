@@ -144,7 +144,7 @@ module rmvs_classes
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structuree 
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine rmvs_kick_getacch_tp
