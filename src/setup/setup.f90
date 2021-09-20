@@ -170,7 +170,7 @@ contains
          call self%pl%read_in(param)
          call self%tp%read_in(param)
       else if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) then
-         ierr = self%read_frame(self%nciu, param)
+         ierr = self%read_frame(param%nciu, param)
       end if
 
       call self%validate_ids(param)
