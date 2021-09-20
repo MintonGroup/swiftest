@@ -59,15 +59,17 @@ contains
             case(1)
                write(mstr,*) itimer%stage1_metric
             case(2)
+               write(mstr,*) itimer%stage2_metric
+            end select
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
+            if (itimer%stage == 2) then
                if (param%lflatten_interactions) then
                   write(lstyle,*) "FLAT      "
                else
                   write(lstyle,*) "TRIANGULAR"
                end if 
-               write(mstr,*) itimer%stage2_metric
                call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "The fastest loop method tested is " // trim(adjustl(lstyle)))
-            end select
-            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
+            end if
          end if
       end if
 

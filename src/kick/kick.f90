@@ -53,14 +53,22 @@ contains
             call itimer%adapt(param, self, self%nplpl)
             write(schar,'(I1)') itimer%stage
             write(nstr,*) self%nplpl
-            write(cstr,*) itimer%count_finish_step
+            write(cstr,*) itimer%count_finish_step - itimer%count_start_step
             select case(itimer%stage)
             case(1)
                write(mstr,*) itimer%stage1_metric
             case(2)
                write(mstr,*) itimer%stage2_metric
             end select
-            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(lstyle)) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
+            if (itimer%stage == 2) then
+               if (param%lflatten_interactions) then
+                  write(lstyle,*) "FLAT      "
+               else
+                  write(lstyle,*) "TRIANGULAR"
+               end if 
+               call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "The fastest loop method tested is " // trim(adjustl(lstyle)))
+            end if
          end if
       end if
 
