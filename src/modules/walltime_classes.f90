@@ -17,7 +17,16 @@ module walltime_classes
       procedure :: reset  => walltime_reset  !! Resets the clock ticker, settting main_start to the current ticker value
       procedure :: start  => walltime_start  !! Starts the timer, setting step_start to the current ticker value
       procedure :: finish => walltime_finish !! Ends the timer, setting step_finish to the current ticker value and printing the elapsed time information to the terminal
-   end type
+   end type walltimer
+
+   type, extends(walltimer) :: interaction_timer
+      integer(I8B)           :: max_interactions = huge(1_I8B)
+      integer(I4B)           :: step_counter
+      integer(I8B)           :: count_previous
+      character(len=NAMELEN) :: current_style
+   contains
+
+   end type interaction_timer
 
    interface
       module subroutine walltime_finish(self, nsubsteps, message)

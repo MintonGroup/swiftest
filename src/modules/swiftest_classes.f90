@@ -75,7 +75,6 @@ module swiftest_classes
       integer(I4B) :: discard_vhy_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard y variable
       integer(I4B) :: discard_vhz_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard z variable
       integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
-   
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
@@ -122,7 +121,8 @@ module swiftest_classes
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
-      character(STRMAX)    :: energy_out    = ""                  !! Name of output energy and momentum report file
+      character(STRMAX)    :: energy_out     = ""                 !! Name of output energy and momentum report file
+      character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -728,7 +728,67 @@ module swiftest_classes
          integer(I4B),               intent(out)   :: iostat    !! IO status code
          character(len=*),           intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine io_param_writer
+   end interface
 
+   interface io_param_writer_one
+      module subroutine io_param_writer_one_char(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         character(len=*), intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_char
+
+      module subroutine io_param_writer_one_DP(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         real(DP),         intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_DP
+
+      module subroutine io_param_writer_one_DParr(param_name, param_value, unit)
+         implicit none
+         character(len=*),       intent(in)    :: param_name  !! Name of parameter to print
+         real(DP), dimension(:), intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),           intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_DParr
+
+      module subroutine io_param_writer_one_I4B(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         integer(I4B),     intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_I4B
+
+      module subroutine io_param_writer_one_I4Barr(param_name, param_value, unit)
+         implicit none
+         character(len=*),           intent(in)    :: param_name  !! Name of parameter to print
+         integer(I4B), dimension(:), intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),               intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_I4Barr
+
+      module subroutine io_param_writer_one_I8B(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         integer(I8B),     intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_I8B
+
+      module subroutine io_param_writer_one_logical(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         logical,          intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_logical
+
+      module subroutine io_param_writer_one_QP(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         real(QP),         intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_QP
+   end interface io_param_writer_one
+
+   interface
       module subroutine io_read_in_body(self, param) 
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
