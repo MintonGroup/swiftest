@@ -934,17 +934,17 @@ module swiftest_classes
 
       module function netcdf_read_frame_system(self, iu, param) result(ierr)
          implicit none
-         class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
          class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
-         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                                 :: ierr  !! Error code: returns 0 if the read is successful
       end function netcdf_read_frame_system
 
       module subroutine netcdf_read_hdr_system(self, iu, param) 
          implicit none
-         class(swiftest_nbody_system), intent(inout)    :: self  !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
          class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_read_hdr_system
 
       module subroutine netcdf_write_frame_base(self, iu, param)
@@ -956,7 +956,7 @@ module swiftest_classes
 
       module subroutine netcdf_write_frame_system(self, iu, param)
          implicit none
-         class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
          class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_system

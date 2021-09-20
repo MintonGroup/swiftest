@@ -244,7 +244,7 @@ contains
       !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
       implicit none
       ! Arguments
-      class(swiftest_base),       intent(inout)    :: self  !! Swiftest base object
+      class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
       class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
@@ -347,23 +347,36 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-      class(netcdf_parameters),   intent(inout)   :: iu     !! Parameters used to identify a particular NetCDF dataset
+      class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      ! Result
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
 
       call iu%open(param)
 
       call self%read_hdr(iu, param)
-      call self%cb%read_frame(iu, param)
-      call self%pl%read_frame(iu, param)
-      call self%tp%read_frame(iu, param)
+      ierr = self%cb%read_frame(iu, param)
+      if (ierr /= 0) then
+         write(*, *) "Cannot read central body frame."
+         goto 667
+      end if
+      ierr = self%pl%read_frame(iu, param)
+      if (ierr /= 0) then
+         write(*, *) "Cannot read massive body frame."
+         goto 667
+      end if
+      ierr = self%tp%read_frame(iu, param)
+      if (ierr /= 0) then
+         write(*, *) "Cannot read test particle frame."
+         goto 667
+      end if
+
       call iu%close(param)
 
       return
 
       667 continue
-      write(*,*) "Error reading system frame: " // trim(adjustl(errmsg))
+      write(*,*) "Error reading system frame in netcdf_read_frame_system"
+
    end function netcdf_read_frame_system
 
    module subroutine netcdf_read_hdr_system(self, iu, param) 
@@ -374,15 +387,15 @@ contains
       !! previously were handled as separate output files.
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout)    :: self  !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
       class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B) :: tslot, old_mode
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
-      call check( nf90_open(param%outfile, nf90_read, iu%ncid) )
+      call check( nf90_open(param%outfile, nf90_nowrite, iu%ncid) )
       call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
 
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]) )
@@ -516,10 +529,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
       class(netcdf_parameters),   intent(inout)   :: iu    !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      ! Result
-      integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
-      ! Internals
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
 
       call iu%open(param)
 
