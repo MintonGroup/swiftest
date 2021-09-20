@@ -272,7 +272,6 @@ module walltime_classes
          integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop)
 
          self%is_on = .true.
-         self%step_counter = 0
          select case(self%stage)
          case(1)
             self%stage1_ninteractions = ninteractions      

@@ -15,7 +15,7 @@ contains
       class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       ! Internals
       type(interaction_timer), save :: itimer
-      logical, save :: lfirst
+      logical, save :: lfirst = .true.
       character(len=STRMAX) :: tstr, nstr, cstr, mstr, lstyle
       character(len=1) :: schar
 
