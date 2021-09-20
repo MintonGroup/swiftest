@@ -17,7 +17,7 @@ contains
       type(interaction_timer), save :: itimer
       logical, save :: lfirst
       character(len=STRMAX) :: tstr, nstr, cstr, mstr
-      character(len=10) :: lstyle
+      character(len=11) :: lstyle
       character(len=1) :: schar
 
       if (param%ladaptive_interactions) then
@@ -59,16 +59,15 @@ contains
             case(1)
                write(mstr,*) itimer%stage1_metric
             case(2)
+               if (param%lflatten_interactions) then
+                  write(lstyle,*) "FLAT      "
+               else
+                  write(lstyle,*) "TRIANGULAR"
+               end if 
                write(mstr,*) itimer%stage2_metric
+               call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "The fastest loop method tested is " // trim(adjustl(lstyle)))
             end select
             call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
-            if (param%lflatten_interactions) then
-               write(lstyle,*) "FLAT      "
-            else
-               write(lstyle,*) "TRIANGULAR"
-            end if 
-            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "The fastest loop method tested is " // trim(adjustl(lstyle)))
-
          end if
       end if
 

@@ -226,7 +226,7 @@ module walltime_classes
             self%stage = self%stage + 1
             ltimeit = (self%stage == 2)
          else
-            self%step_counter = max(self%step_counter + 1, INTERACTION_TIMER_CADENCE)
+            self%step_counter = min(self%step_counter + 1, INTERACTION_TIMER_CADENCE)
             ltimeit = .false.
             if (self%step_counter == INTERACTION_TIMER_CADENCE) then
                ltimeit = (ninteractions /= self%last_interactions)
