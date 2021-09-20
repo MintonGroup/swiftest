@@ -133,7 +133,7 @@ module swiftest_classes
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
-      logical :: lflatten_interactions = .true. !! Use the flattened upper triangular matrix for pl-pl interactions (turning this on improves the speed but uses more memory)
+      logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interactions (turning this on improves the speed but uses more memory)
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
@@ -324,7 +324,7 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure :: discard      => discard_pl             !! Placeholder method for discarding massive bodies 
-      procedure :: index        => util_index_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure :: flatten      => util_flatten_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: accel_int    => kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl    => obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup        => setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
@@ -561,34 +561,34 @@ module swiftest_classes
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
-      module pure subroutine util_index_eucl_ij_to_k(n, i, j, k)
-         !$omp declare simd(util_index_eucl_ij_to_k)
+      module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
+         !$omp declare simd(util_flatten_eucl_ij_to_k)
          implicit none
          integer(I4B), intent(in)  :: n !! Number of bodies
          integer(I4B), intent(in)  :: i !! Index of the ith body
          integer(I4B), intent(in)  :: j !! Index of the jth body
          integer(I8B), intent(out) :: k !! Index of the flattened matrix
-      end subroutine util_index_eucl_ij_to_k
+      end subroutine util_flatten_eucl_ij_to_k
 
-      module pure subroutine util_index_eucl_k_to_ij(n, k, i, j)
+      module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
          implicit none
          integer(I4B), intent(in)  :: n !! Number of bodies
          integer(I8B), intent(in)  :: k !! Index of the flattened matrix
          integer(I4B), intent(out) :: i !! Index of the ith body
          integer(I4B), intent(out) :: j !! Index of the jth body
-      end subroutine util_index_eucl_k_to_ij
+      end subroutine util_flatten_eucl_k_to_ij
 
-      module subroutine util_index_eucl_plpl(self, param)
+      module subroutine util_flatten_eucl_plpl(self, param)
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
-      module subroutine util_index_eucl_pltp(self, pl, param)
+      module subroutine util_flatten_eucl_pltp(self, pl, param)
          implicit none
          class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
          class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)

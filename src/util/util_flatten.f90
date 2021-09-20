@@ -2,8 +2,8 @@ submodule (swiftest_classes) s_util_index
    use swiftest
 contains
 
-   module pure subroutine util_index_eucl_ij_to_k(n, i, j, k)
-      !$omp declare simd(util_index_eucl_ij_to_k)
+   module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
+      !$omp declare simd(util_flatten_eucl_ij_to_k)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix for pl-pl interactions.
@@ -27,10 +27,10 @@ contains
       k = (i8 - 1_I8B) * n8 - i8 * (i8 - 1_I8B) / 2_I8B + (j8 - i8)
 
       return
-   end subroutine util_index_eucl_ij_to_k
+   end subroutine util_flatten_eucl_ij_to_k
 
 
-   module pure subroutine util_index_eucl_k_to_ij(n, k, i, j)
+   module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns k index into i,j indices for use in the Euclidean distance matrix for pl-pl interactions.
@@ -59,10 +59,10 @@ contains
       j = int(j8, kind=I4B)
 
       return
-   end subroutine util_index_eucl_k_to_ij
+   end subroutine util_flatten_eucl_k_to_ij
 
 
-   module subroutine util_index_eucl_plpl(self, param)
+   module subroutine util_flatten_eucl_plpl(self, param)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix for pl-pl interactions for a Swiftest massive body object
@@ -74,9 +74,9 @@ contains
       implicit none
       ! Arguments
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i, j, npl
+      integer(I4B) :: i, j, npl, err
       integer(I8B) :: k
 
       npl = int(self%nbody, kind=I8B)
@@ -84,20 +84,24 @@ contains
          nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl
          if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
-            allocate(self%k_plpl(2, nplpl))
-            do concurrent (i=1:npl, j=1:npl, j>i)
-               call util_index_eucl_ij_to_k(npl, i, j, k)
-               self%k_plpl(1, k) = i
-               self%k_plpl(2, k) = j
-            end do
+            allocate(self%k_plpl(2, nplpl), stat=err)
+            if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
+               param%lflatten_interactions = .false.
+            else
+               do concurrent (i=1:npl, j=1:npl, j>i)
+                  call util_flatten_eucl_ij_to_k(npl, i, j, k)
+                  self%k_plpl(1, k) = i
+                  self%k_plpl(2, k) = j
+               end do
+            end if
          end if
       end associate
 
       return
-   end subroutine util_index_eucl_plpl
+   end subroutine util_flatten_eucl_plpl
 
 
-   module subroutine util_index_eucl_pltp(self, pl, param)
+   module subroutine util_flatten_eucl_pltp(self, pl, param)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix for pl-tp interactions
@@ -110,7 +114,7 @@ contains
       ! Arguments
       class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
       class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I8B) :: i, j, counter, npl, ntp
 
@@ -131,6 +135,6 @@ contains
       end associate
 
       return
-   end subroutine util_index_eucl_pltp
+   end subroutine util_flatten_eucl_pltp
 
 end submodule s_util_index

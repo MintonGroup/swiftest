@@ -269,7 +269,7 @@ contains
    end subroutine symba_util_fill_tp
 
 
-   module subroutine symba_util_index_eucl_plpl(self, param)
+   module subroutine symba_util_flatten_eucl_plpl(self, param)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix. This also sets the lmtiny flag and computes the
@@ -283,7 +283,7 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I8B) :: k, nplpl, nplplm
       integer(I4B) :: i, j, npl, nplm, ip, jp
@@ -299,7 +299,7 @@ contains
             allocate(self%k_plpl(2, pl%nplpl))
             do concurrent (i = 1:npl)
                do concurrent (j = i+1:npl)
-                  call util_index_eucl_ij_to_k(npl, i, j, k)
+                  call util_flatten_eucl_ij_to_k(npl, i, j, k)
                   self%k_plpl(1, k) = i
                   self%k_plpl(2, k) = j
                end do
@@ -308,7 +308,7 @@ contains
       end associate
 
       return
-   end subroutine symba_util_index_eucl_plpl
+   end subroutine symba_util_flatten_eucl_plpl
 
 
    module subroutine symba_util_peri_pl(self, system, param)
@@ -478,7 +478,7 @@ contains
 
          ! Reindex the new list of bodies 
          call pl%sort("mass", ascending=.false.)
-         call pl%index(param)
+         call pl%flatten(param)
 
          ! Reset the kinship trackers
          call pl%reset_kinship([(i, i=1, npl)])

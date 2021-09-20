@@ -104,7 +104,7 @@ module fraggle_classes
          class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object 
          class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle colliders object containing the two-body equivalent values of the colliding bodies 
          class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param     !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
 
@@ -249,7 +249,7 @@ module fraggle_classes
          class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
          class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle collider system object
          class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
          logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
       end subroutine fraggle_util_get_energy_momentum
 

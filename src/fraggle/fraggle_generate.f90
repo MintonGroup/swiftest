@@ -18,7 +18,7 @@ contains
       class(fraggle_fragments),     intent(inout) :: self      !! Fraggle system object the outputs will be the fragmentation 
       class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle colliders object containing the two-body equivalent values of the colliding bodies 
       class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param     !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       ! Internals
       integer(I4B)                         :: i
@@ -140,7 +140,7 @@ contains
          call frag%set_original_scale(colliders)
 
          ! Restore the big array
-         if (lk_plpl) call pl%index(param)
+         if (lk_plpl) call pl%flatten(param)
       end associate
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 

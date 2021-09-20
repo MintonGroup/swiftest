@@ -6,6 +6,8 @@ module walltime_classes
    implicit none
    public
 
+   integer(I4B) :: INTERACTION_TIMER_CADENCE = 1000 !! Minimum number of steps to wait before timing an interaction loop in ADAPTIVE mode
+
    type :: walltimer
       integer(I8B) :: count_rate                 !! Rate at wich the clock ticks
       integer(I8B) :: count_max                  !! Maximum value of the clock ticker
