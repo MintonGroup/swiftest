@@ -27,7 +27,6 @@ module walltime_classes
       integer(I8B)           :: max_interactions = huge(1_I8B)
       integer(I4B)           :: step_counter
       integer(I8B)           :: count_previous
-      character(len=NAMELEN) :: current_style
       logical                :: lflatten_interaction_old
    contains
       procedure :: reset  => walltime_interaction_reset  !! Resets the interaction loop timer, and saves the current value of the array flatten parameter
@@ -84,6 +83,7 @@ module walltime_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
 
          self%lflatten_interaction_old = param%lflatten_interactions
+         self%step_counter = 0
          call walltime_reset(self, param)
 
          return
