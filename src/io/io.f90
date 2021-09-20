@@ -465,6 +465,7 @@ contains
       return
    end function io_get_token
 
+
    module subroutine io_log_one_message(file, message)
       !! author: David A. Minton
       !!
@@ -545,7 +546,7 @@ contains
 
       ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
       associate(param => self) 
-         rewind(unit)
+         open(unit = unit, file = param%param_file_name, status = 'old', err = 667, iomsg = iomsg)
          do
             read(unit = unit, fmt = linefmt, end = 1, err = 667, iomsg = iomsg) line
             line_trim = trim(adjustl(line))
@@ -705,6 +706,7 @@ contains
             end if
          end do
          1 continue
+         close(unit)
          iostat = 0
 
          ! Do basic sanity checks on the input values
@@ -814,6 +816,7 @@ contains
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
             call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .false.
@@ -836,8 +839,9 @@ contains
 
       end associate
 
-      667 continue
       return 
+      667 continue
+      write(*,*) "Error reading param file: ", trim(adjustl(iomsg))
    end subroutine io_param_reader
 
 
@@ -1613,19 +1617,18 @@ contains
       class(swiftest_parameters),intent(inout) :: self             !! Current run configuration parameters
       character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
-      integer(I4B)            :: ierr = 0                !! Input error code
-      character(STRMAX)       :: errmsg           !! Error message in UDIO procedure
+      integer(I4B)      :: ierr = 0 !! Input error code
+      character(STRMAX) :: errmsg   !! Error message in UDIO procedure
 
       ! Read in name of parameter file
       write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
       write(*, *) ' '
-      100 format(A)
-      open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr, err = 667, iomsg = errmsg)
+      self%param_file_name = param_file_name
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
-      !read(LUN,'(DT)', iostat= ierr, iomsg = errmsg) param
+      !read(LUN,'(DT)', iostat= ierr, iomsg = errmsg) self
       call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = errmsg)
       if (ierr == 0) return
 

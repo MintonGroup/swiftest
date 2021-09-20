@@ -3,7 +3,7 @@ module walltime_classes
    !!
    !! Classes and methods used to compute elasped wall time
    use swiftest_globals
-   use swiftest_classes, only : swiftest_parameters
+   use swiftest_classes, only : swiftest_parameters, swiftest_pl
    implicit none
    public
 
@@ -24,28 +24,23 @@ module walltime_classes
    end type walltimer
 
    type, extends(walltimer) :: interaction_timer
-      integer(I8B)           :: max_interactions = huge(1_I8B)
-      integer(I4B)           :: step_counter
-      integer(I8B)           :: count_previous
-      logical                :: lflatten_interaction_old
+      integer(I8B) :: max_interactions = huge(1_I8B) !! Stores the number of pl-pl interactions that failed when attempting to flatten (e.g. out of memory). Adapting won't occur if ninteractions > max_interactions
+      integer(I8B) :: last_interactions = 0          !! Number of interactions that were computed last time. The timer is only run if there has been a change to the number of interactions
+      integer(I4B) :: step_counter = 0               !! Number of steps that have elapsed since the last timed loop
+      logical      :: is_on = .false.                !! The loop timer is currently active
+      integer(I4B) :: stage = 1                      !! The stage of the loop timing (1 or 2)
+      logical      :: stage1_is_flattened            !! Logical flag indicating whether stage1 was done with a flat loop (.true.) or triangular loop (.false.)
+      integer(I8B) :: stage1_ninteractions           !! Number of interactions computed during stage 1
+      real(DP)     :: stage1_metric                  !! Metric used to judge the performance of a timed loop (e.g. (count_finish_step - count_start_step) / ninteractions)
+      real(DP)     :: stage2_metric                  !! Metric used to judge the performance of a timed loop (e.g. (count_finish_step - count_start_step) / ninteractions)
    contains
-      procedure :: reset  => walltime_interaction_reset  !! Resets the interaction loop timer, and saves the current value of the array flatten parameter
+      procedure :: adapt => walltime_interaction_adapt !! Runs the interaction loop adaptation algorithm on an interaction loop
+      procedure :: check => walltime_interaction_check !! Checks whether or not the loop should be timed and starts the timer if the conditions for starting are met
+      procedure :: flip  => walltime_interaction_flip_loop_style  !! Flips the interaction loop style from FLAT to TRIANGULAR or vice vers
+      procedure :: time_this_loop => walltime_interaction_time_this_loop !! Starts the interaction loop timer
    end type interaction_timer
 
    interface
-      module subroutine walltime_interaction_reset(self, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(interaction_timer),   intent(inout) :: self  !! Walltimer object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine walltime_interaction_reset 
-
-      module subroutine walltime_interaction_io_log_start(param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(swiftest_parameters), intent(in) :: param
-      end subroutine walltime_interaction_io_log_start
-
       module subroutine walltime_finish(self, nsubsteps, message, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -70,25 +65,45 @@ module walltime_classes
       end subroutine walltime_start
    end interface
 
-   contains
-
-      module subroutine walltime_interaction_reset(self, param)
-         !! author: David A. Minton
-         !!
-         !! Resets the interaction loop timer, and saves the current value of the array flatten parameter
+   interface
+      module subroutine walltime_interaction_adapt(self, param, pl, ninteractions)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         ! Arguments
-         class(interaction_timer),   intent(inout) :: self  !! Walltimer object
+         class(interaction_timer),   intent(inout) :: self          !! Interaction loop timer object
+         class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
+         class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
+         integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
+      end subroutine walltime_interaction_adapt
+
+      module function walltime_interaction_check(self, param, ninteractions) result(ltimeit)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(interaction_timer),   intent(inout) :: self    !! Interaction loop timer object
+         class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters
+         integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
+         logical                                   :: ltimeit !! Logical flag indicating whether this loop should be timed or not
+      end function walltime_interaction_check
+
+      module subroutine walltime_interaction_flip_loop_style(self, param, pl)
+         use swiftest_classes, only : swiftest_parameters, swiftest_pl
+         implicit none
+         class(interaction_timer),   intent(inout) :: self  !! Interaction loop timer object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+         class(swiftest_pl),         intent(inout) :: pl    !! Swiftest massive body object
+      end subroutine walltime_interaction_flip_loop_style
 
-         self%lflatten_interaction_old = param%lflatten_interactions
-         self%step_counter = 0
-         call walltime_reset(self, param)
+      module subroutine walltime_interaction_time_this_loop(self, param, pl, ninteractions)
+         use swiftest_classes, only : swiftest_parameters, swiftest_pl
+         implicit none
+         class(interaction_timer),   intent(inout) :: self          !! Interaction loop timer object
+         class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
+         class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
+         integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop)
+      end subroutine walltime_interaction_time_this_loop
 
-         return
-      end subroutine walltime_interaction_reset 
+   end interface
 
+   contains
 
       module subroutine walltime_finish(self, nsubsteps, message, param)
          !! author: David A. Minton
@@ -165,6 +180,113 @@ module walltime_classes
 
          return 
       end subroutine walltime_start
+
+
+      module subroutine walltime_interaction_adapt(self, param, pl, ninteractions)
+         !! author: David A. Minton
+         !!
+         !! Determines which of the two loop styles is fastest and keeps that one
+         implicit none
+         class(interaction_timer),   intent(inout) :: self          !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
+         class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
+         integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
+
+         ! Record the elapsed time 
+         call system_clock(self%count_finish_step)
+
+         select case(self%stage)
+         case(1)
+            self%stage1_metric = (self%count_finish_step - self%count_start_step) / real(ninteractions, kind=DP)
+         case(2)
+            self%stage2_metric = (self%count_finish_step - self%count_start_step) / real(ninteractions, kind=DP)
+            self%is_on = .false.
+            self%step_counter = 0
+            if (self%stage1_metric < self%stage2_metric) call self%flip(param, pl)  ! Go back to the original style, otherwise keep the stage2 style
+         end select
+
+         return
+      end subroutine walltime_interaction_adapt
+
+
+      module function walltime_interaction_check(self, param, ninteractions) result(ltimeit)
+         !! author: David A. Minton
+         !!
+         !! Checks whether or not the loop should be timed and starts the timer if the conditions for starting are met
+         implicit none
+         ! Arguments
+         class(interaction_timer),   intent(inout) :: self          !! Walltimer object
+         class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
+         integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
+         logical                                   :: ltimeit !! Logical flag indicating whether this loop should be timed or not
+         ! Internals
+         character(len=STRMAX) :: tstring
+
+         if (self%is_on) then ! Entering the second stage of the loop timing. Therefore we will swap the interaction style and time this loop
+            self%stage = self%stage + 1
+            ltimeit = (self%stage == 2)
+         else
+            self%step_counter = max(self%step_counter + 1, INTERACTION_TIMER_CADENCE)
+            ltimeit = .false.
+            if (self%step_counter == INTERACTION_TIMER_CADENCE) then
+               ltimeit = (ninteractions /= self%last_interactions)
+               if (ltimeit) self%stage = 1
+            end if
+         end if
+         self%is_on = ltimeit
+
+         return
+      end function walltime_interaction_check
+
+
+      module subroutine walltime_interaction_flip_loop_style(self, param, pl)
+         !! author: David A. Minton
+         !!
+         !! Flips the interaction loop style from FLAT to TRIANGULAR or vice versa
+         implicit none
+         ! Arguments
+         class(interaction_timer),   intent(inout) :: self  !! Interaction loop timer object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+         class(swiftest_pl),         intent(inout) :: pl    !! Swiftest massive body object 
+
+         param%lflatten_interactions = .not. param%lflatten_interactions
+         if (param%lflatten_interactions) then
+            call pl%flatten(param)
+         else
+            if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
+         end if
+
+         return
+      end subroutine walltime_interaction_flip_loop_style
+
+
+      module subroutine walltime_interaction_time_this_loop(self, param, pl, ninteractions)
+         !! author: David A. Minton
+         !!
+         !! Resets the interaction loop timer, and saves the current value of the array flatten parameter
+         implicit none
+         ! Arguments
+         class(interaction_timer),   intent(inout) :: self          !! Interaction loop timer object
+         class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
+         class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
+         integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop)
+
+         self%is_on = .true.
+         self%step_counter = 0
+         select case(self%stage)
+         case(1)
+            self%stage1_ninteractions = ninteractions      
+            self%stage1_is_flattened = param%lflatten_interactions
+         case(2)
+            param%lflatten_interactions = self%stage1_is_flattened
+            call self%flip(param, pl) 
+         case default
+            self%stage = 1
+         end select
+         call self%reset(param)
+
+         return
+      end subroutine walltime_interaction_time_this_loop
 
 
 end module walltime_classes

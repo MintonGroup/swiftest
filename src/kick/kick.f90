@@ -16,12 +16,52 @@ contains
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst
+      character(len=STRMAX) :: tstr, nstr, cstr, mstr, lstyle
+      character(len=1) :: schar
 
-      if (lfirst) call itimer%reset(param)
+      if (param%ladaptive_interactions) then
+         if (lfirst) then
+            call itimer%time_this_loop(param, self, self%nplpl)
+            lfirst = .false.
+         else
+            if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self, self%nplpl)
+         end if
+      end if
+
+      if (itimer%is_on) then
+         write(tstr,*) param%t
+         write(schar,'(I1)') itimer%stage
+         if (itimer%stage == 1) then
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "kick_getacch_int_pl: loop timer turned on at t = " // trim(adjustl(tstr)))
+         end if
+         call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "kick_getacch_int_pl: stage " // schar )
+      end if
+
       if (param%lflatten_interactions) then
          call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
       else
          call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, self%radius, self%ah)
+      end if
+
+      if (param%ladaptive_interactions) then 
+         if (itimer%is_on) then
+            if (param%lflatten_interactions) then
+               write(lstyle,*) "FLAT"
+            else
+               write(lstyle,*) "TRIANGULAR"
+            end if
+            call itimer%adapt(param, self, self%nplpl)
+            write(schar,'(I1)') itimer%stage
+            write(nstr,*) self%nplpl
+            write(cstr,*) itimer%count_finish_step
+            select case(itimer%stage)
+            case(1)
+               write(mstr,*) itimer%stage1_metric
+            case(2)
+               write(mstr,*) itimer%stage2_metric
+            end select
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(lstyle)) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
+         end if
       end if
 
       return

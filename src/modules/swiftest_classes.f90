@@ -89,6 +89,7 @@ module swiftest_classes
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
+      character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
       integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
@@ -1165,7 +1166,7 @@ module swiftest_classes
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine user_kick_getacch_body

@@ -27,11 +27,10 @@ contains
       character(len=*),parameter     :: linefmt = '(A)'
 
       associate(param => self)
-
+         open(unit = unit, file = param%param_file_name, status = 'old', err = 667, iomsg = iomsg)
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
          allocate(param%seed(nseeds))
-         rewind(unit)
          do
             read(unit = unit, fmt = linefmt, iostat = iostat, end = 1, err = 667, iomsg = iomsg) line
             line_trim = trim(adjustl(line))
@@ -79,6 +78,7 @@ contains
             end if
          end do
          1 continue
+         close(unit)
 
          if (self%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", self%GMTINY
@@ -104,8 +104,9 @@ contains
 
       iostat = 0
 
-      667 continue
       return
+      667 continue
+      write(*,*) "Error reading SyMBA parameters in param file: ", trim(adjustl(iomsg))
    end subroutine symba_io_param_reader
 
 
