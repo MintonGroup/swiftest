@@ -130,7 +130,7 @@ module helio_classes
       module pure subroutine helio_gr_p4_tp(self, param, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(helio_tp),              intent(inout) :: self  !! Swiftest particle object
+         class(helio_tp),            intent(inout) :: self  !! Swiftest particle object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
          real(DP),                   intent(in)    :: dt    !! Step size
       end subroutine helio_gr_p4_tp
@@ -140,7 +140,7 @@ module helio_classes
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine helio_kick_getacch_pl
@@ -150,7 +150,7 @@ module helio_classes
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Helio test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine helio_kick_getacch_tp
@@ -160,7 +160,7 @@ module helio_classes
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
@@ -171,7 +171,7 @@ module helio_classes
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Helio test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 

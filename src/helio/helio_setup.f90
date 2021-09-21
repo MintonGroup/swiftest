@@ -16,7 +16,7 @@ contains
       call self%pl%h2b(self%cb)
       call self%tp%h2b(self%cb)
       call self%pl%sort("mass", ascending=.false.)
-      call self%pl%index(param)
+      call self%pl%flatten(param)
 
       return
    end subroutine helio_setup_initialize_system
