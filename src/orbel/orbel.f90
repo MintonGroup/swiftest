@@ -252,40 +252,24 @@ contains
       biga =  (-0.5_DP * b + sq)**(1.0_DP / 3.0_DP)
       bigb = -(+0.5_DP * b + sq)**(1.0_DP / 3.0_DP) 
       x = biga + bigb
-      ! write(6,*) 'cubic = ',x**3 +a*x +b
       orbel_flon = x
       ! If capn is VSMALL (or zero) no need to go further than cubic even for
       ! e =1.
-      if( capn < VSMALL) go to 100
-
-      do i = 1,IMAX
-         x2 = x * x
-         f = a0 + x * (a1 + x2 * (a3 + x2 * (a5 + x2 * (a7 + x2 * (a9 + x2 * (a11 + x2))))))
-         fp = b1 + x2 * (b3 + x2 * (b5 + x2 * (b7 + x2 * (b9 + x2 * (b11 + 13 * x2)))))
-         dx = -f / fp
-         !   write(6,*) 'i,dx,x,f : '
-         !   write(6,432) i,dx,x,f
-         432   format(1x,i3,3(2x,1p1e22.15))
-         orbel_flon = x + dx
-         !   if we have converged here there's no point in going on
-            if(abs(dx) <= VSMALL) go to 100
+      if( capn >= VSMALL) then
+         do i = 1,IMAX
+            x2 = x**2
+            f = a0 + x * (a1 + x2 * (a3 + x2 * (a5 + x2 * (a7 + x2 * (a9 + x2 * (a11 + x2))))))
+            fp = b1 + x2 * (b3 + x2 * (b5 + x2 * (b7 + x2 * (b9 + x2 * (b11 + 13 * x2)))))
+            dx = -f / fp
+            orbel_flon = x + dx
+            !   if we have converged here there's no point in going on
+            if(abs(dx) <= VSMALL) exit
             x = orbel_flon
-      end do
-
-      ! abnormal return here - we've gone thru the loop
-      ! imax times without convergence
-      if(iflag == 1) then
-         orbel_flon = -orbel_flon
-         capn = -capn
+         end do
       end if
-      !write(*,*) 'flon : returning without complete convergence'
-      diff = e * sinh(orbel_flon) - orbel_flon - capn
-      !write(*,*) 'n, f, ecc*sinh(f) - f - n : '
-      !write(*,*) capn,orbel_flon,diff
-      return
 
       !  normal return here, but check if capn was originally negative
-      100 if(iflag == 1) then
+      if(iflag == 1) then
          orbel_flon = -orbel_flon
          capn = -capn
       end if
