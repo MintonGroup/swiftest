@@ -558,6 +558,7 @@ module swiftest_classes
       end subroutine drift_body
 
       module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
+         !$omp declare simd(drift_one)
          implicit none
          real(DP),     intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
          real(DP),     intent(inout)    :: px, py, pz, vx, vy, vz  !! Position and velocity of body to drift
@@ -1059,44 +1060,34 @@ module swiftest_classes
       end subroutine orbel_el2xv_vec
 
       module pure subroutine orbel_scget(angle, sx, cx)
+         !$omp declare simd(orbel_scget)
          implicit none
          real(DP), intent(in)  :: angle
          real(DP), intent(out) :: sx, cx
       end subroutine orbel_scget
 
-      module pure subroutine orbel_xv2aeq(mu, x, v, a, e, q)
+      module pure subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+         !$omp declare simd(orbel_xv2aeq)
          implicit none
-         real(DP),               intent(in)  :: mu !! Gravitational constant
-         real(DP), dimension(:), intent(in)  :: x  !! Position vector
-         real(DP), dimension(:), intent(in)  :: v  !! Velocity vector
-         real(DP),               intent(out) :: a  !! semimajor axis
-         real(DP),               intent(out) :: e  !! eccentricity
-         real(DP),               intent(out) :: q  !! periapsis
+         real(DP), intent(in)  :: mu !! Gravitational constant
+         real(DP), intent(in)  :: px,py,pz  !! Position vector
+         real(DP), intent(in)  :: vx,vy,vz  !! Velocity vector
+         real(DP), intent(out) :: a  !! semimajor axis
+         real(DP), intent(out) :: e  !! eccentricity
+         real(DP), intent(out) :: q  !! periapsis
       end subroutine orbel_xv2aeq
 
-      module pure subroutine orbel_xv2aqt(mu, x, v, a, q, capm, tperi)
+      module pure subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+         !$omp declare simd(orbel_xv2aqt)
          implicit none
-         real(DP),               intent(in)  :: mu    !! Gravitational constant
-         real(DP), dimension(:), intent(in)  :: x     !! Position vector
-         real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
-         real(DP),               intent(out) :: a     !! semimajor axis
-         real(DP),               intent(out) :: q     !! periapsis
-         real(DP),               intent(out) :: capm  !! mean anomaly
-         real(DP),               intent(out) :: tperi !! time of pericenter passage
+         real(DP), intent(in)  :: mu    !! Gravitational constant
+         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: vx,vy,vz     !! Velocity vector
+         real(DP), intent(out) :: a     !! semimajor axis
+         real(DP), intent(out) :: q     !! periapsis
+         real(DP), intent(out) :: capm  !! mean anomaly
+         real(DP), intent(out) :: tperi !! time of pericenter passage
       end subroutine orbel_xv2aqt
-
-      module pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
-         implicit none
-         real(DP),               intent(in)  :: mu    !! Gravitational constant
-         real(DP), dimension(:), intent(in)  :: x     !! Position vector
-         real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
-         real(DP),               intent(out) :: a     !! semimajor axis
-         real(DP),               intent(out) :: e     !! eccentricity
-         real(DP),               intent(out) :: inc   !! inclination
-         real(DP),               intent(out) :: capom !! longitude of ascending node
-         real(DP),               intent(out) :: omega !! argument of periapsis
-         real(DP),               intent(out) :: capm  !! mean anomaly
-      end subroutine orbel_xv2el
 
       module subroutine orbel_xv2el_vec(self, cb)
          implicit none

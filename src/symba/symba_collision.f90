@@ -412,7 +412,7 @@ contains
             tcr2 = r2 / (vxr**2 + vyr**2 + vzr**2)
             dt2 = dt**2
             if (tcr2 <= dt2) then
-               call orbel_xv2aeq(Gmtot, [xr, yr, zr], [vxr, vyr, vzr], a, e, q)
+               call orbel_xv2aeq(Gmtot, xr, yr, zr, vxr, vyr, vzr, a, e, q)
                lcollision = (q < rlim) 
             end if
          end if

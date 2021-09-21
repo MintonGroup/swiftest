@@ -363,7 +363,8 @@ contains
                      if (pl%isperi(i) == -1) then
                         if (vdotr >= 0.0_DP) then
                            pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(pl%mu(i), pl%xh(:,i), pl%vh(:,i), pl%atp(i), e, pl%peri(i))
+                           CALL orbel_xv2aeq(pl%mu(i), pl%xh(1,i), pl%xh(2,i), pl%xh(3,i), pl%vh(1,i), pl%vh(2,i), pl%vh(3,i), &
+                                  pl%atp(i), e, pl%peri(i))
                         end if
                      else
                         if (vdotr > 0.0_DP) then
@@ -381,7 +382,7 @@ contains
                      if (pl%isperi(i) == -1) then
                         if (vdotr >= 0.0_DP) then
                            pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(:,i), pl%vb(:,i), pl%atp(i), e, pl%peri(i))
+                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),  pl%atp(i), e, pl%peri(i))
                         end if
                      else
                         if (vdotr > 0.0_DP) then
