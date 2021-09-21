@@ -22,8 +22,9 @@ contains
 
       if (param%ladaptive_interactions) then
          if (lfirst) then
+            write(itimer%loopname, *) "kick_getacch_int_pl"
+            write(itimer%looptype, *) "INTERACTION"
             call itimer%time_this_loop(param, self, self%nplpl)
-            write(itimer%loopname, *)  "kick_getacch_int_pl"
             lfirst = .false.
          else
             if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self, self%nplpl)

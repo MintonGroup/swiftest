@@ -285,25 +285,28 @@ contains
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I8B) :: k, nplpl, nplplm
-      integer(I4B) :: i, j, npl, nplm, ip, jp
+      integer(I8B) :: k
+      integer(I4B) :: i, j, npl, nplm, err
 
-      associate(pl => self)
+      associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
-         pl%nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
-         pl%nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
-         if (param%lflatten_interactions) then
+         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
+         nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
+         if ((param%lflatten_interactions) .or. (param%lflatten_encounters)) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
-            allocate(self%k_plpl(2, pl%nplpl))
-            do concurrent (i = 1:npl)
-               do concurrent (j = i+1:npl)
+            allocate(self%k_plpl(2, nplpl), stat=err)
+            if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
+               param%lflatten_interactions = .false.
+               param%lflatten_encounters = .false.
+            else
+               do concurrent (i=1:npl, j=1:npl, j>i)
                   call util_flatten_eucl_ij_to_k(npl, i, j, k)
                   self%k_plpl(1, k) = i
                   self%k_plpl(2, k) = j
                end do
-            end do
+            end if
          end if
       end associate
 

@@ -24,7 +24,8 @@ module walltime_classes
    end type walltimer
 
    type, extends(walltimer) :: interaction_timer
-      character(len=STRMAX) :: loopname             !! Stores the name of the loop being timed for logging purposes
+      character(len=STRMAX) :: loopname              !! Stores the name of the loop being timed for logging purposes
+      character(len=NAMELEN) :: looptype             !! Stores the type of loop (e.g. INTERACTION or ENCOUNTER)
       integer(I8B) :: max_interactions = huge(1_I8B) !! Stores the number of pl-pl interactions that failed when attempting to flatten (e.g. out of memory). Adapting won't occur if ninteractions > max_interactions
       integer(I8B) :: last_interactions = 0          !! Number of interactions that were computed last time. The timer is only run if there has been a change to the number of interactions
       integer(I4B) :: step_counter = 0               !! Number of steps that have elapsed since the last timed loop

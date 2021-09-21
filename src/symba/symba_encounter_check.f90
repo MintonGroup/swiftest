@@ -130,7 +130,7 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),            intent(inout)  :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(in)     :: param  !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout)  :: param  !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout)  :: system !! SyMBA nbody system object
       real(DP),                   intent(in)     :: dt     !! step size
       integer(I4B),               intent(in)     :: irec   !! Current recursion level
@@ -142,13 +142,28 @@ contains
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
+      type(interaction_timer), save :: itimer
+      logical, save :: lfirst = .true.
   
       if (self%nbody == 0) return
 
       associate(pl => self, plplenc_list => system%plplenc_list)
+
+         if (param%ladaptive_interactions) then
+            if (lfirst) then
+               write(itimer%loopname, *)  "symba_encounter_check_pl"
+               write(itimer%looptype, *)  "ENCOUNTERS"
+               call itimer%time_this_loop(param, pl, pl%nplplm)
+               lfirst = .false.
+            else
+               if (itimer%check(param, pl%nplplm)) call itimer%time_this_loop(param, pl, pl%nplplm)
+            end if
+         end if
+
          npl = pl%nbody
          if (param%lflatten_interactions) then
             nplplm = pl%nplplm
+
             allocate(lencounter(nplplm))
             allocate(loc_lvdotr(nplplm))
   
@@ -200,6 +215,11 @@ contains
                pl%nplenc(j) = pl%nplenc(j) + 1
             end do
          end if
+
+         if (param%ladaptive_interactions) then 
+            if (itimer%is_on) call itimer%adapt(param, pl, pl%nplplm)
+         end if
+
       end associate
 
       return
