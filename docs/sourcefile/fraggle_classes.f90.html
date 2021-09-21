@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West (someday, hopefully)">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>fraggle_classes.f90 &ndash; swiftest</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/swiftest_driver.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/swiftest_driver.html">Program</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>fraggle_classes.f90
+    <small>Source File</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 1.4% of total for source files.">234 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/fraggle_classes.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+  
+     <li class="active">fraggle_classes.f90</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#mods-0">Modules</a></h3></div>
+  <div id="mods-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/fraggle_classes.html">fraggle_classes</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/fraggle_classes.f90.html#src">fraggle_classes.f90</a>
+  </div>
+</div>
+
+
+
+</div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">This file depends on</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: sourcefile~~fraggle_classes.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefilefraggle_classesf90EfferentGraph" width="398pt" height="52pt"
+ viewBox="0.00 0.00 398.00 52.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~fraggle_classes.f90~~EfferentGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 48)">
+<title>sourcefile~~fraggle_classes.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-48 394,-48 394,4 -4,4"/>
+<!-- sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~fraggle_classes.f90</title>
+<polygon fill="none" stroke="black" points="390,-24 285,-24 285,0 390,0 390,-24"/>
+<text text-anchor="middle" x="337.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">fraggle_classes.f90</text>
+</g>
+<!-- sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~swiftest_classes.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~EfferentGraph_node2"><a xlink:href=".././sourcefile/swiftest_classes.f90.html" xlink:title="swiftest_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="249,-44 142,-44 142,-20 249,-20 249,-44"/>
+<text text-anchor="middle" x="195.5" y="-29.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M284.77,-19.39C276.57,-20.56 268.02,-21.78 259.6,-22.99"/>
+<polygon fill="#000000" stroke="#000000" points="258.83,-19.56 249.42,-24.44 259.82,-26.49 258.83,-19.56"/>
+</g>
+<!-- sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~swiftest_globals.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~EfferentGraph_node3"><a xlink:href=".././sourcefile/swiftest_globals.f90.html" xlink:title="swiftest_globals.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="106,-24 0,-24 0,0 106,0 106,-24"/>
+<text text-anchor="middle" x="53" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_globals.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M284.68,-11.31C272.95,-11.18 260.55,-11.07 249,-11 201.45,-10.73 189.55,-10.73 142,-11 133.65,-11.05 124.86,-11.12 116.2,-11.21"/>
+<polygon fill="#000000" stroke="#000000" points="116.08,-7.71 106.12,-11.31 116.15,-14.71 116.08,-7.71"/>
+</g>
+<!-- sourcefile~swiftest_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~swiftest_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M141.78,-24.5C133.39,-23.3 124.64,-22.06 116.05,-20.83"/>
+<polygon fill="#000000" stroke="#000000" points="116.47,-17.36 106.08,-19.41 115.49,-24.29 116.47,-17.36"/>
+</g>
+</g>
+</svg>
+</div><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="190pt" height="32pt"
+ viewBox="0.00 0.00 190.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 186,-28 186,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="67,-24 0,-24 0,0 67,0 67,-24"/>
+<text text-anchor="middle" x="33.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="182,-24 85,-24 85,0 182,0 182,-24"/>
+<text text-anchor="middle" x="133.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a file to a file which it depends on. A file
+    is dependent upon another if the latter must be compiled before the former
+    can be.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+    
+      
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Files dependent on this one</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: sourcefile~~fraggle_classes.f90~~AfferentGraph Pages: 1 -->
+<svg id="sourcefilefraggle_classesf90AfferentGraph" width="554pt" height="2804pt"
+ viewBox="0.00 0.00 554.00 2804.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 2800)">
+<title>sourcefile~~fraggle_classes.f90~~AfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-2800 550,-2800 550,4 -4,4"/>
+<!-- sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node1" class="node">
+<title>sourcefile~fraggle_classes.f90</title>
+<polygon fill="none" stroke="black" points="105,-1368 0,-1368 0,-1344 105,-1344 105,-1368"/>
+<text text-anchor="middle" x="52.5" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50">fraggle_classes.f90</text>
+</g>
+<!-- sourcefile~fraggle_set.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node2" class="node">
+<title>sourcefile~fraggle_set.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node2"><a xlink:href=".././sourcefile/fraggle_set.f90.html" xlink:title="fraggle_set.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="506,-2796 422,-2796 422,-2772 506,-2772 506,-2796"/>
+<text text-anchor="middle" x="464" y="-2781.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_set.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_set.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge1" class="edge">
+<title>sourcefile~fraggle_set.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M421.78,-2778.41C390.48,-2772.78 347.3,-2761.98 314,-2742"/>
+</g>
+<!-- sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node9" class="node">
+<title>sourcefile~swiftest.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node9"><a xlink:href=".././sourcefile/swiftest.f90.html" xlink:title="swiftest.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="346,-1368 280,-1368 280,-1344 346,-1344 346,-1368"/>
+<text text-anchor="middle" x="313" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_set.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge59" class="edge">
+<title>sourcefile~fraggle_set.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M421.75,-2783.05C406.98,-2780.49 391.62,-2774.83 382,-2763 336.38,-2706.89 317.01,-1553.09 314.33,-1378.15"/>
+<polygon fill="#000000" stroke="#000000" points="317.83,-1378.01 314.18,-1368.06 310.83,-1378.11 317.83,-1378.01"/>
+</g>
+<!-- sourcefile~fraggle_io.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node3" class="node">
+<title>sourcefile~fraggle_io.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node3"><a xlink:href=".././sourcefile/fraggle_io.f90.html" xlink:title="fraggle_io.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="503,-2754 425,-2754 425,-2730 503,-2730 503,-2754"/>
+<text text-anchor="middle" x="464" y="-2739.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_io.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_io.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge2" class="edge">
+<title>sourcefile~fraggle_io.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M424.95,-2752.2C393.01,-2758.51 347.39,-2762.03 314,-2742"/>
+</g>
+<!-- sourcefile~fraggle_io.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge22" class="edge">
+<title>sourcefile~fraggle_io.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M424.7,-2741.52C409.06,-2739.21 392.27,-2733.62 382,-2721 337.76,-2666.68 317.27,-1550.64 314.36,-1378.27"/>
+<polygon fill="#000000" stroke="#000000" points="317.86,-1378.05 314.19,-1368.11 310.86,-1378.16 317.86,-1378.05"/>
+</g>
+<!-- sourcefile~fraggle_generate.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node4" class="node">
+<title>sourcefile~fraggle_generate.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node4"><a xlink:href=".././sourcefile/fraggle_generate.f90.html" xlink:title="fraggle_generate.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="520,-2712 408,-2712 408,-2688 520,-2688 520,-2712"/>
+<text text-anchor="middle" x="464" y="-2697.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_generate.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge3" class="edge">
+<title>sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M414.93,-2712.07C404.07,-2714.91 392.62,-2717.98 382,-2721 351.57,-2729.64 341.13,-2758.27 314,-2742"/>
+</g>
+<!-- sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge23" class="edge">
+<title>sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M407.86,-2695.61C397.91,-2692.31 388.61,-2687.11 382,-2679 339.15,-2626.46 317.54,-1547.97 314.4,-1378.36"/>
+<polygon fill="#000000" stroke="#000000" points="317.9,-1378.07 314.21,-1368.13 310.9,-1378.2 317.9,-1378.07"/>
+</g>
+<!-- sourcefile~fraggle_util.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node5" class="node">
+<title>sourcefile~fraggle_util.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node5"><a xlink:href=".././sourcefile/fraggle_util.f90.html" xlink:title="fraggle_util.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="505.5,-2670 422.5,-2670 422.5,-2646 505.5,-2646 505.5,-2670"/>
+<text text-anchor="middle" x="464" y="-2655.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_util.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_util.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge5" class="edge">
+<title>sourcefile~fraggle_util.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M312,-2742C167.37,-2752.01 69.04,-1556.4 55.18,-1378.12"/>
+<polygon fill="#000000" stroke="#000000" points="58.67,-1377.78 54.41,-1368.07 51.69,-1378.31 58.67,-1377.78"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M422.38,-2664.41C408.99,-2667.59 394.36,-2672.24 382,-2679 345.85,-2698.77 349.33,-2763.19 314,-2742"/>
+</g>
+<!-- sourcefile~fraggle_util.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge77" class="edge">
+<title>sourcefile~fraggle_util.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M422.2,-2657.1C407.31,-2654.57 391.74,-2648.92 382,-2637 340.5,-2586.21 317.79,-1544.05 314.44,-1378.17"/>
+<polygon fill="#000000" stroke="#000000" points="317.94,-1378.07 314.24,-1368.14 310.94,-1378.21 317.94,-1378.07"/>
+</g>
+<!-- sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node6" class="node">
+<title>sourcefile~symba_classes.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node6"><a xlink:href=".././sourcefile/symba_classes.f90.html" xlink:title="symba_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="244,-1368 141,-1368 141,-1344 244,-1344 244,-1368"/>
+<text text-anchor="middle" x="192.5" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge4" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M140.9,-1356C132.49,-1356 123.7,-1356 115.06,-1356"/>
+<polygon fill="#000000" stroke="#000000" points="115.02,-1352.5 105.02,-1356 115.02,-1359.5 115.02,-1352.5"/>
+</g>
+<!-- sourcefile~fraggle_regime.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node7" class="node">
+<title>sourcefile~fraggle_regime.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node7"><a xlink:href=".././sourcefile/fraggle_regime.f90.html" xlink:title="fraggle_regime.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="515.5,-108 412.5,-108 412.5,-84 515.5,-84 515.5,-108"/>
+<text text-anchor="middle" x="464" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_regime.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_regime.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge6" class="edge">
+<title>sourcefile~fraggle_regime.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M412.42,-92.62C383.48,-91.52 346.55,-91.56 314,-96"/>
+</g>
+<!-- sourcefile~fraggle_regime.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge67" class="edge">
+<title>sourcefile~fraggle_regime.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M412.49,-99.03C400.84,-102.18 389.64,-107.67 382,-117 341.9,-165.99 318.1,-1170.01 314.48,-1333.57"/>
+<polygon fill="#000000" stroke="#000000" points="310.98,-1333.79 314.26,-1343.87 317.98,-1333.95 310.98,-1333.79"/>
+</g>
+<!-- sourcefile~fraggle_placeholder.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node8" class="node">
+<title>sourcefile~fraggle_placeholder.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node8"><a xlink:href=".././sourcefile/fraggle_placeholder.f90.html" xlink:title="fraggle_placeholder.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="526,-66 402,-66 402,-42 526,-42 526,-66"/>
+<text text-anchor="middle" x="464" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_placeholder.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_placeholder.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge7" class="edge">
+<title>sourcefile~fraggle_placeholder.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M414.93,-66.07C404.07,-68.91 392.62,-71.98 382,-75 351.57,-83.64 345.34,-91.72 314,-96"/>
+</g>
+<!-- sourcefile~fraggle_placeholder.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge83" class="edge">
+<title>sourcefile~fraggle_placeholder.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M401.76,-60.72C394.16,-63.99 387.24,-68.59 382,-75 340.5,-125.79 317.79,-1167.95 314.44,-1333.83"/>
+<polygon fill="#000000" stroke="#000000" points="310.94,-1333.79 314.24,-1343.86 317.94,-1333.93 310.94,-1333.79"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge8" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M311.52,-1343.91C306.37,-1214.69 259.71,-93.41 193.5,-96"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge19" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M279.93,-1356C272.05,-1356 263.35,-1356 254.59,-1356"/>
+<polygon fill="#000000" stroke="#000000" points="254.33,-1352.5 244.33,-1356 254.33,-1359.5 254.33,-1352.5"/>
+</g>
+<!-- sourcefile~fraggle_setup.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node10" class="node">
+<title>sourcefile~fraggle_setup.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node10"><a xlink:href=".././sourcefile/fraggle_setup.f90.html" xlink:title="fraggle_setup.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="512,-24 416,-24 416,0 512,0 512,-24"/>
+<text text-anchor="middle" x="464" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_setup.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_setup.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge9" class="edge">
+<title>sourcefile~fraggle_setup.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M415.67,-20.11C404.22,-23.18 392.32,-27.35 382,-33 345.85,-52.77 354.82,-90.43 314,-96"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M312,-96C259.82,-103.12 246.13,-93.94 193.5,-96"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M191.5,-96C61.86,-101.08 53.96,-1166.09 53.52,-1333.86"/>
+<polygon fill="#000000" stroke="#000000" points="50.02,-1333.98 53.5,-1343.99 57.02,-1333.99 50.02,-1333.98"/>
+</g>
+<!-- sourcefile~fraggle_setup.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge34" class="edge">
+<title>sourcefile~fraggle_setup.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M415.84,-14.16C403.01,-17.14 390.36,-22.76 382,-33 339.15,-85.54 317.54,-1164.03 314.4,-1333.64"/>
+<polygon fill="#000000" stroke="#000000" points="310.9,-1333.8 314.21,-1343.87 317.9,-1333.93 310.9,-1333.8"/>
+</g>
+<!-- sourcefile~symba_encounter_check.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node11" class="node">
+<title>sourcefile~symba_encounter_check.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node11"><a xlink:href=".././sourcefile/symba_encounter_check.f90.html" xlink:title="symba_encounter_check.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="539,-2628 389,-2628 389,-2604 539,-2604 539,-2628"/>
+<text text-anchor="middle" x="464" y="-2613.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_encounter_check.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_encounter_check.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge12" class="edge">
+<title>sourcefile~symba_encounter_check.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M399.83,-2603.93C393.56,-2601.48 387.5,-2598.54 382,-2595 341.61,-2569 349.68,-2543.15 314,-2511"/>
+</g>
+<!-- sourcefile~symba_encounter_check.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge20" class="edge">
+<title>sourcefile~symba_encounter_check.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M391.89,-2603.93C388.2,-2601.43 384.85,-2598.48 382,-2595 341.9,-2546.01 318.1,-1541.99 314.48,-1378.43"/>
+<polygon fill="#000000" stroke="#000000" points="317.98,-1378.05 314.26,-1368.13 310.98,-1378.21 317.98,-1378.05"/>
+</g>
+<!-- sourcefile~symba_step.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node12" class="node">
+<title>sourcefile~symba_step.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node12"><a xlink:href=".././sourcefile/symba_step.f90.html" xlink:title="symba_step.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="508,-2586 420,-2586 420,-2562 508,-2562 508,-2586"/>
+<text text-anchor="middle" x="464" y="-2571.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_step.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_step.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge14" class="edge">
+<title>sourcefile~symba_step.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M419.74,-2565.33C407.3,-2562.16 393.89,-2558.08 382,-2553 349.33,-2539.05 340.39,-2534.78 314,-2511"/>
+</g>
+<!-- sourcefile~symba_step.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge21" class="edge">
+<title>sourcefile~symba_step.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M419.69,-2572.62C405.59,-2569.89 391.21,-2564.23 382,-2553 343.25,-2505.75 318.37,-1537.7 314.52,-1378.17"/>
+<polygon fill="#000000" stroke="#000000" points="318.02,-1378.01 314.28,-1368.1 311.02,-1378.18 318.02,-1378.01"/>
+</g>
+<!-- sourcefile~whm_util.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node13" class="node">
+<title>sourcefile~whm_util.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node13"><a xlink:href=".././sourcefile/whm_util.f90.html" xlink:title="whm_util.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="500.5,-2376 427.5,-2376 427.5,-2352 500.5,-2352 500.5,-2376"/>
+<text text-anchor="middle" x="464" y="-2361.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_util.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~whm_util.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge24" class="edge">
+<title>sourcefile~whm_util.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M427.31,-2363.77C411.02,-2361.68 392.95,-2356.19 382,-2343 318.37,-2266.36 314.22,-1518.16 314,-1378.42"/>
+<polygon fill="#000000" stroke="#000000" points="317.5,-1378.1 313.99,-1368.1 310.5,-1378.11 317.5,-1378.1"/>
+</g>
+<!-- sourcefile~tides_getacch_pl.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node14" class="node">
+<title>sourcefile~tides_getacch_pl.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node14"><a xlink:href=".././sourcefile/tides_getacch_pl.f90.html" xlink:title="tides_getacch_pl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="519.5,-2334 408.5,-2334 408.5,-2310 519.5,-2310 519.5,-2334"/>
+<text text-anchor="middle" x="464" y="-2319.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tides_getacch_pl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~tides_getacch_pl.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge25" class="edge">
+<title>sourcefile~tides_getacch_pl.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M408.41,-2317.64C398.29,-2314.36 388.79,-2309.15 382,-2301 321.08,-2227.85 314.73,-1514.27 314.08,-1378.31"/>
+<polygon fill="#000000" stroke="#000000" points="317.58,-1378.23 314.03,-1368.24 310.58,-1378.26 317.58,-1378.23"/>
+</g>
+<!-- sourcefile~helio_kick.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node15" class="node">
+<title>sourcefile~helio_kick.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node15"><a xlink:href=".././sourcefile/helio_kick.f90.html" xlink:title="helio_kick.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="502.5,-2292 425.5,-2292 425.5,-2268 502.5,-2268 502.5,-2292"/>
+<text text-anchor="middle" x="464" y="-2277.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_kick.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_kick.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge26" class="edge">
+<title>sourcefile~helio_kick.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.27,-2279.45C409.54,-2277.16 392.53,-2271.6 382,-2259 323.77,-2189.33 315.26,-1510.05 314.15,-1378.13"/>
+<polygon fill="#000000" stroke="#000000" points="317.65,-1377.99 314.07,-1368.02 310.65,-1378.05 317.65,-1377.99"/>
+</g>
+<!-- sourcefile~symba_collision.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node16" class="node">
+<title>sourcefile~symba_collision.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node16"><a xlink:href=".././sourcefile/symba_collision.f90.html" xlink:title="symba_collision.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="517,-2544 411,-2544 411,-2520 517,-2520 517,-2544"/>
+<text text-anchor="middle" x="464" y="-2529.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_collision.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_collision.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge15" class="edge">
+<title>sourcefile~symba_collision.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M410.74,-2538.22C379.02,-2539.02 339.81,-2534.26 314,-2511"/>
+</g>
+<!-- sourcefile~symba_collision.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge27" class="edge">
+<title>sourcefile~symba_collision.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M410.83,-2528.48C399.79,-2525.26 389.29,-2519.87 382,-2511 307.42,-2420.26 312.36,-1531.17 313.77,-1378.31"/>
+<polygon fill="#000000" stroke="#000000" points="317.27,-1378.28 313.86,-1368.25 310.27,-1378.21 317.27,-1378.28"/>
+</g>
+<!-- sourcefile~util_minimize_bfgs.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node17" class="node">
+<title>sourcefile~util_minimize_bfgs.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node17"><a xlink:href=".././sourcefile/util_minimize_bfgs.f90.html" xlink:title="util_minimize_bfgs.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="523,-2250 405,-2250 405,-2226 523,-2226 523,-2250"/>
+<text text-anchor="middle" x="464" y="-2235.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_minimize_bfgs.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_minimize_bfgs.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge28" class="edge">
+<title>sourcefile~util_minimize_bfgs.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M404.74,-2232.3C396.03,-2229 387.98,-2224.12 382,-2217 326.52,-2150.86 315.83,-1506.92 314.24,-1378.29"/>
+<polygon fill="#000000" stroke="#000000" points="317.74,-1378.04 314.12,-1368.08 310.74,-1378.12 317.74,-1378.04"/>
+</g>
+<!-- sourcefile~whm_gr.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node18" class="node">
+<title>sourcefile~whm_gr.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node18"><a xlink:href=".././sourcefile/whm_gr.f90.html" xlink:title="whm_gr.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="498,-2208 430,-2208 430,-2184 498,-2184 498,-2208"/>
+<text text-anchor="middle" x="464" y="-2193.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_gr.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~whm_gr.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge29" class="edge">
+<title>sourcefile~whm_gr.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M429.86,-2196C412.97,-2194.14 393.6,-2188.78 382,-2175 329.25,-2112.37 316.42,-1503.38 314.34,-1378.36"/>
+<polygon fill="#000000" stroke="#000000" points="317.83,-1378.04 314.17,-1368.1 310.83,-1378.16 317.83,-1378.04"/>
+</g>
+<!-- sourcefile~whm_setup.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node19" class="node">
+<title>sourcefile~whm_setup.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node19"><a xlink:href=".././sourcefile/whm_setup.f90.html" xlink:title="whm_setup.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="506.5,-2166 421.5,-2166 421.5,-2142 506.5,-2142 506.5,-2166"/>
+<text text-anchor="middle" x="464" y="-2151.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_setup.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~whm_setup.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge30" class="edge">
+<title>sourcefile~whm_setup.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M421.14,-2152.7C406.66,-2150.05 391.66,-2144.42 382,-2133 331.96,-2073.85 317.04,-1499.44 314.44,-1378.34"/>
+<polygon fill="#000000" stroke="#000000" points="317.94,-1378 314.23,-1368.07 310.94,-1378.14 317.94,-1378"/>
+</g>
+<!-- sourcefile~util_exit.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node20" class="node">
+<title>sourcefile~util_exit.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node20"><a xlink:href=".././sourcefile/util_exit.f90.html" xlink:title="util_exit.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="497.5,-2124 430.5,-2124 430.5,-2100 497.5,-2100 497.5,-2124"/>
+<text text-anchor="middle" x="464" y="-2109.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_exit.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge31" class="edge">
+<title>sourcefile~util_exit.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M430.32,-2112C413.35,-2110.17 393.76,-2104.83 382,-2091 334.7,-2035.38 317.72,-1496.24 314.57,-1378.6"/>
+<polygon fill="#000000" stroke="#000000" points="318.06,-1378.18 314.3,-1368.28 311.06,-1378.37 318.06,-1378.18"/>
+</g>
+<!-- sourcefile~util_rescale.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node21" class="node">
+<title>sourcefile~util_rescale.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node21"><a xlink:href=".././sourcefile/util_rescale.f90.html" xlink:title="util_rescale.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="506.5,-2082 421.5,-2082 421.5,-2058 506.5,-2058 506.5,-2082"/>
+<text text-anchor="middle" x="464" y="-2067.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_rescale.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_rescale.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge32" class="edge">
+<title>sourcefile~util_rescale.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M421.21,-2068.65C406.74,-2065.99 391.72,-2060.37 382,-2049 337.37,-1996.81 318.4,-1491.42 314.69,-1378.36"/>
+<polygon fill="#000000" stroke="#000000" points="318.18,-1378.02 314.37,-1368.14 311.19,-1378.24 318.18,-1378.02"/>
+</g>
+<!-- sourcefile~rmvs_kick.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node22" class="node">
+<title>sourcefile~rmvs_kick.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node22"><a xlink:href=".././sourcefile/rmvs_kick.f90.html" xlink:title="rmvs_kick.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="503,-2040 425,-2040 425,-2016 503,-2016 503,-2040"/>
+<text text-anchor="middle" x="464" y="-2025.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_kick.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~rmvs_kick.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge33" class="edge">
+<title>sourcefile~rmvs_kick.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M424.6,-2027.18C409.14,-2024.79 392.52,-2019.22 382,-2007 340.08,-1958.28 319.14,-1487.22 314.84,-1378.37"/>
+<polygon fill="#000000" stroke="#000000" points="318.33,-1378.06 314.45,-1368.21 311.34,-1378.33 318.33,-1378.06"/>
+</g>
+<!-- sourcefile~helio_step.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node23" class="node">
+<title>sourcefile~helio_step.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node23"><a xlink:href=".././sourcefile/helio_step.f90.html" xlink:title="helio_step.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="503.5,-1998 424.5,-1998 424.5,-1974 503.5,-1974 503.5,-1998"/>
+<text text-anchor="middle" x="464" y="-1983.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_step.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_step.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge35" class="edge">
+<title>sourcefile~helio_step.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M424.23,-1985.08C408.89,-1982.65 392.47,-1977.08 382,-1965 342.75,-1919.72 319.92,-1482.48 315.01,-1378.23"/>
+<polygon fill="#000000" stroke="#000000" points="318.5,-1378.03 314.54,-1368.2 311.51,-1378.35 318.5,-1378.03"/>
+</g>
+<!-- sourcefile~symba_discard.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node24" class="node">
+<title>sourcefile~symba_discard.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node24"><a xlink:href=".././sourcefile/symba_discard.f90.html" xlink:title="symba_discard.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="515.5,-2502 412.5,-2502 412.5,-2478 515.5,-2478 515.5,-2502"/>
+<text text-anchor="middle" x="464" y="-2487.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_discard.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_discard.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge10" class="edge">
+<title>sourcefile~symba_discard.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M412.46,-2500.95C372.18,-2509.05 321.35,-2517.62 314,-2511"/>
+</g>
+<!-- sourcefile~symba_discard.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge36" class="edge">
+<title>sourcefile~symba_discard.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M412.11,-2486.83C400.61,-2483.65 389.57,-2478.19 382,-2469 310.17,-2381.81 312.8,-1528.31 313.82,-1378.42"/>
+<polygon fill="#000000" stroke="#000000" points="317.32,-1378.19 313.89,-1368.16 310.32,-1378.13 317.32,-1378.19"/>
+</g>
+<!-- sourcefile~rmvs_util.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node25" class="node">
+<title>sourcefile~rmvs_util.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node25"><a xlink:href=".././sourcefile/rmvs_util.f90.html" xlink:title="rmvs_util.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="500.5,-1956 427.5,-1956 427.5,-1932 500.5,-1932 500.5,-1956"/>
+<text text-anchor="middle" x="464" y="-1941.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_util.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~rmvs_util.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge37" class="edge">
+<title>sourcefile~rmvs_util.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M427.18,-1943.47C411.07,-1941.28 393.19,-1935.8 382,-1923 345.45,-1881.17 320.78,-1478.03 315.2,-1378.25"/>
+<polygon fill="#000000" stroke="#000000" points="318.69,-1377.9 314.64,-1368.11 311.7,-1378.28 318.69,-1377.9"/>
+</g>
+<!-- sourcefile~symba_setup.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node26" class="node">
+<title>sourcefile~symba_setup.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node26"><a xlink:href=".././sourcefile/symba_setup.f90.html" xlink:title="symba_setup.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="511,-2460 417,-2460 417,-2436 511,-2436 511,-2460"/>
+<text text-anchor="middle" x="464" y="-2445.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_setup.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_setup.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge11" class="edge">
+<title>sourcefile~symba_setup.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M416.79,-2457.43C405.2,-2460.49 392.96,-2464.32 382,-2469 349.33,-2482.95 340.39,-2534.78 314,-2511"/>
+</g>
+<!-- sourcefile~symba_setup.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge38" class="edge">
+<title>sourcefile~symba_setup.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M416.77,-2445.97C403.64,-2443.04 390.6,-2437.42 382,-2427 312.91,-2343.34 313.25,-1525.17 313.87,-1378.47"/>
+<polygon fill="#000000" stroke="#000000" points="317.38,-1378.07 313.92,-1368.05 310.38,-1378.03 317.38,-1378.07"/>
+</g>
+<!-- sourcefile~symba_util.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node27" class="node">
+<title>sourcefile~symba_util.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node27"><a xlink:href=".././sourcefile/symba_util.f90.html" xlink:title="symba_util.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="505,-2418 423,-2418 423,-2394 505,-2394 505,-2418"/>
+<text text-anchor="middle" x="464" y="-2403.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_util.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_util.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge13" class="edge">
+<title>sourcefile~symba_util.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M422.62,-2411.22C408.95,-2414.31 394.09,-2419.22 382,-2427 341.61,-2453 349.68,-2543.15 314,-2511"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M312,-2511C224.35,-2432.01 197.9,-1531.34 194.03,-1378.1"/>
+<polygon fill="#000000" stroke="#000000" points="197.52,-1377.93 193.78,-1368.02 190.53,-1378.11 197.52,-1377.93"/>
+</g>
+<!-- sourcefile~symba_util.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge39" class="edge">
+<title>sourcefile~symba_util.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M422.7,-2405.11C407.69,-2402.61 391.91,-2396.97 382,-2385 315.65,-2304.86 313.73,-1521.84 313.94,-1378.48"/>
+<polygon fill="#000000" stroke="#000000" points="317.44,-1378.27 313.96,-1368.27 310.44,-1378.26 317.44,-1378.27"/>
+</g>
+<!-- sourcefile~helio_gr.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node28" class="node">
+<title>sourcefile~helio_gr.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node28"><a xlink:href=".././sourcefile/helio_gr.f90.html" xlink:title="helio_gr.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="498,-1914 430,-1914 430,-1890 498,-1890 498,-1914"/>
+<text text-anchor="middle" x="464" y="-1899.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_gr.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_gr.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge40" class="edge">
+<title>sourcefile~helio_gr.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M429.7,-1901.73C412.98,-1899.77 393.82,-1894.4 382,-1881 314.79,-1804.83 312.95,-1468.78 313.7,-1378.43"/>
+<polygon fill="#000000" stroke="#000000" points="317.2,-1378.26 313.8,-1368.23 310.2,-1378.19 317.2,-1378.26"/>
+</g>
+<!-- sourcefile~whm_drift.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node29" class="node">
+<title>sourcefile~whm_drift.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node29"><a xlink:href=".././sourcefile/whm_drift.f90.html" xlink:title="whm_drift.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="502.5,-1872 425.5,-1872 425.5,-1848 502.5,-1848 502.5,-1872"/>
+<text text-anchor="middle" x="464" y="-1857.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_drift.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~whm_drift.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge41" class="edge">
+<title>sourcefile~whm_drift.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.23,-1859.07C409.69,-1856.68 392.83,-1851.14 382,-1839 320.09,-1769.61 314.36,-1463.75 313.98,-1378.26"/>
+<polygon fill="#000000" stroke="#000000" points="317.48,-1378.12 313.96,-1368.12 310.48,-1378.13 317.48,-1378.12"/>
+</g>
+<!-- sourcefile~util_solve.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node30" class="node">
+<title>sourcefile~util_solve.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node30"><a xlink:href=".././sourcefile/util_solve.f90.html" xlink:title="util_solve.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="501.5,-1830 426.5,-1830 426.5,-1806 501.5,-1806 501.5,-1830"/>
+<text text-anchor="middle" x="464" y="-1815.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_solve.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_solve.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge42" class="edge">
+<title>sourcefile~util_solve.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M426.13,-1817.12C410.38,-1814.79 393.11,-1809.29 382,-1797 325.44,-1734.43 315.9,-1459.22 314.31,-1378.39"/>
+<polygon fill="#000000" stroke="#000000" points="317.81,-1378.26 314.14,-1368.32 310.81,-1378.38 317.81,-1378.26"/>
+</g>
+<!-- sourcefile~util_coord.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node31" class="node">
+<title>sourcefile~util_coord.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node31"><a xlink:href=".././sourcefile/util_coord.f90.html" xlink:title="util_coord.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="502.5,-1788 425.5,-1788 425.5,-1764 502.5,-1764 502.5,-1788"/>
+<text text-anchor="middle" x="464" y="-1773.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_coord.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_coord.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge43" class="edge">
+<title>sourcefile~util_coord.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.39,-1774.92C409.89,-1772.5 393.01,-1766.98 382,-1755 330.79,-1699.25 317.61,-1454.75 314.72,-1378.68"/>
+<polygon fill="#000000" stroke="#000000" points="318.21,-1378.21 314.36,-1368.34 311.21,-1378.46 318.21,-1378.21"/>
+</g>
+<!-- sourcefile~rmvs_step.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node32" class="node">
+<title>sourcefile~rmvs_step.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node32"><a xlink:href=".././sourcefile/rmvs_step.f90.html" xlink:title="rmvs_step.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="504,-1746 424,-1746 424,-1722 504,-1722 504,-1746"/>
+<text text-anchor="middle" x="464" y="-1731.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_step.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~rmvs_step.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge44" class="edge">
+<title>sourcefile~rmvs_step.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M423.84,-1732.54C408.82,-1729.98 392.73,-1724.45 382,-1713 336.04,-1663.93 319.47,-1449.11 315.22,-1378.55"/>
+<polygon fill="#000000" stroke="#000000" points="318.69,-1377.94 314.62,-1368.16 311.7,-1378.34 318.69,-1377.94"/>
+</g>
+<!-- sourcefile~util_set.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node33" class="node">
+<title>sourcefile~util_set.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node33"><a xlink:href=".././sourcefile/util_set.f90.html" xlink:title="util_set.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="496,-1704 432,-1704 432,-1680 496,-1680 496,-1704"/>
+<text text-anchor="middle" x="464" y="-1689.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_set.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_set.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge45" class="edge">
+<title>sourcefile~util_set.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M431.76,-1691.52C414.81,-1689.58 394.78,-1684.31 382,-1671 341.25,-1628.54 321.55,-1443.15 315.83,-1378.41"/>
+<polygon fill="#000000" stroke="#000000" points="319.29,-1377.77 314.95,-1368.11 312.31,-1378.37 319.29,-1377.77"/>
+</g>
+<!-- sourcefile~util_get_energy_momentum.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node34" class="node">
+<title>sourcefile~util_get_energy_momentum.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node34"><a xlink:href=".././sourcefile/util_get_energy_momentum.f90.html" xlink:title="util_get_energy_momentum.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="546,-1662 382,-1662 382,-1638 546,-1638 546,-1662"/>
+<text text-anchor="middle" x="464" y="-1647.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_get_energy_momentum.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_get_energy_momentum.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge46" class="edge">
+<title>sourcefile~util_get_energy_momentum.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M393.75,-1637.93C389.46,-1635.46 385.48,-1632.51 382,-1629 346.4,-1593.06 323.89,-1436.53 316.59,-1378.1"/>
+<polygon fill="#000000" stroke="#000000" points="320.06,-1377.59 315.37,-1368.09 313.11,-1378.44 320.06,-1377.59"/>
+</g>
+<!-- sourcefile~obl.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node35" class="node">
+<title>sourcefile~obl.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node35"><a xlink:href=".././sourcefile/obl.f90.html" xlink:title="obl.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="491,-1620 437,-1620 437,-1596 491,-1596 491,-1620"/>
+<text text-anchor="middle" x="464" y="-1605.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">obl.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~obl.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge47" class="edge">
+<title>sourcefile~obl.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.8,-1607.65C419.14,-1606.03 396.51,-1601.04 382,-1587 322.89,-1529.79 314.47,-1424.05 313.74,-1378.18"/>
+<polygon fill="#000000" stroke="#000000" points="317.24,-1378.1 313.7,-1368.12 310.24,-1378.14 317.24,-1378.1"/>
+</g>
+<!-- sourcefile~helio_drift.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node36" class="node">
+<title>sourcefile~helio_drift.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node36"><a xlink:href=".././sourcefile/helio_drift.f90.html" xlink:title="helio_drift.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="502.5,-1578 425.5,-1578 425.5,-1554 502.5,-1554 502.5,-1578"/>
+<text text-anchor="middle" x="464" y="-1563.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_drift.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_drift.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge48" class="edge">
+<title>sourcefile~helio_drift.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.12,-1563.74C410.12,-1561.06 393.7,-1555.67 382,-1545 333.12,-1500.41 319.34,-1418.11 315.49,-1378.48"/>
+<polygon fill="#000000" stroke="#000000" points="318.95,-1377.96 314.62,-1368.29 311.98,-1378.55 318.95,-1377.96"/>
+</g>
+<!-- sourcefile~util_append.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node37" class="node">
+<title>sourcefile~util_append.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node37"><a xlink:href=".././sourcefile/util_append.f90.html" xlink:title="util_append.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="507,-1536 421,-1536 421,-1512 507,-1512 507,-1536"/>
+<text text-anchor="middle" x="464" y="-1521.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_append.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_append.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge49" class="edge">
+<title>sourcefile~util_append.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M420.59,-1520.21C407.07,-1517.23 392.82,-1512.03 382,-1503 342.99,-1470.44 325.17,-1410.61 318.07,-1378.22"/>
+<polygon fill="#000000" stroke="#000000" points="321.41,-1377.1 315.98,-1368 314.55,-1378.5 321.41,-1377.1"/>
+</g>
+<!-- sourcefile~util_peri.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node38" class="node">
+<title>sourcefile~util_peri.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node38"><a xlink:href=".././sourcefile/util_peri.f90.html" xlink:title="util_peri.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="498,-1494 430,-1494 430,-1470 498,-1470 498,-1494"/>
+<text text-anchor="middle" x="464" y="-1479.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_peri.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_peri.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge50" class="edge">
+<title>sourcefile~util_peri.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M429.88,-1479.01C414.2,-1476.27 395.9,-1471.03 382,-1461 352.56,-1439.77 332.58,-1401.51 322.25,-1377.5"/>
+<polygon fill="#000000" stroke="#000000" points="325.46,-1376.09 318.42,-1368.18 318.98,-1378.76 325.46,-1376.09"/>
+</g>
+<!-- sourcefile~netcdf.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node39" class="node">
+<title>sourcefile~netcdf.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node39"><a xlink:href=".././sourcefile/netcdf.f90.html" xlink:title="netcdf.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="494,-1452 434,-1452 434,-1428 494,-1428 494,-1452"/>
+<text text-anchor="middle" x="464" y="-1437.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">netcdf.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~netcdf.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge51" class="edge">
+<title>sourcefile~netcdf.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M433.97,-1436.05C417.93,-1433.01 398.06,-1427.78 382,-1419 361.93,-1408.03 343.19,-1389.82 330.49,-1375.8"/>
+<polygon fill="#000000" stroke="#000000" points="332.97,-1373.32 323.74,-1368.11 327.7,-1377.93 332.97,-1373.32"/>
+</g>
+<!-- sourcefile~tides_spin_step.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node40" class="node">
+<title>sourcefile~tides_spin_step.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node40"><a xlink:href=".././sourcefile/tides_spin_step.f90.html" xlink:title="tides_spin_step.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="516.5,-1410 411.5,-1410 411.5,-1386 516.5,-1386 516.5,-1410"/>
+<text text-anchor="middle" x="464" y="-1395.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tides_spin_step.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~tides_spin_step.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge52" class="edge">
+<title>sourcefile~tides_spin_step.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M414.93,-1385.93C404.07,-1383.09 392.62,-1380.02 382,-1377 373.45,-1374.57 364.34,-1371.85 355.65,-1369.19"/>
+<polygon fill="#000000" stroke="#000000" points="356.67,-1365.84 346.08,-1366.24 354.6,-1372.53 356.67,-1365.84"/>
+</g>
+<!-- sourcefile~setup.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node41" class="node">
+<title>sourcefile~setup.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node41"><a xlink:href=".././sourcefile/setup.f90.html" xlink:title="setup.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="492.5,-1368 435.5,-1368 435.5,-1344 492.5,-1344 492.5,-1368"/>
+<text text-anchor="middle" x="464" y="-1353.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">setup.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~setup.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge53" class="edge">
+<title>sourcefile~setup.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M435.32,-1356C413.13,-1356 381.62,-1356 356.28,-1356"/>
+<polygon fill="#000000" stroke="#000000" points="356.19,-1352.5 346.19,-1356 356.19,-1359.5 356.19,-1352.5"/>
+</g>
+<!-- sourcefile~symba_kick.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node42" class="node">
+<title>sourcefile~symba_kick.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node42"><a xlink:href=".././sourcefile/symba_kick.f90.html" xlink:title="symba_kick.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="507,-234 421,-234 421,-210 507,-210 507,-234"/>
+<text text-anchor="middle" x="464" y="-219.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_kick.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_kick.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge16" class="edge">
+<title>sourcefile~symba_kick.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M420.84,-212.59C379.42,-203.89 321.37,-193.37 314,-201"/>
+</g>
+<!-- sourcefile~symba_kick.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge56" class="edge">
+<title>sourcefile~symba_kick.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M420.98,-223.16C406.48,-225.8 391.51,-231.45 382,-243 310.17,-330.19 312.8,-1183.69 313.82,-1333.58"/>
+<polygon fill="#000000" stroke="#000000" points="310.32,-1333.87 313.89,-1343.84 317.32,-1333.81 310.32,-1333.87"/>
+</g>
+<!-- sourcefile~whm_kick.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node43" class="node">
+<title>sourcefile~whm_kick.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node43"><a xlink:href=".././sourcefile/whm_kick.f90.html" xlink:title="whm_kick.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="502.5,-1326 425.5,-1326 425.5,-1302 502.5,-1302 502.5,-1326"/>
+<text text-anchor="middle" x="464" y="-1311.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_kick.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~whm_kick.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge54" class="edge">
+<title>sourcefile~whm_kick.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.4,-1323.37C411.7,-1326.88 396.11,-1330.99 382,-1335 373.45,-1337.43 364.34,-1340.15 355.65,-1342.81"/>
+<polygon fill="#000000" stroke="#000000" points="354.6,-1339.47 346.08,-1345.76 356.67,-1346.16 354.6,-1339.47"/>
+</g>
+<!-- sourcefile~util_sort.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node44" class="node">
+<title>sourcefile~util_sort.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node44"><a xlink:href=".././sourcefile/util_sort.f90.html" xlink:title="util_sort.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="498,-1284 430,-1284 430,-1260 498,-1260 498,-1284"/>
+<text text-anchor="middle" x="464" y="-1269.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_sort.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_sort.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge55" class="edge">
+<title>sourcefile~util_sort.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M429.69,-1276.8C414.49,-1279.93 396.66,-1284.98 382,-1293 361.93,-1303.97 343.19,-1322.18 330.49,-1336.2"/>
+<polygon fill="#000000" stroke="#000000" points="327.7,-1334.07 323.74,-1343.89 332.97,-1338.68 327.7,-1334.07"/>
+</g>
+<!-- sourcefile~rmvs_setup.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node45" class="node">
+<title>sourcefile~rmvs_setup.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node45"><a xlink:href=".././sourcefile/rmvs_setup.f90.html" xlink:title="rmvs_setup.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="507,-1242 421,-1242 421,-1218 507,-1218 507,-1242"/>
+<text text-anchor="middle" x="464" y="-1227.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_setup.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~rmvs_setup.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge57" class="edge">
+<title>sourcefile~rmvs_setup.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M420.88,-1234.79C407.53,-1237.85 393.31,-1242.84 382,-1251 352.56,-1272.23 332.58,-1310.49 322.25,-1334.5"/>
+<polygon fill="#000000" stroke="#000000" points="318.98,-1333.24 318.42,-1343.82 325.46,-1335.91 318.98,-1333.24"/>
+</g>
+<!-- sourcefile~util_valid.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node46" class="node">
+<title>sourcefile~util_valid.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node46"><a xlink:href=".././sourcefile/util_valid.f90.html" xlink:title="util_valid.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="500,-1200 428,-1200 428,-1176 500,-1176 500,-1200"/>
+<text text-anchor="middle" x="464" y="-1185.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_valid.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_valid.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge58" class="edge">
+<title>sourcefile~util_valid.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M427.62,-1190.42C412.17,-1193.06 394.71,-1198.39 382,-1209 342.99,-1241.56 325.17,-1301.39 318.07,-1333.78"/>
+<polygon fill="#000000" stroke="#000000" points="314.55,-1333.5 315.98,-1344 321.41,-1334.9 314.55,-1333.5"/>
+</g>
+<!-- sourcefile~orbel.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node47" class="node">
+<title>sourcefile~orbel.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node47"><a xlink:href=".././sourcefile/orbel.f90.html" xlink:title="orbel.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="491.5,-1158 436.5,-1158 436.5,-1134 491.5,-1134 491.5,-1158"/>
+<text text-anchor="middle" x="464" y="-1143.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">orbel.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~orbel.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge60" class="edge">
+<title>sourcefile~orbel.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.3,-1146.7C418.87,-1148.52 396.7,-1153.59 382,-1167 333.12,-1211.59 319.34,-1293.89 315.49,-1333.52"/>
+<polygon fill="#000000" stroke="#000000" points="311.98,-1333.45 314.62,-1343.71 318.95,-1334.04 311.98,-1333.45"/>
+</g>
+<!-- sourcefile~util_copy.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node48" class="node">
+<title>sourcefile~util_copy.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node48"><a xlink:href=".././sourcefile/util_copy.f90.html" xlink:title="util_copy.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="499.5,-1116 428.5,-1116 428.5,-1092 499.5,-1092 499.5,-1116"/>
+<text text-anchor="middle" x="464" y="-1101.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_copy.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_copy.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge61" class="edge">
+<title>sourcefile~util_copy.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M428.09,-1105.39C412.18,-1107.78 394.21,-1113.18 382,-1125 322.89,-1182.21 314.47,-1287.95 313.74,-1333.82"/>
+<polygon fill="#000000" stroke="#000000" points="310.24,-1333.86 313.7,-1343.88 317.24,-1333.9 310.24,-1333.86"/>
+</g>
+<!-- sourcefile~kick.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node49" class="node">
+<title>sourcefile~kick.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node49"><a xlink:href=".././sourcefile/kick.f90.html" xlink:title="kick.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="491,-1074 437,-1074 437,-1050 491,-1050 491,-1074"/>
+<text text-anchor="middle" x="464" y="-1059.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">kick.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~kick.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge62" class="edge">
+<title>sourcefile~kick.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.99,-1062.13C419.2,-1063.62 396.31,-1068.55 382,-1083 346.4,-1118.94 323.89,-1275.47 316.59,-1333.9"/>
+<polygon fill="#000000" stroke="#000000" points="313.11,-1333.56 315.37,-1343.91 320.06,-1334.41 313.11,-1333.56"/>
+</g>
+<!-- sourcefile~whm_step.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node50" class="node">
+<title>sourcefile~whm_step.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node50"><a xlink:href=".././sourcefile/whm_step.f90.html" xlink:title="whm_step.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="503.5,-1032 424.5,-1032 424.5,-1008 503.5,-1008 503.5,-1032"/>
+<text text-anchor="middle" x="464" y="-1017.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_step.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~whm_step.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge63" class="edge">
+<title>sourcefile~whm_step.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M424.39,-1021.52C409.28,-1024.07 392.96,-1029.58 382,-1041 341.25,-1083.46 321.55,-1268.85 315.83,-1333.59"/>
+<polygon fill="#000000" stroke="#000000" points="312.31,-1333.63 314.95,-1343.89 319.29,-1334.23 312.31,-1333.63"/>
+</g>
+<!-- sourcefile~drift.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node51" class="node">
+<title>sourcefile~drift.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node51"><a xlink:href=".././sourcefile/drift.f90.html" xlink:title="drift.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="491,-990 437,-990 437,-966 491,-966 491,-990"/>
+<text text-anchor="middle" x="464" y="-975.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">drift.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~drift.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge64" class="edge">
+<title>sourcefile~drift.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.74,-977.88C418.82,-979.27 395.9,-984.16 382,-999 336.04,-1048.07 319.47,-1262.89 315.22,-1333.45"/>
+<polygon fill="#000000" stroke="#000000" points="311.7,-1333.66 314.62,-1343.84 318.69,-1334.06 311.7,-1333.66"/>
+</g>
+<!-- sourcefile~discard.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node52" class="node">
+<title>sourcefile~discard.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node52"><a xlink:href=".././sourcefile/discard.f90.html" xlink:title="discard.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="496.5,-948 431.5,-948 431.5,-924 496.5,-924 496.5,-948"/>
+<text text-anchor="middle" x="464" y="-933.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">discard.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~discard.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge65" class="edge">
+<title>sourcefile~discard.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M431.13,-936.32C414.2,-938.22 394.38,-943.52 382,-957 330.79,-1012.75 317.61,-1257.25 314.72,-1333.32"/>
+<polygon fill="#000000" stroke="#000000" points="311.21,-1333.54 314.36,-1343.66 318.21,-1333.79 311.21,-1333.54"/>
+</g>
+<!-- sourcefile~helio_setup.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node53" class="node">
+<title>sourcefile~helio_setup.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node53"><a xlink:href=".././sourcefile/helio_setup.f90.html" xlink:title="helio_setup.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="506.5,-906 421.5,-906 421.5,-882 506.5,-882 506.5,-906"/>
+<text text-anchor="middle" x="464" y="-891.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_setup.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_setup.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge66" class="edge">
+<title>sourcefile~helio_setup.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M421.12,-895.72C406.81,-898.44 391.94,-904.01 382,-915 325.44,-977.57 315.9,-1252.78 314.31,-1333.61"/>
+<polygon fill="#000000" stroke="#000000" points="310.81,-1333.62 314.14,-1343.68 317.81,-1333.74 310.81,-1333.62"/>
+</g>
+<!-- sourcefile~util_spill.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node54" class="node">
+<title>sourcefile~util_spill.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node54"><a xlink:href=".././sourcefile/util_spill.f90.html" xlink:title="util_spill.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="498,-864 430,-864 430,-840 498,-840 498,-864"/>
+<text text-anchor="middle" x="464" y="-849.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_spill.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_spill.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge68" class="edge">
+<title>sourcefile~util_spill.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M429.76,-852.32C413.06,-854.3 393.9,-859.67 382,-873 320.09,-942.39 314.36,-1248.25 313.98,-1333.74"/>
+<polygon fill="#000000" stroke="#000000" points="310.48,-1333.87 313.96,-1343.88 317.48,-1333.88 310.48,-1333.87"/>
+</g>
+<!-- sourcefile~orbel.f90~2 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node55" class="node">
+<title>sourcefile~orbel.f90~2</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node55"><a xlink:href=".././sourcefile/orbel.f90~2.html" xlink:title="orbel.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="491.5,-822 436.5,-822 436.5,-798 491.5,-798 491.5,-822"/>
+<text text-anchor="middle" x="464" y="-807.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">orbel.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~orbel.f90~2&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge69" class="edge">
+<title>sourcefile~orbel.f90~2&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.47,-809.63C418.42,-810.9 395.46,-815.75 382,-831 314.79,-907.17 312.95,-1243.22 313.7,-1333.57"/>
+<polygon fill="#000000" stroke="#000000" points="310.2,-1333.81 313.8,-1343.77 317.2,-1333.74 310.2,-1333.81"/>
+</g>
+<!-- sourcefile~operator_cross.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node56" class="node">
+<title>sourcefile~operator_cross.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node56"><a xlink:href=".././sourcefile/operator_cross.f90.html" xlink:title="operator_cross.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="515.5,-780 412.5,-780 412.5,-756 515.5,-756 515.5,-780"/>
+<text text-anchor="middle" x="464" y="-765.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">operator_cross.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~operator_cross.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge70" class="edge">
+<title>sourcefile~operator_cross.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M412.47,-771.49C400.97,-774.65 389.84,-780.03 382,-789 345.45,-830.83 320.78,-1233.97 315.2,-1333.75"/>
+<polygon fill="#000000" stroke="#000000" points="311.7,-1333.72 314.64,-1343.89 318.69,-1334.1 311.7,-1333.72"/>
+</g>
+<!-- sourcefile~symba_drift.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node57" class="node">
+<title>sourcefile~symba_drift.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node57"><a xlink:href=".././sourcefile/symba_drift.f90.html" xlink:title="symba_drift.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="507,-192 421,-192 421,-168 507,-168 507,-192"/>
+<text text-anchor="middle" x="464" y="-177.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_drift.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_drift.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge18" class="edge">
+<title>sourcefile~symba_drift.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M420.85,-173.27C387.09,-170.49 341.05,-173.01 314,-201"/>
+</g>
+<!-- sourcefile~symba_drift.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge72" class="edge">
+<title>sourcefile~symba_drift.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M420.97,-181.15C406.47,-183.78 391.5,-189.44 382,-201 307.42,-291.74 312.36,-1180.83 313.77,-1333.69"/>
+<polygon fill="#000000" stroke="#000000" points="310.27,-1333.79 313.86,-1343.75 317.27,-1333.72 310.27,-1333.79"/>
+</g>
+<!-- sourcefile~io.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node58" class="node">
+<title>sourcefile~io.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node58"><a xlink:href=".././sourcefile/io.f90.html" xlink:title="io.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="491,-738 437,-738 437,-714 491,-714 491,-738"/>
+<text text-anchor="middle" x="464" y="-723.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">io.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~io.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge71" class="edge">
+<title>sourcefile~io.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.77,-725.54C418.63,-726.72 395.42,-731.52 382,-747 342.75,-792.28 319.92,-1229.52 315.01,-1333.77"/>
+<polygon fill="#000000" stroke="#000000" points="311.51,-1333.65 314.54,-1343.8 318.5,-1333.97 311.51,-1333.65"/>
+</g>
+<!-- sourcefile~whm_coord.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node59" class="node">
+<title>sourcefile~whm_coord.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node59"><a xlink:href=".././sourcefile/whm_coord.f90.html" xlink:title="whm_coord.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="507,-696 421,-696 421,-672 507,-672 507,-696"/>
+<text text-anchor="middle" x="464" y="-681.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_coord.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~whm_coord.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge73" class="edge">
+<title>sourcefile~whm_coord.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M420.82,-685.46C406.49,-688.15 391.67,-693.77 382,-705 340.08,-753.72 319.14,-1224.78 314.84,-1333.63"/>
+<polygon fill="#000000" stroke="#000000" points="311.34,-1333.67 314.45,-1343.79 318.33,-1333.94 311.34,-1333.67"/>
+</g>
+<!-- sourcefile~user_getacch.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node60" class="node">
+<title>sourcefile~user_getacch.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node60"><a xlink:href=".././sourcefile/user_getacch.f90.html" xlink:title="user_getacch.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="511.5,-654 416.5,-654 416.5,-630 511.5,-630 511.5,-654"/>
+<text text-anchor="middle" x="464" y="-639.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">user_getacch.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~user_getacch.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge74" class="edge">
+<title>sourcefile~user_getacch.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M416.14,-644.4C403.31,-647.39 390.59,-652.95 382,-663 337.37,-715.19 318.4,-1220.58 314.69,-1333.64"/>
+<polygon fill="#000000" stroke="#000000" points="311.19,-1333.76 314.37,-1343.86 318.18,-1333.98 311.19,-1333.76"/>
+</g>
+<!-- sourcefile~rmvs_encounter_check.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node61" class="node">
+<title>sourcefile~rmvs_encounter_check.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node61"><a xlink:href=".././sourcefile/rmvs_encounter_check.f90.html" xlink:title="rmvs_encounter_check.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="535,-612 393,-612 393,-588 535,-588 535,-612"/>
+<text text-anchor="middle" x="464" y="-597.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_encounter_check.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~rmvs_encounter_check.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge75" class="edge">
+<title>sourcefile~rmvs_encounter_check.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M392.76,-611.73C388.76,-614.29 385.11,-617.35 382,-621 334.7,-676.62 317.72,-1215.76 314.57,-1333.4"/>
+<polygon fill="#000000" stroke="#000000" points="311.06,-1333.63 314.3,-1343.72 318.06,-1333.82 311.06,-1333.63"/>
+</g>
+<!-- sourcefile~util_fill.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node62" class="node">
+<title>sourcefile~util_fill.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node62"><a xlink:href=".././sourcefile/util_fill.f90.html" xlink:title="util_fill.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="494,-570 434,-570 434,-546 494,-546 494,-570"/>
+<text text-anchor="middle" x="464" y="-555.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_fill.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_fill.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge76" class="edge">
+<title>sourcefile~util_fill.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M433.91,-557.64C416.18,-559.08 394.57,-564.14 382,-579 331.96,-638.15 317.04,-1212.56 314.44,-1333.66"/>
+<polygon fill="#000000" stroke="#000000" points="310.94,-1333.86 314.23,-1343.93 317.94,-1334 310.94,-1333.86"/>
+</g>
+<!-- sourcefile~swiftest_driver.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node63" class="node">
+<title>sourcefile~swiftest_driver.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node63"><a xlink:href=".././sourcefile/swiftest_driver.f90.html" xlink:title="swiftest_driver.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="513,-528 415,-528 415,-504 513,-504 513,-528"/>
+<text text-anchor="middle" x="464" y="-513.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_driver.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest_driver.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge78" class="edge">
+<title>sourcefile~swiftest_driver.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M414.77,-518.63C402.38,-521.68 390.24,-527.22 382,-537 329.25,-599.63 316.42,-1208.62 314.34,-1333.64"/>
+<polygon fill="#000000" stroke="#000000" points="310.83,-1333.84 314.17,-1343.9 317.83,-1333.96 310.83,-1333.84"/>
+</g>
+<!-- sourcefile~rmvs_discard.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node64" class="node">
+<title>sourcefile~rmvs_discard.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node64"><a xlink:href=".././sourcefile/rmvs_discard.f90.html" xlink:title="rmvs_discard.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="511,-486 417,-486 417,-462 511,-462 511,-486"/>
+<text text-anchor="middle" x="464" y="-471.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_discard.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~rmvs_discard.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge79" class="edge">
+<title>sourcefile~rmvs_discard.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M416.86,-476.11C403.75,-479.05 390.68,-484.65 382,-495 326.52,-561.14 315.83,-1205.08 314.24,-1333.71"/>
+<polygon fill="#000000" stroke="#000000" points="310.74,-1333.88 314.12,-1343.92 317.74,-1333.96 310.74,-1333.88"/>
+</g>
+<!-- sourcefile~util_index.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node65" class="node">
+<title>sourcefile~util_index.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node65"><a xlink:href=".././sourcefile/util_index.f90.html" xlink:title="util_index.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="502,-444 426,-444 426,-420 502,-420 502,-444"/>
+<text text-anchor="middle" x="464" y="-429.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_index.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_index.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge80" class="edge">
+<title>sourcefile~util_index.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.68,-432.49C409.84,-434.74 392.62,-440.29 382,-453 323.77,-522.67 315.26,-1201.95 314.15,-1333.87"/>
+<polygon fill="#000000" stroke="#000000" points="310.65,-1333.95 314.07,-1343.98 317.65,-1334.01 310.65,-1333.95"/>
+</g>
+<!-- sourcefile~util_resize.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node66" class="node">
+<title>sourcefile~util_resize.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node66"><a xlink:href=".././sourcefile/util_resize.f90.html" xlink:title="util_resize.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="503.5,-402 424.5,-402 424.5,-378 503.5,-378 503.5,-402"/>
+<text text-anchor="middle" x="464" y="-387.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_resize.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_resize.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge81" class="edge">
+<title>sourcefile~util_resize.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M424.41,-390.65C408.92,-393.02 392.32,-398.61 382,-411 321.08,-484.15 314.73,-1197.73 314.08,-1333.69"/>
+<polygon fill="#000000" stroke="#000000" points="310.58,-1333.74 314.03,-1343.76 317.58,-1333.77 310.58,-1333.74"/>
+</g>
+<!-- sourcefile~symba_io.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node67" class="node">
+<title>sourcefile~symba_io.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node67"><a xlink:href=".././sourcefile/symba_io.f90.html" xlink:title="symba_io.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="502,-150 426,-150 426,-126 502,-126 502,-150"/>
+<text text-anchor="middle" x="464" y="-135.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_io.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~symba_io.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge17" class="edge">
+<title>sourcefile~symba_io.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.85,-145.06C392.49,-153.2 344.25,-169.7 314,-201"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M312,-201C230.09,-285.76 198.94,-1179.8 194.17,-1333.55"/>
+<polygon fill="#000000" stroke="#000000" points="190.66,-1333.58 193.86,-1343.68 197.66,-1333.79 190.66,-1333.58"/>
+</g>
+<!-- sourcefile~symba_io.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge82" class="edge">
+<title>sourcefile~symba_io.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M425.99,-138.34C410.02,-140.53 392.59,-146.08 382,-159 343.25,-206.25 318.37,-1174.3 314.52,-1333.83"/>
+<polygon fill="#000000" stroke="#000000" points="311.02,-1333.82 314.28,-1343.9 318.02,-1333.99 311.02,-1333.82"/>
+</g>
+<!-- sourcefile~gr.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node68" class="node">
+<title>sourcefile~gr.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node68"><a xlink:href=".././sourcefile/gr.f90.html" xlink:title="gr.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="491,-360 437,-360 437,-336 491,-336 491,-360"/>
+<text text-anchor="middle" x="464" y="-345.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">gr.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~gr.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge84" class="edge">
+<title>sourcefile~gr.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M436.96,-347.34C418.66,-348.4 395.18,-353.13 382,-369 318.37,-445.64 314.22,-1193.84 314,-1333.58"/>
+<polygon fill="#000000" stroke="#000000" points="310.5,-1333.89 313.99,-1343.9 317.5,-1333.9 310.5,-1333.89"/>
+</g>
+<!-- sourcefile~rmvs_io.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node69" class="node">
+<title>sourcefile~rmvs_io.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node69"><a xlink:href=".././sourcefile/rmvs_io.f90.html" xlink:title="rmvs_io.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="498,-318 430,-318 430,-294 498,-294 498,-318"/>
+<text text-anchor="middle" x="464" y="-303.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_io.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~rmvs_io.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge85" class="edge">
+<title>sourcefile~rmvs_io.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M429.77,-305.92C412.85,-307.76 393.49,-313.12 382,-327 315.65,-407.14 313.73,-1190.16 313.94,-1333.52"/>
+<polygon fill="#000000" stroke="#000000" points="310.44,-1333.74 313.96,-1343.73 317.44,-1333.73 310.44,-1333.74"/>
+</g>
+<!-- sourcefile~util_version.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_node70" class="node">
+<title>sourcefile~util_version.f90</title>
+<g id="a_sourcefile~~fraggle_classes.f90~~AfferentGraph_node70"><a xlink:href=".././sourcefile/util_version.f90.html" xlink:title="util_version.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="506.5,-276 421.5,-276 421.5,-252 506.5,-252 506.5,-276"/>
+<text text-anchor="middle" x="464" y="-261.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_version.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~util_version.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_classes.f90~~AfferentGraph_edge86" class="edge">
+<title>sourcefile~util_version.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M421.42,-265.1C406.79,-267.7 391.62,-273.35 382,-285 312.91,-368.66 313.25,-1186.83 313.87,-1333.53"/>
+<polygon fill="#000000" stroke="#000000" points="310.38,-1333.97 313.92,-1343.95 317.38,-1333.93 310.38,-1333.97"/>
+</g>
+</g>
+</svg>
+</div><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="190pt" height="32pt"
+ viewBox="0.00 0.00 190.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 186,-28 186,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="67,-24 0,-24 0,0 67,0 67,-24"/>
+<text text-anchor="middle" x="33.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="182,-24 85,-24 85,0 182,0 182,-24"/>
+<text text-anchor="middle" x="133.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a file to a file which it depends on. A file
+    is dependent upon another if the latter must be compiled before the former
+    can be.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+      
+      <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#mods-1">Modules</a></h3></div>
+  <div id="mods-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/fraggle_classes.html">fraggle_classes</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/fraggle_classes.f90.html#src">fraggle_classes.f90</a>
+  </div>
+</div>
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    <section>
+      <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl"><pre><span></span><a name="ln-1"></a><span class="k">module </span><span class="n">fraggle_classes</span>
+<a name="ln-2"></a>   <span class="c">!! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</span>
+<a name="ln-3"></a>   <span class="c">!!</span>
+<a name="ln-4"></a>   <span class="c">!! Definition of classes and methods specific to Fraggel: The Fragment Generation Model</span>
+<a name="ln-5"></a>   <span class="k">use </span><span class="n">swiftest_globals</span>
+<a name="ln-6"></a>   <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">swiftest_parameters</span><span class="p">,</span> <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_cb</span><span class="p">,</span> <span class="n">swiftest_pl</span>
+<a name="ln-7"></a>   <span class="k">implicit none</span>
+<a name="ln-8"></a><span class="k">   public</span>
+<a name="ln-9"></a>
+<a name="ln-10"></a><span class="k">   </span><span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span>     <span class="k">parameter</span> <span class="kd">::</span> <span class="n">FRAGGLE_NMASS_DIST</span> <span class="o">=</span> <span class="mi">3</span>             <span class="c">!! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  </span>
+<a name="ln-11"></a>   <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">parameter</span> <span class="kd">::</span> <span class="n">FRAGGLE_LOG_OUT</span>    <span class="o">=</span> <span class="s2">&quot;fraggle.log&quot;</span> <span class="c">!! Name of log file for Fraggle diagnostic information</span>
+<a name="ln-12"></a>   <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span>     <span class="k">parameter</span> <span class="kd">::</span> <span class="n">FRAGGLE_LOG_UNIT</span>   <span class="o">=</span> <span class="mi">76</span>            <span class="c">!! Unit number for Fraggle log file</span>
+<a name="ln-13"></a>
+<a name="ln-14"></a>   <span class="c">!********************************************************************************************************************************</span>
+<a name="ln-15"></a>   <span class="c">!                                    fraggle_colliders class definitions and method interfaces</span>
+<a name="ln-16"></a>   <span class="c">!*******************************************************************************************************************************</span>
+<a name="ln-17"></a>   <span class="c">!&gt; Class definition for the variables that describe the bodies involved in the collision</span>
+<a name="ln-18"></a>   <span class="k">type</span> <span class="kd">::</span> <span class="n">fraggle_colliders</span>
+<a name="ln-19"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>                                 <span class="kd">::</span> <span class="n">ncoll</span>   <span class="c">!! Number of bodies involved in the collision</span>
+<a name="ln-20"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>      <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">idx</span>     <span class="c">!! Index of bodies involved in the collision</span>
+<a name="ln-21"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">xb</span>      <span class="c">!! Two-body equivalent position vectors of the collider bodies prior to collision</span>
+<a name="ln-22"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">vb</span>      <span class="c">!! Two-body equivalent velocity vectors of the collider bodies prior to collision</span>
+<a name="ln-23"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">rot</span>     <span class="c">!! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision</span>
+<a name="ln-24"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">L_spin</span>  <span class="c">!! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision</span>
+<a name="ln-25"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">L_orbit</span> <span class="c">!! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision</span>
+<a name="ln-26"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">Ip</span>      <span class="c">!! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision</span>
+<a name="ln-27"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>                   <span class="kd">::</span> <span class="n">mass</span>    <span class="c">!! Two-body equivalent mass of the collider bodies prior to the collision</span>
+<a name="ln-28"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">dimension</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>                   <span class="kd">::</span> <span class="n">radius</span>  <span class="c">!! Two-body equivalent radii of the collider bodies prior to the collision</span>
+<a name="ln-29"></a>   <span class="k">contains</span>
+<a name="ln-30"></a><span class="k">      procedure</span> <span class="kd">::</span> <span class="n">regime</span> <span class="o">=&gt;</span> <span class="n">fraggle_regime_colliders</span> <span class="c">!! Determine which fragmentation regime the set of colliders will be</span>
+<a name="ln-31"></a>   <span class="k">end type </span><span class="n">fraggle_colliders</span>
+<a name="ln-32"></a>
+<a name="ln-33"></a>   <span class="c">!********************************************************************************************************************************</span>
+<a name="ln-34"></a>   <span class="c">!                                    fraggle_fragments class definitions and method interfaces</span>
+<a name="ln-35"></a>   <span class="c">!*******************************************************************************************************************************</span>
+<a name="ln-36"></a>   <span class="c">!&gt; Class definition for the variables that describe a collection of fragments by Fraggle barycentric coordinates</span>
+<a name="ln-37"></a>   <span class="k">type</span><span class="p">,</span> <span class="k">extends</span><span class="p">(</span><span class="n">swiftest_pl</span><span class="p">)</span> <span class="kd">::</span> <span class="n">fraggle_fragments</span>
+<a name="ln-38"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                                <span class="kd">::</span> <span class="n">mtot</span>      <span class="c">!! Total mass of fragments       </span>
+<a name="ln-39"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                                <span class="kd">::</span> <span class="n">Qloss</span>     <span class="c">!! Energy lost during the collision</span>
+<a name="ln-40"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">FRAGGLE_NMASS_DIST</span><span class="p">)</span> <span class="kd">::</span> <span class="n">mass_dist</span> <span class="c">!! Distribution of fragment mass determined by the regime calculation (largest fragment, second largest, and remainder)    </span>
+<a name="ln-41"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>                            <span class="kd">::</span> <span class="n">regime</span>    <span class="c">!! Collresolve regime code for this collision</span>
+<a name="ln-42"></a>
+<a name="ln-43"></a>      <span class="c">! Values in a coordinate frame centered on the collider barycenter and collisional system unit vectors (these are used internally by the fragment generation subroutine)</span>
+<a name="ln-44"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">xbcom</span>       <span class="c">!! Center of mass position vector of the collider system in system barycentric coordinates</span>
+<a name="ln-45"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">vbcom</span>       <span class="c">!! Velocity vector of the center of mass of the collider system in system barycentric coordinates</span>
+<a name="ln-46"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">x_coll_unit</span> <span class="c">!! x-direction unit vector of collisional system</span>
+<a name="ln-47"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">y_coll_unit</span> <span class="c">!! y-direction unit vector of collisional system</span>
+<a name="ln-48"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">z_coll_unit</span> <span class="c">!! z-direction unit vector of collisional system</span>
+<a name="ln-49"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">x_coll</span>      <span class="c">!! Array of fragment position vectors in the collisional coordinate frame</span>
+<a name="ln-50"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">v_coll</span>      <span class="c">!! Array of fragment velocity vectors in the collisional coordinate frame</span>
+<a name="ln-51"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">v_r_unit</span>    <span class="c">!! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame</span>
+<a name="ln-52"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">v_t_unit</span>    <span class="c">!! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame</span>
+<a name="ln-53"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">v_n_unit</span>    <span class="c">!! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame</span>
+<a name="ln-54"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">rmag</span>        <span class="c">!! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame </span>
+<a name="ln-55"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">rotmag</span>      <span class="c">!! Array of rotation magnitudes of individual fragments </span>
+<a name="ln-56"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">v_r_mag</span>     <span class="c">!! Array of radial direction velocity magnitudes of individual fragments </span>
+<a name="ln-57"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">v_t_mag</span>     <span class="c">!! Array of tangential direction velocity magnitudes of individual fragments</span>
+<a name="ln-58"></a>
+<a name="ln-59"></a>      <span class="c">! Energy and momentum book-keeping variables that characterize the whole system of fragments</span>
+<a name="ln-60"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">ke_orbit</span>  <span class="c">!! Current orbital kinetic energy of the system of fragments in the collisional frame</span>
+<a name="ln-61"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">ke_spin</span>   <span class="c">!! Current spin kinetic energy of the system of fragments in the collisional frame</span>
+<a name="ln-62"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">L_orbit</span>   <span class="c">!! Current orbital angular momentum of the system of fragments in the collisional frame  </span>
+<a name="ln-63"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">L_spin</span>    <span class="c">!! Current spin angular momentum of the system of fragments in the collisional frame</span>
+<a name="ln-64"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">ke_budget</span> <span class="c">!! Total kinetic energy budget for the system of fragmens in the collisional frame</span>
+<a name="ln-65"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">L_budget</span>  <span class="c">!! Total angular momentum budget for the system of fragmens in the collisional frame</span>
+<a name="ln-66"></a>
+<a name="ln-67"></a>      <span class="c">! For the following variables, &quot;before&quot; refers to the *entire* n-body system in its pre-collisional state and &quot;after&quot; refers to the system in its post-collisional state</span>
+<a name="ln-68"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">Lorbit_before</span><span class="p">,</span> <span class="n">Lorbit_after</span>     <span class="c">!! Before/after orbital angular momentum </span>
+<a name="ln-69"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">Lspin_before</span><span class="p">,</span> <span class="n">Lspin_after</span>       <span class="c">!! Before/after spin angular momentum </span>
+<a name="ln-70"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">Ltot_before</span><span class="p">,</span> <span class="n">Ltot_after</span>         <span class="c">!! Before/after total system angular momentum </span>
+<a name="ln-71"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">ke_orbit_before</span><span class="p">,</span> <span class="n">ke_orbit_after</span> <span class="c">!! Before/after orbital kinetic energy</span>
+<a name="ln-72"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">ke_spin_before</span><span class="p">,</span> <span class="n">ke_spin_after</span>   <span class="c">!! Before/after spin kinetic energy</span>
+<a name="ln-73"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">pe_before</span><span class="p">,</span> <span class="n">pe_after</span>             <span class="c">!! Before/after potential energy</span>
+<a name="ln-74"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                  <span class="kd">::</span> <span class="n">Etot_before</span><span class="p">,</span> <span class="n">Etot_after</span>         <span class="c">!! Before/after total system energy</span>
+<a name="ln-75"></a>
+<a name="ln-76"></a>      <span class="c">! Scale factors used to scale dimensioned quantities to a more &quot;natural&quot; system where important quantities (like kinetic energy, momentum) are of order ~1</span>
+<a name="ln-77"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span> <span class="kd">::</span> <span class="n">dscale</span> <span class="c">!! Distance dimension scale factor</span>
+<a name="ln-78"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span> <span class="kd">::</span> <span class="n">mscale</span> <span class="c">!! Mass scale factor</span>
+<a name="ln-79"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span> <span class="kd">::</span> <span class="n">tscale</span> <span class="c">!! Time scale factor</span>
+<a name="ln-80"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span> <span class="kd">::</span> <span class="n">vscale</span> <span class="c">!! Velocity scale factor (a convenience unit that is derived from dscale and tscale)</span>
+<a name="ln-81"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span> <span class="kd">::</span> <span class="n">Escale</span> <span class="c">!! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)</span>
+<a name="ln-82"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span> <span class="kd">::</span> <span class="n">Lscale</span> <span class="c">!! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)</span>
+<a name="ln-83"></a>   <span class="k">contains</span>
+<a name="ln-84"></a><span class="k">      procedure</span> <span class="kd">::</span> <span class="n">generate_fragments</span>      <span class="o">=&gt;</span> <span class="n">fraggle_generate_fragments</span>         <span class="c">!! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.</span>
+<a name="ln-85"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">accel</span>                   <span class="o">=&gt;</span> <span class="n">fraggle_placeholder_accel</span>          <span class="c">!! Placeholder subroutine to fulfill requirement for an accel method</span>
+<a name="ln-86"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">kick</span>                    <span class="o">=&gt;</span> <span class="n">fraggle_placeholder_kick</span>           <span class="c">!! Placeholder subroutine to fulfill requirement for a kick method</span>
+<a name="ln-87"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">step</span>                    <span class="o">=&gt;</span> <span class="n">fraggle_placeholder_step</span>           <span class="c">!! Placeholder subroutine to fulfill requirement for a step method</span>
+<a name="ln-88"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">set_budgets</span>             <span class="o">=&gt;</span> <span class="n">fraggle_set_budgets_fragments</span>      <span class="c">!! Sets the energy and momentum budgets of the fragments based on the collider value</span>
+<a name="ln-89"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">set_coordinate_system</span>   <span class="o">=&gt;</span> <span class="n">fraggle_set_coordinate_system</span>      <span class="c">!! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments. </span>
+<a name="ln-90"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">set_mass_dist</span>           <span class="o">=&gt;</span> <span class="n">fraggle_set_mass_dist_fragments</span>    <span class="c">!! Sets the distribution of mass among the fragments depending on the regime type</span>
+<a name="ln-91"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">set_natural_scale</span>       <span class="o">=&gt;</span> <span class="n">fraggle_set_natural_scale_factors</span>  <span class="c">!! Scales dimenional quantities to ~O(1) with respect to the collisional system.  </span>
+<a name="ln-92"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">set_original_scale</span>      <span class="o">=&gt;</span> <span class="n">fraggle_set_original_scale_factors</span> <span class="c">!! Restores dimenional quantities back to the original system units</span>
+<a name="ln-93"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">setup</span>                   <span class="o">=&gt;</span> <span class="n">fraggle_setup_fragments</span>            <span class="c">!! Allocates arrays for n fragments in a Fraggle system. Passing n = 0 deallocates all arrays.</span>
+<a name="ln-94"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">reset</span>                   <span class="o">=&gt;</span> <span class="n">fraggle_setup_reset_fragments</span>      <span class="c">!! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)</span>
+<a name="ln-95"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get_ang_mtm</span>             <span class="o">=&gt;</span> <span class="n">fraggle_util_ang_mtm</span>               <span class="c">!! Calcualtes the current angular momentum of the fragments</span>
+<a name="ln-96"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">get_energy_and_momentum</span> <span class="o">=&gt;</span> <span class="n">fraggle_util_get_energy_momentum</span>   <span class="c">!! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)</span>
+<a name="ln-97"></a>      <span class="k">procedure</span> <span class="kd">::</span> <span class="n">restructure</span>             <span class="o">=&gt;</span> <span class="n">fraggle_util_restructure</span>           <span class="c">!! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints</span>
+<a name="ln-98"></a>   <span class="k">end type </span><span class="n">fraggle_fragments</span>
+<a name="ln-99"></a>
+<a name="ln-100"></a>   <span class="k">interface</span>
+<a name="ln-101"></a><span class="k">      module subroutine </span><span class="n">fraggle_generate_fragments</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-102"></a>         <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_parameters</span>
+<a name="ln-103"></a>         <span class="k">implicit none</span>
+<a name="ln-104"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object </span>
+<a name="ln-105"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle colliders object containing the two-body equivalent values of the colliding bodies </span>
+<a name="ln-106"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="nb">system</span>    <span class="c">!! Swiftest nbody system object</span>
+<a name="ln-107"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>     <span class="c">!! Current run configuration parameters </span>
+<a name="ln-108"></a>         <span class="kt">logical</span><span class="p">,</span>                      <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">lfailure</span>  <span class="c">!! Answers the question: Should this have been a merger instead?</span>
+<a name="ln-109"></a>      <span class="k">end subroutine </span><span class="n">fraggle_generate_fragments</span>
+<a name="ln-110"></a>
+<a name="ln-111"></a>      <span class="k">module subroutine </span><span class="n">fraggle_io_log_generate</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+<a name="ln-112"></a>         <span class="k">implicit none</span>
+<a name="ln-113"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">frag</span>
+<a name="ln-114"></a>      <span class="k">end subroutine </span><span class="n">fraggle_io_log_generate</span>
+<a name="ln-115"></a>
+<a name="ln-116"></a>      <span class="k">module subroutine </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<a name="ln-117"></a>         <span class="k">implicit none</span>
+<a name="ln-118"></a><span class="k">         </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">message</span>
+<a name="ln-119"></a>         <span class="kt">character</span><span class="p">(</span><span class="n">STRMAX</span><span class="p">)</span> <span class="kd">::</span> <span class="n">errmsg</span>
+<a name="ln-120"></a>      <span class="k">end subroutine </span><span class="n">fraggle_io_log_one_message</span>
+<a name="ln-121"></a>
+<a name="ln-122"></a>      <span class="k">module subroutine </span><span class="n">fraggle_io_log_pl</span><span class="p">(</span><span class="n">pl</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<a name="ln-123"></a>         <span class="k">implicit none</span>
+<a name="ln-124"></a><span class="k">         class</span><span class="p">(</span><span class="n">swiftest_pl</span><span class="p">),</span>         <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">pl</span>    <span class="c">!! Swiftest massive body object (only the new bodies generated in a collision)</span>
+<a name="ln-125"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">param</span> <span class="c">!! Current swiftest run configuration parameters</span>
+<a name="ln-126"></a>      <span class="k">end subroutine </span><span class="n">fraggle_io_log_pl</span>
+<a name="ln-127"></a>
+<a name="ln-128"></a>      <span class="k">module subroutine </span><span class="n">fraggle_io_log_regime</span><span class="p">(</span><span class="n">colliders</span><span class="p">,</span> <span class="n">frag</span><span class="p">)</span>
+<a name="ln-129"></a>         <span class="k">implicit none</span>
+<a name="ln-130"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span>
+<a name="ln-131"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">frag</span>
+<a name="ln-132"></a>      <span class="k">end subroutine </span><span class="n">fraggle_io_log_regime</span>
+<a name="ln-133"></a>
+<a name="ln-134"></a>      <span class="k">module subroutine </span><span class="n">fraggle_io_log_start</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+<a name="ln-135"></a>         <span class="k">implicit none</span>
+<a name="ln-136"></a><span class="k">         class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">param</span>
+<a name="ln-137"></a>      <span class="k">end subroutine </span><span class="n">fraggle_io_log_start</span>
+<a name="ln-138"></a>
+<a name="ln-139"></a>      <span class="c">!&gt; The following interfaces are placeholders intended to satisfy the required abstract methods given by the parent class</span>
+<a name="ln-140"></a>      <span class="k">module subroutine </span><span class="n">fraggle_placeholder_accel</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">lbeg</span><span class="p">)</span>
+<a name="ln-141"></a>         <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_parameters</span>
+<a name="ln-142"></a>         <span class="k">implicit none</span>
+<a name="ln-143"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object </span>
+<a name="ln-144"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="nb">system</span> <span class="c">!! Swiftest nbody system object</span>
+<a name="ln-145"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>  <span class="c">!! Current run configuration parameters </span>
+<a name="ln-146"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                     <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">t</span>      <span class="c">!! Current simulation time</span>
+<a name="ln-147"></a>         <span class="kt">logical</span><span class="p">,</span>                      <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">lbeg</span>   <span class="c">!! Optional argument that determines whether or not this is the beginning or end of the step</span>
+<a name="ln-148"></a>      <span class="k">end subroutine </span><span class="n">fraggle_placeholder_accel</span>
+<a name="ln-149"></a>
+<a name="ln-150"></a>      <span class="k">module subroutine </span><span class="n">fraggle_placeholder_kick</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">lbeg</span><span class="p">)</span>
+<a name="ln-151"></a>         <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span>  <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_parameters</span>
+<a name="ln-152"></a>         <span class="k">implicit none</span>
+<a name="ln-153"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>   <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-154"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="nb">system</span> <span class="c">!! Swiftest nbody system objec</span>
+<a name="ln-155"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>  <span class="c">!! Current run configuration parameters </span>
+<a name="ln-156"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                     <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">t</span>      <span class="c">!! Current time</span>
+<a name="ln-157"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                     <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">dt</span>     <span class="c">!! Stepsize</span>
+<a name="ln-158"></a>         <span class="kt">logical</span><span class="p">,</span>                      <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">lbeg</span>   <span class="c">!! Logical flag indicating whether this is the beginning of the half step or not. </span>
+<a name="ln-159"></a>      <span class="k">end subroutine </span><span class="n">fraggle_placeholder_kick</span>
+<a name="ln-160"></a>
+<a name="ln-161"></a>      <span class="k">module subroutine </span><span class="n">fraggle_placeholder_step</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+<a name="ln-162"></a>         <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_parameters</span>
+<a name="ln-163"></a>         <span class="k">implicit none</span>
+<a name="ln-164"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>   <span class="c">!! Helio massive body particle object</span>
+<a name="ln-165"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="nb">system</span> <span class="c">!! Swiftest nboody system</span>
+<a name="ln-166"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">param</span>  <span class="c">!! Current run configuration parameters </span>
+<a name="ln-167"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                     <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">t</span>      <span class="c">!! Current simulation time</span>
+<a name="ln-168"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                     <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">dt</span>     <span class="c">!! Stepsiz</span>
+<a name="ln-169"></a>      <span class="k">end subroutine </span><span class="n">fraggle_placeholder_step</span>
+<a name="ln-170"></a>
+<a name="ln-171"></a>      <span class="k">module subroutine </span><span class="n">fraggle_regime_colliders</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">frag</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<a name="ln-172"></a>         <span class="k">implicit none </span>
+<a name="ln-173"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>   <span class="c">!! Fraggle colliders object</span>
+<a name="ln-174"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">frag</span>   <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-175"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="nb">system</span> <span class="c">!! Swiftest nbody system object</span>
+<a name="ln-176"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>  <span class="c">!! Current Swiftest run configuration parameters</span>
+<a name="ln-177"></a>      <span class="k">end subroutine </span><span class="n">fraggle_regime_colliders</span>
+<a name="ln-178"></a>
+<a name="ln-179"></a>      <span class="k">module subroutine </span><span class="n">fraggle_set_budgets_fragments</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">)</span>
+<a name="ln-180"></a>         <span class="k">implicit none</span>
+<a name="ln-181"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-182"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-183"></a>      <span class="k">end subroutine  </span><span class="n">fraggle_set_budgets_fragments</span>
+<a name="ln-184"></a>
+<a name="ln-185"></a>      <span class="k">module subroutine </span><span class="n">fraggle_set_coordinate_system</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">)</span>
+<a name="ln-186"></a>         <span class="k">implicit none</span>
+<a name="ln-187"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-188"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-189"></a>      <span class="k">end subroutine </span><span class="n">fraggle_set_coordinate_system</span>
+<a name="ln-190"></a>
+<a name="ln-191"></a>      <span class="k">module subroutine </span><span class="n">fraggle_set_mass_dist_fragments</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<a name="ln-192"></a>         <span class="k">implicit none</span>
+<a name="ln-193"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-194"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-195"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>     <span class="c">!! Current Swiftest run configuration parameters</span>
+<a name="ln-196"></a>      <span class="k">end subroutine </span><span class="n">fraggle_set_mass_dist_fragments</span>
+<a name="ln-197"></a>
+<a name="ln-198"></a>      <span class="k">module subroutine </span><span class="n">fraggle_set_natural_scale_factors</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">)</span>
+<a name="ln-199"></a>         <span class="k">implicit none</span>
+<a name="ln-200"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-201"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-202"></a>      <span class="k">end subroutine </span><span class="n">fraggle_set_natural_scale_factors</span>
+<a name="ln-203"></a>
+<a name="ln-204"></a>      <span class="k">module subroutine </span><span class="n">fraggle_set_original_scale_factors</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">)</span>
+<a name="ln-205"></a>         <span class="k">implicit none</span>
+<a name="ln-206"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-207"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-208"></a>      <span class="k">end subroutine </span><span class="n">fraggle_set_original_scale_factors</span>
+<a name="ln-209"></a>
+<a name="ln-210"></a>      <span class="k">module subroutine </span><span class="n">fraggle_setup_fragments</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<a name="ln-211"></a>         <span class="k">implicit none</span>
+<a name="ln-212"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>  <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-213"></a>         <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span>               <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">n</span>     <span class="c">!! Number of fragments</span>
+<a name="ln-214"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span> <span class="c">!! Current swiftest run configuration parameters</span>
+<a name="ln-215"></a>      <span class="k">end subroutine </span><span class="n">fraggle_setup_fragments</span>
+<a name="ln-216"></a>
+<a name="ln-217"></a>      <span class="k">module subroutine </span><span class="n">fraggle_setup_reset_fragments</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+<a name="ln-218"></a>         <span class="k">implicit none</span>
+<a name="ln-219"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>
+<a name="ln-220"></a>      <span class="k">end subroutine </span><span class="n">fraggle_setup_reset_fragments</span>
+<a name="ln-221"></a>
+<a name="ln-222"></a>      <span class="k">module subroutine </span><span class="n">fraggle_util_add_fragments_to_system</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<a name="ln-223"></a>         <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_parameters</span>
+<a name="ln-224"></a>         <span class="k">implicit none</span>
+<a name="ln-225"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">frag</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-226"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-227"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="nb">system</span>    <span class="c">!! Swiftest nbody system object</span>
+<a name="ln-228"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>     <span class="c">!! Current swiftest run configuration parameters</span>
+<a name="ln-229"></a>      <span class="k">end subroutine </span><span class="n">fraggle_util_add_fragments_to_system</span>
+<a name="ln-230"></a>
+<a name="ln-231"></a>      <span class="k">module subroutine </span><span class="n">fraggle_util_ang_mtm</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> 
+<a name="ln-232"></a>         <span class="k">implicit none</span>
+<a name="ln-233"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span> <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-234"></a>      <span class="k">end subroutine </span><span class="n">fraggle_util_ang_mtm</span>
+<a name="ln-235"></a>
+<a name="ln-236"></a>      <span class="k">module subroutine </span><span class="n">fraggle_util_construct_temporary_system</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">tmpsys</span><span class="p">,</span> <span class="n">tmpparam</span><span class="p">)</span>
+<a name="ln-237"></a>         <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_parameters</span>
+<a name="ln-238"></a>         <span class="k">implicit none</span>
+<a name="ln-239"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>                   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">frag</span>     <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-240"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span>               <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="nb">system</span>   <span class="c">!! Original swiftest nbody system object</span>
+<a name="ln-241"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>                 <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">param</span>    <span class="c">!! Current swiftest run configuration parameters</span>
+<a name="ln-242"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">allocatable</span><span class="p">,</span>  <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="kd">::</span> <span class="n">tmpsys</span>   <span class="c">!! Output temporary swiftest nbody system object</span>
+<a name="ln-243"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">allocatable</span><span class="p">,</span>  <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="kd">::</span> <span class="n">tmpparam</span> <span class="c">!! Output temporary configuration run parameters</span>
+<a name="ln-244"></a>      <span class="k">end subroutine </span><span class="n">fraggle_util_construct_temporary_system</span>
+<a name="ln-245"></a>
+<a name="ln-246"></a>      <span class="k">module subroutine </span><span class="n">fraggle_util_get_energy_momentum</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">lbefore</span><span class="p">)</span>
+<a name="ln-247"></a>         <span class="k">use </span><span class="n">swiftest_classes</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">swiftest_nbody_system</span><span class="p">,</span> <span class="n">swiftest_parameters</span>
+<a name="ln-248"></a>         <span class="k">implicit none</span>
+<a name="ln-249"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-250"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-251"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="nb">system</span>    <span class="c">!! Swiftest nbody system object</span>
+<a name="ln-252"></a>         <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>     <span class="c">!! Current swiftest run configuration parameters</span>
+<a name="ln-253"></a>         <span class="kt">logical</span><span class="p">,</span>                      <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">lbefore</span>   <span class="c">!! Flag indicating that this the &quot;before&quot; state of the system, with colliders included and fragments excluded or vice versa</span>
+<a name="ln-254"></a>      <span class="k">end subroutine </span><span class="n">fraggle_util_get_energy_momentum</span>
+<a name="ln-255"></a>
+<a name="ln-256"></a>      <span class="k">module subroutine </span><span class="n">fraggle_util_restructure</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">try</span><span class="p">,</span> <span class="n">f_spin</span><span class="p">,</span> <span class="n">r_max_start</span><span class="p">)</span>
+<a name="ln-257"></a>         <span class="k">implicit none</span>
+<a name="ln-258"></a><span class="k">         class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>        <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-259"></a>         <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">colliders</span>   <span class="c">!! Fraggle collider system object</span>
+<a name="ln-260"></a>         <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span>             <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">try</span>         <span class="c">!! The current number of times Fraggle has tried to find a solution</span>
+<a name="ln-261"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                 <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">f_spin</span>      <span class="c">!! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt</span>
+<a name="ln-262"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                 <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">r_max_start</span> <span class="c">!! The maximum radial distance that the position calculation starts with. This increases after a failed attempt</span>
+<a name="ln-263"></a>      <span class="k">end subroutine </span><span class="n">fraggle_util_restructure</span>
+<a name="ln-264"></a>
+<a name="ln-265"></a>      <span class="k">module subroutine </span><span class="n">fraggle_util_shift_vector_to_origin</span><span class="p">(</span><span class="n">m_frag</span><span class="p">,</span> <span class="n">vec_frag</span><span class="p">)</span>
+<a name="ln-266"></a>         <span class="k">implicit none</span>
+<a name="ln-267"></a><span class="k">         </span><span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">m_frag</span>    <span class="c">!! Fragment masses</span>
+<a name="ln-268"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">vec_frag</span>  <span class="c">!! Fragment positions or velocities in the center of mass frame</span>
+<a name="ln-269"></a>      <span class="k">end subroutine</span>
+<a name="ln-270"></a>
+<a name="ln-271"></a><span class="k">      module function </span><span class="n">fraggle_util_vmag_to_vb</span><span class="p">(</span><span class="n">v_r_mag</span><span class="p">,</span> <span class="n">v_r_unit</span><span class="p">,</span> <span class="n">v_t_mag</span><span class="p">,</span> <span class="n">v_t_unit</span><span class="p">,</span> <span class="n">m_frag</span><span class="p">,</span> <span class="n">vcom</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">vb</span><span class="p">)</span> 
+<a name="ln-272"></a>         <span class="k">implicit none</span>
+<a name="ln-273"></a><span class="k">         </span><span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">v_r_mag</span>   <span class="c">!! Unknown radial component of fragment velocity vector</span>
+<a name="ln-274"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">v_t_mag</span>   <span class="c">!! Tangential component of velocity vector set previously by angular momentum constraint</span>
+<a name="ln-275"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">v_r_unit</span><span class="p">,</span> <span class="n">v_t_unit</span> <span class="c">!! Radial and tangential unit vectors for each fragment</span>
+<a name="ln-276"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">m_frag</span>    <span class="c">!! Fragment masses</span>
+<a name="ln-277"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">vcom</span>      <span class="c">!! Barycentric velocity of collisional system center of mass</span>
+<a name="ln-278"></a>         <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span>   <span class="kd">::</span> <span class="n">vb</span>
+<a name="ln-279"></a>      <span class="k">end function </span><span class="n">fraggle_util_vmag_to_vb</span>
+<a name="ln-280"></a>   <span class="k">end interface</span>
+<a name="ln-281"></a>
+<a name="ln-282"></a><span class="k">end module </span><span class="n">fraggle_classes</span>
+</pre></div>
+
+    </section>
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>

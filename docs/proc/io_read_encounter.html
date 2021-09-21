@@ -203,7 +203,7 @@
     
     <div class="col-md-9" id='text'>
     <h2>
-function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
+function io_read_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
     
     
    
@@ -237,7 +237,7 @@ function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1,
   
 <tr>
   
-  <td><span class="anchor" id="variable-t~10"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-t~11"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
@@ -252,12 +252,12 @@ function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1,
   
 <tr>
   
-  <td><span class="anchor" id="variable-name1"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-id1~2"></span>integer(kind=I4B),</td>
   <td>intent(out)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>name1</strong></td><td></td>
+  <td><strong>id1</strong></td><td></td>
   
 </tr>
 
@@ -267,12 +267,12 @@ function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1,
   
 <tr>
   
-  <td><span class="anchor" id="variable-name2"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-id2~2"></span>integer(kind=I4B),</td>
   <td>intent(out)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>name2</strong></td><td></td>
+  <td><strong>id2</strong></td><td></td>
   
 </tr>
 
@@ -282,12 +282,12 @@ function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1,
   
 <tr>
   
-  <td><span class="anchor" id="variable-mass1"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-gmass1"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>mass1</strong></td><td></td>
+  <td><strong>Gmass1</strong></td><td></td>
   
 </tr>
 
@@ -297,12 +297,12 @@ function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1,
   
 <tr>
   
-  <td><span class="anchor" id="variable-mass2"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-gmass2"></span>real(kind=DP),</td>
   <td>intent(out)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>mass2</strong></td><td></td>
+  <td><strong>Gmass2</strong></td><td></td>
   
 </tr>
 
@@ -417,7 +417,7 @@ function io_read_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1,
   
 <tr>
   
-  <td><span class="anchor" id="variable-out_type~2"></span>character(len=*),</td>
+  <td><span class="anchor" id="variable-out_type~3"></span>character(len=*),</td>
   <td>intent(in)</td>
   <td></td>
   

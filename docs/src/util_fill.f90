@@ -82,6 +82,35 @@ contains
       return
    end subroutine util_fill_arr_I4B
 
+
+   module subroutine util_fill_arr_info(keeps, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Performs a fill operation on a single array of particle origin information types
+      !! This is the inverse of a spill operation
+      implicit none
+      ! Arguments
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+      logical,                      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      ! Internals
+      integer(I4B), dimension(:), allocatable  :: insert_idx
+      integer(I4B) :: i, nkeep, ninsert
+
+      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+
+      nkeep = size(keeps)
+      ninsert = count(lfill_list)
+
+      allocate(insert_idx(ninsert))
+
+      insert_idx(:) = pack([(i, i = 1, nkeep)], lfill_list)
+      call util_copy_particle_info_arr(inserts, keeps, insert_idx)
+
+      return
+   end subroutine util_fill_arr_info
+
+
    module subroutine util_fill_arr_logical(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -119,7 +148,7 @@ contains
       !> Fill all the common components
       associate(keeps => self)
          call util_fill(keeps%id, inserts%id, lfill_list)
-         call util_fill(keeps%name, inserts%name, lfill_list)
+         call util_fill(keeps%info, inserts%info, lfill_list)
          call util_fill(keeps%status, inserts%status, lfill_list)
          call util_fill(keeps%ldiscard, inserts%ldiscard, lfill_list)
          call util_fill(keeps%lmask, inserts%lmask, lfill_list)
@@ -177,6 +206,8 @@ contains
             call util_fill(keeps%vbeg, inserts%vbeg, lfill_list)
             call util_fill(keeps%Ip, inserts%Ip, lfill_list)
             call util_fill(keeps%rot, inserts%rot, lfill_list)
+
+            if (allocated(keeps%k_plpl)) deallocate(keeps%k_plpl)
             
             call util_fill_body(keeps, inserts, lfill_list)
          class default

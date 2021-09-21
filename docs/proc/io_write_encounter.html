@@ -126,8 +126,6 @@
 <div class="well well-sm">
   <ul class="list-inline" style="margin-bottom:0px;display:inline">
      
-     <li><i class="fa fa-pencil"></i> David A. Minton</li>
-     
      
      
      
@@ -136,7 +134,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.1% of total for procedures.">36 statements</a>
+    title=" 0.1% of total for procedures.">38 statements</a>
      </li> 
      
      
@@ -203,7 +201,7 @@
     
     <div class="col-md-9" id='text'>
     <h2>
-module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, radius2, xh1, xh2, vh1, vh2, enc_out, out_type)
+module subroutine io_write_encounter(self, pl, encbody, param)
     
     
    <a href='../interface/io_write_encounter.html'><button type="button" class="btn btn-info depwarn">Interface &rarr;</button></a>
@@ -214,11 +212,6 @@ module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, rad
   
 
 
-    
-    <p>Write close encounter data to output binary files
-  There is no direct file output from this subroutine</p>
-<p>Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
- Adapted from Hal Levison's Swift routine io_write_encounter.f</p>
     
 
     <h3>Arguments</h3>
@@ -239,12 +232,12 @@ module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, rad
   
 <tr>
   
-  <td><span class="anchor" id="variable-t~57"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-self~371"></span>class(<a href='../type/swiftest_encounter.html'>swiftest_encounter</a>),</td>
   <td>intent(in)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>t</strong></td><td></td>
+  <td><strong>self</strong></td><td><p>Swiftest encounter list object</p></td>
   
 </tr>
 
@@ -254,12 +247,12 @@ module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, rad
   
 <tr>
   
-  <td><span class="anchor" id="variable-name1~3"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-pl~22"></span>class(<a href='../type/swiftest_pl.html'>swiftest_pl</a>),</td>
   <td>intent(in)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>name1</strong></td><td></td>
+  <td><strong>pl</strong></td><td><p>Swiftest massive body object</p></td>
   
 </tr>
 
@@ -269,12 +262,12 @@ module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, rad
   
 <tr>
   
-  <td><span class="anchor" id="variable-name2~3"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-encbody~2"></span>class(<a href='../type/swiftest_body.html'>swiftest_body</a>),</td>
   <td>intent(in)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>name2</strong></td><td></td>
+  <td><strong>encbody</strong></td><td><p>Encountering body - Swiftest generic body object (pl or tp) </p></td>
   
 </tr>
 
@@ -284,147 +277,12 @@ module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, rad
   
 <tr>
   
-  <td><span class="anchor" id="variable-mass1~3"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-param~201"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
   <td>intent(in)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>mass1</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-mass2~3"></span>real(kind=DP),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>mass2</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-radius1~3"></span>real(kind=DP),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>radius1</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-radius2~3"></span>real(kind=DP),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>radius2</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-xh1~4"></span>real(kind=DP),</td>
-  <td>intent(in),</td>
-  <td></td>
-  
-  <td>dimension(:)</td><td>::</td>
-  <td><strong>xh1</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-xh2~4"></span>real(kind=DP),</td>
-  <td>intent(in),</td>
-  <td></td>
-  
-  <td>dimension(:)</td><td>::</td>
-  <td><strong>xh2</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-vh1~3"></span>real(kind=DP),</td>
-  <td>intent(in),</td>
-  <td></td>
-  
-  <td>dimension(:)</td><td>::</td>
-  <td><strong>vh1</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-vh2~3"></span>real(kind=DP),</td>
-  <td>intent(in),</td>
-  <td></td>
-  
-  <td>dimension(:)</td><td>::</td>
-  <td><strong>vh2</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-enc_out~4"></span>character(len=*),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>enc_out</strong></td><td></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-out_type~6"></span>character(len=*),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>out_type</strong></td><td></td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
   
 </tr>
 
@@ -448,46 +306,70 @@ module subroutine io_write_encounter(t, name1, name2, mass1, mass2, radius1, rad
 <!-- Generated by graphviz version 2.47.1 (20210417.1919)
  -->
 <!-- Title: proc~~io_write_encounter~~CallsGraph Pages: 1 -->
-<svg id="procio_write_encounterCallsGraph" width="291pt" height="32pt"
- viewBox="0.00 0.00 291.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~io_write_encounter~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<svg id="procio_write_encounterCallsGraph" width="291pt" height="116pt"
+ viewBox="0.00 0.00 291.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~io_write_encounter~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
 <title>proc~~io_write_encounter~~CallsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 287,-28 287,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-112 287,-112 287,4 -4,4"/>
 <!-- proc~io_write_encounter -->
 <g id="proc~~io_write_encounter~~CallsGraph_node1" class="node">
 <title>proc~io_write_encounter</title>
-<polygon fill="none" stroke="black" points="103,-24 0,-24 0,0 103,0 103,-24"/>
-<text text-anchor="middle" x="51.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">io_write_encounter</text>
+<polygon fill="none" stroke="black" points="103,-66 0,-66 0,-42 103,-42 103,-66"/>
+<text text-anchor="middle" x="51.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50">io_write_encounter</text>
+</g>
+<!-- ind1 -->
+<g id="proc~~io_write_encounter~~CallsGraph_node2" class="node">
+<title>ind1</title>
+<polygon fill="#777777" stroke="#777777" points="193,-108 139,-108 139,-84 193,-84 193,-108"/>
+<text text-anchor="middle" x="166" y="-93.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ind1</text>
+</g>
+<!-- proc~io_write_encounter&#45;&gt;ind1 -->
+<g id="proc~~io_write_encounter~~CallsGraph_edge1" class="edge">
+<title>proc~io_write_encounter&#45;&gt;ind1</title>
+<path fill="none" stroke="#000000" d="M84.74,-66.04C98.67,-71.24 115.01,-77.34 129.3,-82.67"/>
+<polygon fill="#000000" stroke="#000000" points="128.22,-86.01 138.81,-86.22 130.67,-79.45 128.22,-86.01"/>
 </g>
 <!-- interface~util_exit -->
-<g id="proc~~io_write_encounter~~CallsGraph_node2" class="node">
+<g id="proc~~io_write_encounter~~CallsGraph_node3" class="node">
 <title>interface~util_exit</title>
-<g id="a_proc~~io_write_encounter~~CallsGraph_node2"><a xlink:href=".././interface/util_exit.html" xlink:title="util_exit">
-<polygon fill="#a7506f" stroke="#a7506f" points="193,-24 139,-24 139,0 193,0 193,-24"/>
-<text text-anchor="middle" x="166" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
+<g id="a_proc~~io_write_encounter~~CallsGraph_node3"><a xlink:href=".././interface/util_exit.html" xlink:title="util_exit">
+<polygon fill="#a7506f" stroke="#a7506f" points="193,-66 139,-66 139,-42 193,-42 193,-66"/>
+<text text-anchor="middle" x="166" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
 </a>
 </g>
 </g>
 <!-- proc~io_write_encounter&#45;&gt;interface~util_exit -->
-<g id="proc~~io_write_encounter~~CallsGraph_edge1" class="edge">
+<g id="proc~~io_write_encounter~~CallsGraph_edge2" class="edge">
 <title>proc~io_write_encounter&#45;&gt;interface~util_exit</title>
-<path fill="none" stroke="#000000" d="M103.16,-12C111.75,-12 120.53,-12 128.66,-12"/>
-<polygon fill="#000000" stroke="#000000" points="128.92,-15.5 138.92,-12 128.92,-8.5 128.92,-15.5"/>
+<path fill="none" stroke="#000000" d="M103.16,-54C111.75,-54 120.53,-54 128.66,-54"/>
+<polygon fill="#000000" stroke="#000000" points="128.92,-57.5 138.92,-54 128.92,-50.5 128.92,-57.5"/>
+</g>
+<!-- ind2 -->
+<g id="proc~~io_write_encounter~~CallsGraph_node4" class="node">
+<title>ind2</title>
+<polygon fill="#777777" stroke="#777777" points="193,-24 139,-24 139,0 193,0 193,-24"/>
+<text text-anchor="middle" x="166" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">ind2</text>
+</g>
+<!-- proc~io_write_encounter&#45;&gt;ind2 -->
+<g id="proc~~io_write_encounter~~CallsGraph_edge3" class="edge">
+<title>proc~io_write_encounter&#45;&gt;ind2</title>
+<path fill="none" stroke="#000000" d="M84.74,-41.96C98.67,-36.76 115.01,-30.66 129.3,-25.33"/>
+<polygon fill="#000000" stroke="#000000" points="130.67,-28.55 138.81,-21.78 128.22,-21.99 130.67,-28.55"/>
 </g>
 <!-- proc~util_exit -->
-<g id="proc~~io_write_encounter~~CallsGraph_node3" class="node">
+<g id="proc~~io_write_encounter~~CallsGraph_node5" class="node">
 <title>proc~util_exit</title>
-<g id="a_proc~~io_write_encounter~~CallsGraph_node3"><a xlink:href=".././proc/util_exit.html" xlink:title="util_exit">
-<polygon fill="#d9534f" stroke="#d9534f" points="283,-24 229,-24 229,0 283,0 283,-24"/>
-<text text-anchor="middle" x="256" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
+<g id="a_proc~~io_write_encounter~~CallsGraph_node5"><a xlink:href=".././proc/util_exit.html" xlink:title="util_exit">
+<polygon fill="#d9534f" stroke="#d9534f" points="283,-66 229,-66 229,-42 283,-42 283,-66"/>
+<text text-anchor="middle" x="256" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">util_exit</text>
 </a>
 </g>
 </g>
 <!-- interface~util_exit&#45;&gt;proc~util_exit -->
-<g id="proc~~io_write_encounter~~CallsGraph_edge2" class="edge">
+<g id="proc~~io_write_encounter~~CallsGraph_edge4" class="edge">
 <title>interface~util_exit&#45;&gt;proc~util_exit</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M193.4,-12C201.39,-12 210.31,-12 218.82,-12"/>
-<polygon fill="#000000" stroke="#000000" points="218.92,-15.5 228.92,-12 218.92,-8.5 218.92,-15.5"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M193.4,-54C201.39,-54 210.31,-54 218.82,-54"/>
+<polygon fill="#000000" stroke="#000000" points="218.92,-57.5 228.92,-54 218.92,-50.5 218.92,-57.5"/>
 </g>
 </g>
 </svg>

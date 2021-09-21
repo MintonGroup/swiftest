@@ -101,7 +101,6 @@ contains
       class(swiftest_parameters),intent(in) :: self    !! Output collection of parameters
       character(len=*),          intent(in) :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
-      integer(I4B), parameter  :: LUN = 7       !! Unit number of output file
       character(STRMAX)        :: errmsg !! Error message in UDIO procedure
       integer(I4B)             :: ierr
 
@@ -160,7 +159,6 @@ contains
 
       ! Internals
       logical, save             :: lfirst = .true.
-      integer(I4B), parameter   :: LUN = 22
       integer(I4B)              :: i
       character(STRMAX)         :: errmsg
 
@@ -228,7 +226,6 @@ contains
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                   :: ierr    !! Error code
-      integer(I4B),parameter         :: LUN = 7 !! Unit number for dump file
       integer(I4B)                   :: iu = LUN
       character(len=:), allocatable  :: dump_file_name
       character(STRMAX)              :: errmsg 
@@ -410,7 +407,6 @@ contains
       ! Internals
       class(swiftest_nbody_system), allocatable :: tmpsys
       class(swiftest_parameters),   allocatable :: tmpparam
-      integer(I4B), parameter :: LUN = 76
       integer(I4B) :: ierr, iu = LUN
       character(len=STRMAX)            :: errmsg
 
@@ -426,6 +422,7 @@ contains
       end do
       if (is_iostat_end(ierr)) then
          old_t_final = tmpparam%t
+         close(iu)
          return
       end if
 
@@ -484,6 +481,54 @@ contains
    end function io_get_token
 
 
+   module subroutine io_log_one_message(file, message)
+      !! author: David A. Minton
+      !!
+      !! Writes a single message to a log file
+      implicit none
+      ! Arguments
+      character(len=*), intent(in) :: file   !! Name of file to log
+      character(len=*), intent(in) :: message
+      ! Internals
+      character(STRMAX) :: errmsg
+
+      open(unit=LUN, file=file, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      write(LUN, *) trim(adjustl(message)) 
+      close(LUN)
+
+      return
+      667 continue
+      write(*,*) "Error writing  message to log file: " // trim(adjustl(errmsg))
+   end subroutine io_log_one_message
+
+
+   module subroutine io_log_start(param, file, header)
+      !! author: David A. Minton
+      !!
+      !! Checks to see if a log file needs to be created if this is a new run, or appended if this is a restarted run
+      implicit none
+      ! Arguments
+      class(swiftest_parameters), intent(in) :: param  !! Current Swiftest run configuration parameters
+      character(len=*),           intent(in) :: file   !! Name of file to log
+      character(len=*),           intent(in) :: header !! Header to print at top of log file
+      ! Internals
+      character(STRMAX) :: errmsg
+      logical           :: fileExists
+
+      inquire(file=file, exist=fileExists)
+      if (.not.param%lrestart .or. .not.fileExists) then
+         open(unit=LUN, file=file, status="REPLACE", err = 667, iomsg = errmsg)
+         write(LUN, *, err = 667, iomsg = errmsg) trim(adjustl(header))
+      end if
+      close(LUN)
+
+      return
+
+      667 continue
+      write(*,*) "Error writing log file: " // trim(adjustl(errmsg))
+   end subroutine io_log_start
+
+
    module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -494,6 +539,7 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
       !! Adapted from Martin Duncan's Swift routine io_init_param.f
+      use, intrinsic :: iso_fortran_env
       implicit none
       ! Arguments
       class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
@@ -515,6 +561,7 @@ contains
 
       ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
       associate(param => self) 
+         open(unit = unit, file = param%param_file_name, status = 'old', err = 667, iomsg = iomsg)
          do
             read(unit = unit, fmt = linefmt, end = 1, err = 667, iomsg = iomsg) line
             line_trim = trim(adjustl(line))
@@ -616,9 +663,9 @@ contains
                case ("TIDES")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
-               case ("FLATTEN_INTERACTIONS")
+               case ("INTERACTION_LOOPS")
                   call io_toupper(param_value)
-                  if (param_value == "NO" .or. param_value == 'F') param%lflatten_interactions = .false.
+                  param%interaction_loops = param_value
                case ("FIRSTKICK")
                   call io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
@@ -669,16 +716,15 @@ contains
                   param%particle_out = param_value
                case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
-                  write(*,*) "Unknown parameter -> ",param_name
-                  iostat = -1
-                  return
+                  write(*,*) "Ignoring unknown parameter -> ",param_name
                end select
             end if
          end do
          1 continue
+         close(unit)
          iostat = 0
 
-         !! Do basic sanity checks on the input values
+         ! Do basic sanity checks on the input values
          if ((.not. t0_set) .or. (.not. tstop_set) .or. (.not. dt_set)) then
             write(iomsg,*) 'Valid simulation time not set'
             iostat = -1
@@ -746,58 +792,6 @@ contains
             return
          end if
 
-         write(*,*) "T0             = ",param%t0
-         write(*,*) "TSTOP          = ",param%tstop
-         write(*,*) "DT             = ",param%dt
-         write(*,*) "CB_IN          = ",trim(adjustl(param%incbfile))
-         write(*,*) "PL_IN          = ",trim(adjustl(param%inplfile))
-         write(*,*) "TP_IN          = ",trim(adjustl(param%intpfile))
-         write(*,*) "IN_TYPE        = ",trim(adjustl(param%in_type))
-         write(*,*) "ISTEP_OUT      = ",param%istep_out
-         write(*,*) "BIN_OUT        = ",trim(adjustl(param%outfile))
-         write(*,*) "OUT_TYPE       = ",trim(adjustl(param%out_type))
-         write(*,*) "OUT_FORM       = ",trim(adjustl(param%out_form))
-         write(*,*) "IN_FORM        = ",trim(adjustl(param%in_form))
-         write(*,*) "OUT_STAT       = ",trim(adjustl(param%out_stat))
-         write(*,*) "ISTEP_DUMP     = ",param%istep_dump
-         write(*,*) "CHK_CLOSE      = ",param%lclose
-         if (param%rmin > 0.0) then
-            write(*,*) "CHK_RMIN       = ",param%rmin
-         else
-            write(*,*) "! CHK_RMIN value will be the central body radius"
-         end if
-         if (param%rmax > 0.0_DP) write(*,*) "CHK_RMAX       = ",param%rmax
-         if (param%rmaxu > 0.0_DP) write(*,*) "CHK_EJECT      = ",param%rmaxu
-         if ((param%qmin > 0.0_DP) .or. (param%qmin_alo > 0.0_DP) .or. (param%qmin_ahi > 0.0_DP)) write(*,*) "CHK_QMIN_COORD = ",trim(adjustl(param%qmin_coord))
-         if (param%qmin > 0.0_DP) write(*,*) "CHK_QMIN       = ",param%qmin
-         if ((param%qmin_alo > 0.0_DP) .or. (param%qmin_ahi > 0.0_DP))  write(*,*) "CHK_QMIN_RANGE = ",param%qmin_alo, param%qmin_ahi
-         write(*,*) "EXTRA_FORCE    = ",param%lextra_force
-         write(*,*) "RHILL_PRESENT  = ",param%lrhill_present
-         write(*,*) "ROTATION       = ", param%lrotation
-         write(*,*) "TIDES          = ", param%ltides
-         write(*,*) "ENERGY         = ",param%lenergy
-         write(*,*) "FLATTEN_INTERACTIONS = ",param%lflatten_interactions
-         if (param%lenergy) write(*,*) "ENERGY_OUT     = ",trim(adjustl(param%energy_out))
-         write(*,*) "MU2KG          = ",param%MU2KG       
-         write(*,*) "TU2S           = ",param%TU2S        
-         write(*,*) "DU2M           = ",param%DU2M        
-         if (trim(adjustl(param%outfile)) == "") then
-            param%outfile = BIN_OUTFILE
-         end if
-         if (trim(adjustl(param%enc_out)) /= "") then
-            write(*,*) "ENC_OUT        = ",trim(adjustl(param%enc_out))
-         else
-            write(*,*) "! ENC_OUT not set: Encounters will not be recorded to file"
-         end if
-         if (trim(adjustl(param%discard_out)) /= "") then
-            write(*,*) "DISCARD_OUT    = ",trim(adjustl(param%discard_out))
-            write(*,*) "BIG_DISCARD    = ",param%lbig_discard
-         else
-            write(*,*) "! DISCARD_OUT not set: Discards will not be recorded to file"
-            param%lbig_discard = .false.
-            write(*,*) "! BIG_DISCARD    = ",param%lbig_discard
-         end if
-
          if ((param%MU2KG < 0.0_DP) .or. (param%TU2S < 0.0_DP) .or. (param%DU2M < 0.0_DP)) then
             write(iomsg,*) 'Invalid unit conversion factor'
             iostat = -1
@@ -806,11 +800,6 @@ contains
 
          ! Calculate the G for the system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
-         if (param%lgr) then
-            ! Calculate the inverse speed of light in the system units
-            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
-            param%inv_c2 = (param%inv_c2)**(-2)
-         end if
 
          associate(integrator => v_list(1))
             if ((integrator == RMVS) .or. (integrator == SYMBA)) then
@@ -824,18 +813,54 @@ contains
             ! Determine if the GR flag is set correctly for this integrator
             select case(integrator)
             case(WHM, RMVS, HELIO, SYMBA)
-               write(*,*) "GR             = ", param%lgr
             case default   
                if (param%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
                param%lgr = .false.
             end select
+
+            if (param%lgr) then
+               ! Calculate the inverse speed of light in the system units
+               param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+               param%inv_c2 = (param%inv_c2)**(-2)
+            end if
+
          end associate
 
+         select case(trim(adjustl(param%interaction_loops)))
+         case("ADAPTIVE")
+            param%ladaptive_interactions = .true.
+            param%lflatten_interactions = .true.
+            param%lflatten_encounters = .true.
+            call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         case("TRIANGULAR")
+            param%ladaptive_interactions = .false.
+            param%lflatten_interactions = .false.
+            param%lflatten_encounters = .false.
+         case("FLAT")
+            param%ladaptive_interactions = .false.
+            param%lflatten_interactions = .true.
+            param%lflatten_encounters = .true.
+         case default
+            write(*,*) "Unknown value for parameter INTERACTION_LOOPS: -> ",trim(adjustl(param%interaction_loops))
+            write(*,*) "Must be one of the following: TRIANGULAR, FLAT, or ADAPTIVE"
+            write(*,*) "Using default value of ADAPTIVE"
+            param%interaction_loops = "ADAPTIVE"
+            param%ladaptive_interactions = .true.
+            param%lflatten_interactions = .true.
+            param%lflatten_encounters = .true.
+         end select
+
          iostat = 0
+         
+         ! Print the contents of the parameter file to standard output
+         call param%writer(unit = OUTPUT_UNIT, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
+
       end associate
 
-      667 continue
       return 
+      667 continue
+      write(*,*) "Error reading param file: ", trim(adjustl(iomsg))
    end subroutine io_param_reader
 
 
@@ -868,86 +893,269 @@ contains
       integer(I4B) :: i
 
       associate(param => self)
-         write(param_name, *) "T0"; write(param_value,Rfmt) param%t0; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "TSTOP"; write(param_value, Rfmt) param%tstop; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "DT"; write(param_value, Rfmt) param%dt; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "CB_IN"; write(param_value, *) trim(adjustl(param%incbfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "PL_IN"; write(param_value, *) trim(adjustl(param%inplfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "TP_IN"; write(param_value, *) trim(adjustl(param%intpfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "IN_TYPE"; write(param_value, *) trim(adjustl(param%in_type)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "IN_FORM"; write(param_value, *) trim(adjustl(param%in_form)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         if (param%istep_dump > 0) write(param_name, *) "ISTEP_DUMP"; write(param_value, Ifmt) param%istep_dump; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("T0", param%t0, unit)
+         call io_param_writer_one("TSTOP", param%tstop, unit)
+         call io_param_writer_one("DT", param%dt, unit)
+         call io_param_writer_one("CB_IN", param%incbfile, unit)
+         call io_param_writer_one("PL_IN", param%inplfile, unit)
+         call io_param_writer_one("TP_IN", param%intpfile, unit)
+         call io_param_writer_one("IN_TYPE", param%in_type, unit)
+         call io_param_writer_one("IN_FORM", param%in_form, unit)
+         if (param%istep_dump > 0) call io_param_writer_one("ISTEP_DUMP",param%istep_dump, unit)
          if (param%istep_out > 0) then
-            write(param_name, *) "ISTEP_OUT"; write(param_value, Ifmt) param%istep_out; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "BIN_OUT"; write(param_value, *) trim(adjustl(param%outfile)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "OUT_TYPE"; write(param_value, *) trim(adjustl(param%out_type)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "OUT_FORM"; write(param_value, *) trim(adjustl(param%out_form)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "OUT_STAT"; write(param_value, *) "APPEND"; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            call io_param_writer_one("ISTEP_OUT", param%istep_out, unit)
+            call io_param_writer_one("BIN_OUT", param%outfile, unit)
+            call io_param_writer_one("OUT_TYPE", param%out_type, unit)
+            call io_param_writer_one("OUT_FORM", param%out_form, unit)
+            call io_param_writer_one("OUT_STAT", "APPEND", unit) 
          end if
-         write(param_name, *) "PARTICLE_OUT"; write(param_value, *) trim(adjustl(param%particle_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
          if (param%enc_out /= "") then
-            write(param_name, *) "ENC_OUT"; write(param_value, *) trim(adjustl(param%enc_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            call io_param_writer_one("ENC_OUT", param%enc_out, unit)
          end if
-         write(param_name, *) "CHK_RMIN"; write(param_value, Rfmt) param%rmin; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "CHK_RMAX"; write(param_value, Rfmt) param%rmax; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "CHK_EJECT"; write(param_value, Rfmt) param%rmaxu; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "CHK_QMIN"; write(param_value, Rfmt) param%qmin; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("CHK_RMIN", param%rmin, unit)
+         call io_param_writer_one("CHK_RMAX", param%rmax, unit)
+         call io_param_writer_one("CHK_EJECT", param%rmaxu, unit)
+         call io_param_writer_one("CHK_QMIN", param%qmin, unit)
          if (param%qmin >= 0.0_DP) then
-            write(param_name, *) "CHK_QMIN_COORD"; write(param_value, *) trim(adjustl(param%qmin_coord)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            allocate(param_array(2))
-            write(param_array(1)%value, Rfmt) param%qmin_alo
-            write(param_array(2)%value, Rfmt) param%qmin_ahi
-            write(param_name, *) "CHK_QMIN_RANGE"; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name), adjustl(param_array(1)%value), adjustl(param_array(2)%value)
+            call io_param_writer_one("CHK_QMIN_COORD", param%qmin_coord, unit)
+            call io_param_writer_one("CHK_QMIN_RANGE", [param%qmin_alo, param%qmin_ahi], unit)
          end if
-         write(param_name, *) "MU2KG"; write(param_value, Rfmt) param%MU2KG; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "TU2S"; write(param_value, Rfmt) param%TU2S ; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "DU2M"; write(param_value, Rfmt) param%DU2M; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "RHILL_PRESENT"; write(param_value, Lfmt) param%lrhill_present; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "EXTRA_FORCE"; write(param_value, Lfmt) param%lextra_force; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("MU2KG", param%MU2KG, unit)
+         call io_param_writer_one("TU2S", param%TU2S , unit)
+         call io_param_writer_one("DU2M", param%DU2M, unit)
+         call io_param_writer_one("RHILL_PRESENT", param%lrhill_present, unit)
+         call io_param_writer_one("EXTRA_FORCE", param%lextra_force, unit)
          if (param%discard_out /= "") then 
-            write(param_name, *) "DISCARD_OUT"; write(param_value, *) trim(adjustl(param%discard_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            call io_param_writer_one("DISCARD_OUT", param%discard_out, unit)
          end if
          if (param%discard_out /= "") then
-            write(param_name, *) "BIG_DISCARD"; write(param_value, Lfmt) param%lbig_discard; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            call io_param_writer_one("BIG_DISCARD", param%lbig_discard, unit)
          end if
-         write(param_name, *) "CHK_CLOSE"; write(param_value, Lfmt) param%lclose; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "ENERGY"; write(param_value, Lfmt)  param%lenergy; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("CHK_CLOSE", param%lclose, unit)
+         call io_param_writer_one("ENERGY", param%lenergy, unit)
          if (param%lenergy .and. (param%energy_out /= "")) then 
-            write(param_name, *) "ENERGY_OUT"; write(param_value, *) trim(adjustl(param%energy_out)); write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            call io_param_writer_one("ENERGY_OUT", param%energy_out, unit)
          end if
-         write(param_name, *) "GR"; write(param_value, Lfmt)  param%lgr; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "ROTATION"; write(param_value, Lfmt)  param%lrotation; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "TIDES"; write(param_value, Lfmt)  param%ltides; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "FLATTEN_INTERACTIONS"; write(param_value, Lfmt)  param%lflatten_interactions; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("GR", param%lgr, unit)
+         call io_param_writer_one("ROTATION", param%lrotation, unit)
+         call io_param_writer_one("TIDES", param%ltides, unit)
+         call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
 
          if (param%lenergy) then
-            write(param_name, *) "FIRSTENERGY"; write(param_value, Lfmt) param%lfirstenergy; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "EORBIT_ORIG"; write(param_value, Rfmt) param%Eorbit_orig; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "GMTOT_ORIG"; write(param_value, Rfmt) param%GMtot_orig; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "LTOT_ORIG"; write(v1, Rfmt) param%Ltot_orig(1); write(v2, Rfmt) param%Ltot_orig(2); write(v3, Rfmt) param%Ltot_orig(3)  
-               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
-            write(param_name, *) "LORBIT_ORIG"; write(v1, Rfmt) param%Lorbit_orig(1); write(v2, Rfmt) param%Lorbit_orig(2); write(v3, Rfmt) param%Lorbit_orig(3)  
-               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
-            write(param_name, *) "LSPIN_ORIG"; write(v1, Rfmt) param%Lspin_orig(1); write(v2, Rfmt) param%Lspin_orig(2); write(v3, Rfmt) param%Lspin_orig(3)  
-               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
-            write(param_name, *) "LESCAPE"; write(v1, Rfmt) param%Lescape(1); write(v2, Rfmt) param%Lescape(2); write(v3, Rfmt) param%Lescape(3)  
-               write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(v1)) // " " // trim(adjustl(v2)) // " " // trim(adjustl(v3))
-   
-            write(param_name, *) "GMESCAPE"; write(param_value, Rfmt) param%GMescape; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "ECOLLISIONS"; write(param_value, Rfmt) param%Ecollisions; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-            write(param_name, *) "EUNTRACKED"; write(param_value, Rfmt) param%Euntracked; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+            call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
+            call io_param_writer_one("EORBIT_ORIG", param%Eorbit_orig, unit)
+            call io_param_writer_one("GMTOT_ORIG", param%GMtot_orig, unit)
+            call io_param_writer_one("LTOT_ORIG", param%Ltot_orig(:), unit)
+            call io_param_writer_one("LORBIT_ORIG", param%Lorbit_orig(:), unit)
+            call io_param_writer_one("LSPIN_ORIG", param%Lspin_orig(:), unit)
+            call io_param_writer_one("LESCAPE", param%Lspin_orig(:), unit)
+            call io_param_writer_one("GMESCAPE",param%GMescape, unit)
+            call io_param_writer_one("ECOLLISIONS",param%Ecollisions, unit)
+            call io_param_writer_one("EUNTRACKED",param%Euntracked, unit)
          end if
-         write(param_name, *) "FIRSTKICK"; write(param_value, Lfmt) param%lfirstkick; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "MAXID"; write(param_value, Ifmt) param%maxid; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
+         call io_param_writer_one("MAXID",param%maxid, unit)
    
          iostat = 0
          iomsg = "UDIO not implemented"
       end associate
 
       667 continue
-
       return
    end subroutine io_param_writer
+
+
+   module subroutine io_param_writer_one_char(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for character param_value type
+      implicit none
+      ! Arguments
+      character(len=*), intent(in) :: param_name  !! Name of parameter to print
+      character(len=*), intent(in) :: param_value !! Value of parameter to print
+      integer(I4B),     intent(in) :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=NAMELEN) :: param_name_fixed_width !! Parameter label converted to fixed-width string
+      character(len=STRMAX)  :: iomsg             !! Message to pass if iostat /= 0
+
+      write(param_name_fixed_width, *) param_name
+      write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name_fixed_width) // " " // trim(adjustl(param_value)) 
+
+      return
+      667 continue
+      write(*,*) 'Error writing parameter: ',trim(adjustl(iomsg))
+   end subroutine io_param_writer_one_char
+
+
+   module subroutine io_param_writer_one_DP(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for real(DP) param_value type
+      implicit none
+      ! Arguments
+      character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+      real(DP),         intent(in)    :: param_value !! Value of parameter to print
+      integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
+      character(*),parameter :: Rfmt  = '(ES25.17)' !! Format label for real values 
+
+      write(param_value_string,Rfmt) param_value
+      call io_param_writer_one(param_name, param_value_string, unit)
+
+      return
+   end subroutine io_param_writer_one_DP
+
+
+   module subroutine io_param_writer_one_DParr(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for real(DP) arrays () param_value type
+      implicit none
+      ! Arguments
+      character(len=*),       intent(in) :: param_name  !! Name of parameter to print
+      real(DP), dimension(:), intent(in) :: param_value !! Value of parameter to print
+      integer(I4B),           intent(in) :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
+      character(*),parameter :: Rfmt  = '(ES25.17)' !! Format label for real values 
+      character(len=25) :: arr_val
+      integer(I4B) :: i, narr
+
+      narr = size(param_value)
+      do i = 1, narr
+         write(arr_val, Rfmt) param_value(i)
+         if (i == 1) then
+            write(param_value_string, *) arr_val
+         else
+            param_value_string = trim(adjustl(param_value_string)) // " " // arr_val
+         end if
+      end do
+
+      call io_param_writer_one(param_name, param_value_string, unit)
+
+      return
+   end subroutine io_param_writer_one_DParr
+
+
+   module subroutine io_param_writer_one_I4B(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for integer(I4B) param_value type
+      implicit none
+      ! Arguments
+      character(len=*), intent(in) :: param_name  !! Name of parameter to print
+      integer(I4B),     intent(in) :: param_value !! Value of parameter to print
+      integer(I4B),     intent(in) :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
+      character(*),parameter :: Ifmt  = '(I0)'      !! Format label for integer values
+
+      write(param_value_string,Ifmt) param_value
+      call io_param_writer_one(param_name, param_value_string, unit)
+
+      return
+   end subroutine io_param_writer_one_I4B
+
+
+   module subroutine io_param_writer_one_I8B(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for integer(I8B) param_value type
+      implicit none
+      ! Arguments
+      character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+      integer(I8B),     intent(in)    :: param_value !! Value of parameter to print
+      integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
+      character(*),parameter :: Ifmt  = '(I0)'      !! Format label for integer values
+
+      write(param_value_string,Ifmt) param_value
+      call io_param_writer_one(param_name, param_value_string, unit)
+
+      return
+   end subroutine io_param_writer_one_I8B
+
+
+   module subroutine io_param_writer_one_I4Barr(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for integer(I4B) arrays param_value type
+      implicit none
+      ! Arguments
+      character(len=*),           intent(in) :: param_name  !! Name of parameter to print
+      integer(I4B), dimension(:), intent(in) :: param_value !! Value of parameter to print
+      integer(I4B),               intent(in) :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=STRMAX) :: param_value_string !! Parameter value converted to a string
+      character(*),parameter :: Ifmt  = '(I0)'    !! Format label for integer values
+      character(len=25) :: arr_val
+      integer(I4B) :: i, narr
+
+      narr = size(param_value)
+      do i = 1, narr
+         write(arr_val, Ifmt) param_value(i)
+         if (i == 1) then
+            write(param_value_string, *) trim(adjustl(arr_val))
+         else
+            param_value_string = trim(adjustl(param_value_string)) // " " // trim(adjustl(arr_val))
+         end if
+      end do
+
+      call io_param_writer_one(param_name, param_value_string, unit)
+
+      return
+   end subroutine io_param_writer_one_I4Barr
+
+
+   module subroutine io_param_writer_one_logical(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for logical param_value type
+      implicit none
+      ! Arguments
+      character(len=*), intent(in) :: param_name  !! Name of parameter to print
+      logical,          intent(in) :: param_value !! Value of parameter to print
+      integer(I4B),     intent(in) :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
+      character(*),parameter :: Lfmt  = '(L1)'         !! Format label for logical values 
+
+      write(param_value_string,Lfmt) param_value
+      call io_param_writer_one(param_name, param_value_string, unit)
+
+      return
+   end subroutine io_param_writer_one_logical
+
+
+   module subroutine io_param_writer_one_QP(param_name, param_value, unit)
+      !! author: David A. Minton
+      !!
+      !! Writes a single parameter name/value pair to a file unit. 
+      !! This version is for real(QP) param_value type
+      implicit none
+      ! Arguments
+      character(len=*), intent(in) :: param_name  !! Name of parameter to print
+      real(QP),         intent(in) :: param_value !! Value of parameter to print
+      integer(I4B),     intent(in) :: unit        !! Open file unit number to print parameter to
+      ! Internals
+      character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
+      character(*),parameter :: Rfmt  = '(ES25.17)' !! Format label for real values 
+
+      write(param_value_string,Rfmt) param_value
+      call io_param_writer_one(param_name, param_value_string, unit)
+
+      return
+   end subroutine io_param_writer_one_QP
 
 
    module subroutine io_read_in_body(self, param) 
@@ -962,7 +1170,6 @@ contains
       class(swiftest_body),       intent(inout) :: self   !! Swiftest particle object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B), parameter       :: LUN = 7              !! Unit number of input file
       integer(I4B)                  :: iu = LUN
       integer(I4B)                  :: i, nbody
       logical                       :: is_ascii, is_pl
@@ -1027,7 +1234,6 @@ contains
       class(swiftest_cb),         intent(inout) :: self
       class(swiftest_parameters), intent(inout) :: param
       ! Internals
-      integer(I4B), parameter :: LUN = 7              !! Unit number of input file
       integer(I4B)            :: iu = LUN
       character(len=STRMAX)   :: errmsg
       integer(I4B)            :: ierr, idold
@@ -1095,7 +1301,6 @@ contains
       integer(I4B)         :: ierr
       ! Internals
       logical , save    :: lfirst = .true.
-      integer(I4B), parameter :: lun = 30
       integer(I4B), save    :: iu = lun
 
       if (lfirst) then
@@ -1431,20 +1636,18 @@ contains
       class(swiftest_parameters),intent(inout) :: self             !! Current run configuration parameters
       character(len=*), intent(in)             :: param_file_name !! Parameter input file name (i.e. param.in)
       ! Internals
-      integer(I4B), parameter :: LUN = 7                 !! Unit number of input file
-      integer(I4B)            :: ierr = 0                !! Input error code
-      character(STRMAX)       :: errmsg           !! Error message in UDIO procedure
+      integer(I4B)      :: ierr = 0 !! Input error code
+      character(STRMAX) :: errmsg   !! Error message in UDIO procedure
 
       ! Read in name of parameter file
       write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
       write(*, *) ' '
-      100 format(A)
-      open(unit = LUN, file = param_file_name, status = 'old', iostat = ierr, err = 667, iomsg = errmsg)
+      self%param_file_name = param_file_name
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
-      !read(LUN,'(DT)', iostat= ierr, iomsg = errmsg) param
+      !read(LUN,'(DT)', iostat= ierr, iomsg = errmsg) self
       call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = errmsg)
       if (ierr == 0) return
 
@@ -1489,8 +1692,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B), parameter       :: LUN = 22
-      integer(I4B)                  :: i,  id, idx
+      integer(I4B)                  :: i, id, idx
       logical                       :: lmatch  
       character(STRMAX)             :: errmsg
       type(swiftest_particle_info), allocatable :: tmpinfo
@@ -1585,7 +1787,6 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param   !! Current run configuration parameters 
       ! Internals
-      integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: i
       logical, save :: lfirst = .true. 
       real(DP), dimension(:,:), allocatable :: vh
@@ -1670,7 +1871,6 @@ contains
       class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
       ! Internals
       logical , save          :: lfirst = .true.
-      integer(I4B), parameter :: LUN = 30
       integer(I4B)            :: k, ierr
       character(len=STRMAX)   :: errmsg
 
