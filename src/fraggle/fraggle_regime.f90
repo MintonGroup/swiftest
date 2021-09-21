@@ -182,7 +182,7 @@ contains
          Mlr = Mtot
          Mslr = 0.0_DP
          Qloss = 0.0_DP
-         call fraggle_io_log_one_message("Fragments would have mass below the minimum. Converting this collision into a merger.")
+         call io_log_one_message(FRAGGLE_LOG_OUT, "Fragments would have mass below the minimum. Converting this collision into a merger.")
       else 
          if( Vimp < Vescp) then
             regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime

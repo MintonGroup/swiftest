@@ -542,7 +542,8 @@ contains
                   if (tp%isperi(i) == -1) then
                      if (vdotr >= 0.0_DP) then
                         tp%isperi(i) = 0
-                        call orbel_xv2aqt(mu, xpc(:, i), vpc(:, i), a, peri, capm, tperi)
+                        call orbel_xv2aqt(mu, xpc(1,i), xpc(2,i), xpc(3,i), vpc(1,i), vpc(2,i), vpc(3,i), &
+                                          a, peri, capm, tperi)
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)
                         if (param%enc_out /= "") then

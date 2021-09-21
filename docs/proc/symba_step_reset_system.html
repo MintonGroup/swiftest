@@ -136,7 +136,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.1% of total for procedures.">37 statements</a>
+    title=" 0.1% of total for procedures.">49 statements</a>
      </li> 
      
      
@@ -203,7 +203,7 @@
     
     <div class="col-md-9" id='text'>
     <h2>
-module subroutine symba_step_reset_system(self)
+module subroutine symba_step_reset_system(self, param)
     
     
    <a href='../interface/symba_step_reset_system.html'><button type="button" class="btn btn-info depwarn">Interface &rarr;</button></a>
@@ -238,12 +238,27 @@ module subroutine symba_step_reset_system(self)
   
 <tr>
   
-  <td><span class="anchor" id="variable-self~359"></span>class(<a href='../type/symba_nbody_system.html'>symba_nbody_system</a>),</td>
+  <td><span class="anchor" id="variable-self~432"></span>class(<a href='../type/symba_nbody_system.html'>symba_nbody_system</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
   <td><strong>self</strong></td><td><p>SyMBA nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-param~238"></span>class(<a href='../type/symba_parameters.html'>symba_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters with SyMBA additions</p></td>
   
 </tr>
 

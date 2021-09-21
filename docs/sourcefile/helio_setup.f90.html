@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West (someday, hopefully)">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>helio_setup.f90 &ndash; swiftest</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/swiftest_driver.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/swiftest_driver.html">Program</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>helio_setup.f90
+    <small>Source File</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 0.1% of total for source files.">15 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/helio_setup.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+  
+     <li class="active">helio_setup.f90</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#submods-0">Submodules</a></h3></div>
+  <div id="submods-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/s_helio_setup.html">s_helio_setup</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/helio_setup.f90.html#src">helio_setup.f90</a>
+  </div>
+</div>
+
+
+
+</div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">This file depends on</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: sourcefile~~helio_setup.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefilehelio_setupf90EfferentGraph" width="641pt" height="262pt"
+ viewBox="0.00 0.00 641.00 262.13" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph" class="graph" transform="scale(0.7 0.7) rotate(0) translate(4 369.36)">
+<title>sourcefile~~helio_setup.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-369.36 909,-369.36 909,4 -4,4"/>
+<!-- sourcefile~helio_setup.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~helio_setup.f90</title>
+<polygon fill="none" stroke="black" points="905,-244.36 820,-244.36 820,-220.36 905,-220.36 905,-244.36"/>
+<text text-anchor="middle" x="862.5" y="-229.96" font-family="Helvetica,sans-Serif" font-size="10.50">helio_setup.f90</text>
+</g>
+<!-- sourcefile~helio_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~helio_classes.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node2"><a xlink:href=".././sourcefile/helio_classes.f90.html" xlink:title="helio_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="536.5,-285.36 442.5,-285.36 442.5,-261.36 536.5,-261.36 536.5,-285.36"/>
+<text text-anchor="middle" x="489.5" y="-270.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_setup.f90&#45;&gt;sourcefile~helio_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~helio_setup.f90&#45;&gt;sourcefile~helio_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M819.66,-236.99C752.79,-244.38 621.72,-258.86 546.73,-267.15"/>
+<polygon fill="#000000" stroke="#000000" points="546.08,-263.7 536.53,-268.28 546.85,-270.66 546.08,-263.7"/>
+</g>
+<!-- sourcefile~swiftest.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~swiftest.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node3"><a xlink:href=".././sourcefile/swiftest.f90.html" xlink:title="swiftest.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="784,-205.36 718,-205.36 718,-181.36 784,-181.36 784,-205.36"/>
+<text text-anchor="middle" x="751" y="-190.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_setup.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~helio_setup.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M827.75,-220.35C817.06,-216.54 805.11,-212.28 793.91,-208.29"/>
+<polygon fill="#000000" stroke="#000000" points="794.92,-204.94 784.32,-204.88 792.57,-211.53 794.92,-204.94"/>
+</g>
+<!-- sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~swiftest_classes.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node4"><a xlink:href=".././sourcefile/swiftest_classes.f90.html" xlink:title="swiftest_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="250.5,-169.36 143.5,-169.36 143.5,-145.36 250.5,-145.36 250.5,-169.36"/>
+<text text-anchor="middle" x="197" y="-154.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M444.02,-261.36C416.3,-253.71 379.94,-243.39 348,-233.36"/>
+</g>
+<!-- sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~whm_classes.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node5"><a xlink:href=".././sourcefile/whm_classes.f90.html" xlink:title="whm_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="394,-285.36 300,-285.36 300,-261.36 394,-261.36 394,-285.36"/>
+<text text-anchor="middle" x="347" y="-270.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_classes.f90&#45;&gt;sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~helio_classes.f90&#45;&gt;sourcefile~whm_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M442.5,-273.36C430.24,-273.36 416.87,-273.36 404.14,-273.36"/>
+<polygon fill="#000000" stroke="#000000" points="404.11,-269.86 394.11,-273.36 404.11,-276.86 404.11,-269.86"/>
+</g>
+<!-- sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~swiftest_globals.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node8"><a xlink:href=".././sourcefile/swiftest_globals.f90.html" xlink:title="swiftest_globals.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="106,-129.36 0,-129.36 0,-105.36 106,-105.36 106,-129.36"/>
+<text text-anchor="middle" x="53" y="-114.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_globals.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-313.36C280.38,-317.95 256.69,-343.07 198,-313.36"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M459.54,-285.44C431.57,-296.17 387.72,-310.59 348,-313.36"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~helio_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~helio_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M626.5,-234.36C596.91,-241.25 564.16,-250.59 538.22,-258.4"/>
+<polygon fill="#000000" stroke="#000000" points="537.18,-255.06 528.63,-261.31 539.21,-261.76 537.18,-255.06"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M626.5,-234.36C566.22,-248.39 407.05,-251.9 348,-233.36"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-233.36C301.78,-218.48 254.45,-192.12 225.53,-174.7"/>
+<polygon fill="#000000" stroke="#000000" points="227.17,-171.6 216.81,-169.38 223.53,-177.58 227.17,-171.6"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~whm_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-313.36C469.29,-318.47 420.92,-302.33 386.31,-289.04"/>
+<polygon fill="#000000" stroke="#000000" points="387.54,-285.76 376.95,-285.39 384.99,-292.28 387.54,-285.76"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M626.5,-234.36C579.86,-245.22 579.27,-271.86 537,-294.36 517.29,-304.86 512.08,-307.63 490.5,-313.36"/>
+</g>
+<!-- sourcefile~walltime_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~walltime_classes.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node6"><a xlink:href=".././sourcefile/walltime_classes.f90.html" xlink:title="walltime_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="252,-71.36 142,-71.36 142,-47.36 252,-47.36 252,-71.36"/>
+<text text-anchor="middle" x="197" y="-56.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">walltime_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~walltime_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~walltime_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M721.11,-181.24C673.9,-162.21 576.83,-126.39 490.5,-115.36"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-115.36C450.37,-105.72 444.18,-92.81 406,-83.36 358.57,-71.63 303.6,-65.61 262.09,-62.53"/>
+<polygon fill="#000000" stroke="#000000" points="262.33,-59.03 252.11,-61.82 261.84,-66.02 262.33,-59.03"/>
+</g>
+<!-- sourcefile~rmvs_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~rmvs_classes.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node7"><a xlink:href=".././sourcefile/rmvs_classes.f90.html" xlink:title="rmvs_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="537,-205.36 442,-205.36 442,-181.36 537,-181.36 537,-205.36"/>
+<text text-anchor="middle" x="489.5" y="-190.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~rmvs_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~rmvs_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M626.5,-234.36C607.75,-238.73 561.31,-222.53 527.91,-209.22"/>
+<polygon fill="#000000" stroke="#000000" points="529.02,-205.89 518.44,-205.38 526.39,-212.38 529.02,-205.89"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M719.51,-205.49C695.22,-214.7 660.16,-227 628.5,-234.36"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-313.36C428.15,-329.42 410.29,-309.01 348,-313.36"/>
+</g>
+<!-- sourcefile~lambda_function.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node9" class="node">
+<title>sourcefile~lambda_function.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node9"><a xlink:href=".././sourcefile/lambda_function.f90.html" xlink:title="lambda_function.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="682,-50.36 573,-50.36 573,-26.36 682,-26.36 682,-50.36"/>
+<text text-anchor="middle" x="627.5" y="-35.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_function.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~lambda_function.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~lambda_function.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M741.45,-181.26C728.8,-163.48 704.21,-129.38 682,-101.36 670.41,-86.75 656.8,-70.73 646.2,-58.5"/>
+<polygon fill="#000000" stroke="#000000" points="648.62,-55.95 639.41,-50.71 643.34,-60.55 648.62,-55.95"/>
+</g>
+<!-- sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node10" class="node">
+<title>sourcefile~symba_classes.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node10"><a xlink:href=".././sourcefile/symba_classes.f90.html" xlink:title="symba_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="679,-205.36 576,-205.36 576,-181.36 679,-181.36 679,-205.36"/>
+<text text-anchor="middle" x="627.5" y="-190.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M717.76,-193.36C708.99,-193.36 699.2,-193.36 689.41,-193.36"/>
+<polygon fill="#000000" stroke="#000000" points="689.24,-189.86 679.24,-193.36 689.24,-196.86 689.24,-189.86"/>
+</g>
+<!-- sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node11" class="node">
+<title>sourcefile~fraggle_classes.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node11"><a xlink:href=".././sourcefile/fraggle_classes.f90.html" xlink:title="fraggle_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="399.5,-129.36 294.5,-129.36 294.5,-105.36 399.5,-105.36 399.5,-129.36"/>
+<text text-anchor="middle" x="347" y="-114.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-115.36C462.88,-112.09 434.42,-111.87 409.85,-112.73"/>
+<polygon fill="#000000" stroke="#000000" points="409.42,-109.25 399.58,-113.16 409.72,-116.24 409.42,-109.25"/>
+</g>
+<!-- sourcefile~swiftest_operators.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_node12" class="node">
+<title>sourcefile~swiftest_operators.f90</title>
+<g id="a_sourcefile~~helio_setup.f90~~EfferentGraph_node12"><a xlink:href=".././sourcefile/swiftest_operators.f90.html" xlink:title="swiftest_operators.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="406,-365.36 288,-365.36 288,-341.36 406,-341.36 406,-365.36"/>
+<text text-anchor="middle" x="347" y="-350.96" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_operators.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_operators.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_operators.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-313.36C458.62,-321.31 425.33,-330.76 398.66,-338.48"/>
+<polygon fill="#000000" stroke="#000000" points="397.41,-335.2 388.78,-341.35 399.36,-341.92 397.41,-335.2"/>
+</g>
+<!-- sourcefile~swiftest_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~swiftest_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M153.4,-145.36C138.79,-141.25 122.26,-136.59 106.93,-132.27"/>
+<polygon fill="#000000" stroke="#000000" points="107.64,-128.84 97.07,-129.5 105.74,-135.58 107.64,-128.84"/>
+</g>
+<!-- sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M313.58,-261.32C304.92,-257.45 295.81,-252.75 288,-247.36 258.87,-227.29 230.97,-197.11 214.16,-177.33"/>
+<polygon fill="#000000" stroke="#000000" points="216.75,-174.98 207.66,-169.55 211.38,-179.47 216.75,-174.98"/>
+</g>
+<!-- sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge18" class="edge">
+<title>sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M196,-313.36C122.75,-276.29 78.59,-181.63 61.79,-138.89"/>
+<polygon fill="#000000" stroke="#000000" points="65.02,-137.53 58.19,-129.43 58.48,-140.03 65.02,-137.53"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M318.42,-285.48C281.72,-300.81 219.02,-324 198,-313.36"/>
+</g>
+<!-- sourcefile~walltime_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge19" class="edge">
+<title>sourcefile~walltime_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M166.58,-71.38C145.16,-80.13 115.94,-92.06 92.64,-101.58"/>
+<polygon fill="#000000" stroke="#000000" points="91.32,-98.34 83.38,-105.36 93.97,-104.82 91.32,-98.34"/>
+</g>
+<!-- sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge20" class="edge">
+<title>sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~whm_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M471.61,-205.56C455.27,-217.08 429.58,-234.47 406,-247.36 399.89,-250.71 393.26,-253.99 386.74,-257.02"/>
+<polygon fill="#000000" stroke="#000000" points="385.01,-253.97 377.35,-261.29 387.9,-260.34 385.01,-253.97"/>
+</g>
+<!-- sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge21" class="edge">
+<title>sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M444.54,-181.34C366.43,-160.05 210.45,-117.89 198,-117.36"/>
+</g>
+<!-- sourcefile~lambda_function.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge22" class="edge">
+<title>sourcefile~lambda_function.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M578.57,-26.29C488.58,-6.16 290.1,26.04 142,-38.36 112.15,-51.34 85.52,-78.55 69.57,-97.38"/>
+<polygon fill="#000000" stroke="#000000" points="66.86,-95.16 63.22,-105.11 72.27,-99.61 66.86,-95.16"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~helio_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge26" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~helio_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M601.18,-205.47C592.17,-209.95 582.03,-215.2 573,-220.36 553.67,-231.41 532.56,-245 516.53,-255.66"/>
+<polygon fill="#000000" stroke="#000000" points="514.56,-252.77 508.19,-261.24 518.45,-258.58 514.56,-252.77"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge23" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-153.36C412.11,-132.65 320.22,-138.83 260.53,-146.72"/>
+<polygon fill="#000000" stroke="#000000" points="259.93,-143.27 250.51,-148.1 260.89,-150.21 259.93,-143.27"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~rmvs_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge24" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~rmvs_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M575.86,-193.36C566.54,-193.36 556.76,-193.36 547.27,-193.36"/>
+<polygon fill="#000000" stroke="#000000" points="547.14,-189.86 537.14,-193.36 547.14,-196.86 547.14,-189.86"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge25" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M585.76,-181.29C558.75,-173.31 522.53,-162.65 490.5,-153.36"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-153.36C466.16,-146.89 461.07,-142.67 442,-129.36 424.2,-116.94 426.23,-104.23 406,-96.36 357.12,-77.35 340.1,-90.37 288,-96.36 247.2,-101.06 239.07,-117.23 198,-117.36"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M196,-117.36C169.89,-117.02 141.08,-116.96 116.28,-117.01"/>
+<polygon fill="#000000" stroke="#000000" points="116.26,-113.51 106.27,-117.03 116.28,-120.51 116.26,-113.51"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge27" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M488.5,-153.36C461.57,-146.06 431.64,-138.34 406.34,-131.93"/>
+<polygon fill="#000000" stroke="#000000" points="407.08,-128.5 396.53,-129.44 405.37,-135.29 407.08,-128.5"/>
+</g>
+<!-- sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge28" class="edge">
+<title>sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M301.6,-129.37C286.15,-133.54 268.65,-138.27 252.49,-142.64"/>
+<polygon fill="#000000" stroke="#000000" points="251.37,-139.31 242.63,-145.3 253.2,-146.07 251.37,-139.31"/>
+</g>
+<!-- sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge29" class="edge">
+<title>sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M294.27,-118.43C265.84,-118.75 229.96,-118.71 198,-117.36"/>
+</g>
+<!-- sourcefile~swiftest_operators.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~helio_setup.f90~~EfferentGraph_edge30" class="edge">
+<title>sourcefile~swiftest_operators.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M287.77,-343.39C259.66,-337.16 226.02,-327.55 198,-313.36"/>
+</g>
+</g>
+</svg>
+</div><script>var pansourcefilehelio_setupf90EfferentGraph = svgPanZoom('#sourcefilehelio_setupf90EfferentGraph', {zoomEnabled: true,controlIconsEnabled: true, fit: true, center: true,}); </script><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="190pt" height="32pt"
+ viewBox="0.00 0.00 190.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 186,-28 186,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="67,-24 0,-24 0,0 67,0 67,-24"/>
+<text text-anchor="middle" x="33.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="182,-24 85,-24 85,0 182,0 182,-24"/>
+<text text-anchor="middle" x="133.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a file to a file which it depends on. A file
+    is dependent upon another if the latter must be compiled before the former
+    can be.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+    
+      
+      <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#submods-1">Submodules</a></h3></div>
+  <div id="submods-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/s_helio_setup.html">s_helio_setup</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/helio_setup.f90.html#src">helio_setup.f90</a>
+  </div>
+</div>
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    <section>
+      <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl"><pre><span></span><a name="ln-1"></a><span class="k">submodule</span><span class="p">(</span><span class="n">helio_classes</span><span class="p">)</span> <span class="n">s_helio_setup</span>
+<a name="ln-2"></a>   <span class="k">use </span><span class="n">swiftest</span>
+<a name="ln-3"></a><span class="k">contains</span>
+<a name="ln-4"></a>
+<a name="ln-5"></a><span class="k">   module subroutine </span><span class="n">helio_setup_initialize_system</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<a name="ln-6"></a>      <span class="c">!! author: David A. Minton</span>
+<a name="ln-7"></a>      <span class="c">!!</span>
+<a name="ln-8"></a>      <span class="c">!! Initialize a Helio nbody system from files, converting all heliocentric quantities to barycentric.</span>
+<a name="ln-9"></a>      <span class="c">!!</span>
+<a name="ln-10"></a>      <span class="k">implicit none</span>
+<a name="ln-11"></a>      <span class="c">! Arguments</span>
+<a name="ln-12"></a>      <span class="k">class</span><span class="p">(</span><span class="n">helio_nbody_system</span><span class="p">),</span>  <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>   <span class="c">!! Helio nbody system object</span>
+<a name="ln-13"></a>      <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">param</span>  <span class="c">!! Current run configuration parameters </span>
+<a name="ln-14"></a>
+<a name="ln-15"></a>      <span class="k">call </span><span class="n">whm_setup_initialize_system</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span>
+<a name="ln-16"></a>      <span class="k">call </span><span class="n">self</span><span class="p">%</span><span class="n">pl</span><span class="p">%</span><span class="n">h2b</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">cb</span><span class="p">)</span>
+<a name="ln-17"></a>      <span class="k">call </span><span class="n">self</span><span class="p">%</span><span class="n">tp</span><span class="p">%</span><span class="n">h2b</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">cb</span><span class="p">)</span>
+<a name="ln-18"></a>      <span class="k">call </span><span class="n">self</span><span class="p">%</span><span class="n">pl</span><span class="p">%</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;mass&quot;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<a name="ln-19"></a>      <span class="k">call </span><span class="n">self</span><span class="p">%</span><span class="n">pl</span><span class="p">%</span><span class="nb">index</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+<a name="ln-20"></a>
+<a name="ln-21"></a>      <span class="k">return</span>
+<a name="ln-22"></a><span class="k">   end subroutine </span><span class="n">helio_setup_initialize_system</span>
+<a name="ln-23"></a>
+<a name="ln-24"></a><span class="k">end submodule </span><span class="n">s_helio_setup</span>
+</pre></div>
+
+    </section>
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>

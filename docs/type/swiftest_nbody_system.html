@@ -134,7 +134,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title="<p> 6.3% of total for derived types.</p>Including implementation: 34 statements,  4.9% of total for derived types.">34 statements</a>
+    title="<p> 5.2% of total for derived types.</p>Including implementation: 38 statements,  4.3% of total for derived types.">38 statements</a>
      </li> 
      
      
@@ -179,8 +179,6 @@
   <div id="vars-0" class="panel-collapse collapse">
     <div class="list-group">
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lintegrate">lintegrate</a>
-      
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-cb">cb</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-pl">pl</a>
@@ -191,7 +189,7 @@
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-pl_discards">pl_discards</a>
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-gmtot">Gmtot</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-gmtot">GMtot</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-ke_orbit">ke_orbit</a>
       
@@ -201,21 +199,15 @@
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-te">te</a>
       
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-oblpot">oblpot</a>
+      
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lorbit">Lorbit</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lspin">Lspin</a>
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lescape">Lescape</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-mescape">Mescape</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-ecollisions">Ecollisions</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-euntracked">Euntracked</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-ltot">Ltot</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lbeg">lbeg</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-maxid">maxid</a>
       
     </div>
   </div>
@@ -243,7 +235,7 @@
   <div id="boundprocs-0" class="panel-collapse collapse">
     <div class="list-group">
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-step~10">step</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-step~11">step</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-discard">discard</a>
       
@@ -251,13 +243,25 @@
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-dump">dump</a>
       
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-get_old_t_final">get_old_t_final</a>
+      
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-read_frame">read_frame</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-read_particle_info">read_particle_info</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_discard">write_discard</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_frame">write_frame</a>
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-initialize~7">initialize</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_hdr_bin">write_hdr_bin</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_hdr_netcdf">write_hdr_netcdf</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-obl_pot">obl_pot</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-initialize~6">initialize</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-init_particle_info">init_particle_info</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-step_spin">step_spin</a>
       
@@ -268,6 +272,8 @@
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-rescale">rescale</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-validate_ids">validate_ids</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_hdr~5">write_hdr</a>
       
     </div>
   </div>
@@ -282,7 +288,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-      <h2>type, public, abstract, extends(<a href='../type/swiftest_base.html'>swiftest_base</a>) :: swiftest_nbody_system</h2>
+      <h2>type, public, abstract :: swiftest_nbody_system</h2>
     <p>An abstract class for a basic Swiftest nbody system 
   This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)</p>
     <br>
@@ -298,111 +304,129 @@
 <!-- Generated by graphviz version 2.47.1 (20210417.1919)
  -->
 <!-- Title: type~~swiftest_nbody_system~~InheritsGraph Pages: 1 -->
-<svg id="typeswiftest_nbody_systemInheritsGraph" width="585pt" height="124pt"
- viewBox="0.00 0.00 585.00 124.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="type~~swiftest_nbody_system~~InheritsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 120)">
+<svg id="typeswiftest_nbody_systemInheritsGraph" width="571pt" height="129pt"
+ viewBox="0.00 0.00 571.00 129.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~swiftest_nbody_system~~InheritsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 125)">
 <title>type~~swiftest_nbody_system~~InheritsGraph</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-120 581,-120 581,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-125 567,-125 567,4 -4,4"/>
 <!-- type~swiftest_nbody_system -->
 <g id="type~~swiftest_nbody_system~~InheritsGraph_node1" class="node">
 <title>type~swiftest_nbody_system</title>
-<polygon fill="none" stroke="black" points="577,-64 454,-64 454,-40 577,-40 577,-64"/>
-<text text-anchor="middle" x="515.5" y="-49.6" font-family="Helvetica,sans-Serif" font-size="10.50">swiftest_nbody_system</text>
+<polygon fill="none" stroke="black" points="563,-66 440,-66 440,-42 563,-42 563,-66"/>
+<text text-anchor="middle" x="501.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50">swiftest_nbody_system</text>
 </g>
 <!-- type~swiftest_tp -->
 <g id="type~~swiftest_nbody_system~~InheritsGraph_node2" class="node">
 <title>type~swiftest_tp</title>
 <g id="a_type~~swiftest_nbody_system~~InheritsGraph_node2"><a xlink:href=".././type/swiftest_tp.html" xlink:title="swiftest_tp">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="355,-43 292,-43 292,-19 355,-19 355,-43"/>
-<text text-anchor="middle" x="323.5" y="-28.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_tp</text>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="341,-24 278,-24 278,0 341,0 341,-24"/>
+<text text-anchor="middle" x="309.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_tp</text>
 </a>
 </g>
 </g>
 <!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_tp -->
 <g id="type~~swiftest_nbody_system~~InheritsGraph_edge3" class="edge">
 <title>type~swiftest_nbody_system&#45;&gt;type~swiftest_tp</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M453.86,-45.3C424.94,-42.1 391.11,-38.36 365.3,-35.51"/>
-<polygon fill="#000000" stroke="#000000" points="365.44,-32 355.12,-34.38 364.67,-38.96 365.44,-32"/>
-<text text-anchor="middle" x="404.5" y="-44.4" font-family="Helvetica,sans-Serif" font-size="9.50">tp, tp_discards</text>
-</g>
-<!-- type~swiftest_base -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_node3" class="node">
-<title>type~swiftest_base</title>
-<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node3"><a xlink:href=".././type/swiftest_base.html" xlink:title="swiftest_base">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="77,-85 0,-85 0,-61 77,-61 77,-85"/>
-<text text-anchor="middle" x="38.5" y="-70.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_base</text>
-</a>
-</g>
-</g>
-<!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_base -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_edge4" class="edge">
-<title>type~swiftest_nbody_system&#45;&gt;type~swiftest_base</title>
-<path fill="none" stroke="#000000" d="M485.85,-64.11C471.17,-69.93 452.86,-76.58 436,-81 400.73,-90.25 391.35,-91.1 355,-94 248.23,-102.51 211.31,-138.76 114,-94 102.83,-88.86 108.29,-73.11 96,-73"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M446.05,-41.96C415.81,-35.28 378.82,-27.1 351.13,-20.98"/>
+<polygon fill="#000000" stroke="#000000" points="351.52,-17.48 341,-18.74 350.01,-24.32 351.52,-17.48"/>
+<text text-anchor="middle" x="390.5" y="-37.4" font-family="Helvetica,sans-Serif" font-size="9.50">tp, tp_discards</text>
 </g>
 <!-- type~swiftest_pl -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_node4" class="node">
+<g id="type~~swiftest_nbody_system~~InheritsGraph_node3" class="node">
 <title>type~swiftest_pl</title>
-<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node4"><a xlink:href=".././type/swiftest_pl.html" xlink:title="swiftest_pl">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="354.5,-85 292.5,-85 292.5,-61 354.5,-61 354.5,-85"/>
-<text text-anchor="middle" x="323.5" y="-70.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl</text>
+<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node3"><a xlink:href=".././type/swiftest_pl.html" xlink:title="swiftest_pl">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="340.5,-66 278.5,-66 278.5,-42 340.5,-42 340.5,-66"/>
+<text text-anchor="middle" x="309.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_pl</text>
 </a>
 </g>
 </g>
 <!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_pl -->
 <g id="type~~swiftest_nbody_system~~InheritsGraph_edge2" class="edge">
 <title>type~swiftest_nbody_system&#45;&gt;type~swiftest_pl</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M453.86,-58.7C424.75,-61.92 390.66,-65.69 364.79,-68.55"/>
-<polygon fill="#000000" stroke="#000000" points="364.15,-65.1 354.59,-69.67 364.92,-72.05 364.15,-65.1"/>
-<text text-anchor="middle" x="404.5" y="-69.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl, pl_discards</text>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M439.86,-54C410.75,-54 376.66,-54 350.79,-54"/>
+<polygon fill="#000000" stroke="#000000" points="350.59,-50.5 340.59,-54 350.59,-57.5 350.59,-50.5"/>
+<text text-anchor="middle" x="390.5" y="-56.4" font-family="Helvetica,sans-Serif" font-size="9.50">pl, pl_discards</text>
 </g>
 <!-- type~swiftest_cb -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_node5" class="node">
+<g id="type~~swiftest_nbody_system~~InheritsGraph_node4" class="node">
 <title>type~swiftest_cb</title>
-<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node5"><a xlink:href=".././type/swiftest_cb.html" xlink:title="swiftest_cb">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="274,-24 209,-24 209,0 274,0 274,-24"/>
-<text text-anchor="middle" x="241.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_cb</text>
+<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node4"><a xlink:href=".././type/swiftest_cb.html" xlink:title="swiftest_cb">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="235,-114 170,-114 170,-90 235,-90 235,-114"/>
+<text text-anchor="middle" x="202.5" y="-99.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_cb</text>
 </a>
 </g>
 </g>
 <!-- type~swiftest_nbody_system&#45;&gt;type~swiftest_cb -->
 <g id="type~~swiftest_nbody_system~~InheritsGraph_edge1" class="edge">
 <title>type~swiftest_nbody_system&#45;&gt;type~swiftest_cb</title>
-<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M487.37,-39.95C472.47,-33.76 453.5,-26.58 436,-22 373.87,-5.73 356.21,-8.7 292,-10 289.48,-10.05 286.89,-10.12 284.27,-10.19"/>
-<polygon fill="#000000" stroke="#000000" points="284.06,-6.7 274.18,-10.53 284.29,-13.69 284.06,-6.7"/>
-<text text-anchor="middle" x="404.5" y="-24.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb</text>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M439.67,-64.99C433.7,-66.02 427.73,-67.04 422,-68 360.48,-78.27 289.03,-89.2 245.05,-95.81"/>
+<polygon fill="#000000" stroke="#000000" points="244.38,-92.37 235.02,-97.32 245.42,-99.3 244.38,-92.37"/>
+<text text-anchor="middle" x="309.5" y="-92.4" font-family="Helvetica,sans-Serif" font-size="9.50">cb</text>
 </g>
 <!-- type~swiftest_body -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_node6" class="node">
+<g id="type~~swiftest_nbody_system~~InheritsGraph_node7" class="node">
 <title>type~swiftest_body</title>
-<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node6"><a xlink:href=".././type/swiftest_body.html" xlink:title="swiftest_body">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="191,-85 114,-85 114,-61 191,-61 191,-85"/>
-<text text-anchor="middle" x="152.5" y="-70.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_body</text>
+<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node7"><a xlink:href=".././type/swiftest_body.html" xlink:title="swiftest_body">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="241,-66 164,-66 164,-42 241,-42 241,-66"/>
+<text text-anchor="middle" x="202.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_body</text>
 </a>
 </g>
 </g>
 <!-- type~swiftest_tp&#45;&gt;type~swiftest_body -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_edge5" class="edge">
+<g id="type~~swiftest_nbody_system~~InheritsGraph_edge4" class="edge">
 <title>type~swiftest_tp&#45;&gt;type~swiftest_body</title>
-<path fill="none" stroke="#000000" d="M303.16,-43.19C283.79,-55.01 255.11,-71.41 242.5,-73"/>
-<path fill="none" stroke="#000000" d="M240.5,-73C227.97,-74.58 214.35,-75.13 201.68,-75.15"/>
-<polygon fill="#000000" stroke="#000000" points="201.34,-71.64 191.31,-75.05 201.28,-78.64 201.34,-71.64"/>
+<path fill="none" stroke="#000000" d="M259,-54C256.48,-54.51 253.88,-54.91 251.25,-55.22"/>
+<polygon fill="#000000" stroke="#000000" points="250.72,-51.75 241.02,-56.02 251.26,-58.73 250.72,-51.75"/>
+<path fill="none" stroke="#000000" d="M289.21,-24.15C285.36,-26.89 281.44,-29.9 278,-33 268.86,-41.22 272.05,-51.57 260,-54"/>
 </g>
 <!-- type~swiftest_pl&#45;&gt;type~swiftest_body -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_edge6" class="edge">
+<g id="type~~swiftest_nbody_system~~InheritsGraph_edge5" class="edge">
 <title>type~swiftest_pl&#45;&gt;type~swiftest_body</title>
-<path fill="none" stroke="#000000" d="M292.38,-71.22C277.34,-70.79 258.9,-70.93 242.5,-73"/>
+<path fill="none" stroke="#000000" d="M278.3,-52.15C272.2,-52.29 265.86,-52.82 260,-54"/>
+</g>
+<!-- type~swiftest_base -->
+<g id="type~~swiftest_nbody_system~~InheritsGraph_node5" class="node">
+<title>type~swiftest_base</title>
+<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node5"><a xlink:href=".././type/swiftest_base.html" xlink:title="swiftest_base">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="94.5,-121 17.5,-121 17.5,-97 94.5,-97 94.5,-121"/>
+<text text-anchor="middle" x="56" y="-106.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_base</text>
+</a>
+</g>
 </g>
 <!-- type~swiftest_cb&#45;&gt;type~swiftest_base -->
 <g id="type~~swiftest_nbody_system~~InheritsGraph_edge7" class="edge">
 <title>type~swiftest_cb&#45;&gt;type~swiftest_base</title>
-<path fill="none" stroke="#000000" d="M208.76,-16.99C181.81,-22.35 143.01,-32.82 114,-52 103.75,-58.78 108.29,-73 96,-73"/>
-<path fill="none" stroke="#000000" d="M95,-73C92.47,-72.98 89.88,-72.96 87.26,-72.95"/>
-<polygon fill="#000000" stroke="#000000" points="87.13,-69.45 77.12,-72.91 87.1,-76.45 87.13,-69.45"/>
+<path fill="none" stroke="#000000" d="M169.82,-104.49C162.03,-105.05 153.72,-105.59 146,-106 132.72,-106.7 118.32,-107.27 105.05,-107.72"/>
+<polygon fill="#000000" stroke="#000000" points="104.57,-104.23 94.69,-108.05 104.8,-111.23 104.57,-104.23"/>
+</g>
+<!-- type~swiftest_particle_info -->
+<g id="type~~swiftest_nbody_system~~InheritsGraph_node6" class="node">
+<title>type~swiftest_particle_info</title>
+<g id="a_type~~swiftest_nbody_system~~InheritsGraph_node6"><a xlink:href=".././type/swiftest_particle_info.html" xlink:title="swiftest_particle_info">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="112,-69 0,-69 0,-45 112,-45 112,-69"/>
+<text text-anchor="middle" x="56" y="-54.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_particle_info</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_cb&#45;&gt;type~swiftest_particle_info -->
+<g id="type~~swiftest_nbody_system~~InheritsGraph_edge6" class="edge">
+<title>type~swiftest_cb&#45;&gt;type~swiftest_particle_info</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M169.79,-92.12C150.93,-86.25 126.61,-78.68 105.39,-72.07"/>
+<polygon fill="#000000" stroke="#000000" points="106.17,-68.65 95.58,-69.01 104.09,-75.33 106.17,-68.65"/>
+<text text-anchor="middle" x="138" y="-85.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
 </g>
 <!-- type~swiftest_body&#45;&gt;type~swiftest_base -->
-<g id="type~~swiftest_nbody_system~~InheritsGraph_edge8" class="edge">
+<g id="type~~swiftest_nbody_system~~InheritsGraph_edge9" class="edge">
 <title>type~swiftest_body&#45;&gt;type~swiftest_base</title>
-<path fill="none" stroke="#000000" d="M113.88,-73C107.9,-73 101.78,-73 96,-73"/>
+<path fill="none" stroke="#000000" d="M163.72,-64.65C152.75,-68.01 140.81,-71.91 130,-76 117.07,-80.89 103.17,-86.96 91,-92.56"/>
+<polygon fill="#000000" stroke="#000000" points="89.26,-89.51 81.67,-96.91 92.22,-95.85 89.26,-89.51"/>
+</g>
+<!-- type~swiftest_body&#45;&gt;type~swiftest_particle_info -->
+<g id="type~~swiftest_nbody_system~~InheritsGraph_edge8" class="edge">
+<title>type~swiftest_body&#45;&gt;type~swiftest_particle_info</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M165.1,-41.94C158.79,-40.3 152.26,-38.88 146,-38 130.11,-35.76 112.82,-38.28 97.74,-42.15"/>
+<polygon fill="#000000" stroke="#000000" points="96.37,-38.9 87.7,-45 98.28,-45.63 96.37,-38.9"/>
+<text text-anchor="middle" x="138" y="-40.4" font-family="Helvetica,sans-Serif" font-size="9.50">info</text>
 </g>
 </g>
 </svg>
@@ -512,10 +536,25 @@
 <path fill="none" stroke="#000000" d="M288,-54C285.51,-54.35 282.96,-54.64 280.39,-54.88"/>
 <polygon fill="#000000" stroke="#000000" points="280.09,-51.4 270.36,-55.6 280.59,-58.38 280.09,-51.4"/>
 </g>
-<!-- type~rmvs_pl -->
+<!-- type~symba_nbody_system -->
 <g id="type~~swiftest_nbody_system~~InheritedByGraph_node5" class="node">
+<title>type~symba_nbody_system</title>
+<g id="a_type~~swiftest_nbody_system~~InheritedByGraph_node5"><a xlink:href=".././type/symba_nbody_system.html" xlink:title="symba_nbody_system">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="633,-66 514,-66 514,-42 633,-42 633,-66"/>
+<text text-anchor="middle" x="573.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_nbody_system</text>
+</a>
+</g>
+</g>
+<!-- type~symba_nbody_system&#45;&gt;type~helio_nbody_system -->
+<g id="type~~swiftest_nbody_system~~InheritedByGraph_edge4" class="edge">
+<title>type~symba_nbody_system&#45;&gt;type~helio_nbody_system</title>
+<path fill="none" stroke="#000000" d="M513.73,-54C486.96,-54 455.21,-54 427.81,-54"/>
+<polygon fill="#000000" stroke="#000000" points="427.54,-50.5 417.54,-54 427.54,-57.5 427.54,-50.5"/>
+</g>
+<!-- type~rmvs_pl -->
+<g id="type~~swiftest_nbody_system~~InheritedByGraph_node6" class="node">
 <title>type~rmvs_pl</title>
-<g id="a_type~~swiftest_nbody_system~~InheritedByGraph_node5"><a xlink:href=".././type/rmvs_pl.html" xlink:title="rmvs_pl">
+<g id="a_type~~swiftest_nbody_system~~InheritedByGraph_node6"><a xlink:href=".././type/rmvs_pl.html" xlink:title="rmvs_pl">
 <polygon fill="#5cb85c" stroke="#5cb85c" points="600.5,-24 546.5,-24 546.5,0 600.5,0 600.5,-24"/>
 <text text-anchor="middle" x="573.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_pl</text>
 </a>
@@ -527,21 +566,6 @@
 <path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M546.45,-12C517.06,-12 468.15,-12 428.29,-12"/>
 <polygon fill="#000000" stroke="#000000" points="428.11,-8.5 418.11,-12 428.11,-15.5 428.11,-8.5"/>
 <text text-anchor="middle" x="466" y="-14.4" font-family="Helvetica,sans-Serif" font-size="9.50">planetocentric</text>
-</g>
-<!-- type~symba_nbody_system -->
-<g id="type~~swiftest_nbody_system~~InheritedByGraph_node6" class="node">
-<title>type~symba_nbody_system</title>
-<g id="a_type~~swiftest_nbody_system~~InheritedByGraph_node6"><a xlink:href=".././type/symba_nbody_system.html" xlink:title="symba_nbody_system">
-<polygon fill="#5cb85c" stroke="#5cb85c" points="633,-66 514,-66 514,-42 633,-42 633,-66"/>
-<text text-anchor="middle" x="573.5" y="-51.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_nbody_system</text>
-</a>
-</g>
-</g>
-<!-- type~symba_nbody_system&#45;&gt;type~helio_nbody_system -->
-<g id="type~~swiftest_nbody_system~~InheritedByGraph_edge4" class="edge">
-<title>type~symba_nbody_system&#45;&gt;type~helio_nbody_system</title>
-<path fill="none" stroke="#000000" d="M513.73,-54C486.96,-54 455.21,-54 427.81,-54"/>
-<polygon fill="#000000" stroke="#000000" points="427.54,-50.5 417.54,-54 427.54,-57.5 427.54,-50.5"/>
 </g>
 </g>
 </svg>
@@ -597,8 +621,6 @@
   <div id="vars-1" class="panel-collapse collapse">
     <div class="list-group">
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lintegrate">lintegrate</a>
-      
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-cb">cb</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-pl">pl</a>
@@ -609,7 +631,7 @@
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-pl_discards">pl_discards</a>
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-gmtot">Gmtot</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-gmtot">GMtot</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-ke_orbit">ke_orbit</a>
       
@@ -619,21 +641,15 @@
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-te">te</a>
       
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-oblpot">oblpot</a>
+      
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lorbit">Lorbit</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lspin">Lspin</a>
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lescape">Lescape</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-mescape">Mescape</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-ecollisions">Ecollisions</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-euntracked">Euntracked</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-ltot">Ltot</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-lbeg">lbeg</a>
-      
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#variable-maxid">maxid</a>
       
     </div>
   </div>
@@ -661,7 +677,7 @@
   <div id="boundprocs-1" class="panel-collapse collapse">
     <div class="list-group">
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-step~10">step</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-step~11">step</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-discard">discard</a>
       
@@ -669,13 +685,25 @@
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-dump">dump</a>
       
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-get_old_t_final">get_old_t_final</a>
+      
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-read_frame">read_frame</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-read_particle_info">read_particle_info</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_discard">write_discard</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_frame">write_frame</a>
       
-      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-initialize~7">initialize</a>
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_hdr_bin">write_hdr_bin</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_hdr_netcdf">write_hdr_netcdf</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-obl_pot">obl_pot</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-initialize~6">initialize</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-init_particle_info">init_particle_info</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-step_spin">step_spin</a>
       
@@ -686,6 +714,8 @@
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-rescale">rescale</a>
       
       <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-validate_ids">validate_ids</a>
+      
+      <a class="list-group-item" href="../type/swiftest_nbody_system.html#boundprocedure-write_hdr~5">write_hdr</a>
       
     </div>
   </div>
@@ -710,20 +740,6 @@
 
 
 <tbody>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-lintegrate"></span>logical,</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>lintegrate</strong></td><td> =</td><td>.false.</td><td><p>Flag indicating that this object should be integrated in the current step </p></td>
-  
-</tr>
 
   
   
@@ -805,7 +821,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>Gmtot</strong></td><td> =</td><td>0.0_DP</td><td><p>Total system mass - used for barycentric coordinate conversion</p></td>
+  <td><strong>GMtot</strong></td><td> =</td><td>0.0_DP</td><td><p>Total system mass - used for barycentric coordinate conversion</p></td>
   
 </tr>
 
@@ -871,6 +887,20 @@
   
 <tr>
   
+  <td><span class="anchor" id="variable-oblpot"></span>real(kind=DP),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>oblpot</strong></td><td> =</td><td>0.0_DP</td><td><p>System potential energy due to oblateness of the central body</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
   <td><span class="anchor" id="variable-lorbit"></span>real(kind=DP),</td>
   
   <td>public,</td>
@@ -899,53 +929,11 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-lescape"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-ltot"></span>real(kind=DP),</td>
   
   <td>public,</td>
   <td>dimension(NDIM)</td><td>::</td>
-  <td><strong>Lescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Angular momentum of bodies that escaped the system (used for bookeeping)</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-mescape"></span>real(kind=DP),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>Mescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Mass of bodies that escaped the system (used for bookeeping)</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-ecollisions"></span>real(kind=DP),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>Ecollisions</strong></td><td> =</td><td>0.0_DP</td><td><p>Energy lost from system due to collisions</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-euntracked"></span>real(kind=DP),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>Euntracked</strong></td><td> =</td><td>0.0_DP</td><td><p>Energy gained from system due to escaped bodies</p></td>
+  <td><strong>Ltot</strong></td><td> =</td><td>0.0_DP</td><td><p>System angular momentum vector</p></td>
   
 </tr>
 
@@ -962,20 +950,6 @@
   <td><strong>lbeg</strong></td><td></td><td></td><td><p>True if this is the beginning of a step. This is used so that test particle steps can be calculated 
     separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
     the test particles</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-maxid"></span>integer(kind=I4B),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>maxid</strong></td><td> =</td><td>-1</td><td><p>The current maximum particle id number </p></td>
   
 </tr>
 
@@ -996,7 +970,7 @@
     
      
 <div class="panel panel-default">
-  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-step~10"></span><h3>procedure(<a href='../interface/abstract_step_system.html'>abstract_step_system</a>), public, deferred :: <strong>step</strong>  
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-step~11"></span><h3>procedure(<a href='../interface/abstract_step_system.html'>abstract_step_system</a>), public, deferred :: <strong>step</strong>  
     
   </h3></div>
   
@@ -1406,6 +1380,108 @@ public module subroutine io_dump_system(self, param)
     
      
 <div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-get_old_t_final"></span><h3>procedure, public :: <strong>get_old_t_final</strong>  => <a href='../interface/io_get_old_t_final_system.html'>io_get_old_t_final_system</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module function io_get_old_t_final_system(self, param) result(old_t_final)
+    
+    
+   
+   <a href='../proc/io_get_old_t_final_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+  
+  
+  
+  
+     <h4>Return Value <small>real(kind=DP)
+  </small></h4>
+  
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
   <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-read_frame"></span><h3>procedure, public :: <strong>read_frame</strong>  => <a href='../interface/io_read_frame_system.html'>io_read_frame_system</a> 
     
   </h3></div>
@@ -1430,7 +1506,7 @@ public module subroutine io_dump_system(self, param)
           
     
     <h3>
-public module subroutine io_read_frame_system(self, iu, param, form, ierr)
+public module function io_read_frame_system(self, iu, param) result(ierr)
     
     
    
@@ -1497,18 +1573,90 @@ public module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 </tr>
 
+</tbody>
+</table>
+
+      
+    
+    
+
+  
+  
+  
+  
+     <h4>Return Value <small>integer(kind=I4B)
+  </small></h4>
+  <p>Error code: returns 0 if the read is successful</p>
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-read_particle_info"></span><h3>procedure, public :: <strong>read_particle_info</strong>  => <a href='../interface/io_read_particle_info_system.html'>io_read_particle_info_system</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Read in particle metadata from file</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_read_particle_info_system(self, param)
+    
+    
+   
+   <a href='../proc/io_read_particle_info_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
   
   
   
   
 <tr>
   
-  <td><span class="anchor" ></span>character(len=*),</td>
-  <td>intent(in)</td>
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>form</strong></td><td><p>Input format code ("XV" or "EL")</p></td>
+  <td><strong>self</strong></td><td><p>Swiftest nbody system object</p></td>
   
 </tr>
 
@@ -1518,12 +1666,12 @@ public module subroutine io_read_frame_system(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" ></span>integer(kind=I4B),</td>
-  <td>intent(out)</td>
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
-  <td><strong>ierr</strong></td><td><p>Error code</p></td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
   
 </tr>
 
@@ -1612,7 +1760,7 @@ public module subroutine io_write_discard(self, param)
 <tr>
   
   <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
-  <td>intent(in)</td>
+  <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
@@ -1661,7 +1809,7 @@ public module subroutine io_write_discard(self, param)
           
     
     <h3>
-public module subroutine io_write_frame_system(self, iu, param)
+public module subroutine io_write_frame_system(self, param)
     
     
    
@@ -1690,7 +1838,7 @@ public module subroutine io_write_frame_system(self, iu, param)
 <tr>
   
   <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
-  <td>intent(in)</td>
+  <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
@@ -1704,23 +1852,8 @@ public module subroutine io_write_frame_system(self, iu, param)
   
 <tr>
   
-  <td><span class="anchor" ></span>integer(kind=I4B),</td>
-  <td>intent(inout)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>iu</strong></td><td><p>Unit number for the output file to write frame to</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
   <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
-  <td>intent(in)</td>
+  <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
@@ -1745,7 +1878,301 @@ public module subroutine io_write_frame_system(self, iu, param)
     
      
 <div class="panel panel-default">
-  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-initialize~7"></span><h3>procedure, public :: <strong>initialize</strong>  => <a href='../interface/setup_initialize_system.html'>setup_initialize_system</a> 
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-write_hdr_bin"></span><h3>procedure, public :: <strong>write_hdr_bin</strong>  => <a href='../interface/io_write_hdr_system.html'>io_write_hdr_system</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Write a header for an output frame in Fortran binary format</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine io_write_hdr_system(self, iu, param)
+    
+    
+   
+   <a href='../proc/io_write_hdr_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>integer(kind=I4B),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>iu</strong></td><td><p>Output file unit number</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-write_hdr_netcdf"></span><h3>procedure, public :: <strong>write_hdr_netcdf</strong>  => <a href='../interface/netcdf_write_hdr_system.html'>netcdf_write_hdr_system</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Write a header for an output frame in NetCDF format</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine netcdf_write_hdr_system(self, iu, param)
+    
+    
+   
+   <a href='../proc/netcdf_write_hdr_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/netcdf_parameters.html'>netcdf_parameters</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>iu</strong></td><td><p>Parameters used to for writing a NetCDF dataset to file</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-obl_pot"></span><h3>procedure, public :: <strong>obl_pot</strong>  => <a href='../interface/obl_pot_system.html'>obl_pot_system</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Compute the contribution to the total gravitational potential due solely to the oblateness of the central body</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine obl_pot_system(self)
+    
+    
+   
+   <a href='../proc/obl_pot_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-initialize~6"></span><h3>procedure, public :: <strong>initialize</strong>  => <a href='../interface/setup_initialize_system.html'>setup_initialize_system</a> 
     
   </h3></div>
   
@@ -1818,6 +2245,99 @@ public module subroutine setup_initialize_system(self, param)
   
   <td></td><td>::</td>
   <td><strong>param</strong></td><td><p>Current run configuration parameters </p></td>
+  
+</tr>
+
+</tbody>
+</table>
+
+      
+    
+    
+
+        
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-init_particle_info"></span><h3>procedure, public :: <strong>init_particle_info</strong>  => <a href='../interface/setup_initialize_particle_info_system.html'>setup_initialize_particle_info_system</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Initialize the system from input files</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+        
+          <h3>interface
+          
+          </h3>
+  
+          
+          
+    
+    <h3>
+public module subroutine setup_initialize_particle_info_system(self, param)
+    
+    
+   
+   <a href='../proc/setup_initialize_particle_info_system.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+    
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      
+      
+<table class="table table-striped varlist">
+<thead><tr><th>Type</th>
+<th>Intent</th><th>Optional</th>
+<th>Attributes</th><th></th><th>Name</th><th></th></thead>
+
+
+
+<tbody>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_nbody_system.html'>swiftest_nbody_system</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>self</strong></td><td><p>Swiftest nbody system object</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td>intent(inout)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>param</strong></td><td><p>Current run configuration parameters</p></td>
   
 </tr>
 
@@ -2338,7 +2858,7 @@ public module subroutine util_valid_id_system(self, param)
 <tr>
   
   <td><span class="anchor" ></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
-  <td>intent(in)</td>
+  <td>intent(inout)</td>
   <td></td>
   
   <td></td><td>::</td>
@@ -2354,6 +2874,71 @@ public module subroutine util_valid_id_system(self, param)
     
 
         
+      
+      </li>
+    
+  </ul>
+</div>
+
+    
+     
+<div class="panel panel-default">
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-write_hdr~5"></span><h3>generic, public :: <strong>write_hdr</strong>  => <a href='../type/swiftest_nbody_system.html#boundprocedure-write_hdr_bin'>write_hdr_bin</a>, <a href='../type/swiftest_nbody_system.html#boundprocedure-write_hdr_netcdf'>write_hdr_netcdf</a> 
+    
+  </h3></div>
+  
+  <div class="panel-body">
+    
+
+
+    <p>Generic method call for writing headers</p>
+  </div>
+  
+  <ul class="list-group">
+    
+      <li class="list-group-item">
+      
+         
+            
+    
+    <h3>
+public interface <a href='../interface/io_write_hdr_system.html'>io_write_hdr_system</a>()
+    
+    
+   
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      <em>None</em>
+    
+    
+
+         
+      
+      </li>
+    
+      <li class="list-group-item">
+      
+         
+            
+    
+    <h3>
+public interface <a href='../interface/netcdf_write_hdr_system.html'>netcdf_write_hdr_system</a>()
+    
+    
+   
+</h3>
+    
+    
+    <h4>Arguments</h4>
+    
+      <em>None</em>
+    
+    
+
+         
       
       </li>
     

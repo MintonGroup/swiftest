@@ -9,7 +9,6 @@ module fraggle_classes
 
    integer(I4B),     parameter :: FRAGGLE_NMASS_DIST = 3             !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
    character(len=*), parameter :: FRAGGLE_LOG_OUT    = "fraggle.log" !! Name of log file for Fraggle diagnostic information
-   integer(I4B),     parameter :: FRAGGLE_LOG_UNIT   = 76            !! Unit number for Fraggle log file
 
    !********************************************************************************************************************************
    !                                    fraggle_colliders class definitions and method interfaces
@@ -104,7 +103,7 @@ module fraggle_classes
          class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object 
          class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle colliders object containing the two-body equivalent values of the colliding bodies 
          class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param     !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
 
@@ -112,12 +111,6 @@ module fraggle_classes
          implicit none
          class(fraggle_fragments),   intent(in) :: frag
       end subroutine fraggle_io_log_generate
-
-      module subroutine fraggle_io_log_one_message(message)
-         implicit none
-         character(len=*), intent(in) :: message
-         character(STRMAX) :: errmsg
-      end subroutine fraggle_io_log_one_message
 
       module subroutine fraggle_io_log_pl(pl, param)
          implicit none
@@ -131,18 +124,13 @@ module fraggle_classes
          class(fraggle_fragments),   intent(in) :: frag
       end subroutine fraggle_io_log_regime
 
-      module subroutine fraggle_io_log_start(param)
-         implicit none
-         class(swiftest_parameters), intent(in) :: param
-      end subroutine fraggle_io_log_start
-
       !> The following interfaces are placeholders intended to satisfy the required abstract methods given by the parent class
       module subroutine fraggle_placeholder_accel(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object 
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine fraggle_placeholder_accel
@@ -152,7 +140,7 @@ module fraggle_classes
          implicit none
          class(fraggle_fragments),     intent(inout) :: self   !! Fraggle fragment system object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system objec
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
@@ -249,7 +237,7 @@ module fraggle_classes
          class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
          class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle collider system object
          class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
          logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
       end subroutine fraggle_util_get_energy_momentum
 

@@ -175,7 +175,7 @@ contains
          call self%pl%el2xv(self%cb)
          call self%tp%el2xv(self%cb)
       end if
-      call self%pl%index(param)
+      call self%pl%flatten(param)
       if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
       self%pl%lfirst = param%lfirstkick
       self%tp%lfirst = param%lfirstkick

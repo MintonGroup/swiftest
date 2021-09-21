@@ -136,7 +136,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title=" 0.9% of total for procedures.">411 statements</a>
+    title=" 0.6% of total for procedures.">411 statements</a>
      </li> 
      
      
@@ -203,7 +203,7 @@
     
     <div class="col-md-9" id='text'>
     <h2>
-module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
+module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
     
     
    <a href='../interface/util_minimize_bfgs.html'><button type="button" class="btn btn-info depwarn">Interface &rarr;</button></a>
@@ -333,9 +333,10 @@ module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
 <p>This function implements the Broyden-Fletcher-Goldfarb-Shanno method to determine the minimum of a function of N variables.<br>
  It recieves as input:
    f%eval(x) : lambda function object containing the objective function as the eval metho
-   N    :  Number of variables of function f
-   x0   :  Initial starting value of x
-   eps  :  Accuracy of 1 - dimensional minimization at each step
+   N       : Number of variables of function f
+   x0      : Initial starting value of x
+   eps     : Accuracy of 1 - dimensional minimization at each step
+   maxloop : Maximum number of loops to attempt to find a solution
  The outputs include
    lerr :  Returns .true. if it could not find the minimum
  Returns
@@ -413,6 +414,21 @@ module function util_minimize_bfgs(f, N, x0, eps, lerr) result(x1)
   
   <td></td><td>::</td>
   <td><strong>eps</strong></td><td></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-maxloop~2"></span>integer(kind=I4B),</td>
+  <td>intent(in)</td>
+  <td></td>
+  
+  <td></td><td>::</td>
+  <td><strong>maxloop</strong></td><td></td>
   
 </tr>
 

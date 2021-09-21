@@ -16,13 +16,15 @@ contains
 
       !> Call allocation method for parent class
       call setup_pl(self, n, param) 
-      if (n <= 0) return
+      if (n < 0) return
 
       if (allocated(self%eta)) deallocate(self%eta)
       if (allocated(self%muj)) deallocate(self%muj)
       if (allocated(self%xj)) deallocate(self%xj)
       if (allocated(self%vj)) deallocate(self%vj)
       if (allocated(self%ir3j)) deallocate(self%ir3j)
+
+      if (n == 0) return
 
       allocate(self%eta(n))
       allocate(self%muj(n))
@@ -73,13 +75,14 @@ contains
       !!
       implicit none
       ! Arguments
-      class(whm_nbody_system),    intent(inout) :: self    !! Swiftest system object
+      class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
       call setup_initialize_system(self, param)
       ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
       call util_set_ir3h(self%pl)
       call self%pl%sort("ir3h", ascending=.false.)
+      call self%pl%index(param)
 
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(0, param)
