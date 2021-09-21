@@ -161,7 +161,7 @@ contains
          end if
 
          npl = pl%nbody
-         if (param%lflatten_interactions) then
+         if (param%lflatten_encounters) then
             nplplm = pl%nplplm
 
             allocate(lencounter(nplplm))
