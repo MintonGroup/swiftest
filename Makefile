@@ -47,13 +47,13 @@
 SWIFTEST_MODULES =   swiftest_globals.f90 \
                      swiftest_operators.f90 \
 							lambda_function.f90\
-							walltime_classes.f90 \
                      swiftest_classes.f90 \
                      fraggle_classes.f90 \
                      whm_classes.f90 \
                      rmvs_classes.f90 \
                      helio_classes.f90 \
                      symba_classes.f90 \
+							walltime_classes.f90 \
                      swiftest.f90 
 
 
@@ -93,11 +93,6 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTEST_HOME)/src/drift; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTEST_HOME)/src/gr; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -124,11 +119,6 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
 	cd $(SWIFTEST_HOME)/src/operators; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
-	cd $(SWIFTEST_HOME)/src/orbel; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
@@ -168,6 +158,11 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
+	cd $(SWIFTEST_HOME)/src/walltime; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make libdir
 
 fast:
 	cd $(SWIFTEST_HOME)/src/fraggle; \
@@ -181,6 +176,24 @@ fast:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make fastdir
+
+	cd $(SWIFTEST_HOME)/src/orbel; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make fastdir
+
+	cd $(SWIFTEST_HOME)/src/drift; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make fastdir
+
+	cd $(SWIFTEST_HOME)/src/helio; \
+		$(FORTRAN) $(FFASTFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) -c helio_drift.f90; \
+		$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
+		$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
+		rm -f *.o *.smod	
 
 	cd $(SWIFTEST_HOME)/src/rmvs; \
 		$(FORTRAN) $(FFASTFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) -c rmvs_encounter_check.f90; \
@@ -205,7 +218,6 @@ fastdir:
 	$(AR) rv $(SWIFTEST_HOME)/lib/libswiftest.a *.o *.smod; \
 	$(INSTALL_DATA) *.smod $(SWIFTEST_HOME)/include; \
 	rm -f *.o *.smod
-
 
 drivers:
 	cd $(SWIFTEST_HOME)/src/main; \
@@ -237,6 +249,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/tides;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/user;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/util;    rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/walltime;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/whm;    rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/bin;     rm -f swiftest_*
 	cd $(SWIFTEST_HOME)/bin;     rm -f tool_*

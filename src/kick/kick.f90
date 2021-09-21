@@ -12,12 +12,33 @@ contains
       implicit none
       ! Arguments
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
+      ! Internals
+      type(interaction_timer), save :: itimer
+      logical, save :: lfirst = .true.
+      character(len=STRMAX) :: tstr, nstr, cstr, mstr, lstyle
+      character(len=1) :: schar
+
+
+      if (param%ladaptive_interactions) then
+         if (lfirst) then
+            write(itimer%loopname, *) "kick_getacch_int_pl"
+            write(itimer%looptype, *) "INTERACTION"
+            call itimer%time_this_loop(param, self, self%nplpl)
+            lfirst = .false.
+         else
+            if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self, self%nplpl)
+         end if
+      end if
 
       if (param%lflatten_interactions) then
          call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
       else
          call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, self%radius, self%ah)
+      end if
+
+      if (param%ladaptive_interactions) then 
+         if (itimer%is_on) call itimer%adapt(param, self, self%nplpl)
       end if
 
       return
@@ -34,7 +55,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
       real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
       integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies

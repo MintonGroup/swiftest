@@ -135,7 +135,7 @@ contains
       class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
       class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle collider system object
       class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
       logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
       ! Internals
       integer(I4B) :: i, nplm
@@ -172,7 +172,7 @@ contains
             call fraggle_util_add_fragments_to_system(frag, colliders, tmpsys, tmpparam)
          end if 
 
-         call tmpsys%pl%index(param)
+         call tmpsys%pl%flatten(param)
 
          call tmpsys%get_energy_and_momentum(param) 
 
