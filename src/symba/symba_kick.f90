@@ -16,26 +16,15 @@ contains
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
-      character(len=STRMAX) :: tstr, nstr, cstr, mstr
-      character(len=11) :: lstyle
-      character(len=1) :: schar
 
       if (param%ladaptive_interactions) then
          if (lfirst) then
             call itimer%time_this_loop(param, self, self%nplpl)
+            write(itimer%loopname, *)  "symba_kick_getacch_int_pl"
             lfirst = .false.
          else
             if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self, self%nplpl)
          end if
-      end if
-
-      if (itimer%is_on) then
-         write(tstr,*) param%t
-         write(schar,'(I1)') itimer%stage
-         if (itimer%stage == 1) then
-            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "symba_kick_getacch_int_pl: loop timer turned on at t = " // trim(adjustl(tstr)))
-         end if
-         call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "symba_kick_getacch_int_pl: stage " // schar )
       end if
 
       if (param%lflatten_interactions) then
@@ -45,32 +34,7 @@ contains
       end if
 
       if (param%ladaptive_interactions) then 
-         if (itimer%is_on) then
-            if (param%lflatten_interactions) then
-               write(lstyle,*) "FLAT      "
-            else
-               write(lstyle,*) "TRIANGULAR"
-            end if
-            call itimer%adapt(param, self, self%nplpl)
-            write(schar,'(I1)') itimer%stage
-            write(nstr,*) self%nplpl
-            write(cstr,*) itimer%count_finish_step - itimer%count_start_step
-            select case(itimer%stage)
-            case(1)
-               write(mstr,*) itimer%stage1_metric
-            case(2)
-               write(mstr,*) itimer%stage2_metric
-            end select
-            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
-            if (itimer%stage == 2) then
-               if (param%lflatten_interactions) then
-                  write(lstyle,*) "FLAT      "
-               else
-                  write(lstyle,*) "TRIANGULAR"
-               end if 
-               call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "The fastest loop method tested is " // trim(adjustl(lstyle)))
-            end if
-         end if
+         if (itimer%is_on) call itimer%adapt(param, self, self%nplpl)
       end if
 
       return

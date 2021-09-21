@@ -126,6 +126,7 @@ module swiftest_classes
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
+      logical :: lflatten_encounters = .false. !! Use the flattened upper triangular matrix for pl-pl encounter check loops
       logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on
 
       ! Logical flags to turn on or off various features of the code
