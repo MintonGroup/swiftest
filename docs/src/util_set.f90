@@ -77,7 +77,7 @@ contains
       class(swiftest_pl),           intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
-      if (self%nbody > 0) self%mu(:) = cb%Gmass + self%Gmass(:)
+      if (self%nbody > 0) self%mu(1:self%nbody) = cb%Gmass + self%Gmass(1:self%nbody)
 
       return
    end subroutine util_set_mu_pl
@@ -92,10 +92,73 @@ contains
       class(swiftest_tp),           intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
 
-      if (self%nbody > 0) self%mu(:) = cb%Gmass
+      if (self%nbody == 0) return
+      self%mu(1:self%nbody) = cb%Gmass
 
       return
    end subroutine util_set_mu_tp
+
+   module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+      !! author: David A. Minton
+      !!
+      !! Sets one or more values of the particle information metadata object
+      implicit none
+      ! Arguments
+      class(swiftest_particle_info), intent(inout)           :: self
+      character(len=*),              intent(in),    optional :: name            !! Non-unique name
+      character(len=*),              intent(in),    optional :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
+      character(len=*),              intent(in),    optional :: status          !! Particle status description: ACTIVE, MERGED, FRAGMENTED, etc.
+      character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+      real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
+      real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
+      real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
+      real(DP), dimension(:),        intent(in),    optional :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+      real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
+      integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
+      ! Internals
+      character(len=NAMELEN) :: lenstr
+      character(len=:), allocatable :: fmtlabel
+
+      write(lenstr, *) NAMELEN
+      fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
+
+      if (present(name)) then
+         write(self%name, fmtlabel) trim(adjustl(name))
+      end if
+      if (present(particle_type)) then
+         write(self%particle_type, fmtlabel) trim(adjustl(particle_type))
+      end if 
+      if (present(status)) then
+         write(self%status, fmtlabel) trim(adjustl(status))
+      end if
+      if (present(origin_type)) then
+         write(self%origin_type, fmtlabel) trim(adjustl(origin_type))
+      end if
+      if (present(origin_time)) then
+         self%origin_time = origin_time
+      end if
+      if (present(origin_xh)) then
+         self%origin_xh(:) = origin_xh(:)
+      end if
+      if (present(origin_vh)) then
+         self%origin_vh(:) = origin_vh(:)
+      end if
+      if (present(discard_time)) then
+         self%discard_time = discard_time
+      end if
+      if (present(discard_xh)) then
+         self%discard_xh(:) = discard_xh(:)
+      end if
+      if (present(discard_vh)) then
+         self%discard_vh(:) = discard_vh(:)
+      end if
+      if (present(discard_body_id)) then
+         self%discard_body_id = discard_body_id
+      end if
+
+      return
+   end subroutine util_set_particle_info
 
 
    module subroutine util_set_rhill(self,cb)
@@ -107,10 +170,10 @@ contains
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
 
-      if (self%nbody > 0) then
-         call self%xv2el(cb) 
-         self%rhill(:) = self%a(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
-      end if
+      if (self%nbody == 0) return
+
+      call self%xv2el(cb) 
+      self%rhill(1:self%nbody) = self%a(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
 
       return
    end subroutine util_set_rhill
@@ -127,10 +190,10 @@ contains
       ! Internals
       real(DP), dimension(:), allocatable :: rh
 
-      if (self%nbody > 0) then
-         rh(:) = .mag. self%xh(:,:)
-         self%rhill(:) = rh(:) * (self%Gmass(:) / cb%Gmass / 3)**THIRD 
-      end if
+      if (self%nbody == 0) return
+
+      rh(1:self%nbody) = .mag. self%xh(:,1:self%nbody)
+      self%rhill(1:self%nbody) = rh(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
 
       return
    end subroutine util_set_rhill_approximate

@@ -20,11 +20,12 @@ contains
       ! Internals
       integer(I4B) :: i, j
       real(DP)     :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
+      character(len=STRMAX) :: idstr, timestr, message
    
       associate(npl => pl%nbody, cb => system%cb)
          call system%set_msys()
          rmin2 = param%rmin**2
-         rmax2 = param%rmax*2
+         rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
          do i = 1, npl
             if (pl%status(i) == ACTIVE) then
@@ -33,12 +34,28 @@ contains
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMAX
-                  write(*, *) "Massive body ",  pl%id(i), " too far from the central body at t = ", param%t
+                  write(idstr, *) pl%id(i)
+                  write(timestr, *) param%t
+                  write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " too far from the central body at t = " // trim(adjustl(timestr))
+                  call fraggle_io_log_one_message("")
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message(message)
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message("")
+                  call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
                   pl%status(i) = DISCARDED_RMIN
-                  write(*, *) "Massive body ", pl%id(i), " too close to the central body at t = ", param%t
+                  write(idstr, *) pl%id(i)
+                  write(timestr, *) param%t
+                  write(message, *) trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // " too close to the central body at t = " // trim(adjustl(timestr))
+                  call fraggle_io_log_one_message("")
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message(message)
+                  call fraggle_io_log_one_message("***********************************************************************************************************************")
+                  call fraggle_io_log_one_message("")
+                  call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
                   vb2 = dot_product(pl%vb(:,i), pl%vb(:,i))
@@ -47,7 +64,15 @@ contains
                      pl%ldiscard(i) = .true.
                      pl%lcollision(i) = .false. 
                      pl%status(i) = DISCARDED_RMAXU
-                     write(*, *) "Massive body ", pl%id(i), " is unbound and too far from barycenter at t = ", param%t
+                     write(idstr, *) pl%id(i)
+                     write(timestr, *) param%t
+                     write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
+                     call fraggle_io_log_one_message("")
+                     call fraggle_io_log_one_message("***********************************************************************************************************************")
+                     call fraggle_io_log_one_message(message)
+                     call fraggle_io_log_one_message("***********************************************************************************************************************")
+                     call fraggle_io_log_one_message("")
+                     call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                   end if
                end if
             end if
@@ -78,7 +103,7 @@ contains
       class is (symba_cb)
    
          ! Add the potential and kinetic energy of the lost body to the records
-         pe = -cb%mass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
+         pe = -cb%Gmass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
             ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
@@ -89,18 +114,18 @@ contains
          ! Add the pre-collision ke of the central body to the records
          ! Add planet mass to central body accumulator
          if (lescape_body) then
-            system%Mescape = system%Mescape + pl%mass(ipl)
+            param%GMescape = param%GMescape + pl%Gmass(ipl)
             do i = 1, pl%nbody
                if (i == ipl) cycle
-               pe = pe - pl%mass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
+               pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
             end do
    
             Ltot(:) = 0.0_DP
             do i = 1, pl%nbody
-               Lpl(:) = pL%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Lpl(:) = pL%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) + Lpl(:)
             end do
-            Ltot(:) = Ltot(:) + cb%mass * cb%xb(:) .cross. cb%vb(:)
+            Ltot(:) = Ltot(:) + cb%mass * (cb%xb(:) .cross. cb%vb(:))
             call pl%b2h(cb)
             oldstat = pl%status(ipl)
             pl%status(ipl) = INACTIVE
@@ -108,28 +133,28 @@ contains
             pl%status(ipl) = oldstat
             do i = 1, pl%nbody
                if (i == ipl) cycle
-               Lpl(:) = pl%mass(i) * pl%xb(:,i) .cross. pl%vb(:, i)
+               Lpl(:) = pl%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
-            Ltot(:) = Ltot(:) - cb%mass * cb%xb(:) .cross. cb%vb(:)
-            system%Lescape(:) = system%Lescape(:) + Ltot(:)
-            if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
+            Ltot(:) = Ltot(:) - cb%mass * (cb%xb(:) .cross. cb%vb(:))
+            param%Lescape(:) = param%Lescape(:) + Ltot(:)
+            if (param%lrotation) param%Lescape(:) = param%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else
             xcom(:) = (pl%mass(ipl) * pl%xb(:, ipl) + cb%mass * cb%xb(:)) / (cb%mass + pl%mass(ipl))
             vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
-            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. pL%vb(:,ipl) - vcom(:)
+            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
             if (param%lrotation) Lpl(:) = pl%mass(ipl) * (Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl))
      
-            Lcb(:) = cb%mass * (cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:))
+            Lcb(:) = cb%mass * ((cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
             if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
             ! Update mass of central body to be consistent with its total mass
-            cb%dM = cb%dM + pl%mass(ipl)
+            cb%dGM = cb%dGM + pl%Gmass(ipl)
             cb%dR = cb%dR + 1.0_DP / 3.0_DP * (pl%radius(ipl) / cb%radius)**3 - 2.0_DP / 9.0_DP * (pl%radius(ipl) / cb%radius)**6
-            cb%mass = cb%M0 + cb%dM
-            cb%Gmass = param%GU * cb%mass 
+            cb%Gmass = cb%GM0 + cb%dGM
+            cb%mass = cb%Gmass / param%GU
             cb%radius = cb%R0 + cb%dR
             param%rmin = cb%radius
             ! Add planet angular momentum to central body accumulator
@@ -147,16 +172,15 @@ contains
    
          ! We must do this for proper book-keeping, since we can no longer track this body's contribution to energy directly
          if (lescape_body) then
-            system%Ecollisions  = system%Ecollisions + ke_orbit + ke_spin + pe
-            system%Euntracked  = system%Euntracked - (ke_orbit + ke_spin + pe)
+            param%Ecollisions  = param%Ecollisions + ke_orbit + ke_spin + pe
+            param%Euntracked  = param%Euntracked - (ke_orbit + ke_spin + pe)
          else
-            system%Ecollisions  = system%Ecollisions + pe 
-            system%Euntracked = system%Euntracked - pe
+            param%Ecollisions  = param%Ecollisions + pe 
+            param%Euntracked = param%Euntracked - pe
          end if
    
       end select
       return
-   
    end subroutine symba_discard_conserve_mtm
 
 
@@ -173,18 +197,34 @@ contains
       class(symba_pl),              intent(inout) :: pl     !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      ! Internals
+      logical, dimension(pl%nbody) ::  ldiscard
+      integer(I4B) :: i, nstart, nend, nsub
+      class(symba_pl), allocatable            :: plsub
     
       ! First check for collisions with the central body
       associate(npl => pl%nbody, cb => system%cb)
          if (npl == 0) return 
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
-             (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
-            call pl%h2b(cb) 
-         end if
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-            call symba_discard_cb_pl(pl, system, param)
-         end if
-         if (param%qmin >= 0.0_DP .and. npl > 0) call symba_discard_peri_pl(pl, system, param)
+         select type(pl_discards => system%pl_discards)
+         class is (symba_merger)
+            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
+               call symba_discard_cb_pl(pl, system, param)
+            end if
+            if (param%qmin >= 0.0_DP) call symba_discard_peri_pl(pl, system, param)
+            if (any(pl%ldiscard(1:npl))) then
+               ldiscard(1:npl) = pl%ldiscard(1:npl)
+                  
+               allocate(plsub, mold=pl)
+               call pl%spill(plsub, ldiscard, ldestructive=.false.)
+               nsub = plsub%nbody
+               nstart = pl_discards%nbody + 1
+               nend = pl_discards%nbody + nsub
+               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
+   
+               ! Record how many bodies were subtracted in this event
+               pl_discards%ncomp(nstart:nend) = nsub
+            end if
+         end select
       end associate
 
       return
@@ -246,6 +286,7 @@ contains
       logical, save      :: lfirst = .true.
       logical            :: lfirst_orig
       integer(I4B)       :: i
+      character(len=STRMAX) :: timestr, idstr
 
 
       lfirst_orig = pl%lfirst
@@ -262,7 +303,10 @@ contains
                      pl%ldiscard(i) = .true.
                      pl%lcollision(i) = .false.
                      pl%status(i) = DISCARDED_PERI
-                     write(*, *) "Particle ", pl%id(i), " perihelion distance too small at t = ", param%t
+                     write(timestr, *) param%t
+                     write(idstr, *) pl%id(i)
+                     write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ") perihelion distance too small at t = " // trim(adjustl(timestr)) 
+                     call pl%info(i)%set_value(status="DISCARDED_PERI", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=system%cb%id)
                   end if
                end if
             end if
@@ -277,8 +321,7 @@ contains
    module subroutine symba_discard_pl(self, system, param)
       !! author: David A. Minton
       !!
-      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colling with the central body, 
-      !! escaping the system, or colliding with each other.
+      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colliding with the central body or escaping the system
       implicit none
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
@@ -291,36 +334,31 @@ contains
       class is (symba_nbody_system)
          select type(param)
          class is (symba_parameters)
-            associate(pl => self, plplenc_list => system%plplenc_list)
-               call pl%h2b(system%cb) 
+            associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
+               call pl%vb2vh(system%cb) 
+               call pl%xh2xb(system%cb)
+               call plplenc_list%write(pl, pl, param)
 
-               ! First deal with the non pl-pl collisions
                call symba_discard_nonplpl(self, system, param)
 
-               ! Scrub the pl-pl encounter list of any encounters that did not lead to a collision
-               call plplenc_list%scrub_non_collision(system, param)
+               if (.not.any(pl%ldiscard(:))) return
 
-               if ((plplenc_list%nenc > 0) .and. any(pl%lcollision(:))) then 
-                  write(*, *) "Collision between massive bodies detected at time t = ",param%t
-                  if (param%lfragmentation) then
-                     call plplenc_list%resolve_fragmentations(system, param)
-                  else
-                     call plplenc_list%resolve_mergers(system, param)
-                  end if
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_before = system%te
                end if
 
-               if (any(pl%ldiscard(:))) then
-                  if (param%lenergy) then
-                     call system%get_energy_and_momentum(param)
-                     Eorbit_before = system%te
-                  end if
-                  call symba_discard_nonplpl_conservation(self, system, param)
-                  call pl%rearray(system, param)
-                  if (param%lenergy) then
-                     call system%get_energy_and_momentum(param)
-                     Eorbit_after = system%te
-                     system%Ecollisions = Eorbit_after - Eorbit_before
-                  end if
+               call symba_discard_nonplpl_conservation(self, system, param)
+
+               ! Save the add/discard information to file
+               call system%write_discard(param)
+
+               call pl%rearray(system, param)
+
+               if (param%lenergy) then
+                  call system%get_energy_and_momentum(param)
+                  Eorbit_after = system%te
+                  param%Ecollisions = param%Ecollisions + (Eorbit_after - Eorbit_before)
                end if
 
             end associate

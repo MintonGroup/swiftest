@@ -12,12 +12,30 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-      class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameter
+      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameter
+      ! Internals
+      type(interaction_timer), save :: itimer
+      logical, save :: lfirst = .true.
+
+      if (param%ladaptive_interactions) then
+         if (lfirst) then
+            write(itimer%loopname, *)  "symba_kick_getacch_int_pl"
+            write(itimer%looptype, *)  "INTERACTION"
+            call itimer%time_this_loop(param, self, self%nplplm)
+            lfirst = .false.
+         else
+            if (itimer%check(param, self%nplplm)) call itimer%time_this_loop(param, self, self%nplplm)
+         end if
+      end if
 
       if (param%lflatten_interactions) then
          call kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
       else
          call kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%xh, self%Gmass, self%radius, self%ah)
+      end if
+
+      if (param%ladaptive_interactions) then 
+         if (itimer%is_on) call itimer%adapt(param, self, self%nplplm)
       end if
 
       return
@@ -35,7 +53,7 @@ contains
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
@@ -68,6 +86,7 @@ contains
       return
    end subroutine symba_kick_getacch_pl
 
+
    module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
       !! author: David A. Minton
       !!
@@ -79,7 +98,7 @@ contains
       ! Arguments
       class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals

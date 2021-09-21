@@ -23,13 +23,14 @@ contains
       real(DP), dimension(system%pl%nbody)    :: r2crit
       logical                                 :: lflag
 
+      lencounter = .false.
       if (self%nbody == 0) return
 
       select type(pl => system%pl)
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody, rts => system%rts)
-            r2crit(:) = (rts * pl%rhill(:))**2
-            tp%plencP(:) = 0
+            r2crit(1:npl) = (rts * pl%rhill(1:npl))**2
+            tp%plencP(1:ntp) = 0
             do j = 1, npl
                do i = 1, ntp
                   if ((.not.tp%lmask(i)).or.(tp%plencP(i) /= 0)) cycle
@@ -38,9 +39,9 @@ contains
                   lflag = rmvs_chk_ind(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), dt, r2crit(j))
                   if (lflag) tp%plencP(i) = j
                end do
-               pl%nenc(j) = count(tp%plencP(:) == j)
+               pl%nenc(j) = count(tp%plencP(1:ntp) == j)
             end do
-            lencounter = any(pl%nenc(:) > 0)
+            lencounter = any(pl%nenc(1:npl) > 0)
          end associate
       end select
       return

@@ -134,7 +134,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title="<p>11.8% of total for derived types.</p>Including implementation: 64 statements,  9.1% of total for derived types.">64 statements</a>
+    title="<p> 8.9% of total for derived types.</p>Including implementation: 65 statements,  7.3% of total for derived types.">65 statements</a>
      </li> 
      
      
@@ -181,9 +181,7 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-integrator">integrator</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-nplmax">nplmax</a>
-      
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ntpmax">ntpmax</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-maxid">maxid</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-t0">t0</a>
       
@@ -193,6 +191,8 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-dt~2">dt</a>
       
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ioutput">ioutput</a>
+      
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-incbfile">incbfile</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-inplfile">inplfile</a>
@@ -200,6 +200,8 @@
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-intpfile">intpfile</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-in_type">in_type</a>
+      
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-in_form">in_form</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-istep_out">istep_out</a>
       
@@ -210,6 +212,8 @@
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-out_form">out_form</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-out_stat">out_stat</a>
+      
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-particle_out">particle_out</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-istep_dump">istep_dump</a>
       
@@ -261,9 +265,7 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-eorbit_orig">Eorbit_orig</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-mtot_orig">Mtot_orig</a>
-      
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lmag_orig">Lmag_orig</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-gmtot_orig">GMtot_orig</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ltot_orig">Ltot_orig</a>
       
@@ -271,15 +273,13 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lspin_orig">Lspin_orig</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ltot">Ltot</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lescape">Lescape</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lescape~2">Lescape</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-gmescape">GMescape</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-mescape~2">Mescape</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ecollisions">Ecollisions</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ecollisions~2">Ecollisions</a>
-      
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-euntracked~2">Euntracked</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-euntracked">Euntracked</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lfirstenergy">lfirstenergy</a>
       
@@ -292,6 +292,8 @@
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lyarkovsky">lyarkovsky</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lyorp">lyorp</a>
+      
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-nciu">nciu</a>
       
     </div>
   </div>
@@ -325,7 +327,7 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#boundprocedure-dump~3">dump</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#boundprocedure-read_from_file">read_from_file</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#boundprocedure-read_in~3">read_in</a>
       
     </div>
   </div>
@@ -344,6 +346,84 @@
     <p>User defined parameters that are read in from the parameters input file. 
     Each paramter is initialized to a default values. </p>
     <br>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">Inherits</h3>
+      </div>
+      <div class="panel-body">
+    <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: type~~swiftest_parameters~~InheritsGraph Pages: 1 -->
+<svg id="typeswiftest_parametersInheritsGraph" width="274pt" height="32pt"
+ viewBox="0.00 0.00 274.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="type~~swiftest_parameters~~InheritsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>type~~swiftest_parameters~~InheritsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 270,-28 270,4 -4,4"/>
+<!-- type~swiftest_parameters -->
+<g id="type~~swiftest_parameters~~InheritsGraph_node1" class="node">
+<title>type~swiftest_parameters</title>
+<polygon fill="none" stroke="black" points="266,-24 157,-24 157,0 266,0 266,-24"/>
+<text text-anchor="middle" x="211.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">swiftest_parameters</text>
+</g>
+<!-- type~netcdf_parameters -->
+<g id="type~~swiftest_parameters~~InheritsGraph_node2" class="node">
+<title>type~netcdf_parameters</title>
+<g id="a_type~~swiftest_parameters~~InheritsGraph_node2"><a xlink:href=".././type/netcdf_parameters.html" xlink:title="netcdf_parameters">
+<polygon fill="#5cb85c" stroke="#5cb85c" points="103,-24 0,-24 0,0 103,0 103,-24"/>
+<text text-anchor="middle" x="51.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">netcdf_parameters</text>
+</a>
+</g>
+</g>
+<!-- type~swiftest_parameters&#45;&gt;type~netcdf_parameters -->
+<g id="type~~swiftest_parameters~~InheritsGraph_edge1" class="edge">
+<title>type~swiftest_parameters&#45;&gt;type~netcdf_parameters</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M156.57,-12C142.68,-12 127.65,-12 113.44,-12"/>
+<polygon fill="#000000" stroke="#000000" points="113.26,-8.5 103.26,-12 113.26,-15.5 113.26,-8.5"/>
+<text text-anchor="middle" x="130" y="-14.4" font-family="Helvetica,sans-Serif" font-size="9.50">nciu</text>
+</g>
+</g>
+</svg>
+</div><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="178pt" height="32pt"
+ viewBox="0.00 0.00 177.50 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 173.5,-28 173.5,4 -4,4"/>
+<!-- Type -->
+<g id="node1" class="node">
+<title>Type</title>
+<polygon fill="#5cb85c" stroke="#5cb85c" points="54,-24 0,-24 0,0 54,0 54,-24"/>
+<text text-anchor="middle" x="27" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="169.5,-24 72.5,-24 72.5,0 169.5,0 169.5,-24"/>
+<text text-anchor="middle" x="121" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a derived type to the parent type which it
+    extends. Dashed arrows point from a derived type to the other
+    types it contains as a components, with a label listing the name(s) of
+    said component(s).
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
     
     
     <div class="panel panel-default">
@@ -439,9 +519,7 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-integrator">integrator</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-nplmax">nplmax</a>
-      
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ntpmax">ntpmax</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-maxid">maxid</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-t0">t0</a>
       
@@ -451,6 +529,8 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-dt~2">dt</a>
       
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ioutput">ioutput</a>
+      
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-incbfile">incbfile</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-inplfile">inplfile</a>
@@ -458,6 +538,8 @@
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-intpfile">intpfile</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-in_type">in_type</a>
+      
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-in_form">in_form</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-istep_out">istep_out</a>
       
@@ -468,6 +550,8 @@
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-out_form">out_form</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-out_stat">out_stat</a>
+      
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-particle_out">particle_out</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-istep_dump">istep_dump</a>
       
@@ -519,9 +603,7 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-eorbit_orig">Eorbit_orig</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-mtot_orig">Mtot_orig</a>
-      
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lmag_orig">Lmag_orig</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-gmtot_orig">GMtot_orig</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ltot_orig">Ltot_orig</a>
       
@@ -529,15 +611,13 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lspin_orig">Lspin_orig</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ltot">Ltot</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lescape">Lescape</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lescape~2">Lescape</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-gmescape">GMescape</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-mescape~2">Mescape</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ecollisions">Ecollisions</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-ecollisions~2">Ecollisions</a>
-      
-      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-euntracked~2">Euntracked</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-euntracked">Euntracked</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lfirstenergy">lfirstenergy</a>
       
@@ -550,6 +630,8 @@
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lyarkovsky">lyarkovsky</a>
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#variable-lyorp">lyorp</a>
+      
+      <a class="list-group-item" href="../type/swiftest_parameters.html#variable-nciu">nciu</a>
       
     </div>
   </div>
@@ -583,7 +665,7 @@
       
       <a class="list-group-item" href="../type/swiftest_parameters.html#boundprocedure-dump~3">dump</a>
       
-      <a class="list-group-item" href="../type/swiftest_parameters.html#boundprocedure-read_from_file">read_from_file</a>
+      <a class="list-group-item" href="../type/swiftest_parameters.html#boundprocedure-read_in~3">read_in</a>
       
     </div>
   </div>
@@ -629,25 +711,11 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-nplmax"></span>integer(kind=I4B),</td>
+  <td><span class="anchor" id="variable-maxid"></span>integer(kind=I4B),</td>
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>nplmax</strong></td><td> =</td><td>-1</td><td><p>Maximum allowed number of massive bodies</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-ntpmax"></span>integer(kind=I4B),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>ntpmax</strong></td><td> =</td><td>-1</td><td><p>Maximum allowed number of test particles</p></td>
+  <td><strong>maxid</strong></td><td> =</td><td>-1</td><td><p>The current maximum particle id number </p></td>
   
 </tr>
 
@@ -713,6 +781,20 @@
   
 <tr>
   
+  <td><span class="anchor" id="variable-ioutput"></span>integer(kind=I8B),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>ioutput</strong></td><td> =</td><td>0_I8B</td><td><p>Output counter</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
   <td><span class="anchor" id="variable-incbfile"></span>character(len=STRMAX),</td>
   
   <td>public</td>
@@ -759,7 +841,21 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>in_type</strong></td><td> =</td><td>ASCII_TYPE</td><td><p>Format of input data files</p></td>
+  <td><strong>in_type</strong></td><td> =</td><td>ASCII_TYPE</td><td><p>Data representation type of input data files</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-in_form"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>in_form</strong></td><td> =</td><td>XV</td><td><p>Format of input data files (EL or XV)</p></td>
   
 </tr>
 
@@ -787,7 +883,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>outfile</strong></td><td> =</td><td>BIN_OUTFILE</td><td><p>Name of output binary file</p></td>
+  <td><strong>outfile</strong></td><td> =</td><td>NETCDF_OUTFILE</td><td><p>Name of output binary file</p></td>
   
 </tr>
 
@@ -801,7 +897,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>out_type</strong></td><td> =</td><td>REAL8_TYPE</td><td><p>Binary format of output file</p></td>
+  <td><strong>out_type</strong></td><td> =</td><td>NETCDF_DOUBLE_TYPE</td><td><p>Binary format of output file</p></td>
   
 </tr>
 
@@ -815,7 +911,7 @@
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>out_form</strong></td><td> =</td><td>XV</td><td><p>Data to write to output file</p></td>
+  <td><strong>out_form</strong></td><td> =</td><td>XVEL</td><td><p>Data to write to output file</p></td>
   
 </tr>
 
@@ -830,6 +926,20 @@
   <td>public</td>
   <td></td><td>::</td>
   <td><strong>out_stat</strong></td><td> =</td><td>'NEW'</td><td><p>Open status for output binary file</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-particle_out"></span>character(len=STRMAX),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>particle_out</strong></td><td> =</td><td>PARTICLE_OUTFILE</td><td><p>Name of output particle information file</p></td>
   
 </tr>
 
@@ -1189,25 +1299,11 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-mtot_orig"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-gmtot_orig"></span>real(kind=DP),</td>
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>Mtot_orig</strong></td><td> =</td><td>0.0_DP</td><td><p>Initial system mass</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-lmag_orig"></span>real(kind=DP),</td>
-  
-  <td>public</td>
-  <td></td><td>::</td>
-  <td><strong>Lmag_orig</strong></td><td> =</td><td>0.0_DP</td><td><p>Initial total angular momentum magnitude</p></td>
+  <td><strong>GMtot_orig</strong></td><td> =</td><td>0.0_DP</td><td><p>Initial system mass</p></td>
   
 </tr>
 
@@ -1259,21 +1355,7 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-ltot"></span>real(kind=DP),</td>
-  
-  <td>public,</td>
-  <td>dimension(NDIM)</td><td>::</td>
-  <td><strong>Ltot</strong></td><td> =</td><td>0.0_DP</td><td><p>System angular momentum vector</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-lescape~2"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-lescape"></span>real(kind=DP),</td>
   
   <td>public,</td>
   <td>dimension(NDIM)</td><td>::</td>
@@ -1287,11 +1369,11 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-mescape~2"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-gmescape"></span>real(kind=DP),</td>
   
   <td>public</td>
   <td></td><td>::</td>
-  <td><strong>Mescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Mass of bodies that escaped the system (used for bookeeping)</p></td>
+  <td><strong>GMescape</strong></td><td> =</td><td>0.0_DP</td><td><p>Mass of bodies that escaped the system (used for bookeeping)</p></td>
   
 </tr>
 
@@ -1301,7 +1383,7 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-ecollisions~2"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-ecollisions"></span>real(kind=DP),</td>
   
   <td>public</td>
   <td></td><td>::</td>
@@ -1315,7 +1397,7 @@
   
 <tr>
   
-  <td><span class="anchor" id="variable-euntracked~2"></span>real(kind=DP),</td>
+  <td><span class="anchor" id="variable-euntracked"></span>real(kind=DP),</td>
   
   <td>public</td>
   <td></td><td>::</td>
@@ -1404,6 +1486,20 @@
   <td>public</td>
   <td></td><td>::</td>
   <td><strong>lyorp</strong></td><td> =</td><td>.false.</td><td><p>Turn on YORP effect</p></td>
+  
+</tr>
+
+  
+  
+  
+  
+<tr>
+  
+  <td><span class="anchor" id="variable-nciu"></span>type(<a href='../type/netcdf_parameters.html'>netcdf_parameters</a>),</td>
+  
+  <td>public</td>
+  <td></td><td>::</td>
+  <td><strong>nciu</strong></td><td></td><td></td><td><p>Object containing NetCDF parameters</p></td>
   
 </tr>
 
@@ -1804,7 +1900,7 @@ public module subroutine io_dump_param(self, param_file_name)
     
      
 <div class="panel panel-default">
-  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-read_from_file"></span><h3>procedure, public :: <strong>read_from_file</strong>  => <a href='../interface/io_read_param_in.html'>io_read_param_in</a> 
+  <div class="panel-heading codesum"><span class="anchor" id="boundprocedure-read_in~3"></span><h3>procedure, public :: <strong>read_in</strong>  => <a href='../interface/io_read_in_param.html'>io_read_in_param</a> 
     
   </h3></div>
   
@@ -1821,11 +1917,11 @@ public module subroutine io_dump_param(self, param_file_name)
           
     
     <h3>
-public module subroutine io_read_param_in(self, param_file_name)
+public module subroutine io_read_in_param(self, param_file_name)
     
     
    
-   <a href='../proc/io_read_param_in.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
+   <a href='../proc/io_read_in_param.html'><button type="button" class="btn btn-info depwarn">Implementation &rarr;</button></a>
     
 </h3>
     

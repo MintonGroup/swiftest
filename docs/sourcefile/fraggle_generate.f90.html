@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+   
+   <meta name="description" content="Swiftest - The Fastest Symplectic Massive Body Integrator in the West (someday, hopefully)">
+    
+    <meta name="author" content="David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>fraggle_generate.f90 &ndash; swiftest</title>
+
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/local.css" rel="stylesheet">
+    
+    <link  href="../tipuesearch/tipuesearch.css" rel="stylesheet">
+    
+    
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="../js/jquery-2.1.3.min.js"></script>
+    <script src="../js/svg-pan-zoom.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="../index.html">swiftest </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+        
+            <li class="dropdown hidden-xs visible-sm visible-md hidden-lg">
+              <a href="#" class="dropdown-toggle"
+              data-toggle="dropdown" role="button"
+              aria-haspopup="true"
+     aria-expanded="false">Contents <span class="caret"></span></a>
+        <ul class="dropdown-menu">
+          
+              
+            <li><a href="../lists/files.html">Source Files</a></li>
+        
+        
+        
+            <li><a href="../lists/modules.html">Modules</a></li>
+        
+            
+                                
+            <li><a href="../lists/procedures.html">Procedures</a></li>
+        
+        
+            <li><a href="../lists/absint.html">Abstract Interfaces</a></li>
+               
+            <li><a href="../lists/types.html">Derived Types</a></li>
+        
+        
+            <li><a href="../program/swiftest_driver.html">Program</a></li>
+      
+            </ul>
+            </li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/files.html">Source Files</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/modules.html">Modules</a></li>
+
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/procedures.html">Procedures</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/absint.html">Abstract Interfaces</a></li>
+                             
+<li class="visible-xs hidden-sm visible-lg"><a href="../lists/types.html">Derived Types</a></li>
+
+
+<li class="visible-xs hidden-sm visible-lg"><a href="../program/swiftest_driver.html">Program</a></li>
+
+          </ul>
+        
+        <form action="../search.html" class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+        </div>
+<!--
+        <button type="submit" class="btn btn-default">Submit</button>
+-->
+        </form>
+        
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+    
+  
+  <div class="row">
+    <h1>fraggle_generate.f90
+    <small>Source File</small>
+    
+    </h1>
+    
+<div class="row">
+  <div class="col-lg-12">
+<div class="well well-sm">
+  <ul class="list-inline" style="margin-bottom:0px;display:inline">
+     
+     
+     
+     
+    
+    
+     <li><i class="fa fa-list-ol"></i>
+       <a data-toggle="tooltip"
+    data-placement="bottom" data-html="true"
+    title=" 2.5% of total for source files.">400 statements</a>
+     </li> 
+     
+     
+     
+    <li><i class="fa fa-code"></i><a href="../src/fraggle_generate.f90"> Source File</a></li>
+     
+     
+  </ul>
+  <ol class="breadcrumb in-well text-right">
+  
+    
+  
+     <li class="active">fraggle_generate.f90</li>
+  </ol>
+</div>
+</div>
+</div>
+<script>
+  $(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+  })
+</script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+    
+<div id="sidebar">
+  
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#submods-0">Submodules</a></h3></div>
+  <div id="submods-0" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/s_fraggle_generate.html">s_fraggle_generate</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/fraggle_generate.f90.html#src">fraggle_generate.f90</a>
+  </div>
+</div>
+
+
+
+</div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+    
+    <div class="panel panel-default">
+      <div class="panel-heading">
+  <h3 class="panel-title">This file depends on</h3>
+      </div>
+      <div class="panel-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: sourcefile~~fraggle_generate.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefilefraggle_generatef90EfferentGraph" width="641pt" height="249pt"
+ viewBox="0.00 0.00 641.00 249.45" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph" class="graph" transform="scale(0.67 0.67) rotate(0) translate(4 365.7)">
+<title>sourcefile~~fraggle_generate.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-365.7 946,-365.7 946,4 -4,4"/>
+<!-- sourcefile~fraggle_generate.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~fraggle_generate.f90</title>
+<polygon fill="none" stroke="black" points="942,-244.7 830,-244.7 830,-220.7 942,-220.7 942,-244.7"/>
+<text text-anchor="middle" x="886" y="-230.3" font-family="Helvetica,sans-Serif" font-size="10.50">fraggle_generate.f90</text>
+</g>
+<!-- sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~fraggle_classes.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node2"><a xlink:href=".././sourcefile/fraggle_classes.f90.html" xlink:title="fraggle_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="547,-285.7 442,-285.7 442,-261.7 547,-261.7 547,-285.7"/>
+<text text-anchor="middle" x="494.5" y="-271.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">fraggle_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M829.61,-238.53C757.7,-246.1 632.55,-259.27 557.52,-267.17"/>
+<polygon fill="#000000" stroke="#000000" points="556.86,-263.72 547.28,-268.25 557.59,-270.68 556.86,-263.72"/>
+</g>
+<!-- sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~swiftest.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node3"><a xlink:href=".././sourcefile/swiftest.f90.html" xlink:title="swiftest.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="794,-224.7 728,-224.7 728,-200.7 794,-200.7 794,-224.7"/>
+<text text-anchor="middle" x="761" y="-210.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~swiftest.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~fraggle_generate.f90&#45;&gt;sourcefile~swiftest.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M829.98,-223.75C821.24,-222.33 812.34,-220.88 803.97,-219.52"/>
+<polygon fill="#000000" stroke="#000000" points="804.51,-216.07 794.08,-217.92 803.38,-222.97 804.51,-216.07"/>
+</g>
+<!-- sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~swiftest_classes.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node4"><a xlink:href=".././sourcefile/swiftest_classes.f90.html" xlink:title="swiftest_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="250.5,-207.7 143.5,-207.7 143.5,-183.7 250.5,-183.7 250.5,-207.7"/>
+<text text-anchor="middle" x="197" y="-193.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M441.93,-274.39C414.08,-274.42 379.12,-273.87 348,-271.7"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-271.7C296.86,-268.27 247.51,-235.68 220.04,-214.3"/>
+<polygon fill="#000000" stroke="#000000" points="221.91,-211.32 211.92,-207.81 217.54,-216.79 221.91,-211.32"/>
+</g>
+<!-- sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~swiftest_globals.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node8"><a xlink:href=".././sourcefile/swiftest_globals.f90.html" xlink:title="swiftest_globals.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="106,-167.7 0,-167.7 0,-143.7 106,-143.7 106,-167.7"/>
+<text text-anchor="middle" x="53" y="-153.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_globals.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~fraggle_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M196,-309.7C133.55,-282.43 86.44,-212.57 65.68,-177.08"/>
+<polygon fill="#000000" stroke="#000000" points="68.52,-175 60.53,-168.05 62.44,-178.47 68.52,-175"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-271.7C278.25,-266.96 260.24,-336.88 198,-309.7"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M636.5,-233.7C603.13,-238.87 566.47,-249.43 538.9,-258.4"/>
+<polygon fill="#000000" stroke="#000000" points="537.56,-255.15 529.17,-261.62 539.76,-261.8 537.56,-255.15"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M636.5,-233.7C502.08,-254.52 342.57,-228.01 257.86,-209.93"/>
+<polygon fill="#000000" stroke="#000000" points="258.43,-206.47 247.91,-207.77 256.94,-213.31 258.43,-206.47"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M727.79,-218.43C703.32,-222.74 668.81,-228.74 638.5,-233.7"/>
+</g>
+<!-- sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~whm_classes.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node5"><a xlink:href=".././sourcefile/whm_classes.f90.html" xlink:title="whm_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="394,-129.7 300,-129.7 300,-105.7 394,-105.7 394,-129.7"/>
+<text text-anchor="middle" x="347" y="-115.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">whm_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~whm_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M636.5,-115.7C596.2,-98.55 476.3,-105.76 404.38,-112.06"/>
+<polygon fill="#000000" stroke="#000000" points="403.78,-108.6 394.14,-112.98 404.41,-115.57 403.78,-108.6"/>
+</g>
+<!-- sourcefile~walltime_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~walltime_classes.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node6"><a xlink:href=".././sourcefile/walltime_classes.f90.html" xlink:title="walltime_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="252,-88.7 142,-88.7 142,-64.7 252,-64.7 252,-88.7"/>
+<text text-anchor="middle" x="197" y="-74.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">walltime_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~walltime_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~walltime_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M749.01,-200.42C729.22,-179.2 685.3,-136 638.5,-115.7"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M636.5,-115.7C592.34,-96.55 593,-68.88 547,-54.7 445.26,-23.32 319.13,-45.26 249.77,-62.19"/>
+<polygon fill="#000000" stroke="#000000" points="248.81,-58.82 239.96,-64.65 250.51,-65.61 248.81,-58.82"/>
+</g>
+<!-- sourcefile~rmvs_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~rmvs_classes.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node7"><a xlink:href=".././sourcefile/rmvs_classes.f90.html" xlink:title="rmvs_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="542,-87.7 447,-87.7 447,-63.7 542,-63.7 542,-87.7"/>
+<text text-anchor="middle" x="494.5" y="-73.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rmvs_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~rmvs_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~rmvs_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M636.5,-115.7C609.51,-104.21 578.24,-94.96 552.01,-88.26"/>
+<polygon fill="#000000" stroke="#000000" points="552.78,-84.84 542.23,-85.82 551.08,-91.63 552.78,-84.84"/>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M748.2,-224.84C712.94,-259.68 604.11,-357.03 495.5,-349.7"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M493.5,-349.7C453.65,-353.1 445.46,-335.2 406,-328.7 314.41,-313.61 283.07,-346.85 198,-309.7"/>
+</g>
+<!-- sourcefile~lambda_function.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node9" class="node">
+<title>sourcefile~lambda_function.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node9"><a xlink:href=".././sourcefile/lambda_function.f90.html" xlink:title="lambda_function.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="692,-48.7 583,-48.7 583,-24.7 692,-24.7 692,-48.7"/>
+<text text-anchor="middle" x="637.5" y="-34.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">lambda_function.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~lambda_function.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~lambda_function.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M753.37,-200.69C741.77,-179.94 716.66,-136.3 692,-101.7 680.73,-85.88 666.74,-68.97 655.9,-56.36"/>
+<polygon fill="#000000" stroke="#000000" points="658.49,-54.01 649.28,-48.76 653.2,-58.6 658.49,-54.01"/>
+</g>
+<!-- sourcefile~helio_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node10" class="node">
+<title>sourcefile~helio_classes.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node10"><a xlink:href=".././sourcefile/helio_classes.f90.html" xlink:title="helio_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="541.5,-167.7 447.5,-167.7 447.5,-143.7 541.5,-143.7 541.5,-167.7"/>
+<text text-anchor="middle" x="494.5" y="-153.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">helio_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~helio_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~helio_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M636.5,-115.7C617.77,-107.73 567.4,-125.34 532.24,-139.67"/>
+<polygon fill="#000000" stroke="#000000" points="530.66,-136.54 522.76,-143.6 533.34,-143 530.66,-136.54"/>
+</g>
+<!-- sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node11" class="node">
+<title>sourcefile~symba_classes.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node11"><a xlink:href=".././sourcefile/symba_classes.f90.html" xlink:title="symba_classes.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="689,-205.7 586,-205.7 586,-181.7 689,-181.7 689,-205.7"/>
+<text text-anchor="middle" x="637.5" y="-191.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">symba_classes.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~symba_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~symba_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M727.76,-207.66C718.99,-206.29 709.2,-204.76 699.41,-203.22"/>
+<polygon fill="#000000" stroke="#000000" points="699.66,-199.72 689.24,-201.63 698.58,-206.64 699.66,-199.72"/>
+</g>
+<!-- sourcefile~swiftest_operators.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_node12" class="node">
+<title>sourcefile~swiftest_operators.f90</title>
+<g id="a_sourcefile~~fraggle_generate.f90~~EfferentGraph_node12"><a xlink:href=".././sourcefile/swiftest_operators.f90.html" xlink:title="swiftest_operators.f90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="406,-361.7 288,-361.7 288,-337.7 406,-337.7 406,-361.7"/>
+<text text-anchor="middle" x="347" y="-347.3" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">swiftest_operators.f90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_operators.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~swiftest.f90&#45;&gt;sourcefile~swiftest_operators.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M493.5,-349.7C468.36,-348 440.72,-347.63 416.35,-347.8"/>
+<polygon fill="#000000" stroke="#000000" points="416.08,-344.31 406.12,-347.91 416.15,-351.31 416.08,-344.31"/>
+</g>
+<!-- sourcefile~swiftest_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~swiftest_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M153.4,-183.7C138.79,-179.58 122.26,-174.93 106.93,-170.61"/>
+<polygon fill="#000000" stroke="#000000" points="107.64,-167.17 97.07,-167.83 105.74,-173.91 107.64,-167.17"/>
+</g>
+<!-- sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M315.91,-129.79C306.76,-133.84 296.79,-138.62 288,-143.7 270.91,-153.57 268.96,-159.6 252,-169.7 246.49,-172.98 240.49,-176.19 234.57,-179.18"/>
+<polygon fill="#000000" stroke="#000000" points="232.86,-176.12 225.41,-183.65 235.93,-182.41 232.86,-176.12"/>
+</g>
+<!-- sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~whm_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M313.66,-129.8C284.05,-139.95 238.78,-153.19 198,-155.7"/>
+</g>
+<!-- sourcefile~walltime_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge18" class="edge">
+<title>sourcefile~walltime_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M174.12,-88.87C150.18,-102.19 111.63,-123.64 84.68,-138.63"/>
+<polygon fill="#000000" stroke="#000000" points="82.71,-135.72 75.67,-143.64 86.11,-141.84 82.71,-135.72"/>
+</g>
+<!-- sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge19" class="edge">
+<title>sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~whm_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M451.81,-87.74C435.52,-92.44 416.68,-97.87 399.55,-102.82"/>
+<polygon fill="#000000" stroke="#000000" points="398.34,-99.53 389.7,-105.66 400.28,-106.25 398.34,-99.53"/>
+</g>
+<!-- sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge20" class="edge">
+<title>sourcefile~rmvs_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M446.83,-74.25C404.26,-74.35 340.22,-78.17 288,-96.7 242.93,-112.7 245.74,-152.77 198,-155.7"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M196,-155.7C169.93,-157.11 141.13,-157.35 116.31,-157.15"/>
+<polygon fill="#000000" stroke="#000000" points="116.34,-153.65 106.3,-157.05 116.26,-160.65 116.34,-153.65"/>
+</g>
+<!-- sourcefile~lambda_function.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge21" class="edge">
+<title>sourcefile~lambda_function.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M589.78,-24.69C496.9,-3.61 285.6,30.18 142,-55.7 108.86,-75.52 81.51,-112.03 66.5,-135.03"/>
+<polygon fill="#000000" stroke="#000000" points="63.41,-133.36 61.01,-143.68 69.32,-137.11 63.41,-133.36"/>
+</g>
+<!-- sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge22" class="edge">
+<title>sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-157.7C309.65,-160.12 269.72,-170.88 240.5,-180.33"/>
+<polygon fill="#000000" stroke="#000000" points="239.03,-177.13 230.64,-183.6 241.23,-183.78 239.03,-177.13"/>
+</g>
+<!-- sourcefile~helio_classes.f90&#45;&gt;sourcefile~whm_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge23" class="edge">
+<title>sourcefile~helio_classes.f90&#45;&gt;sourcefile~whm_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M447.46,-143.68C433.66,-140.07 418.37,-136.08 404.01,-132.33"/>
+<polygon fill="#000000" stroke="#000000" points="404.8,-128.92 394.24,-129.78 403.03,-135.69 404.8,-128.92"/>
+</g>
+<!-- sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge24" class="edge">
+<title>sourcefile~helio_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-157.7C280.36,-162.07 263.66,-151.67 198,-155.7"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M447.25,-155.09C418.63,-155.02 381.15,-155.49 348,-157.7"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~fraggle_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge29" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~fraggle_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M610.38,-205.75C601.59,-209.97 591.78,-214.87 583,-219.7 562.41,-231.02 539.86,-244.97 522.81,-255.86"/>
+<polygon fill="#000000" stroke="#000000" points="520.47,-253.21 513.95,-261.56 524.26,-259.09 520.47,-253.21"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge25" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-195.7C318.16,-193.85 287.31,-193.57 261.01,-193.86"/>
+<polygon fill="#000000" stroke="#000000" points="260.75,-190.36 250.8,-194 260.85,-197.36 260.75,-190.36"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~rmvs_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge26" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~rmvs_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M621.94,-181.52C597.35,-160.94 547.41,-119.15 518.19,-94.69"/>
+<polygon fill="#000000" stroke="#000000" points="520.11,-91.73 510.19,-87.99 515.61,-97.1 520.11,-91.73"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge27" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M346,-195.7C278.01,-191.19 266.04,-152.02 198,-155.7"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M585.88,-196.29C528.22,-198.72 431.21,-201.22 348,-195.7"/>
+</g>
+<!-- sourcefile~symba_classes.f90&#45;&gt;sourcefile~helio_classes.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge28" class="edge">
+<title>sourcefile~symba_classes.f90&#45;&gt;sourcefile~helio_classes.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M591.89,-181.68C578.64,-178.11 563.98,-174.16 550.18,-170.44"/>
+<polygon fill="#000000" stroke="#000000" points="550.87,-167 540.31,-167.78 549.05,-173.76 550.87,-167"/>
+</g>
+<!-- sourcefile~swiftest_operators.f90&#45;&gt;sourcefile~swiftest_globals.f90 -->
+<g id="sourcefile~~fraggle_generate.f90~~EfferentGraph_edge30" class="edge">
+<title>sourcefile~swiftest_operators.f90&#45;&gt;sourcefile~swiftest_globals.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M287.73,-338.15C259.91,-331.59 226.54,-322.16 198,-309.7"/>
+</g>
+</g>
+</svg>
+</div><script>var pansourcefilefraggle_generatef90EfferentGraph = svgPanZoom('#sourcefilefraggle_generatef90EfferentGraph', {zoomEnabled: true,controlIconsEnabled: true, fit: true, center: true,}); </script><div><a type="button" class="graph-help" data-toggle="modal" href="#graph-help-text">Help</a></div><div class="modal fade" id="graph-help-text" tabindex="-1" role="dialog"><div class="modal-dialog modal-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="-graph-help-label">Graph Key</h4></div><div class="modal-body">
+    <p>Nodes of different colours represent the following: </p>
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.47.1 (20210417.1919)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="190pt" height="32pt"
+ viewBox="0.00 0.00 190.00 32.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 186,-28 186,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="67,-24 0,-24 0,0 67,0 67,-24"/>
+<text text-anchor="middle" x="33.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="182,-24 85,-24 85,0 182,0 182,-24"/>
+<text text-anchor="middle" x="133.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+    
+    <p>Solid arrows point from a file to a file which it depends on. A file
+    is dependent upon another if the latter must be compiled before the former
+    can be.
+    </p>
+    </div></div></div></div>
+      </div>
+    </div>
+    
+      
+      <br>
+
+    <section class="visible-xs visible-sm hidden-md">
+      
+<h3>Contents</h3>
+ 
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title"><a data-toggle="collapse" href="#submods-1">Submodules</a></h3></div>
+  <div id="submods-1" class="panel-collapse collapse">
+    <div class="list-group">
+      
+      <a class="list-group-item" href="../module/s_fraggle_generate.html">s_fraggle_generate</a>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel panel-primary">
+  <div class="panel-heading text-left"><h3 class="panel-title">Source Code</h3></div>
+  <div class="list-group">
+    <a class="list-group-item" href="../sourcefile/fraggle_generate.f90.html#src">fraggle_generate.f90</a>
+  </div>
+</div>
+
+
+
+    </section>
+    <br class="visible-xs visible-sm hidden-md">
+
+    <section>
+      <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl"><pre><span></span><a name="ln-1"></a><span class="k">submodule</span><span class="p">(</span><span class="n">fraggle_classes</span><span class="p">)</span> <span class="n">s_fraggle_generate</span>
+<a name="ln-2"></a>   <span class="k">use </span><span class="n">swiftest</span>
+<a name="ln-3"></a>
+<a name="ln-4"></a>   <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">parameter</span> <span class="kd">::</span> <span class="n">NFRAG_MIN</span> <span class="o">=</span> <span class="mi">7</span> <span class="c">!! The minimum allowable number of fragments (set to 6 because that&#39;s how many unknowns are needed in the tangential velocity calculation)</span>
+<a name="ln-5"></a>   <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>     <span class="k">parameter</span> <span class="kd">::</span> <span class="n">F_SPIN_FIRST</span> <span class="o">=</span> <span class="mf">0.05_DP</span> <span class="c">!! The initial try value of the fraction of energy or momenum in spin (whichever has the lowest kinetic energy)</span>
+<a name="ln-6"></a>   <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>     <span class="kd">::</span> <span class="n">FRAGGLE_LTOL</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="nb">epsilon</span><span class="p">(</span><span class="mf">1.0_DP</span><span class="p">)</span>
+<a name="ln-7"></a>   <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>     <span class="kd">::</span> <span class="n">FRAGGLE_ETOL</span> <span class="o">=</span> <span class="mf">1e-8_DP</span>
+<a name="ln-8"></a>
+<a name="ln-9"></a><span class="k">contains</span>
+<a name="ln-10"></a>
+<a name="ln-11"></a><span class="k">   module subroutine </span><span class="n">fraggle_generate_fragments</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-12"></a>      <span class="c">!! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton</span>
+<a name="ln-13"></a>      <span class="c">!!</span>
+<a name="ln-14"></a>      <span class="c">!! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.</span>
+<a name="ln-15"></a>      <span class="k">use</span><span class="p">,</span> <span class="k">intrinsic</span> <span class="kd">::</span> <span class="n">ieee_exceptions</span>
+<a name="ln-16"></a>      <span class="k">implicit none</span>
+<a name="ln-17"></a>      <span class="c">! Arguments</span>
+<a name="ln-18"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">self</span>      <span class="c">!! Fraggle system object the outputs will be the fragmentation </span>
+<a name="ln-19"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span>     <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle colliders object containing the two-body equivalent values of the colliding bodies </span>
+<a name="ln-20"></a>      <span class="k">class</span><span class="p">(</span><span class="n">swiftest_nbody_system</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="nb">system</span>    <span class="c">!! Swiftest nbody system object</span>
+<a name="ln-21"></a>      <span class="k">class</span><span class="p">(</span><span class="n">swiftest_parameters</span><span class="p">),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">param</span>     <span class="c">!! Current run configuration parameters </span>
+<a name="ln-22"></a>      <span class="kt">logical</span><span class="p">,</span>                      <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">lfailure</span>  <span class="c">!! Answers the question: Should this have been a merger instead?</span>
+<a name="ln-23"></a>      <span class="c">! Internals</span>
+<a name="ln-24"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>                         <span class="kd">::</span> <span class="n">i</span>
+<a name="ln-25"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>                         <span class="kd">::</span> <span class="n">try</span>
+<a name="ln-26"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                             <span class="kd">::</span> <span class="n">r_max_start</span><span class="p">,</span> <span class="n">f_spin</span><span class="p">,</span> <span class="n">dEtot</span><span class="p">,</span> <span class="n">dLmag</span>
+<a name="ln-27"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">parameter</span>              <span class="kd">::</span> <span class="n">MAXTRY</span> <span class="o">=</span> <span class="mi">100</span>
+<a name="ln-28"></a>      <span class="kt">logical</span>                              <span class="kd">::</span> <span class="n">lk_plpl</span>
+<a name="ln-29"></a>      <span class="kt">logical</span><span class="p">,</span> <span class="k">dimension</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">IEEE_ALL</span><span class="p">))</span>   <span class="kd">::</span> <span class="n">fpe_halting_modes</span><span class="p">,</span> <span class="n">fpe_quiet_modes</span>
+<a name="ln-30"></a>      <span class="kt">logical</span><span class="p">,</span> <span class="k">dimension</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">IEEE_USUAL</span><span class="p">))</span> <span class="kd">::</span> <span class="n">fpe_flag</span> 
+<a name="ln-31"></a>      <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="n">STRMAX</span><span class="p">)</span>                <span class="kd">::</span> <span class="n">message</span>
+<a name="ln-32"></a>
+<a name="ln-33"></a>      <span class="c">! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we</span>
+<a name="ln-34"></a>      <span class="c">! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily </span>
+<a name="ln-35"></a>      <span class="k">call </span><span class="n">ieee_get_halting_mode</span><span class="p">(</span><span class="n">IEEE_ALL</span><span class="p">,</span><span class="n">fpe_halting_modes</span><span class="p">)</span>  <span class="c">! Save the current halting modes so we can turn them off temporarily</span>
+<a name="ln-36"></a>      <span class="n">fpe_quiet_modes</span><span class="p">(:)</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-37"></a>      <span class="k">call </span><span class="n">ieee_set_halting_mode</span><span class="p">(</span><span class="n">IEEE_ALL</span><span class="p">,</span><span class="n">fpe_quiet_modes</span><span class="p">)</span>
+<a name="ln-38"></a>
+<a name="ln-39"></a>      <span class="k">associate</span><span class="p">(</span><span class="n">frag</span> <span class="o">=&gt;</span> <span class="n">self</span><span class="p">,</span> <span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">self</span><span class="p">%</span><span class="n">nbody</span><span class="p">,</span> <span class="n">pl</span> <span class="o">=&gt;</span> <span class="nb">system</span><span class="p">%</span><span class="n">pl</span><span class="p">)</span>
+<a name="ln-40"></a>
+<a name="ln-41"></a>         <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="n">nfrag</span>
+<a name="ln-42"></a>         <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle generating &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">))</span> <span class="o">//</span> <span class="s2">&quot; fragments.&quot;</span><span class="p">)</span>
+<a name="ln-43"></a>         <span class="k">if</span> <span class="p">(</span><span class="n">nfrag</span> <span class="o">&lt;</span> <span class="n">NFRAG_MIN</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-44"></a><span class="k">            write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;Fraggle needs at least &quot;</span><span class="p">,</span><span class="n">NFRAG_MIN</span><span class="p">,</span><span class="s2">&quot; fragments, but only &quot;</span><span class="p">,</span><span class="n">nfrag</span><span class="p">,</span><span class="s2">&quot; were given.&quot;</span>
+<a name="ln-45"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<a name="ln-46"></a>            <span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<a name="ln-47"></a>            <span class="k">return</span>
+<a name="ln-48"></a><span class="k">         end if</span>
+<a name="ln-49"></a><span class="k">         </span><span class="n">f_spin</span> <span class="o">=</span> <span class="n">F_SPIN_FIRST</span>
+<a name="ln-50"></a>
+<a name="ln-51"></a>         <span class="n">lk_plpl</span> <span class="o">=</span> <span class="nb">allocated</span><span class="p">(</span><span class="n">pl</span><span class="p">%</span><span class="n">k_plpl</span><span class="p">)</span>
+<a name="ln-52"></a>         <span class="k">if</span> <span class="p">(</span><span class="n">lk_plpl</span><span class="p">)</span> <span class="k">deallocate</span><span class="p">(</span><span class="n">pl</span><span class="p">%</span><span class="n">k_plpl</span><span class="p">)</span>
+<a name="ln-53"></a>
+<a name="ln-54"></a>         <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">set_natural_scale</span><span class="p">(</span><span class="n">colliders</span><span class="p">)</span>
+<a name="ln-55"></a>
+<a name="ln-56"></a>         <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">reset</span><span class="p">()</span>
+<a name="ln-57"></a>
+<a name="ln-58"></a>         <span class="c">! Calculate the initial energy of the system without the collisional family</span>
+<a name="ln-59"></a>         <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">get_energy_and_momentum</span><span class="p">(</span><span class="n">colliders</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">lbefore</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<a name="ln-60"></a>        
+<a name="ln-61"></a>         <span class="c">! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution</span>
+<a name="ln-62"></a>         <span class="n">r_max_start</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="nb">norm2</span><span class="p">(</span><span class="n">colliders</span><span class="p">%</span><span class="n">xb</span><span class="p">(:,</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">colliders</span><span class="p">%</span><span class="n">xb</span><span class="p">(:,</span><span class="mi">1</span><span class="p">))</span>
+<a name="ln-63"></a>         <span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-64"></a>         <span class="n">try</span> <span class="o">=</span> <span class="mi">1</span>
+<a name="ln-65"></a>         <span class="k">do while</span> <span class="p">(</span><span class="n">try</span> <span class="o">&lt;</span> <span class="n">MAXTRY</span><span class="p">)</span>
+<a name="ln-66"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="n">try</span>
+<a name="ln-67"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle try &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-68"></a>            <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-69"></a><span class="k">               call </span><span class="n">frag</span><span class="p">%</span><span class="n">restructure</span><span class="p">(</span><span class="n">colliders</span><span class="p">,</span> <span class="n">try</span><span class="p">,</span> <span class="n">f_spin</span><span class="p">,</span> <span class="n">r_max_start</span><span class="p">)</span>
+<a name="ln-70"></a>               <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">reset</span><span class="p">()</span>
+<a name="ln-71"></a>               <span class="n">try</span> <span class="o">=</span> <span class="n">try</span> <span class="o">+</span> <span class="mi">1</span>
+<a name="ln-72"></a>            <span class="k">end if</span>
+<a name="ln-73"></a>
+<a name="ln-74"></a><span class="k">            </span><span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-75"></a>            <span class="k">call </span><span class="n">ieee_set_flag</span><span class="p">(</span><span class="n">ieee_all</span><span class="p">,</span> <span class="p">.</span><span class="n">false</span><span class="p">.)</span> <span class="c">! Set all fpe flags to quiet</span>
+<a name="ln-76"></a>
+<a name="ln-77"></a>            <span class="k">call </span><span class="n">fraggle_generate_pos_vec</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">r_max_start</span><span class="p">)</span>
+<a name="ln-78"></a>            <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">set_coordinate_system</span><span class="p">(</span><span class="n">colliders</span><span class="p">)</span>
+<a name="ln-79"></a>
+<a name="ln-80"></a>            <span class="c">! Initial velocity guess will be the barycentric velocity of the colliding system so that the budgets are based on the much smaller collisional-frame velocities</span>
+<a name="ln-81"></a>            <span class="k">do </span><span class="n">concurrent</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span>
+<a name="ln-82"></a>               <span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">vbcom</span><span class="p">(:)</span>
+<a name="ln-83"></a>            <span class="k">end do</span>
+<a name="ln-84"></a>
+<a name="ln-85"></a><span class="k">            call </span><span class="n">frag</span><span class="p">%</span><span class="n">get_energy_and_momentum</span><span class="p">(</span><span class="n">colliders</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">lbefore</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<a name="ln-86"></a>            <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">set_budgets</span><span class="p">(</span><span class="n">colliders</span><span class="p">)</span>
+<a name="ln-87"></a>
+<a name="ln-88"></a>            <span class="k">call </span><span class="n">fraggle_generate_spins</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">f_spin</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-89"></a>            <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-90"></a><span class="k">               call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle failed to find spins&quot;</span><span class="p">)</span>
+<a name="ln-91"></a>               <span class="k">cycle</span>
+<a name="ln-92"></a><span class="k">            end if</span>
+<a name="ln-93"></a>
+<a name="ln-94"></a><span class="k">            call </span><span class="n">fraggle_generate_tan_vel</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-95"></a>            <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-96"></a><span class="k">               call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle failed to find tangential velocities&quot;</span><span class="p">)</span>
+<a name="ln-97"></a>               <span class="k">cycle</span>
+<a name="ln-98"></a><span class="k">            end if</span>
+<a name="ln-99"></a>
+<a name="ln-100"></a><span class="k">            call </span><span class="n">fraggle_generate_rad_vel</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-101"></a>            <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-102"></a><span class="k">               call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle failed to find radial velocities&quot;</span><span class="p">)</span>
+<a name="ln-103"></a>               <span class="k">cycle</span>
+<a name="ln-104"></a><span class="k">            end if</span>
+<a name="ln-105"></a>
+<a name="ln-106"></a><span class="k">            call </span><span class="n">frag</span><span class="p">%</span><span class="n">get_energy_and_momentum</span><span class="p">(</span><span class="n">colliders</span><span class="p">,</span> <span class="nb">system</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">lbefore</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<a name="ln-107"></a>            <span class="n">dEtot</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">Etot_after</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">Etot_before</span> 
+<a name="ln-108"></a>            <span class="n">dLmag</span> <span class="o">=</span> <span class="p">.</span><span class="n">mag</span><span class="p">.</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">Ltot_after</span><span class="p">(:)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">Ltot_before</span><span class="p">(:))</span>
+<a name="ln-109"></a>
+<a name="ln-110"></a>            <span class="n">lfailure</span> <span class="o">=</span> <span class="p">((</span><span class="nb">abs</span><span class="p">(</span><span class="n">dEtot</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">Qloss</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">FRAGGLE_ETOL</span><span class="p">)</span> <span class="p">.</span><span class="nb">or</span><span class="p">.</span> <span class="p">(</span><span class="n">dEtot</span> <span class="o">&gt;</span> <span class="mf">0.0_DP</span><span class="p">))</span> 
+<a name="ln-111"></a>            <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-112"></a><span class="k">               write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">dEtot</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dEtot</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">Qloss</span><span class="p">)</span> <span class="o">/</span> <span class="n">FRAGGLE_ETOL</span>
+<a name="ln-113"></a>               <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle failed due to high energy error: &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-114"></a>               <span class="k">cycle</span>
+<a name="ln-115"></a><span class="k">            end if</span>
+<a name="ln-116"></a>
+<a name="ln-117"></a><span class="k">            </span><span class="n">lfailure</span> <span class="o">=</span> <span class="p">((</span><span class="nb">abs</span><span class="p">(</span><span class="n">dLmag</span><span class="p">)</span> <span class="o">/</span> <span class="p">(.</span><span class="n">mag</span><span class="p">.</span><span class="n">frag</span><span class="p">%</span><span class="n">Ltot_before</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">FRAGGLE_LTOL</span><span class="p">)</span> 
+<a name="ln-118"></a>            <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-119"></a><span class="k">               write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="n">dLmag</span> <span class="o">/</span> <span class="p">(.</span><span class="n">mag</span><span class="p">.</span><span class="n">frag</span><span class="p">%</span><span class="n">Ltot_before</span><span class="p">(:))</span>
+<a name="ln-120"></a>               <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle failed due to high angular momentum error: &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-121"></a>               <span class="k">cycle</span>
+<a name="ln-122"></a><span class="k">            end if</span>
+<a name="ln-123"></a>
+<a name="ln-124"></a>            <span class="c">! Check if any of the usual floating point exceptions happened, and fail the try if so</span>
+<a name="ln-125"></a>            <span class="k">call </span><span class="n">ieee_get_flag</span><span class="p">(</span><span class="n">ieee_usual</span><span class="p">,</span> <span class="n">fpe_flag</span><span class="p">)</span>
+<a name="ln-126"></a>            <span class="n">lfailure</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">fpe_flag</span><span class="p">)</span> 
+<a name="ln-127"></a>            <span class="k">if</span> <span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">exit</span>
+<a name="ln-128"></a><span class="k">            write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="s2">&quot;Fraggle failed due to a floating point exception: &quot;</span><span class="p">,</span> <span class="n">fpe_flag</span>
+<a name="ln-129"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<a name="ln-130"></a>         <span class="k">end do</span>
+<a name="ln-131"></a>
+<a name="ln-132"></a><span class="k">         write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="o">*</span><span class="p">)</span> <span class="n">try</span>
+<a name="ln-133"></a>         <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-134"></a><span class="k">            call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle fragment generation failed after &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">))</span> <span class="o">//</span> <span class="s2">&quot; tries&quot;</span><span class="p">)</span>
+<a name="ln-135"></a>         <span class="k">else</span>
+<a name="ln-136"></a><span class="k">            call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Fraggle fragment generation succeeded after &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">))</span> <span class="o">//</span> <span class="s2">&quot; tries&quot;</span><span class="p">)</span>
+<a name="ln-137"></a>            <span class="k">call </span><span class="n">fraggle_io_log_generate</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+<a name="ln-138"></a>         <span class="k">end if</span>
+<a name="ln-139"></a>
+<a name="ln-140"></a><span class="k">         call </span><span class="n">frag</span><span class="p">%</span><span class="n">set_original_scale</span><span class="p">(</span><span class="n">colliders</span><span class="p">)</span>
+<a name="ln-141"></a>
+<a name="ln-142"></a>         <span class="c">! Restore the big array</span>
+<a name="ln-143"></a>         <span class="k">if</span> <span class="p">(</span><span class="n">lk_plpl</span><span class="p">)</span> <span class="k">call </span><span class="n">pl</span><span class="p">%</span><span class="nb">index</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+<a name="ln-144"></a>      <span class="k">end associate</span>
+<a name="ln-145"></a><span class="k">      call </span><span class="n">ieee_set_halting_mode</span><span class="p">(</span><span class="n">IEEE_ALL</span><span class="p">,</span><span class="n">fpe_halting_modes</span><span class="p">)</span>  <span class="c">! Save the current halting modes so we can turn them off temporarily</span>
+<a name="ln-146"></a>
+<a name="ln-147"></a>      <span class="k">return </span>
+<a name="ln-148"></a><span class="k">   end subroutine </span><span class="n">fraggle_generate_fragments</span>
+<a name="ln-149"></a>
+<a name="ln-150"></a>
+<a name="ln-151"></a>   <span class="k">subroutine </span><span class="n">fraggle_generate_pos_vec</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">r_max_start</span><span class="p">)</span>
+<a name="ln-152"></a>      <span class="c">!! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton</span>
+<a name="ln-153"></a>      <span class="c">!!</span>
+<a name="ln-154"></a>      <span class="c">!! Initializes the orbits of the fragments around the center of mass. The fragments are initially placed on a plane defined by the </span>
+<a name="ln-155"></a>      <span class="c">!! pre-impact angular momentum. They are distributed on an ellipse surrounding the center of mass.</span>
+<a name="ln-156"></a>      <span class="c">!! The initial positions do not conserve energy or momentum, so these need to be adjusted later.</span>
+<a name="ln-157"></a>      <span class="k">implicit none</span>
+<a name="ln-158"></a>      <span class="c">! Arguments</span>
+<a name="ln-159"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">frag</span>        <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-160"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">colliders</span>   <span class="c">!! Fraggle collider system object</span>
+<a name="ln-161"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                 <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">r_max_start</span> <span class="c">!! Initial guess for the starting maximum radial distance of fragments</span>
+<a name="ln-162"></a>      <span class="c">! Internals</span>
+<a name="ln-163"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">dis</span><span class="p">,</span> <span class="n">rad</span><span class="p">,</span> <span class="n">r_max</span>
+<a name="ln-164"></a>      <span class="kt">logical</span><span class="p">,</span> <span class="k">dimension</span><span class="p">(:),</span> <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">loverlap</span>
+<a name="ln-165"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span> <span class="kd">::</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+<a name="ln-166"></a>
+<a name="ln-167"></a>      <span class="k">associate</span><span class="p">(</span><span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>
+<a name="ln-168"></a>         <span class="k">allocate</span><span class="p">(</span><span class="n">loverlap</span><span class="p">(</span><span class="n">nfrag</span><span class="p">))</span>
+<a name="ln-169"></a>
+<a name="ln-170"></a>         <span class="c">! Place the fragments into a region that is big enough that we should usually not have overlapping bodies</span>
+<a name="ln-171"></a>         <span class="c">! An overlapping bodies will collide in the next time step, so it&#39;s not a major problem if they do (it just slows the run down)</span>
+<a name="ln-172"></a>         <span class="n">r_max</span> <span class="o">=</span> <span class="n">r_max_start</span>
+<a name="ln-173"></a>         <span class="n">rad</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">colliders</span><span class="p">%</span><span class="n">radius</span><span class="p">(:))</span>
+<a name="ln-174"></a>
+<a name="ln-175"></a>         <span class="c">! We will treat the first two fragments of the list as special cases. They get initialized the maximum distances apart along the original impactor distance vector.</span>
+<a name="ln-176"></a>         <span class="c">! This is done because in a regular disruption, the first body is the largest, the second the second largest, and the rest are smaller equal-mass fragments.</span>
+<a name="ln-177"></a>
+<a name="ln-178"></a>         <span class="k">call </span><span class="nb">random_number</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span><span class="mi">3</span><span class="p">:</span><span class="n">nfrag</span><span class="p">))</span>
+<a name="ln-179"></a>         <span class="n">loverlap</span><span class="p">(:)</span> <span class="o">=</span> <span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<a name="ln-180"></a>         <span class="k">do while</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">loverlap</span><span class="p">(</span><span class="mi">3</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)))</span>
+<a name="ln-181"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="n">colliders</span><span class="p">%</span><span class="n">xb</span><span class="p">(:,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span> 
+<a name="ln-182"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">=</span> <span class="n">colliders</span><span class="p">%</span><span class="n">xb</span><span class="p">(:,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span>
+<a name="ln-183"></a>            <span class="n">r_max</span> <span class="o">=</span> <span class="n">r_max</span> <span class="o">+</span> <span class="mf">0.1_DP</span> <span class="o">*</span> <span class="n">rad</span>
+<a name="ln-184"></a>            <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-185"></a>               <span class="k">if</span> <span class="p">(</span><span class="n">loverlap</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">then</span>
+<a name="ln-186"></a><span class="k">                  call </span><span class="nb">random_number</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span><span class="n">i</span><span class="p">))</span>
+<a name="ln-187"></a>                  <span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5_DP</span><span class="p">)</span> <span class="o">*</span> <span class="n">r_max</span> 
+<a name="ln-188"></a>               <span class="k">end if</span>
+<a name="ln-189"></a><span class="k">            end do</span>
+<a name="ln-190"></a><span class="k">            </span><span class="n">loverlap</span><span class="p">(:)</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-191"></a>            <span class="k">do </span><span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-192"></a>               <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-193"></a>                  <span class="n">dis</span> <span class="o">=</span> <span class="nb">norm2</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span><span class="n">j</span><span class="p">)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span><span class="n">i</span><span class="p">))</span>
+<a name="ln-194"></a>                  <span class="n">loverlap</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">loverlap</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">.</span><span class="nb">or</span><span class="p">.</span> <span class="p">(</span><span class="n">dis</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">j</span><span class="p">)))</span> 
+<a name="ln-195"></a>               <span class="k">end do</span>
+<a name="ln-196"></a><span class="k">            end do</span>
+<a name="ln-197"></a><span class="k">         end do</span>
+<a name="ln-198"></a><span class="k">         call </span><span class="n">fraggle_util_shift_vector_to_origin</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">)</span>
+<a name="ln-199"></a>         <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">set_coordinate_system</span><span class="p">(</span><span class="n">colliders</span><span class="p">)</span>
+<a name="ln-200"></a>
+<a name="ln-201"></a>         <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-202"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">xb</span><span class="p">(:,</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span>
+<a name="ln-203"></a>         <span class="k">end do</span>
+<a name="ln-204"></a>
+<a name="ln-205"></a><span class="k">         </span><span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-206"></a>         <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-207"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">xb</span><span class="p">(:,</span><span class="n">i</span><span class="p">)</span> 
+<a name="ln-208"></a>         <span class="k">end do</span>
+<a name="ln-209"></a><span class="k">         </span><span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">xbcom</span><span class="p">(:)</span> <span class="o">/</span> <span class="n">frag</span><span class="p">%</span><span class="n">mtot</span>
+<a name="ln-210"></a>      <span class="k">end associate</span>
+<a name="ln-211"></a>
+<a name="ln-212"></a><span class="k">      return</span>
+<a name="ln-213"></a><span class="k">   end subroutine </span><span class="n">fraggle_generate_pos_vec</span>
+<a name="ln-214"></a>
+<a name="ln-215"></a>
+<a name="ln-216"></a>   <span class="k">subroutine </span><span class="n">fraggle_generate_spins</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">f_spin</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-217"></a>      <span class="c">!! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton</span>
+<a name="ln-218"></a>      <span class="c">!!</span>
+<a name="ln-219"></a>      <span class="c">!! Calculates the spins of a collection of fragments such that they conserve angular momentum without blowing the fragment kinetic energy budget.</span>
+<a name="ln-220"></a>      <span class="c">!!</span>
+<a name="ln-221"></a>      <span class="c">!! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.</span>
+<a name="ln-222"></a>      <span class="k">implicit none</span>
+<a name="ln-223"></a>      <span class="c">! Arguments</span>
+<a name="ln-224"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">frag</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-225"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-226"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span>                 <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">f_spin</span>    <span class="c">!! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)</span>
+<a name="ln-227"></a>      <span class="kt">logical</span><span class="p">,</span>                  <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">lfailure</span>  <span class="c">!! Logical flag indicating whether this step fails or succeeds! </span>
+<a name="ln-228"></a>      <span class="c">! Internals</span>
+<a name="ln-229"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">L_remainder</span><span class="p">,</span> <span class="n">rot_L</span><span class="p">,</span> <span class="n">rot_ke</span>
+<a name="ln-230"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>              <span class="kd">::</span> <span class="n">i</span>
+<a name="ln-231"></a>      <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="n">STRMAX</span><span class="p">)</span>     <span class="kd">::</span> <span class="n">message</span>
+<a name="ln-232"></a>
+<a name="ln-233"></a>      <span class="k">associate</span><span class="p">(</span><span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>
+<a name="ln-234"></a>         <span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-235"></a>
+<a name="ln-236"></a>         <span class="c">! Start the first two bodies with the same rotation as the original two impactors, then distribute the remaining angular momentum among the rest</span>
+<a name="ln-237"></a>         <span class="n">L_remainder</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">L_budget</span><span class="p">(:)</span>
+<a name="ln-238"></a>         <span class="n">frag</span><span class="p">%</span><span class="n">rot</span><span class="p">(:,:)</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-239"></a>
+<a name="ln-240"></a>         <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-241"></a>         <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-242"></a>            <span class="c">! Convert a fraction (f_spin) of either the remaining angular momentum or kinetic energy budget into spin, whichever gives the smaller rotation so as not to blow any budgets</span>
+<a name="ln-243"></a>            <span class="n">rot_ke</span><span class="p">(:)</span> <span class="o">=</span> <span class="nb">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f_spin</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">/</span> <span class="p">(</span><span class="n">nfrag</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">Ip</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">)))</span> <span class="o">*</span> <span class="n">L_remainder</span><span class="p">(:)</span> <span class="o">/</span> <span class="nb">norm2</span><span class="p">(</span><span class="n">L_remainder</span><span class="p">(:))</span>
+<a name="ln-244"></a>            <span class="n">rot_L</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">f_spin</span> <span class="o">*</span> <span class="n">L_remainder</span><span class="p">(:)</span> <span class="o">/</span> <span class="p">(</span><span class="n">nfrag</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">Ip</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+<a name="ln-245"></a>            <span class="k">if</span> <span class="p">(</span><span class="nb">norm2</span><span class="p">(</span><span class="n">rot_ke</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">norm2</span><span class="p">(</span><span class="n">rot_L</span><span class="p">))</span> <span class="k">then</span>
+<a name="ln-246"></a><span class="k">               </span><span class="n">frag</span><span class="p">%</span><span class="n">rot</span><span class="p">(:,</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">rot_ke</span><span class="p">(:)</span>
+<a name="ln-247"></a>            <span class="k">else</span>
+<a name="ln-248"></a><span class="k">               </span><span class="n">frag</span><span class="p">%</span><span class="n">rot</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">rot_L</span><span class="p">(:)</span>
+<a name="ln-249"></a>            <span class="k">end if</span>
+<a name="ln-250"></a><span class="k">            </span><span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">Ip</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="nb">dot_product</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">rot</span><span class="p">(:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">rot</span><span class="p">(:,</span> <span class="n">i</span><span class="p">))</span>
+<a name="ln-251"></a>         <span class="k">end do</span>
+<a name="ln-252"></a><span class="k">         </span><span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">=</span> <span class="mf">0.5_DP</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span>
+<a name="ln-253"></a>
+<a name="ln-254"></a>         <span class="n">lfailure</span> <span class="o">=</span> <span class="p">((</span><span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.0_DP</span><span class="p">)</span>
+<a name="ln-255"></a>
+<a name="ln-256"></a>         <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-257"></a><span class="k">            call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+<a name="ln-258"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Spin failure diagnostics&quot;</span><span class="p">)</span>
+<a name="ln-259"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span>
+<a name="ln-260"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_budget     : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-261"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span>
+<a name="ln-262"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_spin       : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-263"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span>
+<a name="ln-264"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_orbit      : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-265"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span>
+<a name="ln-266"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_remainder  : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-267"></a>         <span class="k">end if</span>
+<a name="ln-268"></a>
+<a name="ln-269"></a><span class="k">      end associate</span>
+<a name="ln-270"></a>
+<a name="ln-271"></a><span class="k">      return</span>
+<a name="ln-272"></a><span class="k">   end subroutine </span><span class="n">fraggle_generate_spins</span>
+<a name="ln-273"></a>
+<a name="ln-274"></a>
+<a name="ln-275"></a>   <span class="k">subroutine </span><span class="n">fraggle_generate_tan_vel</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-276"></a>      <span class="c">!! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton</span>
+<a name="ln-277"></a>      <span class="c">!!</span>
+<a name="ln-278"></a>      <span class="c">!! Adjusts the tangential velocities and spins of a collection of fragments such that they conserve angular momentum without blowing the fragment kinetic energy budget.</span>
+<a name="ln-279"></a>      <span class="c">!! This procedure works in several stages, with a goal to solve the angular and linear momentum constraints on the fragments, while still leaving a positive balance of</span>
+<a name="ln-280"></a>      <span class="c">!! our fragment kinetic energy (frag%ke_budget) that we can put into the radial velocity distribution.</span>
+<a name="ln-281"></a>      <span class="c">!!</span>
+<a name="ln-282"></a>      <span class="c">!! The first thing we&#39;ll try to do is solve for the tangential velocities of the first 6 fragments, using angular and linear momentum as constraints and an initial</span>
+<a name="ln-283"></a>      <span class="c">!! tangential velocity distribution for the remaining bodies (if there are any) that distributes their angular momentum equally between them.</span>
+<a name="ln-284"></a>      <span class="c">!! If that doesn&#39;t work and we blow our kinetic energy budget, we will attempt to find a tangential velocity distribution that minimizes the kinetic energy while</span>
+<a name="ln-285"></a>      <span class="c">!! conserving momentum. </span>
+<a name="ln-286"></a>      <span class="c">!!</span>
+<a name="ln-287"></a>      <span class="c">!! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.</span>
+<a name="ln-288"></a>      <span class="k">implicit none</span>
+<a name="ln-289"></a>      <span class="c">! Arguments</span>
+<a name="ln-290"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">frag</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-291"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-292"></a>      <span class="kt">logical</span><span class="p">,</span>                  <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">lfailure</span>  <span class="c">!! Logical flag indicating whether this step fails or succeeds</span>
+<a name="ln-293"></a>      <span class="c">! Internals</span>
+<a name="ln-294"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span> <span class="kd">::</span> <span class="n">i</span>
+<a name="ln-295"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>                  <span class="kd">::</span> <span class="n">TOL_MIN</span> <span class="o">=</span> <span class="mf">1e-1_DP</span> <span class="c">! This doesn&#39;t have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.</span>
+<a name="ln-296"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>                  <span class="kd">::</span> <span class="n">TOL_INIT</span> <span class="o">=</span> <span class="mf">1e-14_DP</span>
+<a name="ln-297"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>                  <span class="kd">::</span> <span class="n">VNOISE_MAG</span> <span class="o">=</span> <span class="mf">1e-3_DP</span> <span class="c">!! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure</span>
+<a name="ln-298"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">parameter</span>              <span class="kd">::</span> <span class="n">MAXLOOP</span> <span class="o">=</span> <span class="mi">10</span>
+<a name="ln-299"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                             <span class="kd">::</span> <span class="n">tol</span><span class="p">,</span> <span class="n">ke_remainder</span>
+<a name="ln-300"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span> <span class="k">allocatable</span>  <span class="kd">::</span> <span class="n">v_t_initial</span>
+<a name="ln-301"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>      <span class="kd">::</span> <span class="n">kefrag</span><span class="p">,</span> <span class="n">vnoise</span>
+<a name="ln-302"></a>      <span class="k">type</span><span class="p">(</span><span class="n">lambda_obj</span><span class="p">)</span>                     <span class="kd">::</span> <span class="n">spinfunc</span>
+<a name="ln-303"></a>      <span class="k">type</span><span class="p">(</span><span class="n">lambda_obj_err</span><span class="p">)</span>                 <span class="kd">::</span> <span class="n">objective_function</span>
+<a name="ln-304"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>            <span class="kd">::</span> <span class="n">Li</span><span class="p">,</span> <span class="n">L_remainder</span><span class="p">,</span> <span class="n">L_frag_tot</span>
+<a name="ln-305"></a>      <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="n">STRMAX</span><span class="p">)</span>                <span class="kd">::</span> <span class="n">message</span>
+<a name="ln-306"></a>
+<a name="ln-307"></a>      <span class="k">associate</span><span class="p">(</span><span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>
+<a name="ln-308"></a>         <span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-309"></a>
+<a name="ln-310"></a>         <span class="k">allocate</span><span class="p">(</span><span class="n">v_t_initial</span><span class="p">,</span> <span class="n">mold</span><span class="o">=</span><span class="n">frag</span><span class="p">%</span><span class="n">v_t_mag</span><span class="p">)</span>
+<a name="ln-311"></a>         <span class="n">v_t_initial</span><span class="p">(:)</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-312"></a>         <span class="n">frag</span><span class="p">%</span><span class="n">v_coll</span><span class="p">(:,:)</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-313"></a>
+<a name="ln-314"></a>         <span class="c">! Next we will solve for the tangential component of the velocities that both conserves linear momentum and uses the remaining angular momentum not used in spin.</span>
+<a name="ln-315"></a>         <span class="c">! This will be done using a linear solver that solves for the tangential velocities of the first 6 fragments, constrained by the linear and angular momentum vectors, </span>
+<a name="ln-316"></a>         <span class="c">! which is embedded in a non-linear minimizer that will adjust the tangential velocities of the remaining i&gt;6 fragments to minimize kinetic energy for a given momentum solution</span>
+<a name="ln-317"></a>         <span class="c">! The initial conditions fed to the minimizer for the fragments will be the remaining angular momentum distributed between the fragments.</span>
+<a name="ln-318"></a>         <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">get_ang_mtm</span><span class="p">()</span>
+<a name="ln-319"></a>         <span class="n">L_remainder</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">L_budget</span><span class="p">(:)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">L_spin</span><span class="p">(:)</span>
+<a name="ln-320"></a>         <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-321"></a>            <span class="n">v_t_initial</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="nb">norm2</span><span class="p">(</span><span class="n">L_remainder</span><span class="p">(:))</span> <span class="o">/</span> <span class="p">((</span><span class="n">nfrag</span> <span class="o">-</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="nb">norm2</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span><span class="n">i</span><span class="p">)))</span>
+<a name="ln-322"></a>            <span class="n">Li</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span><span class="n">i</span><span class="p">)</span> <span class="p">.</span><span class="n">cross</span><span class="p">.</span> <span class="p">(</span><span class="n">v_t_initial</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)))</span>
+<a name="ln-323"></a>            <span class="n">L_remainder</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">L_remainder</span><span class="p">(:)</span> <span class="o">-</span> <span class="n">Li</span><span class="p">(:)</span>
+<a name="ln-324"></a>         <span class="k">end do</span>
+<a name="ln-325"></a>
+<a name="ln-326"></a>         <span class="c">! Find the local kinetic energy minimum for the system that conserves linear and angular momentum</span>
+<a name="ln-327"></a>         <span class="n">objective_function</span> <span class="o">=</span> <span class="n">lambda_obj</span><span class="p">(</span><span class="n">tangential_objective_function</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-328"></a>
+<a name="ln-329"></a>         <span class="n">tol</span> <span class="o">=</span> <span class="n">TOL_INIT</span>
+<a name="ln-330"></a>         <span class="k">do while</span><span class="p">(</span><span class="n">tol</span> <span class="o">&lt;</span> <span class="n">TOL_MIN</span><span class="p">)</span>
+<a name="ln-331"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">v_t_mag</span><span class="p">(</span><span class="mi">7</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">=</span> <span class="n">util_minimize_bfgs</span><span class="p">(</span><span class="n">objective_function</span><span class="p">,</span> <span class="n">nfrag</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="n">v_t_initial</span><span class="p">(</span><span class="mi">7</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">tol</span><span class="p">,</span> <span class="n">MAXLOOP</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-332"></a>            <span class="c">! Now that the KE-minimized values of the i&gt;6 fragments are found, calculate the momentum-conserving solution for tangential velociteis</span>
+<a name="ln-333"></a>            <span class="n">v_t_initial</span><span class="p">(</span><span class="mi">7</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_mag</span><span class="p">(</span><span class="mi">7</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span>
+<a name="ln-334"></a>            <span class="k">if</span> <span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">exit</span>
+<a name="ln-335"></a><span class="k">            </span><span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">*</span> <span class="mi">2_DP</span> <span class="c">! Keep increasing the tolerance until we converge on a solution</span>
+<a name="ln-336"></a>            <span class="k">call </span><span class="nb">random_number</span><span class="p">(</span><span class="n">vnoise</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">))</span> <span class="c">! Adding a bit of noise to the initial conditions helps it find a solution more often</span>
+<a name="ln-337"></a>            <span class="n">vnoise</span><span class="p">(:)</span> <span class="o">=</span> <span class="mf">1.0_DP</span> <span class="o">+</span> <span class="n">VNOISE_MAG</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">vnoise</span><span class="p">(:)</span> <span class="o">-</span> <span class="mf">1._DP</span><span class="p">)</span>
+<a name="ln-338"></a>            <span class="n">v_t_initial</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">v_t_initial</span><span class="p">(:)</span> <span class="o">*</span> <span class="n">vnoise</span><span class="p">(:)</span>
+<a name="ln-339"></a>         <span class="k">end do</span>
+<a name="ln-340"></a><span class="k">         </span><span class="n">frag</span><span class="p">%</span><span class="n">v_t_mag</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">=</span> <span class="n">solve_fragment_tan_vel</span><span class="p">(</span><span class="n">v_t_mag_input</span><span class="o">=</span><span class="n">v_t_initial</span><span class="p">(</span><span class="mi">7</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">lfailure</span><span class="o">=</span><span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-341"></a>
+<a name="ln-342"></a>         <span class="c">! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional system (the origin)</span>
+<a name="ln-343"></a>         <span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">=</span> <span class="n">fraggle_util_vmag_to_vb</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">v_r_mag</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_r_unit</span><span class="p">(:,</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_mag</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">(:,</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">vbcom</span><span class="p">(:))</span> 
+<a name="ln-344"></a>         <span class="k">do </span><span class="n">concurrent</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span>
+<a name="ln-345"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">v_coll</span><span class="p">(:,</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span><span class="n">i</span><span class="p">)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">vbcom</span><span class="p">(:)</span>
+<a name="ln-346"></a>         <span class="k">end do</span>
+<a name="ln-347"></a>
+<a name="ln-348"></a>         <span class="c">! Now do a kinetic energy budget check to make sure we are still within the budget.</span>
+<a name="ln-349"></a>         <span class="n">kefrag</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-350"></a>         <span class="k">do </span><span class="n">concurrent</span><span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span>
+<a name="ln-351"></a>            <span class="n">kefrag</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="nb">dot_product</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span> <span class="n">i</span><span class="p">))</span>
+<a name="ln-352"></a>         <span class="k">end do</span>
+<a name="ln-353"></a><span class="k">         </span><span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">=</span> <span class="mf">0.5_DP</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="n">kefrag</span><span class="p">(:))</span>
+<a name="ln-354"></a>
+<a name="ln-355"></a>         <span class="c">! If we are over the energy budget, flag this as a failure so we can try again</span>
+<a name="ln-356"></a>         <span class="n">lfailure</span> <span class="o">=</span> <span class="p">((</span><span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.0_DP</span><span class="p">)</span>
+<a name="ln-357"></a>         <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-358"></a><span class="k">            call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+<a name="ln-359"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Tangential velocity failure diagnostics&quot;</span><span class="p">)</span>
+<a name="ln-360"></a>            <span class="k">call </span><span class="n">frag</span><span class="p">%</span><span class="n">get_ang_mtm</span><span class="p">()</span>
+<a name="ln-361"></a>            <span class="n">L_frag_tot</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">L_spin</span><span class="p">(:)</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">L_orbit</span><span class="p">(:)</span>
+<a name="ln-362"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="p">.</span><span class="n">mag</span><span class="p">.(</span><span class="n">frag</span><span class="p">%</span><span class="n">L_budget</span><span class="p">(:)</span> <span class="o">-</span> <span class="n">L_frag_tot</span><span class="p">(:))</span> <span class="o">/</span> <span class="p">(.</span><span class="n">mag</span><span class="p">.</span><span class="n">frag</span><span class="p">%</span><span class="n">Ltot_before</span><span class="p">(:))</span>
+<a name="ln-363"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;|L_remainder| : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-364"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span>
+<a name="ln-365"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_budget     : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-366"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span>
+<a name="ln-367"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_spin       : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-368"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span>
+<a name="ln-369"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_tangential : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-370"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span>
+<a name="ln-371"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_radial     : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-372"></a>         <span class="k">end if</span>
+<a name="ln-373"></a><span class="k">      end associate</span>
+<a name="ln-374"></a>
+<a name="ln-375"></a><span class="k">      return</span>
+<a name="ln-376"></a>
+<a name="ln-377"></a><span class="k">      contains</span>
+<a name="ln-378"></a><span class="k">         function </span><span class="n">solve_fragment_tan_vel</span><span class="p">(</span><span class="n">lfailure</span><span class="p">,</span> <span class="n">v_t_mag_input</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">v_t_mag_output</span><span class="p">)</span>
+<a name="ln-379"></a>            <span class="c">!! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton</span>
+<a name="ln-380"></a>            <span class="c">!!</span>
+<a name="ln-381"></a>            <span class="c">!! Adjusts the positions, velocities, and spins of a collection of fragments such that they conserve angular momentum</span>
+<a name="ln-382"></a>            <span class="k">implicit none</span>
+<a name="ln-383"></a>            <span class="c">! Arguments</span>
+<a name="ln-384"></a>            <span class="kt">logical</span><span class="p">,</span>                          <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="kd">::</span> <span class="n">lfailure</span>            <span class="c">!! Error flag </span>
+<a name="ln-385"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span> <span class="k">optional</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">v_t_mag_input</span>   <span class="c">!! Unknown tangential velocities for fragments 7:nfrag</span>
+<a name="ln-386"></a>            <span class="c">! Internals</span>
+<a name="ln-387"></a>            <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>                            <span class="kd">::</span> <span class="n">i</span>
+<a name="ln-388"></a>            <span class="c">! Result</span>
+<a name="ln-389"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span> <span class="k">allocatable</span>     <span class="kd">::</span> <span class="n">v_t_mag_output</span>
+<a name="ln-390"></a>      
+<a name="ln-391"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">NDIM</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">NDIM</span><span class="p">)</span> <span class="kd">::</span> <span class="n">A</span> <span class="c">! LHS of linear equation used to solve for momentum constraint in Gauss elimination code</span>
+<a name="ln-392"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">NDIM</span><span class="p">)</span>           <span class="kd">::</span> <span class="n">b</span>  <span class="c">! RHS of linear equation used to solve for momentum constraint in Gauss elimination code</span>
+<a name="ln-393"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>               <span class="kd">::</span> <span class="n">L_lin_others</span><span class="p">,</span> <span class="n">L_orb_others</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">vtmp</span>
+<a name="ln-394"></a>      
+<a name="ln-395"></a>            <span class="k">associate</span><span class="p">(</span><span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>
+<a name="ln-396"></a>               <span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-397"></a>               <span class="c">! We have 6 constraint equations (2 vector constraints in 3 dimensions each)</span>
+<a name="ln-398"></a>               <span class="c">! The first 3 are that the linear momentum of the fragments is zero with respect to the collisional barycenter</span>
+<a name="ln-399"></a>               <span class="c">! The second 3 are that the sum of the angular momentum of the fragments is conserved from the pre-impact state</span>
+<a name="ln-400"></a>               <span class="n">L_lin_others</span><span class="p">(:)</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-401"></a>               <span class="n">L_orb_others</span><span class="p">(:)</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-402"></a>               <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-403"></a>                  <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">NDIM</span><span class="p">)</span> <span class="k">then</span> <span class="c">! The tangential velocities of the first set of bodies will be the unknowns we will solve for to satisfy the constraints</span>
+<a name="ln-404"></a>                     <span class="n">A</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> 
+<a name="ln-405"></a>                     <span class="n">A</span><span class="p">(</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">rmag</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">v_r_unit</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="p">.</span><span class="n">cross</span><span class="p">.</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">(:,</span> <span class="n">i</span><span class="p">))</span>
+<a name="ln-406"></a>                  <span class="k">else if</span> <span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">v_t_mag_input</span><span class="p">))</span> <span class="k">then</span>
+<a name="ln-407"></a><span class="k">                     </span><span class="n">vtmp</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">v_t_mag_input</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span>
+<a name="ln-408"></a>                     <span class="n">L_lin_others</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">L_lin_others</span><span class="p">(:)</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">vtmp</span><span class="p">(:)</span>
+<a name="ln-409"></a>                     <span class="n">L</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">x_coll</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="p">.</span><span class="n">cross</span><span class="p">.</span> <span class="n">vtmp</span><span class="p">(:))</span> 
+<a name="ln-410"></a>                     <span class="n">L_orb_others</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">L_orb_others</span><span class="p">(:)</span> <span class="o">+</span> <span class="n">L</span><span class="p">(:)</span>
+<a name="ln-411"></a>                  <span class="k">end if</span>
+<a name="ln-412"></a><span class="k">               end do</span>
+<a name="ln-413"></a><span class="k">               </span><span class="n">b</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span> <span class="o">=</span> <span class="o">-</span><span class="n">L_lin_others</span><span class="p">(:)</span>
+<a name="ln-414"></a>               <span class="n">b</span><span class="p">(</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">L_budget</span><span class="p">(:)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">L_spin</span><span class="p">(:)</span> <span class="o">-</span> <span class="n">L_orb_others</span><span class="p">(:)</span>
+<a name="ln-415"></a>               <span class="k">allocate</span><span class="p">(</span><span class="n">v_t_mag_output</span><span class="p">(</span><span class="n">nfrag</span><span class="p">))</span>
+<a name="ln-416"></a>               <span class="n">v_t_mag_output</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">6</span><span class="p">)</span> <span class="o">=</span> <span class="n">util_solve_linear_system</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-417"></a>               <span class="k">if</span> <span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">v_t_mag_input</span><span class="p">))</span> <span class="n">v_t_mag_output</span><span class="p">(</span><span class="mi">7</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">=</span> <span class="n">v_t_mag_input</span><span class="p">(:)</span>
+<a name="ln-418"></a>            <span class="k">end associate</span>
+<a name="ln-419"></a><span class="k">            return </span>
+<a name="ln-420"></a><span class="k">         end function </span><span class="n">solve_fragment_tan_vel</span>
+<a name="ln-421"></a>
+<a name="ln-422"></a>
+<a name="ln-423"></a>         <span class="k">function </span><span class="n">tangential_objective_function</span><span class="p">(</span><span class="n">v_t_mag_input</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">fval</span><span class="p">)</span>
+<a name="ln-424"></a>            <span class="c">!! Author: David A. Minton</span>
+<a name="ln-425"></a>            <span class="c">!!</span>
+<a name="ln-426"></a>            <span class="c">!! Objective function for evaluating how close our fragment velocities get to minimizing KE error from our required value</span>
+<a name="ln-427"></a>            <span class="k">implicit none</span>
+<a name="ln-428"></a>            <span class="c">! Arguments</span>
+<a name="ln-429"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">v_t_mag_input</span>   <span class="c">!! Unknown tangential component of velocity vector set previously by angular momentum constraint</span>
+<a name="ln-430"></a>            <span class="kt">logical</span><span class="p">,</span>                  <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="kd">::</span> <span class="n">lfailure</span>            <span class="c">!! Error flag</span>
+<a name="ln-431"></a>            <span class="c">! Result</span>
+<a name="ln-432"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                              <span class="kd">::</span> <span class="n">fval</span>
+<a name="ln-433"></a>            <span class="c">! Internals</span>
+<a name="ln-434"></a>            <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span> <span class="kd">::</span> <span class="n">i</span>
+<a name="ln-435"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">NDIM</span><span class="p">,</span><span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span> <span class="kd">::</span> <span class="n">v_shift</span>
+<a name="ln-436"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span> <span class="kd">::</span> <span class="n">v_t_new</span><span class="p">,</span> <span class="n">kearr</span>
+<a name="ln-437"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span> <span class="kd">::</span> <span class="n">keo</span>
+<a name="ln-438"></a>      
+<a name="ln-439"></a>            <span class="k">associate</span><span class="p">(</span><span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>
+<a name="ln-440"></a>               <span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-441"></a>         
+<a name="ln-442"></a>               <span class="n">v_t_new</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">solve_fragment_tan_vel</span><span class="p">(</span><span class="n">v_t_mag_input</span><span class="o">=</span><span class="n">v_t_mag_input</span><span class="p">(:),</span> <span class="n">lfailure</span><span class="o">=</span><span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-443"></a>               <span class="n">v_shift</span><span class="p">(:,:)</span> <span class="o">=</span> <span class="n">fraggle_util_vmag_to_vb</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">v_r_mag</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_r_unit</span><span class="p">,</span> <span class="n">v_t_new</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">vbcom</span><span class="p">)</span> 
+<a name="ln-444"></a>         
+<a name="ln-445"></a>               <span class="n">kearr</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-446"></a>               <span class="k">do </span><span class="n">concurrent</span><span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span>
+<a name="ln-447"></a>                  <span class="n">kearr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="nb">dot_product</span><span class="p">(</span><span class="n">v_shift</span><span class="p">(:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">v_shift</span><span class="p">(:,</span> <span class="n">i</span><span class="p">))</span>
+<a name="ln-448"></a>               <span class="k">end do</span>
+<a name="ln-449"></a><span class="k">               </span><span class="n">keo</span> <span class="o">=</span> <span class="mf">0.5_DP</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="n">kearr</span><span class="p">(:))</span>
+<a name="ln-450"></a>               <span class="n">fval</span> <span class="o">=</span> <span class="n">keo</span> 
+<a name="ln-451"></a>               <span class="n">lfailure</span> <span class="o">=</span> <span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<a name="ln-452"></a>            <span class="k">end associate</span>
+<a name="ln-453"></a>
+<a name="ln-454"></a><span class="k">            return</span>
+<a name="ln-455"></a><span class="k">         end function </span><span class="n">tangential_objective_function</span>
+<a name="ln-456"></a>
+<a name="ln-457"></a>   <span class="k">end subroutine </span><span class="n">fraggle_generate_tan_vel</span>
+<a name="ln-458"></a>
+<a name="ln-459"></a>
+<a name="ln-460"></a>   <span class="k">subroutine </span><span class="n">fraggle_generate_rad_vel</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">colliders</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-461"></a>      <span class="c">!! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton</span>
+<a name="ln-462"></a>      <span class="c">!!</span>
+<a name="ln-463"></a>      <span class="c">!! </span>
+<a name="ln-464"></a>      <span class="c">!! Adjust the fragment velocities to set the fragment orbital kinetic energy. This will minimize the difference between the fragment kinetic energy and the energy budget</span>
+<a name="ln-465"></a>      <span class="k">implicit none</span>
+<a name="ln-466"></a>      <span class="c">! Arguments</span>
+<a name="ln-467"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_fragments</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">frag</span>      <span class="c">!! Fraggle fragment system object</span>
+<a name="ln-468"></a>      <span class="k">class</span><span class="p">(</span><span class="n">fraggle_colliders</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>    <span class="kd">::</span> <span class="n">colliders</span> <span class="c">!! Fraggle collider system object</span>
+<a name="ln-469"></a>      <span class="kt">logical</span><span class="p">,</span>                  <span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>   <span class="kd">::</span> <span class="n">lfailure</span>  <span class="c">!! Logical flag indicating whether this step fails or succeeds! </span>
+<a name="ln-470"></a>      <span class="c">! Internals</span>
+<a name="ln-471"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>                   <span class="kd">::</span> <span class="n">TOL_MIN</span> <span class="o">=</span> <span class="n">FRAGGLE_ETOL</span>   <span class="c">! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy</span>
+<a name="ln-472"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>                   <span class="kd">::</span> <span class="n">TOL_INIT</span> <span class="o">=</span> <span class="mf">1e-14_DP</span>
+<a name="ln-473"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">parameter</span>                   <span class="kd">::</span> <span class="n">VNOISE_MAG</span> <span class="o">=</span> <span class="mf">1e-10_DP</span> <span class="c">!! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure</span>
+<a name="ln-474"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">),</span> <span class="k">parameter</span>               <span class="kd">::</span> <span class="n">MAXLOOP</span> <span class="o">=</span> <span class="mi">100</span>
+<a name="ln-475"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                              <span class="kd">::</span> <span class="n">ke_radial</span><span class="p">,</span> <span class="n">tol</span> 
+<a name="ln-476"></a>      <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>                          <span class="kd">::</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+<a name="ln-477"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span> <span class="k">allocatable</span>   <span class="kd">::</span> <span class="n">v_r_initial</span>
+<a name="ln-478"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">v_r</span>
+<a name="ln-479"></a>      <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>       <span class="kd">::</span> <span class="n">vnoise</span>
+<a name="ln-480"></a>      <span class="k">type</span><span class="p">(</span><span class="n">lambda_obj</span><span class="p">)</span>                      <span class="kd">::</span> <span class="n">objective_function</span>
+<a name="ln-481"></a>      <span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="n">STRMAX</span><span class="p">)</span>                 <span class="kd">::</span> <span class="n">message</span>
+<a name="ln-482"></a>
+<a name="ln-483"></a>      <span class="k">associate</span><span class="p">(</span><span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>
+<a name="ln-484"></a>         <span class="c">! Set the &quot;target&quot; ke for the radial component</span>
+<a name="ln-485"></a>         <span class="n">ke_radial</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span>
+<a name="ln-486"></a>         
+<a name="ln-487"></a>         <span class="k">allocate</span><span class="p">(</span><span class="n">v_r_initial</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">frag</span><span class="p">%</span><span class="n">v_r_mag</span><span class="p">)</span>
+<a name="ln-488"></a>         <span class="c">! Initialize radial velocity magnitudes with a random value that related to equipartition of kinetic energy with some noise</span>
+<a name="ln-489"></a>         <span class="k">call </span><span class="nb">random_number</span><span class="p">(</span><span class="n">vnoise</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">))</span>
+<a name="ln-490"></a>         <span class="n">vnoise</span><span class="p">(:)</span> <span class="o">=</span> <span class="mf">1.0_DP</span> <span class="o">+</span> <span class="n">VNOISE_MAG</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">vnoise</span><span class="p">(:)</span> <span class="o">-</span> <span class="mf">1.0_DP</span><span class="p">)</span> 
+<a name="ln-491"></a>         <span class="n">v_r_initial</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">=</span> <span class="nb">sqrt</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ke_radial</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">*</span> <span class="n">nfrag</span><span class="p">))</span> <span class="o">*</span> <span class="n">vnoise</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span>
+<a name="ln-492"></a>
+<a name="ln-493"></a>         <span class="c">! Initialize the lambda function using a structure constructor that calls the init method</span>
+<a name="ln-494"></a>         <span class="c">! Minimize the ke objective function using the BFGS optimizer</span>
+<a name="ln-495"></a>         <span class="n">objective_function</span> <span class="o">=</span> <span class="n">lambda_obj</span><span class="p">(</span><span class="n">radial_objective_function</span><span class="p">)</span>
+<a name="ln-496"></a>         <span class="n">tol</span> <span class="o">=</span> <span class="n">TOL_INIT</span>
+<a name="ln-497"></a>         <span class="k">do while</span><span class="p">(</span><span class="n">tol</span> <span class="o">&lt;</span> <span class="n">TOL_MIN</span><span class="p">)</span>
+<a name="ln-498"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">v_r_mag</span> <span class="o">=</span> <span class="n">util_minimize_bfgs</span><span class="p">(</span><span class="n">objective_function</span><span class="p">,</span> <span class="n">nfrag</span><span class="p">,</span> <span class="n">v_r_initial</span><span class="p">,</span> <span class="n">tol</span><span class="p">,</span> <span class="n">MAXLOOP</span><span class="p">,</span> <span class="n">lfailure</span><span class="p">)</span>
+<a name="ln-499"></a>            <span class="k">if</span> <span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">exit</span>
+<a name="ln-500"></a><span class="k">            </span><span class="n">tol</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">*</span> <span class="mi">2</span> <span class="c">! Keep increasing the tolerance until we converge on a solution</span>
+<a name="ln-501"></a>            <span class="n">v_r_initial</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_r_mag</span><span class="p">(:)</span>
+<a name="ln-502"></a>            <span class="k">call </span><span class="nb">random_number</span><span class="p">(</span><span class="n">vnoise</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">))</span> <span class="c">! Adding a bit of noise to the initial conditions helps it find a solution more often</span>
+<a name="ln-503"></a>            <span class="n">vnoise</span><span class="p">(:)</span> <span class="o">=</span> <span class="mf">1.0_DP</span> <span class="o">+</span> <span class="n">VNOISE_MAG</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">vnoise</span><span class="p">(:)</span> <span class="o">-</span> <span class="mf">1._DP</span><span class="p">)</span>
+<a name="ln-504"></a>            <span class="n">v_r_initial</span><span class="p">(:)</span> <span class="o">=</span> <span class="n">v_r_initial</span><span class="p">(:)</span> <span class="o">*</span> <span class="n">vnoise</span><span class="p">(:)</span>
+<a name="ln-505"></a>         <span class="k">end do</span>
+<a name="ln-506"></a>         
+<a name="ln-507"></a>         <span class="c">! Shift the radial velocity vectors to align with the center of mass of the collisional system (the origin)</span>
+<a name="ln-508"></a>         <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">=</span> <span class="mf">0.0_DP</span>
+<a name="ln-509"></a>         <span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span> <span class="o">=</span> <span class="n">fraggle_util_vmag_to_vb</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">v_r_mag</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_r_unit</span><span class="p">(:,</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_mag</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">(:,</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">vbcom</span><span class="p">(:))</span> 
+<a name="ln-510"></a>         <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfrag</span>
+<a name="ln-511"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">v_coll</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">vbcom</span><span class="p">(:)</span>
+<a name="ln-512"></a>            <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="nb">dot_product</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">(:,</span> <span class="n">i</span><span class="p">))</span>
+<a name="ln-513"></a>         <span class="k">end do</span>
+<a name="ln-514"></a><span class="k">         </span><span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">=</span> <span class="mf">0.5_DP</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span>
+<a name="ln-515"></a>
+<a name="ln-516"></a>         <span class="n">lfailure</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span><span class="p">))</span> <span class="o">/</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">FRAGGLE_ETOL</span>
+<a name="ln-517"></a>         <span class="k">if</span> <span class="p">(</span><span class="n">lfailure</span><span class="p">)</span> <span class="k">then</span>
+<a name="ln-518"></a><span class="k">            call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+<a name="ln-519"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;Radial velocity failure diagnostics&quot;</span><span class="p">)</span>
+<a name="ln-520"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span>
+<a name="ln-521"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_budget     : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-522"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span>
+<a name="ln-523"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_spin       : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-524"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span>
+<a name="ln-525"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_orbit : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-526"></a>            <span class="k">write</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">+</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span><span class="p">)</span>
+<a name="ln-527"></a>            <span class="k">call </span><span class="n">fraggle_io_log_one_message</span><span class="p">(</span><span class="s2">&quot;ke_remainder  : &quot;</span> <span class="o">//</span> <span class="nb">trim</span><span class="p">(</span><span class="nb">adjustl</span><span class="p">(</span><span class="n">message</span><span class="p">)))</span>
+<a name="ln-528"></a>         <span class="k">end if</span>
+<a name="ln-529"></a>
+<a name="ln-530"></a><span class="k">      end associate</span>
+<a name="ln-531"></a><span class="k">      return</span>
+<a name="ln-532"></a>
+<a name="ln-533"></a><span class="k">      contains</span>
+<a name="ln-534"></a><span class="k">         function </span><span class="n">radial_objective_function</span><span class="p">(</span><span class="n">v_r_mag_input</span><span class="p">)</span> <span class="k">result</span><span class="p">(</span><span class="n">fval</span><span class="p">)</span> 
+<a name="ln-535"></a>            <span class="c">!! Author: David A. Minton</span>
+<a name="ln-536"></a>            <span class="c">!!</span>
+<a name="ln-537"></a>            <span class="c">!! Objective function for evaluating how close our fragment velocities get to minimizing KE error from our required value</span>
+<a name="ln-538"></a>            <span class="k">implicit none</span>
+<a name="ln-539"></a>            <span class="c">! Arguments</span>
+<a name="ln-540"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:),</span>   <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span>  <span class="kd">::</span> <span class="n">v_r_mag_input</span>   <span class="c">!! Unknown radial component of fragment velocity vector</span>
+<a name="ln-541"></a>            <span class="c">! Result</span>
+<a name="ln-542"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                              <span class="kd">::</span> <span class="n">fval</span>      <span class="c">!! The objective function result, which is the square of the difference between the calculated fragment kinetic energy and our target</span>
+<a name="ln-543"></a>                                                               <span class="c">!! Minimizing this brings us closer to our objective</span>
+<a name="ln-544"></a>            <span class="c">! Internals</span>
+<a name="ln-545"></a>            <span class="kt">integer</span><span class="p">(</span><span class="n">I4B</span><span class="p">)</span>                          <span class="kd">::</span> <span class="n">i</span>
+<a name="ln-546"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(:,:),</span> <span class="k">allocatable</span> <span class="kd">::</span> <span class="n">v_shift</span>
+<a name="ln-547"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">),</span> <span class="k">dimension</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>       <span class="kd">::</span> <span class="n">kearr</span>
+<a name="ln-548"></a>            <span class="kt">real</span><span class="p">(</span><span class="n">DP</span><span class="p">)</span>                              <span class="kd">::</span> <span class="n">keo</span><span class="p">,</span> <span class="n">ke_radial</span>
+<a name="ln-549"></a>      
+<a name="ln-550"></a>            <span class="k">associate</span><span class="p">(</span><span class="n">nfrag</span> <span class="o">=&gt;</span> <span class="n">frag</span><span class="p">%</span><span class="n">nbody</span><span class="p">)</span>
+<a name="ln-551"></a>               <span class="k">allocate</span><span class="p">(</span><span class="n">v_shift</span><span class="p">,</span> <span class="n">mold</span><span class="o">=</span><span class="n">frag</span><span class="p">%</span><span class="n">vb</span><span class="p">)</span>
+<a name="ln-552"></a>               <span class="n">v_shift</span><span class="p">(:,:)</span> <span class="o">=</span> <span class="n">fraggle_util_vmag_to_vb</span><span class="p">(</span><span class="n">v_r_mag_input</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_r_unit</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_mag</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">v_t_unit</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">,</span> <span class="n">frag</span><span class="p">%</span><span class="n">vbcom</span><span class="p">)</span> 
+<a name="ln-553"></a>               <span class="k">do </span><span class="n">concurrent</span><span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">nfrag</span><span class="p">)</span>
+<a name="ln-554"></a>                  <span class="n">kearr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">mass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">Ip</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">radius</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="nb">dot_product</span><span class="p">(</span><span class="n">frag</span><span class="p">%</span><span class="n">rot</span><span class="p">(:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">frag</span><span class="p">%</span><span class="n">rot</span><span class="p">(:,</span> <span class="n">i</span><span class="p">))</span> <span class="o">+</span> <span class="nb">dot_product</span><span class="p">(</span><span class="n">v_shift</span><span class="p">(:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">v_shift</span><span class="p">(:,</span> <span class="n">i</span><span class="p">)))</span>
+<a name="ln-555"></a>               <span class="k">end do</span>
+<a name="ln-556"></a><span class="k">               </span><span class="n">keo</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">kearr</span><span class="p">(:))</span>
+<a name="ln-557"></a>               <span class="n">ke_radial</span> <span class="o">=</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_budget</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_orbit</span> <span class="o">-</span> <span class="n">frag</span><span class="p">%</span><span class="n">ke_spin</span>
+<a name="ln-558"></a>               <span class="c">! The following ensures that fval = 0 is a local minimum, which is what the BFGS method is searching for</span>
+<a name="ln-559"></a>               <span class="n">fval</span> <span class="o">=</span> <span class="p">(</span><span class="n">keo</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">ke_radial</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+<a name="ln-560"></a>            <span class="k">end associate</span>
+<a name="ln-561"></a><span class="k">      </span>
+<a name="ln-562"></a><span class="k">            return</span>
+<a name="ln-563"></a><span class="k">         end function </span><span class="n">radial_objective_function</span>
+<a name="ln-564"></a>
+<a name="ln-565"></a>      <span class="k">end subroutine </span><span class="n">fraggle_generate_rad_vel</span>
+<a name="ln-566"></a>
+<a name="ln-567"></a><span class="k">end submodule </span><span class="n">s_fraggle_generate</span>
+</pre></div>
+
+    </section>
+    </div>
+  </div>
+
+  
+    <hr>    
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-md-4"><p>&copy; 2021 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+                                          </p></div>
+        <div class="col-xs-6 col-md-4 col-md-push-4">
+          <p class="text-right">
+            Documentation generated by 
+            <a href="https://github.com/cmacmackin/ford">FORD</a>
+            
+          </p>
+        </div>
+        <div class="col-xs-12 col-md-4 col-md-pull-4"><p class="text-center"> swiftest was developed by David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott</p></div>
+      </div>
+      <br>
+      </div> <!-- /container -->    
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+<!--
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+-->
+    <script src="../js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+    <!-- MathJax JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } },
+        jax: ['input/TeX','input/MathML','output/HTML-CSS'],
+        extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']
+      });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+    <script src="../tipuesearch/tipuesearch_content.js"></script>
+    <script src="../tipuesearch/tipuesearch_set.js"></script>
+    <script src="../tipuesearch/tipuesearch.js"></script>
+    
+    
+  </body>
+</html>

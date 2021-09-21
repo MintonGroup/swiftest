@@ -136,7 +136,7 @@
      <li><i class="fa fa-list-ol"></i>
        <a data-toggle="tooltip"
     data-placement="bottom" data-html="true"
-    title="10.0% of total for abstract interfaces.">67 statements</a>
+    title="12.1% of total for abstract interfaces.">55 statements</a>
      </li> 
      
      
@@ -207,7 +207,7 @@
     
       <h2>abstract interface <br>
       
-public subroutine abstract_read_frame(self, iu, param, form, ierr)
+public function abstract_read_frame(self, iu, param) result(ierr)
     
     
    
@@ -236,7 +236,7 @@ public subroutine abstract_read_frame(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-self~5"></span>class(<a href='../type/swiftest_base.html'>swiftest_base</a>),</td>
+  <td><span class="anchor" id="variable-self"></span>class(<a href='../type/swiftest_base.html'>swiftest_base</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -266,7 +266,7 @@ public subroutine abstract_read_frame(self, iu, param, form, ierr)
   
 <tr>
   
-  <td><span class="anchor" id="variable-param~5"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
+  <td><span class="anchor" id="variable-param"></span>class(<a href='../type/swiftest_parameters.html'>swiftest_parameters</a>),</td>
   <td>intent(inout)</td>
   <td></td>
   
@@ -275,40 +275,19 @@ public subroutine abstract_read_frame(self, iu, param, form, ierr)
   
 </tr>
 
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-form"></span>character(len=*),</td>
-  <td>intent(in)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>form</strong></td><td><p>Input format code ("XV" or "EL")</p></td>
-  
-</tr>
-
-  
-  
-  
-  
-<tr>
-  
-  <td><span class="anchor" id="variable-ierr"></span>integer(kind=I4B),</td>
-  <td>intent(out)</td>
-  <td></td>
-  
-  <td></td><td>::</td>
-  <td><strong>ierr</strong></td><td><p>Error code</p></td>
-  
-</tr>
-
 </tbody>
 </table>
 
     
+    
+    
+    
+    
+    
+    
+      <h3>Return Value <span class="anchor" id="variable-ierr"></span><small>integer(kind=I4B)
+  </small></h3>
+    <p>Error code: returns 0 if the read is successful</p>
     
     
     <br>

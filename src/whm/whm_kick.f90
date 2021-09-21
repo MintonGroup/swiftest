@@ -13,7 +13,7 @@ contains
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t       !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
@@ -68,7 +68,7 @@ contains
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
@@ -201,7 +201,7 @@ contains
       ! Arguments
       class(whm_pl),                intent(inout) :: self  !! WHM massive body object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
@@ -243,7 +243,7 @@ contains
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM massive body object
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 

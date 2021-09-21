@@ -19,20 +19,22 @@ contains
       ! Internals
       logical :: lencounter
      
-      call self%reset()
       select type(pl => self%pl)
       class is (symba_pl)
          select type(tp => self%tp)
          class is (symba_tp)
-            lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
-            if (lencounter) then
-               tp%lfirst = pl%lfirst
-               call self%interp(param, t, dt)
-               pl%lfirst = .true.
-               tp%lfirst = .true.
-            else
-               call helio_step_system(self, param, t, dt)
-            end if
+            select type(param)
+            class is (symba_parameters)
+               call self%reset(param)
+               lencounter = pl%encounter_check(self, dt, 0) .or. tp%encounter_check(self, dt, 0)
+               if (lencounter) then
+                  call self%interp(param, t, dt)
+                  param%lfirstkick = .true.
+               else
+                  self%irec = -1
+                  call helio_step_system(self, param, t, dt)
+               end if
+            end select
          end select
       end select
 
@@ -108,32 +110,17 @@ contains
       ! Internals
       integer(I4B) :: k, irecp
 
-      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
+      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, npl => self%pl%nbody, ntp => self%tp%nbody)
          select type(pl => self%pl)
          class is (symba_pl)
             select type(tp => self%tp)
             class is (symba_tp)
                irecp = ireci + 1
 
-               if (plplenc_list%nenc > 0) then
-                  do k = 1, plplenc_list%nenc
-                     associate(i => plplenc_list%index1(k), j => plplenc_list%index2(k))
-                        if (pl%levelg(i) == irecp) pl%levelg(i) = ireci
-                        if (pl%levelg(j) == irecp) pl%levelg(j) = ireci
-                     end associate
-                  end do
-                  where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(1:plplenc_list%nenc) = ireci
-               end if
-
-               if (pltpenc_list%nenc > 0) then
-                  do k = 1, pltpenc_list%nenc
-                     associate(i => pltpenc_list%index1(k), j => pltpenc_list%index2(k))
-                        if (pl%levelg(i) == irecp) pl%levelg(i) = ireci
-                        if (tp%levelg(j) == irecp) tp%levelg(j) = ireci
-                     end associate
-                  end do
-                  where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(1:pltpenc_list%nenc) = ireci
-               end if
+               if (npl >0) where(pl%levelg(1:npl) == irecp) pl%levelg(1:npl) = ireci
+               if (ntp > 0) where(tp%levelg(1:ntp) == irecp) tp%levelg(1:ntp) = ireci
+               if (plplenc_list%nenc > 0) where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(1:plplenc_list%nenc) = ireci
+               if (pltpenc_list%nenc > 0) where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(1:pltpenc_list%nenc) = ireci
 
                system%irec = ireci
 
@@ -157,13 +144,13 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   value         :: t
-      integer(I4B),               value         :: ireci !! input recursion level
+      real(DP),                   intent(in)    :: t
+      integer(I4B),               intent(in)    :: ireci !! input recursion level
       ! Internals
       integer(I4B) :: i, j, irecp, nloops
       real(DP) :: dtl, dth
       real(DP), dimension(NDIM) :: xr, vr
-      logical :: lencounter
+      logical :: lencounter, lplpl_collision, lpltp_collision
 
       associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
          select type(pl => self%pl)
@@ -209,8 +196,11 @@ contains
                   end if
 
                   if (param%lclose) then
-                     call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
-                     call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                     lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                     lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+
+                     if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
+                     if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                   end if
 
                   call self%set_recur_levels(ireci)
@@ -224,7 +214,7 @@ contains
    end subroutine symba_step_recur_system
 
 
-   module subroutine symba_step_reset_system(self)
+   module subroutine symba_step_reset_system(self, param)
       !! author: David A. Minton
       !!
       !! Resets pl, tp,and encounter structures at the start of a new step
@@ -233,40 +223,53 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step.f
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+      class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
+      class(symba_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, nenc_old
 
-      associate(system => self, pltpenc_list => self%pltpenc_list, plplenc_list => self%plplenc_list, pl_adds => self%pl_adds, pl_discards => self%pl_discards)
+      associate(system => self)
          select type(pl => system%pl)
          class is (symba_pl)
             select type(tp => system%tp)
             class is (symba_tp)
-               if (pl%nbody > 0) then
-                  pl%lcollision(:) = .false.
-                  pl%kin(:)%parent = [(i, i=1, pl%nbody)]
-                  pl%kin(:)%nchild = 0
-                  do i = 1, pl%nbody
-                     if (allocated(pl%kin(i)%child)) deallocate(pl%kin(i)%child)
-                  end do
-                  pl%nplenc(:) = 0
-                  pl%ntpenc(:) = 0
-                  pl%levelg(:) = 0
-                  pl%levelm(:) = 0
-                  pl%lencounter = .false.
-                  pl%lcollision = .false.
-                  plplenc_list%nenc = 0
-               end if
-           
-               if (tp%nbody > 0) then
-                  tp%nplenc(:) = 0 
-                  tp%levelg(:) = 0
-                  tp%levelm(:) = 0
-               pltpenc_list%nenc = 0
-               end if
+               associate(npl => pl%nbody, ntp => tp%nbody)
+                  if (npl > 0) then
+                     pl%lcollision(1:npl) = .false.
+                     call pl%reset_kinship([(i, i=1, npl)])
+                     pl%nplenc(1:npl) = 0
+                     pl%ntpenc(1:npl) = 0
+                     pl%levelg(1:npl) = -1
+                     pl%levelm(1:npl) = -1
+                     pl%lencounter(1:npl) = .false.
+                     pl%lcollision(1:npl) = .false.
+                     pl%ldiscard(1:npl) = .false.
+                     pl%lmask(1:npl) = .true.
+                     nenc_old = system%plplenc_list%nenc
+                     call system%plplenc_list%setup(0)
+                     call system%plplenc_list%setup(nenc_old)
+                     system%plplenc_list%nenc = 0
+                     call system%plplcollision_list%setup(0)
+                  end if
+            
+                  if (ntp > 0) then
+                     tp%nplenc(1:ntp) = 0 
+                     tp%levelg(1:ntp) = -1
+                     tp%levelm(1:ntp) = -1
+                     tp%lmask(1:ntp) = .true.
+                     tp%ldiscard(1:npl) = .false.
+                     nenc_old = system%pltpenc_list%nenc
+                     call system%pltpenc_list%setup(0)
+                     call system%pltpenc_list%setup(nenc_old)
+                     system%pltpenc_list%nenc = 0
+                  end if
 
-               call pl_adds%resize(0)
-               call pl_discards%resize(0)
+                  call system%pl_adds%setup(0, param)
+                  call system%pl_discards%setup(0, param)
+
+                  tp%lfirst = param%lfirstkick
+                  pl%lfirst = param%lfirstkick
+               end associate
             end select
          end select
       end associate
