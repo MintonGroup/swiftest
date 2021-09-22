@@ -65,7 +65,7 @@ LMKL = -L$(MKLROOT)/lib/intel64 -qopt-matmul
 
 MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES) 
 
-.PHONY : all mod lib libdir fast drivers bin clean force 
+.PHONY : all mod lib fast drivers bin clean force 
 
 % : %.f90 force
 	$(FORTRAN) $(FFLAGS) -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include $(IMKL) $< -o $@ \
@@ -118,11 +118,6 @@ lib:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make libdir
-	cd $(SWIFTEST_HOME)/src/operators; \
-	  rm -f Makefile.Defines Makefile; \
-	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
-	  ln -s $(SWIFTEST_HOME)/Makefile .; \
-	  make libdir
 	cd $(SWIFTEST_HOME)/src/setup; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -165,6 +160,11 @@ lib:
 	  make libdir
 
 fast:
+	cd $(SWIFTEST_HOME)/src/operators; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make fastdir
 	cd $(SWIFTEST_HOME)/src/fraggle; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
