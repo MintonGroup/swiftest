@@ -33,6 +33,37 @@ contains
       return
    end subroutine netcdf_close
 
+   module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
+      !! author: David A. Minton
+      !!
+      !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(in)    :: self
+      class(swiftest_parameters),   intent(inout) :: param
+      ! Result
+      real(DP)                                    :: old_t_final
+      ! Internals
+      class(swiftest_nbody_system), allocatable :: tmpsys
+      class(swiftest_parameters),   allocatable :: tmpparam
+      Integer(I4B)                              :: ierr
+
+      old_t_final = 0.0_DP
+      allocate(tmpsys, source=self)
+      allocate(tmpparam, source=param)
+      ierr = 0
+      do 
+         ierr = tmpsys%read_frame(param%nciu, tmpparam)
+      end do
+
+      if (is_iostat_end(ierr)) then
+         old_t_final = tmpparam%t
+         return
+      end if
+
+   end function netcdf_get_old_t_final_system
+
 
    module subroutine netcdf_initialize_output(self, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
