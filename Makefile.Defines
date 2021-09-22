@@ -57,7 +57,7 @@ SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdta
 PAR = -qopenmp -parallel  
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
-IPRODUCTION = -no-wrap-margin -O3 -ipo -qopt-prefetch=0 -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
+IPRODUCTION = -no-wrap-margin -O3 -qopt-prefetch=0 -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
 
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
