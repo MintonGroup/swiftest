@@ -415,7 +415,8 @@ module swiftest_classes
       procedure :: discard                 => discard_system                         !! Perform a discard step on the system
       procedure :: conservation_report     => io_conservation_report                 !! Compute energy and momentum and print out the change with time
       procedure :: dump                    => io_dump_system                         !! Dump the state of the system to a file
-      procedure :: get_old_t_final         => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
+      procedure :: get_old_t_final_bin     => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
+      procedure :: get_old_t_final_netcdf  => netcdf_get_old_t_final_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
       procedure :: read_frame_bin          => io_read_frame_system                   !! Read in a frame of input data from file
       procedure :: write_frame_bin         => io_write_frame_system                  !! Append a frame of output data to file
       procedure :: read_frame_netcdf       => netcdf_read_frame_system               !! Read in a frame of input data from file
@@ -435,9 +436,9 @@ module swiftest_classes
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
       generic   :: write_hdr               => write_hdr_bin, write_hdr_netcdf        !! Generic method call for writing headers
-      generic   :: read_hdr                => read_hdr_netcdf          !! Generic method call for reading headers
+      generic   :: read_hdr                => read_hdr_netcdf                        !! Generic method call for reading headers
       generic   :: read_frame              => read_frame_bin, read_frame_netcdf      !! Generic method call for reading a frame of output data
-      generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for reading a frame of output data
+      generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for writing a frame of output data
    end type swiftest_nbody_system
 
    type :: swiftest_encounter
@@ -923,6 +924,13 @@ module swiftest_classes
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine netcdf_close
+
+      module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
+         implicit none
+         class(swiftest_nbody_system), intent(in)    :: self
+         class(swiftest_parameters),   intent(inout) :: param
+         real(DP)                                    :: old_t_final
+      end function netcdf_get_old_t_final_system
 
       module subroutine netcdf_initialize_output(self, param)
          implicit none
