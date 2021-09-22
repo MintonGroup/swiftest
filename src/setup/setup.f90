@@ -164,14 +164,17 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       integer(I4B)                                :: ierr
-      
+
       associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+
          if ((param%in_type == REAL8_TYPE) .or. (param%in_type == REAL4_TYPE)) then
+            !
+         else if ((param%in_type == NETCDF_DOUBLE_TYPE) .or. (param%in_type == NETCDF_FLOAT_TYPE)) then
+            !
+         else
             call cb%read_in(param)
             call pl%read_in(param)
             call tp%read_in(param)
-         else if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) then
-            ierr = system%read_frame(param%nciu, param)
          end if
 
          call system%validate_ids(param)
