@@ -57,7 +57,7 @@ SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdta
 PAR = -qopenmp -parallel  
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
-IPRODUCTION = -no-wrap-margin -O3 -ipo -qopt-prefetch=0 -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
+IPRODUCTION = -no-wrap-margin -O3 -qopt-prefetch=0 -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
 
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
@@ -69,8 +69,8 @@ GPRODUCTION = -O2 -ffree-line-length-none $(GPAR)
 
 #FFLAGS  = $(IDEBUG)  #$(SIMDVEC) $(PAR)
 #FFASTFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR)
-FFLAGS = $(IPRODUCTION) $(STRICTREAL) #$(ADVIXE_FLAGS)
-FFASTFLAGS = $(IPRODUCTION) -fp-model fast #$(ADVIXE_FLAGS)
+FFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT) #$(ADVIXE_FLAGS)
+FFASTFLAGS = $(IPRODUCTION) -fp-model fast $(OPTREPORT) #$(ADVIXE_FLAGS)
 FORTRAN = ifort
 AR     = xiar
 
