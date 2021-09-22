@@ -57,7 +57,9 @@ program swiftest_driver
       ioutput = ioutput_t0
       ! Prevent duplicate frames from being written if this is a restarted run
       if ((param%lrestart) .and. ((param%out_type == REAL8_TYPE) .or. param%out_type == REAL4_TYPE)) then
-         old_t_final = nbody_system%get_old_t_final(param)
+         old_t_final = nbody_system%get_old_t_final_bin(param)
+      else if ((param%lrestart) .and. ((param%out_type == NETCDF_DOUBLE_TYPE) .or. param%out_type == NETCDF_FLOAT_TYPE)) then
+         old_t_final = nbody_system%get_old_t_final_netcdf(param)
       else
          old_t_final = t0
          if (istep_out > 0) call nbody_system%write_frame(param)
