@@ -35,8 +35,19 @@ contains
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append", err = 667, iomsg = errmsg)
             end if
          end if
+
+         if ((param%out_type == NETCDF_DOUBLE_TYPE) .or. (param%out_type == NETCDF_FLOAT_TYPE) .and. (param%energy_out /= "")) then
+            if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
+               write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
+            else
+               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append", err = 667, iomsg = errmsg)
+            end if
+         end if
+
          call pl%vb2vh(cb)
          call pl%xh2xb(cb)
+
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit
          ke_spin_now = system%ke_spin
@@ -57,6 +68,11 @@ contains
          end if
 
          if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE) .and. (param%energy_out /= "")) then
+            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, param%Ecollisions, Ltot_now, GMtot_now
+            close(EGYIU, err = 667, iomsg = errmsg)
+         end if
+
+         if ((param%out_type == NETCDF_DOUBLE_TYPE) .or. (param%out_type == NETCDF_FLOAT_TYPE) .and. (param%energy_out /= "")) then
             write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, param%Ecollisions, Ltot_now, GMtot_now
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
