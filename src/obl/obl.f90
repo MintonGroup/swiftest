@@ -58,8 +58,9 @@ contains
 
       associate(pl => self, npl => self%nbody, cb => system%cb)
          call obl_acc_body(pl, system)
-         do i = 1, NDIM
-            cb%aobl(i) = -sum(pl%Gmass(1:npl) * pl%aobl(i, 1:npl), pl%lmask(1:npl)) / cb%Gmass
+         cb%aobl(:) = 0.0_DP
+         do i = npl, 1, -1
+            if (pl%lmask(i)) cb%aobl(:) = cb%aobl(:) - pl%Gmass(i) * pl%aobl(:, i) / cb%Gmass
          end do
 
          do concurrent(i = 1:npl, pl%lmask(i))

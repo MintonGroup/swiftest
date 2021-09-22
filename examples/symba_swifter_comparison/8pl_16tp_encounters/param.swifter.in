@@ -1,9 +1,9 @@
 ! VERSION        Swifter parameter file converted from Swiftest
 T0               0.0
-TSTOP            3652.5
+TSTOP            365
 DT               1.0
-ISTEP_OUT        10
-ISTEP_DUMP       10
+ISTEP_OUT        1
+ISTEP_DUMP       1
 OUT_FORM         XV
 OUT_TYPE         REAL8
 OUT_STAT         UNKNOWN
