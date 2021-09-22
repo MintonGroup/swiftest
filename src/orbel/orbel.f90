@@ -129,6 +129,7 @@ contains
 
 
    module pure subroutine orbel_scget(angle, sx, cx)
+      !$omp declare simd(orbel_scget)
       !! author: David A. Minton
       !!
       !! Efficiently compute the sine and cosine of an input angle
@@ -181,7 +182,7 @@ contains
    !     REVISIONS:
    !**********************************************************************
    pure subroutine orbel_schget(angle,shx,chx)
-
+      !$omp declare simd(orbel_schget)
       real(DP), intent(in)  ::  angle
       real(DP), intent(out) :: shx,chx
       
@@ -212,6 +213,7 @@ contains
    !     REVISIONS:
    !**********************************************************************
    real(DP) pure function orbel_flon(e,icapn)
+      !$omp declare simd(orbel_flon)
       implicit none
       real(DP), intent(in) ::  e, icapn
       integer(I4B) :: iflag,i
@@ -252,40 +254,24 @@ contains
       biga =  (-0.5_DP * b + sq)**(1.0_DP / 3.0_DP)
       bigb = -(+0.5_DP * b + sq)**(1.0_DP / 3.0_DP) 
       x = biga + bigb
-      ! write(6,*) 'cubic = ',x**3 +a*x +b
       orbel_flon = x
       ! If capn is VSMALL (or zero) no need to go further than cubic even for
       ! e =1.
-      if( capn < VSMALL) go to 100
-
-      do i = 1,IMAX
-         x2 = x * x
-         f = a0 + x * (a1 + x2 * (a3 + x2 * (a5 + x2 * (a7 + x2 * (a9 + x2 * (a11 + x2))))))
-         fp = b1 + x2 * (b3 + x2 * (b5 + x2 * (b7 + x2 * (b9 + x2 * (b11 + 13 * x2)))))
-         dx = -f / fp
-         !   write(6,*) 'i,dx,x,f : '
-         !   write(6,432) i,dx,x,f
-         432   format(1x,i3,3(2x,1p1e22.15))
-         orbel_flon = x + dx
-         !   if we have converged here there's no point in going on
-            if(abs(dx) <= VSMALL) go to 100
+      if( capn >= VSMALL) then
+         do i = 1,IMAX
+            x2 = x**2
+            f = a0 + x * (a1 + x2 * (a3 + x2 * (a5 + x2 * (a7 + x2 * (a9 + x2 * (a11 + x2))))))
+            fp = b1 + x2 * (b3 + x2 * (b5 + x2 * (b7 + x2 * (b9 + x2 * (b11 + 13 * x2)))))
+            dx = -f / fp
+            orbel_flon = x + dx
+            !   if we have converged here there's no point in going on
+            if(abs(dx) <= VSMALL) exit
             x = orbel_flon
-      end do
-
-      ! abnormal return here - we've gone thru the loop
-      ! imax times without convergence
-      if(iflag == 1) then
-         orbel_flon = -orbel_flon
-         capn = -capn
+         end do
       end if
-      !write(*,*) 'flon : returning without complete convergence'
-      diff = e * sinh(orbel_flon) - orbel_flon - capn
-      !write(*,*) 'n, f, ecc*sinh(f) - f - n : '
-      !write(*,*) capn,orbel_flon,diff
-      return
 
       !  normal return here, but check if capn was originally negative
-      100 if(iflag == 1) then
+      if(iflag == 1) then
          orbel_flon = -orbel_flon
          capn = -capn
       end if
@@ -315,6 +301,7 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_fget(e,capn)
+      !$omp declare simd(orbel_fget)
       implicit none
 
       real(DP), intent(in) ::  e,capn
@@ -385,6 +372,7 @@ contains
    !       series for small Q.
    !**********************************************************************
    real(DP) pure function orbel_zget(iq)
+      !$omp declare simd(orbel_zget)
       implicit none
 
       real(DP), intent(in)  :: iq
@@ -440,6 +428,7 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_esolmd(e,m)
+      !$omp declare simd(orbel_esolmd)
       implicit none
 
       real(DP), intent(in)  :: e
@@ -495,6 +484,7 @@ contains
    !     REVISIONS:
    !**********************************************************************
    real(DP) pure function orbel_ehie(e,im)
+      !$omp declare simd(orbel_ehie)
       implicit none
 
       real(DP), intent(in) :: e,im
@@ -570,12 +560,12 @@ contains
    !          we have an ellipse with e between 0.15 and 0.8
    !**********************************************************************
    real(DP) pure function orbel_eget(e,m)
+      !$omp declare simd(orbel_eget)
       implicit none
       
       real(DP), intent(in) ::  e,m
       real(DP) ::  x,sm,cm,sx,cx
       real(DP) ::  es,ec,f,fp,fpp,fppp,dx
-
 
       ! function to solve kepler's eqn for e (here called
       ! x) for given e and m. returns value of x.
@@ -644,6 +634,7 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_ehybrid(e,m)
+      !$omp declare simd(orbel_ehybrid)
       implicit none
 
       real(DP), intent(in) :: e,m
@@ -683,6 +674,7 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_fhybrid(e,n)
+      !$omp declare simd(orbel_fhybrid)
       implicit none
       real(DP), intent(in) :: e,n
 
@@ -701,7 +693,8 @@ contains
    end function orbel_fhybrid
    
 
-   module pure subroutine orbel_xv2aeq(mu, x, v, a, e, q)
+   module pure subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+      !$omp declare simd(orbel_xv2aeq)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
@@ -710,16 +703,22 @@ contains
       !! Adapted from Luke Dones' Swift routine orbel_xv2aeq.f
       implicit none
       !! Arguments
-      real(DP), intent(in)  :: mu
-      real(DP), dimension(:), intent(in)  :: x, v
-      real(DP), intent(out) :: a, e, q
+      real(DP), intent(in)  :: mu !! Gravitational constant
+      real(DP), intent(in)  :: px,py,pz  !! Position vector
+      real(DP), intent(in)  :: vx,vy,vz  !! Velocity vector
+      real(DP), intent(out) :: a  !! semimajor axis
+      real(DP), intent(out) :: e  !! eccentricity
+      real(DP), intent(out) :: q  !! periapsis
+      ! Internals
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, energy, fac
-      real(DP), dimension(NDIM) :: hvec
+      real(DP), dimension(NDIM) :: hvec, x, v
 
       a = 0.0_DP
       e = 0.0_DP
       q = 0.0_DP
+      x = [px, py, pz]
+      v = [vx, vy, vz]
       r = sqrt(dot_product(x(:), x(:))) 
       v2 = dot_product(v(:), v(:))
       hvec(:) = x(:) .cross. v(:)
@@ -760,7 +759,8 @@ contains
    end subroutine orbel_xv2aeq
 
 
-   module pure subroutine orbel_xv2aqt(mu, x, v, a, q, capm, tperi)
+   module pure subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+      !$omp declare simd(orbel_xv2aqt)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, pericentric distance, mean anomaly, and time to nearest pericenter passage from
@@ -771,22 +771,24 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine: orbel_xv2aqt.f90
       implicit none
       ! Arguments
-      real(DP),               intent(in)  :: mu    !! Gravitational constant
-      real(DP), dimension(:), intent(in)  :: x     !! Position vector
-      real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
-      real(DP),               intent(out) :: a     !! semimajor axis
-      real(DP),               intent(out) :: q     !! periapsis
-      real(DP),               intent(out) :: capm  !! mean anomaly
-      real(DP),               intent(out) :: tperi !! time of pericenter passage
+      real(DP), intent(in)  :: mu    !! Gravitational constant
+      real(DP), intent(in)  :: px,py,pz !! Position vector
+      real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
+      real(DP), intent(out) :: a     !! semimajor axis
+      real(DP), intent(out) :: q     !! periapsis
+      real(DP), intent(out) :: capm  !! mean anomaly
+      real(DP), intent(out) :: tperi !! time of pericenter passage
       ! Internals
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
-      real(DP), dimension(NDIM) :: hvec
+      real(DP), dimension(NDIM) :: hvec, x, v
 
       a = 0.0_DP
       q = 0.0_DP
       capm = 0.0_DP
       tperi = 0.0_DP
+      x = [px, py, pz]
+      v = [vx, vy, vz]
       r = sqrt(dot_product(x(:), x(:)))
       v2 = dot_product(v(:), v(:))
       hvec(:) = x(:) .cross. v(:)
@@ -888,13 +890,16 @@ contains
       if (allocated(self%omega)) deallocate(self%omega); allocate(self%omega(self%nbody))
       if (allocated(self%capm)) deallocate(self%capm);  allocate(self%capm(self%nbody))
       do concurrent (i = 1:self%nbody)
-         call orbel_xv2el(self%mu(i), self%xh(:, i), self%vh(:, i), self%a(i), self%e(i), self%inc(i),  &
+         call orbel_xv2el(self%mu(i), self%xh(1,i), self%xh(2,i), self%xh(3,i), &
+                                      self%vh(1,i), self%vh(2,i), self%vh(3,i), &
+                          self%a(i), self%e(i), self%inc(i),  &
                           self%capom(i), self%omega(i), self%capm(i))
       end do
    end subroutine orbel_xv2el_vec 
 
 
-   module pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
+   pure subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
+      !$omp declare simd(orbel_xv2el)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -911,19 +916,19 @@ contains
       !! Adapted from Martin Duncan's Swift routine orbel_xv2el.f
       implicit none
       ! Arguments
-      real(DP),               intent(in)  :: mu    !! Gravitational constant
-      real(DP), dimension(:), intent(in)  :: x     !! Position vector
-      real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
-      real(DP),               intent(out) :: a     !! semimajor axis
-      real(DP),               intent(out) :: e     !! eccentricity
-      real(DP),               intent(out) :: inc   !! inclination
-      real(DP),               intent(out) :: capom !! longitude of ascending node
-      real(DP),               intent(out) :: omega !! argument of periapsis
-      real(DP),               intent(out) :: capm  !! mean anomaly
+      real(DP), intent(in)  :: mu    !! Gravitational constant
+      real(DP), intent(in)  :: px,py,pz    !! Position vector
+      real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
+      real(DP), intent(out) :: a     !! semimajor axis
+      real(DP), intent(out) :: e     !! eccentricity
+      real(DP), intent(out) :: inc   !! inclination
+      real(DP), intent(out) :: capom !! longitude of ascending node
+      real(DP), intent(out) :: omega !! argument of periapsis
+      real(DP), intent(out) :: capm  !! mean anomaly
       ! Internals
       integer(I4B) :: iorbit_type
       real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, cape, tmpf, capf
-      real(DP), dimension(NDIM) :: hvec
+      real(DP), dimension(NDIM) :: hvec, x, v
 
       a = 0.0_DP
       e = 0.0_DP
@@ -931,6 +936,8 @@ contains
       capom = 0.0_DP
       omega = 0.0_DP
       capm = 0.0_DP
+      x = [px, py, pz]
+      v = [vx, vy, vz]
       r = .mag. x(:)
       v2 = dot_product(v(:), v(:))
       hvec = x(:) .cross. v(:)
@@ -947,11 +954,11 @@ contains
       end if
       fac = sqrt(hvec(1)**2 + hvec(2)**2) / h
       if (fac**2 < VSMALL) then
-         u = atan2(x(2), x(1))
+         u = atan2(py, px)
          if (hvec(3) < 0.0_DP) u = -u
       else
          capom = atan2(hvec(1), -hvec(2))
-         u = atan2(x(3) / sin(inc), x(1) * cos(capom) + x(2) * sin(capom))
+         u = atan2(pz / sin(inc), px * cos(capom) + py * sin(capom))
       end if
       if (capom < 0.0_DP) capom = capom + TWOPI
       if (u < 0.0_DP) u = u + TWOPI

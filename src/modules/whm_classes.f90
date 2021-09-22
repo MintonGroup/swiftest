@@ -108,20 +108,13 @@ module whm_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine whm_drift_pl
 
-      module subroutine whm_util_index_eucl_plpl(self, param)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(whm_pl),            intent(inout) :: self  !! WHM massive body object
-         class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters
-      end subroutine whm_util_index_eucl_plpl
-   
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine whm_kick_getacch_pl
@@ -132,7 +125,7 @@ module whm_classes
          implicit none
          class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! WHM nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine whm_kick_getacch_tp
@@ -142,7 +135,7 @@ module whm_classes
          implicit none
          class(whm_pl),                intent(inout) :: self   !! WHM massive body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
@@ -153,7 +146,7 @@ module whm_classes
          implicit none
          class(whm_tp),                intent(inout) :: self   !! WHM test particle object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 

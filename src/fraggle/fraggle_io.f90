@@ -15,45 +15,45 @@ contains
       character(STRMAX) :: errmsg
       character(len=*), parameter :: fmtlabel = "(A14,10(ES11.4,1X,:))"
 
-      open(unit=FRAGGLE_LOG_UNIT, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-      write(FRAGGLE_LOG_UNIT, *, err = 667, iomsg = errmsg)
-      write(FRAGGLE_LOG_UNIT, *) "--------------------------------------------------------------------"
-      write(FRAGGLE_LOG_UNIT, *) "           Fraggle fragment generation results"
-      write(FRAGGLE_LOG_UNIT, *) "--------------------------------------------------------------------"
-      write(FRAGGLE_LOG_UNIT,    "(' dL_tot should be very small' )")
-      write(FRAGGLE_LOG_UNIT,fmtlabel) ' dL_tot      |', (.mag.(frag%Ltot_after(:) - frag%Ltot_before(:))) / (.mag.frag%Ltot_before(:))
-      write(FRAGGLE_LOG_UNIT,        "(' dE_tot should be negative and equal to Qloss' )")
-      write(FRAGGLE_LOG_UNIT,fmtlabel) ' dE_tot      |', (frag%Etot_after - frag%Etot_before) / abs(frag%Etot_before)
-      write(FRAGGLE_LOG_UNIT,fmtlabel) ' Qloss       |', -frag%Qloss / abs(frag%Etot_before)
-      write(FRAGGLE_LOG_UNIT,fmtlabel) ' dE - Qloss  |', (frag%Etot_after - frag%Etot_before + frag%Qloss) / abs(frag%Etot_before)
-      write(FRAGGLE_LOG_UNIT,        "(' -------------------------------------------------------------------------------------')")
-      write(FRAGGLE_LOG_UNIT, *) "Individual fragment values (collisional system natural units)"
-      write(FRAGGLE_LOG_UNIT, *) "mass"
+      open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      write(LUN, *, err = 667, iomsg = errmsg)
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN, *) "           Fraggle fragment generation results"
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN,    "(' dL_tot should be very small' )")
+      write(LUN,fmtlabel) ' dL_tot      |', (.mag.(frag%Ltot_after(:) - frag%Ltot_before(:))) / (.mag.frag%Ltot_before(:))
+      write(LUN,        "(' dE_tot should be negative and equal to Qloss' )")
+      write(LUN,fmtlabel) ' dE_tot      |', (frag%Etot_after - frag%Etot_before) / abs(frag%Etot_before)
+      write(LUN,fmtlabel) ' Qloss       |', -frag%Qloss / abs(frag%Etot_before)
+      write(LUN,fmtlabel) ' dE - Qloss  |', (frag%Etot_after - frag%Etot_before + frag%Qloss) / abs(frag%Etot_before)
+      write(LUN,        "(' -------------------------------------------------------------------------------------')")
+      write(LUN, *) "Individual fragment values (collisional system natural units)"
+      write(LUN, *) "mass"
       do i = 1, frag%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, frag%mass(i)
+         write(LUN, *) i, frag%mass(i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "x_coll"
+      write(LUN, *) "x_coll"
       do i = 1, frag%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, frag%x_coll(:,i)
+         write(LUN, *) i, frag%x_coll(:,i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "v_coll"
+      write(LUN, *) "v_coll"
       do i = 1, frag%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, frag%v_coll(:,i)
+         write(LUN, *) i, frag%v_coll(:,i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "xb"
+      write(LUN, *) "xb"
       do i = 1, frag%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, frag%xb(:,i)
+         write(LUN, *) i, frag%xb(:,i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "vb"
+      write(LUN, *) "vb"
       do i = 1, frag%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, frag%vb(:,i)
+         write(LUN, *) i, frag%vb(:,i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "rot"
+      write(LUN, *) "rot"
       do i = 1, frag%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, frag%rot(:,i)
+         write(LUN, *) i, frag%rot(:,i)
       end do
 
-      close(FRAGGLE_LOG_UNIT)
+      close(LUN)
 
       return
       667 continue
@@ -61,24 +61,24 @@ contains
    end subroutine fraggle_io_log_generate
 
 
-   module subroutine fraggle_io_log_one_message(message)
-      !! author: David A. Minton
-      !!
-      !! Writes a single message to the fraggle log file
-      implicit none
-      ! Arguments
-      character(len=*), intent(in) :: message
-      ! Internals
-      character(STRMAX) :: errmsg
+   ! module subroutine io_log_one_message(FRAGGLE_LOG_OUT, message)
+   !    !! author: David A. Minton
+   !    !!
+   !    !! Writes a single message to the fraggle log file
+   !    implicit none
+   !    ! Arguments
+   !    character(len=*), intent(in) :: message
+   !    ! Internals
+   !    character(STRMAX) :: errmsg
 
-      open(unit=FRAGGLE_LOG_UNIT, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-      write(FRAGGLE_LOG_UNIT, *) trim(adjustl(message)) 
-      close(FRAGGLE_LOG_UNIT)
+   !    open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+   !    write(LUN, *) trim(adjustl(message)) 
+   !    close(LUN)
 
-      return
-      667 continue
-      write(*,*) "Error writing Fraggle message to log file: " // trim(adjustl(errmsg))
-   end subroutine fraggle_io_log_one_message
+   !    return
+   !    667 continue
+   !    write(*,*) "Error writing Fraggle message to log file: " // trim(adjustl(errmsg))
+   ! end subroutine fraggle_io_log_one_message
 
 
    module subroutine fraggle_io_log_pl(pl, param)
@@ -93,68 +93,68 @@ contains
       integer(I4B) :: i
       character(STRMAX) :: errmsg
 
-      open(unit=FRAGGLE_LOG_UNIT, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-      write(FRAGGLE_LOG_UNIT, *, err = 667, iomsg = errmsg)
+      open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      write(LUN, *, err = 667, iomsg = errmsg)
 
-      write(FRAGGLE_LOG_UNIT, *) "--------------------------------------------------------------------"
-      write(FRAGGLE_LOG_UNIT, *) "           Fraggle fragment final body properties"
-      write(FRAGGLE_LOG_UNIT, *) "--------------------------------------------------------------------"
-      write(FRAGGLE_LOG_UNIT, *) "id, name"
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN, *) "           Fraggle fragment final body properties"
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN, *) "id, name"
       do i = 1, pl%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, pl%id(i), pl%info(i)%name
+         write(LUN, *) i, pl%id(i), pl%info(i)%name
       end do
-      write(FRAGGLE_LOG_UNIT, *) "mass, Gmass"
+      write(LUN, *) "mass, Gmass"
       do i = 1, pl%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, pl%mass(i), pl%Gmass(i)
+         write(LUN, *) i, pl%mass(i), pl%Gmass(i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "radius"
+      write(LUN, *) "radius"
       do i = 1, pl%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, pl%radius(i)
+         write(LUN, *) i, pl%radius(i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "xb"
+      write(LUN, *) "xb"
       do i = 1, pl%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, pl%xb(:,i)
+         write(LUN, *) i, pl%xb(:,i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "vb"
+      write(LUN, *) "vb"
       do i = 1, pl%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, pl%vb(:,i)
+         write(LUN, *) i, pl%vb(:,i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "xh"
+      write(LUN, *) "xh"
       do i = 1, pl%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, pl%xh(:,i)
+         write(LUN, *) i, pl%xh(:,i)
       end do
-      write(FRAGGLE_LOG_UNIT, *) "vh"
+      write(LUN, *) "vh"
       do i = 1, pl%nbody
-         write(FRAGGLE_LOG_UNIT, *) i, pl%vh(:,i)
+         write(LUN, *) i, pl%vh(:,i)
       end do
 
       if (param%lrotation) then
-         write(FRAGGLE_LOG_UNIT, *) "rot"
+         write(LUN, *) "rot"
          do i = 1, pl%nbody
-            write(FRAGGLE_LOG_UNIT, *) i, pl%rot(:,i)
+            write(LUN, *) i, pl%rot(:,i)
          end do
-         write(FRAGGLE_LOG_UNIT, *) "Ip"
+         write(LUN, *) "Ip"
          do i = 1, pl%nbody
-            write(FRAGGLE_LOG_UNIT, *) i, pl%Ip(:,i)
+            write(LUN, *) i, pl%Ip(:,i)
          end do
       end if
 
       if (param%ltides) then
-         write(FRAGGLE_LOG_UNIT, *) "Q"
+         write(LUN, *) "Q"
          do i = 1, pl%nbody
-            write(FRAGGLE_LOG_UNIT, *) i, pl%Q(i)
+            write(LUN, *) i, pl%Q(i)
          end do
-         write(FRAGGLE_LOG_UNIT, *) "k2"
+         write(LUN, *) "k2"
          do i = 1, pl%nbody
-            write(FRAGGLE_LOG_UNIT, *) i, pl%k2(i)
+            write(LUN, *) i, pl%k2(i)
          end do
-         write(FRAGGLE_LOG_UNIT, *) "tlag"
+         write(LUN, *) "tlag"
          do i = 1, pl%nbody
-            write(FRAGGLE_LOG_UNIT, *) i, pl%tlag(i)
+            write(LUN, *) i, pl%tlag(i)
          end do
       end if
 
-      close(FRAGGLE_LOG_UNIT)
+      close(LUN)
 
       return
       667 continue
@@ -173,54 +173,54 @@ contains
       ! Internals
       character(STRMAX) :: errmsg
 
-      open(unit=FRAGGLE_LOG_UNIT, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-      write(FRAGGLE_LOG_UNIT, *, err = 667, iomsg = errmsg)
-      write(FRAGGLE_LOG_UNIT, *) "--------------------------------------------------------------------"
-      write(FRAGGLE_LOG_UNIT, *) "           Fraggle collisional regime determination results"
-      write(FRAGGLE_LOG_UNIT, *) "--------------------------------------------------------------------"
-      write(FRAGGLE_LOG_UNIT, *) "----------------------- Collider information -----------------------" 
-      write(FRAGGLE_LOG_UNIT, *) "True number of colliders : ",colliders%ncoll
-      write(FRAGGLE_LOG_UNIT, *) "Index list of true colliders  : ",colliders%idx(1:colliders%ncoll)
-      write(FRAGGLE_LOG_UNIT, *) "-------------------- Two-body equialent values ---------------------"
-      write(FRAGGLE_LOG_UNIT, *) "mass1    : ",colliders%mass(1)
-      write(FRAGGLE_LOG_UNIT, *) "radius1  : ",colliders%radius(1)
-      write(FRAGGLE_LOG_UNIT, *) "xb1      : ",colliders%xb(:,1)
-      write(FRAGGLE_LOG_UNIT, *) "vb1      : ",colliders%vb(:,1)
-      write(FRAGGLE_LOG_UNIT, *) "rot1     : ",colliders%rot(:,1)
-      write(FRAGGLE_LOG_UNIT, *) "Ip1      : ",colliders%Ip(:,1)
-      write(FRAGGLE_LOG_UNIT, *) "L_spin1  : ",colliders%L_spin(:,1)
-      write(FRAGGLE_LOG_UNIT, *) "L_orbit1 : ",colliders%L_orbit(:,1)
-      write(FRAGGLE_LOG_UNIT, *) "mass2    : ",colliders%mass(2)
-      write(FRAGGLE_LOG_UNIT, *) "radius2  : ",colliders%radius(2)
-      write(FRAGGLE_LOG_UNIT, *) "xb2      : ",colliders%xb(:,2)
-      write(FRAGGLE_LOG_UNIT, *) "vb2      : ",colliders%vb(:,2)
-      write(FRAGGLE_LOG_UNIT, *) "rot2     : ",colliders%rot(:,2)
-      write(FRAGGLE_LOG_UNIT, *) "Ip2      : ",colliders%Ip(:,2)
-      write(FRAGGLE_LOG_UNIT, *) "L_spin2  : ",colliders%L_spin(:,2)
-      write(FRAGGLE_LOG_UNIT, *) "L_orbit2 : ",colliders%L_orbit(:,2)
-      write(FRAGGLE_LOG_UNIT, *) "------------------------------ Regime -----------------------------"
+      open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      write(LUN, *, err = 667, iomsg = errmsg)
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN, *) "           Fraggle collisional regime determination results"
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN, *) "----------------------- Collider information -----------------------" 
+      write(LUN, *) "True number of colliders : ",colliders%ncoll
+      write(LUN, *) "Index list of true colliders  : ",colliders%idx(1:colliders%ncoll)
+      write(LUN, *) "-------------------- Two-body equialent values ---------------------"
+      write(LUN, *) "mass1    : ",colliders%mass(1)
+      write(LUN, *) "radius1  : ",colliders%radius(1)
+      write(LUN, *) "xb1      : ",colliders%xb(:,1)
+      write(LUN, *) "vb1      : ",colliders%vb(:,1)
+      write(LUN, *) "rot1     : ",colliders%rot(:,1)
+      write(LUN, *) "Ip1      : ",colliders%Ip(:,1)
+      write(LUN, *) "L_spin1  : ",colliders%L_spin(:,1)
+      write(LUN, *) "L_orbit1 : ",colliders%L_orbit(:,1)
+      write(LUN, *) "mass2    : ",colliders%mass(2)
+      write(LUN, *) "radius2  : ",colliders%radius(2)
+      write(LUN, *) "xb2      : ",colliders%xb(:,2)
+      write(LUN, *) "vb2      : ",colliders%vb(:,2)
+      write(LUN, *) "rot2     : ",colliders%rot(:,2)
+      write(LUN, *) "Ip2      : ",colliders%Ip(:,2)
+      write(LUN, *) "L_spin2  : ",colliders%L_spin(:,2)
+      write(LUN, *) "L_orbit2 : ",colliders%L_orbit(:,2)
+      write(LUN, *) "------------------------------ Regime -----------------------------"
       select case(frag%regime) 
       case(COLLRESOLVE_REGIME_MERGE)
-         write(FRAGGLE_LOG_UNIT, *) "Merge"
+         write(LUN, *) "Merge"
       case(COLLRESOLVE_REGIME_DISRUPTION)
-         write(FRAGGLE_LOG_UNIT, *) "Disruption"
+         write(LUN, *) "Disruption"
       case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-         write(FRAGGLE_LOG_UNIT, *) "Supercatastrophic disruption"
+         write(LUN, *) "Supercatastrophic disruption"
       case(COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-         write(FRAGGLE_LOG_UNIT, *) "Graze and merge"
+         write(LUN, *) "Graze and merge"
       case(COLLRESOLVE_REGIME_HIT_AND_RUN)
-         write(FRAGGLE_LOG_UNIT, *) "Hit and run"
+         write(LUN, *) "Hit and run"
       end select
-      write(FRAGGLE_LOG_UNIT, *) "----------------------- Fragment information ----------------------"
-      write(FRAGGLE_LOG_UNIT, *) "Total mass of fragments      : ", frag%mtot
-      write(FRAGGLE_LOG_UNIT, *) "Largest fragment mass        : ", frag%mass_dist(1)
-      write(FRAGGLE_LOG_UNIT, *) "Second-largest fragment mass : ", frag%mass_dist(2)
-      write(FRAGGLE_LOG_UNIT, *) "Remaining fragment mass      : ", frag%mass_dist(3)
-      write(FRAGGLE_LOG_UNIT, *) "Center of mass position      : ", frag%xbcom(:)
-      write(FRAGGLE_LOG_UNIT, *) "Center of mass velocity      : ", frag%vbcom(:)
-      write(FRAGGLE_LOG_UNIT, *) "Energy loss                  : ", frag%Qloss
-      write(FRAGGLE_LOG_UNIT, *) "--------------------------------------------------------------------"
-      close(FRAGGLE_LOG_UNIT)
+      write(LUN, *) "----------------------- Fragment information ----------------------"
+      write(LUN, *) "Total mass of fragments      : ", frag%mtot
+      write(LUN, *) "Largest fragment mass        : ", frag%mass_dist(1)
+      write(LUN, *) "Second-largest fragment mass : ", frag%mass_dist(2)
+      write(LUN, *) "Remaining fragment mass      : ", frag%mass_dist(3)
+      write(LUN, *) "Center of mass position      : ", frag%xbcom(:)
+      write(LUN, *) "Center of mass velocity      : ", frag%vbcom(:)
+      write(LUN, *) "Energy loss                  : ", frag%Qloss
+      write(LUN, *) "--------------------------------------------------------------------"
+      close(LUN)
 
       return
       667 continue
@@ -228,28 +228,28 @@ contains
    end subroutine fraggle_io_log_regime
 
 
-   module subroutine fraggle_io_log_start(param)
-      !! author: David A. Minton
-      !!
-      !! Checks to see if the Fraggle log file needs to be replaced if this is a new run, or appended if this is a restarted run
-      implicit none
-      ! Arguments
-      class(swiftest_parameters), intent(in) :: param
-      ! Internals
-      character(STRMAX) :: errmsg
-      logical           :: fileExists
+   ! module subroutine fraggle_io_log_start(param)
+   !    !! author: David A. Minton
+   !    !!
+   !    !! Checks to see if the Fraggle log file needs to be replaced if this is a new run, or appended if this is a restarted run
+   !    implicit none
+   !    ! Arguments
+   !    class(swiftest_parameters), intent(in) :: param
+   !    ! Internals
+   !    character(STRMAX) :: errmsg
+   !    logical           :: fileExists
 
-      inquire(file=FRAGGLE_LOG_OUT, exist=fileExists)
-      if (.not.param%lrestart .or. .not.fileExists) then
-         open(unit=FRAGGLE_LOG_UNIT, file=FRAGGLE_LOG_OUT, status="REPLACE", err = 667, iomsg = errmsg)
-         write(FRAGGLE_LOG_UNIT, *, err = 667, iomsg = errmsg) "Fraggle logfile"
-      end if
-      close(FRAGGLE_LOG_UNIT)
+   !    inquire(file=FRAGGLE_LOG_OUT, exist=fileExists)
+   !    if (.not.param%lrestart .or. .not.fileExists) then
+   !       open(unit=LUN, file=FRAGGLE_LOG_OUT, status="REPLACE", err = 667, iomsg = errmsg)
+   !       write(LUN, *, err = 667, iomsg = errmsg) "Fraggle logfile"
+   !    end if
+   !    close(LUN)
 
-      return
+   !    return
 
-      667 continue
-      write(*,*) "Error writing Fraggle log file: " // trim(adjustl(errmsg))
-   end subroutine fraggle_io_log_start
+   !    667 continue
+   !    write(*,*) "Error writing Fraggle log file: " // trim(adjustl(errmsg))
+   ! end subroutine fraggle_io_log_start
 
 end submodule s_fraggle_io

@@ -37,11 +37,11 @@ contains
                   write(idstr, *) pl%id(i)
                   write(timestr, *) param%t
                   write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " too far from the central body at t = " // trim(adjustl(timestr))
-                  call fraggle_io_log_one_message("")
-                  call fraggle_io_log_one_message("***********************************************************************************************************************")
-                  call fraggle_io_log_one_message(message)
-                  call fraggle_io_log_one_message("***********************************************************************************************************************")
-                  call fraggle_io_log_one_message("")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, message)
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
                   call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
@@ -50,11 +50,11 @@ contains
                   write(idstr, *) pl%id(i)
                   write(timestr, *) param%t
                   write(message, *) trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // " too close to the central body at t = " // trim(adjustl(timestr))
-                  call fraggle_io_log_one_message("")
-                  call fraggle_io_log_one_message("***********************************************************************************************************************")
-                  call fraggle_io_log_one_message(message)
-                  call fraggle_io_log_one_message("***********************************************************************************************************************")
-                  call fraggle_io_log_one_message("")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, message)
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
                   call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
@@ -67,11 +67,11 @@ contains
                      write(idstr, *) pl%id(i)
                      write(timestr, *) param%t
                      write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
-                     call fraggle_io_log_one_message("")
-                     call fraggle_io_log_one_message("***********************************************************************************************************************")
-                     call fraggle_io_log_one_message(message)
-                     call fraggle_io_log_one_message("***********************************************************************************************************************")
-                     call fraggle_io_log_one_message("")
+                     call io_log_one_message(FRAGGLE_LOG_OUT, "")
+                     call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                     call io_log_one_message(FRAGGLE_LOG_OUT, message)
+                     call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                     call io_log_one_message(FRAGGLE_LOG_OUT, "")
                      call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
                   end if
                end if

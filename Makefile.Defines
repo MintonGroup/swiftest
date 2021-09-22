@@ -57,7 +57,7 @@ SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdta
 PAR = -qopenmp -parallel  
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
-IPRODUCTION = -no-wrap-margin -O3 -ipo -qopt-prefetch=0 -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
+IPRODUCTION = -no-wrap-margin -O3 -qopt-prefetch=0 -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
 
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
@@ -67,15 +67,15 @@ GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporari
 GPRODUCTION = -O2 -ffree-line-length-none $(GPAR)
 
 
-#FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
-#FFASTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
-FFLAGS = $(IPRODUCTION) $(STRICTREAL)
-FFASTFLAGS = $(IPRODUCTION) -fp-model fast
+#FFLAGS  = $(IDEBUG)  #$(SIMDVEC) $(PAR)
+#FFASTFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR)
+FFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT) #$(ADVIXE_FLAGS)
+FFASTFLAGS = $(IPRODUCTION) -fp-model fast $(OPTREPORT) #$(ADVIXE_FLAGS)
 FORTRAN = ifort
 AR     = xiar
 
 #FORTRAN = gfortran
-#FFLAGS =  $(GDEBUG) $(GMEM) $(GPAR)
+#FFLAGS =  $(GDEBUG) # $(GMEM) $(GPAR)
 #FFLAGS =  $(GPRODUCTION) -g -fbacktrace #-fcheck=all #-Wall AR     = ar # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
 

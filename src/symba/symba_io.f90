@@ -27,12 +27,10 @@ contains
       character(len=*),parameter     :: linefmt = '(A)'
 
       associate(param => self)
-         call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
-
+         open(unit = unit, file = param%param_file_name, status = 'old', err = 667, iomsg = iomsg)
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
          allocate(param%seed(nseeds))
-         rewind(unit)
          do
             read(unit = unit, fmt = linefmt, iostat = iostat, end = 1, err = 667, iomsg = iomsg) line
             line_trim = trim(adjustl(line))
@@ -80,40 +78,35 @@ contains
             end if
          end do
          1 continue
+         close(unit)
 
          if (self%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", self%GMTINY
             iostat = -1
             return
-         else
-            write(*,*) "GMTINY          = ", self%GMTINY   
          end if
 
-         write(*,*) "FRAGMENTATION = ", param%lfragmentation
          if (param%lfragmentation) then
             if (seed_set) then
                call random_seed(put = param%seed)
             else
                call random_seed(get = param%seed)
             end if
-            write(*,*) "SEED: N,VAL    = ",size(param%seed), param%seed(:)
             if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
-            write(*,*) "MIN_GMFRAG      = ", self%min_GMfrag
          end if
 
-         if (.not.self%lclose) then
-            write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
-            iostat = -1
-            return
-         end if
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
-         call fraggle_io_log_start(param)
+         call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
+
+         ! Call the base method (which also prints the contents to screen)
+         call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
       end associate
 
       iostat = 0
 
-      667 continue
       return
+      667 continue
+      write(*,*) "Error reading SyMBA parameters in param file: ", trim(adjustl(iomsg))
    end subroutine symba_io_param_reader
 
 
@@ -134,43 +127,19 @@ contains
       integer,                intent(out)   :: iostat    !! IO status code
       character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       ! Internals
-      character(*),parameter :: Ifmt  = '(I0)'         !! Format label for integer values
-      character(*),parameter :: Rfmt  = '(ES25.17)'    !! Format label for real values 
-      character(*),parameter :: Rarrfmt  = '(3(ES25.17,1X))'    !! Format label for real values 
-      character(*),parameter :: Lfmt  = '(L1)'         !! Format label for logical values 
-      character(len=NAMELEN) :: param_name
-      character(len=STRMAX)  :: param_value
-      type character_array
-         character(25) :: value
-      end type character_array
-      type(character_array), dimension(:), allocatable :: param_array
-      integer(I4B) :: i, nstr
+      integer(I4B) :: nseeds
 
       associate(param => self)
          call io_param_writer(param, unit, iotype, v_list, iostat, iomsg) 
 
          ! Special handling is required for writing the random number seed array as its size is not known until runtime
          ! For the "SEED" parameter line, the first value will be the size of the seed array and the rest will be the seed array elements
-         write(param_name, *) "GMTINY"; write(param_value, Rfmt) param%GMTINY; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "MIN_GMFRAG"; write(param_value, Rfmt) param%min_GMfrag; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
-         write(param_name, *) "FRAGMENTATION"; write(param_value, Lfmt) param%lfragmentation; write(unit, *, err = 667, iomsg = iomsg) adjustl(param_name) // trim(adjustl(param_value))
+         call io_param_writer_one("GMTINY",param%GMTINY, unit)
+         call io_param_writer_one("MIN_GMFRAG",param%min_GMfrag, unit)
+         call io_param_writer_one("FRAGMENTATION",param%lfragmentation, unit)
          if (param%lfragmentation) then
-            write(param_name, *) "SEED"
-            if (allocated(param_array)) deallocate(param_array)
-            allocate(param_array(0:size(param%seed)))
-            write(param_array(0)%value, Ifmt) size(param%seed)
-            do i = 1, size(param%seed)
-               write(param_array(i)%value, Ifmt) param%seed(i)
-            end do
-            write(unit, '(" ",A32)', advance='no', err = 667, iomsg = iomsg) adjustl(param_name)
-            do i = 0, size(param%seed)
-               nstr = len(trim(adjustl(param_array(i)%value)))
-               if (i < size(param%seed)) then
-                  write(unit, '(A12)', advance='no', err = 667, iomsg = iomsg) trim(adjustl(param_array(i)%value)) // " "
-               else
-                  write(unit, '(A12)', err = 667, iomsg = iomsg) trim(adjustl(param_array(i)%value))
-               end if
-            end do
+            nseeds = size(param%seed)
+            call io_param_writer_one("SEED", [nseeds, param%seed(:)], unit)
          end if
 
          iostat = 0
@@ -187,7 +156,6 @@ contains
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B), parameter   :: LUN = 40
       integer(I4B)          :: iadd, isub, j, nsub, nadd
       logical, save :: lfirst = .true. 
       real(DP), dimension(:,:), allocatable :: vh

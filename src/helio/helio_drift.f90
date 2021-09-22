@@ -74,6 +74,41 @@ contains
       return
    end subroutine helio_drift_tp
 
+
+   pure elemental subroutine helio_drift_linear_one(xhx, xhy, xhz, ptx, pty, ptz, dt)
+      !$omp declare simd(helio_drift_linear_one)
+      implicit none
+      real(DP), intent(inout) :: xhx, xhy, xhz
+      real(DP), intent(in) :: ptx, pty, ptz, dt
+     
+      xhx = xhx + ptx * dt
+      xhy = xhy + pty * dt
+      xhz = xhz + ptz * dt
+
+      return
+   end subroutine helio_drift_linear_one
+
+
+   subroutine helio_drift_linear_all(xh, pt, dt, n, lmask)
+      implicit none
+      ! Arguments
+      real(DP), dimension(:,:), intent(inout) :: xh
+      real(DP), dimension(:),   intent(in)    :: pt
+      real(DP),                 intent(in)    :: dt
+      integer(I4B),             intent(in)    :: n
+      logical,  dimension(:),   intent(in)    :: lmask
+      ! Internals
+      integer(I4B) :: i
+
+      !$omp parallel do simd default(shared) schedule(static)
+      do i = 1, n
+         if (lmask(i)) call helio_drift_linear_one(xh(1,i), xh(2,i), xh(3,i), pt(1), pt(2), pt(3), dt) 
+      end do
+      !$omp end parallel do simd
+
+      return
+   end subroutine helio_drift_linear_all
+
    
    module subroutine helio_drift_linear_pl(self, cb, dt, lbeg)
       !! author: David A. Minton
@@ -100,9 +135,7 @@ contains
          pt(2) = sum(pl%Gmass(1:npl) * pl%vb(2,1:npl), self%lmask(1:npl))
          pt(3) = sum(pl%Gmass(1:npl) * pl%vb(3,1:npl), self%lmask(1:npl))
          pt(:) = pt(:) / cb%Gmass
-         do concurrent(i = 1:npl, self%lmask(i))
-            pl%xh(:,i) = pl%xh(:,i) + pt(:) * dt
-         end do
+         call helio_drift_linear_all(pl%xh(:,:), pt(:), dt, npl, pl%lmask(:))
 
          if (lbeg) then
             cb%ptbeg = pt(:)

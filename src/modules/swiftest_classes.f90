@@ -75,7 +75,6 @@ module swiftest_classes
       integer(I4B) :: discard_vhy_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard y variable
       integer(I4B) :: discard_vhz_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard z variable
       integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
-   
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
@@ -90,6 +89,7 @@ module swiftest_classes
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
+      character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
       integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
@@ -122,7 +122,12 @@ module swiftest_classes
       real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
       real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
-      character(STRMAX)    :: energy_out    = ""                  !! Name of output energy and momentum report file
+      character(STRMAX)    :: energy_out     = ""                 !! Name of output energy and momentum report file
+      character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
+      ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
+      logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
+      logical :: lflatten_encounters = .false. !! Use the flattened upper triangular matrix for pl-pl encounter check loops
+      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -133,7 +138,6 @@ module swiftest_classes
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
-      logical :: lflatten_interactions = .true. !! Use the flattened upper triangular matrix for pl-pl interactions (turning this on improves the speed but uses more memory)
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
@@ -328,7 +332,7 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure :: discard      => discard_pl             !! Placeholder method for discarding massive bodies 
-      procedure :: index        => util_index_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure :: flatten      => util_flatten_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: accel_int    => kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl    => obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup        => setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
@@ -475,7 +479,7 @@ module swiftest_classes
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
@@ -485,7 +489,7 @@ module swiftest_classes
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system objec
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
@@ -566,6 +570,7 @@ module swiftest_classes
       end subroutine drift_body
 
       module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
+         !$omp declare simd(drift_one)
          implicit none
          real(DP),     intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
          real(DP),     intent(inout)    :: px, py, pz, vx, vy, vz  !! Position and velocity of body to drift
@@ -573,34 +578,34 @@ module swiftest_classes
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
-      module pure subroutine util_index_eucl_ij_to_k(n, i, j, k)
-         !$omp declare simd(util_index_eucl_ij_to_k)
+      module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
+         !$omp declare simd(util_flatten_eucl_ij_to_k)
          implicit none
          integer(I4B), intent(in)  :: n !! Number of bodies
          integer(I4B), intent(in)  :: i !! Index of the ith body
          integer(I4B), intent(in)  :: j !! Index of the jth body
          integer(I8B), intent(out) :: k !! Index of the flattened matrix
-      end subroutine util_index_eucl_ij_to_k
+      end subroutine util_flatten_eucl_ij_to_k
 
-      module pure subroutine util_index_eucl_k_to_ij(n, k, i, j)
+      module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
          implicit none
          integer(I4B), intent(in)  :: n !! Number of bodies
          integer(I8B), intent(in)  :: k !! Index of the flattened matrix
          integer(I4B), intent(out) :: i !! Index of the ith body
          integer(I4B), intent(out) :: j !! Index of the jth body
-      end subroutine util_index_eucl_k_to_ij
+      end subroutine util_flatten_eucl_k_to_ij
 
-      module subroutine util_index_eucl_plpl(self, param)
+      module subroutine util_flatten_eucl_plpl(self, param)
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
-      module subroutine util_index_eucl_pltp(self, pl, param)
+      module subroutine util_flatten_eucl_pltp(self, pl, param)
          implicit none
          class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
          class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
@@ -719,6 +724,19 @@ module swiftest_classes
          character(len=:), allocatable   :: token          !! Returned token string
       end function io_get_token
 
+      module subroutine io_log_one_message(file, message)
+         implicit none
+         character(len=*), intent(in) :: file   !! Name of file to log
+         character(len=*), intent(in) :: message
+      end subroutine io_log_one_message
+   
+      module subroutine io_log_start(param, file, header)
+         implicit none
+         class(swiftest_parameters), intent(in) :: param  !! Current Swiftest run configuration parameters
+         character(len=*),           intent(in) :: file   !! Name of file to log
+         character(len=*),           intent(in) :: header !! Header to print at top of log file
+      end subroutine io_log_start
+
       module subroutine io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
          class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
@@ -740,7 +758,67 @@ module swiftest_classes
          integer(I4B),               intent(out)   :: iostat    !! IO status code
          character(len=*),           intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine io_param_writer
+   end interface
 
+   interface io_param_writer_one
+      module subroutine io_param_writer_one_char(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         character(len=*), intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_char
+
+      module subroutine io_param_writer_one_DP(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         real(DP),         intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_DP
+
+      module subroutine io_param_writer_one_DParr(param_name, param_value, unit)
+         implicit none
+         character(len=*),       intent(in)    :: param_name  !! Name of parameter to print
+         real(DP), dimension(:), intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),           intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_DParr
+
+      module subroutine io_param_writer_one_I4B(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         integer(I4B),     intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_I4B
+
+      module subroutine io_param_writer_one_I4Barr(param_name, param_value, unit)
+         implicit none
+         character(len=*),           intent(in)    :: param_name  !! Name of parameter to print
+         integer(I4B), dimension(:), intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),               intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_I4Barr
+
+      module subroutine io_param_writer_one_I8B(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         integer(I8B),     intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_I8B
+
+      module subroutine io_param_writer_one_logical(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         logical,          intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_logical
+
+      module subroutine io_param_writer_one_QP(param_name, param_value, unit)
+         implicit none
+         character(len=*), intent(in)    :: param_name  !! Name of parameter to print
+         real(QP),         intent(in)    :: param_value !! Value of parameter to print
+         integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
+      end subroutine io_param_writer_one_QP
+   end interface io_param_writer_one
+
+   interface
       module subroutine io_read_in_body(self, param) 
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
@@ -855,13 +933,13 @@ module swiftest_classes
       module subroutine kick_getacch_int_pl(self, param)
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       end subroutine kick_getacch_int_pl
 
       module subroutine kick_getacch_int_tp(self, param, GMpl, xhp, npl)
          implicit none
          class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
          real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
          real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
          integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
@@ -1024,44 +1102,34 @@ module swiftest_classes
       end subroutine orbel_el2xv_vec
 
       module pure subroutine orbel_scget(angle, sx, cx)
+         !$omp declare simd(orbel_scget)
          implicit none
          real(DP), intent(in)  :: angle
          real(DP), intent(out) :: sx, cx
       end subroutine orbel_scget
 
-      module pure subroutine orbel_xv2aeq(mu, x, v, a, e, q)
+      module pure subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+         !$omp declare simd(orbel_xv2aeq)
          implicit none
-         real(DP),               intent(in)  :: mu !! Gravitational constant
-         real(DP), dimension(:), intent(in)  :: x  !! Position vector
-         real(DP), dimension(:), intent(in)  :: v  !! Velocity vector
-         real(DP),               intent(out) :: a  !! semimajor axis
-         real(DP),               intent(out) :: e  !! eccentricity
-         real(DP),               intent(out) :: q  !! periapsis
+         real(DP), intent(in)  :: mu !! Gravitational constant
+         real(DP), intent(in)  :: px,py,pz  !! Position vector
+         real(DP), intent(in)  :: vx,vy,vz  !! Velocity vector
+         real(DP), intent(out) :: a  !! semimajor axis
+         real(DP), intent(out) :: e  !! eccentricity
+         real(DP), intent(out) :: q  !! periapsis
       end subroutine orbel_xv2aeq
 
-      module pure subroutine orbel_xv2aqt(mu, x, v, a, q, capm, tperi)
+      module pure subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+         !$omp declare simd(orbel_xv2aqt)
          implicit none
-         real(DP),               intent(in)  :: mu    !! Gravitational constant
-         real(DP), dimension(:), intent(in)  :: x     !! Position vector
-         real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
-         real(DP),               intent(out) :: a     !! semimajor axis
-         real(DP),               intent(out) :: q     !! periapsis
-         real(DP),               intent(out) :: capm  !! mean anomaly
-         real(DP),               intent(out) :: tperi !! time of pericenter passage
+         real(DP), intent(in)  :: mu    !! Gravitational constant
+         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: vx,vy,vz     !! Velocity vector
+         real(DP), intent(out) :: a     !! semimajor axis
+         real(DP), intent(out) :: q     !! periapsis
+         real(DP), intent(out) :: capm  !! mean anomaly
+         real(DP), intent(out) :: tperi !! time of pericenter passage
       end subroutine orbel_xv2aqt
-
-      module pure subroutine orbel_xv2el(mu, x, v, a, e, inc, capom, omega, capm)
-         implicit none
-         real(DP),               intent(in)  :: mu    !! Gravitational constant
-         real(DP), dimension(:), intent(in)  :: x     !! Position vector
-         real(DP), dimension(:), intent(in)  :: v     !! Velocity vector
-         real(DP),               intent(out) :: a     !! semimajor axis
-         real(DP),               intent(out) :: e     !! eccentricity
-         real(DP),               intent(out) :: inc   !! inclination
-         real(DP),               intent(out) :: capom !! longitude of ascending node
-         real(DP),               intent(out) :: omega !! argument of periapsis
-         real(DP),               intent(out) :: capm  !! mean anomaly
-      end subroutine orbel_xv2el
 
       module subroutine orbel_xv2el_vec(self, cb)
          implicit none
@@ -1132,7 +1200,7 @@ module swiftest_classes
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine user_kick_getacch_body

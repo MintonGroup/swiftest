@@ -67,7 +67,7 @@ module symba_classes
       type(symba_kinship),       dimension(:), allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
    contains
       procedure :: make_colliders  => symba_collision_make_colliders_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
-      procedure :: index           => symba_util_index_eucl_plpl     !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure :: flatten         => symba_util_flatten_eucl_plpl     !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: discard         => symba_discard_pl               !! Process massive body discards
       procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
@@ -259,7 +259,7 @@ module symba_classes
       module function symba_encounter_check_pl(self, param, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_pl),            intent(inout) :: self           !! SyMBA test particle object  
-         class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
@@ -316,12 +316,12 @@ module symba_classes
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casemerge
 
-      module subroutine symba_util_index_eucl_plpl(self, param)
+      module subroutine symba_util_flatten_eucl_plpl(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      end subroutine symba_util_index_eucl_plpl
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      end subroutine symba_util_flatten_eucl_plpl
 
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -355,7 +355,7 @@ module symba_classes
       module subroutine symba_kick_getacch_int_pl(self, param)
          implicit none
          class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       end subroutine symba_kick_getacch_int_pl
 
       module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
@@ -363,7 +363,7 @@ module symba_classes
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine symba_kick_getacch_pl
@@ -373,14 +373,14 @@ module symba_classes
          implicit none
          class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine symba_kick_getacch_tp
 
       module subroutine symba_kick_encounter(self, system, dt, irec, sgn)
          implicit none
-         class(symba_encounter),      intent(in)    :: self   !! SyMBA pl-tp encounter list object
+         class(symba_encounter),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt     !! step size
          integer(I4B),              intent(in)    :: irec   !! Current recursion level

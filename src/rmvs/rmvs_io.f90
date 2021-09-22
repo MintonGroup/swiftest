@@ -19,7 +19,6 @@ contains
       character(*),           intent(in) :: enc_out
       ! Internals
       logical , save    :: lfirst = .true.
-      integer(I4B), parameter :: LUN = 30
       integer(I4B)        :: ierr
 
       if (enc_out == "") return

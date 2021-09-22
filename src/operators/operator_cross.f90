@@ -8,6 +8,7 @@ submodule(swiftest_operators) s_operator_cross
 contains
 
    module pure function operator_cross_sp(A, B) result(C)
+      !$omp declare simd(operator_cross_sp)
       implicit none
       real(SP), dimension(:), intent(in) :: A, B
       real(SP), dimension(3) :: C
@@ -18,6 +19,7 @@ contains
    end function operator_cross_sp
 
    module pure function operator_cross_dp(A, B) result(C)
+      !$omp declare simd(operator_cross_dp)
       implicit none
       real(DP), dimension(:), intent(in) :: A, B
       real(DP), dimension(3) :: C
@@ -28,6 +30,7 @@ contains
    end function operator_cross_dp
 
    module pure function operator_cross_qp(A, B) result(C)
+      !$omp declare simd(operator_cross_qp)
       implicit none
       real(QP), dimension(:), intent(in) :: A, B
       real(QP), dimension(3) :: C
@@ -38,6 +41,7 @@ contains
    end function operator_cross_qp
 
    module pure function operator_cross_i1b(A, B) result(C)
+      !$omp declare simd(operator_cross_i1b)
       implicit none
       integer(I1B), dimension(:), intent(in) :: A, B
       integer(I1B), dimension(3) :: C
@@ -48,6 +52,7 @@ contains
    end function operator_cross_i1b
 
    module pure function operator_cross_i2b(A, B) result(C)
+      !$omp declare simd(operator_cross_i2b)
       implicit none
       integer(I2B), dimension(:), intent(in) :: A, B
       integer(I2B), dimension(3) :: C
@@ -58,6 +63,7 @@ contains
    end function operator_cross_i2b
 
    module pure function operator_cross_i4b(A, B) result(C)
+      !$omp declare simd(operator_cross_i4b)
       implicit none
       integer(I4B), dimension(:), intent(in) :: A, B
       integer(I4B), dimension(3) :: C
@@ -68,6 +74,7 @@ contains
    end function operator_cross_i4b
 
    module pure function operator_cross_i8b(A, B) result(C)     
+      !$omp declare simd(operator_cross_i8b)
       implicit none
       integer(I8B), dimension(:), intent(in) :: A, B
       integer(I8B), dimension(3) :: C
@@ -86,9 +93,7 @@ contains
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
-         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
-         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
-         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+         C(:,i) = operator_cross_sp(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_sp
@@ -102,9 +107,7 @@ contains
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
-         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
-         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
-         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+         C(:,i) = operator_cross_dp(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_dp
@@ -118,9 +121,7 @@ contains
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
-         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
-         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
-         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+         C(:,i) = operator_cross_qp(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_qp
@@ -134,9 +135,7 @@ contains
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
-         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
-         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
-         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+         C(:,i) = operator_cross_i1b(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_i1b
@@ -150,9 +149,7 @@ contains
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
-         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
-         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
-         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+         C(:,i) = operator_cross_i2b(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_i2b
@@ -166,9 +163,7 @@ contains
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
-         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
-         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
-         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+         C(:,i) = operator_cross_i4b(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_i4b
@@ -182,9 +177,7 @@ contains
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
       do concurrent (i = 1:n) 
-         C(1, i) = A(2, i) * B(3, i) - A(3, i) * B(2, i)
-         C(2, i) = A(3, i) * B(1, i) - A(1, i) * B(3, i)
-         C(3, i) = A(1, i) * B(2, i) - A(2, i) * B(1, i)
+         C(:,i) = operator_cross_i8b(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_i8b
