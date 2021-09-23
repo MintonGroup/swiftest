@@ -277,56 +277,50 @@ contains
       real(DP)                      :: tfrac
       character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
       character(*),     parameter   :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
-      logical, save                 :: lfirst = .true.
-    
-      if (lfirst) then
-         lfirst = .false.
-         if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
-      else
-         allocate(dump_param, source=param)
-         param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
-         dump_param%in_form  = XV
-         dump_param%out_form = XV
-         dump_param%out_stat = 'APPEND'
-         if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-            dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-            dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-            dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-            dump_param%in_type = REAL8_TYPE
-         else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-            dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
-            dump_param%in_type = NETCDF_DOUBLE_TYPE
-         end if
-         dump_param%T0 = param%t
-         dump_param%ioutput = 0 
-
-         call dump_param%dump(param_file_name)
-
-         if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-            call self%cb%dump(dump_param)
-            call self%pl%dump(dump_param)
-            call self%tp%dump(dump_param)
-         else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-            call dump_param%nciu%initialize(dump_param)
-            call self%write_hdr(dump_param%nciu, dump_param)
-            call self%cb%write_frame(dump_param%nciu, dump_param)
-            call self%pl%write_frame(dump_param%nciu, dump_param)
-            call self%tp%write_frame(dump_param%nciu, dump_param)
-            call dump_param%nciu%close(dump_param)
-         end if
-
-         idx = idx + 1
-         if (idx > NDUMPFILES) idx = 1
-
-         tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-         
-         select type(pl => self%pl)
-         class is (symba_pl)
-            write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, self%tp%nbody
-         class default
-            write(*, statusfmt) param%t, tfrac, pl%nbody, self%tp%nbody
-         end select
+   
+      allocate(dump_param, source=param)
+      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
+      dump_param%in_form  = XV
+      dump_param%out_form = XV
+      dump_param%out_stat = 'APPEND'
+      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
+         dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
+         dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
+         dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+         dump_param%in_type = REAL8_TYPE
+      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
+         dump_param%in_type = NETCDF_DOUBLE_TYPE
       end if
+      dump_param%T0 = param%t
+      dump_param%ioutput = 0 
+
+      call dump_param%dump(param_file_name)
+
+      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
+         call self%cb%dump(dump_param)
+         call self%pl%dump(dump_param)
+         call self%tp%dump(dump_param)
+      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         call dump_param%nciu%initialize(dump_param)
+         call self%write_hdr(dump_param%nciu, dump_param)
+         call self%cb%write_frame(dump_param%nciu, dump_param)
+         call self%pl%write_frame(dump_param%nciu, dump_param)
+         call self%tp%write_frame(dump_param%nciu, dump_param)
+         call dump_param%nciu%close(dump_param)
+      end if
+
+      idx = idx + 1
+      if (idx > NDUMPFILES) idx = 1
+
+      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+      
+      select type(pl => self%pl)
+      class is (symba_pl)
+         write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, self%tp%nbody
+      class default
+         write(*, statusfmt) param%t, tfrac, pl%nbody, self%tp%nbody
+      end select
 
       return
    end subroutine io_dump_system

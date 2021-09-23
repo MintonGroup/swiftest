@@ -63,7 +63,7 @@ program swiftest_driver
       else
          old_t_final = t0
          if (istep_out > 0) call nbody_system%write_frame(param)
-         call nbody_system%dump(param)
+         if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
       end if
 
       !> Define the maximum number of threads
