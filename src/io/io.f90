@@ -63,11 +63,6 @@ contains
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
 
-         if ((param%out_type == NETCDF_DOUBLE_TYPE) .or. (param%out_type == NETCDF_FLOAT_TYPE) .and. (param%energy_out /= "")) then
-            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, param%Ecollisions, Ltot_now, GMtot_now
-            close(EGYIU, err = 667, iomsg = errmsg)
-         end if
-
          if (.not.param%lfirstenergy) then 
             Lerror = norm2(Ltot_now(:) - param%Ltot_orig(:)) / norm2(param%Ltot_orig(:))
             Eorbit_error = (Eorbit_now - param%Eorbit_orig) / abs(param%Eorbit_orig)
