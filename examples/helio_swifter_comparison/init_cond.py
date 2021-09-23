@@ -17,6 +17,7 @@ sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
 sim.param['ISTEP_OUT']  = 1
 sim.param['ISTEP_DUMP'] = 1
+sim.param['IN_FORM'] = "XV"
 sim.param['OUT_FORM'] = "XV"
 sim.param['OUT_STAT'] = "UNKNOWN"
 sim.param['GR'] = 'NO'
@@ -32,10 +33,10 @@ bodyid = {
    "Saturn": 6,
    "Uranus": 7,
    "Neptune": 8,
-   "Ceres":  101,
-   "Pallas": 102,
-   "Juno":  103,
-   "Vesta": 104
+   "Ceres":  9,
+   "Pallas": 10,
+   "Juno":  11,
+   "Vesta": 12
 }
 
 for name, id in bodyid.items():
@@ -44,7 +45,7 @@ for name, id in bodyid.items():
 sim.param['PL_IN'] = "pl.swiftest.in"
 sim.param['TP_IN'] = "tp.swiftest.in"
 sim.param['CB_IN'] = "cb.swiftest.in"
-sim.param['BIN_OUT'] = "bin.swiftest.dat"
+sim.param['BIN_OUT'] = "bin.swiftest.nc"
 sim.param['ENC_OUT'] = "enc.swiftest.dat"
 sim.save("param.swiftest.in")
 sim.param['PL_IN'] = "pl.swifter.in"

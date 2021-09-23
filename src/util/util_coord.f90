@@ -139,9 +139,12 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         do i = 1, NDIM
-            cb%vb(i) = -sum(pl%Gmass(1:npl) * pl%vb(i, 1:npl)) / cb%Gmass
-            pl%vh(i, 1:npl) = pl%vb(i, 1:npl) - cb%vb(i)
+         cb%vb(:) = 0.0_DP
+         do i = npl, 1, -1
+            cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vb(:, i) / cb%Gmass
+         end do
+         do concurrent(i = 1:npl)
+            pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
          end do
       end associate
 
@@ -194,9 +197,12 @@ contains
 
       associate(pl => self, npl => self%nbody)
          Gmtot = cb%Gmass + sum(pl%Gmass(1:npl))
-         do i = 1, NDIM
-            cb%vb(i) = -sum(pl%Gmass(1:npl) * pl%vh(i, 1:npl)) / Gmtot
-            pl%vb(i, 1:npl) = pl%vh(i, 1:npl) + cb%vb(i)
+         cb%vb(:) = 0.0_DP
+         do i = npl, 1, -1
+            cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vh(:, i) / Gmtot
+         end do
+         do concurrent(i = 1:npl)
+            pl%vb(:, i) = pl%vh(:, i) + cb%vb(:)
          end do
       end associate
 
