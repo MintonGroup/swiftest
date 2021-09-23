@@ -256,7 +256,7 @@ contains
       ! Internals
       real(DP) :: fac
 
-      fac = GMpl * sqrt(rji2**(-3))
+      fac = GMpl * sqrt(1.0_DP / (rji2*rji2*rji2))
       ax = ax - fac * xr
       ay = ay - fac * yr
       az = az - fac * zr

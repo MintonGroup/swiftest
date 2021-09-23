@@ -21,7 +21,7 @@ CHK_QMIN_RANGE   0.004650467260962157 1000.0
 MU2KG            1.988409870698051e+30
 TU2S             31557600.0
 DU2M             149597870700.0
-IN_FORM          EL
+IN_FORM          XV
 ENC_OUT          enc.swiftest.dat
 EXTRA_FORCE      NO
 DISCARD_OUT      discard.out
