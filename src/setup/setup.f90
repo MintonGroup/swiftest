@@ -185,7 +185,7 @@ contains
             call pl%el2xv(cb)
             call tp%el2xv(cb)
          end if
-         call pl%index(param)
+         call pl%flatten(param)
          if (.not.param%lrhill_present) call pl%set_rhill(cb)
          pl%lfirst = param%lfirstkick
          tp%lfirst = param%lfirstkick
