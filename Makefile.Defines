@@ -52,7 +52,7 @@ VTUNE_FLAGS = -g -O2 -qopt-report=5 -simd -shared-intel -qopenmp -debug inline-d
 #Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
 
 IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin
-STRICTREAL = -fp-model strict -prec-div -prec-sqrt -assume protect-parens 
+STRICTREAL = -fp-model=precise -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -fp-model no-except -fma
 PAR = -qopenmp -parallel  
 HEAPARR = -heap-arrays 4194304 
