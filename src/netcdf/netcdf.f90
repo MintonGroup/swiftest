@@ -190,6 +190,9 @@ contains
          end select
       end do
 
+      ! Take the file out of define mode
+      call check( nf90_enddef(self%ncid) )
+
       return
    end subroutine netcdf_initialize_output
 
