@@ -11,7 +11,7 @@ IN_TYPE          ASCII
 PL_IN            pl.swiftest.in
 TP_IN            tp.swiftest.in
 CB_IN            cb.swiftest.in
-BIN_OUT          bin.swiftest.dat
+BIN_OUT          bin.swiftest.nc
 CHK_QMIN         0.004650467260962157
 CHK_RMIN         0.004650467260962157
 CHK_RMAX         1000.0
