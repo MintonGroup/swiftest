@@ -1501,6 +1501,12 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     swifter_param['J4'] = J4
     if swifter_param['OUT_STAT'] == "REPLACE":
         swifter_param['OUT_STAT'] = "UNKNOWN"
+    if swifter_param['OUT_TYPE'] == 'NETCDF_DOUBLE':
+       swifter_param['OUT_TYPE'] = 'REAL8'
+    elif swifter_param['OUT_TYPE'] == 'NETCDF_FLOAT':
+       swifter_param['OUT_TYPE'] = 'REAL4'
+    if swifter_param['OUT_FORM'] == 'XVEL':
+       swifter_param['OUT_FORM'] = 'XV'
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"
 
     return swifter_param
