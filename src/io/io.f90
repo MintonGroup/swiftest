@@ -27,16 +27,7 @@ contains
                                                          "; DM/M0 = ", ES12.5)'
 
       associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody)
-         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE) .and. (param%energy_out /= "")) then
-            if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
-               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
-               write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
-            else
-               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append", err = 667, iomsg = errmsg)
-            end if
-         end if
-
-         if ((param%out_type == NETCDF_DOUBLE_TYPE) .or. (param%out_type == NETCDF_FLOAT_TYPE) .and. (param%energy_out /= "")) then
+         if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
             if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
                write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
