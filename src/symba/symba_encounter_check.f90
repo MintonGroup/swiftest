@@ -244,9 +244,9 @@ contains
       ! Internals
       integer(I4B)              :: i, j, k, lidx, nenc_enc
       real(DP), dimension(NDIM) :: xr, vr
-      logical                   :: lencounter, isplpl
+      logical                   :: isplpl
       real(DP)                  :: rlim2, rji2
-      logical, dimension(:), allocatable :: lencmask
+      logical, dimension(:), allocatable :: lencmask, lencounter
       integer(I4B), dimension(:), allocatable :: encidx
 
       lany_encounter = .false.
@@ -269,43 +269,58 @@ contains
             if (nenc_enc == 0) return
 
             allocate(encidx(nenc_enc))
+            allocate(lencounter(nenc_enc))
             encidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
-
-            do lidx = 1, nenc_enc
-               k = encidx(lidx)
-               i = self%index1(k)
-               j = self%index2(k)
-               if (isplpl) then
+            lencounter(:) = .false.
+            if (isplpl) then
+               do concurrent(lidx = 1:nenc_enc)
+                  k = encidx(lidx)
+                  i = self%index1(k)
+                  j = self%index2(k)
                   xr(:) = pl%xh(:,j) - pl%xh(:,i)
                   vr(:) = pl%vb(:,j) - pl%vb(:,i)
-                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), pl%rhill(j), dt, irec, lencounter, self%lvdotr(k))
-               else
+                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), pl%rhill(j), dt, irec, lencounter(lidx), self%lvdotr(k))
+                  if (lencounter(lidx)) then
+                     rlim2 = (pl%radius(i) + pl%radius(j))**2
+                     rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+                     lencounter(lidx) = rji2 > rlim2
+                  end if
+               end do
+            else
+               do concurrent(lidx = 1:nenc_enc)
+                  k = encidx(lidx)
+                  i = self%index1(k)
+                  j = self%index2(k)
                   xr(:) = tp%xh(:,j) - pl%xh(:,i)
                   vr(:) = tp%vb(:,j) - pl%vb(:,i)
-                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), 0.0_DP, dt, irec, lencounter, self%lvdotr(k))
-               end if
-               if (lencounter) then
-                  if (isplpl) then
-                     rlim2 = (pl%radius(i) + pl%radius(j))**2
-                  else
+                  call symba_encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), 0.0_DP, dt, irec, lencounter(lidx), self%lvdotr(k))
+                  if (lencounter(lidx)) then
                      rlim2 = (pl%radius(i))**2
+                     rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+                     lencounter(lidx) = rji2 > rlim2
                   end if
-                  rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
-                  if (rji2 > rlim2) then
-                     lany_encounter = .true.
-                     pl%levelg(i) = irec
-                     pl%levelm(i) = MAX(irec, pl%levelm(i))
-                     if (isplpl) then
-                        pl%levelg(j) = irec
-                        pl%levelm(j) = MAX(irec, pl%levelm(j))
-                     else
-                        tp%levelg(j) = irec
-                        tp%levelm(j) = MAX(irec, tp%levelm(j))
-                     end if
-                     self%level(k) = irec
+               end do
+            end if
+            lany_encounter = any(lencounter(:))
+            if (lany_encounter) then
+               nenc_enc = count(lencounter(:))
+               encidx(1:nenc_enc) = pack(encidx(:), lencounter(:))
+               do lidx = 1, nenc_enc
+                  k = encidx(lidx)
+                  i = self%index1(k)
+                  j = self%index2(k)
+                  pl%levelg(i) = irec
+                  pl%levelm(i) = MAX(irec, pl%levelm(i))
+                  if (isplpl) then
+                     pl%levelg(j) = irec
+                     pl%levelm(j) = MAX(irec, pl%levelm(j))
+                  else
+                     tp%levelg(j) = irec
+                     tp%levelm(j) = MAX(irec, tp%levelm(j))
                   end if
-               end if   
-            end do
+                  self%level(k) = irec
+               end do
+            end if   
          end select
       end select
 

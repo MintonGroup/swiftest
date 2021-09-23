@@ -33,8 +33,9 @@ contains
 
          select type(self)
          class is (swiftest_pl)
-            do i = 1, NDIM
-               cb%agr(i) = -sum(self%Gmass(1:n) * self%agr(1:n, i) / cb%Gmass)
+            cb%agr(:) = 0.0_DP
+            do i = n, 1, -1
+               cb%agr(:) = cb%agr(:) - self%Gmass(i) * self%agr(:, i) / cb%Gmass
             end do
          end select
       end associate 
@@ -226,9 +227,9 @@ contains
 
             Jinv = Jinv * det
 
-            do i = 1, NDIM
-               pv(i) = pv(i) - dot_product(Jinv(i,:), F(:))
-            end do
+            pv(1) = pv(1) - dot_product(Jinv(1,:), F(:))
+            pv(2) = pv(2) - dot_product(Jinv(2,:), F(:))
+            pv(3) = pv(3) - dot_product(Jinv(3,:), F(:))
          end do 
       end associate
    

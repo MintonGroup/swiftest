@@ -22,6 +22,7 @@ module swiftest_globals
    real(DP), parameter :: PI3BY2 = 4.712388980384689857693965074919254326296_DP !! Definition of /(3 \pi / 2\)
    real(DP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_DP !! Definition of 2 \pi
    real(DP), parameter :: THIRD  = 0.333333333333333333333333333333333333333_DP !! Definition of 1 / 3
+   real(DP), parameter :: SIXTH  = 0.166666666666666666666666666666666666667_DP !! Definition of 1 / 3
    real(DP), parameter :: DEG2RAD = PI / 180.0_DP !! Definition of conversion factor from degrees to radians
    real(DP), parameter :: RAD2DEG = 180.0_DP / PI !! Definition of conversion factor from degrees to radians
    real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
@@ -31,7 +32,7 @@ module swiftest_globals
    integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
    integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
 
-   real(SP), parameter :: VERSION_NUMBER = 0.1_SP !! swiftest version
+   real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! swiftest version
 
    !> Symbolic name for integrator types
    integer(I4B), parameter :: UNKNOWN_INTEGRATOR = 1
