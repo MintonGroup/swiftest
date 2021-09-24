@@ -75,8 +75,7 @@ contains
       class(netcdf_parameters),   intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param           !! Current run configuration parameters 
       ! Internals
-      logical :: fileExists
-      integer(I4B) :: old_mode, nvar, varid, vartype
+      integer(I4B) :: old_mode, nvar, varid, vartype, old_unit
       real(DP) :: dfill
       real(SP) :: sfill
 
@@ -84,6 +83,11 @@ contains
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
       !! Create the new output file, deleting any previously existing output file of the same name
+      if (any(DUMP_NC_FILE == param%outfile)) then
+         open(file=param%outfile, unit=old_unit, status='OLD')
+         close(unit=old_unit, status='delete')
+      end if
+
       call check( nf90_create(param%outfile, NF90_NETCDF4, self%ncid) )
 
       ! Define the NetCDF dimensions with particle name as the record dimension
