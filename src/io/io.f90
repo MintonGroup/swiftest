@@ -404,7 +404,7 @@ contains
       class(swiftest_nbody_system), allocatable :: tmpsys
       class(swiftest_parameters),   allocatable :: tmpparam
       integer(I4B) :: ierr, iu = LUN
-      character(len=STRMAX)            :: errmsg
+      character(len=STRMAX) :: errmsg
 
       old_t_final = 0.0_DP
       allocate(tmpsys, source=self)
@@ -2105,26 +2105,17 @@ contains
                   errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
                   goto 667
                end if
+               call param%nciu%open(param)
             case('NEW')
                if (fileExists) then
-                  errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = OLD, REPLACE, or UNKNOWN"
+                  errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
                   goto 667
                end if
+               call param%nciu%initialize(param)
             case('REPLACE', 'UNKNOWN')
-               if (fileExists) then
-                  open(file=param%outfile, unit=iu, status='OLD')
-                  close (unit=BINUNIT, status="delete")
-               end if
+               call param%nciu%initialize(param)
             end select
 
-            select case(param%out_stat)
-            case('APPEND')
-               call param%nciu%open(param)
-            case('NEW', 'REPLACE', 'UNKNOWN')
-               call param%nciu%initialize(param)
-               call param%nciu%close(param)
-               call param%nciu%open(param)
-            end select
             lfirst = .false.
          else
             call param%nciu%open(param)

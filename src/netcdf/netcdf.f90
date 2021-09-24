@@ -78,14 +78,17 @@ contains
       integer(I4B) :: old_mode, nvar, varid, vartype, old_unit
       real(DP) :: dfill
       real(SP) :: sfill
+      logical :: fileExists
+      character(len=STRMAX) :: errmsg
 
       dfill = ieee_value(dfill, IEEE_QUIET_NAN)
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
-      !! Create the new output file, deleting any previously existing output file of the same name
-      if (any(DUMP_NC_FILE == param%outfile)) then
-         open(file=param%outfile, unit=old_unit, status='OLD')
-         close(unit=old_unit, status='delete')
+      ! Check if the file exists, and if it does, delete it
+      inquire(file=param%outfile, exist=fileExists)
+      if (fileExists) then
+         open(unit=LUN, file=param%outfile, status="old", err=667, iomsg=errmsg)
+         close(unit=LUN, status="delete")
       end if
 
       call check( nf90_create(param%outfile, NF90_NETCDF4, self%ncid) )
@@ -198,6 +201,10 @@ contains
       call check( nf90_enddef(self%ncid) )
 
       return
+
+      667 continue
+      write(*,*) "Error creating NetCDF output file. " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine netcdf_initialize_output
 
 
