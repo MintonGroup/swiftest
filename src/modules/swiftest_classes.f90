@@ -200,6 +200,7 @@ module swiftest_classes
       !! The minimal methods that all systems must have
       procedure :: dump                       => io_dump_base                 !! Dump contents to file
       procedure :: dump_particle_info         => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
+      procedure :: read_in                    => io_read_in_base              !! Read in body initial conditions from a file
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: read_frame_netcdf          => netcdf_read_frame_base       !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
@@ -238,7 +239,6 @@ module swiftest_classes
       real(DP), dimension(NDIM)                  :: L0       = 0.0_DP !! Initial angular momentum of the central body
       real(DP), dimension(NDIM)                  :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
-      procedure :: read_in         => io_read_in_cb     !! I/O routine for reading in central body data
       procedure :: read_frame_bin  => io_read_frame_cb  !! I/O routine for reading out a single frame of time-series data for the central body
       procedure :: write_frame_bin => io_write_frame_cb !! I/O routine for writing out a single frame of time-series data for the central body
       generic   :: write_frame     => write_frame_bin   !! Write a frame (either binary or NetCDF, using generic procedures)
@@ -286,7 +286,6 @@ module swiftest_classes
       procedure :: drift           => drift_body                   !! Loop through bodies and call Danby drift routine on heliocentric variables
       procedure :: v2pv            => gr_vh2pv_body                !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
       procedure :: pv2v            => gr_pv2vh_body                !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
-      procedure :: read_in         => io_read_in_body              !! Read in body initial conditions from a file
       procedure :: read_frame_bin  => io_read_frame_body           !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: write_frame_bin => io_write_frame_body          !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: accel_obl       => obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
@@ -429,6 +428,7 @@ module swiftest_classes
       !procedure :: read_hdr_bin            => io_read_hdr                            !! Read a header for an output frame in Fortran binary format
       procedure :: read_hdr_netcdf         => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
+      procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
       procedure :: read_particle_info      => io_read_particle_info_system           !! Read in particle metadata from file
       procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
@@ -819,17 +819,12 @@ module swiftest_classes
    end interface io_param_writer_one
 
    interface
-      module subroutine io_read_in_body(self, param) 
-         implicit none
-         class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_in_body
 
-      module subroutine io_read_in_cb(self, param) 
+      module subroutine io_read_in_base(self,param)
          implicit none
-         class(swiftest_cb),         intent(inout) :: self  !! Swiftest central body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_in_cb
+         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine io_read_in_base
 
       module subroutine io_read_in_param(self, param_file_name) 
          implicit none
@@ -842,6 +837,12 @@ module swiftest_classes
          class(swiftest_particle_info), intent(inout) :: self !! Particle metadata information object
          integer(I4B),                  intent(in)    :: iu   !! Open file unit number
       end subroutine io_read_in_particle_info
+
+      module subroutine io_read_in_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self
+         class(swiftest_parameters),   intent(inout) :: param
+      end subroutine io_read_in_system
 
       module function io_read_frame_body(self, iu, param) result(ierr)
          implicit none

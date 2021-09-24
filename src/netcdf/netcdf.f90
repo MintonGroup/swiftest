@@ -300,6 +300,7 @@ contains
       return
    end subroutine netcdf_open
 
+
    module function netcdf_read_frame_base(self, iu, param) result(ierr)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
@@ -311,51 +312,68 @@ contains
       class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot
+      integer(I4B)                              :: i, j, tslot, strlen, idslot, idmax, n
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
       integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
-
-      call self%write_particle_info(iu)
+      real(DP), dimension(:), allocatable       :: real_temp
+      logical, dimension(:), allocatable        :: validmask, tpmask
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
       select type(self)
          class is (swiftest_body)
-         associate(n => self%nbody)
-            if (n == 0) return
+            if (self%nbody == 0) return
+            call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax) )
+            allocate(ind(idmax))
+            allocate(real_temp(idmax))
+            allocate(validmask(idmax))
+            allocate(tpmask(idmax))
+            ind(:) = [(i, i = 1, idmax)]
 
-            allocate(ind(n))
-            call util_sort(self%id(1:n), ind)
+            ! First filter out only the id slots that contain valid bodies
+            if (param%in_form == XV) then
+               call check( nf90_get_var(iu%ncid, iu%xhx_varid, real_temp(:)) )
+            else
+               call check( nf90_get_var(iu%ncid, iu%a_varid, real_temp(:)) )
+            end if
+            validmask(:) = real_temp(:) == real_temp(:)
 
-            do i = 1, n
-               j = ind(i)
-               idslot = self%id(j) + 1
+            ! Filter out the central body, which is always in id dimension array position 1
+            validmask(1) = .false.
 
-               if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+            ! Next, filter only bodies that don't have mass (test particles)
+            call check( nf90_get_var(iu%ncid, iu%Gmass_varid, real_temp(:)) )
+            tpmask(:) = real_temp(:) /= real_temp(:)
+
+            select type(self)
+            class is (swiftest_pl)
+               ind(:) = pack(ind(:), (.not.tpmask(:) .and. validmask(:)))
+               n = count(.not.tpmask(:))
+            class is (swiftest_tp)
+               ind(:) = pack(ind(:), (tpmask(:) .and. validmask(:)))
+               n = count(tpmask(:))
+            end select
+
+            do i = j, n
+               idslot = ind(j)
+   
+               if (param%in_form == XV) then
                   call check( nf90_get_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
-               end if
-
-               if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
+               else if (param%in_form == EL) then
                   call check( nf90_get_var(iu%ncid, iu%a_varid,     self%a(j),     start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%e_varid,     self%e(j),     start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%inc_varid,   self%inc(j),   start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%capom_varid, self%capom(j), start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%omega_varid, self%omega(j), start=[idslot, tslot]) )
                   call check( nf90_get_var(iu%ncid, iu%capm_varid,  self%capm(j),  start=[idslot, tslot]) ) 
-
-                  self%inc(j) = self%inc(j) * RAD2DEG
-                  self%capom(j) = self%capom(j) * RAD2DEG
-                  self%omega(j) = self%omega(j) * RAD2DEG
-                  self%capm(j) = self%capm(j) * RAD2DEG
-
                end if
-
+   
                select type(self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
                   call check( nf90_get_var(iu%ncid, iu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]) )
@@ -377,34 +395,39 @@ contains
                      call check( nf90_get_var(iu%ncid, iu%k2_varid, self%k2(j), start=[idslot, tslot]) )
                      call check( nf90_get_var(iu%ncid, iu%Q_varid,  self%Q(j),  start=[idslot, tslot]) )
                   end if
-
+   
                end select
             end do
-         end associate
-      class is (swiftest_cb)
-         idslot = self%id + 1
-         call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
 
-         call check( nf90_get_var(iu%ncid, iu%Gmass_varid,  self%Gmass,  start=[idslot, tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
-         if (param%lrotation) then
-            call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  self%Ip(1),  start=[idslot, tslot]) )
-            call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  self%Ip(2),  start=[idslot, tslot]) )
-            call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  self%Ip(3),  start=[idslot, tslot]) )
-            call check( nf90_get_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[idslot, tslot]) )
-            call check( nf90_get_var(iu%ncid, iu%roty_varid, self%rot(2), start=[idslot, tslot]) )
-            call check( nf90_get_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[idslot, tslot]) )
-         end if
-         if (param%ltides) then
-            call check( nf90_get_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]) )
-            call check( nf90_get_var(iu%ncid, iu%Q_varid,  self%Q,  start=[idslot, tslot]) )
-         end if
+         class is (swiftest_cb)
 
-      end select
+            idslot = 1
+            call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
+
+            call check( nf90_get_var(iu%ncid, iu%Gmass_varid,  self%Gmass,  start=[idslot, tslot]) )
+            call check( nf90_get_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
+            if (param%lrotation) then
+               call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  self%Ip(1),  start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  self%Ip(2),  start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  self%Ip(3),  start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%roty_varid, self%rot(2), start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[idslot, tslot]) )
+            end if
+            if (param%ltides) then
+               call check( nf90_get_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%Q_varid,  self%Q,  start=[idslot, tslot]) )
+            end if
+
+
+         end select
+
+         !call self%read_particle_info(iu) ! THIS NEEDS TO BE IMPLEMENTED
 
       return
 
    end function netcdf_read_frame_base
+
 
    module function netcdf_read_frame_system(self, iu, param) result(ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -420,24 +443,12 @@ contains
       call iu%open(param)
 
       call self%read_hdr(iu, param)
-      ierr = self%cb%read_frame(iu, param)
-      if (ierr /= 0) then
-         write(*, *) "Cannot read central body frame."
-         goto 667
-      end if
-      ierr = self%pl%read_frame(iu, param)
-      if (ierr /= 0) then
-         write(*, *) "Cannot read massive body frame."
-         goto 667
-      end if
-      ierr = self%tp%read_frame(iu, param)
-      if (ierr /= 0) then
-         write(*, *) "Cannot read test particle frame."
-         goto 667
-      end if
-
+      call self%cb%read_in(param)
+      call self%pl%read_in(param)
+      call self%tp%read_in(param)
       call iu%close(param)
 
+      ierr = 0
       return
 
       667 continue

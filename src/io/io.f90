@@ -1154,7 +1154,42 @@ contains
    end subroutine io_param_writer_one_QP
 
 
-   module subroutine io_read_in_body(self, param) 
+   module subroutine io_read_in_base(self,param)
+      !! author: Carlisle A. Wishard and David A. Minton
+      !!
+      !! Reads in either a central body, test particle, or massive body object. For the swiftest_body types (non-central body), it allocates array space for them
+      implicit none
+      class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      ! Internals
+      integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
+
+      select case(param%in_type)
+      case(NETCDF_DOUBLE_TYPE, NETCDF_FLOAT_TYPE)
+         select type(self)
+         class is (swiftest_body)
+            if (self%nbody == 0) return
+            call self%setup(self%nbody, param)
+         end select
+
+         ierr = self%read_frame(param%nciu, param)
+         if (ierr == 0) return
+      case default
+         select type(self)
+         class is (swiftest_body)
+            call io_read_in_body(self, param)
+         class is (swiftest_cb)
+            call io_read_in_cb(self, param)
+         end select
+         return
+      end select
+
+      667 continue
+      write(*,*) "Error reading body in io_read_in_base"
+   end subroutine io_read_in_base
+
+
+   subroutine io_read_in_body(self, param) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read in either test particle or massive body data 
@@ -1168,20 +1203,19 @@ contains
       ! Internals
       integer(I4B)                  :: iu = LUN
       integer(I4B)                  :: i, nbody
-      logical                       :: is_ascii, is_pl
+      logical                       :: is_ascii
       character(len=:), allocatable :: infile
       real(DP)                      :: t
       character(STRMAX)             :: errmsg
       integer(I4B)                  :: ierr
 
       ! Select the appropriate polymorphic class (test particle or massive body)
+
       select type(self)
       class is (swiftest_pl)
          infile = param%inplfile
-         is_pl = .true.
       class is (swiftest_tp)
          infile = param%intpfile
-         is_pl = .false.
       end select
 
       is_ascii = (param%in_type == 'ASCII') 
@@ -1218,7 +1252,7 @@ contains
    end subroutine io_read_in_body
 
 
-   module subroutine io_read_in_cb(self, param) 
+   subroutine io_read_in_cb(self, param) 
       !! author: David A. Minton
       !!
       !! Reads in central body data 
@@ -1277,6 +1311,30 @@ contains
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_read_in_cb
+
+
+   module subroutine io_read_in_system(self, param)
+      !! author: David A. Minton and Carlisle A. Wishard
+      !!
+      !! Reads in the system from input files
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self
+      class(swiftest_parameters),   intent(inout) :: param
+      ! Internals
+      integer(I4B) :: ierr
+
+      if ((param%in_type == NETCDF_DOUBLE_TYPE) .or. (param%in_type == NETCDF_FLOAT_TYPE)) then
+         ierr =  self%read_frame(param%nciu, param)
+         if (ierr /=0) call util_exit(FAILURE)
+      else
+         call self%cb%read_in(param)
+         call self%pl%read_in(param)
+         call self%tp%read_in(param)
+      end if
+
+      return
+   end subroutine io_read_in_system
 
 
    function io_read_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, &

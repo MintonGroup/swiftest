@@ -167,16 +167,7 @@ contains
 
       associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
 
-         if ((param%in_type == REAL8_TYPE) .or. (param%in_type == REAL4_TYPE)) then
-            !
-         else if ((param%in_type == NETCDF_DOUBLE_TYPE) .or. (param%in_type == NETCDF_FLOAT_TYPE)) then
-            !
-         else
-            call cb%read_in(param)
-            call pl%read_in(param)
-            call tp%read_in(param)
-         end if
-
+         call system%read_in(param)
          call system%validate_ids(param)
          call system%set_msys()
          call pl%set_mu(cb) 
