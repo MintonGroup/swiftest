@@ -176,9 +176,7 @@ contains
 
             ! Record the discarded body metadata information to file
             if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-               call param%nciu%open(param) 
                call pl_discards%write_particle_info(param%nciu)
-               call param%nciu%close(param)
             end if
 
             if (param%discard_out == "") return

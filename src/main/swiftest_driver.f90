@@ -106,6 +106,8 @@ program swiftest_driver
       end do
    end associate
 
+   call nbody_system%finalize(param)
+
    call util_exit(SUCCESS)
 
    stop

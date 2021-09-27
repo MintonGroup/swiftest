@@ -19,14 +19,13 @@ contains
       return
    end subroutine check
 
-   module subroutine netcdf_close(self, param)
+   module subroutine netcdf_close(self)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Closes a NetCDF file
       implicit none
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
 
       call check( nf90_close(self%ncid) )
 
@@ -446,7 +445,7 @@ contains
       call self%cb%read_in(param)
       call self%pl%read_in(param)
       call self%tp%read_in(param)
-      call iu%close(param)
+      call iu%close()
 
       ierr = 0
       return
@@ -499,6 +498,21 @@ contains
 
       return
    end subroutine netcdf_read_hdr_system
+
+
+   module subroutine netcdf_sync(self)
+      !! author: David A. Minton
+      !!
+      !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+      !!    
+      implicit none
+      ! Arguments
+      class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
+
+      call check( nf90_sync(self%ncid) )
+
+      return
+   end subroutine netcdf_sync
 
    module subroutine netcdf_write_frame_base(self, iu, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -610,13 +624,10 @@ contains
       class(netcdf_parameters),   intent(inout)   :: iu    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
 
-      call iu%open(param)
-
       call self%write_hdr(iu, param)
       call self%cb%write_frame(iu, param)
       call self%pl%write_frame(iu, param)
       call self%tp%write_frame(iu, param)
-      call iu%close(param)
 
       return
    end subroutine netcdf_write_frame_system

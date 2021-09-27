@@ -7,10 +7,10 @@ PL_IN          pl.swiftest.in
 TP_IN          tp.swiftest.in
 IN_TYPE        REAL8
 ISTEP_OUT      1
-ISTEP_DUMP     1
-BIN_OUT        bin.swiftest.dat
-OUT_TYPE       REAL8
-OUT_FORM       XV
+ISTEP_DUMP     10
+BIN_OUT        bin.swiftest.nc
+OUT_TYPE       NETCDF_DOUBLE
+OUT_FORM       XVEL
 OUT_STAT       REPLACE
 RHILL_PRESENT  yes
 CHK_CLOSE      yes

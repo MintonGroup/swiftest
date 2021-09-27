@@ -126,6 +126,27 @@ contains
    end subroutine setup_encounter
 
 
+   module subroutine setup_finalize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Runs any finalization subroutines when ending the simulation.
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      integer(I4B)                                :: ierr
+
+      associate(system => self)
+         if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+            call param%nciu%close()
+         end if
+      end associate
+
+      return
+   end subroutine setup_finalize_system
+
+
    module subroutine setup_initialize_particle_info_system(self, param)
       !! author: David A. Minton
       !!

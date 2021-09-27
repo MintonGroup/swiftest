@@ -73,11 +73,11 @@ contains
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                call pl%xv2el(cb)
-               call param%nciu%open(param)
+               !call param%nciu%open(param)
                call self%write_hdr(param%nciu, param)
                call cb%write_frame(param%nciu, param)
                call pl%write_frame(param%nciu, param)
-               call param%nciu%close(param)
+               call param%nciu%close()
                call util_exit(FAILURE)
             end if
          end if
@@ -202,9 +202,7 @@ contains
          close(unit = LUN, err = 667, iomsg = errmsg)
       !else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
       if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         call param%nciu%open(param) 
          call self%write_particle_info(param%nciu)
-         call param%nciu%close(param)
       end if
 
       return
@@ -307,7 +305,9 @@ contains
          call self%cb%write_frame(dump_param%nciu, dump_param)
          call self%pl%write_frame(dump_param%nciu, dump_param)
          call self%tp%write_frame(dump_param%nciu, dump_param)
-         call dump_param%nciu%close(dump_param)
+         call dump_param%nciu%close()
+         ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+         call param%nciu%sync()
       end if
 
       idx = idx + 1
@@ -1856,9 +1856,7 @@ contains
 
          ! Record the discarded body metadata information to file
          if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-            call param%nciu%open(param) 
             call tp_discards%write_particle_info(param%nciu)
-            call param%nciu%close(param)
          end if
    
          if (param%discard_out == "") return
@@ -2176,7 +2174,7 @@ contains
 
             lfirst = .false.
          else
-            call param%nciu%open(param)
+            !call param%nciu%open(param)
          end if
       end if
 
@@ -2202,7 +2200,6 @@ contains
          call cb%write_frame(param%nciu, param)
          call pl%write_frame(param%nciu, param)
          call tp%write_frame(param%nciu, param)
-         call param%nciu%close(param)
       end if
 
       return

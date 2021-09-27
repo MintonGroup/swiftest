@@ -79,6 +79,7 @@ module swiftest_classes
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => netcdf_open              !! Opens a NetCDF file
+      procedure :: sync       => netcdf_sync              !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
    !********************************************************************************************************************************
@@ -432,6 +433,7 @@ module swiftest_classes
       procedure :: read_particle_info      => io_read_particle_info_system           !! Read in particle metadata from file
       procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
       procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
@@ -998,10 +1000,9 @@ module swiftest_classes
          real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
       end subroutine kick_getacch_int_one_tp
 
-      module subroutine netcdf_close(self, param)
+      module subroutine netcdf_close(self)
          implicit none
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine netcdf_close
 
       module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
@@ -1022,6 +1023,11 @@ module swiftest_classes
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine netcdf_open
+
+      module subroutine netcdf_sync(self)
+         implicit none
+         class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
+      end subroutine netcdf_sync
 
       module function netcdf_read_frame_base(self, iu, param) result(ierr)
          implicit none
@@ -1156,6 +1162,12 @@ module swiftest_classes
          class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
          integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine setup_encounter
+
+      module subroutine setup_finalize_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      end subroutine setup_finalize_system
 
       module subroutine setup_initialize_particle_info_system(self, param)
          implicit none
