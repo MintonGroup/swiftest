@@ -19,19 +19,49 @@ contains
       return
    end subroutine check
 
-   module subroutine netcdf_close(self, param)
+   module subroutine netcdf_close(self)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Closes a NetCDF file
       implicit none
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
 
       call check( nf90_close(self%ncid) )
 
       return
    end subroutine netcdf_close
+
+   module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
+      !! author: David A. Minton
+      !!
+      !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(in)    :: self
+      class(swiftest_parameters),   intent(inout) :: param
+      ! Result
+      real(DP)                                    :: old_t_final
+      ! Internals
+      class(swiftest_nbody_system), allocatable :: tmpsys
+      class(swiftest_parameters),   allocatable :: tmpparam
+      Integer(I4B)                              :: ierr
+
+      old_t_final = 0.0_DP
+      allocate(tmpsys, source=self)
+      allocate(tmpparam, source=param)
+      ierr = 0
+      do 
+         ierr = tmpsys%read_frame(param%nciu, tmpparam)
+      end do
+
+      if (is_iostat_end(ierr)) then
+         old_t_final = tmpparam%t
+         return
+      end if
+
+   end function netcdf_get_old_t_final_system
 
 
    module subroutine netcdf_initialize_output(self, param)
@@ -44,15 +74,22 @@ contains
       class(netcdf_parameters),   intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param           !! Current run configuration parameters 
       ! Internals
-      logical :: fileExists
-      integer(I4B) :: old_mode, nvar, varid, vartype
+      integer(I4B) :: old_mode, nvar, varid, vartype, old_unit
       real(DP) :: dfill
       real(SP) :: sfill
+      logical :: fileExists
+      character(len=STRMAX) :: errmsg
 
       dfill = ieee_value(dfill, IEEE_QUIET_NAN)
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
-      !! Create the new output file, deleting any previously existing output file of the same name
+      ! Check if the file exists, and if it does, delete it
+      inquire(file=param%outfile, exist=fileExists)
+      if (fileExists) then
+         open(unit=LUN, file=param%outfile, status="old", err=667, iomsg=errmsg)
+         close(unit=LUN, status="delete")
+      end if
+
       call check( nf90_create(param%outfile, NF90_NETCDF4, self%ncid) )
 
       ! Define the NetCDF dimensions with particle name as the record dimension
@@ -159,7 +196,14 @@ contains
          end select
       end do
 
+      ! Take the file out of define mode
+      call check( nf90_enddef(self%ncid) )
+
       return
+
+      667 continue
+      write(*,*) "Error creating NetCDF output file. " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
    end subroutine netcdf_initialize_output
 
 
@@ -255,6 +299,220 @@ contains
       return
    end subroutine netcdf_open
 
+
+   module function netcdf_read_frame_base(self, iu, param) result(ierr)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Read a frame of output of either test particle or massive body data from the binary output file
+      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      implicit none
+      ! Arguments
+      class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
+      class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      ! Internals
+      integer(I4B)                              :: i, j, tslot, strlen, idslot, idmax, n
+      integer(I4B), dimension(:), allocatable   :: ind
+      character(len=:), allocatable             :: charstring
+      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
+      real(DP), dimension(:), allocatable       :: real_temp
+      logical, dimension(:), allocatable        :: validmask, tpmask
+
+      tslot = int(param%ioutput, kind=I4B) + 1
+
+      select type(self)
+         class is (swiftest_body)
+            if (self%nbody == 0) return
+            call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax) )
+            allocate(ind(idmax))
+            allocate(real_temp(idmax))
+            allocate(validmask(idmax))
+            allocate(tpmask(idmax))
+            ind(:) = [(i, i = 1, idmax)]
+
+            ! First filter out only the id slots that contain valid bodies
+            if (param%in_form == XV) then
+               call check( nf90_get_var(iu%ncid, iu%xhx_varid, real_temp(:)) )
+            else
+               call check( nf90_get_var(iu%ncid, iu%a_varid, real_temp(:)) )
+            end if
+            validmask(:) = real_temp(:) == real_temp(:)
+
+            ! Filter out the central body, which is always in id dimension array position 1
+            validmask(1) = .false.
+
+            ! Next, filter only bodies that don't have mass (test particles)
+            call check( nf90_get_var(iu%ncid, iu%Gmass_varid, real_temp(:)) )
+            tpmask(:) = real_temp(:) /= real_temp(:)
+
+            select type(self)
+            class is (swiftest_pl)
+               ind(:) = pack(ind(:), (.not.tpmask(:) .and. validmask(:)))
+               n = count(.not.tpmask(:))
+            class is (swiftest_tp)
+               ind(:) = pack(ind(:), (tpmask(:) .and. validmask(:)))
+               n = count(tpmask(:))
+            end select
+
+            do i = j, n
+               idslot = ind(j)
+   
+               if (param%in_form == XV) then
+                  call check( nf90_get_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
+               else if (param%in_form == EL) then
+                  call check( nf90_get_var(iu%ncid, iu%a_varid,     self%a(j),     start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%e_varid,     self%e(j),     start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%inc_varid,   self%inc(j),   start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%capom_varid, self%capom(j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%omega_varid, self%omega(j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%capm_varid,  self%capm(j),  start=[idslot, tslot]) ) 
+               end if
+   
+               select type(self)  
+               class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
+                  call check( nf90_get_var(iu%ncid, iu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]) )
+                  if (param%lrhill_present) then 
+                     call check( nf90_get_var(iu%ncid, iu%rhill_varid, self%rhill(j), start=[idslot, tslot]) )
+                  end if
+                  if (param%lclose) then
+                     call check( nf90_get_var(iu%ncid, iu%radius_varid, self%radius(j), start=[idslot, tslot]) )
+                  end if
+                  if (param%lrotation) then
+                     call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  self%Ip(1, j),  start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  self%Ip(2, j),  start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  self%Ip(3, j),  start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%rotx_varid, self%rot(1, j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%roty_varid, self%rot(2, j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%rotz_varid, self%rot(3, j), start=[idslot, tslot]) )
+                  end if
+                  if (param%ltides) then
+                     call check( nf90_get_var(iu%ncid, iu%k2_varid, self%k2(j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%Q_varid,  self%Q(j),  start=[idslot, tslot]) )
+                  end if
+   
+               end select
+            end do
+
+         class is (swiftest_cb)
+
+            idslot = 1
+            call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
+
+            call check( nf90_get_var(iu%ncid, iu%Gmass_varid,  self%Gmass,  start=[idslot, tslot]) )
+            call check( nf90_get_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
+            if (param%lrotation) then
+               call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  self%Ip(1),  start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  self%Ip(2),  start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  self%Ip(3),  start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%roty_varid, self%rot(2), start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[idslot, tslot]) )
+            end if
+            if (param%ltides) then
+               call check( nf90_get_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]) )
+               call check( nf90_get_var(iu%ncid, iu%Q_varid,  self%Q,  start=[idslot, tslot]) )
+            end if
+
+
+         end select
+
+         !call self%read_particle_info(iu) ! THIS NEEDS TO BE IMPLEMENTED
+
+      return
+
+   end function netcdf_read_frame_base
+
+
+   module function netcdf_read_frame_system(self, iu, param) result(ierr)
+      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+      !!
+      !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+      class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
+
+      call iu%open(param)
+
+      call self%read_hdr(iu, param)
+      call self%cb%read_in(param)
+      call self%pl%read_in(param)
+      call self%tp%read_in(param)
+      call iu%close()
+
+      ierr = 0
+      return
+
+      667 continue
+      write(*,*) "Error reading system frame in netcdf_read_frame_system"
+
+   end function netcdf_read_frame_system
+
+   module subroutine netcdf_read_hdr_system(self, iu, param) 
+      !! author: David A. Minton
+      !!
+      !! Reads header information (variables that change with time, but not particle id). 
+      !! This subroutine significantly improves the output over the original binary file, allowing us to track energy, momentum, and other quantities that 
+      !! previously were handled as separate output files.
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+      class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      integer(I4B) :: tslot, old_mode
+
+      tslot = int(param%ioutput, kind=I4B) + 1
+
+      call check( nf90_open(param%outfile, nf90_nowrite, iu%ncid) )
+      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
+
+      call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]) )
+      call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]) )
+      call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]) )
+
+      if (param%lenergy) then
+         call check( nf90_get_var(iu%ncid, iu%KE_orb_varid,      self%ke_orbit,     start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%KE_spin_varid,     self%ke_spin,      start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%PE_varid,          self%pe,           start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_orbx_varid,      self%Lorbit(1),    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_orby_varid,      self%Lorbit(2),    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_orbz_varid,      self%Lorbit(3),    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_spinx_varid,     self%Lspin(1),     start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_spiny_varid,     self%Lspin(2),     start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_spinz_varid,     self%Lspin(3),     start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_escapex_varid,   param%Lescape(1),  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_escapey_varid,   param%Lescape(2),  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_escapez_varid,   param%Lescape(3),  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%Ecollisions_varid, param%Ecollisions, start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%Euntracked_varid,  param%Euntracked,  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%GMescape_varid,    param%GMescape,    start=[tslot]) )
+      end if
+
+      return
+   end subroutine netcdf_read_hdr_system
+
+
+   module subroutine netcdf_sync(self)
+      !! author: David A. Minton
+      !!
+      !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+      !!    
+      implicit none
+      ! Arguments
+      class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
+
+      call check( nf90_sync(self%ncid) )
+
+      return
+   end subroutine netcdf_sync
 
    module subroutine netcdf_write_frame_base(self, iu, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -356,7 +614,24 @@ contains
       return
    end subroutine netcdf_write_frame_base
 
-   
+   module subroutine netcdf_write_frame_system(self, iu, param)
+      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+      !!
+      !! Write a frame (header plus records for each massive body and active test particle) to a output binary file
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+      class(netcdf_parameters),   intent(inout)   :: iu    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+
+      call self%write_hdr(iu, param)
+      call self%cb%write_frame(iu, param)
+      call self%pl%write_frame(iu, param)
+      call self%tp%write_frame(iu, param)
+
+      return
+   end subroutine netcdf_write_frame_system
+
    module subroutine netcdf_write_particle_info_base(self, iu)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!

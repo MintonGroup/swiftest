@@ -7,7 +7,7 @@ PL_IN          pl.swiftest.in
 TP_IN          tp.swiftest.in
 IN_TYPE        REAL8
 ISTEP_OUT      1
-ISTEP_DUMP     1
+ISTEP_DUMP     10
 BIN_OUT        bin.swiftest.nc
 OUT_TYPE       NETCDF_DOUBLE
 OUT_FORM       XVEL
