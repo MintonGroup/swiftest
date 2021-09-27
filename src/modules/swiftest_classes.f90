@@ -612,13 +612,13 @@ module swiftest_classes
          integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
       end subroutine encounter_check_all_triangular_pltp
 
-      module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, dt, renc, lencounter, lvdotr)
+      module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
          !$omp declare simd(encounter_check_one)
          implicit none
          real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
          real(DP), intent(in)  :: vxr, vyr, vzr !! Relative velocity vector components
-         real(DP), intent(in)  :: dt            !! Step size
          real(DP), intent(in)  :: renc          !! Critical encounter distance
+         real(DP), intent(in)  :: dt            !! Step size
          logical,  intent(out) :: lencounter    !! Flag indicating that an encounter has occurred
          logical,  intent(out) :: lvdotr        !! Logical flag indicating the direction of the v .dot. r vector
       end subroutine encounter_check_one
