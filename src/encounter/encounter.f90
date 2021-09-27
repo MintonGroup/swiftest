@@ -158,7 +158,7 @@ contains
       !$omp shared(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lenc, ind_arr) &
       !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, lencounteri, lvdotri)
       do i = 1, npl
-         do concurrent(j = 1:npl)
+         do concurrent(j = 1:ntp)
             xr = xtp(1, j) - xpl(1, i)
             yr = xtp(2, j) - xpl(2, i)
             zr = xtp(3, j) - xpl(3, i)
