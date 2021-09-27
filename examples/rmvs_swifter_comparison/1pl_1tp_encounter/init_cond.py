@@ -18,7 +18,7 @@ swiftest_input = "param.swiftest.in"
 swiftest_pl    = "pl.swiftest.in"
 swiftest_tp    = "tp.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
-swiftest_bin   = "bin.swiftest.dat"
+swiftest_bin   = "bin.swiftest.nc"
 swiftest_enc   = "enc.swiftest.dat"
 
 MU2KG = swiftest.MSun
@@ -39,8 +39,8 @@ rmin = swiftest.RSun / swiftest.AU2M
 rmax = 1000.0
 
 npl = 1
-plid = 2
-tpid = 100
+plid = 1
+tpid = 2
 
 radius = np.double(4.25875607065041e-05)
 Gmass = np.double(0.00012002693582795244940133) 
@@ -60,7 +60,7 @@ rhill = np.double(apl * 0.0100447248332378922085)
 #Make Swifter files
 plfile = open(swifter_pl, 'w')
 print(npl+1, f'! Planet input file generated using init_cond.py',file=plfile)
-print(1,GMSun,file=plfile)
+print(0,GMSun,file=plfile)
 print('0.0 0.0 0.0',file=plfile)
 print('0.0 0.0 0.0',file=plfile)
 print(plid,"{:.23g}".format(Gmass),rhill, file=plfile)
@@ -106,9 +106,19 @@ print(f'RHILL_PRESENT  yes')
 sys.stdout = sys.__stdout__
 
 #Now make Swiftest files
+NAMELEN = 32
+cbname = "Sun"
+plname = "Planet"
+tpname = "TestParticle"
+
+cbname = cbname.ljust(NAMELEN)
+plname = plname.ljust(NAMELEN)
+tpname = tpname.ljust(NAMELEN)
+
 cbfile = FortranFile(swiftest_cb, 'w')
 Msun = np.double(1.0)
 cbfile.write_record(0)
+cbfile.write_record(cbname)
 cbfile.write_record(np.double(GMSun))
 cbfile.write_record(np.double(rmin))
 cbfile.write_record(np.double(swiftest.J2Sun))
@@ -119,6 +129,7 @@ plfile = FortranFile(swiftest_pl, 'w')
 plfile.write_record(npl)
 
 plfile.write_record(plid)
+plfile.write_record(plname)
 plfile.write_record(p_pl[0])
 plfile.write_record(p_pl[1])
 plfile.write_record(p_pl[2])
@@ -133,6 +144,7 @@ tpfile = FortranFile(swiftest_tp, 'w')
 ntp = 1
 tpfile.write_record(ntp)
 tpfile.write_record(tpid)
+tpfile.write_record(tpname)
 tpfile.write_record(p_tp[0])
 tpfile.write_record(p_tp[1])
 tpfile.write_record(p_tp[2])
@@ -154,8 +166,8 @@ print(f'IN_TYPE        REAL8')
 print(f'ISTEP_OUT      {iout:d}')
 print(f'ISTEP_DUMP     {iout:d}')
 print(f'BIN_OUT        {swiftest_bin}')
-print(f'OUT_TYPE       REAL8')
-print(f'OUT_FORM       XV')
+print(f'OUT_TYPE       NETCDF_DOUBLE')
+print(f'OUT_FORM       XVEL')
 print(f'OUT_STAT       REPLACE')
 print(f'RHILL_PRESENT  yes')
 print(f'CHK_CLOSE      yes')

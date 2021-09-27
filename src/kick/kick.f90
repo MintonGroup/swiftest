@@ -19,15 +19,18 @@ contains
       character(len=STRMAX) :: tstr, nstr, cstr, mstr, lstyle
       character(len=1) :: schar
 
-
       if (param%ladaptive_interactions) then
-         if (lfirst) then
-            write(itimer%loopname, *) "kick_getacch_int_pl"
-            write(itimer%looptype, *) "INTERACTION"
-            call itimer%time_this_loop(param, self, self%nplpl)
-            lfirst = .false.
+         if (self%nplpl > 0) then
+            if (lfirst) then
+               write(itimer%loopname, *) "kick_getacch_int_pl"
+               write(itimer%looptype, *) "INTERACTION"
+               call itimer%time_this_loop(param, self, self%nplpl)
+               lfirst = .false.
+            else
+               if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self, self%nplpl)
+            end if
          else
-            if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self, self%nplpl)
+            param%lflatten_interactions = .false.
          end if
       end if
 
@@ -37,7 +40,7 @@ contains
          call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, self%radius, self%ah)
       end if
 
-      if (param%ladaptive_interactions) then 
+      if (param%ladaptive_interactions .and. self%nplpl > 0) then 
          if (itimer%is_on) call itimer%adapt(param, self, self%nplpl)
       end if
 
