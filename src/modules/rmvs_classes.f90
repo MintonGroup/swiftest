@@ -103,17 +103,6 @@ module rmvs_classes
    end type rmvs_pl
 
    interface
-      module pure subroutine rmvs_chk_ind(xr, yr, zr, vxr, vyr, vzr, dt, r2crit, lencounter, lvdotr)
-         !$omp declare simd(rmvs_chk_ind)
-         implicit none
-         real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
-         real(DP), intent(in)  :: vxr, vyr, vzr !! Relative velocity vector components
-         real(DP), intent(in)  :: dt            !! Step size
-         real(DP), intent(in)  :: r2crit        !! Square of the critical encounter distance
-         logical,  intent(out) :: lencounter    !! Flag indicating that an encounter has occurred
-         logical,  intent(out) :: lvdotr        !! Logical flag indicating the direction of the v .dot. r vector
-      end subroutine rmvs_chk_ind
-
       module subroutine rmvs_discard_tp(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none

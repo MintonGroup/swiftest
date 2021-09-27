@@ -197,6 +197,7 @@ contains
             call util_fill(keeps%mass, inserts%mass, lfill_list)
             call util_fill(keeps%Gmass, inserts%Gmass, lfill_list)
             call util_fill(keeps%rhill, inserts%rhill, lfill_list)
+            call util_fill(keeps%renc, inserts%renc, lfill_list)
             call util_fill(keeps%radius, inserts%radius, lfill_list)
             call util_fill(keeps%density, inserts%density, lfill_list)
             call util_fill(keeps%k2, inserts%k2, lfill_list)

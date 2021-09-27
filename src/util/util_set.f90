@@ -161,6 +161,42 @@ contains
    end subroutine util_set_particle_info
 
 
+   module subroutine util_set_renc_I4B(self, scale)
+      !! author: David A. Minton
+      !!
+      !! Sets the critical radius for encounter given an input scale factor
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      integer(I4B),       intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+
+      associate(pl => self, npl => self%nbody)
+         pl%renc(1:npl) = pl%rhill(1:npl) * scale
+      end associate
+
+      return
+   end subroutine util_set_renc_I4B
+
+
+   module subroutine util_set_renc_DP(self, scale)
+      !! author: David A. Minton
+      !!
+      !! Sets the critical radius for encounter given an input scale factor
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      real(DP),           intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+
+      associate(pl => self, npl => self%nbody)
+         pl%renc(1:npl) = pl%rhill(1:npl) * scale
+      end associate
+
+      return
+   end subroutine util_set_renc_DP
+
+
    module subroutine util_set_rhill(self,cb)
       !! author: David A. Minton
       !!

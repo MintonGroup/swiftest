@@ -361,6 +361,7 @@ contains
       call util_resize(self%mass, nnew)
       call util_resize(self%Gmass, nnew)
       call util_resize(self%rhill, nnew)
+      call util_resize(self%renc, nnew)
       call util_resize(self%radius, nnew)
       call util_resize(self%xbeg, nnew)
       call util_resize(self%xend, nnew)
