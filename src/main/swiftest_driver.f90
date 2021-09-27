@@ -88,9 +88,7 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
-               call timer%finish(nsubsteps=istep_out, message="Integration steps:", param=param)
                if (t > old_t_final) call nbody_system%write_frame(param)
-               call timer%finish(nsubsteps=1,         message="File I/O:         ", param=param)
                iout = istep_out
             end if
          end if
@@ -99,14 +97,13 @@ program swiftest_driver
          if (istep_dump > 0) then
             idump = idump - 1
             if (idump == 0) then
+               call timer%finish(nsubsteps=istep_dump, message="Integration steps:", param=param)
                call nbody_system%dump(param)
                idump = istep_dump
             end if
          end if
       end do
    end associate
-
-   call nbody_system%finalize(param)
 
    call util_exit(SUCCESS)
 

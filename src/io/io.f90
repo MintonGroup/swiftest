@@ -73,7 +73,6 @@ contains
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                call pl%xv2el(cb)
-               !call param%nciu%open(param)
                call self%write_hdr(param%nciu, param)
                call cb%write_frame(param%nciu, param)
                call pl%write_frame(param%nciu, param)

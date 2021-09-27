@@ -15,7 +15,7 @@ contains
       ! Internals
       character(len=*), parameter     :: walltimefmt = '" Wall time (s): ", es12.5, "; Wall time/step in this interval (s):  ", es12.5'
       character(len=STRMAX)           :: fmt
-      integer(I8B)                    :: count_delta_step, count_delta_main
+      integer(I8B)                    :: count_delta_step, count_delta_main, count_finish_step
       real(DP)                        :: wall_main         !! Value of total elapsed time at the end of a timed step
       real(DP)                        :: wall_step         !! Value of elapsed time since the start of a timed step
       real(DP)                        :: wall_per_substep  !! Value of time per substep 
@@ -25,13 +25,13 @@ contains
          return
       end if
 
-      call system_clock(self%count_finish_step)
+      call self%stop(param)
+      count_finish_step = self%count_stop_step
 
-      count_delta_step = self%count_finish_step - self%count_start_step
-      count_delta_main = self%count_finish_step - self%count_start_main
-      wall_step = count_delta_step / (self%count_rate * 1.0_DP)
+      count_delta_step = count_finish_step - self%count_start_step
+      count_delta_main = count_finish_step - self%count_start_main
       wall_main = count_delta_main / (self%count_rate * 1.0_DP)
-      wall_per_substep = wall_step / nsubsteps
+      wall_per_substep = self%wall_step / nsubsteps
 
       fmt = '("' //  adjustl(message) // '",' // walltimefmt // ')'
       write(*,trim(adjustl(fmt))) wall_main, wall_per_substep
@@ -79,6 +79,31 @@ contains
    end subroutine walltime_start
 
 
+   module subroutine walltime_stop(self, param)
+      !! author: David A. Minton
+      !!
+      !! Starts the timer, setting step_start to the current ticker value
+      implicit none
+      ! Arguments
+      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      integer(I8B) :: count_delta
+
+      if (.not.self%lmain_is_started) then
+         write(*,*) "Wall timer error: Cannot start the step time until reset is called at least once!"
+         return
+      end if
+
+      call system_clock(self%count_stop_step)
+
+      count_delta = self%count_stop_step - self%count_start_step
+      self%wall_step = count_delta / (self%count_rate * 1.0_DP)
+
+      return 
+   end subroutine walltime_stop
+
+
    module subroutine walltime_interaction_adapt(self, param, pl, ninteractions)
       !! author: David A. Minton
       !!
@@ -96,7 +121,7 @@ contains
       logical :: lflatten_final
 
       ! Record the elapsed time 
-      call system_clock(self%count_finish_step)
+      call self%stop(param)
 
       write(schar,'(I1)') self%stage
       write(nstr,*) ninteractions
@@ -108,7 +133,7 @@ contains
          else
             write(lstyle,*) "TRIANGULAR"
          end if 
-         self%stage1_metric = (self%count_finish_step - self%count_start_step) / real(ninteractions, kind=DP)
+         self%stage1_metric = (self%count_stop_step - self%count_start_step) / real(ninteractions, kind=DP)
          write(mstr,*) self%stage1_metric
       case(2)
          if (.not.self%stage1_is_flattened) then
@@ -117,7 +142,7 @@ contains
             write(lstyle,*) "TRIANGULAR"
          end if 
 
-         self%stage2_metric = (self%count_finish_step - self%count_start_step) / real(ninteractions, kind=DP)
+         self%stage2_metric = (self%count_stop_step - self%count_start_step) / real(ninteractions, kind=DP)
          self%is_on = .false.
          self%step_counter = 0
          if (self%stage1_metric < self%stage2_metric) then
@@ -129,7 +154,7 @@ contains
          write(mstr,*) self%stage2_metric
       end select
 
-      write(cstr,*) self%count_finish_step - self%count_start_step
+      write(cstr,*) self%count_stop_step - self%count_start_step
 
       call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
 

@@ -17,7 +17,7 @@ swifter_enc    = "enc.swifter.dat"
 swiftest_input = "param.swiftest.in"
 swiftest_pl    = "pl.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
-swiftest_bin   = "bin.swiftest.dat"
+swiftest_bin   = "bin.swiftest.nc"
 swiftest_enc   = "enc.swiftest.dat"
 swiftest_disc  = "discard.swiftest.out"
 
@@ -27,14 +27,13 @@ sim.param['T0'] = 0.0
 sim.param['DT'] = 1.0 
 sim.param['TSTOP'] = 365.25e2
 sim.param['ISTEP_OUT']  = 10
-sim.param['ISTEP_DUMP'] = 10
 sim.param['CHK_QMIN_COORD'] = "HELIO"
 sim.param['CHK_QMIN'] = swiftest.RSun / swiftest.AU2M
 sim.param['CHK_QMIN_RANGE'] = f"{swiftest.RSun / swiftest.AU2M} 1000.0"
 sim.param['CHK_RMIN'] = swiftest.RSun / swiftest.AU2M
 sim.param['CHK_RMAX'] = 1000.0
 sim.param['CHK_EJECT'] = 1000.0
-sim.param['OUT_FORM'] = "XV"
+sim.param['IN_FORM'] = "XV"
 sim.param['OUT_STAT'] = "UNKNOWN"
 sim.param['GR'] = 'NO'
 sim.param['CHK_CLOSE'] = 'YES'
@@ -68,10 +67,11 @@ ntp = 16
 dims = ['time', 'id', 'vec']
 tp = []
 t = np.array([0.0])
+sim.param['OUT_FORM'] = "XV"
 clab, plab, tlab = swio.make_swiftest_labels(sim.param)
 
 # For each planet, we will initialize a pair of test particles. One on its way in, and one on its way out. We will also initialize two additional particles that don't encounter anything
-tpnames = np.arange(101, 101 + ntp)
+tpnames = np.arange(npl + 1, npl + 1 + ntp)
 tpxv1 = np.empty((6))
 tpxv2 = np.empty((6))
 
@@ -120,6 +120,7 @@ tpds = tpda.to_dataset(dim = 'vec')
 sim.ds = xr.combine_by_coords([sim.ds, tpds])
 swio.swiftest_xr2infile(sim.ds, sim.param)
 
+sim.param['ISTEP_DUMP'] = 1000
 sim.param['PL_IN'] = swiftest_pl
 sim.param['TP_IN'] = tpin
 sim.param['CB_IN'] = swiftest_cb
@@ -128,6 +129,7 @@ sim.param['ENC_OUT'] = swiftest_enc
 sim.param['DISCARD_OUT'] = swiftest_disc
 sim.save(swiftest_input)
 
+sim.param['ISTEP_DUMP'] = 10
 sim.param['PL_IN'] = swifter_pl
 sim.param['TP_IN'] = tpin
 sim.param['BIN_OUT'] = swifter_bin
