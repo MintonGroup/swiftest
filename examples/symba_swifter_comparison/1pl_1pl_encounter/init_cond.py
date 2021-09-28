@@ -18,7 +18,7 @@ swiftest_input = "param.swiftest.in"
 swiftest_pl    = "pl.swiftest.in"
 swiftest_tp    = "tp.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
-swiftest_bin   = "bin.swiftest.dat"
+swiftest_bin   = "bin.swiftest.nc"
 swiftest_enc   = "enc.swiftest.dat"
 
 MU2KG = swiftest.MSun
@@ -40,8 +40,8 @@ rmax = 1000.0
 
 npl = 2
 ntp = 0
-plid1 = 2
-plid2 = 100
+plid1 = 1
+plid2 = 2
 
 radius1 = np.double(4.25875607065041e-05)
 mass1 = np.double(0.00012002693582795244940133) 
@@ -66,7 +66,7 @@ rhill2 = rhill1 * (mass2 / mass1)**(1.0 / 3.0)
 plfile = open(swifter_pl, 'w')
 print(npl+1, f'! Planet input file generated using init_cond.py',file=plfile)
 
-print(1,GMSun,file=plfile)
+print(0,GMSun,file=plfile)
 print('0.0 0.0 0.0',file=plfile)
 print('0.0 0.0 0.0',file=plfile)
 
@@ -118,9 +118,21 @@ print(f'RHILL_PRESENT  yes')
 sys.stdout = sys.__stdout__
 
 #Now make Swiftest files
+
+#Now make Swiftest files
+NAMELEN = 32
+cbname = "Sun"
+pl1name = "BigPlanet"
+pl2name = "SmallPlanet"
+
+cbname = cbname.ljust(NAMELEN)
+pl1name = pl1name.ljust(NAMELEN)
+pl2name = pl2name.ljust(NAMELEN)
 cbfile = FortranFile(swiftest_cb, 'w')
+
 Msun = np.double(1.0)
 cbfile.write_record(0)
+cbfile.write_record(cbname)
 cbfile.write_record(np.double(GMSun))
 cbfile.write_record(np.double(rmin))
 #cbfile.write_record(np.double(swiftest.J2Sun))
@@ -132,6 +144,7 @@ cbfile.close()
 plfile = FortranFile(swiftest_pl, 'w')
 plfile.write_record(npl)
 plfile.write_record(np.array([plid1, plid2], dtype=np.int32))
+plfile.write_record(np.array([pl1name, pl2name]))
 plfile.write_record(np.vstack([p_pl1[0],p_pl2[0]]))
 plfile.write_record(np.vstack([p_pl1[1],p_pl2[1]]))
 plfile.write_record(np.vstack([p_pl1[2],p_pl2[2]]))
@@ -157,9 +170,9 @@ print(f'PL_IN          {swiftest_pl}')
 print(f'TP_IN          {swiftest_tp}')
 print(f'IN_TYPE        REAL8')
 print(f'ISTEP_OUT      {iout:d}')
-print(f'ISTEP_DUMP     {iout:d}')
+print(f'ISTEP_DUMP     {100*iout:d}')
 print(f'BIN_OUT        {swiftest_bin}')
-print(f'OUT_TYPE       REAL8')
+print(f'OUT_TYPE       NETCDF_DOUBLE')
 print(f'OUT_FORM       XV')
 print(f'OUT_STAT       REPLACE')
 print(f'CHK_CLOSE      yes')
