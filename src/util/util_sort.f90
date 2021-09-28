@@ -25,24 +25,23 @@ contains
       end if
 
       associate(body => self, n => self%nbody)
-         allocate(ind(n))
          select case(sortby)
          case("id")
-            call util_sort(direction * body%id(1:n), ind(1:n))
+            call util_sort(direction * body%id(1:n), ind)
          case("status")
-            call util_sort(direction * body%status(1:n), ind(1:n))
+            call util_sort(direction * body%status(1:n), ind)
          case("ir3h")
-            call util_sort(direction * body%ir3h(1:n), ind(1:n))
+            call util_sort(direction * body%ir3h(1:n), ind)
          case("a")
-            call util_sort(direction * body%a(1:n), ind(1:n))
+            call util_sort(direction * body%a(1:n), ind)
          case("e")
-            call util_sort(direction * body%e(1:n), ind(1:n))
+            call util_sort(direction * body%e(1:n), ind)
          case("inc")
-            call util_sort(direction * body%inc(1:n), ind(1:n))
+            call util_sort(direction * body%inc(1:n), ind)
          case("capom")
-            call util_sort(direction * body%capom(1:n), ind(1:n))
+            call util_sort(direction * body%capom(1:n), ind)
          case("mu")
-            call util_sort(direction * body%mu(1:n), ind(1:n))
+            call util_sort(direction * body%mu(1:n), ind)
          case("lfirst", "nbody", "ldiscard", "xh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
@@ -89,18 +88,23 @@ contains
       !! author: David A. Minton
       !!
       !! Sort input double precision array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
+      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+      !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
       real(DP), dimension(:), intent(in)  :: arr
-      integer(I4B), dimension(:), intent(out) :: ind
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
       real(DP) :: tmp
       integer(I4B) :: n, i, j
 
       n = size(arr)
-      ind = [(i, i=1, n)]
+      if (.not.allocated(ind)) then
+         allocate(ind(n))
+         ind = [(i, i=1, n)]
+      end if
       do i = 2, n
          tmp = arr(ind(i))
          do j = i - 1, 1, -1
@@ -145,18 +149,23 @@ contains
       !! author: David A. Minton
       !!
       !! Sort input integer array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
+      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+      !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
       integer(I4B), dimension(:), intent(in)  :: arr
-      integer(I4B), dimension(:), intent(out) :: ind
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
       integer(I4B) :: tmp
       integer(I4B) :: n, i, j
 
       n = size(arr)
-      ind = [(i, i=1, n)]
+      if (.not.allocated(ind)) then
+         allocate(ind(n))
+         ind = [(i, i=1, n)]
+      end if
       do i = 2, n
          tmp = arr(ind(i))
          do j = i - 1, 1, -1
@@ -201,18 +210,23 @@ contains
       !! author: David A. Minton
       !!
       !! Sort input single precision array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
+      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+      !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
       real(SP), dimension(:), intent(in)  :: arr
-      integer(I4B), dimension(:), intent(out) :: ind
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
       real(SP) :: tmp
       integer(I4B) :: n, i, j
 
       n = size(arr)
-      ind = [(i, i=1, n)]
+      if (.not.allocated(ind)) then
+         allocate(ind(n))
+         ind = [(i, i=1, n)]
+      end if
       do i = 2, n
          tmp = arr(ind(i))
          do j = i - 1, 1, -1
@@ -249,24 +263,23 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
-         allocate(ind(npl))
          select case(sortby)
          case("Gmass","mass")
-            call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
+            call util_sort(direction * pl%Gmass(1:npl), ind)
          case("rhill")
-            call util_sort(direction * pl%rhill(1:npl), ind(1:npl))
+            call util_sort(direction * pl%rhill(1:npl), ind)
          case("renc")
-            call util_sort(direction * pl%renc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%renc(1:npl), ind)
          case("radius")
-            call util_sort(direction * pl%radius(1:npl), ind(1:npl))
+            call util_sort(direction * pl%radius(1:npl), ind)
          case("density")
-            call util_sort(direction * pl%density(1:npl), ind(1:npl))
+            call util_sort(direction * pl%density(1:npl), ind)
          case("k2")
-            call util_sort(direction * pl%k2(1:npl), ind(1:npl))
+            call util_sort(direction * pl%k2(1:npl), ind)
          case("Q")
-            call util_sort(direction * pl%Q(1:npl), ind(1:npl))
+            call util_sort(direction * pl%Q(1:npl), ind)
          case("tlag")
-            call util_sort(direction * pl%tlag(1:npl), ind(1:npl))
+            call util_sort(direction * pl%tlag(1:npl), ind)
          case("xbeg", "xend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -305,12 +318,11 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
-         allocate(ind(ntp))
          select case(sortby)
          case("peri")
-            call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%peri(1:ntp), ind)
          case("atp")
-            call util_sort(direction * tp%atp(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%atp(1:ntp), ind)
          case("isperi")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -378,7 +390,7 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return
@@ -399,7 +411,7 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return
@@ -420,7 +432,7 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(:,1:n) = arr(:, ind(1:n))
+      tmp(:,1:n) = arr(:, ind)
       call move_alloc(tmp, arr)
 
       return
@@ -441,7 +453,7 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return
@@ -462,7 +474,7 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return

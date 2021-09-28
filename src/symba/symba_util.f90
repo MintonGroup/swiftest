@@ -717,20 +717,19 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
-         allocate(ind(npl))
          select case(sortby)
          case("nplenc")
-            call util_sort(direction * pl%nplenc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%nplenc(1:npl), ind)
          case("ntpenc")
-            call util_sort(direction * pl%ntpenc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%ntpenc(1:npl), ind)
          case("levelg")
-            call util_sort(direction * pl%levelg(1:npl), ind(1:npl))
+            call util_sort(direction * pl%levelg(1:npl), ind)
          case("levelm")
-            call util_sort(direction * pl%levelm(1:npl), ind(1:npl))
+            call util_sort(direction * pl%levelm(1:npl), ind)
          case("peri")
-            call util_sort(direction * pl%peri(1:npl), ind(1:npl))
+            call util_sort(direction * pl%peri(1:npl), ind)
          case("atp")
-            call util_sort(direction * pl%atp(1:npl), ind(1:npl))
+            call util_sort(direction * pl%atp(1:npl), ind)
          case("lcollision", "lencounter", "lmtiny", "nplm", "nplplm", "kin", "info")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -768,14 +767,13 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
-         allocate(ind(ntp))
          select case(sortby)
          case("nplenc")
-            call util_sort(direction * tp%nplenc(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%nplenc(1:ntp), ind)
          case("levelg")
-            call util_sort(direction * tp%levelg(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%levelg(1:ntp), ind)
          case("levelm")
-            call util_sort(direction * tp%levelm(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%levelm(1:ntp), ind)
          case default ! Look for components in the parent class
             call util_sort_tp(tp, sortby, ascending)
             return

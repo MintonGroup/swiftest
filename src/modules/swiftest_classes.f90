@@ -1732,7 +1732,7 @@ module swiftest_classes
       module subroutine util_sort_index_i4b(arr,ind)
          implicit none
          integer(I4B), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), intent(out) :: ind
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
       module subroutine util_sort_sp(arr)
@@ -1743,7 +1743,7 @@ module swiftest_classes
       module subroutine util_sort_index_sp(arr,ind)
          implicit none
          real(SP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), intent(out) :: ind
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_sp
 
       module subroutine util_sort_dp(arr)
@@ -1754,7 +1754,7 @@ module swiftest_classes
       module subroutine util_sort_index_dp(arr,ind)
          implicit none
          real(DP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), intent(out) :: ind
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_dp
    end interface util_sort
 

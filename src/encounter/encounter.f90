@@ -132,7 +132,7 @@ contains
       integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
-      real(DP),     dimension(:),              intent(in)  :: renc  !! Critical radii of massive bodies that defines an encounter 
+      real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
       real(DP),                                intent(in)  :: dt     !! Step size
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
@@ -149,8 +149,30 @@ contains
          integer(I4B) :: nenc
       end type
       type(lenctype), dimension(nplm) :: lenc
-  
-      ! ind_arr(:) = [(i, i = 1, npl)]
+      integer(I4B), dimension(:), allocatable, save :: xind, yind, tempind
+      integer(I4B), save :: npl_last = 0
+
+      ! If this is the first time through, build the index lists
+      if (npl > npl_last) then  ! The number of bodies has gtown. Resize and append the new bodies
+         allocate(tempind(npl))
+         tempind(1:npl_last) = xind(1:npl_last)
+         call move_alloc(tempind, xind)
+         allocate(tempind(npl))
+         tempind(1:npl_last) = yind(1:npl_last)
+         call move_alloc(tempind, yind)
+         xind(npl_last+1:npl) = [(i, i = npl_last+1, npl)]
+         yind(npl_last+1:npl) = [(i, i = npl_last+1, npl)]
+      else
+         allocate(tempind(npl))
+         tempind(1:npl) = pack(xind(1:npl_last), xind(1:npl_last) <= npl)
+         call move_alloc(tempind, xind)
+         allocate(tempind(npl))
+         tempind(1:npl) = pack(yind(1:npl_last), yind(1:npl_last) <= npl)
+         call move_alloc(tempind, xind)
+      end if
+      call util_sort(x(1,:), xind)
+      call util_sort(x(2,:), yind)
+      nenc = 0
       ! !$omp parallel do default(private) schedule(static)&
       ! !$omp shared(npl, nplm, x, v, renc, dt, lenc, ind_arr) &
       ! !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12, lencounteri, lvdotri)
