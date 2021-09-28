@@ -30,13 +30,17 @@ contains
       associate(pl => self, plplenc_list => system%plplenc_list)
 
          if (param%ladaptive_interactions) then
-            if (lfirst) then
-               write(itimer%loopname, *)  "symba_encounter_check_pl"
-               write(itimer%looptype, *)  "ENCOUNTERS"
-               call itimer%time_this_loop(param, pl, pl%nplplm)
-               lfirst = .false.
+            if (self%nplplm > 0) then
+               if (lfirst) then
+                  write(itimer%loopname, *)  "symba_encounter_check_pl"
+                  write(itimer%looptype, *)  "ENCOUNTERS"
+                  call itimer%time_this_loop(param, pl, pl%nplplm)
+                  lfirst = .false.
+               else
+                  if (itimer%check(param, pl%nplplm)) call itimer%time_this_loop(param, pl, pl%nplplm)
+               end if
             else
-               if (itimer%check(param, pl%nplplm)) call itimer%time_this_loop(param, pl, pl%nplplm)
+               param%lflatten_encounters = .false.
             end if
          end if
 
@@ -96,7 +100,7 @@ contains
             end do
          end if
 
-         if (param%ladaptive_interactions) then 
+         if (param%ladaptive_interactions .and. self%nplplm > 0) then 
             if (itimer%is_on) call itimer%adapt(param, pl, pl%nplplm)
          end if
 
@@ -174,7 +178,7 @@ contains
                   j = self%index2(k)
                   xr(:) = tp%xh(:,j) - pl%xh(:,i)
                   vr(:) = tp%vb(:,j) - pl%vb(:,i)
-                  call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%rhill(i), dt, lencounter(lidx), self%lvdotr(k))
+                  call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%renc(i), dt, lencounter(lidx), self%lvdotr(k))
                   if (lencounter(lidx)) then
                      rlim2 = (pl%radius(i))**2
                      rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
