@@ -421,7 +421,7 @@ contains
 
          end select
 
-         !call self%read_particle_info(iu) ! THIS NEEDS TO BE IMPLEMENTED
+         call self%read_particle_info(iu) ! THIS NEEDS TO BE IMPLEMENTED
 
       return
 
@@ -472,7 +472,7 @@ contains
       tslot = int(param%ioutput, kind=I4B) + 1
 
       call check( nf90_open(param%outfile, nf90_nowrite, iu%ncid) )
-      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
+      !call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
 
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]) )
@@ -499,6 +499,121 @@ contains
       return
    end subroutine netcdf_read_hdr_system
 
+   module subroutine netcdf_read_particle_info_base(self, iu)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Write all current particle to file
+      implicit none
+      ! Arguments
+      class(swiftest_base),       intent(inout) :: self   !! Swiftest particle object
+      class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      ! Internals
+      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
+      integer(I4B), dimension(:), allocatable   :: ind
+      character(len=:), allocatable             :: charstring
+      character(len=NAMELEN)                    :: emptystr, lenstr
+      character(len=:), allocatable :: fmtlabel
+
+      ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
+      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
+      write(lenstr, *) NAMELEN
+      fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
+      write(emptystr, fmtlabel) " "
+
+      select type(self)
+         class is (swiftest_body)
+         associate(n => self%nbody)
+            if (n == 0) return
+            allocate(ind(n))
+            call util_sort(self%id(1:n), ind)
+
+            do i = 1, n
+               j = ind(i)
+               idslot = self%id(j) + 1
+               call check( nf90_get_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
+
+               charstring = trim(adjustl(self%info(j)%name))
+               strlen = len(charstring)
+               call check( nf90_get_var(iu%ncid, iu%name_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+               charstring = trim(adjustl(self%info(j)%particle_type))
+               strlen = len(charstring)
+               call check( nf90_get_var(iu%ncid, iu%ptype_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+               charstring = trim(adjustl(self%info(j)%status))
+               strlen = len(charstring)
+               call check( nf90_get_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+               charstring = trim(adjustl(self%info(j)%origin_type))
+               strlen = len(charstring)
+               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+               call check( nf90_get_var(iu%ncid, iu%origin_time_varid, self%info(j)%origin_time, start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, self%info(j)%origin_xh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, self%info(j)%origin_xh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, self%info(j)%origin_xh(3), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, self%info(j)%origin_vh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, self%info(j)%origin_vh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, self%info(j)%origin_vh(3), start=[idslot]) )
+
+               call check( nf90_get_var(iu%ncid, iu%discard_time_varid, self%info(j)%discard_time, start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, self%info(j)%discard_xh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, self%info(j)%discard_xh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, self%info(j)%discard_xh(3), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, self%info(j)%discard_vh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, self%info(j)%discard_vh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info(j)%discard_vh(3), start=[idslot]) )
+            end do
+         end associate
+
+      class is (swiftest_cb)
+         idslot = self%id + 1
+         call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
+
+         charstring = trim(adjustl(self%info%name))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%name_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+         charstring = trim(adjustl(self%info%particle_type))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%ptype_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+         charstring = trim(adjustl(self%info%status))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+         charstring = trim(adjustl(self%info%origin_type))
+         strlen = len(charstring)
+         call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+
+         call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]) )
+
+         call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info%discard_time, start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info%discard_xh(1), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info%discard_xh(2), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info%discard_xh(3), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info%discard_vh(1), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info%discard_vh(2), start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
+      end select
+
+      call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
+      return
+   end subroutine netcdf_read_particle_info_base
 
    module subroutine netcdf_sync(self)
       !! author: David A. Minton

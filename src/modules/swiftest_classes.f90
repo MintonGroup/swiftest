@@ -205,6 +205,7 @@ module swiftest_classes
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: read_frame_netcdf          => netcdf_read_frame_base       !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
+      procedure :: read_particle_info         => netcdf_read_particle_info_base  !! Reads out the particle information metadata to NetCDF file
       generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
       generic   :: read_frame                 => read_frame_netcdf            !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
       generic   :: write_particle_info        => write_particle_info_netcdf
