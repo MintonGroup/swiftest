@@ -150,50 +150,49 @@ contains
       end type
       type(lenctype), dimension(nplm) :: lenc
   
-      !TODO: IMPLEMENT SWEEP AND PRUNE
-      ind_arr(:) = [(i, i = 1, npl)]
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(npl, nplm, x, v, renc, dt, lenc, ind_arr) &
-      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12, lencounteri, lvdotri)
-      do i = 1, nplm
-         do concurrent(j = i+1:npl)
-            xr = x(1, j) - x(1, i)
-            yr = x(2, j) - x(2, i)
-            zr = x(3, j) - x(3, i)
-            vxr = v(1, j) - v(1, i)
-            vyr = v(2, j) - v(2, i)
-            vzr = v(3, j) - v(3, i)
-            renc12 = renc(i) + renc(j)
-            call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lencounteri(j), lvdotri(j))
-         end do
-         nenci = count(lencounteri(i+1:npl))
-         if (nenci > 0) then
-            allocate(lenc(i)%lvdotr(nenci), lenc(i)%index2(nenci))
-            lenc(i)%nenc = nenci
-            lenc(i)%lvdotr(:) = pack(lvdotri(i+1:npl), lencounteri(i+1:npl)) 
-            lenc(i)%index2(:) = pack(ind_arr(i+1:npl), lencounteri(i+1:npl)) 
-         end if
-      end do
-      !$omp end parallel do
+      ! ind_arr(:) = [(i, i = 1, npl)]
+      ! !$omp parallel do default(private) schedule(static)&
+      ! !$omp shared(npl, nplm, x, v, renc, dt, lenc, ind_arr) &
+      ! !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12, lencounteri, lvdotri)
+      ! do i = 1, nplm
+      !    do concurrent(j = i+1:npl)
+      !       xr = x(1, j) - x(1, i)
+      !       yr = x(2, j) - x(2, i)
+      !       zr = x(3, j) - x(3, i)
+      !       vxr = v(1, j) - v(1, i)
+      !       vyr = v(2, j) - v(2, i)
+      !       vzr = v(3, j) - v(3, i)
+      !       renc12 = renc(i) + renc(j)
+      !       call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lencounteri(j), lvdotri(j))
+      !    end do
+      !    nenci = count(lencounteri(i+1:npl))
+      !    if (nenci > 0) then
+      !       allocate(lenc(i)%lvdotr(nenci), lenc(i)%index2(nenci))
+      !       lenc(i)%nenc = nenci
+      !       lenc(i)%lvdotr(:) = pack(lvdotri(i+1:npl), lencounteri(i+1:npl)) 
+      !       lenc(i)%index2(:) = pack(ind_arr(i+1:npl), lencounteri(i+1:npl)) 
+      !    end if
+      ! end do
+      ! !$omp end parallel do
 
-      associate(nenc_arr => lenc(:)%nenc)
-         nenc = sum(nenc_arr(1:nplm))
-      end associate
-      if (nenc > 0) then
-         allocate(lvdotr(nenc))
-         allocate(index1(nenc))
-         allocate(index2(nenc))
-         j0 = 1
-         do i = 1, nplm
-            if (lenc(i)%nenc > 0) then
-               j1 = j0 + lenc(i)%nenc - 1
-               lvdotr(j0:j1) = lenc(i)%lvdotr(:)
-               index1(j0:j1) = i
-               index2(j0:j1) = lenc(i)%index2(:)
-               j0 = j1 + 1
-            end if
-         end do
-      end if
+      ! associate(nenc_arr => lenc(:)%nenc)
+      !    nenc = sum(nenc_arr(1:nplm))
+      ! end associate
+      ! if (nenc > 0) then
+      !    allocate(lvdotr(nenc))
+      !    allocate(index1(nenc))
+      !    allocate(index2(nenc))
+      !    j0 = 1
+      !    do i = 1, nplm
+      !       if (lenc(i)%nenc > 0) then
+      !          j1 = j0 + lenc(i)%nenc - 1
+      !          lvdotr(j0:j1) = lenc(i)%lvdotr(:)
+      !          index1(j0:j1) = i
+      !          index2(j0:j1) = lenc(i)%index2(:)
+      !          j0 = j1 + 1
+      !       end if
+      !    end do
+      ! end if
 
       return
    end subroutine encounter_check_all_sweep_and_prune_plpl
