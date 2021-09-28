@@ -935,6 +935,9 @@ contains
  
                   frag%regime = COLLRESOLVE_REGIME_MERGE
                   frag%mtot = sum(colliders%mass(:))
+                  frag%mass_dist(1) = frag%mtot
+                  frag%mass_dist(2) = 0.0_DP
+                  frag%mass_dist(3) = 0.0_DP
                   frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
                   frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
                   plplcollision_list%status(i) = symba_collision_casemerge(system, param, colliders, frag)

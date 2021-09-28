@@ -31,7 +31,8 @@ contains
       !! author: David A. Minton
       !!
       !! Sets the mass of fragments based on the mass distribution returned by the regime calculation.
-      !! This subroutine must be run after the the setup rourtine has been run on the fragments
+      !! This subroutine must be run after the the setup routine has been run on the fragments
+      !!
       implicit none
       ! Arguments
       class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
@@ -61,19 +62,6 @@ contains
             jtarg = 2
             jproj = 1
          end if
-
-         select type(param)
-         class is (symba_parameters)
-            min_mfrag = (param%min_GMfrag / param%GU) 
-            ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
-            ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
-            ! code from getting an overwhelmingly large number of fragments
-            nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(frag%mtot / min_mfrag))
-            nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
-         class default
-            min_mfrag = 0.0_DP
-            nfrag = NFRAGMAX
-         end select
   
          select case(frag%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -81,6 +69,20 @@ contains
             ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
             ! the limits bracketed above and the model size distribution of fragments.
             ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
+
+            select type(param)
+            class is (symba_parameters)
+               min_mfrag = (param%min_GMfrag / param%GU) 
+               ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
+               ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
+               ! code from getting an overwhelmingly large number of fragments
+               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(frag%mtot / min_mfrag))
+               nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
+            class default
+               min_mfrag = 0.0_DP
+               nfrag = NFRAGMAX
+            end select
+
             i = iMrem
             mremaining = frag%mass_dist(iMrem)
             do while (i <= nfrag)
@@ -97,7 +99,7 @@ contains
             frag%mass(1) = frag%mass_dist(1)
             frag%radius(1) = colliders%radius(jtarg)
             frag%density(1) = frag%mass_dist(1) / volume(jtarg)
-            frag%Ip(:, 1) = colliders%Ip(:,1)
+            if (param%lrotation) frag%Ip(:, 1) = colliders%Ip(:,1)
             return
          case default
             write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",frag%regime
