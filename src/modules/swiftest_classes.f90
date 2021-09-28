@@ -314,6 +314,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: mass    !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: Gmass   !! Mass gravitational term G * mass (units GU * MU)
       real(DP),     dimension(:),   allocatable :: rhill   !! Body mass (units MU)
+      real(DP),     dimension(:),   allocatable :: renc    !! Critical radius for close encounters
       real(DP),     dimension(:),   allocatable :: radius  !! Body radius (units DU)
       real(DP),     dimension(:,:), allocatable :: xbeg    !! Position at beginning of step
       real(DP),     dimension(:,:), allocatable :: xend    !! Position at end of step
@@ -348,6 +349,9 @@ module swiftest_classes
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
       procedure :: set_mu       => util_set_mu_pl         !! Method used to construct the vectorized form of the central body mass
       procedure :: set_rhill    => util_set_rhill         !! Calculates the Hill's radii for each body
+      procedure :: set_renc_I4B => util_set_renc_I4B      !! Sets the critical radius for encounter given an inpput integer scale factor
+      procedure :: set_renc_DP  => util_set_renc_DP       !! Sets the critical radius for encounter given an input real scale factor
+      generic   :: set_renc     => set_renc_I4B, set_renc_DP 
       procedure :: sort         => util_sort_pl           !! Sorts body arrays by a sortable component
       procedure :: rearrange    => util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill        => util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -580,35 +584,58 @@ module swiftest_classes
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
-      module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
-         !$omp declare simd(util_flatten_eucl_ij_to_k)
+      module subroutine encounter_check_all_flat_plpl(nplplm, k_plpl, x, v, renc, dt, lencounter, loc_lvdotr)
          implicit none
-         integer(I4B), intent(in)  :: n !! Number of bodies
-         integer(I4B), intent(in)  :: i !! Index of the ith body
-         integer(I4B), intent(in)  :: j !! Index of the jth body
-         integer(I8B), intent(out) :: k !! Index of the flattened matrix
-      end subroutine util_flatten_eucl_ij_to_k
+         integer(I8B),                 intent(in)  :: nplplm     !! Total number of plm-pl encounters to test
+         integer(I4B), dimension(:,:), intent(in)  :: k_plpl     !! List of all pl-pl encounters
+         real(DP),     dimension(:,:), intent(in)  :: x          !! Position vectors of massive bodies
+         real(DP),     dimension(:,:), intent(in)  :: v          !! Velocity vectors of massive bodies
+         real(DP),     dimension(:),   intent(in)  :: renc      !! Hill's radii of massive bodies
+         real(DP),                     intent(in)  :: dt         !! Step size
+         logical,      dimension(:),   intent(out) :: lencounter !! Logical array indicating which pair is in an encounter state
+         logical,      dimension(:),   intent(out) :: loc_lvdotr !! Logical array indicating the sign of v .dot. x for each encounter
+      end subroutine encounter_check_all_flat_plpl
 
-      module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
+      module subroutine encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
          implicit none
-         integer(I4B), intent(in)  :: n !! Number of bodies
-         integer(I8B), intent(in)  :: k !! Index of the flattened matrix
-         integer(I4B), intent(out) :: i !! Index of the ith body
-         integer(I4B), intent(out) :: j !! Index of the jth body
-      end subroutine util_flatten_eucl_k_to_ij
+         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
+         integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
+         real(DP),     dimension(:),              intent(in)  :: renc  !! Critical radii of massive bodies that defines an encounter 
+         real(DP),                                intent(in)  :: dt     !! Step size
+         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
+         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
+         integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
+      end subroutine encounter_check_all_triangular_plpl
 
-      module subroutine util_flatten_eucl_plpl(self, param)
+      module subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
          implicit none
-         class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine
+         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
+         integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
+         real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
+         real(DP),     dimension(:),              intent(in)  :: renc  !! Critical radii of massive bodies that defines an encounter
+         real(DP),                                intent(in)  :: dt     !! Step size
+         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
+         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
+         integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
+      end subroutine encounter_check_all_triangular_pltp
 
-      module subroutine util_flatten_eucl_pltp(self, pl, param)
+      module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
+         !$omp declare simd(encounter_check_one)
          implicit none
-         class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
-         class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine
+         real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
+         real(DP), intent(in)  :: vxr, vyr, vzr !! Relative velocity vector components
+         real(DP), intent(in)  :: renc          !! Critical encounter distance
+         real(DP), intent(in)  :: dt            !! Step size
+         logical,  intent(out) :: lencounter    !! Flag indicating that an encounter has occurred
+         logical,  intent(out) :: lvdotr        !! Logical flag indicating the direction of the v .dot. r vector
+      end subroutine encounter_check_one
 
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
          implicit none
@@ -1449,12 +1476,36 @@ module swiftest_classes
    end interface
 
    interface
-      module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
+      module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
+         !$omp declare simd(util_flatten_eucl_ij_to_k)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
-         real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
-      end subroutine util_rescale_system
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I4B), intent(in)  :: i !! Index of the ith body
+         integer(I4B), intent(in)  :: j !! Index of the jth body
+         integer(I8B), intent(out) :: k !! Index of the flattened matrix
+      end subroutine util_flatten_eucl_ij_to_k
+
+      module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
+         implicit none
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I8B), intent(in)  :: k !! Index of the flattened matrix
+         integer(I4B), intent(out) :: i !! Index of the ith body
+         integer(I4B), intent(out) :: j !! Index of the jth body
+      end subroutine util_flatten_eucl_k_to_ij
+
+      module subroutine util_flatten_eucl_plpl(self, param)
+         implicit none
+         class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      end subroutine
+
+      module subroutine util_flatten_eucl_pltp(self, pl, param)
+         implicit none
+         class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+         class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      end subroutine
+
 
       module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function
@@ -1474,6 +1525,14 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
+
+
+      module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
+         real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
+      end subroutine util_rescale_system
    end interface
 
 
@@ -1597,6 +1656,18 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill
+
+      module subroutine util_set_renc_I4B(self, scale)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         integer(I4B),       intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+      end subroutine util_set_renc_I4B
+
+      module subroutine util_set_renc_DP(self, scale)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         real(DP),           intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+      end subroutine util_set_renc_DP
 
       module subroutine util_set_rhill_approximate(self,cb)
          implicit none

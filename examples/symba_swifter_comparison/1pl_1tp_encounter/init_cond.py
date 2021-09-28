@@ -18,7 +18,7 @@ swiftest_input = "param.swiftest.in"
 swiftest_pl    = "pl.swiftest.in"
 swiftest_tp    = "tp.swiftest.in"
 swiftest_cb    = "cb.swiftest.in"
-swiftest_bin   = "bin.swiftest.dat"
+swiftest_bin   = "bin.swiftest.nc"
 swiftest_enc   = "enc.swiftest.dat"
 swiftest_dis  = "discard.swiftest.dat"
 
@@ -43,11 +43,16 @@ rmin = swiftest.RSun / swiftest.AU2M
 rmax = 1000.0
 
 npl = 1
-plid = 2
-tpid = 100
+ntp = 1
+plid = 1
+tpid = 2
+
+cbname = "Sun"
+plname = "Planet"
+tpname = "TestParticle"
 
 radius = np.double(4.25875607065041e-05)
-mass = np.double(0.00012002693582795244940133) 
+Gmass = np.double(0.00012002693582795244940133) 
 apl = np.longdouble(1.0)
 atp = np.longdouble(1.01)
 vpl = np.longdouble(2 * np.pi)
@@ -62,23 +67,21 @@ v_tp = np.array([0.0, vtp, 0.0], dtype=np.double)
 rhill = np.double(apl * 0.0100447248332378922085)
 
 #Make Swifter files
-plfile = open(swifter_pl, 'w')
-print(npl+1, f'! Planet input file generated using init_cond.py',file=plfile)
-print(1,GMSun,file=plfile)
-print('0.0 0.0 0.0',file=plfile)
-print('0.0 0.0 0.0',file=plfile)
-print(plid,"{:.23g}".format(mass),rhill, file=plfile)
-print(radius, file=plfile)
-print(*p_pl, file=plfile)
-print(*v_pl, file=plfile)
-plfile.close()
+with open(swifter_pl, 'w') as plfile:
+   print(npl+1, f'! Planet input file generated using init_cond.py',file=plfile)
+   print(0,GMSun,file=plfile)
+   print('0.0 0.0 0.0',file=plfile)
+   print('0.0 0.0 0.0',file=plfile)
+   print(plid,"{:.23g}".format(Gmass),rhill, file=plfile)
+   print(radius, file=plfile)
+   print(*p_pl, file=plfile)
+   print(*v_pl, file=plfile)
 
-tpfile = open(swifter_tp, 'w')
-print(1,file=tpfile)
-print(tpid, file=tpfile)
-print(*p_tp, file=tpfile)
-print(*v_tp, file=tpfile)
-tpfile.close()
+with open(swifter_tp, 'w') as tpfile:
+   print(1,file=tpfile)
+   print(tpid, file=tpfile)
+   print(*p_tp, file=tpfile)
+   print(*v_tp, file=tpfile)
 
 sys.stdout = open(swifter_input, "w")
 print(f'! Swifter input file generated using init_cond.py')
@@ -110,41 +113,25 @@ print(f'RHILL_PRESENT  yes')
 sys.stdout = sys.__stdout__
 
 #Now make Swiftest files
-cbfile = FortranFile(swiftest_cb, 'w')
-Msun = np.double(1.0)
-cbfile.write_record(0)
-cbfile.write_record(np.double(GMSun))
-cbfile.write_record(np.double(rmin))
-cbfile.write_record(np.double(J2))
-cbfile.write_record(np.double(J4))
-cbfile.close()
+with open(swiftest_cb, 'w') as cbfile:
+   print(cbname,file=cbfile)
+   print(GMSun, file=cbfile)
+   print(rmin, file=cbfile)
+   print(J2, file=cbfile)
+   print(J4, file=cbfile)
 
-plfile = FortranFile(swiftest_pl, 'w')
-plfile.write_record(npl)
+with open(swiftest_pl, 'w') as plfile:
+   print(npl, f'! Planet input file generated using init_cond.py',file=plfile)
+   print(plname,"{:.23g}".format(Gmass),rhill, file=plfile)
+   print(radius, file=plfile)
+   print(*p_pl, file=plfile)
+   print(*v_pl, file=plfile)
 
-plfile.write_record(plid)
-plfile.write_record(p_pl[0])
-plfile.write_record(p_pl[1])
-plfile.write_record(p_pl[2])
-plfile.write_record(v_pl[0])
-plfile.write_record(v_pl[1])
-plfile.write_record(v_pl[2])
-plfile.write_record(mass)
-plfile.write_record(rhill)
-plfile.write_record(radius)
-plfile.close()
-tpfile = FortranFile(swiftest_tp, 'w')
-ntp = 1
-tpfile.write_record(ntp)
-tpfile.write_record(tpid)
-tpfile.write_record(p_tp[0])
-tpfile.write_record(p_tp[1])
-tpfile.write_record(p_tp[2])
-tpfile.write_record(v_tp[0])
-tpfile.write_record(v_tp[1])
-tpfile.write_record(v_tp[2])
-
-tpfile.close()
+with open(swiftest_tp, 'w') as tpfile:
+   print(ntp,file=tpfile)
+   print(tpname, file=tpfile)
+   print(*p_tp, file=tpfile)
+   print(*v_tp, file=tpfile)
 
 sys.stdout = open(swiftest_input, "w")
 print(f'! Swiftest input file generated using init_cond.py')
@@ -154,12 +141,13 @@ print(f'DT             {deltaT}')
 print(f'CB_IN          {swiftest_cb}')
 print(f'PL_IN          {swiftest_pl}')
 print(f'TP_IN          {swiftest_tp}')
-print(f'IN_TYPE        REAL8')
+print(f'IN_TYPE        ASCII')
+print(f'IN_FORM        XV')
 print(f'ISTEP_OUT      {iout:d}')
-print(f'ISTEP_DUMP     {iout:d}')
+print(f'ISTEP_DUMP     {10*iout:d}')
 print(f'BIN_OUT        {swiftest_bin}')
-print(f'OUT_TYPE       REAL8')
-print(f'OUT_FORM       XV')
+print(f'OUT_TYPE       NETCDF_DOUBLE')
+print(f'OUT_FORM       XVEL')
 print(f'OUT_STAT       REPLACE')
 print(f'CHK_CLOSE      yes')
 print(f'CHK_RMIN       {rmin}')

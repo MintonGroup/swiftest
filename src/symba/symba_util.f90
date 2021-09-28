@@ -668,6 +668,31 @@ contains
       return
    end subroutine symba_util_resize_tp
 
+   
+   module subroutine symba_util_set_renc(self, scale)
+      !! author: David A. Minton
+      !!
+      !! Sets the critical radius for encounter given an input recursion depth
+      !!
+      implicit none
+      ! Arguments
+      class(symba_pl), intent(inout) :: self !! SyMBA massive body object
+      integer(I4B),    intent(in)    :: scale !! Current recursion depth
+      ! Internals
+      integer(I4B) :: i
+      real(DP)     :: rshell_irec
+
+      associate(pl => self, npl => self%nbody)
+         rshell_irec = 1._DP
+         do i = 1, scale
+            rshell_irec = rshell_irec * RSHELL
+         end do
+         pl%renc(1:npl) = pl%rhill(1:npl) * RHSCALE * rshell_irec
+      end associate
+
+      return
+   end subroutine symba_util_set_renc
+
 
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton

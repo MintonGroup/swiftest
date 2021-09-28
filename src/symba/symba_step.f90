@@ -173,6 +173,7 @@ contains
                   nloops = NTENC
                end if
                do j = 1, nloops
+                  call system%pl%set_renc(irecp)
                   lencounter = plplenc_list%encounter_check(param, system, dtl, irecp) .or. pltpenc_list%encounter_check(param, system, dtl, irecp)
                    
                   call plplenc_list%kick(system, dth, irecp, 1)
@@ -250,6 +251,7 @@ contains
                      call system%plplenc_list%setup(nenc_old)
                      system%plplenc_list%nenc = 0
                      call system%plplcollision_list%setup(0)
+                     call system%pl%set_renc(0)
                   end if
             
                   if (ntp > 0) then

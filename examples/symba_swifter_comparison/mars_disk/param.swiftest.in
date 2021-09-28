@@ -5,12 +5,13 @@ DT             600.0
 PL_IN          pl.swiftest.in
 TP_IN          tp.in
 IN_TYPE        ASCII
+IN_FORM        XV
 ISTEP_OUT      1
 ISTEP_DUMP     1
-BIN_OUT        bin.swiftest.dat
+BIN_OUT        bin.swiftest.nc
 PARTICLE_OUT   particle.dat
-OUT_TYPE       REAL8
-OUT_FORM       XV
+OUT_TYPE       NETCDF_DOUBLE
+OUT_FORM       XVEL
 OUT_STAT       REPLACE
 CHK_CLOSE      yes
 CHK_RMIN       3389500.0
@@ -31,3 +32,4 @@ MU2KG          1.0
 DU2M           1.0
 TU2S           1.0
 SEED           2 3080983 2220830
+INTERACTION_LOOPS ADAPTIVE

@@ -34,7 +34,7 @@ contains
                   allocate(vbeg, source=pl%vh)
                   call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
                   ! ****** Check for close encounters ***** !
-                  system%rts = RHSCALE
+                  call pl%set_renc(RHSCALE)
                   lencounter = tp%encounter_check(param, system, dt)
                   if (lencounter) then
                      lfirstpl = pl%lfirst
@@ -172,12 +172,12 @@ contains
          elsewhere  
             tp%lperi(1:ntp) = .false.
          end where
+         call pl%set_renc(RHPSCALE)
          do outer_index = 1, NTENC
             outer_time = t + (outer_index - 1) * dto
             call pl%set_beg_end(xbeg = pl%outer(outer_index - 1)%x(:, 1:npl), &
                                 vbeg = pl%outer(outer_index - 1)%v(:, 1:npl), &
                                 xend = pl%outer(outer_index    )%x(:, 1:npl))
-            system%rts = RHPSCALE
             lencounter = tp%encounter_check(param, system, dto) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region

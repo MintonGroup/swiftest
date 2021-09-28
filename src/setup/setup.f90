@@ -334,6 +334,7 @@ contains
       if (allocated(self%mass)) deallocate(self%mass)
       if (allocated(self%Gmass)) deallocate(self%Gmass)
       if (allocated(self%rhill)) deallocate(self%rhill)
+      if (allocated(self%renc)) deallocate(self%renc)
       if (allocated(self%radius)) deallocate(self%radius)
       if (allocated(self%density)) deallocate(self%density)
       if (allocated(self%rot)) deallocate(self%rot)
@@ -347,10 +348,12 @@ contains
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
+      allocate(self%renc(n))
 
       self%mass(:) = 0.0_DP
       self%Gmass(:) = 0.0_DP
       self%rhill(:) = 0.0_DP
+      self%renc(:) = 0.0_DP
 
       self%nplpl = 0   
 

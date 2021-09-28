@@ -255,6 +255,8 @@ contains
             call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
          case("rhill")
             call util_sort(direction * pl%rhill(1:npl), ind(1:npl))
+         case("renc")
+            call util_sort(direction * pl%renc(1:npl), ind(1:npl))
          case("radius")
             call util_sort(direction * pl%radius(1:npl), ind(1:npl))
          case("density")

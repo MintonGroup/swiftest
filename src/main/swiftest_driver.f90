@@ -20,7 +20,9 @@ program swiftest_driver
    integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
-   type(walltimer)                            :: timer            !! Object used for computing elapsed wall time
+   type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
+   type(walltimer)                            :: file_io_timer !! Object used for computing elapsed wall time
+   integer(I4B)                               :: nout
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -72,11 +74,13 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-      call timer%reset(param)
+      nout = 0
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, nloops
          !> Step the system forward in time
+         call integration_timer%start()
          call nbody_system%step(param, t, dt)
+         call integration_timer%stop()
 
          t = t0 + iloop * dt
 
@@ -88,7 +92,10 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
+               call file_io_timer%start()
                if (t > old_t_final) call nbody_system%write_frame(param)
+               nout = nout + 1
+               call file_io_timer%stop()
                iout = istep_out
             end if
          end if
@@ -97,8 +104,15 @@ program swiftest_driver
          if (istep_dump > 0) then
             idump = idump - 1
             if (idump == 0) then
-               call timer%finish(nsubsteps=istep_dump, message="Integration steps:", param=param)
+               call integration_timer%report(nsubsteps=istep_dump, message="Integration steps:", param=param)
+               call integration_timer%reset()
+               call file_io_timer%start()
                call nbody_system%dump(param)
+               nout = nout + 1
+               call file_io_timer%stop()
+               call file_io_timer%report(nsubsteps=nout,     message="         File I/O:", param=param)
+               call file_io_timer%reset()
+               nout = 0
                idump = istep_dump
             end if
          end if

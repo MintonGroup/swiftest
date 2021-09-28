@@ -414,6 +414,7 @@ contains
             call util_spill(keeps%mass, discards%mass, lspill_list, ldestructive)
             call util_spill(keeps%Gmass, discards%Gmass, lspill_list, ldestructive)
             call util_spill(keeps%rhill, discards%rhill, lspill_list, ldestructive)
+            call util_spill(keeps%renc, discards%renc, lspill_list, ldestructive)
             call util_spill(keeps%radius, discards%radius, lspill_list, ldestructive)
             call util_spill(keeps%density, discards%density, lspill_list, ldestructive)
             call util_spill(keeps%k2, discards%k2, lspill_list, ldestructive)
