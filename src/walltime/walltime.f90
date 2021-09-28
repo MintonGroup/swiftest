@@ -2,18 +2,15 @@ submodule(walltime_classes) s_walltime
    use swiftest
 contains
 
-   module subroutine walltime_pause(self)
+   module subroutine walltime_stop(self)
       !! author: David A. Minton
       !!
-      !! Pauses the step timer (but not the main timer). Use resume to continue.
+      !! Pauses the step timer (but not the main timer). 
       implicit none
       ! Arguments
       class(walltimer),           intent(inout) :: self  !! Walltimer object
-
-      if (.not.self%main_is_started) then
-         write(*,*) "Wall timer error: Cannot pause the step time until reset is called at least once!"
-         return
-      end if
+      ! Internals
+      integer(I8B) :: count_delta
 
       if (self%is_paused) then
          write(*,*) "Wall timer error: Timer is already paused!"
@@ -23,8 +20,13 @@ contains
       call system_clock(self%count_pause)
       self%is_paused = .true.
 
+      self%count_stop_step = self%count_pause
+
+      count_delta = self%count_stop_step - self%count_start_step
+      self%wall_step = count_delta / (self%count_rate * 1.0_DP)
+
       return 
-   end subroutine walltime_pause
+   end subroutine walltime_stop
 
 
    module subroutine walltime_report(self, nsubsteps, message, param)
@@ -40,7 +42,7 @@ contains
       ! Internals
       character(len=*), parameter     :: walltimefmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, "; Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
-      integer(I8B)                    :: count_delta_step, count_delta_main, count_finish_step
+      integer(I8B)                    :: count_delta_step, count_delta_main, count_now
       real(DP)                        :: wall_main         !! Value of total elapsed time at the end of a timed step
       real(DP)                        :: wall_step         !! Value of elapsed time since the start of a timed step
       real(DP)                        :: wall_per_substep  !! Value of time per substep 
@@ -50,24 +52,39 @@ contains
          return
       end if
 
-      call self%stop()
-      count_finish_step = self%count_stop_step
-
-      count_delta_step = count_finish_step - self%count_start_step
-      count_delta_main = count_finish_step - self%count_start_main
+      call system_clock(count_now)
+      count_delta_main = count_now - self%count_start_main
+      count_delta_step = count_now - self%count_start_step
       wall_main = count_delta_main / (self%count_rate * 1.0_DP)
-      wall_per_substep = self%wall_step / nsubsteps
+      wall_step = count_delta_step / (self%count_rate * 1.0_DP)
+      wall_per_substep = wall_step / nsubsteps
 
       fmt = '("' //  adjustl(message) // '",' // walltimefmt // ')'
       write(*,trim(adjustl(fmt))) wall_main, self%wall_step, wall_per_substep
-
-      call self%start()
 
       return
    end subroutine walltime_report
 
 
    module subroutine walltime_reset(self)
+      !! author: David A. Minton
+      !!
+      !! Resets the step timer
+      implicit none
+      ! Arguments
+      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      ! Internals
+      integer(I8B) :: count_delta
+
+
+      self%is_paused = .false.
+      self%wall_step = 0.0_DP
+
+      return 
+   end subroutine walltime_reset
+
+
+   module subroutine walltime_start_main(self)
       !! author: David A. Minton
       !!
       !! Resets the clock ticker, settting main_start to the current ticker value
@@ -77,78 +94,37 @@ contains
       
       call system_clock(self%count_start_main, self%count_rate, self%count_max)
       self%main_is_started = .true.
-      call self%start()
 
       return
-   end subroutine walltime_reset
+   end subroutine walltime_start_main
 
 
-   module subroutine walltime_resume(self)
+   module subroutine walltime_start(self)
       !! author: David A. Minton
       !!
-      !! Resumes a paused step timer. 
+      !! Starts or resumes the step timer
+      !!
       implicit none
       ! Arguments
       class(walltimer),           intent(inout) :: self  !! Walltimer object
       ! Internals
       integer(I8B) :: count_resume, count_delta
 
-      if (.not.self%is_paused) then
-         write(*,*) "Wall timer error: Timer is not paused, and so cannot resume!"
-         return
+
+      if (.not.self%main_is_started) call self%start_main()
+
+      if (self%is_paused) then ! Resume a paused step timer
+         call system_clock(count_resume)
+         count_delta = count_resume - self%count_pause 
+         self%count_pause = 0_I8B 
+         self%count_start_step = self%count_start_step + count_delta
+         self%is_paused = .false.
+      else ! Start a new step timer
+         call system_clock(self%count_start_step)
       end if
-
-      call system_clock(count_resume)
-      count_delta = count_resume - self%count_pause 
-      self%count_pause = 0_I8B 
-      self%count_start_step = self%count_start_step + count_delta
-      self%is_paused = .false.
-
-      return 
-   end subroutine walltime_resume
-
-
-   module subroutine walltime_start(self)
-      !! author: David A. Minton
-      !!
-      !! Starts the timer, setting step_start to the current ticker value
-      implicit none
-      ! Arguments
-      class(walltimer),           intent(inout) :: self  !! Walltimer object
-
-      if (.not.self%main_is_started) then
-         write(*,*) "Wall timer error: Cannot start the step time until reset is called at least once!"
-         return
-      end if
-
-      call system_clock(self%count_start_step)
 
       return 
    end subroutine walltime_start
-
-
-   module subroutine walltime_stop(self)
-      !! author: David A. Minton
-      !!
-      !! Starts the timer, setting step_start to the current ticker value
-      implicit none
-      ! Arguments
-      class(walltimer),           intent(inout) :: self  !! Walltimer object
-      ! Internals
-      integer(I8B) :: count_delta
-
-      if (.not.self%main_is_started) then
-         write(*,*) "Wall timer error: Cannot start the step time until reset is called at least once!"
-         return
-      end if
-
-      call system_clock(self%count_stop_step)
-
-      count_delta = self%count_stop_step - self%count_start_step
-      self%wall_step = count_delta / (self%count_rate * 1.0_DP)
-
-      return 
-   end subroutine walltime_stop
 
 
    module subroutine walltime_interaction_adapt(self, param, pl, ninteractions)
@@ -317,6 +293,7 @@ contains
       call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(self%loopname)) // ": stage " // schar )
 
       call self%reset()
+      call self%start()
 
       return
    end subroutine walltime_interaction_time_this_loop

@@ -74,17 +74,13 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-      call integration_timer%reset()
-      call integration_timer%pause()
-      call file_io_timer%reset()
-      call file_io_timer%pause()
       nout = 0
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, nloops
          !> Step the system forward in time
-         call integration_timer%resume()
+         call integration_timer%start()
          call nbody_system%step(param, t, dt)
-         call integration_timer%pause()
+         call integration_timer%stop()
 
          t = t0 + iloop * dt
 
@@ -96,10 +92,10 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
-               call file_io_timer%resume()
+               call file_io_timer%start()
                if (t > old_t_final) call nbody_system%write_frame(param)
                nout = nout + 1
-               call file_io_timer%pause()
+               call file_io_timer%stop()
                iout = istep_out
             end if
          end if
@@ -109,11 +105,13 @@ program swiftest_driver
             idump = idump - 1
             if (idump == 0) then
                call integration_timer%report(nsubsteps=istep_dump, message="Integration steps:", param=param)
-               call file_io_timer%resume()
+               call integration_timer%reset()
+               call file_io_timer%start()
                call nbody_system%dump(param)
                nout = nout + 1
-               call file_io_timer%pause()
+               call file_io_timer%stop()
                call file_io_timer%report(nsubsteps=nout,     message="         File I/O:", param=param)
+               call file_io_timer%reset()
                nout = 0
                idump = istep_dump
             end if

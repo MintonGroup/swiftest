@@ -22,12 +22,11 @@ module walltime_classes
       logical      :: is_paused = .false. !! Logical flag indicating whether or not the timer is paused
 
    contains
-      procedure :: reset  => walltime_reset  !! Resets the clock ticker, settting main_start to the current ticker value
-      procedure :: start  => walltime_start  !! Starts the timer, setting count_start_step to the current ticker value
-      procedure :: stop   => walltime_stop   !! Stops the timer, setting count_stop_step to the current ticker value
-      procedure :: pause  => walltime_pause  !! Pauses the step timer (but not the main timer). Use resume to continue.
-      procedure :: resume => walltime_resume !! Resumes a paused step timer. 
-      procedure :: report => walltime_report !! Prints the elapsed time information to the terminal
+      procedure :: reset       => walltime_reset      !! Resets the clock ticker, settting main_start to the current ticker value
+      procedure :: start       => walltime_start      !! Starts or resumes the step timer
+      procedure :: start_main  => walltime_start_main !! Starts the main timer
+      procedure :: stop        => walltime_stop       !! Pauses the step timer
+      procedure :: report      => walltime_report     !! Prints the elapsed time information to the terminal
    end type walltimer
 
    type, extends(walltimer) :: interaction_timer
@@ -50,16 +49,6 @@ module walltime_classes
    end type interaction_timer
 
    interface
-      module subroutine walltime_pause(self)
-         implicit none
-         class(walltimer),           intent(inout) :: self  !! Walltimer object
-      end subroutine walltime_pause
-
-      module subroutine walltime_resume(self)
-         implicit none
-         class(walltimer),           intent(inout) :: self  !! Walltimer object
-      end subroutine walltime_resume
-
       module subroutine walltime_report(self, nsubsteps, message, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -78,6 +67,11 @@ module walltime_classes
          implicit none
          class(walltimer),           intent(inout) :: self  !! Walltimer object
       end subroutine walltime_start
+
+      module subroutine walltime_start_main(self)
+         implicit none
+         class(walltimer),           intent(inout) :: self  !! Walltimer object
+      end subroutine walltime_start_main
 
       module subroutine walltime_stop(self)
          implicit none
