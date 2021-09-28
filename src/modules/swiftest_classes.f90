@@ -596,13 +596,27 @@ module swiftest_classes
          logical,      dimension(:),   intent(out) :: loc_lvdotr !! Logical array indicating the sign of v .dot. x for each encounter
       end subroutine encounter_check_all_flat_plpl
 
+      module subroutine encounter_check_all_sweep_and_prune_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
+         implicit none
+         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
+         integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
+         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
+         real(DP),                                intent(in)  :: dt     !! Step size
+         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
+         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
+         integer(I4B),                            intent(out) :: nenc   !! Total number of encounter
+      end subroutine encounter_check_all_sweep_and_prune_plpl
+
       module subroutine encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
          implicit none
          integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
          integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
          real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc  !! Critical radii of massive bodies that defines an encounter 
+         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
          real(DP),                                intent(in)  :: dt     !! Step size
          logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
          integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
