@@ -1080,10 +1080,11 @@ module swiftest_classes
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_read_hdr_system
 
-      module subroutine netcdf_read_particle_info_base(self, iu)
+      module subroutine netcdf_read_particle_info_base(self, iu, ind)
          implicit none
          class(swiftest_base),       intent(inout) :: self   !! Swiftest particle object
          class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         integer(I4B), dimension(:), intent(in)    :: ind    !! Index mapping from netcdf to active particles
       end subroutine netcdf_read_particle_info_base
 
       module subroutine netcdf_write_frame_base(self, iu, param)

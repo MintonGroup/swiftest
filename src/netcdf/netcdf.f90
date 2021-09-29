@@ -499,7 +499,7 @@ contains
       return
    end subroutine netcdf_read_hdr_system
 
-   module subroutine netcdf_read_particle_info_base(self, iu)
+   module subroutine netcdf_read_particle_info_base(self, iu, ind)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Write all current particle to file
@@ -507,9 +507,9 @@ contains
       ! Arguments
       class(swiftest_base),       intent(inout) :: self   !! Swiftest particle object
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      integer(I4B), dimension(:), intent(in)    :: ind    !! Index mapping from netcdf to active particles
       ! Internals
       integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
-      integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
       character(len=NAMELEN)                    :: emptystr, lenstr
       character(len=:), allocatable :: fmtlabel
