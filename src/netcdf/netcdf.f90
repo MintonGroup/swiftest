@@ -405,6 +405,7 @@ contains
             call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
 
             call check( nf90_get_var(iu%ncid, iu%Gmass_varid,  self%Gmass,  start=[idslot, tslot]) )
+            self%mass = self%Gmass / param%GU
             call check( nf90_get_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
             if (param%lrotation) then
                call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  self%Ip(1),  start=[idslot, tslot]) )
