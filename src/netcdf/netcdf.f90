@@ -424,7 +424,7 @@ contains
 
          end select
 
-         call self%read_particle_info(iu) 
+         call self%read_particle_info(iu, ind) 
 
          ierr = 0
 
