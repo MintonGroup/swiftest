@@ -44,6 +44,7 @@ contains
          status = source%status, & 
          origin_type = source%origin_type, &
          origin_time = source%origin_time, & 
+         collision_id = source%collision_id, &
          origin_xh = source%origin_xh(:), &
          origin_vh = source%origin_vh(:), &
          discard_time = source%discard_time, & 

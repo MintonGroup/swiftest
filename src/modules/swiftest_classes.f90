@@ -61,6 +61,7 @@ module swiftest_classes
       integer(I4B) :: status_varid          !! NetCDF ID for the status variable
       integer(I4B) :: origin_type_varid     !! NetCDF ID for the origin type
       integer(I4B) :: origin_time_varid     !! NetCDF ID for the origin time
+      integer(I4B) :: collision_id_varid    !! Netcdf ID for the origin collision ID
       integer(I4B) :: origin_xhx_varid      !! NetCDF ID for the origin xh x component
       integer(I4B) :: origin_xhy_varid      !! NetCDF ID for the origin xh y component
       integer(I4B) :: origin_xhz_varid      !! NetCDF ID for the origin xh z component
@@ -178,6 +179,7 @@ module swiftest_classes
       character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
       character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time     !! The time of the particle's formation
+      integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
       real(DP), dimension(NDIM) :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
       real(DP)                  :: discard_time    !! The time of the particle's discard
@@ -1643,7 +1645,7 @@ module swiftest_classes
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_mu_tp
 
-      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
          implicit none
          class(swiftest_particle_info), intent(inout)           :: self
          character(len=*),              intent(in),    optional :: name            !! Non-unique name
@@ -1651,6 +1653,7 @@ module swiftest_classes
          character(len=*),              intent(in),    optional :: status          !! Particle status description: Active, Merged, Fragmented, etc.
          character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
          real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
+         integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
          real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
          real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
          real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
