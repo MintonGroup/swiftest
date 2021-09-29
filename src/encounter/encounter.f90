@@ -25,7 +25,7 @@ contains
       
       !$omp parallel do simd default(private) schedule(static)&
       !$omp shared(nplplm, k_plpl, x, v, renc, dt, lencounter, loc_lvdotr) &
-      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc1, renc2)
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12)
       do k = 1_I8B, nplplm
          i = k_plpl(1, k)
          j = k_plpl(2, k)
