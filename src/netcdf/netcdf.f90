@@ -528,13 +528,15 @@ contains
          class is (swiftest_body)
          associate(n => self%nbody)
             if (n == 0) return
-            allocate(ind(n))
-            call util_sort(self%id(1:n), ind)
+            !allocate(ind(n))
+            !call util_sort(self%id(1:n), ind)
 
             do i = 1, n
-               j = ind(i)
-               idslot = self%id(j) + 1
-               call check( nf90_get_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
+               !self%id(i) = i
+               !j = ind(i) + 1
+               idslot = i + 1
+               !call check( nf90_get_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
+               call check( nf90_put_var(iu%ncid, iu%id_varid, i, start=[idslot]))
 
                charstring = trim(adjustl(self%info(j)%name))
                strlen = len(charstring)
@@ -575,8 +577,10 @@ contains
          end associate
 
       class is (swiftest_cb)
+         self%id = 0
          idslot = self%id + 1
-         call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
+         !call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
+         call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]))
 
          charstring = trim(adjustl(self%info%name))
          strlen = len(charstring)
