@@ -533,15 +533,17 @@ contains
          class is (swiftest_body)
          associate(n => self%nbody)
             if (n == 0) return
-            !allocate(ind(n))
-            !call util_sort(self%id(1:n), ind)
+
+            self%status(:) = ACTIVE
+            self%lmask(:) = .true.
+            do i = 1, n
+               call self%info(i)%set_value(status="ACTIVE")
+            end do
 
             do i = 1, n
-               !self%id(i) = i
-               !j = ind(i) + 1
-               idslot = i + 1
-               !call check( nf90_get_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%id_varid, i, start=[idslot]))
+               idslot = ind(i)
+
+               call check( nf90_get_var(iu%ncid, iu%id_varid, self%id(i), start=[idslot]) )
 
                call check( nf90_get_var(iu%ncid, iu%name_varid, self%info(i)%name, start=[1, idslot], count=[NAMELEN, 1]) )
                strlen = len(trim(adjustl(self%info(i)%name)))
@@ -578,10 +580,8 @@ contains
          end associate
 
       class is (swiftest_cb)
-         self%id = 0
-         idslot = self%id + 1
-         !call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]))
+         idslot = 1
+         call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
 
          call check( nf90_get_var(iu%ncid, iu%name_varid, self%info%name, start=[1, idslot], count=[NAMELEN, 1]) )
          strlen = len(trim(adjustl(self%info%name)))
