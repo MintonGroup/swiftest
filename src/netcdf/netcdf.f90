@@ -348,10 +348,10 @@ contains
             select type(self)
             class is (swiftest_pl)
                ind(:) = pack(ind(:), (.not.tpmask(:) .and. validmask(:)))
-               n = count(.not.tpmask(:))
+               n = count(.not.tpmask(:) .and. validmask(:))
             class is (swiftest_tp)
                ind(:) = pack(ind(:), (tpmask(:) .and. validmask(:)))
-               n = count(tpmask(:))
+               n = count(tpmask(:) .and. validmask(:))
             end select
 
             do i = j, n
