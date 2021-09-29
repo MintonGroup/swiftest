@@ -373,26 +373,27 @@ contains
                   call check( nf90_get_var(iu%ncid, iu%capm_varid,  self%capm(j),  start=[idslot, tslot]) ) 
                end if
    
-               select type(self)  
+               select type(pl => self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-                  call check( nf90_get_var(iu%ncid, iu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]) )
+                  call check( nf90_get_var(iu%ncid, iu%Gmass_varid, pl%Gmass(j), start=[idslot, tslot]) )
+                  pl%mass(j) = pl%Gmass(j) / param%GU
                   if (param%lrhill_present) then 
-                     call check( nf90_get_var(iu%ncid, iu%rhill_varid, self%rhill(j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%rhill_varid, pl%rhill(j), start=[idslot, tslot]) )
                   end if
                   if (param%lclose) then
-                     call check( nf90_get_var(iu%ncid, iu%radius_varid, self%radius(j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%radius_varid, pl%radius(j), start=[idslot, tslot]) )
                   end if
                   if (param%lrotation) then
-                     call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  self%Ip(1, j),  start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  self%Ip(2, j),  start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  self%Ip(3, j),  start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%rotx_varid, self%rot(1, j), start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%roty_varid, self%rot(2, j), start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%rotz_varid, self%rot(3, j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  pl%Ip(1, j),  start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  pl%Ip(2, j),  start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  pl%Ip(3, j),  start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%rotx_varid, pl%rot(1, j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%roty_varid, pl%rot(2, j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%rotz_varid, pl%rot(3, j), start=[idslot, tslot]) )
                   end if
                   if (param%ltides) then
-                     call check( nf90_get_var(iu%ncid, iu%k2_varid, self%k2(j), start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%Q_varid,  self%Q(j),  start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%k2_varid, pl%k2(j), start=[idslot, tslot]) )
+                     call check( nf90_get_var(iu%ncid, iu%Q_varid,  pl%Q(j),  start=[idslot, tslot]) )
                   end if
    
                end select
