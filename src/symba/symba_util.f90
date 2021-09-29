@@ -294,12 +294,11 @@ contains
          pl%nplm = int(nplm, kind=I4B)
          nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
          nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
-         if ((param%lflatten_interactions) .or. (param%lflatten_encounters)) then
+         if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
             if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
                param%lflatten_interactions = .false.
-               param%lflatten_encounters = .false.
             else
                do concurrent (i=1:npl, j=1:npl, j>i)
                   call util_flatten_eucl_ij_to_k(npl, i, j, k)

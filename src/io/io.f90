@@ -825,17 +825,14 @@ contains
          case("ADAPTIVE")
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
             call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
             call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .false.
-            param%lflatten_encounters = .false.
          case("FLAT")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
          case default
             write(*,*) "Unknown value for parameter INTERACTION_LOOPS: -> ",trim(adjustl(param%interaction_loops))
             write(*,*) "Must be one of the following: TRIANGULAR, FLAT, or ADAPTIVE"
@@ -843,7 +840,6 @@ contains
             param%interaction_loops = "ADAPTIVE"
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
          end select
 
          iostat = 0

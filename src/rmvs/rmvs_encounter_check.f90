@@ -35,7 +35,7 @@ contains
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody)
             tp%plencP(1:ntp) = 0
-            call encounter_check_all_triangular_pltp(npl, ntp, pl%xbeg, pl%vbeg, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+            call encounter_check_all_sort_and_sweep_pltp(npl, ntp, pl%xbeg, pl%vbeg, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
 
             lencounter = (nenc > 0)
             if (lencounter) then

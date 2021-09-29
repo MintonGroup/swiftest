@@ -237,11 +237,9 @@ contains
       select case(trim(adjustl(self%looptype)))
       case("INTERACTIONS")
          param%lflatten_interactions = .not. param%lflatten_interactions
-      case("ENCOUNTERS")
-         param%lflatten_encounters = .not. param%lflatten_encounters
       end select
 
-      if ((param%lflatten_interactions) .or. (param%lflatten_encounters)) then
+      if (param%lflatten_interactions) then
          call pl%flatten(param)
       else
          if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
@@ -273,16 +271,12 @@ contains
          select case(trim(adjustl(self%looptype)))
          case("INTERACTIONS")
             self%stage1_is_flattened = param%lflatten_interactions
-         case("ENCOUNTERS")
-            self%stage1_is_flattened = param%lflatten_encounters
          end select
          call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(self%loopname)) // ": loop timer turned on at t = " // trim(adjustl(tstr)))
       case(2)
          select case(trim(adjustl(self%looptype)))
          case("INTERACTIONS")
             param%lflatten_interactions = self%stage1_is_flattened 
-         case("ENCOUNTERS")
-            param%lflatten_encounters = self%stage1_is_flattened 
          end select
          call self%flip(param, pl) 
       case default

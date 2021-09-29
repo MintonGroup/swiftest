@@ -29,56 +29,15 @@ contains
 
       associate(pl => self, plplenc_list => system%plplenc_list)
 
-         if (param%ladaptive_interactions) then
-            if (self%nplplm > 0) then
-               if (lfirst) then
-                  write(itimer%loopname, *)  "symba_encounter_check_pl"
-                  write(itimer%looptype, *)  "ENCOUNTERS"
-                  call itimer%time_this_loop(param, pl, pl%nplplm)
-                  lfirst = .false.
-               else
-                  if (itimer%check(param, pl%nplplm)) call itimer%time_this_loop(param, pl, pl%nplplm)
-               end if
-            else
-               param%lflatten_encounters = .false.
-            end if
-         end if
-
          npl = pl%nbody
-         if (param%lflatten_encounters) then
-            nplplm = pl%nplplm
-
-            allocate(lencounter(nplplm))
-            allocate(loc_lvdotr(nplplm))
-  
-            call encounter_check_all_flat_plpl(nplplm, pl%k_plpl, pl%xh, pl%vh, pl%renc, dt, lencounter, loc_lvdotr)
-
-            nenc = count(lencounter(:))
-
-            lany_encounter = nenc > 0
-            if (lany_encounter) then 
-               call plplenc_list%resize(nenc)
-               allocate(lvdotr(nenc))					
-               allocate(index1(nenc))					
-               allocate(index2(nenc))					
-               lvdotr(:) = pack(loc_lvdotr(:), lencounter(:))					
-               index1(:) = pack(pl%k_plpl(1,1:nplplm), lencounter(:)) 					
-               index2(:) = pack(pl%k_plpl(2,1:nplplm), lencounter(:)) 					
-               deallocate(lencounter, loc_lvdotr)					
-               call move_alloc(lvdotr, plplenc_list%lvdotr)					
-               call move_alloc(index1, plplenc_list%index1) 					
-               call move_alloc(index2, plplenc_list%index2) 
-            end if					
-         else
-            nplm = pl%nplm
-            call encounter_check_all_triangular_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
-            lany_encounter = nenc > 0
-            if (lany_encounter) then
-               call plplenc_list%resize(nenc)
-               call move_alloc(lvdotr, plplenc_list%lvdotr)
-               call move_alloc(index1, plplenc_list%index1)
-               call move_alloc(index2, plplenc_list%index2)
-            end if
+         nplm = pl%nplm
+         call encounter_check_all_sort_and_sweep_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+         lany_encounter = nenc > 0
+         if (lany_encounter) then
+            call plplenc_list%resize(nenc)
+            call move_alloc(lvdotr, plplenc_list%lvdotr)
+            call move_alloc(index1, plplenc_list%index1)
+            call move_alloc(index2, plplenc_list%index2)
          end if
 
          if (lany_encounter) then 
@@ -98,10 +57,6 @@ contains
                pl%nplenc(i) = pl%nplenc(i) + 1
                pl%nplenc(j) = pl%nplenc(j) + 1
             end do
-         end if
-
-         if (param%ladaptive_interactions .and. self%nplplm > 0) then 
-            if (itimer%is_on) call itimer%adapt(param, pl, pl%nplplm)
          end if
 
       end associate
@@ -238,7 +193,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
-         call encounter_check_all_triangular_pltp(npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_sort_and_sweep_pltp(npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 
