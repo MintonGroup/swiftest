@@ -421,7 +421,7 @@ contains
 
          end select
 
-         call self%read_particle_info(iu) ! THIS NEEDS TO BE IMPLEMENTED
+         call self%read_particle_info(iu) 
 
       return
 
@@ -538,41 +538,37 @@ contains
                !call check( nf90_get_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
                call check( nf90_put_var(iu%ncid, iu%id_varid, i, start=[idslot]))
 
-               charstring = trim(adjustl(self%info(j)%name))
-               strlen = len(charstring)
-               call check( nf90_get_var(iu%ncid, iu%name_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_get_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%name_varid, self%info(i)%name, start=[1, idslot], count=[NAMELEN, 1]) )
+               strlen = len(trim(adjustl(self%info(i)%name)))
+               call check( nf90_get_var(iu%ncid, iu%name_varid, self%info(i)%name, start=[1, idslot], count=[strlen, 1]) )
 
-               charstring = trim(adjustl(self%info(j)%particle_type))
-               strlen = len(charstring)
-               call check( nf90_get_var(iu%ncid, iu%ptype_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_get_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info(i)%particle_type, start=[1, idslot], count=[NAMELEN, 1]) )
+               strlen = len(trim(adjustl(self%info(i)%particle_type)))
+               call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info(i)%particle_type, start=[1, idslot], count=[strlen, 1]) )
 
-               charstring = trim(adjustl(self%info(j)%status))
-               strlen = len(charstring)
-               call check( nf90_get_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_get_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%status_varid, self%info(i)%status, start=[1, idslot], count=[NAMELEN, 1]) )
+               strlen = len(trim(adjustl(self%info(i)%status)))
+               call check( nf90_get_var(iu%ncid, iu%status_varid, self%info(i)%status, start=[1, idslot], count=[strlen, 1]) )
 
-               charstring = trim(adjustl(self%info(j)%origin_type))
-               strlen = len(charstring)
-               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info(i)%origin_type, start=[1, idslot], count=[NAMELEN, 1]) )
+               strlen = len(trim(adjustl(self%info(i)%origin_type)))
+               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info(i)%origin_type, start=[1, idslot], count=[strlen, 1]) )
 
-               call check( nf90_get_var(iu%ncid, iu%origin_time_varid, self%info(j)%origin_time, start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, self%info(j)%origin_xh(1), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, self%info(j)%origin_xh(2), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, self%info(j)%origin_xh(3), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, self%info(j)%origin_vh(1), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, self%info(j)%origin_vh(2), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, self%info(j)%origin_vh(3), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_time_varid, self%info(i)%origin_time, start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, self%info(i)%origin_xh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, self%info(i)%origin_xh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, self%info(i)%origin_xh(3), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, self%info(i)%origin_vh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, self%info(i)%origin_vh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, self%info(i)%origin_vh(3), start=[idslot]) )
 
-               call check( nf90_get_var(iu%ncid, iu%discard_time_varid, self%info(j)%discard_time, start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, self%info(j)%discard_xh(1), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, self%info(j)%discard_xh(2), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, self%info(j)%discard_xh(3), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, self%info(j)%discard_vh(1), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, self%info(j)%discard_vh(2), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info(j)%discard_vh(3), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_time_varid, self%info(i)%discard_time, start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, self%info(i)%discard_xh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, self%info(i)%discard_xh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, self%info(i)%discard_xh(3), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, self%info(i)%discard_vh(1), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, self%info(i)%discard_vh(2), start=[idslot]) )
+               call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info(i)%discard_vh(3), start=[idslot]) )
             end do
          end associate
 
@@ -582,25 +578,21 @@ contains
          !call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
          call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]))
 
-         charstring = trim(adjustl(self%info%name))
-         strlen = len(charstring)
-         call check( nf90_get_var(iu%ncid, iu%name_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_get_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%name_varid, self%info%name, start=[1, idslot], count=[NAMELEN, 1]) )
+         strlen = len(trim(adjustl(self%info%name)))
+         call check( nf90_get_var(iu%ncid, iu%name_varid, self%info%name, start=[1, idslot], count=[strlen, 1]) )
 
-         charstring = trim(adjustl(self%info%particle_type))
-         strlen = len(charstring)
-         call check( nf90_get_var(iu%ncid, iu%ptype_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_get_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info%particle_type, start=[1, idslot], count=[NAMELEN, 1]) )
+         strlen = len(trim(adjustl(self%info%particle_type)))
+         call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info%particle_type, start=[1, idslot], count=[strlen, 1]) )
 
-         charstring = trim(adjustl(self%info%status))
-         strlen = len(charstring)
-         call check( nf90_get_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_get_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%status_varid, self%info%status, start=[1, idslot], count=[NAMELEN, 1]) )
+         strlen = len(trim(adjustl(self%info%status)))
+         call check( nf90_get_var(iu%ncid, iu%status_varid, self%info%status, start=[1, idslot], count=[strlen, 1]) )
 
-         charstring = trim(adjustl(self%info%origin_type))
-         strlen = len(charstring)
-         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info%origin_type, start=[1, idslot], count=[NAMELEN, 1]) )
+         strlen = len(trim(adjustl(self%info%origin_type)))
+         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info%origin_type, start=[1, idslot], count=[strlen, 1]) )
 
          call check( nf90_get_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
          call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
