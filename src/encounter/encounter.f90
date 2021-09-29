@@ -92,10 +92,7 @@ contains
             j = aabb(dim)%ind(jbox)
             if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
             if (j == i) exit ! We've reached the end of this interval
-            if (lfresh(j)) then
-               lfresh(j) = .false.
-               lencounteri(j) = .true. ! An overlapping box is found that has not previously been tallied
-            end if
+            if (lfresh(j)) lencounteri(j) = .true. ! An overlapping box is found that has not previously been tallied
          end do
          lfresh(i) = .false. ! This body has now been processed, so it should no longer show up in future encounter lists
          nenci = count(lencounteri(:))
