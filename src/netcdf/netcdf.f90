@@ -354,7 +354,7 @@ contains
                n = count(tpmask(:) .and. validmask(:))
             end select
 
-            do i = j, n
+            do j = 1, n
                idslot = ind(j)
    
                if (param%in_form == XV) then
