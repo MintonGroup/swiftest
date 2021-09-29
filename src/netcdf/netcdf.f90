@@ -515,7 +515,7 @@ contains
       character(len=:), allocatable :: fmtlabel
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
+      !call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
       write(lenstr, *) NAMELEN
       fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
       write(emptystr, fmtlabel) " "
@@ -611,7 +611,7 @@ contains
          call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
       end select
 
-      call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
+      !call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
       return
    end subroutine netcdf_read_particle_info_base
 
