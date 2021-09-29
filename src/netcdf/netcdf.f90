@@ -310,11 +310,12 @@ contains
       class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
       class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      ! Returns
+      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       integer(I4B)                              :: i, j, tslot, strlen, idslot, idmax, n
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
-      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
       real(DP), dimension(:), allocatable       :: real_temp
       logical, dimension(:), allocatable        :: validmask, tpmask
 
@@ -424,6 +425,8 @@ contains
          end select
 
          call self%read_particle_info(iu) 
+
+         ierr = 0
 
       return
 
