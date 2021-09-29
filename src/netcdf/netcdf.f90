@@ -520,6 +520,10 @@ contains
       fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
       write(emptystr, fmtlabel) " "
 
+      call check( nf90_inq_dimid(iu%ncid, TIME_DIMNAME, iu%time_dimid) )
+      call check( nf90_inq_dimid(iu%ncid, ID_DIMNAME,   iu%id_dimid) )
+      call check( nf90_inq_dimid(iu%ncid, STR_DIMNAME,  iu%str_dimid) )
+
       select type(self)
          class is (swiftest_body)
          associate(n => self%nbody)
