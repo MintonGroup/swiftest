@@ -73,9 +73,11 @@ contains
       n = size(arr)
       do i = 2, n
          tmp = arr(i)
-         do j = i - 1, 1, -1
+         j = i - 1
+         do while (j >= 1)
             if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
+            j = j - 1
          end do
          arr(j + 1) = tmp
       end do
@@ -97,8 +99,7 @@ contains
       real(DP), dimension(:), intent(in)  :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      real(DP) :: tmp
-      integer(I4B) :: n, i, j
+      integer(I4B) :: n, i, j, itmp
 
       n = size(arr)
       if (.not.allocated(ind)) then
@@ -106,12 +107,14 @@ contains
          ind = [(i, i=1, n)]
       end if
       do i = 2, n
-         tmp = arr(ind(i))
-         do j = i - 1, 1, -1
-            if (arr(ind(j)) <= tmp) exit
+         itmp = ind(i)
+         j = i - 1
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
+            j = j - 1
          end do
-         ind(j + 1) = i
+         ind(j + 1) = itmp
       end do
 
       return
@@ -134,9 +137,11 @@ contains
       n = size(arr)
       do i = 2, n
          tmp = arr(i)
-         do j = i - 1, 1, -1
+         j = i - 1
+         do while (j >= 1)
             if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
+            j = j - 1
          end do
          arr(j + 1) = tmp
       end do
@@ -158,8 +163,7 @@ contains
       integer(I4B), dimension(:), intent(in)  :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      integer(I4B) :: tmp
-      integer(I4B) :: n, i, j
+      integer(I4B) :: n, i, j, itmp
 
       n = size(arr)
       if (.not.allocated(ind)) then
@@ -167,12 +171,14 @@ contains
          ind = [(i, i=1, n)]
       end if
       do i = 2, n
-         tmp = arr(ind(i))
-         do j = i - 1, 1, -1
-            if (arr(ind(j)) <= tmp) exit
+         itmp = ind(i)
+         j = i - 1
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
+            j = j - 1
          end do
-         ind(j + 1) = i
+         ind(j + 1) = itmp
       end do
 
       return
@@ -195,9 +201,11 @@ contains
       n = size(arr)
       do i = 2, n
          tmp = arr(i)
-         do j = i - 1, 1, -1
+         j = i - 1
+         do while (j >= 1)
             if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
+            j = j - 1
          end do
          arr(j + 1) = tmp
       end do
@@ -219,8 +227,7 @@ contains
       real(SP), dimension(:), intent(in)  :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      real(SP) :: tmp
-      integer(I4B) :: n, i, j
+      integer(I4B) :: n, i, j, itmp
 
       n = size(arr)
       if (.not.allocated(ind)) then
@@ -228,12 +235,14 @@ contains
          ind = [(i, i=1, n)]
       end if
       do i = 2, n
-         tmp = arr(ind(i))
-         do j = i - 1, 1, -1
-            if (arr(ind(j)) <= tmp) exit
+         itmp = ind(i)
+         j = i - 1
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
+            j = j - 1
          end do
-         ind(j + 1) = i
+         ind(j + 1) = itmp
       end do
 
       return
