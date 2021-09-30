@@ -92,10 +92,10 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
-               call file_io_timer%start()
+               ! call file_io_timer%start()
                if (t > old_t_final) call nbody_system%write_frame(param)
-               nout = nout + 1
-               call file_io_timer%stop()
+               ! nout = nout + 1
+               ! call file_io_timer%stop()
                iout = istep_out
             end if
          end if
@@ -108,11 +108,11 @@ program swiftest_driver
                call integration_timer%reset()
                call file_io_timer%start()
                call nbody_system%dump(param)
-               nout = nout + 1
-               call file_io_timer%stop()
-               call file_io_timer%report(nsubsteps=nout,     message="         File I/O:", param=param)
-               call file_io_timer%reset()
-               nout = 0
+               ! nout = nout + 1
+               ! ! call file_io_timer%stop()
+               ! ! call file_io_timer%report(nsubsteps=nout,     message="         File I/O:", param=param)
+               ! ! call file_io_timer%reset()
+               ! nout = 0
                idump = istep_dump
             end if
          end if

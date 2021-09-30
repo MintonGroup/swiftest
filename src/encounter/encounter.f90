@@ -22,7 +22,7 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
       integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
       ! Internals
-      integer(I4B) :: i, j, k, nenci, j0, j1, dim, ibox, jbox, n, n_last
+      integer(I4B) :: i, j, k, m, nenci, i0, i1, j0, j1, dim, ibox, jbox, nbox, n, n_last
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
       logical, dimension(npl) :: lencounteri, lfresh
       integer(I4B), dimension(:), allocatable, save :: ind_arr
@@ -32,10 +32,12 @@ contains
          integer(I4B) :: nenc
       end type
       type(lenctype), dimension(nplm) :: lenc
-      integer(I4B), dimension(:), allocatable :: tmp
+      integer(I4B), dimension(:), allocatable :: tmp, ind
       integer(I4B), save :: npl_last = 0
       type boundingBox
          integer(I4B), dimension(:), allocatable :: ind !! Sorted minimum/maximum extent indices
+         integer(I4B), dimension(:), allocatable :: noverlap !! Number of overlaps for each body
+         integer(I4B), dimension(:), allocatable :: istart !! Starting index for box
       end type
       type(boundingBox), dimension(NDIM), save :: aabb
       logical, dimension(:), allocatable :: lenc_final, lvdotr_final
@@ -49,6 +51,12 @@ contains
       if (npl_last /= npl) then
          if (allocated(ind_arr)) deallocate(ind_arr)
          allocate(ind_arr(npl))
+         do i = 1, NDIM
+            if (allocated(aabb(i)%noverlap)) deallocate(aabb(i)%noverlap)
+            allocate(aabb(i)%noverlap(npl))
+            if (allocated(aabb(i)%istart)) deallocate(aabb(i)%istart)
+            allocate(aabb(i)%istart(npl))
+         end do
          ind_arr(:) = [(i, i = 1, npl)]
          if (npl > npl_last) then ! The number of bodies has grown. Resize and append the new bodies
             do i = 1, NDIM
@@ -79,29 +87,51 @@ contains
                          x(i,1:npl)+renc(1:npl)+vshift_max(1:npl)*v(i,1:npl)*dt], aabb(i)%ind)
       end do
 
-      ! Sweep the intervals
+      ! Determine the interval starting points and sizes
       dim = 1
       lfresh(:) = .true. ! This will prevent double-counting of pairs
       do ibox = 1, n
          i = aabb(dim)%ind(ibox)
          if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
-         if (i > nplm) cycle ! Not fully interacting, so move on
-         if (.not.lfresh(i)) cycle ! This body has already been evaluated, so move on
-         lencounteri(:) = .false.
-         do jbox = ibox + 1, n ! Sweep forward until the end of the interval
+         if (.not.lfresh(i)) cycle
+         do jbox = ibox + 1, n
             j = aabb(dim)%ind(jbox)
             if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
-            if (j == i) exit ! We've reached the end of this interval
-            if (lfresh(j)) lencounteri(j) = .true. ! An overlapping box is found that has not previously been tallied
+            if (j == i) then
+               lfresh(i) = .false.
+               aabb(dim)%noverlap(i) = jbox - ibox - 1
+               aabb(dim)%istart(i) = ibox
+               exit ! We've reached the end of this interval 
+            end if
          end do
-         lfresh(i) = .false. ! This body has now been processed, so it should no longer show up in future encounter lists
+      end do
+
+      ! Sweep the intervals for each of the massive bodies
+      !$omp parallel do simd default(firstprivate) schedule(static)&
+      !$omp shared(aabb, lenc)
+      do i = 1, npl
+         if (i > nplm) cycle ! Not fully interacting, so move on
+         if (aabb(dim)%noverlap(i) == 0) cycle ! No overlaps
+
+         ibox = aabb(dim)%istart(i)
+         nbox = aabb(dim)%istart(i) + aabb(dim)%noverlap(i)
+
+         lencounteri(:) = .false.
+         do jbox = ibox + 1, nbox ! Sweep forward until the end of the interval
+            j = aabb(dim)%ind(jbox)
+            if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
+            lencounteri(j) = .true. 
+         end do
+
          nenci = count(lencounteri(:))
+
          if (nenci > 0) then
             allocate(lenc(i)%index2(nenci))
             lenc(i)%nenc = nenci
             lenc(i)%index2(:) = pack(ind_arr(:), lencounteri(:)) 
          end if 
       end do
+      !$omp end parallel do simd
       
       associate(nenc_arr => lenc(:)%nenc)
          nenc = sum(nenc_arr(1:nplm))
@@ -124,6 +154,8 @@ contains
          ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
          lenc_final(:) = .true.
 
+         !$omp parallel do simd default(firstprivate) schedule(static)&
+         !$omp shared(lenc_final, lvdotr_final) 
          do k = 1, nenc
             i = index1(k)
             j = index2(k)
@@ -136,6 +168,7 @@ contains
             renc12 = renc(i) + renc(j)
             call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lenc_final(k), lvdotr_final(k)) 
          end do
+         !$omp end parallel do simd
 
          nenc = count(lenc_final(:)) ! Count the true number of encounters
          allocate(tmp(nenc))
@@ -146,6 +179,42 @@ contains
          call move_alloc(tmp, index2)
          allocate(lvdotr(nenc))
          lvdotr(:) = pack(lvdotr_final(:), lenc_final(:))
+
+         ! Reorder the pairs in order to remove any duplicates
+         do k = 1, nenc
+            if (index2(k) < index1(k)) then
+               i = index2(k)
+               index2(k) = index1(k)
+               index1(k) = i
+            end if
+         end do
+         call util_sort(index1, ind)
+         if (allocated(lenc_final)) deallocate(lenc_final)
+         allocate(lenc_final(nenc))
+         lenc_final(:) = .true.
+         k = 1
+         i1 = 0
+         j1 = 0
+         lfresh(:) = .true.
+         do k = 1+1, nenc 
+            i0 = index1(ind(k-1))
+            i = index1(ind(k))
+            if (i /= i0) lfresh(:) = .true.
+            j = index2(ind(k))
+            if (.not.lfresh(j)) lenc_final(ind(k)) = .false.
+            lfresh(j) = .false.
+         end do
+
+         nenc = count(lenc_final(:)) ! Count the true number of encounters
+         allocate(tmp(nenc))
+         tmp(:) = pack(index1(:), lenc_final(:))
+         call move_alloc(tmp, index1)
+         allocate(tmp(nenc))
+         tmp(:) = pack(index2(:), lenc_final(:))
+         call move_alloc(tmp, index2)
+         allocate(lvdotr(nenc))
+         lvdotr(:) = pack(lvdotr_final(:), lenc_final(:))
+
       end if
 
       return
@@ -490,8 +559,8 @@ contains
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine: encounter_check_one.f90
-      !! Adapted from Hal Levison's Swift routine encounter_check_one.f
+      !! Adapted from David E. Kaufmann's Swifter routine: rmvs_chk_ind.f90
+      !! Adapted from Hal Levison's Swift routine rmvs_chk_ind.f
       implicit none
       ! Arguments
       real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
@@ -501,7 +570,7 @@ contains
       logical,  intent(out) :: lencounter    !! Flag indicating that an encounter has occurred
       logical,  intent(out) :: lvdotr        !! Logical flag indicating the direction of the v .dot. r vector
       ! Internals
-      real(DP) :: r2crit, r2min, r2, v2, vdotr
+      real(DP) :: r2crit, r2min, r2, v2, vdotr, tmin
 
       r2 = xr**2 + yr**2 + zr**2
       r2crit = renc**2
@@ -513,8 +582,9 @@ contains
       if (.not.lvdotr) return
      
       v2 = vxr**2 + vyr**2 + vzr**2
+      tmin = -vdotr / v2
 
-      if (-vdotr < v2 * dt) then
+      if (tmin < dt) then
          r2min = r2 - vdotr**2 / v2
       else
          r2min = r2 + 2 * vdotr * dt + v2 * dt**2
