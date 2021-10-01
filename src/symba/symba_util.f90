@@ -294,12 +294,11 @@ contains
          pl%nplm = int(nplm, kind=I4B)
          nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
          nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
-         if ((param%lflatten_interactions) .or. (param%lflatten_encounters)) then
+         if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
             if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
                param%lflatten_interactions = .false.
-               param%lflatten_encounters = .false.
             else
                do concurrent (i=1:npl, j=1:npl, j>i)
                   call util_flatten_eucl_ij_to_k(npl, i, j, k)
@@ -668,6 +667,31 @@ contains
       return
    end subroutine symba_util_resize_tp
 
+   
+   module subroutine symba_util_set_renc(self, scale)
+      !! author: David A. Minton
+      !!
+      !! Sets the critical radius for encounter given an input recursion depth
+      !!
+      implicit none
+      ! Arguments
+      class(symba_pl), intent(inout) :: self !! SyMBA massive body object
+      integer(I4B),    intent(in)    :: scale !! Current recursion depth
+      ! Internals
+      integer(I4B) :: i
+      real(DP)     :: rshell_irec
+
+      associate(pl => self, npl => self%nbody)
+         rshell_irec = 1._DP
+         do i = 1, scale
+            rshell_irec = rshell_irec * RSHELL
+         end do
+         pl%renc(1:npl) = pl%rhill(1:npl) * RHSCALE * rshell_irec
+      end associate
+
+      return
+   end subroutine symba_util_set_renc
+
 
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
@@ -692,20 +716,19 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
-         allocate(ind(npl))
          select case(sortby)
          case("nplenc")
-            call util_sort(direction * pl%nplenc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%nplenc(1:npl), ind)
          case("ntpenc")
-            call util_sort(direction * pl%ntpenc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%ntpenc(1:npl), ind)
          case("levelg")
-            call util_sort(direction * pl%levelg(1:npl), ind(1:npl))
+            call util_sort(direction * pl%levelg(1:npl), ind)
          case("levelm")
-            call util_sort(direction * pl%levelm(1:npl), ind(1:npl))
+            call util_sort(direction * pl%levelm(1:npl), ind)
          case("peri")
-            call util_sort(direction * pl%peri(1:npl), ind(1:npl))
+            call util_sort(direction * pl%peri(1:npl), ind)
          case("atp")
-            call util_sort(direction * pl%atp(1:npl), ind(1:npl))
+            call util_sort(direction * pl%atp(1:npl), ind)
          case("lcollision", "lencounter", "lmtiny", "nplm", "nplplm", "kin", "info")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -743,14 +766,13 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
-         allocate(ind(ntp))
          select case(sortby)
          case("nplenc")
-            call util_sort(direction * tp%nplenc(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%nplenc(1:ntp), ind)
          case("levelg")
-            call util_sort(direction * tp%levelg(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%levelg(1:ntp), ind)
          case("levelm")
-            call util_sort(direction * tp%levelm(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%levelm(1:ntp), ind)
          case default ! Look for components in the parent class
             call util_sort_tp(tp, sortby, ascending)
             return

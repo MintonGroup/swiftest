@@ -126,6 +126,27 @@ contains
    end subroutine setup_encounter
 
 
+   module subroutine setup_finalize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Runs any finalization subroutines when ending the simulation.
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      integer(I4B)                                :: ierr
+
+      associate(system => self)
+         if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+            call param%nciu%close()
+         end if
+      end associate
+
+      return
+   end subroutine setup_finalize_system
+
+
    module subroutine setup_initialize_particle_info_system(self, param)
       !! author: David A. Minton
       !!
@@ -163,28 +184,31 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
- 
-      call self%cb%read_in(param)
-      call self%pl%read_in(param)
-      call self%tp%read_in(param)
-      call self%validate_ids(param)
-      call self%set_msys()
-      call self%pl%set_mu(self%cb) 
-      call self%tp%set_mu(self%cb) 
-      if (param%in_form == EL) then
-         call self%pl%el2xv(self%cb)
-         call self%tp%el2xv(self%cb)
-      end if
-      call self%pl%flatten(param)
-      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
-      self%pl%lfirst = param%lfirstkick
-      self%tp%lfirst = param%lfirstkick
+      integer(I4B)                                :: ierr
 
-      if (param%lrestart) then
-         call self%read_particle_info(param)
-      else
-         call self%init_particle_info(param)
-      end if
+      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+
+         call system%read_in(param)
+         call system%validate_ids(param)
+         call system%set_msys()
+         call pl%set_mu(cb) 
+         call tp%set_mu(cb) 
+         if (param%in_form == EL) then
+            call pl%el2xv(cb)
+            call tp%el2xv(cb)
+         end if
+         call pl%flatten(param)
+         if (.not.param%lrhill_present) call pl%set_rhill(cb)
+         pl%lfirst = param%lfirstkick
+         tp%lfirst = param%lfirstkick
+
+         if (param%lrestart) then
+            call system%read_particle_info(param)
+         else
+            call system%init_particle_info(param)
+         end if
+      end associate
+
       return
    end subroutine setup_initialize_system
 
@@ -310,6 +334,7 @@ contains
       if (allocated(self%mass)) deallocate(self%mass)
       if (allocated(self%Gmass)) deallocate(self%Gmass)
       if (allocated(self%rhill)) deallocate(self%rhill)
+      if (allocated(self%renc)) deallocate(self%renc)
       if (allocated(self%radius)) deallocate(self%radius)
       if (allocated(self%density)) deallocate(self%density)
       if (allocated(self%rot)) deallocate(self%rot)
@@ -323,10 +348,12 @@ contains
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
+      allocate(self%renc(n))
 
       self%mass(:) = 0.0_DP
       self%Gmass(:) = 0.0_DP
       self%rhill(:) = 0.0_DP
+      self%renc(:) = 0.0_DP
 
       self%nplpl = 0   
 

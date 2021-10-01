@@ -100,6 +100,11 @@ fast:
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
 	  ln -s $(SWIFTEST_HOME)/Makefile .; \
 	  make fastdir
+	cd $(SWIFTEST_HOME)/src/encounter; \
+	  rm -f Makefile.Defines Makefile; \
+	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
+	  ln -s $(SWIFTEST_HOME)/Makefile .; \
+	  make fastdir
 	cd $(SWIFTEST_HOME)/src/fraggle; \
 	  rm -f Makefile.Defines Makefile; \
 	  ln -s $(SWIFTEST_HOME)/Makefile.Defines .; \
@@ -234,6 +239,7 @@ clean:
 	cd $(SWIFTEST_HOME)/src/modules;  rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/discard; rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/drift;   rm -f Makefile.Defines Makefile *.gc*
+	cd $(SWIFTEST_HOME)/src/encounter;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/fraggle;   rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/gr;          rm -f Makefile.Defines Makefile *.gc*
 	cd $(SWIFTEST_HOME)/src/helio;    rm -f Makefile.Defines Makefile *.gc*
@@ -260,28 +266,3 @@ clean:
 
 
 force:
-
-#******************************************************************************
-#
-#  Author(s)   : David E. Kaufmann
-#
-#  Revision Control System (RCS) Information
-#
-#  Source File : $RCSfile: Makefile,v $
-#  Full Path   : $Source: /d1/kaufmann/development/RCS/Makefile,v $
-#  Revision    : $Revision: 0.1 $
-#  Date        : $Date: 2003/04/15 22:56:34 $
-#  Programmer  : $Author: kaufmann $
-#  Locked By   : $Locker: kaufmann $
-#  State       : $State: Exp $
-#
-#  Modification History:
-#
-#  $Log: Makefile,v $
-#  Revision 0.1  2003/04/15 22:56:34  kaufmann
-#  Initial implementation
-#
-#
-#******************************************************************************
-
-

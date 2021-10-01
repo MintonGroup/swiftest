@@ -5,12 +5,13 @@ DT             0.0006844626967830253
 CB_IN          cb.swiftest.in
 PL_IN          pl.swiftest.in
 TP_IN          tp.swiftest.in
-IN_TYPE        REAL8
+IN_TYPE        ASCII
+IN_FORM        XV
 ISTEP_OUT      1
-ISTEP_DUMP     1
-BIN_OUT        bin.swiftest.dat
-OUT_TYPE       REAL8
-OUT_FORM       XV
+ISTEP_DUMP     10
+BIN_OUT        bin.swiftest.nc
+OUT_TYPE       NETCDF_DOUBLE
+OUT_FORM       XVEL
 OUT_STAT       REPLACE
 CHK_CLOSE      yes
 CHK_RMIN       0.004650467260962157
@@ -30,3 +31,4 @@ DU2M           149597870700.0
 TU2S           31557600.0
 RHILL_PRESENT  yes
 GMTINY          1e-12
+INTERACTION_LOOPS TRIANGULAR

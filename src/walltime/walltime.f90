@@ -2,10 +2,37 @@ submodule(walltime_classes) s_walltime
    use swiftest
 contains
 
-   module subroutine walltime_finish(self, nsubsteps, message, param)
+   module subroutine walltime_stop(self)
       !! author: David A. Minton
       !!
-      !! Ends the timer, setting step_finish to the current ticker value and printing the elapsed time information to the terminal
+      !! Pauses the step timer (but not the main timer). 
+      implicit none
+      ! Arguments
+      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      ! Internals
+      integer(I8B) :: count_delta
+
+      if (self%is_paused) then
+         write(*,*) "Wall timer error: Timer is already paused!"
+         return
+      end if
+
+      call system_clock(self%count_pause)
+      self%is_paused = .true.
+
+      self%count_stop_step = self%count_pause
+
+      count_delta = self%count_stop_step - self%count_start_step
+      self%wall_step = count_delta / (self%count_rate * 1.0_DP)
+
+      return 
+   end subroutine walltime_stop
+
+
+   module subroutine walltime_report(self, nsubsteps, message, param)
+      !! author: David A. Minton
+      !!
+      !! Prints the elapsed time information to the terminal
       implicit none
       ! Arguments
       class(walltimer),           intent(inout) :: self      !! Walltimer object
@@ -13,67 +40,88 @@ contains
       character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
       class(swiftest_parameters), intent(inout) :: param     !! Current run configuration parameters
       ! Internals
-      character(len=*), parameter     :: walltimefmt = '" Wall time (s): ", es12.5, "; Wall time/step in this interval (s):  ", es12.5'
+      character(len=*), parameter     :: walltimefmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, "; Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
-      integer(I8B)                    :: count_delta_step, count_delta_main
+      integer(I8B)                    :: count_delta_step, count_delta_main, count_now
       real(DP)                        :: wall_main         !! Value of total elapsed time at the end of a timed step
       real(DP)                        :: wall_step         !! Value of elapsed time since the start of a timed step
       real(DP)                        :: wall_per_substep  !! Value of time per substep 
 
-      if (.not.self%lmain_is_started) then
+      if (.not.self%main_is_started) then
          write(*,*) "Wall timer error: The step finish time cannot be calculated because the timer is not started!"
          return
       end if
 
-      call system_clock(self%count_finish_step)
-
-      count_delta_step = self%count_finish_step - self%count_start_step
-      count_delta_main = self%count_finish_step - self%count_start_main
-      wall_step = count_delta_step / (self%count_rate * 1.0_DP)
+      call system_clock(count_now)
+      count_delta_main = count_now - self%count_start_main
+      count_delta_step = count_now - self%count_start_step
       wall_main = count_delta_main / (self%count_rate * 1.0_DP)
+      wall_step = count_delta_step / (self%count_rate * 1.0_DP)
       wall_per_substep = wall_step / nsubsteps
 
       fmt = '("' //  adjustl(message) // '",' // walltimefmt // ')'
-      write(*,trim(adjustl(fmt))) wall_main, wall_per_substep
-
-      call self%start(param)
+      write(*,trim(adjustl(fmt))) wall_main, self%wall_step, wall_per_substep
 
       return
-   end subroutine walltime_finish
+   end subroutine walltime_report
 
 
-   module subroutine walltime_reset(self, param)
+   module subroutine walltime_reset(self)
+      !! author: David A. Minton
+      !!
+      !! Resets the step timer
+      implicit none
+      ! Arguments
+      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      ! Internals
+      integer(I8B) :: count_delta
+
+
+      self%is_paused = .false.
+      self%wall_step = 0.0_DP
+
+      return 
+   end subroutine walltime_reset
+
+
+   module subroutine walltime_start_main(self)
       !! author: David A. Minton
       !!
       !! Resets the clock ticker, settting main_start to the current ticker value
       implicit none
       ! Arguments
       class(walltimer),           intent(inout) :: self  !! Walltimer object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       
       call system_clock(self%count_start_main, self%count_rate, self%count_max)
-      self%lmain_is_started = .true.
-      call self%start(param)
+      self%main_is_started = .true.
 
       return
-   end subroutine walltime_reset 
+   end subroutine walltime_start_main
 
 
-   module subroutine walltime_start(self, param)
+   module subroutine walltime_start(self)
       !! author: David A. Minton
       !!
-      !! Starts the timer, setting step_start to the current ticker value
+      !! Starts or resumes the step timer
+      !!
       implicit none
       ! Arguments
       class(walltimer),           intent(inout) :: self  !! Walltimer object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      integer(I8B) :: count_resume, count_delta
 
-      if (.not.self%lmain_is_started) then
-         write(*,*) "Wall timer error: Cannot start the step time until reset is called at least once!"
-         return
+
+      if (.not.self%main_is_started) call self%start_main()
+
+      if (self%is_paused) then ! Resume a paused step timer
+         call system_clock(count_resume)
+         count_delta = count_resume - self%count_pause 
+         self%count_pause = 0_I8B 
+         self%count_start_step = self%count_start_step + count_delta
+         self%is_paused = .false.
+      else ! Start a new step timer
+         call system_clock(self%count_start_step)
       end if
-
-      call system_clock(self%count_start_step)
 
       return 
    end subroutine walltime_start
@@ -96,7 +144,7 @@ contains
       logical :: lflatten_final
 
       ! Record the elapsed time 
-      call system_clock(self%count_finish_step)
+      call self%stop()
 
       write(schar,'(I1)') self%stage
       write(nstr,*) ninteractions
@@ -108,7 +156,7 @@ contains
          else
             write(lstyle,*) "TRIANGULAR"
          end if 
-         self%stage1_metric = (self%count_finish_step - self%count_start_step) / real(ninteractions, kind=DP)
+         self%stage1_metric = (self%count_stop_step - self%count_start_step) / real(ninteractions, kind=DP)
          write(mstr,*) self%stage1_metric
       case(2)
          if (.not.self%stage1_is_flattened) then
@@ -117,7 +165,7 @@ contains
             write(lstyle,*) "TRIANGULAR"
          end if 
 
-         self%stage2_metric = (self%count_finish_step - self%count_start_step) / real(ninteractions, kind=DP)
+         self%stage2_metric = (self%count_stop_step - self%count_start_step) / real(ninteractions, kind=DP)
          self%is_on = .false.
          self%step_counter = 0
          if (self%stage1_metric < self%stage2_metric) then
@@ -129,7 +177,7 @@ contains
          write(mstr,*) self%stage2_metric
       end select
 
-      write(cstr,*) self%count_finish_step - self%count_start_step
+      write(cstr,*) self%count_stop_step - self%count_start_step
 
       call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
 
@@ -189,11 +237,9 @@ contains
       select case(trim(adjustl(self%looptype)))
       case("INTERACTIONS")
          param%lflatten_interactions = .not. param%lflatten_interactions
-      case("ENCOUNTERS")
-         param%lflatten_encounters = .not. param%lflatten_encounters
       end select
 
-      if ((param%lflatten_interactions) .or. (param%lflatten_encounters)) then
+      if (param%lflatten_interactions) then
          call pl%flatten(param)
       else
          if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
@@ -225,16 +271,12 @@ contains
          select case(trim(adjustl(self%looptype)))
          case("INTERACTIONS")
             self%stage1_is_flattened = param%lflatten_interactions
-         case("ENCOUNTERS")
-            self%stage1_is_flattened = param%lflatten_encounters
          end select
          call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(self%loopname)) // ": loop timer turned on at t = " // trim(adjustl(tstr)))
       case(2)
          select case(trim(adjustl(self%looptype)))
          case("INTERACTIONS")
             param%lflatten_interactions = self%stage1_is_flattened 
-         case("ENCOUNTERS")
-            param%lflatten_encounters = self%stage1_is_flattened 
          end select
          call self%flip(param, pl) 
       case default
@@ -244,7 +286,8 @@ contains
       write(schar,'(I1)') self%stage
       call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(self%loopname)) // ": stage " // schar )
 
-      call self%reset(param)
+      call self%reset()
+      call self%start()
 
       return
    end subroutine walltime_interaction_time_this_loop

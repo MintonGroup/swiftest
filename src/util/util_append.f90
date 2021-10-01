@@ -271,6 +271,7 @@ contains
             call util_append(self%mass, source%mass, nold, nsrc, lsource_mask)
             call util_append(self%Gmass, source%Gmass, nold, nsrc, lsource_mask)
             call util_append(self%rhill, source%rhill, nold, nsrc, lsource_mask)
+            call util_append(self%renc, source%renc, nold, nsrc, lsource_mask)
             call util_append(self%radius, source%radius, nold, nsrc, lsource_mask)
             call util_append(self%xbeg, source%xbeg, nold, nsrc, lsource_mask)
             call util_append(self%xend, source%xend, nold, nsrc, lsource_mask)

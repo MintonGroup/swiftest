@@ -15,12 +15,18 @@ module walltime_classes
       integer(I8B) :: count_max                  !! Maximum value of the clock ticker
       integer(I8B) :: count_start_main           !! Value of the clock ticker at when the timer is first called
       integer(I8B) :: count_start_step           !! Value of the clock ticker at the start of a timed step
-      integer(I8B) :: count_finish_step          !! Value of the clock ticker at the end of a timed step
-      logical      :: lmain_is_started = .false. !! Logical flag indicating whether or not the main timer has been reset or not
+      integer(I8B) :: count_stop_step            !! Value of the clock ticker at the end of a timed step
+      integer(I8B) :: count_pause                !! Value of the clock ticker at the end of a timed step
+      real(DP)     :: wall_step                  !! Value of the step elapsed time
+      logical      :: main_is_started = .false. !! Logical flag indicating whether or not the main timer has been reset or not
+      logical      :: is_paused = .false. !! Logical flag indicating whether or not the timer is paused
+
    contains
-      procedure :: reset  => walltime_reset  !! Resets the clock ticker, settting main_start to the current ticker value
-      procedure :: start  => walltime_start  !! Starts the timer, setting step_start to the current ticker value
-      procedure :: finish => walltime_finish !! Ends the timer, setting step_finish to the current ticker value and printing the elapsed time information to the terminal
+      procedure :: reset       => walltime_reset      !! Resets the clock ticker, settting main_start to the current ticker value
+      procedure :: start       => walltime_start      !! Starts or resumes the step timer
+      procedure :: start_main  => walltime_start_main !! Starts the main timer
+      procedure :: stop        => walltime_stop       !! Pauses the step timer
+      procedure :: report      => walltime_report     !! Prints the elapsed time information to the terminal
    end type walltimer
 
    type, extends(walltimer) :: interaction_timer
@@ -43,28 +49,34 @@ module walltime_classes
    end type interaction_timer
 
    interface
-      module subroutine walltime_finish(self, nsubsteps, message, param)
+      module subroutine walltime_report(self, nsubsteps, message, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(walltimer),           intent(inout) :: self      !! Walltimer object
          integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
          character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
          class(swiftest_parameters), intent(inout) :: param     !! Current run configuration parameters
-      end subroutine walltime_finish
+      end subroutine walltime_report
 
-      module subroutine walltime_reset(self, param)
-         use swiftest_classes, only : swiftest_parameters
+      module subroutine walltime_reset(self)
          implicit none
          class(walltimer),           intent(inout) :: self  !! Walltimer object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine walltime_reset 
 
-      module subroutine walltime_start(self, param)
-         use swiftest_classes, only : swiftest_parameters
+      module subroutine walltime_start(self)
          implicit none
          class(walltimer),           intent(inout) :: self  !! Walltimer object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine walltime_start
+
+      module subroutine walltime_start_main(self)
+         implicit none
+         class(walltimer),           intent(inout) :: self  !! Walltimer object
+      end subroutine walltime_start_main
+
+      module subroutine walltime_stop(self)
+         implicit none
+         class(walltimer),           intent(inout) :: self  !! Walltimer object
+      end subroutine walltime_stop
    end interface
 
    interface
