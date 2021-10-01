@@ -51,7 +51,7 @@ contains
          call encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc) 
       end if
 
-      if (param%ladaptive_encounters .and. nplplm > 0) then 
+      if (.not.lfirst .and. param%ladaptive_encounters .and. nplplm > 0) then 
          if (itimer%is_on) call itimer%adapt(param, nplplm)
       end if
 
@@ -107,6 +107,7 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
       integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
       ! Internals
+      integer(I4B), parameter :: SWEEPDIM = 2
       integer(I4B) :: i, j, k, m, nenci, i0, i1, j0, j1, dim, ibox, jbox, nbox, n, n_last
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
       logical, dimension(npl) :: lencounteri, lfresh
@@ -124,9 +125,11 @@ contains
          integer(I4B), dimension(:), allocatable :: ibeg !! Beginning index for box
          integer(I4B), dimension(:), allocatable :: iend !! Ending index for box
       end type
-      type(boundingBox), dimension(NDIM), save :: aabb
+      type(boundingBox), dimension(SWEEPDIM), save :: aabb
       logical, dimension(:), allocatable :: lenc_final, lvdotr_final
       integer(I2B), dimension(npl) :: vshift_min, vshift_max
+      integer :: ybegi, yendi
+      logical :: lency
 
       if (npl <= 1) return
 
@@ -137,66 +140,78 @@ contains
       if (npl_last /= npl) then
          if (allocated(ind_arr)) deallocate(ind_arr)
          allocate(ind_arr(npl))
-         if (allocated(aabb(dim)%ibeg)) deallocate(aabb(dim)%ibeg)
-         allocate(aabb(dim)%ibeg(npl))
-         if (allocated(aabb(dim)%iend)) deallocate(aabb(dim)%iend)
-         allocate(aabb(dim)%iend(npl))
          ind_arr(:) = [(i, i = 1, npl)]
-         if (npl > npl_last) then ! The number of bodies has grown. Resize and append the new bodies
-            allocate(tmp(n))
-            if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
-            call move_alloc(tmp, aabb(dim)%ind)
-            aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
-         else ! The number of bodies has gone down. Resize and chop of the old indices
-            allocate(tmp(n))
-            tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
-            call move_alloc(tmp, aabb(dim)%ind)
-         end if
+         do dim = 1, SWEEPDIM
+            if (allocated(aabb(dim)%ibeg)) deallocate(aabb(dim)%ibeg)
+            allocate(aabb(dim)%ibeg(npl))
+            if (allocated(aabb(dim)%iend)) deallocate(aabb(dim)%iend)
+            allocate(aabb(dim)%iend(npl))
+         end do
+         do dim = 1, SWEEPDIM
+            if (npl > npl_last) then ! The number of bodies has grown. Resize and append the new bodies
+               allocate(tmp(n))
+               if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
+               call move_alloc(tmp, aabb(dim)%ind)
+               aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
+            else ! The number of bodies has gone down. Resize and chop of the old indices
+               allocate(tmp(n))
+               tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
+               call move_alloc(tmp, aabb(dim)%ind)
+            end if
+         end do
          npl_last = npl
       end if
 
-      where(v(dim,1:npl) < 0.0_DP)
-         vshift_min(1:npl) = 1
-         vshift_max(1:npl) = 0
-      elsewhere
-         vshift_min(1:npl) = 0
-         vshift_max(1:npl) = 1
-      end where
-      call util_sort([x(dim,1:npl)-renc(1:npl)+vshift_min(1:npl)*v(dim,1:npl)*dt, &
-                        x(dim,1:npl)+renc(1:npl)+vshift_max(1:npl)*v(dim,1:npl)*dt], aabb(dim)%ind)
+      !$omp taskloop default(private) num_tasks(SWEEPDIM) &
+      !$omp shared(x, v, renc, aabb) &
+      !$omp firstprivate(dt, npl, n)
+      do dim = 1, SWEEPDIM
+         where(v(dim,1:npl) < 0.0_DP)
+            vshift_min(1:npl) = 1
+            vshift_max(1:npl) = 0
+         elsewhere
+            vshift_min(1:npl) = 0
+            vshift_max(1:npl) = 1
+         end where
+         call util_sort([x(dim,1:npl)-renc(1:npl)+vshift_min(1:npl)*v(dim,1:npl)*dt, &
+                         x(dim,1:npl)+renc(1:npl)+vshift_max(1:npl)*v(dim,1:npl)*dt], aabb(dim)%ind)
 
-      ! Determine the interval starting points and sizes
-
-      lfresh(:) = .true. ! This will prevent double-counting of pairs
-      do ibox = 1, n
-         i = aabb(dim)%ind(ibox)
-         if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
-         if (.not.lfresh(i)) cycle
-         do jbox = ibox + 1, n
-            j = aabb(dim)%ind(jbox)
-            if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
-            if (j == i) then
-               lfresh(i) = .false.
-               aabb(dim)%ibeg(i) = ibox
-               aabb(dim)%iend(i) = jbox
-               exit ! We've reached the end of this interval 
-            end if
+         ! Determine the interval starting points and sizes
+         lfresh(:) = .true. ! This will prevent double-counting of pairs
+         do ibox = 1, n
+            i = aabb(dim)%ind(ibox)
+            if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
+            if (.not.lfresh(i)) cycle
+            do jbox = ibox + 1, n
+               j = aabb(dim)%ind(jbox)
+               if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
+               if (j == i) then
+                  lfresh(i) = .false.
+                  aabb(dim)%ibeg(i) = ibox
+                  aabb(dim)%iend(i) = jbox
+                  exit ! We've reached the end of this interval 
+               end if
+            end do
          end do
       end do
+      !$omp end taskloop
 
       ! Sweep the intervals for each of the massive bodies along one dimension
+      ! This will build a ragged pair of index lists inside of the lenc data structure
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(aabb, lenc, ind_arr) &
       !$omp firstprivate(npl)
       do i = 1, npl
-         ibox = aabb(1)%ibeg(i)
+         ibox = aabb(1)%ibeg(i) + 1
          nbox = aabb(1)%iend(i) - 1
+         ybegi = aabb(2)%ibeg(i)
+         yendi = aabb(2)%iend(i)
          lencounteri(:) = .false.
-
-         do jbox = ibox + 1, nbox ! Sweep forward until the end of the interval
+         do concurrent(jbox = ibox:nbox) ! Sweep forward until the end of the interval
             j = aabb(1)%ind(jbox)
             if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
-            lencounteri(j) = .true.
+            ! Check the y-dimension
+            lencounteri(j) = (aabb(2)%iend(j) > ybegi) .and. (aabb(2)%ibeg(j) < yendi)
          end do
 
          lenc(i)%nenc = count(lencounteri(:))
@@ -217,6 +232,7 @@ contains
          allocate(lenc_final(nenc))
          allocate(lvdotr_final(nenc))
          j0 = 1
+         ! Convert the ragged index lists inside the lenc data structure into two linear arrays
          do i = 1, npl
             nenci = lenc(i)%nenc
             if (nenci > 0) then
@@ -226,6 +242,7 @@ contains
                j0 = j1 + 1
             end if
          end do
+
          ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
          lenc_final(:) = .true.
 
@@ -327,6 +344,7 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
       integer(I4B),                            intent(out) :: nenc   !! Total number of encounter
       ! Internals
+      integer(I4B), parameter :: SWEEPDIM = 2
       integer(I4B) :: i, j, k, nenci, j0, j1, dim, ibox, jbox, n, ntot
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
       logical, dimension(ntp) :: lencounteri
@@ -346,7 +364,7 @@ contains
       type boundingBox
          integer(I4B), dimension(:), allocatable :: ind !! Sorted minimum/maximum extent indices
       end type
-      type(boundingBox), dimension(NDIM), save :: aabb
+      type(boundingBox), dimension(SWEEPDIM), save :: aabb
       logical, dimension(:), allocatable :: lenc_final, lvdotr_final
       integer(I2B), dimension(npl) :: vplshift_min, vplshift_max
       integer(I2B), dimension(ntp) :: vtpshift_min, vtpshift_max
@@ -364,14 +382,14 @@ contains
          end if
 
          if (n > n_last) then ! The number of bodies has grown. Resize and append the new bodies
-            do dim = 1, NDIM
+            do dim = 1, SWEEPDIM
                allocate(tmp(n))
                if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
                call move_alloc(tmp, aabb(dim)%ind)
                aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
             end do
          else if (n < n_last) then ! The number of bodies has gone down. Resize and chop of the old indices
-            do dim = 1, NDIM
+            do dim = 1, SWEEPDIM
                allocate(tmp(n))
                tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
                call move_alloc(tmp, aabb(dim)%ind)
@@ -383,7 +401,7 @@ contains
          n_last = n
       end if
 
-      do i = 1, NDIM
+      do i = 1, SWEEPDIM
          where(vpl(i,1:npl) < 0.0_DP)
             vplshift_min(1:npl) = 1
             vplshift_max(1:npl) = 0
