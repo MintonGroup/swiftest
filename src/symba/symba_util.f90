@@ -429,12 +429,14 @@ contains
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
          allocate(lmask(npl))
          lmask(1:npl) = pl%ldiscard(1:npl)
-         allocate(tmp, mold=self)
-         call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
-         npl = pl%nbody
-         call tmp%setup(0,param)
-         deallocate(tmp)
-         deallocate(lmask)
+         if (count(lmask(:)) > 0) then
+            allocate(tmp, mold=self)
+            call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+            npl = pl%nbody
+            call tmp%setup(0,param)
+            deallocate(tmp)
+            deallocate(lmask)
+         end if
 
          ! Store the original plplenc list so we don't remove any of the original encounters
          nenc_old = system%plplenc_list%nenc
@@ -512,6 +514,7 @@ contains
          ! Re-index the encounter list as the index values may have changed
          if (nenc_old > 0) then
             nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
+            system%plplenc_list%nenc = nencmin
             do k = 1, nencmin
                idnew1 = system%plplenc_list%id1(k)
                idnew2 = system%plplenc_list%id2(k)
@@ -541,6 +544,32 @@ contains
                system%plplenc_list%index1(k) = findloc(pl%id(1:npl), system%plplenc_list%id1(k), dim=1)
                system%plplenc_list%index2(k) = findloc(pl%id(1:npl), system%plplenc_list%id2(k), dim=1)
             end do
+            if (allocated(lmask)) deallocate(lmask)
+            allocate(lmask(nencmin))
+            nenc_old = nencmin
+            if (any(system%plplenc_list%index1(1:nencmin) == 0) .or. any(system%plplenc_list%index2(1:nencmin) == 0)) then
+               lmask(:) = system%plplenc_list%index1(1:nencmin) /= 0 .and. system%plplenc_list%index2(1:nencmin) /= 0
+            else
+               return
+            end if
+            nencmin = count(lmask(:))
+            system%plplenc_list%nenc = nencmin
+            if (nencmin > 0) then
+               system%plplenc_list%index1(1:nencmin) = pack(system%plplenc_list%index1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%index2(1:nencmin) = pack(system%plplenc_list%index2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%id1(1:nencmin) = pack(system%plplenc_list%id1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%t(1:nencmin) = pack(system%plplenc_list%t(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))
+               do i = 1, NDIM
+                  system%plplenc_list%x1(i, 1:nencmin) = pack(system%plplenc_list%x1(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%x2(i, 1:nencmin) = pack(system%plplenc_list%x2(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%v1(i, 1:nencmin) = pack(system%plplenc_list%v1(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%v2(i, 1:nencmin) = pack(system%plplenc_list%v2(i, 1:nenc_old), lmask(1:nenc_old))
+               end do
+            end if
          end if
       end associate
 
