@@ -125,9 +125,12 @@ module swiftest_classes
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
       character(STRMAX)    :: energy_out     = ""                 !! Name of output energy and momentum report file
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
+      character(NAMELEN)   :: encounter_check = "ADAPTIVE"        !! Method used to compute encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
-      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on
+      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on (choose between TRIANGULAR and FLAT based on periodic timing tests)
+      logical :: lencounter_sas = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: ladaptive_encounters = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -583,65 +586,37 @@ module swiftest_classes
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
-      module subroutine encounter_check_all_sort_and_sweep_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
+      module subroutine encounter_check_all_plpl(param, npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
          implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
-         integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounter
-      end subroutine encounter_check_all_sort_and_sweep_plpl
+         class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+         integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
+         integer(I4B),                            intent(in)    :: nplm   !! Number of fully interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: x      !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: v      !! Velocity vectors of massive bodies
+         real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter 
+         real(DP),                                intent(in)    :: dt     !! Step size
+         logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
+         integer(I4B),                            intent(out)   :: nenc   !! Total number of encounters
+      end subroutine encounter_check_all_plpl
 
-      module subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+      module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
          implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
-         integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-         real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounter
-      end subroutine encounter_check_all_sort_and_sweep_pltp
-
-      module subroutine encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
-         implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
-         integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
-      end subroutine encounter_check_all_triangular_plpl
-
-      module subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
-         implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
-         integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-         real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
-      end subroutine encounter_check_all_triangular_pltp
+         class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+         integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
+         integer(I4B),                            intent(in)    :: ntp    !! Total number of test particles 
+         real(DP),     dimension(:,:),            intent(in)    :: xpl    !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: vpl    !! Velocity vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: xtp    !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of massive bodies
+         real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter
+         real(DP),                                intent(in)    :: dt     !! Step size
+         logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
+         integer(I4B),                            intent(out)   :: nenc   !! Total number of encounters
+      end subroutine encounter_check_all_pltp
 
       module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
          !$omp declare simd(encounter_check_one)

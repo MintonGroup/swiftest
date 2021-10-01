@@ -31,8 +31,7 @@ contains
 
          npl = pl%nbody
          nplm = pl%nplm
-         call encounter_check_all_sort_and_sweep_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
-         !call encounter_check_all_triangular_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+         call encounter_check_all_plpl(param, npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
          lany_encounter = nenc > 0
          if (lany_encounter) then
             call plplenc_list%resize(nenc)
@@ -76,7 +75,7 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-      class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -177,7 +176,7 @@ contains
       implicit none
       ! Arguments
       class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(in)    :: param  !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
@@ -194,7 +193,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
-         call encounter_check_all_sort_and_sweep_pltp(npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 

@@ -16,18 +16,16 @@ contains
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
-      character(len=STRMAX) :: tstr, nstr, cstr, mstr, lstyle
-      character(len=1) :: schar
 
       if (param%ladaptive_interactions) then
          if (self%nplpl > 0) then
             if (lfirst) then
                write(itimer%loopname, *) "kick_getacch_int_pl"
                write(itimer%looptype, *) "INTERACTION"
-               call itimer%time_this_loop(param, self, self%nplpl)
+               call itimer%time_this_loop(param, self%nplpl, self)
                lfirst = .false.
             else
-               if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self, self%nplpl)
+               if (itimer%check(param, self%nplpl)) call itimer%time_this_loop(param, self%nplpl, self)
             end if
          else
             param%lflatten_interactions = .false.
@@ -41,7 +39,7 @@ contains
       end if
 
       if (param%ladaptive_interactions .and. self%nplpl > 0) then 
-         if (itimer%is_on) call itimer%adapt(param, self, self%nplpl)
+         if (itimer%is_on) call itimer%adapt(param, self%nplpl, self)
       end if
 
       return

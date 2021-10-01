@@ -9,6 +9,7 @@ module walltime_classes
 
    integer(I4B) :: INTERACTION_TIMER_CADENCE = 1000 !! Minimum number of steps to wait before timing an interaction loop in ADAPTIVE mode
    character(len=*), parameter :: INTERACTION_TIMER_LOG_OUT  = "interaction_timer.log" !! Name of log file for recording results of interaction loop timing
+   character(len=*), parameter :: ENCOUNTER_TIMER_LOG_OUT  = "encounter_check_timer.log" !! Name of log file for recording results of encounter check method timing
 
    type :: walltimer
       integer(I8B) :: count_rate                 !! Rate at wich the clock ticks
@@ -37,7 +38,7 @@ module walltime_classes
       integer(I4B) :: step_counter = 0               !! Number of steps that have elapsed since the last timed loop
       logical      :: is_on = .false.                !! The loop timer is currently active
       integer(I4B) :: stage = 1                      !! The stage of the loop timing (1 or 2)
-      logical      :: stage1_is_flattened            !! Logical flag indicating whether stage1 was done with a flat loop (.true.) or triangular loop (.false.)
+      logical      :: stage1_is_advanced            !! Logical flag indicating whether stage1 was done with a flat loop (.true.) or triangular loop (.false.)
       integer(I8B) :: stage1_ninteractions           !! Number of interactions computed during stage 1
       real(DP)     :: stage1_metric                  !! Metric used to judge the performance of a timed loop (e.g. (count_finish_step - count_start_step) / ninteractions)
       real(DP)     :: stage2_metric                  !! Metric used to judge the performance of a timed loop (e.g. (count_finish_step - count_start_step) / ninteractions)
@@ -80,13 +81,13 @@ module walltime_classes
    end interface
 
    interface
-      module subroutine walltime_interaction_adapt(self, param, pl, ninteractions)
+      module subroutine walltime_interaction_adapt(self, param, ninteractions, pl)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(interaction_timer),   intent(inout) :: self          !! Interaction loop timer object
          class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
-         class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
          integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
+         class(swiftest_pl),         intent(inout), optional :: pl            !! Swiftest massive body object
       end subroutine walltime_interaction_adapt
 
       module function walltime_interaction_check(self, param, ninteractions) result(ltimeit)
@@ -103,16 +104,16 @@ module walltime_classes
          implicit none
          class(interaction_timer),   intent(inout) :: self  !! Interaction loop timer object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-         class(swiftest_pl),         intent(inout) :: pl    !! Swiftest massive body object
+         class(swiftest_pl),         intent(inout), optional :: pl    !! Swiftest massive body object
       end subroutine walltime_interaction_flip_loop_style
 
-      module subroutine walltime_interaction_time_this_loop(self, param, pl, ninteractions)
+      module subroutine walltime_interaction_time_this_loop(self, param, ninteractions, pl)
          use swiftest_classes, only : swiftest_parameters, swiftest_pl
          implicit none
          class(interaction_timer),   intent(inout) :: self          !! Interaction loop timer object
          class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
-         class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
          integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop)
+         class(swiftest_pl),         intent(inout), optional :: pl            !! Swiftest massive body object
       end subroutine walltime_interaction_time_this_loop
 
    end interface

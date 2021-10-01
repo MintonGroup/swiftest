@@ -2,7 +2,92 @@ submodule (swiftest_classes) s_encounter
    use swiftest
 contains
 
-   module subroutine encounter_check_all_sort_and_sweep_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
+   module subroutine encounter_check_all_plpl(param, npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
+      !! author: David A. Minton
+      !!
+      !! Check for encounters between massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+      integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
+      integer(I4B),                            intent(in)    :: nplm   !! Number of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: x      !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: v      !! Velocity vectors of massive bodies
+      real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter 
+      real(DP),                                intent(in)    :: dt     !! Step size
+      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
+      integer(I4B),                            intent(out)   :: nenc   !! Total number of encounters
+      ! Internals
+      type(interaction_timer), save :: itimer
+      logical, save :: lfirst = .true.
+      logical, save :: lsecond = .true.
+      integer(I8B) :: nplplm = 0_I8B
+
+      if (param%ladaptive_encounters) then
+         nplplm = nplm * npl - nplm * (nplm + 1) / 2 
+         if (nplplm > 0) then
+            if (lfirst) then  ! Skip the first pass to allow the bounding box extents to be sorted from their initial state at least once
+               lfirst = .false.
+               param%lencounter_sas = .true.
+            else if (lsecond) then
+               write(itimer%loopname, *) "encounter_check_all_plpl"
+               write(itimer%looptype, *) "ENCOUNTER"
+               call itimer%time_this_loop(param, nplplm)
+               lsecond = .false.
+            else
+               if (itimer%check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
+            end if
+         else
+            param%lencounter_sas = .false.
+         end if
+      end if
+
+      if (param%lencounter_sas) then
+         call encounter_check_all_sort_and_sweep_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc) 
+      else
+         call encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc) 
+      end if
+
+      if (param%ladaptive_encounters .and. nplplm > 0) then 
+         if (itimer%is_on) call itimer%adapt(param, nplplm)
+      end if
+
+      return
+   end subroutine encounter_check_all_plpl
+
+
+   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+      !! author: David A. Minton
+      !!
+      !! Check for encounters between massive bodies and test particles. Choose between the standard triangular or the Sort & Sweep method based on user inputs
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+      integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
+      integer(I4B),                            intent(in)    :: ntp    !! Total number of test particles 
+      real(DP),     dimension(:,:),            intent(in)    :: xpl    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: vpl    !! Velocity vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: xtp    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of massive bodies
+      real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter
+      real(DP),                                intent(in)    :: dt     !! Step size
+      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
+      integer(I4B),                            intent(out)   :: nenc   !! Total number of encounters
+
+
+      call encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc) 
+
+      return
+   end subroutine encounter_check_all_pltp
+
+
+   subroutine encounter_check_all_sort_and_sweep_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. 
@@ -45,76 +130,63 @@ contains
 
       if (npl <= 1) return
 
+      dim = 1 ! The dimension to sort and sweep (x works well for just about all cases. z is not recommended if objects are in near planar orbits, like the solar system)
       ! If this is the first time through, build the index lists
       n = 2 * npl
       n_last = 2 * npl_last
       if (npl_last /= npl) then
          if (allocated(ind_arr)) deallocate(ind_arr)
          allocate(ind_arr(npl))
-         do dim = 1, NDIM
-            if (allocated(aabb(dim)%ibeg)) deallocate(aabb(dim)%ibeg)
-            allocate(aabb(dim)%ibeg(npl))
-            if (allocated(aabb(dim)%iend)) deallocate(aabb(dim)%iend)
-            allocate(aabb(dim)%iend(npl))
-         end do
+         if (allocated(aabb(dim)%ibeg)) deallocate(aabb(dim)%ibeg)
+         allocate(aabb(dim)%ibeg(npl))
+         if (allocated(aabb(dim)%iend)) deallocate(aabb(dim)%iend)
+         allocate(aabb(dim)%iend(npl))
          ind_arr(:) = [(i, i = 1, npl)]
          if (npl > npl_last) then ! The number of bodies has grown. Resize and append the new bodies
-            do dim = 1, NDIM
-               allocate(tmp(n))
-               if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
-               call move_alloc(tmp, aabb(dim)%ind)
-               aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
-            end do
+            allocate(tmp(n))
+            if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
+            call move_alloc(tmp, aabb(dim)%ind)
+            aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
          else ! The number of bodies has gone down. Resize and chop of the old indices
-            do dim = 1, NDIM
-               allocate(tmp(n))
-               tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
-               call move_alloc(tmp, aabb(dim)%ind)
-            end do
+            allocate(tmp(n))
+            tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
+            call move_alloc(tmp, aabb(dim)%ind)
          end if
          npl_last = npl
       end if
 
-      do dim = 1, NDIM
-         where(v(dim,1:npl) < 0.0_DP)
-            vshift_min(1:npl) = 1
-            vshift_max(1:npl) = 0
-         elsewhere
-            vshift_min(1:npl) = 0
-            vshift_max(1:npl) = 1
-         end where
-         call util_sort([x(dim,1:npl)-renc(1:npl)+vshift_min(1:npl)*v(dim,1:npl)*dt, &
-                         x(dim,1:npl)+renc(1:npl)+vshift_max(1:npl)*v(dim,1:npl)*dt], aabb(dim)%ind)
-      end do
+      where(v(dim,1:npl) < 0.0_DP)
+         vshift_min(1:npl) = 1
+         vshift_max(1:npl) = 0
+      elsewhere
+         vshift_min(1:npl) = 0
+         vshift_max(1:npl) = 1
+      end where
+      call util_sort([x(dim,1:npl)-renc(1:npl)+vshift_min(1:npl)*v(dim,1:npl)*dt, &
+                        x(dim,1:npl)+renc(1:npl)+vshift_max(1:npl)*v(dim,1:npl)*dt], aabb(dim)%ind)
 
       ! Determine the interval starting points and sizes
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(aabb) &
-      !$omp firstprivate(n, npl)
-      do dim = 1, NDIM
-         lfresh(:) = .true. ! This will prevent double-counting of pairs
-         do ibox = 1, n
-            i = aabb(dim)%ind(ibox)
-            if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
-            if (.not.lfresh(i)) cycle
-            do jbox = ibox + 1, n
-               j = aabb(dim)%ind(jbox)
-               if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
-               if (j == i) then
-                  lfresh(i) = .false.
-                  aabb(dim)%ibeg(i) = ibox
-                  aabb(dim)%iend(i) = jbox
-                  exit ! We've reached the end of this interval 
-               end if
-            end do
+
+      lfresh(:) = .true. ! This will prevent double-counting of pairs
+      do ibox = 1, n
+         i = aabb(dim)%ind(ibox)
+         if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
+         if (.not.lfresh(i)) cycle
+         do jbox = ibox + 1, n
+            j = aabb(dim)%ind(jbox)
+            if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
+            if (j == i) then
+               lfresh(i) = .false.
+               aabb(dim)%ibeg(i) = ibox
+               aabb(dim)%iend(i) = jbox
+               exit ! We've reached the end of this interval 
+            end if
          end do
       end do
-      !$omp end parallel do 
 
       ! Sweep the intervals for each of the massive bodies along one dimension
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(aabb, lenc, ind_arr) &
-      !$omp firstprivate(npl)
+      !$omp parallel do simd default(firstprivate) schedule(static)&
+      !$omp shared(aabb, lenc, ind_arr)
       do i = 1, npl
          ibox = aabb(1)%ibeg(i)
          nbox = aabb(1)%iend(i) - 1
@@ -123,10 +195,7 @@ contains
          do jbox = ibox + 1, nbox ! Sweep forward until the end of the interval
             j = aabb(1)%ind(jbox)
             if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
-            do dim = 2, NDIM ! check to see if the i and j bodies overlap in the other two dimensions as well
-               lencounteri(j) = (aabb(dim)%iend(j) > aabb(dim)%ibeg(i)) .and. (aabb(dim)%ibeg(j) < aabb(dim)%iend(i))
-               if (.not.lencounteri(j)) exit
-            end do
+            lencounteri(j) = .true.
          end do
 
          lenc(i)%nenc = count(lencounteri(:))
@@ -135,7 +204,7 @@ contains
             lenc(i)%index2(:) = pack(ind_arr(:), lencounteri(:)) 
          end if
       end do
-      !$omp end parallel do 
+      !$omp end parallel do simd
 
       associate(nenc_arr => lenc(:)%nenc)
          nenc = sum(nenc_arr(1:npl))
@@ -235,7 +304,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
 
-   module subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -411,7 +480,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_pltp
 
 
-   module subroutine encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. Split off from the main subroutine for performance
@@ -488,7 +557,7 @@ contains
    end subroutine encounter_check_all_triangular_plpl
 
 
-   module subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Split off from the main subroutine for performance

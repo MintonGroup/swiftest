@@ -270,7 +270,7 @@ module symba_classes
       module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-         class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -280,7 +280,7 @@ module symba_classes
       module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_tp),            intent(inout) :: self           !! SyMBA test particle object  
-         class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 

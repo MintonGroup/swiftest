@@ -475,13 +475,13 @@ contains
       ! Internals
       character(STRMAX) :: errmsg
 
-      open(unit=LUN, file=file, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      open(unit=LUN, file=trim(adjustl(file)), status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
       write(LUN, *) trim(adjustl(message)) 
       close(LUN)
 
       return
       667 continue
-      write(*,*) "Error writing  message to log file: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing message to log file: " // trim(adjustl(errmsg))
    end subroutine io_log_one_message
 
 
@@ -498,7 +498,7 @@ contains
       character(STRMAX) :: errmsg
       logical           :: fileExists
 
-      inquire(file=file, exist=fileExists)
+      inquire(file=trim(adjustl(file)), exist=fileExists)
       if (.not.param%lrestart .or. .not.fileExists) then
          open(unit=LUN, file=file, status="REPLACE", err = 667, iomsg = errmsg)
          write(LUN, *, err = 667, iomsg = errmsg) trim(adjustl(header))
@@ -649,6 +649,9 @@ contains
                case ("INTERACTION_LOOPS")
                   call io_toupper(param_value)
                   param%interaction_loops = param_value
+               case ("ENCOUNTER_CHECK")
+                  call io_toupper(param_value)
+                  param%encounter_check = param_value
                case ("FIRSTKICK")
                   call io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
@@ -828,6 +831,32 @@ contains
             param%interaction_loops = "ADAPTIVE"
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
+            call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         end select
+
+
+         select case(trim(adjustl(param%encounter_check)))
+         case("ADAPTIVE")
+            param%ladaptive_encounters = .true.
+            param%lencounter_sas = .true.
+            call io_log_start(param, ENCOUNTER_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         case("TRIANGULAR")
+            param%ladaptive_encounters = .false.
+            param%lencounter_sas = .false.
+         case("SORTSWEEP")
+            param%ladaptive_encounters = .false.
+            param%lencounter_sas = .true.
+         case default
+            write(*,*) "Unknown value for parameter ENCOUNTER_CHECK: -> ",trim(adjustl(param%encounter_check))
+            write(*,*) "Must be one of the following: TRIANGULAR, SORTSWEEP, or ADAPTIVE"
+            write(*,*) "Using default value of ADAPTIVE"
+            param%encounter_check = "ADAPTIVE"
+            param%ladaptive_encounters = .true.
+            param%lencounter_sas = .true.
+            call io_log_start(param, ENCOUNTER_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          end select
 
          iostat = 0
@@ -920,6 +949,7 @@ contains
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
+         call io_param_writer_one("ENCOUNTER_CHECK", param%encounter_check, unit)
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)

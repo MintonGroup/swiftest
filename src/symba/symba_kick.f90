@@ -22,10 +22,10 @@ contains
             if (lfirst) then
                write(itimer%loopname, *)  "symba_kick_getacch_int_pl"
                write(itimer%looptype, *)  "INTERACTION"
-               call itimer%time_this_loop(param, self, self%nplplm)
+               call itimer%time_this_loop(param, self%nplplm, self)
                lfirst = .false.
             else
-               if (itimer%check(param, self%nplplm)) call itimer%time_this_loop(param, self, self%nplplm)
+               if (itimer%check(param, self%nplplm)) call itimer%time_this_loop(param, self%nplplm, self)
             end if
          else
             param%lflatten_interactions = .false.
@@ -39,7 +39,7 @@ contains
       end if
 
       if (param%ladaptive_interactions .and. self%nplplm > 0) then 
-         if (itimer%is_on) call itimer%adapt(param, self, self%nplplm)
+         if (itimer%is_on) call itimer%adapt(param, self%nplplm, self)
       end if
 
       return
