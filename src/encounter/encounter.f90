@@ -185,7 +185,7 @@ contains
       end do
 
       ! Sweep the intervals for each of the massive bodies along one dimension
-      !$omp parallel do simd default(firstprivate) schedule(static)&
+      !$omp parallel do default(private) schedule(static)&
       !$omp shared(aabb, lenc, ind_arr)
       do i = 1, npl
          ibox = aabb(1)%ibeg(i)
@@ -204,7 +204,7 @@ contains
             lenc(i)%index2(:) = pack(ind_arr(:), lencounteri(:)) 
          end if
       end do
-      !$omp end parallel do simd
+      !$omp end parallel do
 
       associate(nenc_arr => lenc(:)%nenc)
          nenc = sum(nenc_arr(1:npl))
@@ -227,10 +227,11 @@ contains
          end do
          ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
          lenc_final(:) = .true.
+         
 
-         !$omp parallel do simd default(firstprivate) schedule(static)&
-         !$omp shared(index1, index2, renc, lenc_final, lvdotr_final) &
-         !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12)
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(lenc_final, lvdotr_final) &
+         !$omp firstprivate(nenc, nplm, dt, index1, index2, renc, x, v)
          do k = 1, nenc
             i = index1(k)
             j = index2(k)
@@ -247,7 +248,7 @@ contains
                call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lenc_final(k), lvdotr_final(k)) 
             end if
          end do
-         !$omp end parallel do simd
+         !$omp end parallel do 
 
          nenc = count(lenc_final(:)) ! Count the true number of encounters
          allocate(tmp(nenc))
