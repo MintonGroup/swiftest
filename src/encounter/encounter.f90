@@ -186,7 +186,8 @@ contains
 
       ! Sweep the intervals for each of the massive bodies along one dimension
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(aabb, lenc, ind_arr)
+      !$omp shared(aabb, lenc, ind_arr) &
+      !$omp firstprivate(npl)
       do i = 1, npl
          ibox = aabb(1)%ibeg(i)
          nbox = aabb(1)%iend(i) - 1
@@ -229,7 +230,7 @@ contains
          lenc_final(:) = .true.
 
          !$omp parallel do simd default(firstprivate) schedule(static)&
-         !$omp shared(lenc_final, lvdotr_final) &
+         !$omp shared(lenc_final, lvdotr_final, index1, index2, x, v) &
          !$omp lastprivate(i, j, xr, yr, zr, vxr, vyr, vzr, renc12)
          do k = 1, nenc
             i = index1(k)
