@@ -227,11 +227,10 @@ contains
          end do
          ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
          lenc_final(:) = .true.
-         
 
-         !$omp parallel do default(private) schedule(static)&
+         !$omp parallel do simd default(firstprivate) schedule(static)&
          !$omp shared(lenc_final, lvdotr_final) &
-         !$omp firstprivate(nenc, nplm, dt, index1, index2, renc, x, v)
+         !$omp lastprivate(i, j, xr, yr, zr, vxr, vyr, vzr, renc12)
          do k = 1, nenc
             i = index1(k)
             j = index2(k)
@@ -248,7 +247,7 @@ contains
                call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lenc_final(k), lvdotr_final(k)) 
             end if
          end do
-         !$omp end parallel do 
+         !$omp end parallel do simd
 
          nenc = count(lenc_final(:)) ! Count the true number of encounters
          allocate(tmp(nenc))
