@@ -88,6 +88,9 @@ contains
       end do
 
       ! Determine the interval starting points and sizes
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(aabb) &
+      !$omp firstprivate(n, npl)
       do dim = 1, NDIM
          lfresh(:) = .true. ! This will prevent double-counting of pairs
          do ibox = 1, n
@@ -106,10 +109,12 @@ contains
             end do
          end do
       end do
+      !$omp end parallel do 
 
       ! Sweep the intervals for each of the massive bodies along one dimension
-      !$omp parallel do simd default(firstprivate) schedule(static)&
-      !$omp shared(aabb, lenc)
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(aabb, lenc) &
+      !$omp firstprivate(npl, ind_arr)
       do i = 1, npl
          ibox = aabb(1)%ibeg(i)
          nbox = aabb(1)%iend(i) - 1
@@ -130,7 +135,7 @@ contains
             lenc(i)%index2(:) = pack(ind_arr(:), lencounteri(:)) 
          end if
       end do
-      !$omp end parallel do simd
+      !$omp end parallel do 
 
       associate(nenc_arr => lenc(:)%nenc)
          nenc = sum(nenc_arr(1:npl))
@@ -155,7 +160,8 @@ contains
          lenc_final(:) = .true.
 
          !$omp parallel do simd default(firstprivate) schedule(static)&
-         !$omp shared(index1, index2, renc, lenc_final, lvdotr_final) 
+         !$omp shared(index1, index2, renc, lenc_final, lvdotr_final) &
+         !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12)
          do k = 1, nenc
             i = index1(k)
             j = index2(k)
@@ -185,12 +191,10 @@ contains
          lvdotr(:) = pack(lvdotr_final(:), lenc_final(:))
 
          ! Reorder the pairs in order to remove any duplicates
-         do k = 1, nenc 
-            if (index2(k) < index1(k)) then
-               i = index2(k)
-               index2(k) = index1(k)
-               index1(k) = i
-            end if
+         do concurrent(k = 1:nenc, index2(k) < index1(k))
+            i = index2(k)
+            index2(k) = index1(k)
+            index1(k) = i
          end do
 
          if (allocated(lenc_final)) deallocate(lenc_final)
@@ -198,6 +202,7 @@ contains
          lenc_final(:) = .true.
          call util_sort(index1, ind)
          lfresh(:) = .true.
+
          do k = 1, nenc 
             i = index1(ind(k))
             j = index2(ind(k))
