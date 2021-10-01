@@ -31,13 +31,13 @@ contains
          integer(I4B), dimension(:), allocatable :: index2
          integer(I4B) :: nenc
       end type
-      type(lenctype), dimension(nplm) :: lenc
+      type(lenctype), dimension(npl) :: lenc
       integer(I4B), dimension(:), allocatable :: tmp, ind
       integer(I4B), save :: npl_last = 0
       type boundingBox
          integer(I4B), dimension(:), allocatable :: ind !! Sorted minimum/maximum extent indices
-         integer(I4B), dimension(:), allocatable :: noverlap !! Number of overlaps for each body
-         integer(I4B), dimension(:), allocatable :: istart !! Starting index for box
+         integer(I4B), dimension(:), allocatable :: ibeg !! Beginning index for box
+         integer(I4B), dimension(:), allocatable :: iend !! Ending index for box
       end type
       type(boundingBox), dimension(NDIM), save :: aabb
       logical, dimension(:), allocatable :: lenc_final, lvdotr_final
@@ -51,90 +51,89 @@ contains
       if (npl_last /= npl) then
          if (allocated(ind_arr)) deallocate(ind_arr)
          allocate(ind_arr(npl))
-         do i = 1, NDIM
-            if (allocated(aabb(i)%noverlap)) deallocate(aabb(i)%noverlap)
-            allocate(aabb(i)%noverlap(npl))
-            if (allocated(aabb(i)%istart)) deallocate(aabb(i)%istart)
-            allocate(aabb(i)%istart(npl))
+         do dim = 1, NDIM
+            if (allocated(aabb(dim)%ibeg)) deallocate(aabb(dim)%ibeg)
+            allocate(aabb(dim)%ibeg(npl))
+            if (allocated(aabb(dim)%iend)) deallocate(aabb(dim)%iend)
+            allocate(aabb(dim)%iend(npl))
          end do
          ind_arr(:) = [(i, i = 1, npl)]
          if (npl > npl_last) then ! The number of bodies has grown. Resize and append the new bodies
-            do i = 1, NDIM
+            do dim = 1, NDIM
                allocate(tmp(n))
-               if (npl_last > 0) tmp(1:n_last) = aabb(i)%ind(1:n_last)
-               call move_alloc(tmp, aabb(i)%ind)
-               aabb(i)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
+               if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
+               call move_alloc(tmp, aabb(dim)%ind)
+               aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
             end do
          else ! The number of bodies has gone down. Resize and chop of the old indices
-            do i = 1, NDIM
+            do dim = 1, NDIM
                allocate(tmp(n))
-               tmp(1:n) = pack(aabb(i)%ind(1:n_last), aabb(i)%ind(1:n_last) <= n)
-               call move_alloc(tmp, aabb(i)%ind)
+               tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
+               call move_alloc(tmp, aabb(dim)%ind)
             end do
          end if
          npl_last = npl
       end if
 
-      do i = 1, NDIM
-         where(v(i,1:npl) < 0.0_DP)
+      do dim = 1, NDIM
+         where(v(dim,1:npl) < 0.0_DP)
             vshift_min(1:npl) = 1
             vshift_max(1:npl) = 0
          elsewhere
             vshift_min(1:npl) = 0
             vshift_max(1:npl) = 1
          end where
-         call util_sort([x(i,1:npl)-renc(1:npl)+vshift_min(1:npl)*v(i,1:npl)*dt, &
-                         x(i,1:npl)+renc(1:npl)+vshift_max(1:npl)*v(i,1:npl)*dt], aabb(i)%ind)
+         call util_sort([x(dim,1:npl)-renc(1:npl)+vshift_min(1:npl)*v(dim,1:npl)*dt, &
+                         x(dim,1:npl)+renc(1:npl)+vshift_max(1:npl)*v(dim,1:npl)*dt], aabb(dim)%ind)
       end do
 
       ! Determine the interval starting points and sizes
-      dim = 1
-      lfresh(:) = .true. ! This will prevent double-counting of pairs
-      do ibox = 1, n
-         i = aabb(dim)%ind(ibox)
-         if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
-         if (.not.lfresh(i)) cycle
-         do jbox = ibox + 1, n
-            j = aabb(dim)%ind(jbox)
-            if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
-            if (j == i) then
-               lfresh(i) = .false.
-               aabb(dim)%noverlap(i) = jbox - ibox - 1
-               aabb(dim)%istart(i) = ibox
-               exit ! We've reached the end of this interval 
-            end if
+      do dim = 1, NDIM
+         lfresh(:) = .true. ! This will prevent double-counting of pairs
+         do ibox = 1, n
+            i = aabb(dim)%ind(ibox)
+            if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
+            if (.not.lfresh(i)) cycle
+            do jbox = ibox + 1, n
+               j = aabb(dim)%ind(jbox)
+               if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
+               if (j == i) then
+                  lfresh(i) = .false.
+                  aabb(dim)%ibeg(i) = ibox
+                  aabb(dim)%iend(i) = jbox
+                  exit ! We've reached the end of this interval 
+               end if
+            end do
          end do
       end do
 
-      ! Sweep the intervals for each of the massive bodies
+      ! Sweep the intervals for each of the massive bodies along one dimension
       !$omp parallel do simd default(firstprivate) schedule(static)&
       !$omp shared(aabb, lenc)
       do i = 1, npl
-         if (i > nplm) cycle ! Not fully interacting, so move on
-         if (aabb(dim)%noverlap(i) == 0) cycle ! No overlaps
-
-         ibox = aabb(dim)%istart(i)
-         nbox = aabb(dim)%istart(i) + aabb(dim)%noverlap(i)
-
+         ibox = aabb(1)%ibeg(i)
+         nbox = aabb(1)%iend(i) - 1
          lencounteri(:) = .false.
+
          do jbox = ibox + 1, nbox ! Sweep forward until the end of the interval
-            j = aabb(dim)%ind(jbox)
+            j = aabb(1)%ind(jbox)
             if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
-            lencounteri(j) = .true. 
+            do dim = 2, NDIM ! check to see if the i and j bodies overlap in the other two dimensions as well
+               lencounteri(j) = (aabb(dim)%iend(j) > aabb(dim)%ibeg(i)) .and. (aabb(dim)%ibeg(j) < aabb(dim)%iend(i))
+               if (.not.lencounteri(j)) exit
+            end do
          end do
 
-         nenci = count(lencounteri(:))
-
-         if (nenci > 0) then
-            allocate(lenc(i)%index2(nenci))
-            lenc(i)%nenc = nenci
+         lenc(i)%nenc = count(lencounteri(:))
+         if (lenc(i)%nenc > 0) then
+            allocate(lenc(i)%index2(lenc(i)%nenc))
             lenc(i)%index2(:) = pack(ind_arr(:), lencounteri(:)) 
-         end if 
+         end if
       end do
       !$omp end parallel do simd
-      
+
       associate(nenc_arr => lenc(:)%nenc)
-         nenc = sum(nenc_arr(1:nplm))
+         nenc = sum(nenc_arr(1:npl))
       end associate
 
       if (nenc > 0) then
@@ -143,9 +142,10 @@ contains
          allocate(lenc_final(nenc))
          allocate(lvdotr_final(nenc))
          j0 = 1
-         do i = 1, nplm
-            if (lenc(i)%nenc > 0) then
-               j1 = j0 + lenc(i)%nenc - 1
+         do i = 1, npl
+            nenci = lenc(i)%nenc
+            if (nenci > 0) then
+               j1 = j0 + nenci - 1
                index1(j0:j1) = i
                index2(j0:j1) = lenc(i)%index2(:)
                j0 = j1 + 1
@@ -155,18 +155,22 @@ contains
          lenc_final(:) = .true.
 
          !$omp parallel do simd default(firstprivate) schedule(static)&
-         !$omp shared(lenc_final, lvdotr_final) 
+         !$omp shared(index1, index2, renc, lenc_final, lvdotr_final) 
          do k = 1, nenc
             i = index1(k)
             j = index2(k)
-            xr = x(1, j) - x(1, i)
-            yr = x(2, j) - x(2, i)
-            zr = x(3, j) - x(3, i)
-            vxr = v(1, j) - v(1, i)
-            vyr = v(2, j) - v(2, i)
-            vzr = v(3, j) - v(3, i)
-            renc12 = renc(i) + renc(j)
-            call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lenc_final(k), lvdotr_final(k)) 
+            if ((i > nplm) .and. (j > nplm)) then
+               lenc_final(k) = .false.
+            else
+               xr = x(1, j) - x(1, i)
+               yr = x(2, j) - x(2, i)
+               zr = x(3, j) - x(3, i)
+               vxr = v(1, j) - v(1, i)
+               vyr = v(2, j) - v(2, i)
+               vzr = v(3, j) - v(3, i)
+               renc12 = renc(i) + renc(j)
+               call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lenc_final(k), lvdotr_final(k)) 
+            end if
          end do
          !$omp end parallel do simd
 
@@ -181,30 +185,33 @@ contains
          lvdotr(:) = pack(lvdotr_final(:), lenc_final(:))
 
          ! Reorder the pairs in order to remove any duplicates
-         do k = 1, nenc
+         do k = 1, nenc 
             if (index2(k) < index1(k)) then
                i = index2(k)
                index2(k) = index1(k)
                index1(k) = i
             end if
          end do
-         call util_sort(index1, ind)
+
          if (allocated(lenc_final)) deallocate(lenc_final)
          allocate(lenc_final(nenc))
          lenc_final(:) = .true.
-         k = 1
-         i1 = 0
-         j1 = 0
+         call util_sort(index1, ind)
          lfresh(:) = .true.
-         do k = 1+1, nenc 
-            i0 = index1(ind(k-1))
+         do k = 1, nenc 
             i = index1(ind(k))
-            if (i /= i0) lfresh(:) = .true.
             j = index2(ind(k))
-            if (.not.lfresh(j)) lenc_final(ind(k)) = .false.
-            lfresh(j) = .false.
+            if (k == 1) then
+               lfresh(j) = .false.
+            else
+               i0 = index1(ind(k-1))
+               if (i /= i0) lfresh(:) = .true.
+               if (.not.lfresh(j)) lenc_final(ind(k)) = .false.
+               lfresh(j) = .false.
+            end if
          end do
 
+         if (count(lenc_final(:)) == nenc) return
          nenc = count(lenc_final(:)) ! Count the true number of encounters
          allocate(tmp(nenc))
          tmp(:) = pack(index1(:), lenc_final(:))
@@ -212,8 +219,10 @@ contains
          allocate(tmp(nenc))
          tmp(:) = pack(index2(:), lenc_final(:))
          call move_alloc(tmp, index2)
-         allocate(lvdotr(nenc))
-         lvdotr(:) = pack(lvdotr_final(:), lenc_final(:))
+         if (allocated(lvdotr_final)) deallocate(lvdotr_final)
+         allocate(lvdotr_final(nenc))
+         lvdotr_final(:) = pack(lvdotr(:), lenc_final(:))
+         call move_alloc(lvdotr_final, lvdotr)
 
       end if
 
@@ -280,17 +289,17 @@ contains
          end if
 
          if (n > n_last) then ! The number of bodies has grown. Resize and append the new bodies
-            do i = 1, NDIM
+            do dim = 1, NDIM
                allocate(tmp(n))
-               if (npl_last > 0) tmp(1:n_last) = aabb(i)%ind(1:n_last)
-               call move_alloc(tmp, aabb(i)%ind)
-               aabb(i)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
+               if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
+               call move_alloc(tmp, aabb(dim)%ind)
+               aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
             end do
          else if (n < n_last) then ! The number of bodies has gone down. Resize and chop of the old indices
-            do i = 1, NDIM
+            do dim = 1, NDIM
                allocate(tmp(n))
-               tmp(1:n) = pack(aabb(i)%ind(1:n_last), aabb(i)%ind(1:n_last) <= n)
-               call move_alloc(tmp, aabb(i)%ind)
+               tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
+               call move_alloc(tmp, aabb(dim)%ind)
             end do
          end if
 

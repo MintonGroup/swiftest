@@ -21,8 +21,9 @@ program swiftest_driver
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
-   type(walltimer)                            :: file_io_timer !! Object used for computing elapsed wall time
-   integer(I4B)                               :: nout
+   real(DP)                                   :: tfrac
+   character(*), parameter                    :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
+   character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -74,7 +75,7 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-      nout = 0
+      call integration_timer%reset()
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, nloops
          !> Step the system forward in time
@@ -92,10 +93,18 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
-               ! call file_io_timer%start()
                if (t > old_t_final) call nbody_system%write_frame(param)
-               ! nout = nout + 1
-               ! call file_io_timer%stop()
+
+               tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+
+               select type(pl => nbody_system%pl)
+               class is (symba_pl)
+                  write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
+               class default
+                  write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
+               end select
+               if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+
                iout = istep_out
             end if
          end if
@@ -106,13 +115,7 @@ program swiftest_driver
             if (idump == 0) then
                call integration_timer%report(nsubsteps=istep_dump, message="Integration steps:", param=param)
                call integration_timer%reset()
-               call file_io_timer%start()
                call nbody_system%dump(param)
-               ! nout = nout + 1
-               ! ! call file_io_timer%stop()
-               ! ! call file_io_timer%report(nsubsteps=nout,     message="         File I/O:", param=param)
-               ! ! call file_io_timer%reset()
-               ! nout = 0
                idump = istep_dump
             end if
          end if

@@ -271,9 +271,6 @@ contains
       integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
                                                             !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
-      real(DP)                      :: tfrac
-      character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
-      character(*),     parameter   :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
    
       allocate(dump_param, source=param)
       param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
@@ -311,15 +308,6 @@ contains
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
-
-      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-      
-      select type(pl => self%pl)
-      class is (symba_pl)
-         write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, self%tp%nbody
-      class default
-         write(*, statusfmt) param%t, tfrac, pl%nbody, self%tp%nbody
-      end select
 
       return
    end subroutine io_dump_system
@@ -2121,8 +2109,6 @@ contains
       character(len=STRMAX)            :: errmsg
       integer(I4B)                     :: iu = BINUNIT   !! Unit number for the output file to write frame to
       logical                          :: fileExists
-
-      if (.not.lfirst .and. param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)

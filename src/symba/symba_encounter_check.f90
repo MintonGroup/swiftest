@@ -32,6 +32,7 @@ contains
          npl = pl%nbody
          nplm = pl%nplm
          call encounter_check_all_sort_and_sweep_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+         !call encounter_check_all_triangular_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
          lany_encounter = nenc > 0
          if (lany_encounter) then
             call plplenc_list%resize(nenc)
