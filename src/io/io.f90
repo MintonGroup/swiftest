@@ -136,6 +136,7 @@ contains
       write(iu, err = 667, iomsg = errmsg) self%particle_type
       write(iu, err = 667, iomsg = errmsg) self%origin_type
       write(iu, err = 667, iomsg = errmsg) self%origin_time
+      write(iu, err = 667, iomsg = errmsg) self%collision_id
       write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
       write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
@@ -1739,6 +1740,7 @@ contains
       read(iu, err = 667, iomsg = errmsg) self%particle_type
       read(iu, err = 667, iomsg = errmsg) self%origin_type
       read(iu, err = 667, iomsg = errmsg) self%origin_time
+      read(iu, err = 667, iomsg = errmsg) self%collision_id 
       read(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
       read(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
