@@ -9,7 +9,6 @@ IN_FORM        XV
 ISTEP_OUT      1
 ISTEP_DUMP     1
 BIN_OUT        bin.swiftest.nc
-PARTICLE_OUT   particle.dat
 OUT_TYPE       NETCDF_DOUBLE
 OUT_FORM       XVEL
 OUT_STAT       REPLACE
@@ -25,8 +24,7 @@ BIG_DISCARD    no
 RHILL_PRESENT  yes
 GMTINY         1000.0
 ENERGY         yes
-ENERGY_OUT     energy.dat
-FRAGMENTATION  yes
+FRAGMENTATION  no
 ROTATION       yes
 MU2KG          1.0
 DU2M           1.0

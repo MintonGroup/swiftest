@@ -538,6 +538,8 @@ contains
                   system%plplenc_list%t(k) = plplenc_old%t(k)
                   system%plplenc_list%level(k) = plplenc_old%level(k)
                end if
+               system%plplenc_list%index1(k) = findloc(pl%id(1:npl), system%plplenc_list%id1(k), dim=1)
+               system%plplenc_list%index2(k) = findloc(pl%id(1:npl), system%plplenc_list%id2(k), dim=1)
             end do
          end if
       end associate

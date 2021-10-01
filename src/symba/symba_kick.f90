@@ -62,7 +62,7 @@ contains
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)              :: i, j
-      integer(I8B)              :: k, nplplenc
+      integer(I8B)              :: nplplenc
       real(DP)                  :: rjj, rlim2, xr, yr, zr
       real(DP), dimension(NDIM,self%nbody) :: ah_enc
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc

@@ -1,8 +1,8 @@
 ! VERSION        Swiftest parameter input from file param.in
 T0               0.0
-TSTOP            100000000.0
+TSTOP            100.0
 DT               0.016
-ISTEP_OUT        6250
+ISTEP_OUT        625
 ISTEP_DUMP       6250
 OUT_FORM         XVEL
 OUT_TYPE         NETCDF_DOUBLE

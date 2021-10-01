@@ -113,8 +113,8 @@ contains
 
       ! Sweep the intervals for each of the massive bodies along one dimension
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(aabb, lenc) &
-      !$omp firstprivate(npl, ind_arr)
+      !$omp shared(aabb, lenc, ind_arr) &
+      !$omp firstprivate(npl)
       do i = 1, npl
          ibox = aabb(1)%ibeg(i)
          nbox = aabb(1)%iend(i) - 1
