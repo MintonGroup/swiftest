@@ -1,4 +1,4 @@
-submodule (swiftest_classes) s_encounter
+submodule (encounter_classes) s_encounter_check
    use swiftest
 contains
 
@@ -23,22 +23,25 @@ contains
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
-      logical, save :: lsecond = .true.
+      logical, save :: lsecond = .false.
       integer(I8B) :: nplplm = 0_I8B
 
       if (param%ladaptive_encounters) then
          nplplm = nplm * npl - nplm * (nplm + 1) / 2 
          if (nplplm > 0) then
-            if (lfirst) then  ! Skip the first pass to allow the bounding box extents to be sorted from their initial state at least once
-               lfirst = .false.
-               param%lencounter_sas = .true.
-            else if (lsecond) then
+            if (lfirst) then  
                write(itimer%loopname, *) "encounter_check_all_plpl"
                write(itimer%looptype, *) "ENCOUNTER"
-               call itimer%time_this_loop(param, nplplm)
-               lsecond = .false.
+               lfirst = .false.
+               lsecond = .true.
             else
-               if (itimer%check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
+               if (lsecond) then ! This ensures that the encounter check methods are run at least once prior to timing. Sort and sweep improves on the second pass due to the bounding box extents needing to be nearly sorted 
+                  call itimer%time_this_loop(param, nplplm)
+                  lsecond = .false.
+               else if (itimer%check(param, nplplm)) then
+                  lsecond = .true.
+                  itimer%is_on = .false.
+               end if
             end if
          else
             param%lencounter_sas = .false.
@@ -128,8 +131,7 @@ contains
       type(boundingBox), dimension(SWEEPDIM), save :: aabb
       logical, dimension(:), allocatable :: lenc_final, lvdotr_final
       integer(I2B), dimension(npl) :: vshift_min, vshift_max
-      integer :: ybegi, yendi
-      logical :: lency
+      integer(I4B) :: ybegi, yendi
 
       if (npl <= 1) return
 
@@ -141,6 +143,9 @@ contains
          if (allocated(ind_arr)) deallocate(ind_arr)
          allocate(ind_arr(npl))
          ind_arr(:) = [(i, i = 1, npl)]
+
+         ! call aabb(dim)%setup(n, n_last, npl)
+
          do dim = 1, SWEEPDIM
             if (allocated(aabb(dim)%ibeg)) deallocate(aabb(dim)%ibeg)
             allocate(aabb(dim)%ibeg(npl))
@@ -322,7 +327,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
 
-   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, rencpl, renctp, dt, lvdotr, index1, index2, nenc)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -337,7 +342,8 @@ contains
       real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
-      real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
+      real(DP),     dimension(:),              intent(in)  :: rencpl !! Critical radii of massive bodies that defines an encounter
+      real(DP),     dimension(:),              intent(in)  :: renctp !! Critical radii of test particles that defines an encounter
       real(DP),                                intent(in)  :: dt     !! Step size
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
@@ -363,137 +369,196 @@ contains
       integer(I4B), save :: ntp_last = 0
       type boundingBox
          integer(I4B), dimension(:), allocatable :: ind !! Sorted minimum/maximum extent indices
+         integer(I4B), dimension(:), allocatable :: ibeg !! Beginning index for box
+         integer(I4B), dimension(:), allocatable :: iend !! Ending index for box
       end type
       type(boundingBox), dimension(SWEEPDIM), save :: aabb
       logical, dimension(:), allocatable :: lenc_final, lvdotr_final
       integer(I2B), dimension(npl) :: vplshift_min, vplshift_max
       integer(I2B), dimension(ntp) :: vtpshift_min, vtpshift_max
+      integer(I4B) :: ybegi, yendi
 
       ! If this is the first time through, build the index lists
       if ((ntp == 0) .or. (npl == 0)) return
 
-      ntot = npl + ntp
-      n = 2 * ntot
-      if ((ntp_last /= ntp) .or. (npl_last /= npl)) then
-         if (ntp_last /= ntp) then
-            if (allocated(tpind_arr)) deallocate(tpind_arr)
-            allocate(tpind_arr(ntp))
-            tpind_arr(1:ntp) = [(i, i = 1, ntp)]
-         end if
+      ! ntot = npl + ntp
+      ! n = 2 * ntot
+      ! if ((ntp_last /= ntp) .or. (npl_last /= npl)) then
+      !    if (ntp_last /= ntp) then
+      !       if (allocated(tpind_arr)) deallocate(tpind_arr)
+      !       allocate(tpind_arr(ntp))
+      !       tpind_arr(1:ntp) = [(i, i = 1, ntp)]
+      !    end if
 
-         if (n > n_last) then ! The number of bodies has grown. Resize and append the new bodies
-            do dim = 1, SWEEPDIM
-               allocate(tmp(n))
-               if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
-               call move_alloc(tmp, aabb(dim)%ind)
-               aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
-            end do
-         else if (n < n_last) then ! The number of bodies has gone down. Resize and chop of the old indices
-            do dim = 1, SWEEPDIM
-               allocate(tmp(n))
-               tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
-               call move_alloc(tmp, aabb(dim)%ind)
-            end do
-         end if
+      !    do dim = 1, SWEEPDIM
+      !       if (allocated(aabb(dim)%ibeg)) deallocate(aabb(dim)%ibeg)
+      !       allocate(aabb(dim)%ibeg(ntot))
+      !       if (allocated(aabb(dim)%iend)) deallocate(aabb(dim)%iend)
+      !       allocate(aabb(dim)%iend(ntot))
+      !    end do
 
-         npl_last = npl
-         ntp_last = ntp
-         n_last = n
-      end if
+      !    do dim = 1, SWEEPDIM
+      !       if (npl > npl_last) then ! The number of bodies has grown. Resize and append the new bodies
+      !          allocate(tmp(n))
+      !          if (npl_last > 0) tmp(1:n_last) = aabb(dim)%ind(1:n_last)
+      !          call move_alloc(tmp, aabb(dim)%ind)
+      !          aabb(dim)%ind(n_last+1:n) = [(k, k = n_last+1, n)]
+      !       else ! The number of bodies has gone down. Resize and chop of the old indices
+      !          allocate(tmp(n))
+      !          tmp(1:n) = pack(aabb(dim)%ind(1:n_last), aabb(dim)%ind(1:n_last) <= n)
+      !          call move_alloc(tmp, aabb(dim)%ind)
+      !       end if
+      !    end do
 
-      do i = 1, SWEEPDIM
-         where(vpl(i,1:npl) < 0.0_DP)
-            vplshift_min(1:npl) = 1
-            vplshift_max(1:npl) = 0
-         elsewhere
-            vplshift_min(1:npl) = 0
-            vplshift_max(1:npl) = 1
-         end where
+      !    npl_last = npl
+      !    ntp_last = ntp
+      !    n_last = n
+      ! end if
 
-         where(vtp(i,1:ntp) < 0.0_DP)
-            vtpshift_min(1:ntp) = 1
-            vtpshift_max(1:ntp) = 0
-         elsewhere
-            vtpshift_min(1:ntp) = 0
-            vtpshift_max(1:ntp) = 1
-         end where
+      ! !$omp taskloop default(private) num_tasks(SWEEPDIM) &
+      ! !$omp shared(xpl, xtp, vpl, vtp, rencpl, renctp, aabb) &
+      ! !$omp firstprivate(dt, npl, n)
+      ! do dim = 1, SWEEPDIM
+      !    where(vpl(dim,1:npl) < 0.0_DP)
+      !       vplshift_min(1:npl) = 1
+      !       vplshift_max(1:npl) = 0
+      !    elsewhere
+      !       vplshift_min(1:npl) = 0
+      !       vplshift_max(1:npl) = 1
+      !    end where
 
-         call util_sort([xpl(i,1:npl)-renc(1:npl)+vplshift_min(1:npl)*vpl(i,1:npl)*dt, &
-                         xtp(i,1:ntp)            +vtpshift_min(1:ntp)*vtp(i,1:ntp)*dt, &
-                         xpl(i,1:npl)+renc(1:npl)+vplshift_max(1:npl)*vpl(i,1:npl)*dt, &
-                         xtp(i,1:ntp)            +vtpshift_max(1:ntp)*vtp(i,1:ntp)*dt], aabb(i)%ind)
-      end do
+      !    where(vtp(i,1:ntp) < 0.0_DP)
+      !       vtpshift_min(1:ntp) = 1
+      !       vtpshift_max(1:ntp) = 0
+      !    elsewhere
+      !       vtpshift_min(1:ntp) = 0
+      !       vtpshift_max(1:ntp) = 1
+      !    end where
 
-      ! Sweep the intervals
-      dim = 1
-      lfresh(:) = .true. ! This will allow us to skip end-points of processed massive bodies
-      do ibox = 1, n
-         i = aabb(dim)%ind(ibox)
-         if (i > ntot) i = i - ntot ! If this is an endpoint index, shift it to the correct range
-         if (i > npl) cycle ! This is a test particle, so move on
-         if (.not.lfresh(i)) cycle ! This body has already been evaluated, so move on
-         lencounteri(:) = .false.
-         do jbox = ibox + 1, n ! Sweep forward until the end of the interval
-            j = aabb(dim)%ind(jbox)
-            if (j > ntot) j = j - ntot ! If this is an endpoint index, shift it to the correct range
-            if (j == i) exit ! We've reached the end of this interval
-            if (j > npl) then ! this is an unprocessed test particle
-               j = j - npl ! Shift into the range of the test particles
-               lencounteri(j) = .true. ! An overlapping tp/pl is found that has not previously been tallied
-            end if
-         end do
-         lfresh(i) = .false. ! This body has now been processed, so it should no longer show up in future encounter lists
-         nenci = count(lencounteri(:))
-         if (nenci > 0) then
-            allocate(lenc(i)%index2(nenci))
-            lenc(i)%nenc = nenci
-            lenc(i)%index2(:) = pack(tpind_arr(:), lencounteri(:)) 
-         end if 
-      end do
+      !    call util_sort([xpl(dim,1:npl)-rencpl(1:npl)+vplshift_min(1:npl)*vpl(i,1:npl)*dt, &
+      !                    xtp(dim,1:ntp)-renctp(1:ntp)+vtpshift_min(1:ntp)*vtp(i,1:ntp)*dt, &
+      !                    xpl(dim,1:npl)+rencpl(1:npl)+vplshift_max(1:npl)*vpl(i,1:npl)*dt, &
+      !                    xtp(dim,1:ntp)+renctp(1:ntp)+vtpshift_max(1:ntp)*vtp(i,1:ntp)*dt], aabb(i)%ind)
+
+
+      !    ! Determine the interval starting points and sizes
+      !    lfresh(:) = .true. ! This will prevent double-counting of pairs
+      !    do ibox = 1, n
+      !       i = aabb(dim)%ind(ibox)
+      !       if (i > npl) i = i - npl ! If this is an endpoint index, shift it to the correct range
+      !       if (.not.lfresh(i)) cycle
+      !       do jbox = ibox + 1, n
+      !          j = aabb(dim)%ind(jbox)
+      !          if (j > npl) j = j - npl ! If this is an endpoint index, shift it to the correct range
+      !          if (j == i) then
+      !             lfresh(i) = .false.
+      !             aabb(dim)%ibeg(i) = ibox
+      !             aabb(dim)%iend(i) = jbox
+      !             exit ! We've reached the end of this interval 
+      !          end if
+      !       end do
+      !    end do
+      ! end do
+      ! !$omp end taskloop
+
+      ! !$omp parallel do default(private) schedule(static)&
+      ! !$omp shared(aabb, lenc, ind_arr) &
+      ! !$omp firstprivate(npl, ntp, ntot)
+      ! do i = 1, ntot
+      !    ibox = aabb(1)%ibeg(i) + 1
+      !    nbox = aabb(1)%iend(i) - 1
+      !    ybegi = aabb(2)%ibeg(i)
+      !    yendi = aabb(2)%iend(i)
+      !    lencounteri(:) = .false.
+      !    do concurrent(jbox = ibox:nbox) ! Sweep forward until the end of the interval
+      !       j = aabb(1)%ind(jbox)
+      !       if (j > ntot) j = j - ntot ! If this is an endpoint index, shift it to the correct range
+      !       if (((i <= npl) .and. (j <= npl)) .or. ((i > npl) .and. (j > npl))) cycle 
+      !       ! Check the y-dimension
+      !       lencounteri(j) = (aabb(2)%iend(j) > ybegi) .and. (aabb(2)%ibeg(j) < yendi)
+      !    end do
+
+      !    lenc(i)%nenc = count(lencounteri(:))
+      !    if (lenc(i)%nenc > 0) then
+      !       allocate(lenc(i)%index2(lenc(i)%nenc))
+      !       lenc(i)%index2(:) = pack(ind_arr(:), lencounteri(:)) 
+      !    end if
+      ! end do
+      ! !$omp end parallel do
+
+      ! ! Sweep the intervals
+      ! lfresh(:) = .true. ! This will allow us to skip end-points of processed massive bodies
+      ! do i = 1, npl + ntp
+      !    !i = aabb(1)%ind(ibox)
+      !    !ibox = aabb(1)%ibeg(i) + 1
+      !    nbox = aabb(1)%iend(i) - 1
+      !    ybegi = aabb(2)%ibeg(i)
+      !    yendi = aabb(2)%iend(i)
+      !    if (i > ntot) i = i - ntot ! If this is an endpoint index, shift it to the correct range
+      !    if (i > npl) cycle ! This is a test particle, so move on
+      !    if (.not.lfresh(i)) cycle ! This body has already been evaluated, so move on
+      !    lencounteri(:) = .false.
+      !    do jbox = ibox + 1, n ! Sweep forward until the end of the interval
+      !       j = aabb(1)%ind(jbox)
+      !       if (j > ntot) j = j - ntot ! If this is an endpoint index, shift it to the correct range
+      !       if (j == i) exit ! We've reached the end of this interval
+      !       if (j > npl) then ! this is an unprocessed test particle
+      !          j = j - npl ! Shift into the range of the test particles
+      !          lencounteri(j) = (aabb(2)%iend(j) > ybegi) .and. (aabb(2)%ibeg(j) < yendi)
+      !       end if
+      !    end do
+      !    lfresh(i) = .false. ! This body has now been processed, so it should no longer show up in future encounter lists
+      !    nenci = count(lencounteri(:))
+      !    if (nenci > 0) then
+      !       allocate(lenc(i)%index2(nenci))
+      !       lenc(i)%nenc = nenci
+      !       lenc(i)%index2(:) = pack(tpind_arr(:), lencounteri(:)) 
+      !    end if 
+      ! end do
       
-      associate(nenc_arr => lenc(:)%nenc)
-         nenc = sum(nenc_arr(1:npl))
-      end associate
+      ! associate(nenc_arr => lenc(:)%nenc)
+      !    nenc = sum(nenc_arr(1:npl))
+      ! end associate
 
-      if (nenc > 0) then
-         allocate(index1(nenc))
-         allocate(index2(nenc))
-         allocate(lenc_final(nenc))
-         allocate(lvdotr_final(nenc))
-         j0 = 1
-         do i = 1, npl
-            if (lenc(i)%nenc > 0) then
-               j1 = j0 + lenc(i)%nenc - 1
-               index1(j0:j1) = i
-               index2(j0:j1) = lenc(i)%index2(:)
-               j0 = j1 + 1
-            end if
-         end do
-         ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
-         lenc_final(:) = .true.
+      ! if (nenc > 0) then
+      !    allocate(index1(nenc))
+      !    allocate(index2(nenc))
+      !    allocate(lenc_final(nenc))
+      !    allocate(lvdotr_final(nenc))
+      !    j0 = 1
+      !    do i = 1, npl
+      !       if (lenc(i)%nenc > 0) then
+      !          j1 = j0 + lenc(i)%nenc - 1
+      !          index1(j0:j1) = i
+      !          index2(j0:j1) = lenc(i)%index2(:)
+      !          j0 = j1 + 1
+      !       end if
+      !    end do
+      !    ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
+      !    lenc_final(:) = .true.
 
-         do k = 1, nenc
-            i = index1(k)
-            j = index2(k)
-            xr = xtp(1, j) - xpl(1, i)
-            yr = xtp(2, j) - xpl(2, i)
-            zr = xtp(3, j) - xpl(3, i)
-            vxr = vtp(1, j) - vpl(1, i)
-            vyr = vtp(2, j) - vpl(2, i)
-            vzr = vtp(3, j) - vpl(3, i)
-            call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc(i), dt, lenc_final(k), lvdotr_final(k)) 
-         end do
+      !    do k = 1, nenc
+      !       i = index1(k)
+      !       j = index2(k)
+      !       xr = xtp(1, j) - xpl(1, i)
+      !       yr = xtp(2, j) - xpl(2, i)
+      !       zr = xtp(3, j) - xpl(3, i)
+      !       vxr = vtp(1, j) - vpl(1, i)
+      !       vyr = vtp(2, j) - vpl(2, i)
+      !       vzr = vtp(3, j) - vpl(3, i)
+      !       call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc(i), dt, lenc_final(k), lvdotr_final(k)) 
+      !    end do
 
-         nenc = count(lenc_final(:)) ! Count the true number of encounters
-         allocate(tmp(nenc))
-         tmp(:) = pack(index1(:), lenc_final(:))
-         call move_alloc(tmp, index1)
-         allocate(tmp(nenc))
-         tmp(:) = pack(index2(:), lenc_final(:))
-         call move_alloc(tmp, index2)
-         allocate(lvdotr(nenc))
-         lvdotr(:) = pack(lvdotr_final(:), lenc_final(:))
-      end if
+      !    nenc = count(lenc_final(:)) ! Count the true number of encounters
+      !    allocate(tmp(nenc))
+      !    tmp(:) = pack(index1(:), lenc_final(:))
+      !    call move_alloc(tmp, index1)
+      !    allocate(tmp(nenc))
+      !    tmp(:) = pack(index2(:), lenc_final(:))
+      !    call move_alloc(tmp, index2)
+      !    allocate(lvdotr(nenc))
+      !    lvdotr(:) = pack(lvdotr_final(:), lenc_final(:))
+      ! end if
 
       return
    end subroutine encounter_check_all_sort_and_sweep_pltp
@@ -696,4 +761,4 @@ contains
       return
    end subroutine encounter_check_one
 
-end submodule s_encounter
+end submodule s_encounter_check

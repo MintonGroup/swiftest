@@ -31,7 +31,7 @@ contains
    end subroutine symba_util_append_arr_kin
 
 
-   module subroutine symba_util_append_encounter(self, source, lsource_mask)
+   module subroutine symba_util_append_encounter_list(self, source, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append components from one encounter list (pl-pl or pl-tp) body object to another. 
@@ -39,7 +39,7 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
-      class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+      class(encounter_list), intent(in)    :: source       !! Source object to append
       logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       associate(nold => self%nenc, nsrc => source%nenc)
@@ -47,11 +47,11 @@ contains
          class is (symba_encounter)
             call util_append(self%level, source%level, nold, nsrc, lsource_mask)
          end select
-         call util_append_encounter(self, source, lsource_mask) 
+         call encounter_util_append_list(self, source, lsource_mask) 
       end associate
 
       return
-   end subroutine symba_util_append_encounter
+   end subroutine symba_util_append_encounter_list
 
 
    module subroutine symba_util_append_pl(self, source, lsource_mask)
@@ -159,14 +159,14 @@ contains
    end subroutine symba_util_append_tp
 
 
-   module subroutine symba_util_copy_encounter(self, source)
+   module subroutine symba_util_copy_encounter_list(self, source)
       !! author: David A. Minton
       !!
       !! Copies elements from the source encounter list into self.
       implicit none
       ! Arguments
       class(symba_encounter),    intent(inout) :: self   !! Encounter list 
-      class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
+      class(encounter_list), intent(in)    :: source !! Source object to copy into
   
       select type(source)
       class is (symba_encounter)
@@ -175,10 +175,10 @@ contains
          end associate
       end select
 
-      call util_copy_encounter(self, source)
+      call encounter_util_copy_list(self, source)
    
       return
-   end subroutine symba_util_copy_encounter
+   end subroutine symba_util_copy_encounter_list
 
 
    module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -978,7 +978,7 @@ contains
    end subroutine symba_util_spill_pl
 
 
-   module subroutine symba_util_spill_encounter(self, discards, lspill_list, ldestructive)
+   module subroutine symba_util_spill_encounter_list(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) SyMBA encounter structure from active list to discard list
@@ -986,7 +986,7 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
-      class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+      class(encounter_list), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
   
@@ -994,7 +994,7 @@ contains
          select type(discards)
          class is (symba_encounter)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
-            call util_spill_encounter(keeps, discards, lspill_list, ldestructive)
+            call encounter_util_spill_list(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_encounter or its descendents!"
             call util_exit(FAILURE)
@@ -1002,7 +1002,7 @@ contains
       end associate
    
       return
-   end subroutine symba_util_spill_encounter
+   end subroutine symba_util_spill_encounter_list
 
 
    module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
