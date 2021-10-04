@@ -7,6 +7,8 @@ module encounter_classes
    implicit none
    public
 
+   integer(I4B), parameter :: SWEEPDIM = 2
+
    type :: encounter_list
       integer(I4B)                              :: nenc   !! Total number of encounters
       logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
@@ -29,8 +31,37 @@ module encounter_classes
       procedure :: write  => encounter_io_write_list    !! Write close encounter data to output binary file
    end type encounter_list
 
+   type encounter_bounding_box_1D
+      integer(I4B)                            :: n    !! Number of bodies with extents
+      integer(I4B), dimension(:), allocatable :: ind  !! Sorted minimum/maximum extent indices
+      integer(I4B), dimension(:), allocatable :: ibeg !! Beginning index for box
+      integer(I4B), dimension(:), allocatable :: iend !! Ending index for box
+   contains
+      procedure :: sort  => encounter_util_sort_aabb_1D !! Sorts the bounding box extents along a single dimension prior to the sweep phase
+   end type
+
+   type encounter_bounding_box
+      type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
+   contains
+      procedure :: setup => encounter_setup_aabb      !! Setup a new axis-aligned bounding box structure
+      procedure :: sweep => encounter_util_sweep_aabb !! Sweeps the sorted bounding box extents and returns the encounter candidates
+   end type
 
    interface
+      module subroutine encounter_check_all(nenc, index1, index2, x1, v1, x2, v2, renc1, renc2, dt, lencounter, lvdotr)
+         implicit none
+         integer(I4B),                 intent(in)  :: nenc       !! Number of encounters in the encounter lists
+         integer(I4B), dimension(:),   intent(in)  :: index1     !! List of indices for body 1 in each encounter
+         integer(I4B), dimension(:),   intent(in)  :: index2     !! List of indices for body 2 in each encounter1
+         real(DP),     dimension(:,:), intent(in)  :: x1, v1     !! Array of indices of bodies 1
+         real(DP),     dimension(:,:), intent(in)  :: x2, v2     !! Array of indices of bodies 2
+         real(DP),     dimension(:),   intent(in)  :: renc1      !! Radius of encounter regions of bodies 1
+         real(DP),     dimension(:),   intent(in)  :: renc2      !! Radius of encounter regions of bodies 2
+         real(DP),                     intent(in)  :: dt         !! Step size
+         logical,      dimension(:),   intent(out) :: lencounter !! Logical array indicating which pairs are in a close encounter state
+         logical,      dimension(:),   intent(out) :: lvdotr     !! Logical array indicating which pairs are approaching
+      end subroutine encounter_check_all
+
       module subroutine encounter_check_all_plpl(param, npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
          import swiftest_parameters
          implicit none
@@ -95,6 +126,13 @@ module encounter_classes
          class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
       end subroutine encounter_io_write_list
 
+      module subroutine encounter_setup_aabb(self, n, n_last)
+         implicit none
+         class(encounter_bounding_box), intent(inout) :: self   !! Swiftest encounter structure
+         integer(I4B),                  intent(in)    :: n      !! Number of objects with bounding box extents
+         integer(I4B),                  intent(in)    :: n_last !! Number of objects with bounding box extents the previous time this was called
+      end subroutine encounter_setup_aabb
+
       module subroutine encounter_setup_list(self, n)
          implicit none
          class(encounter_list), intent(inout) :: self !! Swiftest encounter structure
@@ -108,6 +146,17 @@ module encounter_classes
          logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine encounter_util_append_list
 
+      module subroutine encounter_util_collapse_ragged_list(ragged_list, n1, n2, nenc, index1, index2, lvdotr)
+         implicit none
+         type(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
+         integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
+         integer(I4B),                                    intent(in)            :: n2          !! Number of bodies 2
+         integer(I4B),                                    intent(out)           :: nenc        !! Total number of encountersj 
+         integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
+         integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
+         integer(I4B),         dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
+      end subroutine encounter_util_collapse_ragged_list
+
       module subroutine encounter_util_copy_list(self, source)
          implicit none
          class(encounter_list), intent(inout) :: self   !! Encounter list 
@@ -117,8 +166,26 @@ module encounter_classes
       module subroutine encounter_util_resize_list(self, nnew)
          implicit none
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
-         integer(I4B),              intent(in)    :: nnew !! New size of list needed
+         integer(I4B),          intent(in)    :: nnew !! New size of list needed
       end subroutine encounter_util_resize_list
+
+      module subroutine encounter_util_sort_aabb_1D(self, n, extent_arr)
+         implicit none
+         class(encounter_bounding_box_1D), intent(inout) :: self       !! Bounding box structure along a single dimension
+         integer(I4B),                     intent(in)    :: n          !! Number of bodies with extents
+         real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
+      end subroutine encounter_util_sort_aabb_1D
+
+      module subroutine encounter_util_sweep_aabb(self, n1, n2, ind_arr2, nenc, index1, index2)
+         implicit none
+         class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
+         integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
+         integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
+         integer(I4B), dimension(:),              intent(in)    :: ind_arr2 !! index array for mapping body 2 indexes
+         integer(I4B),                            intent(out)   :: nenc     !! Total number of encounter candidates
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
+      end subroutine encounter_util_sweep_aabb
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
          implicit none

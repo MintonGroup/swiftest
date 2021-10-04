@@ -11,7 +11,7 @@ contains
       ! Arguments
       class(encounter_list), intent(inout) :: self         !! Swiftest encounter list object
       class(encounter_list), intent(in)    :: source       !! Source object to append
-      logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nold, nsrc
 
@@ -62,6 +62,45 @@ contains
    end subroutine encounter_util_copy_list
 
 
+   module subroutine encounter_util_collapse_ragged_list(ragged_list, n1, n2, nenc, index1, index2, lvdotr)
+      !! author: David A. Minton
+      !!    
+      !! Collapses a ragged index list (one encounter list per body) into a pair of index arrays and a vdotr logical array (optional)
+      implicit none
+      ! Arguments
+      type(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
+      integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
+      integer(I4B),                                    intent(in)            :: n2          !! Number of bodies 2
+      integer(I4B),                                    intent(out)           :: nenc        !! Total number of encountersj 
+      integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
+      integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
+      integer(I4B),         dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
+      ! Internals
+      integer(I4B) :: i, j0, j1, nenci
+
+      associate(nenc_arr => ragged_list(:)%nenc)
+         nenc = sum(nenc_arr(1:n1))
+      end associate
+      if (nenc == 0) return
+
+      allocate(index1(nenc))
+      allocate(index2(nenc))
+      j0 = 1
+      do i = 1, n1
+         nenci = ragged_list(i)%nenc
+         if (nenci > 0) then
+            j1 = j0 + nenci - 1
+            index1(j0:j1) = i
+            index2(j0:j1) = ragged_list(i)%index2(:)
+            if (present(lvdotr)) lvdotr(j0:j1) = ragged_list(i)%lvdotr(:)
+            j0 = j1 + 1
+         end if
+      end do
+
+      return
+   end subroutine encounter_util_collapse_ragged_list
+
+
    module subroutine encounter_util_resize_list(self, nnew)
       !! author: David A. Minton
       !!
@@ -100,6 +139,45 @@ contains
    end subroutine encounter_util_resize_list
 
 
+   module subroutine encounter_util_sort_aabb_1D(self, n, extent_arr)
+      !! author: David A. Minton
+      !!
+      !! Sorts the bounding box extents along a single dimension prior to the sweep phase. 
+      !! This subroutine sets the sorted index array (ind) and the beginning/ending index list (beg & end)
+      implicit none
+      ! Arguments
+      class(encounter_bounding_box_1D), intent(inout) :: self       !! Bounding box structure along a single dimension
+      integer(I4B),                     intent(in)    :: n          !! Number of bodies with extents
+      real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
+      ! Internals
+      integer(I4B) :: i, j, ibox, jbox
+      logical, dimension(:), allocatable :: lfresh
+
+      call util_sort(extent_arr, self%ind)
+      allocate(lfresh(n))
+
+      ! Determine the interval starting points and sizes
+      lfresh(:) = .true. ! This will prevent double-counting of pairs
+      do ibox = 1, 2*n
+         i = self%ind(ibox)
+         if (i > n) i = i - n ! If this is an endpoint index, shift it to the correct range
+         if (.not.lfresh(i)) cycle
+         do jbox = ibox + 1, 2*n
+            j = self%ind(jbox)
+            if (j > n) j = j - n ! If this is an endpoint index, shift it to the correct range
+            if (j == i) then
+               lfresh(i) = .false.
+               self%ibeg(i) = ibox
+               self%iend(i) = jbox
+               exit ! We've reached the end of this interval 
+            end if
+         end do
+      end do
+
+      return
+   end subroutine encounter_util_sort_aabb_1D
+
+
    module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
@@ -136,6 +214,78 @@ contains
    
       return
    end subroutine encounter_util_spill_list
+
+
+   module subroutine encounter_util_sweep_aabb(self, n1, n2, ind_arr2, nenc, index1, index2)
+      !! author: David A. Minton
+      !!
+      !! Sweeps the sorted bounding box extents and returns the encounter candidates
+      implicit none
+      ! Arguments
+      class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
+      integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
+      integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
+      integer(I4B), dimension(:),              intent(in)    :: ind_arr2 !! index array for mapping body 2 indexes
+      integer(I4B),                            intent(out)   :: nenc     !! Total number of encounter candidates
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
+      !Internals
+      Integer(I4B) :: i, n
+      type(encounter_list), dimension(n1) :: lenc         !! Array of encounter lists (one encounter list per body)
+
+      ! Sweep the intervals for each of the massive bodies along one dimension
+      ! This will build a ragged pair of index lists inside of the lenc data structure
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(self, lenc, ind_arr) &
+      !$omp firstprivate(n1)
+      do i = 1, n1
+         call encounter_util_sweep_aabb_one(i, n1, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr2, lenc(i))
+      end do
+      !$omp end parallel do 
+
+      call encounter_util_collapse_ragged_list(lenc, n1, n2, nenc, index1, index2)
+
+      return
+   end subroutine encounter_util_sweep_aabb
+
+
+   subroutine encounter_util_sweep_aabb_one(i, n1, ext_ind, ibegx, iendx, ibegy, iendy, ind_arr2, lenc)
+      !! author: David A. Minton
+      !!
+      !! Performs a sweep operation on a single body
+      implicit none
+      ! Arguments
+      integer(I4B),               intent(in)    :: i            !! The current index of the ith body
+      integer(I4B),               intent(in)    :: n1           !! Number of bodies 1
+      integer(I4B), dimension(:), intent(in)    :: ext_ind      !! Sorted index array of extents
+      integer(I4B), dimension(:), intent(in)    :: ibegx, iendx !! Beginning and ending index lists in the x-dimension
+      integer(I4B), dimension(:), intent(in)    :: ibegy, iendy !! Beginning and ending index lists in the y-dimension
+      integer(I4B), dimension(:), intent(in)    :: ind_arr2     !! index array for mapping body 2 indexes
+      type(encounter_list),       intent(inout) :: lenc         !! Encounter list for the ith body
+      ! Internals
+      integer(I4B) :: ibox, jbox, nbox, j, ybegi, yendi
+      logical, dimension(n1) :: lencounteri
+
+      ibox = ibegx(i) + 1
+      nbox = iendx(i) - 1
+      ybegi = ibegy(i) 
+      yendi = iendy(i)
+      lencounteri(:) = .false.
+      do concurrent(jbox = ibox:nbox) ! Sweep forward until the end of the interval
+         j = ext_ind(jbox)
+         if (j > n1) j = j - n1 ! If this is an endpoint index, shift it to the correct range
+         ! Check the y-dimension
+         lencounteri(j) = (iendy(j) > ybegi) .and. (ibegy(j) < yendi)
+      end do
+
+      lenc%nenc = count(lencounteri(:))
+      if (lenc%nenc > 0) then
+         allocate(lenc%index2(lenc%nenc))
+         lenc%index2(:) = pack(ind_arr2(:), lencounteri(:)) 
+      end if
+
+      return
+   end subroutine encounter_util_sweep_aabb_one
  
 
 end submodule s_encounter_util

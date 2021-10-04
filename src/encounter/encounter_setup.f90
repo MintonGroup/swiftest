@@ -2,6 +2,48 @@ submodule (encounter_classes) s_encounter_setup
    use swiftest
 contains
 
+   module subroutine encounter_setup_aabb(self, n, n_last)
+      !! author: David A. Minton
+      !!
+      !! Sets up or modifies an axis-aligned bounding box structure.
+      implicit none
+      ! Arguments
+      class(encounter_bounding_box), intent(inout) :: self   !! Swiftest encounter structure
+      integer(I4B),                  intent(in)    :: n      !! Number of objects with bounding box extents
+      integer(I4B),                  intent(in)    :: n_last !! Number of objects with bounding box extents the previous time this was called
+      ! Internals
+      integer(I4B) :: next, next_last, k, dim
+      integer(I4B), dimension(:), allocatable :: tmp
+
+      next = 2 * n
+      next_last = 2 * n_last
+
+      if (n > n_last) then ! The number of bodies has grown. Resize and append the new bodies
+         do dim = 1, SWEEPDIM
+            allocate(tmp(next))
+            if (n_last > 0) tmp(1:next_last) = self%aabb(dim)%ind(1:next_last)
+            call move_alloc(tmp, self%aabb(dim)%ind)
+            self%aabb(dim)%ind(next_last+1:next) = [(k, k = next_last+1, next)]
+         end do
+      else ! The number of bodies has gone down. Resize and chop of the old indices
+         do dim = 1, SWEEPDIM
+            allocate(tmp(next))
+            tmp(1:next) = pack(self%aabb(dim)%ind(1:next_last), self%aabb(dim)%ind(1:next_last) <= next)
+            call move_alloc(tmp, self%aabb(dim)%ind)
+         end do
+      end if
+
+      do dim = 1, SWEEPDIM
+         if (allocated(self%aabb(dim)%ibeg)) deallocate(self%aabb(dim)%ibeg)
+         allocate(self%aabb(dim)%ibeg(n))
+         if (allocated(self%aabb(dim)%iend)) deallocate(self%aabb(dim)%iend)
+         allocate(self%aabb(dim)%iend(n))
+      end do
+
+      return
+   end subroutine encounter_setup_aabb
+
+
    module subroutine encounter_setup_list(self, n)
       !! author: David A. Minton
       !!
