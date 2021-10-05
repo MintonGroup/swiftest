@@ -43,8 +43,10 @@ module encounter_classes
    type encounter_bounding_box
       type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
    contains
-      procedure :: setup => encounter_setup_aabb      !! Setup a new axis-aligned bounding box structure
-      procedure :: sweep => encounter_util_sweep_aabb !! Sweeps the sorted bounding box extents and returns the encounter candidates
+      procedure :: setup        => encounter_setup_aabb      !! Setup a new axis-aligned bounding box structure
+      procedure :: sweep_single => encounter_util_sweep_aabb_single_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
+      procedure :: sweep_double => encounter_util_sweep_aabb_double_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
+      generic   :: sweep        => sweep_single, sweep_double
    end type
 
    interface
@@ -146,11 +148,10 @@ module encounter_classes
          logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine encounter_util_append_list
 
-      module subroutine encounter_util_collapse_ragged_list(ragged_list, n1, n2, nenc, index1, index2, lvdotr)
+      module subroutine encounter_util_collapse_ragged_list(ragged_list, n1, nenc, index1, index2, lvdotr)
          implicit none
          type(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
          integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
-         integer(I4B),                                    intent(in)            :: n2          !! Number of bodies 2
          integer(I4B),                                    intent(out)           :: nenc        !! Total number of encountersj 
          integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
          integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
@@ -176,7 +177,7 @@ module encounter_classes
          real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
       end subroutine encounter_util_sort_aabb_1D
 
-      module subroutine encounter_util_sweep_aabb(self, n1, n2, ind_arr2, nenc, index1, index2)
+      module subroutine encounter_util_sweep_aabb_double_list(self, n1, n2, ind_arr2, nenc, index1, index2)
          implicit none
          class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
          integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
@@ -185,7 +186,17 @@ module encounter_classes
          integer(I4B),                            intent(out)   :: nenc     !! Total number of encounter candidates
          integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
          integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
-      end subroutine encounter_util_sweep_aabb
+      end subroutine encounter_util_sweep_aabb_double_list
+
+      module subroutine encounter_util_sweep_aabb_single_list(self, n, ind_arr, nenc, index1, index2)
+         implicit none
+         class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
+         integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
+         integer(I4B), dimension(:),              intent(in)    :: ind_arr !! index array for mapping body 2 indexes
+         integer(I4B),                            intent(out)   :: nenc    !! Total number of encounter candidates
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair
+      end subroutine encounter_util_sweep_aabb_single_list
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
          implicit none

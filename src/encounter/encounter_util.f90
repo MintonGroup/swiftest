@@ -62,7 +62,7 @@ contains
    end subroutine encounter_util_copy_list
 
 
-   module subroutine encounter_util_collapse_ragged_list(ragged_list, n1, n2, nenc, index1, index2, lvdotr)
+   module subroutine encounter_util_collapse_ragged_list(ragged_list, n1, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!    
       !! Collapses a ragged index list (one encounter list per body) into a pair of index arrays and a vdotr logical array (optional)
@@ -70,7 +70,6 @@ contains
       ! Arguments
       type(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
       integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
-      integer(I4B),                                    intent(in)            :: n2          !! Number of bodies 2
       integer(I4B),                                    intent(out)           :: nenc        !! Total number of encountersj 
       integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
       integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
@@ -79,7 +78,7 @@ contains
       integer(I4B) :: i, j0, j1, nenci
 
       associate(nenc_arr => ragged_list(:)%nenc)
-         nenc = sum(nenc_arr(1:n1))
+         nenc = sum(nenc_arr(:))
       end associate
       if (nenc == 0) return
 
@@ -215,8 +214,8 @@ contains
       return
    end subroutine encounter_util_spill_list
 
-
-   module subroutine encounter_util_sweep_aabb(self, n1, n2, ind_arr2, nenc, index1, index2)
+   
+   module subroutine encounter_util_sweep_aabb_double_list(self, n1, n2, ind_arr2, nenc, index1, index2)
       !! author: David A. Minton
       !!
       !! Sweeps the sorted bounding box extents and returns the encounter candidates
@@ -236,36 +235,71 @@ contains
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(self, lenc, ind_arr) &
-      !$omp firstprivate(n1)
+      !$omp shared(self, lenc, ind_arr2) &
+      !$omp firstprivate(n1, n2)
       do i = 1, n1
-         call encounter_util_sweep_aabb_one(i, n1, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr2, lenc(i))
+         call encounter_util_sweep_aabb_one_double_list(i, n1, n2, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr2, lenc(i))
       end do
       !$omp end parallel do 
 
-      call encounter_util_collapse_ragged_list(lenc, n1, n2, nenc, index1, index2)
+      call encounter_util_collapse_ragged_list(lenc, n1, nenc, index1, index2)
 
       return
-   end subroutine encounter_util_sweep_aabb
+   end subroutine encounter_util_sweep_aabb_double_list
 
 
-   subroutine encounter_util_sweep_aabb_one(i, n1, ext_ind, ibegx, iendx, ibegy, iendy, ind_arr2, lenc)
+   module subroutine encounter_util_sweep_aabb_single_list(self, n, ind_arr, nenc, index1, index2)
       !! author: David A. Minton
       !!
-      !! Performs a sweep operation on a single body
+      !! Sweeps the sorted bounding box extents and returns the encounter candidates. Mutual encounters
+      !! allowed. That is, all bodies are from the same list
+      implicit none
+      ! Arguments
+      class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
+      integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
+      integer(I4B), dimension(:),              intent(in)    :: ind_arr !! index array for mapping body 2 indexes
+      integer(I4B),                            intent(out)   :: nenc    !! Total number of encounter candidates
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair
+      !Internals
+      Integer(I4B) :: i
+      type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
+
+      ! Sweep the intervals for each of the massive bodies along one dimension
+      ! This will build a ragged pair of index lists inside of the lenc data structure
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(self, lenc, ind_arr) &
+      !$omp firstprivate(n)
+      do i = 1, n
+         call encounter_util_sweep_aabb_one_single_list(i, n, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr, lenc(i))
+      end do
+      !$omp end parallel do 
+
+      call encounter_util_collapse_ragged_list(lenc, n, nenc, index1, index2)
+
+      return
+   end subroutine encounter_util_sweep_aabb_single_list
+
+
+   subroutine encounter_util_sweep_aabb_one_double_list(i, n1, n2, ext_ind, ibegx, iendx, ibegy, iendy, ind_arr2, lenc)
+      !! author: David A. Minton
+      !!
+      !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
       implicit none
       ! Arguments
       integer(I4B),               intent(in)    :: i            !! The current index of the ith body
       integer(I4B),               intent(in)    :: n1           !! Number of bodies 1
+      integer(I4B),               intent(in)    :: n2           !! Number of bodies 2
       integer(I4B), dimension(:), intent(in)    :: ext_ind      !! Sorted index array of extents
       integer(I4B), dimension(:), intent(in)    :: ibegx, iendx !! Beginning and ending index lists in the x-dimension
       integer(I4B), dimension(:), intent(in)    :: ibegy, iendy !! Beginning and ending index lists in the y-dimension
       integer(I4B), dimension(:), intent(in)    :: ind_arr2     !! index array for mapping body 2 indexes
       type(encounter_list),       intent(inout) :: lenc         !! Encounter list for the ith body
       ! Internals
-      integer(I4B) :: ibox, jbox, nbox, j, ybegi, yendi
+      integer(I4B) :: ibox, jbox, nbox, j, ybegi, yendi, ntot
       logical, dimension(n1) :: lencounteri
 
+      ntot = n1 + n2
       ibox = ibegx(i) + 1
       nbox = iendx(i) - 1
       ybegi = ibegy(i) 
@@ -273,7 +307,8 @@ contains
       lencounteri(:) = .false.
       do concurrent(jbox = ibox:nbox) ! Sweep forward until the end of the interval
          j = ext_ind(jbox)
-         if (j > n1) j = j - n1 ! If this is an endpoint index, shift it to the correct range
+         if (j > ntot) j = j - ntot ! If this is an endpoint index, shift it to the correct range
+         if (((i <= n1) .and. (j <= n1)) .or. ((i > n1) .and. (j > n1))) cycle  ! only pairs
          ! Check the y-dimension
          lencounteri(j) = (iendy(j) > ybegi) .and. (ibegy(j) < yendi)
       end do
@@ -285,7 +320,46 @@ contains
       end if
 
       return
-   end subroutine encounter_util_sweep_aabb_one
+   end subroutine encounter_util_sweep_aabb_one_double_list
  
+
+   subroutine encounter_util_sweep_aabb_one_single_list(i, n, ext_ind, ibegx, iendx, ibegy, iendy, ind_arr, lenc)
+      !! author: David A. Minton
+      !!
+      !! Performs a sweep operation on a single body. Mutual encounters allowed (e.g. pl-pl)
+      implicit none
+      ! Arguments
+      integer(I4B),               intent(in)    :: i            !! The current index of the ith body
+      integer(I4B),               intent(in)    :: n            !! Number of bodies
+      integer(I4B), dimension(:), intent(in)    :: ext_ind      !! Sorted index array of extents
+      integer(I4B), dimension(:), intent(in)    :: ibegx, iendx !! Beginning and ending index lists in the x-dimension
+      integer(I4B), dimension(:), intent(in)    :: ibegy, iendy !! Beginning and ending index lists in the y-dimension
+      integer(I4B), dimension(:), intent(in)    :: ind_arr      !! index array for mapping body 2 indexes
+      type(encounter_list),       intent(inout) :: lenc         !! Encounter list for the ith body
+      ! Internals
+      integer(I4B) :: ibox, jbox, nbox, j, ybegi, yendi
+      logical, dimension(n) :: lencounteri
+
+      ibox = ibegx(i) + 1
+      nbox = iendx(i) - 1
+      ybegi = ibegy(i) 
+      yendi = iendy(i)
+      lencounteri(:) = .false.
+      do concurrent(jbox = ibox:nbox) ! Sweep forward until the end of the interval
+         j = ext_ind(jbox)
+         if (j > n) j = j - n ! If this is an endpoint index, shift it to the correct range
+         ! Check the y-dimension
+         lencounteri(j) = (iendy(j) > ybegi) .and. (ibegy(j) < yendi)
+      end do
+
+      lenc%nenc = count(lencounteri(:))
+      if (lenc%nenc > 0) then
+         allocate(lenc%index2(lenc%nenc))
+         lenc%index2(:) = pack(ind_arr(:), lencounteri(:)) 
+      end if
+
+      return
+   end subroutine encounter_util_sweep_aabb_one_single_list
+
 
 end submodule s_encounter_util
