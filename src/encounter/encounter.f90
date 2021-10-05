@@ -217,7 +217,7 @@ contains
       logical,  intent(out) :: lencounter    !! Flag indicating that an encounter has occurred
       logical,  intent(out) :: lvdotr        !! Logical flag indicating the direction of the v .dot. r vector
       ! Internals
-      real(DP) :: r2crit, r2min, r2, v2, vdotr
+      real(DP) :: r2crit, r2min, r2, v2, vdotr, tmin
 
       r2 = xr**2 + yr**2 + zr**2
       r2crit = renc**2
@@ -229,8 +229,9 @@ contains
       if (.not.lvdotr) return
      
       v2 = vxr**2 + vyr**2 + vzr**2
+      tmin = -vdotr / v2
 
-      if (-vdotr < v2 * dt) then
+      if (tmin < dt) then
          r2min = r2 - vdotr**2 / v2
       else
          r2min = r2 + 2 * vdotr * dt + v2 * dt**2
@@ -239,5 +240,6 @@ contains
 
       return
    end subroutine encounter_check_one
+
 
 end submodule s_encounter
