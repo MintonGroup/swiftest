@@ -9,7 +9,8 @@ module walltime_classes
 
    integer(I4B) :: INTERACTION_TIMER_CADENCE = 1000 !! Minimum number of steps to wait before timing an interaction loop in ADAPTIVE mode
    character(len=*), parameter :: INTERACTION_TIMER_LOG_OUT  = "interaction_timer.log" !! Name of log file for recording results of interaction loop timing
-   character(len=*), parameter :: ENCOUNTER_TIMER_LOG_OUT  = "encounter_check_timer.log" !! Name of log file for recording results of encounter check method timing
+   character(len=*), parameter :: ENCOUNTER_PLPL_TIMER_LOG_OUT  = "encounter_check_plpl_timer.log" !! Name of log file for recording results of encounter check method timing
+   character(len=*), parameter :: ENCOUNTER_PLTP_TIMER_LOG_OUT  = "encounter_check_pltp_timer.log" !! Name of log file for recording results of encounter check method timing
 
    type :: walltimer
       integer(I8B) :: count_rate                 !! Rate at wich the clock ticks

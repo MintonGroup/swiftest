@@ -18,7 +18,7 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       integer(I8B) :: k, nplplm, kenc
-      integer(I4B) :: i, j, nenc, npl, nplm
+      integer(I4B) :: i, j, nenc, npl, nplm, nplt
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
@@ -31,7 +31,12 @@ contains
 
          npl = pl%nbody
          nplm = pl%nplm
-         call encounter_check_all_plpl(param, npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+         nplt = npl - nplm
+         if (nplt == 0) then
+            call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+         else
+            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, lvdotr, index1, index2, nenc)
+         end if
          lany_encounter = nenc > 0
          if (lany_encounter) then
             call plplenc_list%resize(nenc)

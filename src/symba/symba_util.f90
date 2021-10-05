@@ -290,6 +290,10 @@ contains
 
       associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
+         select type(param)
+         class is (symba_parameters)
+            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY 
+         end select
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
          nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column

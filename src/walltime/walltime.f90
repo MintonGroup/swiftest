@@ -155,7 +155,7 @@ contains
       case("ENCOUNTER")
          write(advancedstyle, *) "SORTSWEEP "
          write(standardstyle, *) "TRIANGULAR"
-         write(logfile,*) ENCOUNTER_TIMER_LOG_OUT
+         write(logfile,*) ENCOUNTER_PLPL_TIMER_LOG_OUT
       case default
          write(logfile,*) "unknown_looptimer.log"
       end select
@@ -251,8 +251,10 @@ contains
       select case(trim(adjustl(self%looptype)))
       case("INTERACTION")
          param%lflatten_interactions = .not. param%lflatten_interactions
-      case("ENCOUNTER")
-         param%lencounter_sas = .not. param%lencounter_sas
+      case("ENCOUNTER_PLPL")
+         param%lencounter_sas_plpl= .not. param%lencounter_sas_plpl
+      case("ENCOUNTER_PLTP")
+         param%lencounter_sas_pltp= .not. param%lencounter_sas_pltp
       end select
 
       if (present(pl)) then
@@ -286,7 +288,7 @@ contains
       case("INTERACTION")
          write(logfile,*) INTERACTION_TIMER_LOG_OUT
       case("ENCOUNTER")
-         write(logfile,*) ENCOUNTER_TIMER_LOG_OUT
+         write(logfile,*) ENCOUNTER_PLPL_TIMER_LOG_OUT
       case default
          write(logfile,*) "unknown_looptimer.log"
       end select
@@ -299,16 +301,20 @@ contains
          select case(trim(adjustl(self%looptype)))
          case("INTERACTION")
             self%stage1_is_advanced = param%lflatten_interactions
-         case("ENCOUNTER")
-            self%stage1_is_advanced = param%lencounter_sas
+         case("ENCOUNTER_PLPL")
+            self%stage1_is_advanced = param%lencounter_sas_plpl
+         case("ENCOUNTER_PLTP")
+            self%stage1_is_advanced = param%lencounter_sas_pltp
          end select
          call io_log_one_message(logfile, trim(adjustl(self%loopname)) // ": loop timer turned on at t = " // trim(adjustl(tstr)))
       case(2)
          select case(trim(adjustl(self%looptype)))
          case("INTERACTION")
             param%lflatten_interactions = self%stage1_is_advanced 
-         case("ENCOUNTER")
-            param%lencounter_sas = self%stage1_is_advanced 
+         case("ENCOUNTER_PLPL")
+            param%lencounter_sas_plpl= self%stage1_is_advanced 
+         case("ENCOUNTER_PLTP")
+            param%lencounter_sas_pltp= self%stage1_is_advanced 
          end select
          call self%flip(param, pl) 
       case default

@@ -126,12 +126,15 @@ module swiftest_classes
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
       character(STRMAX)    :: energy_out     = ""                 !! Name of output energy and momentum report file
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
-      character(NAMELEN)   :: encounter_check = "ADAPTIVE"        !! Method used to compute encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      character(NAMELEN)   :: encounter_check_plpl = "ADAPTIVE"   !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      character(NAMELEN)   :: encounter_check_pltp = "ADAPTIVE"   !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
       logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on (choose between TRIANGULAR and FLAT based on periodic timing tests)
-      logical :: lencounter_sas = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
-      logical :: ladaptive_encounters = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
+      logical :: lencounter_sas_plpl = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: lencounter_sas_pltp = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: ladaptive_encounters_plpl = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
+      logical :: ladaptive_encounters_pltp = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)

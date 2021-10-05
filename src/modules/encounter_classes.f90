@@ -64,12 +64,11 @@ module encounter_classes
          logical,      dimension(:),   intent(out) :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_all
 
-      module subroutine encounter_check_all_plpl(param, npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
+      module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, lvdotr, index1, index2, nenc)
          import swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
-         integer(I4B),                            intent(in)    :: nplm   !! Number of fully interacting massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: x      !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: v      !! Velocity vectors of massive bodies
          real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter 
@@ -79,6 +78,25 @@ module encounter_classes
          integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
          integer(I4B),                            intent(out)   :: nenc   !! Total number of encounters
       end subroutine encounter_check_all_plpl
+
+      module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr, index1, index2, nenc)
+         import swiftest_parameters
+         implicit none
+         class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+         integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
+         integer(I4B),                            intent(in)    :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
+         real(DP),     dimension(:,:),            intent(in)    :: xplm   !! Position vectors of fully interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: vplm   !! Velocity vectors of fully interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: xplt   !! Position vectors of partially interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: vplt   !! Velocity vectors of partially interacting massive bodies
+         real(DP),     dimension(:),              intent(in)    :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
+         real(DP),     dimension(:),              intent(in)    :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
+         real(DP),                                intent(in)    :: dt     !! Step size
+         logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
+         integer(I4B),                            intent(out)   :: nenc   !! Total number of encounters
+      end subroutine encounter_check_all_plplm
 
       module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
          import swiftest_parameters
