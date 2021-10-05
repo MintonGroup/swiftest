@@ -37,15 +37,15 @@ module encounter_classes
       integer(I4B), dimension(:), allocatable :: ibeg !! Beginning index for box
       integer(I4B), dimension(:), allocatable :: iend !! Ending index for box
    contains
-      procedure :: sort  => encounter_util_sort_aabb_1D !! Sorts the bounding box extents along a single dimension prior to the sweep phase
+      procedure :: sort  => encounter_check_sort_aabb_1D !! Sorts the bounding box extents along a single dimension prior to the sweep phase
    end type
 
    type encounter_bounding_box
       type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
    contains
       procedure :: setup        => encounter_setup_aabb      !! Setup a new axis-aligned bounding box structure
-      procedure :: sweep_single => encounter_util_sweep_aabb_single_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
-      procedure :: sweep_double => encounter_util_sweep_aabb_double_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
+      procedure :: sweep_single => encounter_check_sweep_aabb_single_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
+      procedure :: sweep_double => encounter_check_sweep_aabb_double_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
       generic   :: sweep        => sweep_single, sweep_double
    end type
 
@@ -109,6 +109,44 @@ module encounter_classes
          logical,  intent(out) :: lvdotr        !! Logical flag indicating the direction of the v .dot. r vector
       end subroutine encounter_check_one
 
+      module subroutine encounter_check_collapse_ragged_list(ragged_list, n1, nenc, index1, index2, lvdotr)
+         implicit none
+         type(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
+         integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
+         integer(I4B),                                    intent(out)           :: nenc        !! Total number of encountersj 
+         integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
+         integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
+         integer(I4B),         dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
+      end subroutine encounter_check_collapse_ragged_list
+
+      module subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
+         implicit none
+         class(encounter_bounding_box_1D), intent(inout) :: self       !! Bounding box structure along a single dimension
+         integer(I4B),                     intent(in)    :: n          !! Number of bodies with extents
+         real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
+      end subroutine encounter_check_sort_aabb_1D
+
+      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, ind_arr, nenc, index1, index2)
+         implicit none
+         class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
+         integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
+         integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
+         integer(I4B), dimension(:),              intent(in)    :: ind_arr  !! index array for mapping the body indices (body 2 indexes should be shifted by +n1 in this list)
+         integer(I4B),                            intent(out)   :: nenc     !! Total number of encounter candidates
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
+      end subroutine encounter_check_sweep_aabb_double_list
+
+      module subroutine encounter_check_sweep_aabb_single_list(self, n, ind_arr, nenc, index1, index2)
+         implicit none
+         class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
+         integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
+         integer(I4B), dimension(:),              intent(in)    :: ind_arr !! index array for mapping body 2 indexes
+         integer(I4B),                            intent(out)   :: nenc    !! Total number of encounter candidates
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair
+      end subroutine encounter_check_sweep_aabb_single_list
+
       module subroutine encounter_io_write_frame(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
          implicit none
          integer(I4B),           intent(in) :: iu               !! Open file unit number
@@ -148,16 +186,6 @@ module encounter_classes
          logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine encounter_util_append_list
 
-      module subroutine encounter_util_collapse_ragged_list(ragged_list, n1, nenc, index1, index2, lvdotr)
-         implicit none
-         type(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
-         integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
-         integer(I4B),                                    intent(out)           :: nenc        !! Total number of encountersj 
-         integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
-         integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
-         integer(I4B),         dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
-      end subroutine encounter_util_collapse_ragged_list
-
       module subroutine encounter_util_copy_list(self, source)
          implicit none
          class(encounter_list), intent(inout) :: self   !! Encounter list 
@@ -169,34 +197,6 @@ module encounter_classes
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
          integer(I4B),          intent(in)    :: nnew !! New size of list needed
       end subroutine encounter_util_resize_list
-
-      module subroutine encounter_util_sort_aabb_1D(self, n, extent_arr)
-         implicit none
-         class(encounter_bounding_box_1D), intent(inout) :: self       !! Bounding box structure along a single dimension
-         integer(I4B),                     intent(in)    :: n          !! Number of bodies with extents
-         real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
-      end subroutine encounter_util_sort_aabb_1D
-
-      module subroutine encounter_util_sweep_aabb_double_list(self, n1, n2, ind_arr2, nenc, index1, index2)
-         implicit none
-         class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
-         integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
-         integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
-         integer(I4B), dimension(:),              intent(in)    :: ind_arr2 !! index array for mapping body 2 indexes
-         integer(I4B),                            intent(out)   :: nenc     !! Total number of encounter candidates
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
-      end subroutine encounter_util_sweep_aabb_double_list
-
-      module subroutine encounter_util_sweep_aabb_single_list(self, n, ind_arr, nenc, index1, index2)
-         implicit none
-         class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
-         integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
-         integer(I4B), dimension(:),              intent(in)    :: ind_arr !! index array for mapping body 2 indexes
-         integer(I4B),                            intent(out)   :: nenc    !! Total number of encounter candidates
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair
-      end subroutine encounter_util_sweep_aabb_single_list
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
          implicit none
