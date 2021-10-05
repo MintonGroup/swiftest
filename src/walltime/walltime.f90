@@ -152,10 +152,14 @@ contains
          write(advancedstyle, *) "FLAT      "
          write(standardstyle, *) "TRIANGULAR"
          write(logfile,*) INTERACTION_TIMER_LOG_OUT
-      case("ENCOUNTER")
+      case("ENCOUNTER_PLPL")
          write(advancedstyle, *) "SORTSWEEP "
          write(standardstyle, *) "TRIANGULAR"
          write(logfile,*) ENCOUNTER_PLPL_TIMER_LOG_OUT
+      case("ENCOUNTER_PLTP")
+         write(advancedstyle, *) "SORTSWEEP "
+         write(standardstyle, *) "TRIANGULAR"
+         write(logfile,*) ENCOUNTER_PLTP_TIMER_LOG_OUT
       case default
          write(logfile,*) "unknown_looptimer.log"
       end select
@@ -287,8 +291,10 @@ contains
       select case(trim(adjustl(self%looptype)))
       case("INTERACTION")
          write(logfile,*) INTERACTION_TIMER_LOG_OUT
-      case("ENCOUNTER")
+      case("ENCOUNTER_PLPL")
          write(logfile,*) ENCOUNTER_PLPL_TIMER_LOG_OUT
+      case("ENCOUNTER_PLTP")
+         write(logfile,*) ENCOUNTER_PLTP_TIMER_LOG_OUT
       case default
          write(logfile,*) "unknown_looptimer.log"
       end select

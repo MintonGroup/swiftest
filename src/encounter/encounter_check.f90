@@ -959,7 +959,7 @@ contains
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(self, lenc, ind_arr2) &
+      !$omp shared(self, lenc, ind_arr) &
       !$omp firstprivate(ntot, n1, n2)
       do i = 1, ntot
          call encounter_check_sweep_aabb_one_double_list(i, n1, n2, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr, lenc(i))
