@@ -130,13 +130,13 @@ contains
       logical, save :: lfirst = .true.
       logical, save :: lsecond = .false.
       integer(I8B) :: nplplm = 0_I8B
-      integer(I4B) :: npl
+      integer(I4B) :: npl, i
       logical,      dimension(:), allocatable :: plmplt_lvdotr !! Logical flag indicating the sign of v .dot. x in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index1 !! List of indices for body 1 in each encounter in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index2 !! List of indices for body 2 in each encounter in the plm-lt group
       integer(I4B)                            :: plmplt_nenc   !! Number of encounters of the plm-plt group
       class(swiftest_parameters), allocatable :: tmp_param     !! Temporary parameter structure to turn off adaptive timer for the pl-pl phase if necessary
-      integer(I4B), dimension(:), allocatable :: itmp      
+      integer(I4B), dimension(:), allocatable :: itmp, ind
       logical, dimension(:), allocatable :: ltmp
 
       ! Start with the fully interacting bodies
@@ -194,6 +194,11 @@ contains
          ltmp(nenc+1:nenc+plmplt_nenc) = plmplt_lvdotr(1:plmplt_nenc)
          call move_alloc(ltmp, lvdotr)
          nenc = nenc + plmplt_nenc
+
+         call util_sort(index1, itmp)
+         call util_sort_rearrange(index1, itmp, nenc)
+         call util_sort_rearrange(index2, itmp, nenc)
+         call util_sort_rearrange(lvdotr, itmp, nenc)
       end if
 
       return
@@ -302,6 +307,7 @@ contains
       call util_sort(index1, ind)
       lfresh(:) = .true.
 
+      ! Remove duplicates
       do k = 1, nenc 
          i = index1(ind(k))
          j = index2(ind(k))
@@ -471,7 +477,7 @@ contains
          end where
 
          call boundingbox%aabb(dim)%sort(ntot, [xplm(dim,1:nplm) - rencm(1:nplm) + vplmshift_min(1:nplm) * vplm(dim,1:nplm) * dt, &
-                                                xplm(dim,1:nplt) - renct(1:nplt) + vpltshift_min(1:nplt) * vplt(dim,1:nplt) * dt, &
+                                                xplt(dim,1:nplt) - renct(1:nplt) + vpltshift_min(1:nplt) * vplt(dim,1:nplt) * dt, &
                                                 xplm(dim,1:nplm) + rencm(1:nplm) + vplmshift_max(1:nplm) * vplm(dim,1:nplm) * dt, &
                                                 xplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
       end do
@@ -489,10 +495,11 @@ contains
 
          call encounter_check_all(nenc, index1, index2, xplm, vplm, xplt, vplt, rencm, renct, dt, lencounter, lvdotr)
 
+         ! Shift the tiny body indices back to their natural range
+         index2(:) = index2(:) + nplm
+
          call encounter_check_reduce_broadphase(ntot, nenc, index1, index2, lencounter, lvdotr)
 
-         ! SHift the tiny body indices back to their natural range
-         index2(:) = index2(:) + nplm
       end if
 
       return
