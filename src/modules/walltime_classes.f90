@@ -51,13 +51,11 @@ module walltime_classes
    end type interaction_timer
 
    interface
-      module subroutine walltime_report(self, nsubsteps, message, param)
-         use swiftest_classes, only : swiftest_parameters
+      module subroutine walltime_report(self, nsubsteps, message)
          implicit none
          class(walltimer),           intent(inout) :: self      !! Walltimer object
          integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
          character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
-         class(swiftest_parameters), intent(inout) :: param     !! Current run configuration parameters
       end subroutine walltime_report
 
       module subroutine walltime_reset(self)

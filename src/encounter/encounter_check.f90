@@ -360,25 +360,24 @@ contains
       integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
       ! Internals
       integer(I4B) :: i, dim, n
-      integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I4B), save :: npl_last = 0
       type(encounter_bounding_box), save :: boundingbox
       logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(npl) :: vshift_min, vshift_max
+      type(walltimer) :: timer 
 
       if (npl <= 1) return
 
       ! If this is the first time through, build the index lists
       n = 2 * npl
       if (npl_last /= npl) then
-         if (allocated(ind_arr)) deallocate(ind_arr)
-         allocate(ind_arr(npl))
-         ind_arr(:) = [(i, i = 1, npl)]
-
          call boundingbox%setup(npl, npl_last)
+         npl_last = npl
       end if
 
-      !$omp taskloop default(private) num_tasks(SWEEPDIM) &
+      ! call timer%reset()
+      ! call timer%start()
+      !$omp parallel do default(private) schedule(static) &
       !$omp shared(x, v, renc, boundingbox) &
       !$omp firstprivate(dt, npl, n)
       do dim = 1, SWEEPDIM
@@ -392,9 +391,11 @@ contains
          call boundingbox%aabb(dim)%sort(npl, [x(dim,1:npl) - renc(1:npl) + vshift_min(1:npl) * v(dim,1:npl) * dt, &
                                                x(dim,1:npl) + renc(1:npl) + vshift_max(1:npl) * v(dim,1:npl) * dt])
       end do
-      !$omp end taskloop
+      !$omp end parallel do 
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=nthreads, message="AABB sort plpl:")
 
-      call boundingbox%sweep(npl, ind_arr, nenc, index1, index2)
+      call boundingbox%sweep(npl, nenc, index1, index2)
 
       if (nenc > 0) then
          ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
@@ -435,11 +436,11 @@ contains
       ! Internals
       type(encounter_bounding_box), save :: boundingbox
       integer(I4B) :: i, dim, n, ntot
-      integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I4B), save :: ntot_last = 0
       logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(nplm) :: vplmshift_min, vplmshift_max
       integer(I2B), dimension(nplt) :: vpltshift_min, vpltshift_max
+      type(walltimer) :: timer 
 
       ! If this is the first time through, build the index lists
       if ((nplm == 0) .or. (nplt == 0)) return
@@ -447,16 +448,15 @@ contains
       ntot = nplm + nplt
       n = 2 * ntot
       if (ntot /= ntot_last) then
-         if (allocated(ind_arr)) deallocate(ind_arr)
-         allocate(ind_arr(ntot))
-         ind_arr(1:ntot) = [(i, i = 1, ntot)]
 
          call boundingbox%setup(ntot, ntot_last)
 
          ntot_last = ntot
       end if
-      
-      !$omp taskloop default(private) num_tasks(SWEEPDIM) &
+     
+      ! call timer%reset()
+      ! call timer%start()
+      !$omp parallel do default(private) schedule(static) &
       !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)
       do dim = 1, SWEEPDIM
@@ -481,9 +481,11 @@ contains
                                                 xplm(dim,1:nplm) + rencm(1:nplm) + vplmshift_max(1:nplm) * vplm(dim,1:nplm) * dt, &
                                                 xplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
       end do
-      !$omp end taskloop
+      !$omp end parallel do
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=nthreads, message="AABB sort plplm:")
 
-      call boundingbox%sweep(nplm, nplt, ind_arr, nenc, index1, index2)
+      call boundingbox%sweep(nplm, nplt, nenc, index1, index2)
 
       if (nenc > 0) then
          ! Shift tiny body indices back into the range of the input position and velocity arrays
@@ -530,7 +532,6 @@ contains
       ! Internals
       type(encounter_bounding_box), save :: boundingbox
       integer(I4B) :: i, dim, n, ntot
-      integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I4B), save :: ntot_last = 0
       logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(npl) :: vplshift_min, vplshift_max
@@ -543,16 +544,11 @@ contains
       ntot = npl + ntp
       n = 2 * ntot
       if (ntot /= ntot_last) then
-         if (allocated(ind_arr)) deallocate(ind_arr)
-         allocate(ind_arr(ntot))
-         ind_arr(1:ntot) = [(i, i = 1, ntot)]
-
          call boundingbox%setup(ntot, ntot_last)
-
          ntot_last = ntot
       end if
       
-      !$omp taskloop default(private) num_tasks(SWEEPDIM) &
+      !$omp parallel do default(private) schedule(static) &
       !$omp shared(xpl, xtp, vpl, vtp, renc, boundingbox) &
       !$omp firstprivate(dt, npl, ntp, ntot)
       do dim = 1, SWEEPDIM
@@ -577,9 +573,9 @@ contains
                                                 xpl(dim,1:npl) + renc(1:npl) + vplshift_max(1:npl) * vpl(dim,1:npl) * dt, &
                                                 xtp(dim,1:ntp)               + vtpshift_max(1:ntp) * vtp(dim,1:ntp) * dt])
       end do
-      !$omp end taskloop
+      !$omp end parallel do
 
-      call boundingbox%sweep(npl, ntp, ind_arr, nenc, index1, index2)
+      call boundingbox%sweep(npl, ntp, nenc, index1, index2)
 
       if (nenc > 0) then
          ! Shift test particle indices back into the proper range
@@ -626,7 +622,7 @@ contains
       ind_arr(:) = [(i, i = 1, npl)]
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(npl, x, v, renc, dt, lenc, ind_arr) &
-      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12, lencounteri, lvdotri)
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12, nenci, lencounteri, lvdotri)
       do i = 1, npl
          do concurrent(j = i+1:npl)
             xr = x(1, j) - x(1, i)
@@ -701,7 +697,7 @@ contains
       ind_arr(:) = [(i, i = 1, nplt)]
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lenc, ind_arr) &
-      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12, lencounteri, lvdotri)
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12, nenci, lencounteri, lvdotri)
       do i = 1, nplm
          do concurrent(j = 1:nplt)
             xr = xplt(1, j) - xplm(1, i)
@@ -775,7 +771,7 @@ contains
       ind_arr(:) = [(i, i = 1, ntp)]
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lenc, ind_arr) &
-      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, lencounteri, lvdotri)
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, nenci, lencounteri, lvdotri)
       do i = 1, npl
          do concurrent(j = 1:ntp)
             xr = xtp(1, j) - xpl(1, i)
@@ -910,35 +906,26 @@ contains
       integer(I4B),                     intent(in)    :: n          !! Number of bodies with extents
       real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
       ! Internals
-      integer(I4B) :: i, j, ibox, jbox
+      integer(I4B) :: i, j, k, ibox, jbox
+      integer(I4B), dimension(2) :: extent
       logical, dimension(:), allocatable :: lfresh
 
       call util_sort(extent_arr, self%ind)
-      allocate(lfresh(n))
 
-      ! Determine the interval starting points and sizes
-      lfresh(:) = .true. ! This will prevent double-counting of pairs
-      do ibox = 1, 2*n
-         i = self%ind(ibox)
-         if (i > n) i = i - n ! If this is an endpoint index, shift it to the correct range
-         if (.not.lfresh(i)) cycle
-         do jbox = ibox + 1, 2*n
-            j = self%ind(jbox)
-            if (j > n) j = j - n ! If this is an endpoint index, shift it to the correct range
-            if (j == i) then
-               lfresh(i) = .false.
-               self%ibeg(i) = ibox
-               self%iend(i) = jbox
-               exit ! We've reached the end of this interval 
-            end if
-         end do
+      do concurrent(k = 1:2*n)
+         i = self%ind(k)
+         if (i <= n) then
+            self%ibeg(i) = k
+         else
+            self%iend(i - n) = k
+         end if
       end do
 
       return
    end subroutine encounter_check_sort_aabb_1D 
 
    
-   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, ind_arr, nenc, index1, index2)
+   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, nenc, index1, index2)
       !! author: David A. Minton
       !!
       !! Sweeps the sorted bounding box extents and returns the encounter candidates
@@ -947,24 +934,28 @@ contains
       class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
       integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
       integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
-      integer(I4B), dimension(:),              intent(in)    :: ind_arr  !! index array for mapping the body indices (body 2 indexes should be shifted by +n1 in this list)
       integer(I4B),                            intent(out)   :: nenc     !! Total number of encounter candidates
       integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
       !Internals
       Integer(I4B) :: i, k, ntot
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
+      type(walltimer) :: timer 
 
       ntot = n1 + n2
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
+      ! call timer%reset()
+      ! call timer%start()
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(self, lenc, ind_arr) &
+      !$omp shared(self, lenc) &
       !$omp firstprivate(ntot, n1, n2)
       do i = 1, ntot
-         call encounter_check_sweep_aabb_one_double_list(i, n1, n2, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr, lenc(i))
+         call encounter_check_sweep_aabb_one_double_list(i, n1, n2, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), self%ind_arr(:), lenc(i))
       end do
       !$omp end parallel do 
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=nthreads, message="AABB sweep double:")
 
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
 
@@ -979,7 +970,7 @@ contains
    end subroutine encounter_check_sweep_aabb_double_list
 
 
-   module subroutine encounter_check_sweep_aabb_single_list(self, n, ind_arr, nenc, index1, index2)
+   module subroutine encounter_check_sweep_aabb_single_list(self, n, nenc, index1, index2)
       !! author: David A. Minton
       !!
       !! Sweeps the sorted bounding box extents and returns the encounter candidates. Mutual encounters
@@ -988,23 +979,27 @@ contains
       ! Arguments
       class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
       integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
-      integer(I4B), dimension(:),              intent(in)    :: ind_arr !! index array for mapping body 2 indexes
       integer(I4B),                            intent(out)   :: nenc    !! Total number of encounter candidates
       integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair
       !Internals
       Integer(I4B) :: i, k
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
+      type(walltimer) :: timer 
 
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
+      ! call timer%reset()
+      ! call timer%start()
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(self, lenc, ind_arr) &
+      !$omp shared(self, lenc) &
       !$omp firstprivate(n)
       do i = 1, n
-         call encounter_check_sweep_aabb_one_single_list(i, n, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr, lenc(i))
+         call encounter_check_sweep_aabb_one_single_list(i, n, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), self%ind_arr(:), lenc(i))
       end do
       !$omp end parallel do 
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=nthreads, message="AABB sweep single:")
 
       call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2)
 
@@ -1019,7 +1014,7 @@ contains
    end subroutine encounter_check_sweep_aabb_single_list
 
 
-   subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ext_ind, ibegx, iendx, ibegy, iendy, ind_arr2, lenc)
+   subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ext_ind, ibegx, iendx, ibegy, iendy, ind_arr, lenc)
       !! author: David A. Minton
       !!
       !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
@@ -1031,7 +1026,7 @@ contains
       integer(I4B), dimension(:), intent(in)    :: ext_ind      !! Sorted index array of extents
       integer(I4B), dimension(:), intent(in)    :: ibegx, iendx !! Beginning and ending index lists in the x-dimension
       integer(I4B), dimension(:), intent(in)    :: ibegy, iendy !! Beginning and ending index lists in the y-dimension
-      integer(I4B), dimension(:), intent(in)    :: ind_arr2     !! index array for mapping body 2 indexes
+      integer(I4B), dimension(:), intent(in)    :: ind_arr     !! index array for mapping body 2 indexes
       type(encounter_list),       intent(inout) :: lenc         !! Encounter list for the ith body
       ! Internals
       integer(I4B) :: ibox, jbox, nbox, j, ybegi, yendi, ntot
@@ -1054,7 +1049,7 @@ contains
       lenc%nenc = count(lencounteri(:))
       if (lenc%nenc > 0) then
          allocate(lenc%index2(lenc%nenc))
-         lenc%index2(:) = pack(ind_arr2(:), lencounteri(:)) 
+         lenc%index2(:) = pack(ind_arr(:), lencounteri(:)) 
       end if
 
       return

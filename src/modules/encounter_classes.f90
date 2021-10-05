@@ -42,6 +42,7 @@ module encounter_classes
 
    type encounter_bounding_box
       type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
+      integer(I4B), dimension(:), allocatable :: ind_arr !! Index array of bodies
    contains
       procedure :: setup        => encounter_setup_aabb      !! Setup a new axis-aligned bounding box structure
       procedure :: sweep_single => encounter_check_sweep_aabb_single_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
@@ -144,22 +145,20 @@ module encounter_classes
          real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
       end subroutine encounter_check_sort_aabb_1D
 
-      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, ind_arr, nenc, index1, index2)
+      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, nenc, index1, index2)
          implicit none
          class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
          integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
          integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
-         integer(I4B), dimension(:),              intent(in)    :: ind_arr  !! index array for mapping the body indices (body 2 indexes should be shifted by +n1 in this list)
          integer(I4B),                            intent(out)   :: nenc     !! Total number of encounter candidates
          integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
          integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
       end subroutine encounter_check_sweep_aabb_double_list
 
-      module subroutine encounter_check_sweep_aabb_single_list(self, n, ind_arr, nenc, index1, index2)
+      module subroutine encounter_check_sweep_aabb_single_list(self, n, nenc, index1, index2)
          implicit none
          class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
          integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
-         integer(I4B), dimension(:),              intent(in)    :: ind_arr !! index array for mapping body 2 indexes
          integer(I4B),                            intent(out)   :: nenc    !! Total number of encounter candidates
          integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
          integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair

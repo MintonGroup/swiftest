@@ -19,6 +19,10 @@ contains
       next_last = 2 * n_last
 
       if (n > n_last) then ! The number of bodies has grown. Resize and append the new bodies
+         allocate(tmp(n))
+         if (n_last > 0) tmp(1:n_last) = self%ind_arr(1:n_last)
+         call move_alloc(tmp, self%ind_arr) 
+         self%ind_arr(n_last+1:n) = [(k, k = n_last+1, n)]
          do dim = 1, SWEEPDIM
             allocate(tmp(next))
             if (n_last > 0) tmp(1:next_last) = self%aabb(dim)%ind(1:next_last)
@@ -26,6 +30,9 @@ contains
             self%aabb(dim)%ind(next_last+1:next) = [(k, k = next_last+1, next)]
          end do
       else ! The number of bodies has gone down. Resize and chop of the old indices
+         allocate(tmp(n))
+         tmp(1:n) = self%ind_arr(1:n)
+         call move_alloc(tmp, self%ind_arr) 
          do dim = 1, SWEEPDIM
             allocate(tmp(next))
             tmp(1:next) = pack(self%aabb(dim)%ind(1:next_last), self%aabb(dim)%ind(1:next_last) <= next)

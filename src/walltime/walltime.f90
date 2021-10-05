@@ -29,7 +29,7 @@ contains
    end subroutine walltime_stop
 
 
-   module subroutine walltime_report(self, nsubsteps, message, param)
+   module subroutine walltime_report(self, nsubsteps, message)
       !! author: David A. Minton
       !!
       !! Prints the elapsed time information to the terminal
@@ -38,7 +38,6 @@ contains
       class(walltimer),           intent(inout) :: self      !! Walltimer object
       integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
       character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
-      class(swiftest_parameters), intent(inout) :: param     !! Current run configuration parameters
       ! Internals
       character(len=*), parameter     :: walltimefmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, "; Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
