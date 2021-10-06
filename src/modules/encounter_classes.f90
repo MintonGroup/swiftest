@@ -42,7 +42,6 @@ module encounter_classes
 
    type encounter_bounding_box
       type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
-      integer(I4B), dimension(:), allocatable :: ind_arr !! Index array of bodies
    contains
       procedure :: setup        => encounter_setup_aabb      !! Setup a new axis-aligned bounding box structure
       procedure :: sweep_single => encounter_check_sweep_aabb_single_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
@@ -135,7 +134,7 @@ module encounter_classes
          integer(I4B),                                    intent(out)           :: nenc        !! Total number of encountersj 
          integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
          integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
-         integer(I4B),         dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
+         logical,              dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
       end subroutine encounter_check_collapse_ragged_list
 
       module subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)

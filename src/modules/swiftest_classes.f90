@@ -1408,6 +1408,11 @@ module swiftest_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
+      module subroutine util_index_array(ind_arr, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
+         integer(I4B),                            intent(in)    :: n       !! The new size of the index array
+      end subroutine util_index_array
 
       module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function
