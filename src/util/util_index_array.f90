@@ -22,8 +22,8 @@ contains
          nold = 0
       end if
 
+      allocate(itmp(n))
       if (n >= nold) then
-         allocate(itmp(n))
          if (nold > 0) itmp(1:nold) = ind_arr(1:nold)
          itmp(nold+1:n) = [(i, i = nold + 1, n)]
          call move_alloc(itmp, ind_arr)
