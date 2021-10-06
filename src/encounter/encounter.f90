@@ -14,7 +14,7 @@ contains
       integer(I4B), dimension(:,:), intent(in)  :: k_plpl     !! List of all pl-pl encounters
       real(DP),     dimension(:,:), intent(in)  :: x          !! Position vectors of massive bodies
       real(DP),     dimension(:,:), intent(in)  :: v          !! Velocity vectors of massive bodies
-      real(DP),     dimension(:),   intent(in)  :: renc      !! Hill's radii of massive bodies
+      real(DP),     dimension(:),   intent(in)  :: renc       !! Hill's radii of massive bodies
       real(DP),                     intent(in)  :: dt         !! Step size
       logical,      dimension(:),   intent(out) :: lencounter !! Logical array indicating which pair is in an encounter state
       logical,      dimension(:),   intent(out) :: loc_lvdotr !! Logical array indicating the sign of v .dot. x for each encounter
@@ -25,7 +25,7 @@ contains
       
       !$omp parallel do simd default(private) schedule(static)&
       !$omp shared(nplplm, k_plpl, x, v, renc, dt, lencounter, loc_lvdotr) &
-      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc1, renc2)
+      !$omp lastprivate(xr, yr, zr, vxr, vyr, vzr, renc12)
       do k = 1_I8B, nplplm
          i = k_plpl(1, k)
          j = k_plpl(2, k)
