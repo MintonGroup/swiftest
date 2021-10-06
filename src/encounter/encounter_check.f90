@@ -662,7 +662,7 @@ contains
       type(encounter_list), dimension(npl) :: lenc
 
       call util_index_array(ind_arr, npl) 
-   
+
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(x, v, renc, lenc, ind_arr) &
       !$omp firstprivate(npl, dt)
@@ -800,21 +800,25 @@ contains
 
       if (r2 > r2crit) then 
          vdotr = vxr * xr + vyr * yr + vzr * zr
-         v2 = vxr**2 + vyr**2 + vzr**2
-         tmin = -vdotr / v2
-      
-         if (tmin < dt) then
-            r2min = r2 - vdotr**2 / v2
+         if (vdotr > 0.0_DP) then
+            r2min = r2
          else
-            r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+            v2 = vxr**2 + vyr**2 + vzr**2
+            tmin = -vdotr / v2
+         
+            if (tmin < dt) then
+               r2min = r2 - vdotr**2 / v2
+            else
+               r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+            end if
          end if
       else
-         vdotr = 0.0_DP
+         vdotr = -1.0_DP
          r2min = r2
       end if
 
-      lencounter = (r2min <= r2crit) 
       lvdotr = (vdotr < 0.0_DP)
+      lencounter = lvdotr .and. (r2min <= r2crit) 
 
       return
    end subroutine encounter_check_one
@@ -904,8 +908,8 @@ contains
       !Internals
       integer(I4B) :: i, k, ntot
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
-      type(walltimer) :: timer 
       integer(I4B), dimension(:), allocatable, save :: ind_arr
+      type(walltimer) :: timer 
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)

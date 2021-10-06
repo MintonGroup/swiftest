@@ -160,7 +160,7 @@ contains
          end do
       end do
       !$omp end parallel do
-     
+
       do concurrent(i = 1:npl)
          acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
       end do
