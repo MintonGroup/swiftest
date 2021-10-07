@@ -65,25 +65,19 @@ contains
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
-      logical, save :: lsecond = .false.
+      logical, save :: skipit = .false. ! This will be used to ensure that the sort & sweep subroutine gets called at least once before timing it so that the extent array is nearly sorted when it is timed
       integer(I8B) :: nplpl = 0_I8B
 
-      if (param%ladaptive_encounters_plpl) then
+      if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          nplpl = (npl * (npl - 1) / 2) 
          if (nplpl > 0) then
             if (lfirst) then  
                write(itimer%loopname, *) "encounter_check_all_plpl"
                write(itimer%looptype, *) "ENCOUNTER_PLPL"
                lfirst = .false.
-               lsecond = .true.
-            else
-               if (lsecond) then ! This ensures that the encounter check methods are run at least once prior to timing. Sort and sweep improves on the second pass due to the bounding box extents needing to be nearly sorted 
-                  call itimer%time_this_loop(param, nplpl)
-                  lsecond = .false.
-               else if (itimer%check(param, nplpl)) then
-                  lsecond = .true.
-                  itimer%is_on = .false.
-               end if
+               itimer%step_counter = INTERACTION_TIMER_CADENCE
+            else 
+               if (itimer%check(param, nplpl)) call itimer%time_this_loop(param, nplpl)
             end if
          else
             param%lencounter_sas_plpl = .false.
@@ -96,8 +90,15 @@ contains
          call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, lvdotr, index1, index2, nenc) 
       end if
 
-      if (.not.lfirst .and. param%ladaptive_encounters_plpl .and. nplpl > 0) then 
-         if (itimer%is_on) call itimer%adapt(param, nplpl)
+      if (skipit) then
+         skipit = .false.
+      else
+         if (param%ladaptive_encounters_plpl .and. nplpl > 0) then 
+            if (itimer%is_on) then
+               call itimer%adapt(param, nplpl)
+               skipit = .true.
+            end if
+         end if
       end if
 
       return
@@ -128,7 +129,7 @@ contains
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
-      logical, save :: lsecond = .false.
+      logical, save :: skipit = .false.
       integer(I8B) :: nplplm = 0_I8B
       integer(I4B) :: npl, i
       logical,      dimension(:), allocatable :: plmplt_lvdotr !! Logical flag indicating the sign of v .dot. x in the plm-plt group
@@ -139,10 +140,7 @@ contains
       integer(I4B), dimension(:), allocatable :: itmp, ind
       logical, dimension(:), allocatable :: ltmp
 
-      ! Start with the fully interacting bodies
-      allocate(tmp_param, source=param)
-
-      if (param%ladaptive_encounters_plpl) then
+      if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          npl = nplm + nplt
          nplplm = nplm * npl - nplm * (nplm + 1) / 2 
          if (nplplm > 0) then
@@ -150,22 +148,19 @@ contains
                write(itimer%loopname, *) "encounter_check_all_plpl"
                write(itimer%looptype, *) "ENCOUNTER_PLPL"
                lfirst = .false.
-               lsecond = .true.
-            else
-               if (lsecond) then ! This ensures that the encounter check methods are run at least once prior to timing. Sort and sweep improves on the second pass due to the bounding box extents needing to be nearly sorted 
-                  call itimer%time_this_loop(param, nplplm)
-                  lsecond = .false.
-               else if (itimer%check(param, nplplm)) then
-                  lsecond = .true.
-                  itimer%is_on = .false.
-               end if
+               itimer%step_counter = INTERACTION_TIMER_CADENCE
+            else 
+               if (itimer%check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
             end if
          else
             param%lencounter_sas_plpl = .false.
          end if
-         ! Turn off adaptive encounter checks for the pl-pl group
-         tmp_param%ladaptive_encounters_plpl = .false.
       end if
+
+      allocate(tmp_param, source=param)
+
+      ! Turn off adaptive encounter checks for the pl-pl group
+      tmp_param%ladaptive_encounters_plpl = .false.
 
       ! Start with the pl-pl group
       call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, lvdotr, index1, index2, nenc)
@@ -176,8 +171,15 @@ contains
          call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_lvdotr, plmplt_index1, plmplt_index2, plmplt_nenc) 
       end if
 
-      if (.not.lfirst .and. param%ladaptive_encounters_plpl .and. nplplm > 0) then 
-         if (itimer%is_on) call itimer%adapt(param, nplplm)
+      if (skipit) then
+         skipit = .false.
+      else
+         if (param%ladaptive_encounters_plpl .and. nplplm > 0) then 
+            if (itimer%is_on) then
+               call itimer%adapt(param, nplplm)
+               skipit = .true.
+            end if
+         end if
       end if
 
       if (plmplt_nenc > 0) then ! Consolidate the two lists
@@ -367,7 +369,8 @@ contains
       type(walltimer) :: timer 
 
       if (npl <= 1) return
-
+      ! call timer%reset()
+      ! call timer%start()
       ! If this is the first time through, build the index lists
       n = 2 * npl
       if (npl_last /= npl) then
@@ -375,8 +378,7 @@ contains
          npl_last = npl
       end if
 
-!      call timer%reset()
-!      call timer%start()
+
       !$omp parallel do default(private) schedule(static) &
       !$omp shared(x, v, renc, boundingbox) &
       !$omp firstprivate(dt, npl, n)
@@ -392,21 +394,34 @@ contains
                                                x(dim,1:npl) + renc(1:npl) + vshift_max(1:npl) * v(dim,1:npl) * dt])
       end do
       !$omp end parallel do 
-!      call timer%stop()
-!      call timer%report(nsubsteps=nthreads, message="AABB sort plpl:")
 
+
+      ! call timer%reset()
+      ! call timer%start()
       call boundingbox%sweep(npl, nenc, index1, index2)
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=1, message="Sweep plpl:")
 
       if (nenc > 0) then
          ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
          allocate(lencounter(nenc))
          allocate(lvdotr(nenc))
 
+         ! call timer%reset()
+         ! call timer%start()
          call encounter_check_all(nenc, index1, index2, x, v, x, v, renc, renc, dt, lencounter, lvdotr)
+         ! call timer%stop()
+         ! call timer%report(nsubsteps=1, message="Narrow plpl:")
 
+         ! call timer%reset()
+         ! call timer%start()
          call encounter_check_reduce_broadphase(npl, nenc, index1, index2, lencounter, lvdotr)
+         ! call timer%stop()
+         ! call timer%report(nsubsteps=1, message="Reduce plpl:")
       end if
 
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=1, message="Sort & Sweep plpl:")
       return
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
@@ -444,6 +459,8 @@ contains
 
       ! If this is the first time through, build the index lists
       if ((nplm == 0) .or. (nplt == 0)) return
+      ! call timer%reset()
+      ! call timer%start()
 
       ntot = nplm + nplt
       n = 2 * ntot
@@ -454,8 +471,7 @@ contains
          ntot_last = ntot
       end if
      
-      call timer%reset()
-      call timer%start()
+
       !$omp parallel do default(private) schedule(static) &
       !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)
@@ -483,9 +499,13 @@ contains
       end do
       !$omp end parallel do
       ! call timer%stop()
-      ! call timer%report(nsubsteps=nthreads, message="AABB sort plplm:")
+      ! call timer%report(nsubsteps=1, message="Sort plplm:")
 
+      ! call timer%reset()
+      ! call timer%start()
       call boundingbox%sweep(nplm, nplt, nenc, index1, index2)
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=1, message="Sweep plplm:")
 
       if (nenc > 0) then
          ! Shift tiny body indices back into the range of the input position and velocity arrays
@@ -495,15 +515,25 @@ contains
          allocate(lencounter(nenc))
          allocate(lvdotr(nenc))
 
+         ! call timer%reset()
+         ! call timer%start()
          call encounter_check_all(nenc, index1, index2, xplm, vplm, xplt, vplt, rencm, renct, dt, lencounter, lvdotr)
+         ! call timer%stop()
+         ! call timer%report(nsubsteps=1, message="Narrow plplm:")
+
+         ! call timer%reset()
+         ! call timer%start()
 
          ! Shift the tiny body indices back to their natural range
          index2(:) = index2(:) + nplm
 
          call encounter_check_reduce_broadphase(ntot, nenc, index1, index2, lencounter, lvdotr)
+         ! call timer%stop()
+         ! call timer%report(nsubsteps=1, message="Reduce plplm:")
 
       end if
-
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=1, message="Sort & Sweep plplm:")
       return
    end subroutine encounter_check_all_sort_and_sweep_plplm
 
@@ -597,7 +627,6 @@ contains
 
 
    subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, ind_arr, lenci)
-      !$omp declare simd(encounter_check_all_triangular_one)
       implicit none
       ! Arguments
       integer(I4B),                       intent(in)  :: i
@@ -660,6 +689,10 @@ contains
       logical, dimension(npl) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(npl) :: lenc
+      type(walltimer) :: timer 
+
+      ! call timer%reset()
+      ! call timer%start()
 
       call util_index_array(ind_arr, npl) 
 
@@ -676,6 +709,9 @@ contains
       !$omp end parallel do
 
       call encounter_check_collapse_ragged_list(lenc, npl, nenc, index1, index2, lvdotr)
+
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=1, message="Triangular plpl:")
 
       return
    end subroutine encounter_check_all_triangular_plpl
@@ -707,6 +743,10 @@ contains
       logical, dimension(nplt) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(nplm) :: lenc
+      type(walltimer) :: timer 
+
+      ! call timer%reset()
+      ! call timer%start()
 
       call util_index_array(ind_arr, nplt)
 
@@ -723,6 +763,9 @@ contains
       !$omp end parallel do
 
       call encounter_check_collapse_ragged_list(lenc, nplm, nenc, index1, index2, lvdotr)
+
+      ! call timer%stop()
+      ! call timer%report(nsubsteps=1, message="Triangular plplm:")
 
       return
    end subroutine encounter_check_all_triangular_plplm
@@ -909,14 +952,12 @@ contains
       integer(I4B) :: i, k, ntot
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      type(walltimer) :: timer 
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
-      ! call timer%reset()
-      ! call timer%start()
+
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(self, lenc, ind_arr) &
       !$omp firstprivate(ntot, n1, n2)
@@ -924,8 +965,6 @@ contains
          call encounter_check_sweep_aabb_one_double_list(i, n1, n2, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr(:), lenc(i))
       end do
       !$omp end parallel do 
-      ! call timer%stop()
-      ! call timer%report(nsubsteps=nthreads, message="AABB sweep double:")
 
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
 
@@ -955,15 +994,12 @@ contains
       !Internals
       Integer(I4B) :: i, k
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
-      type(walltimer) :: timer 
       integer(I4B), dimension(:), allocatable, save :: ind_arr
 
       call util_index_array(ind_arr, n)
 
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
-      ! call timer%reset()
-      ! call timer%start()
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(self, lenc, ind_arr) &
       !$omp firstprivate(n)
@@ -971,8 +1007,6 @@ contains
          call encounter_check_sweep_aabb_one_single_list(i, n, self%aabb(1)%ind(:), self%aabb(1)%ibeg(:), self%aabb(1)%iend(:), self%aabb(2)%ibeg(:), self%aabb(2)%iend(:), ind_arr(:), lenc(i))
       end do
       !$omp end parallel do 
-      ! call timer%stop()
-      ! call timer%report(nsubsteps=nthreads, message="AABB sweep single:")
 
       call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2)
 
