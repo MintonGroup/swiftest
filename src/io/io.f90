@@ -136,6 +136,7 @@ contains
       write(iu, err = 667, iomsg = errmsg) self%particle_type
       write(iu, err = 667, iomsg = errmsg) self%origin_type
       write(iu, err = 667, iomsg = errmsg) self%origin_time
+      write(iu, err = 667, iomsg = errmsg) self%collision_id
       write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
       write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
@@ -271,9 +272,6 @@ contains
       integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
                                                             !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
-      real(DP)                      :: tfrac
-      character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
-      character(*),     parameter   :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
    
       allocate(dump_param, source=param)
       param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
@@ -311,15 +309,6 @@ contains
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
-
-      tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-      
-      select type(pl => self%pl)
-      class is (symba_pl)
-         write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, self%tp%nbody
-      class default
-         write(*, statusfmt) param%t, tfrac, pl%nbody, self%tp%nbody
-      end select
 
       return
    end subroutine io_dump_system
@@ -487,13 +476,13 @@ contains
       ! Internals
       character(STRMAX) :: errmsg
 
-      open(unit=LUN, file=file, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      open(unit=LUN, file=trim(adjustl(file)), status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
       write(LUN, *) trim(adjustl(message)) 
       close(LUN)
 
       return
       667 continue
-      write(*,*) "Error writing  message to log file: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing message to log file: " // trim(adjustl(errmsg))
    end subroutine io_log_one_message
 
 
@@ -510,7 +499,7 @@ contains
       character(STRMAX) :: errmsg
       logical           :: fileExists
 
-      inquire(file=file, exist=fileExists)
+      inquire(file=trim(adjustl(file)), exist=fileExists)
       if (.not.param%lrestart .or. .not.fileExists) then
          open(unit=LUN, file=file, status="REPLACE", err = 667, iomsg = errmsg)
          write(LUN, *, err = 667, iomsg = errmsg) trim(adjustl(header))
@@ -661,6 +650,16 @@ contains
                case ("INTERACTION_LOOPS")
                   call io_toupper(param_value)
                   param%interaction_loops = param_value
+               case ("ENCOUNTER_CHECK_PLPL")
+                  call io_toupper(param_value)
+                  param%encounter_check_plpl = param_value
+               case ("ENCOUNTER_CHECK_PLTP")
+                  call io_toupper(param_value)
+                  param%encounter_check_pltp = param_value
+               case ("ENCOUNTER_CHECK")
+                  call io_toupper(param_value)
+                  param%encounter_check_plpl = param_value
+                  param%encounter_check_pltp = param_value
                case ("FIRSTKICK")
                   call io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
@@ -825,17 +824,14 @@ contains
          case("ADAPTIVE")
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
             call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
             call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .false.
-            param%lflatten_encounters = .false.
          case("FLAT")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
          case default
             write(*,*) "Unknown value for parameter INTERACTION_LOOPS: -> ",trim(adjustl(param%interaction_loops))
             write(*,*) "Must be one of the following: TRIANGULAR, FLAT, or ADAPTIVE"
@@ -843,7 +839,54 @@ contains
             param%interaction_loops = "ADAPTIVE"
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
+            call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         end select
+
+         select case(trim(adjustl(param%encounter_check_plpl)))
+         case("ADAPTIVE")
+            param%ladaptive_encounters_plpl = .true.
+            param%lencounter_sas_plpl = .true.
+            call io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         case("TRIANGULAR")
+            param%ladaptive_encounters_plpl = .false.
+            param%lencounter_sas_plpl = .false.
+         case("SORTSWEEP")
+            param%ladaptive_encounters_plpl = .false.
+            param%lencounter_sas_plpl = .true.
+         case default
+            write(*,*) "Unknown value for parameter ENCOUNTER_CHECK_PLPL: -> ",trim(adjustl(param%encounter_check_plpl))
+            write(*,*) "Must be one of the following: TRIANGULAR, SORTSWEEP, or ADAPTIVE"
+            write(*,*) "Using default value of ADAPTIVE"
+            param%encounter_check_plpl = "ADAPTIVE"
+            param%ladaptive_encounters_plpl = .true.
+            param%lencounter_sas_plpl = .true.
+            call io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         end select
+
+         select case(trim(adjustl(param%encounter_check_pltp)))
+         case("ADAPTIVE")
+            param%ladaptive_encounters_pltp = .true.
+            param%lencounter_sas_pltp = .true.
+            call io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
+         case("TRIANGULAR")
+            param%ladaptive_encounters_pltp = .false.
+            param%lencounter_sas_pltp = .false.
+         case("SORTSWEEP")
+            param%ladaptive_encounters_pltp = .false.
+            param%lencounter_sas_pltp = .true.
+         case default
+            write(*,*) "Unknown value for parameter ENCOUNTER_CHECK_PLTP: -> ",trim(adjustl(param%encounter_check_pltp))
+            write(*,*) "Must be one of the following: TRIANGULAR, SORTSWEEP, or ADAPTIVE"
+            write(*,*) "Using default value of ADAPTIVE"
+            param%encounter_check_pltp = "ADAPTIVE"
+            param%ladaptive_encounters_pltp = .true.
+            param%lencounter_sas_pltp = .true.
+            call io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
          end select
 
          iostat = 0
@@ -936,6 +979,8 @@ contains
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
+         call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
+         call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
@@ -1725,6 +1770,7 @@ contains
       read(iu, err = 667, iomsg = errmsg) self%particle_type
       read(iu, err = 667, iomsg = errmsg) self%origin_type
       read(iu, err = 667, iomsg = errmsg) self%origin_time
+      read(iu, err = 667, iomsg = errmsg) self%collision_id 
       read(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
       read(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
@@ -1913,62 +1959,6 @@ contains
    end subroutine io_write_discard
 
 
-   module subroutine io_write_encounter(self, pl, encbody, param)
-      implicit none
-      ! Arguments
-      class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
-      class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
-      class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
-      class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
-      ! Internals
-      logical , save          :: lfirst = .true.
-      integer(I4B)            :: k, ierr
-      character(len=STRMAX)   :: errmsg
-
-      if (param%enc_out == "" .or. self%nenc == 0) return
-
-      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr, iomsg = errmsg)
-      if (ierr /= 0) then
-         if (lfirst) then
-            open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         else
-            goto 667
-         end if
-      end if
-      lfirst = .false.
-
-      associate(ind1 => self%index1, ind2 => self%index2)
-         select type(encbody)
-         class is (swiftest_pl)
-            do k = 1, self%nenc
-               call io_write_frame_encounter(LUN, self%t(k), &
-                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
-                                             pl%Gmass(ind1(k)),  encbody%Gmass(ind2(k)), &
-                                             pl%radius(ind1(k)), encbody%radius(ind2(k)), &
-                                             self%x1(:,k),       self%x2(:,k), &
-                                             self%v1(:,k),       self%v2(:,k))
-            end do
-         class is (swiftest_tp)
-            do k = 1, self%nenc
-               call io_write_frame_encounter(LUN, self%t(k), &
-                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
-                                             pl%Gmass(ind1(k)),  0.0_DP, &
-                                             pl%radius(ind1(k)), 0.0_DP, &
-                                             self%x1(:,k),       self%x2(:,k), &
-                                             self%v1(:,k),       self%v2(:,k))
-            end do 
-         end select
-      end associate
-
-      close(unit = LUN, err = 667, iomsg = errmsg)
-
-      return
-      667 continue
-      write(*,*) "Error writing encounter file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_write_encounter
-
-
    module subroutine io_write_frame_body(self, iu, param)
       !! author: David A. Minton
       !!
@@ -2075,36 +2065,6 @@ contains
    end subroutine io_write_frame_cb
 
 
-  module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
-      !! author: David A. Minton
-      !!
-      !! Write a single frame of close encounter data to output binary files
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
-      !! Adapted from Hal Levison's Swift routine io_write_encounter.f
-      implicit none
-      ! Arguments
-      integer(I4B),           intent(in) :: iu               !! Open file unit number
-      real(DP),               intent(in) :: t                !! Time of encounter
-      integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
-      real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
-      real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
-      real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
-      real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies  
-      ! Internals
-      character(len=STRMAX)   :: errmsg
-
-      write(iu, err = 667, iomsg = errmsg) t
-      write(iu, err = 667, iomsg = errmsg) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
-      write(iu, err = 667, iomsg = errmsg) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
-
-      return
-      667 continue
-      write(*,*) "Error writing encounter file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine
-
-
    module subroutine io_write_frame_system(self, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -2125,8 +2085,6 @@ contains
       character(len=STRMAX)            :: errmsg
       integer(I4B)                     :: iu = BINUNIT   !! Unit number for the output file to write frame to
       logical                          :: fileExists
-
-      if (.not.lfirst .and. param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)

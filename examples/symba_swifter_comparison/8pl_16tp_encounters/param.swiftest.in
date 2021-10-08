@@ -3,7 +3,7 @@ T0               0.0
 TSTOP            365
 DT               1.0
 ISTEP_OUT        1
-ISTEP_DUMP       1
+ISTEP_DUMP       100
 OUT_FORM         XV
 OUT_TYPE         NETCDF_DOUBLE
 OUT_STAT         UNKNOWN
@@ -34,3 +34,4 @@ TIDES            NO
 ENERGY           NO
 GR               NO
 GMTINY           1e-12
+ENCOUNTER_CHECK  SORTSWEEP

@@ -31,7 +31,7 @@ contains
    end subroutine symba_util_append_arr_kin
 
 
-   module subroutine symba_util_append_encounter(self, source, lsource_mask)
+   module subroutine symba_util_append_encounter_list(self, source, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append components from one encounter list (pl-pl or pl-tp) body object to another. 
@@ -39,7 +39,7 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
-      class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+      class(encounter_list), intent(in)    :: source       !! Source object to append
       logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
 
       associate(nold => self%nenc, nsrc => source%nenc)
@@ -47,11 +47,11 @@ contains
          class is (symba_encounter)
             call util_append(self%level, source%level, nold, nsrc, lsource_mask)
          end select
-         call util_append_encounter(self, source, lsource_mask) 
+         call encounter_util_append_list(self, source, lsource_mask) 
       end associate
 
       return
-   end subroutine symba_util_append_encounter
+   end subroutine symba_util_append_encounter_list
 
 
    module subroutine symba_util_append_pl(self, source, lsource_mask)
@@ -159,14 +159,14 @@ contains
    end subroutine symba_util_append_tp
 
 
-   module subroutine symba_util_copy_encounter(self, source)
+   module subroutine symba_util_copy_encounter_list(self, source)
       !! author: David A. Minton
       !!
       !! Copies elements from the source encounter list into self.
       implicit none
       ! Arguments
       class(symba_encounter),    intent(inout) :: self   !! Encounter list 
-      class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
+      class(encounter_list), intent(in)    :: source !! Source object to copy into
   
       select type(source)
       class is (symba_encounter)
@@ -175,10 +175,10 @@ contains
          end associate
       end select
 
-      call util_copy_encounter(self, source)
+      call encounter_util_copy_list(self, source)
    
       return
-   end subroutine symba_util_copy_encounter
+   end subroutine symba_util_copy_encounter_list
 
 
    module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -290,16 +290,19 @@ contains
 
       associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
+         select type(param)
+         class is (symba_parameters)
+            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY 
+         end select
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
          nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl, minus first column
          nplplm = nplm * npl - nplm * (nplm + 1) / 2 ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
-         if ((param%lflatten_interactions) .or. (param%lflatten_encounters)) then
+         if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
             if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
                param%lflatten_interactions = .false.
-               param%lflatten_encounters = .false.
             else
                do concurrent (i=1:npl, j=1:npl, j>i)
                   call util_flatten_eucl_ij_to_k(npl, i, j, k)
@@ -430,12 +433,14 @@ contains
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
          allocate(lmask(npl))
          lmask(1:npl) = pl%ldiscard(1:npl)
-         allocate(tmp, mold=self)
-         call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
-         npl = pl%nbody
-         call tmp%setup(0,param)
-         deallocate(tmp)
-         deallocate(lmask)
+         if (count(lmask(:)) > 0) then
+            allocate(tmp, mold=self)
+            call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+            npl = pl%nbody
+            call tmp%setup(0,param)
+            deallocate(tmp)
+            deallocate(lmask)
+         end if
 
          ! Store the original plplenc list so we don't remove any of the original encounters
          nenc_old = system%plplenc_list%nenc
@@ -513,6 +518,7 @@ contains
          ! Re-index the encounter list as the index values may have changed
          if (nenc_old > 0) then
             nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
+            system%plplenc_list%nenc = nencmin
             do k = 1, nencmin
                idnew1 = system%plplenc_list%id1(k)
                idnew2 = system%plplenc_list%id2(k)
@@ -539,7 +545,35 @@ contains
                   system%plplenc_list%t(k) = plplenc_old%t(k)
                   system%plplenc_list%level(k) = plplenc_old%level(k)
                end if
+               system%plplenc_list%index1(k) = findloc(pl%id(1:npl), system%plplenc_list%id1(k), dim=1)
+               system%plplenc_list%index2(k) = findloc(pl%id(1:npl), system%plplenc_list%id2(k), dim=1)
             end do
+            if (allocated(lmask)) deallocate(lmask)
+            allocate(lmask(nencmin))
+            nenc_old = nencmin
+            if (any(system%plplenc_list%index1(1:nencmin) == 0) .or. any(system%plplenc_list%index2(1:nencmin) == 0)) then
+               lmask(:) = system%plplenc_list%index1(1:nencmin) /= 0 .and. system%plplenc_list%index2(1:nencmin) /= 0
+            else
+               return
+            end if
+            nencmin = count(lmask(:))
+            system%plplenc_list%nenc = nencmin
+            if (nencmin > 0) then
+               system%plplenc_list%index1(1:nencmin) = pack(system%plplenc_list%index1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%index2(1:nencmin) = pack(system%plplenc_list%index2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%id1(1:nencmin) = pack(system%plplenc_list%id1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%t(1:nencmin) = pack(system%plplenc_list%t(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))
+               do i = 1, NDIM
+                  system%plplenc_list%x1(i, 1:nencmin) = pack(system%plplenc_list%x1(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%x2(i, 1:nencmin) = pack(system%plplenc_list%x2(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%v1(i, 1:nencmin) = pack(system%plplenc_list%v1(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%v2(i, 1:nencmin) = pack(system%plplenc_list%v2(i, 1:nenc_old), lmask(1:nenc_old))
+               end do
+            end if
          end if
       end associate
 
@@ -717,20 +751,19 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
-         allocate(ind(npl))
          select case(sortby)
          case("nplenc")
-            call util_sort(direction * pl%nplenc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%nplenc(1:npl), ind)
          case("ntpenc")
-            call util_sort(direction * pl%ntpenc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%ntpenc(1:npl), ind)
          case("levelg")
-            call util_sort(direction * pl%levelg(1:npl), ind(1:npl))
+            call util_sort(direction * pl%levelg(1:npl), ind)
          case("levelm")
-            call util_sort(direction * pl%levelm(1:npl), ind(1:npl))
+            call util_sort(direction * pl%levelm(1:npl), ind)
          case("peri")
-            call util_sort(direction * pl%peri(1:npl), ind(1:npl))
+            call util_sort(direction * pl%peri(1:npl), ind)
          case("atp")
-            call util_sort(direction * pl%atp(1:npl), ind(1:npl))
+            call util_sort(direction * pl%atp(1:npl), ind)
          case("lcollision", "lencounter", "lmtiny", "nplm", "nplplm", "kin", "info")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -768,14 +801,13 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
-         allocate(ind(ntp))
          select case(sortby)
          case("nplenc")
-            call util_sort(direction * tp%nplenc(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%nplenc(1:ntp), ind)
          case("levelg")
-            call util_sort(direction * tp%levelg(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%levelg(1:ntp), ind)
          case("levelm")
-            call util_sort(direction * tp%levelm(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%levelm(1:ntp), ind)
          case default ! Look for components in the parent class
             call util_sort_tp(tp, sortby, ascending)
             return
@@ -950,7 +982,7 @@ contains
    end subroutine symba_util_spill_pl
 
 
-   module subroutine symba_util_spill_encounter(self, discards, lspill_list, ldestructive)
+   module subroutine symba_util_spill_encounter_list(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
       !! Move spilled (discarded) SyMBA encounter structure from active list to discard list
@@ -958,7 +990,7 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
-      class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
+      class(encounter_list), intent(inout) :: discards     !! Discarded object 
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
   
@@ -966,7 +998,7 @@ contains
          select type(discards)
          class is (symba_encounter)
             call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
-            call util_spill_encounter(keeps, discards, lspill_list, ldestructive)
+            call encounter_util_spill_list(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_encounter or its descendents!"
             call util_exit(FAILURE)
@@ -974,7 +1006,7 @@ contains
       end associate
    
       return
-   end subroutine symba_util_spill_encounter
+   end subroutine symba_util_spill_encounter_list
 
 
    module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
