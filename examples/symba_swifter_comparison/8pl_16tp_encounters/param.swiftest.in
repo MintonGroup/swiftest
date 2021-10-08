@@ -34,3 +34,4 @@ TIDES            NO
 ENERGY           NO
 GR               NO
 GMTINY           1e-12
+ENCOUNTER_CHECK  SORTSWEEP

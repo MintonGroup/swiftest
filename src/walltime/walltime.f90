@@ -29,7 +29,7 @@ contains
    end subroutine walltime_stop
 
 
-   module subroutine walltime_report(self, nsubsteps, message, param)
+   module subroutine walltime_report(self, nsubsteps, message)
       !! author: David A. Minton
       !!
       !! Prints the elapsed time information to the terminal
@@ -38,7 +38,6 @@ contains
       class(walltimer),           intent(inout) :: self      !! Walltimer object
       integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
       character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
-      class(swiftest_parameters), intent(inout) :: param     !! Current run configuration parameters
       ! Internals
       character(len=*), parameter     :: walltimefmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, "; Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
@@ -127,7 +126,7 @@ contains
    end subroutine walltime_start
 
 
-   module subroutine walltime_interaction_adapt(self, param, pl, ninteractions)
+   module subroutine walltime_interaction_adapt(self, param, ninteractions, pl)
       !! author: David A. Minton
       !!
       !! Determines which of the two loop styles is fastest and keeps that one
@@ -135,59 +134,77 @@ contains
       ! Arguments
       class(interaction_timer),   intent(inout) :: self          !! Walltimer object
       class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
-      class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
       integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
+      class(swiftest_pl),         intent(inout), optional :: pl            !! Swiftest massive body object
       ! Internals
       character(len=STRMAX) :: tstr, nstr, cstr, mstr
-      character(len=11) :: lstyle
+      character(len=11) :: lstyle, advancedstyle, standardstyle
       character(len=1) :: schar
-      logical :: lflatten_final
+      logical :: ladvanced_final
+      character(len=NAMELEN)  :: logfile
 
       ! Record the elapsed time 
       call self%stop()
+
+      select case(trim(adjustl(self%looptype)))
+      case("INTERACTION")
+         write(advancedstyle, *) "FLAT      "
+         write(standardstyle, *) "TRIANGULAR"
+         write(logfile,*) INTERACTION_TIMER_LOG_OUT
+      case("ENCOUNTER_PLPL")
+         write(advancedstyle, *) "SORTSWEEP "
+         write(standardstyle, *) "TRIANGULAR"
+         write(logfile,*) ENCOUNTER_PLPL_TIMER_LOG_OUT
+      case("ENCOUNTER_PLTP")
+         write(advancedstyle, *) "SORTSWEEP "
+         write(standardstyle, *) "TRIANGULAR"
+         write(logfile,*) ENCOUNTER_PLTP_TIMER_LOG_OUT
+      case default
+         write(logfile,*) "unknown_looptimer.log"
+      end select
 
       write(schar,'(I1)') self%stage
       write(nstr,*) ninteractions
 
       select case(self%stage)
       case(1)
-         if (self%stage1_is_flattened) then
-            write(lstyle,*) "FLAT      "
+         if (self%stage1_is_advanced) then
+            lstyle = advancedstyle
          else
-            write(lstyle,*) "TRIANGULAR"
+            lstyle = standardstyle
          end if 
          self%stage1_metric = (self%count_stop_step - self%count_start_step) / real(ninteractions, kind=DP)
          write(mstr,*) self%stage1_metric
       case(2)
-         if (.not.self%stage1_is_flattened) then
-            write(lstyle,*) "FLAT      "
+         if (.not.self%stage1_is_advanced) then
+            lstyle = advancedstyle
          else
-            write(lstyle,*) "TRIANGULAR"
+            lstyle = standardstyle
          end if 
 
          self%stage2_metric = (self%count_stop_step - self%count_start_step) / real(ninteractions, kind=DP)
          self%is_on = .false.
          self%step_counter = 0
          if (self%stage1_metric < self%stage2_metric) then
-            lflatten_final = self%stage1_is_flattened
+            ladvanced_final = self%stage1_is_advanced
             call self%flip(param, pl)  ! Go back to the original style, otherwise keep the stage2 style
          else
-            lflatten_final = .not.self%stage1_is_flattened
+            ladvanced_final = .not.self%stage1_is_advanced
          end if
          write(mstr,*) self%stage2_metric
       end select
 
       write(cstr,*) self%count_stop_step - self%count_start_step
 
-      call io_log_one_message(INTERACTION_TIMER_LOG_OUT, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
+      call io_log_one_message(logfile, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
 
       if (self%stage == 2) then
-         if (lflatten_final) then
-            write(lstyle,*) "FLAT      "
+         if (ladvanced_final) then
+            lstyle = advancedstyle
          else
-            write(lstyle,*) "TRIANGULAR"
+            lstyle = standardstyle
          end if 
-         call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(self%loopname)) // ": the fastest loop method tested is " // trim(adjustl(lstyle)))
+         call io_log_one_message(logfile, trim(adjustl(self%loopname)) // ": the fastest loop method tested is " // trim(adjustl(lstyle)))
       end if
 
       return
@@ -230,26 +247,32 @@ contains
       !! Flips the interaction loop style from FLAT to TRIANGULAR or vice versa
       implicit none
       ! Arguments
-      class(interaction_timer),   intent(inout) :: self  !! Interaction loop timer object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      class(swiftest_pl),         intent(inout) :: pl    !! Swiftest massive body object 
+      class(interaction_timer),   intent(inout)           :: self  !! Interaction loop timer object
+      class(swiftest_parameters), intent(inout)           :: param !! Current run configuration parameters
+      class(swiftest_pl),         intent(inout), optional :: pl    !! Swiftest massive body object 
 
       select case(trim(adjustl(self%looptype)))
-      case("INTERACTIONS")
+      case("INTERACTION")
          param%lflatten_interactions = .not. param%lflatten_interactions
+      case("ENCOUNTER_PLPL")
+         param%lencounter_sas_plpl= .not. param%lencounter_sas_plpl
+      case("ENCOUNTER_PLTP")
+         param%lencounter_sas_pltp= .not. param%lencounter_sas_pltp
       end select
 
-      if (param%lflatten_interactions) then
-         call pl%flatten(param)
-      else
-         if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
+      if (present(pl)) then
+         if (param%lflatten_interactions) then
+            call pl%flatten(param)
+         else
+            if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
+         end if
       end if
 
       return
    end subroutine walltime_interaction_flip_loop_style
 
 
-   module subroutine walltime_interaction_time_this_loop(self, param, pl, ninteractions)
+   module subroutine walltime_interaction_time_this_loop(self, param, ninteractions, pl)
       !! author: David A. Minton
       !!
       !! Resets the interaction loop timer, and saves the current value of the array flatten parameter
@@ -257,11 +280,23 @@ contains
       ! Arguments
       class(interaction_timer),   intent(inout) :: self          !! Interaction loop timer object
       class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
-      class(swiftest_pl),         intent(inout) :: pl            !! Swiftest massive body object
       integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop)
+      class(swiftest_pl),         intent(inout), optional :: pl            !! Swiftest massive body object
       ! Internals
       character(len=STRMAX) :: tstr
       character(len=1) :: schar
+      character(len=NAMELEN) :: logfile
+
+      select case(trim(adjustl(self%looptype)))
+      case("INTERACTION")
+         write(logfile,*) INTERACTION_TIMER_LOG_OUT
+      case("ENCOUNTER_PLPL")
+         write(logfile,*) ENCOUNTER_PLPL_TIMER_LOG_OUT
+      case("ENCOUNTER_PLTP")
+         write(logfile,*) ENCOUNTER_PLTP_TIMER_LOG_OUT
+      case default
+         write(logfile,*) "unknown_looptimer.log"
+      end select
 
       self%is_on = .true.
       write(tstr,*) param%t
@@ -269,14 +304,22 @@ contains
       case(1)
          self%stage1_ninteractions = ninteractions 
          select case(trim(adjustl(self%looptype)))
-         case("INTERACTIONS")
-            self%stage1_is_flattened = param%lflatten_interactions
+         case("INTERACTION")
+            self%stage1_is_advanced = param%lflatten_interactions
+         case("ENCOUNTER_PLPL")
+            self%stage1_is_advanced = param%lencounter_sas_plpl
+         case("ENCOUNTER_PLTP")
+            self%stage1_is_advanced = param%lencounter_sas_pltp
          end select
-         call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(self%loopname)) // ": loop timer turned on at t = " // trim(adjustl(tstr)))
+         call io_log_one_message(logfile, trim(adjustl(self%loopname)) // ": loop timer turned on at t = " // trim(adjustl(tstr)))
       case(2)
          select case(trim(adjustl(self%looptype)))
-         case("INTERACTIONS")
-            param%lflatten_interactions = self%stage1_is_flattened 
+         case("INTERACTION")
+            param%lflatten_interactions = self%stage1_is_advanced 
+         case("ENCOUNTER_PLPL")
+            param%lencounter_sas_plpl= self%stage1_is_advanced 
+         case("ENCOUNTER_PLTP")
+            param%lencounter_sas_pltp= self%stage1_is_advanced 
          end select
          call self%flip(param, pl) 
       case default
@@ -284,7 +327,7 @@ contains
       end select
 
       write(schar,'(I1)') self%stage
-      call io_log_one_message(INTERACTION_TIMER_LOG_OUT, trim(adjustl(self%loopname)) // ": stage " // schar )
+      call io_log_one_message(logfile, trim(adjustl(self%loopname)) // ": stage " // schar )
 
       call self%reset()
       call self%start()

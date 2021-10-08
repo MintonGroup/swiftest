@@ -104,7 +104,7 @@ program swiftest_driver
                   write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
                end select
                if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-               call integration_timer%report(nsubsteps=istep_dump, message="Integration steps:", param=param)
+               call integration_timer%report(nsubsteps=istep_dump, message="Integration steps:")
                call integration_timer%reset()
 
                iout = istep_out

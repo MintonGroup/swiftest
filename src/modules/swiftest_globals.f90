@@ -185,6 +185,7 @@ module swiftest_globals
    character(*), parameter :: STATUS_VARNAME          = "status"          !! NetCDF name of the current status of the body variable (includes discard type)
    character(*), parameter :: ORIGIN_TYPE_VARNAME     = "origin_type"     !! NetCDF name of the origin type variable (Initial Conditions, Disruption, etc.)
    character(*), parameter :: ORIGIN_TIME_VARNAME     = "origin_time"     !! NetCDF name of the time of origin variable
+   character(*), parameter :: COLLISION_ID_VARNAME    = "collision_id"    !! NetCDF name of the collision id variable
    character(*), parameter :: ORIGIN_XHX_VARNAME      = "origin_xhx"      !! NetCDF name of the heliocentric position of the body at the time of origin x variable
    character(*), parameter :: ORIGIN_XHY_VARNAME      = "origin_xhy"      !! NetCDF name of the heliocentric position of the body at the time of origin y variable
    character(*), parameter :: ORIGIN_XHZ_VARNAME      = "origin_xhz"      !! NetCDF name of the heliocentric position of the body at the time of origin z variable

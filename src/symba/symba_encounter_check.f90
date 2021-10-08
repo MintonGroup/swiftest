@@ -18,12 +18,13 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       integer(I8B) :: k, nplplm, kenc
-      integer(I4B) :: i, j, nenc, npl, nplm
+      integer(I4B) :: i, j, nenc, npl, nplm, nplt
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
+      type(walltimer) :: timer 
   
       if (self%nbody == 0) return
 
@@ -31,8 +32,17 @@ contains
 
          npl = pl%nbody
          nplm = pl%nplm
-         call encounter_check_all_sort_and_sweep_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
-         !call encounter_check_all_triangular_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+         nplt = npl - nplm
+
+         ! call timer%reset()
+         ! call timer%start()
+         if (nplt == 0) then
+            call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+         else
+            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, lvdotr, index1, index2, nenc)
+         end if
+         ! call timer%stop()
+         ! call timer%report(nsubsteps=nthreads, message="Encounter Check Total:")
          lany_encounter = nenc > 0
          if (lany_encounter) then
             call plplenc_list%resize(nenc)
@@ -76,7 +86,7 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-      class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -177,7 +187,7 @@ contains
       implicit none
       ! Arguments
       class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(in)    :: param  !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
@@ -194,7 +204,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
-         call encounter_check_all_sort_and_sweep_pltp(npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 

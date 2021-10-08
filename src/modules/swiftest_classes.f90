@@ -61,6 +61,7 @@ module swiftest_classes
       integer(I4B) :: status_varid          !! NetCDF ID for the status variable
       integer(I4B) :: origin_type_varid     !! NetCDF ID for the origin type
       integer(I4B) :: origin_time_varid     !! NetCDF ID for the origin time
+      integer(I4B) :: collision_id_varid    !! Netcdf ID for the origin collision ID
       integer(I4B) :: origin_xhx_varid      !! NetCDF ID for the origin xh x component
       integer(I4B) :: origin_xhy_varid      !! NetCDF ID for the origin xh y component
       integer(I4B) :: origin_xhz_varid      !! NetCDF ID for the origin xh z component
@@ -125,9 +126,15 @@ module swiftest_classes
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
       character(STRMAX)    :: energy_out     = ""                 !! Name of output energy and momentum report file
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
+      character(NAMELEN)   :: encounter_check_plpl = "ADAPTIVE"   !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      character(NAMELEN)   :: encounter_check_pltp = "ADAPTIVE"   !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
-      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on
+      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on (choose between TRIANGULAR and FLAT based on periodic timing tests)
+      logical :: lencounter_sas_plpl = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: lencounter_sas_pltp = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: ladaptive_encounters_plpl = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
+      logical :: ladaptive_encounters_pltp = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -177,6 +184,7 @@ module swiftest_classes
       character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
       character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time     !! The time of the particle's formation
+      integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
       real(DP), dimension(NDIM) :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
       real(DP)                  :: discard_time    !! The time of the particle's discard
@@ -204,6 +212,7 @@ module swiftest_classes
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: read_frame_netcdf          => netcdf_read_frame_base       !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
+      procedure :: read_particle_info         => netcdf_read_particle_info_base  !! Reads out the particle information metadata to NetCDF file
       generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
       generic   :: read_frame                 => read_frame_netcdf            !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
       generic   :: write_particle_info        => write_particle_info_netcdf
@@ -450,28 +459,6 @@ module swiftest_classes
       generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for writing a frame of output data
    end type swiftest_nbody_system
 
-   type :: swiftest_encounter
-      integer(I4B)                              :: nenc   !! Total number of encounters
-      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
-      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
-      integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
-      integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
-      integer(I4B), dimension(:),   allocatable :: id1    !! id of the first body in the encounter
-      integer(I4B), dimension(:),   allocatable :: id2    !! id of the second body in the encounter
-      real(DP),     dimension(:,:), allocatable :: x1     !! the position of body 1 in the encounter
-      real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
-      real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
-      real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
-      real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
-   contains
-      procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: append => util_append_encounter !! Appends elements from one structure to another
-      procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
-      procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      procedure :: write  => io_write_encounter    !! Write close encounter data to output binary file
-   end type swiftest_encounter
-
    abstract interface
       subroutine abstract_discard_body(self, system, param) 
          import swiftest_body, swiftest_nbody_system, swiftest_parameters
@@ -582,77 +569,6 @@ module swiftest_classes
          real(DP),     intent(in)       :: dt    !! Step size
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
-
-      module subroutine encounter_check_all_sort_and_sweep_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
-         implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
-         integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounter
-      end subroutine encounter_check_all_sort_and_sweep_plpl
-
-      module subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
-         implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
-         integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-         real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounter
-      end subroutine encounter_check_all_sort_and_sweep_pltp
-
-      module subroutine encounter_check_all_triangular_plpl(npl, nplm, x, v, renc, dt, lvdotr, index1, index2, nenc)
-         implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies
-         integer(I4B),                            intent(in)  :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: x      !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
-      end subroutine encounter_check_all_triangular_plpl
-
-      module subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
-         implicit none
-         integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
-         integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-         real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
-         real(DP),                                intent(in)  :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
-         integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-         integer(I4B),                            intent(out) :: nenc   !! Total number of encounters
-      end subroutine encounter_check_all_triangular_pltp
-
-      module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
-         !$omp declare simd(encounter_check_one)
-         implicit none
-         real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
-         real(DP), intent(in)  :: vxr, vyr, vzr !! Relative velocity vector components
-         real(DP), intent(in)  :: renc          !! Critical encounter distance
-         real(DP), intent(in)  :: dt            !! Step size
-         logical,  intent(out) :: lencounter    !! Flag indicating that an encounter has occurred
-         logical,  intent(out) :: lvdotr        !! Logical flag indicating the direction of the v .dot. r vector
-      end subroutine encounter_check_one
 
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
          implicit none
@@ -931,14 +847,6 @@ module swiftest_classes
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine io_toupper
 
-      module subroutine io_write_encounter(self, pl, encbody, param)
-         implicit none
-         class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
-         class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
-         class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
-         class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
-      end subroutine io_write_encounter
-
       module subroutine io_write_frame_body(self, iu, param)
          implicit none
          class(swiftest_body),       intent(in)    :: self  !! Swiftest body object
@@ -952,17 +860,6 @@ module swiftest_classes
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_cb
-
-      module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
-         implicit none
-         integer(I4B),           intent(in) :: iu               !! Open file unit number
-         real(DP),               intent(in) :: t                !! Time of encounter
-         integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
-         real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
-         real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
-         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Swiftestcentric position vectors of the two encountering bodies 
-         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Swiftestcentric velocity vectors of the two encountering bodies 
-      end subroutine io_write_frame_encounter
 
       module subroutine io_write_frame_system(self, param)
          implicit none
@@ -1096,6 +993,13 @@ module swiftest_classes
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_read_hdr_system
 
+      module subroutine netcdf_read_particle_info_base(self, iu, ind)
+         implicit none
+         class(swiftest_base),       intent(inout) :: self   !! Swiftest particle object
+         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         integer(I4B), dimension(:), intent(in)    :: ind    !! Index mapping from netcdf to active particles
+      end subroutine netcdf_read_particle_info_base
+
       module subroutine netcdf_write_frame_base(self, iu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
@@ -1200,12 +1104,6 @@ module swiftest_classes
          class(swiftest_nbody_system),  allocatable, intent(inout) :: system !! Swiftest system object
          class(swiftest_parameters),                 intent(inout) :: param  !! Current run configuration parameters
       end subroutine setup_construct_system
-
-      module subroutine setup_encounter(self, n)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
-         integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine setup_encounter
 
       module subroutine setup_finalize_system(self, param)
          implicit none
@@ -1321,13 +1219,6 @@ module swiftest_classes
          logical, dimension(:),           intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
 
-      module subroutine util_append_encounter(self, source, lsource_mask)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list object
-         class(swiftest_encounter), intent(in)    :: source       !! Source object to append
-         logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine util_append_encounter
-
       module subroutine util_append_pl(self, source, lsource_mask)
          implicit none
          class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
@@ -1401,12 +1292,6 @@ module swiftest_classes
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
       end subroutine util_coord_xh2xb_tp
-
-      module subroutine util_copy_encounter(self, source)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self   !! Encounter list 
-         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
-      end subroutine util_copy_encounter
 
       module subroutine util_copy_particle_info(self, source)
          implicit none
@@ -1523,6 +1408,11 @@ module swiftest_classes
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
+      module subroutine util_index_array(ind_arr, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
+         integer(I4B),                            intent(in)    :: n       !! The new size of the index array
+      end subroutine util_index_array
 
       module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function
@@ -1598,12 +1488,6 @@ module swiftest_classes
          integer(I4B),         intent(in)    :: nnew !! New size neded
       end subroutine util_resize_body
 
-      module subroutine util_resize_encounter(self, nnew)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter list 
-         integer(I4B),              intent(in)    :: nnew !! New size of list needed
-      end subroutine util_resize_encounter
-
       module subroutine util_resize_pl(self, nnew)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
@@ -1652,7 +1536,7 @@ module swiftest_classes
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_mu_tp
 
-      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
          implicit none
          class(swiftest_particle_info), intent(inout)           :: self
          character(len=*),              intent(in),    optional :: name            !! Non-unique name
@@ -1660,6 +1544,7 @@ module swiftest_classes
          character(len=*),              intent(in),    optional :: status          !! Particle status description: Active, Merged, Fragmented, etc.
          character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
          real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
+         integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
          real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
          real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
          real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
@@ -1727,34 +1612,34 @@ module swiftest_classes
    end interface
 
    interface util_sort
-      module subroutine util_sort_i4b(arr)
+      module pure subroutine util_sort_i4b(arr)
          implicit none
          integer(I4B), dimension(:), intent(inout) :: arr
       end subroutine util_sort_i4b
 
-      module subroutine util_sort_index_i4b(arr,ind)
+      module pure subroutine util_sort_index_i4b(arr,ind)
          implicit none
          integer(I4B), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
-      module subroutine util_sort_sp(arr)
+      module pure subroutine util_sort_sp(arr)
          implicit none
          real(SP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_sp
 
-      module subroutine util_sort_index_sp(arr,ind)
+      module pure subroutine util_sort_index_sp(arr,ind)
          implicit none
          real(SP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_sp
 
-      module subroutine util_sort_dp(arr)
+      module pure subroutine util_sort_dp(arr)
          implicit none
          real(DP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_dp
 
-      module subroutine util_sort_index_dp(arr,ind)
+      module pure subroutine util_sort_index_dp(arr,ind)
          implicit none
          real(DP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
@@ -1762,28 +1647,28 @@ module swiftest_classes
    end interface util_sort
 
    interface util_sort_rearrange
-      module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_char_string
 
-      module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_DP(arr, ind, n)
          implicit none
          real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DP
 
-      module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
          implicit none
          real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DPvec
 
-      module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
@@ -1797,7 +1682,7 @@ module swiftest_classes
          integer(I4B),                                   intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_info
 
-      module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
          implicit none
          logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
@@ -1912,14 +1797,6 @@ module swiftest_classes
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_body
-
-      module subroutine util_spill_encounter(self, discards, lspill_list, ldestructive)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list 
-         class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
-         logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      end subroutine util_spill_encounter
 
       module subroutine util_spill_pl(self, discards, lspill_list, ldestructive)
          implicit none
