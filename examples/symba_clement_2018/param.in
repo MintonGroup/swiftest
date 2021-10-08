@@ -1,9 +1,9 @@
 ! VERSION        Swiftest parameter input from file param.in
 T0               0.0
-TSTOP            100.0
+TSTOP            1.000e2
 DT               0.016
-ISTEP_OUT        625
-ISTEP_DUMP       6250
+ISTEP_OUT        100
+ISTEP_DUMP       1000
 OUT_FORM         XVEL
 OUT_TYPE         NETCDF_DOUBLE
 OUT_STAT         REPLACE
@@ -35,3 +35,5 @@ ENERGY           YES
 GR               NO
 GMTINY           2.96336237e-09
 MIN_GMFRAG       2.96336237e-11
+ENCOUNTER_CHECK  ADAPTIVE
+INTERACTION_LOOPS FLAT
