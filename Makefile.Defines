@@ -66,11 +66,10 @@ GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-stri
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O2 -ffree-line-length-none $(GPAR)
 
-
-#FFLAGS  = $(IDEBUG)  #$(SIMDVEC) $(PAR)
-#FFASTFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR)
-FSTRICTFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT) #$(ADVIXE_FLAGS)
-FFLAGS = $(IPRODUCTION) -fp-model=fast $(OPTREPORT) #$(ADVIXE_FLAGS)
+#FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
+#FFASTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
+FSTRICTFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT)  #$(ADVIXE_FLAGS)
+FFLAGS = $(IPRODUCTION) -fp-model=fast $(OPTREPORT)  #$(ADVIXE_FLAGS)
 FORTRAN = ifort
 AR     = xiar
 

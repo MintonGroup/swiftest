@@ -115,7 +115,7 @@ contains
    end subroutine symba_setup_pl
 
 
-   module subroutine symba_setup_encounter(self, n)
+   module subroutine symba_setup_encounter_list(self, n)
       !! author: David A. Minton
       !!
       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
@@ -125,7 +125,7 @@ contains
       class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
       integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
 
-      call setup_encounter(self, n)
+      call encounter_setup_list(self, n)
       if (n < 0) return
 
       if (allocated(self%level)) deallocate(self%level)
@@ -137,7 +137,7 @@ contains
       self%level(:) = -1
 
       return
-   end subroutine symba_setup_encounter
+   end subroutine symba_setup_encounter_list
 
 
    module subroutine symba_setup_tp(self, n, param)

@@ -24,4 +24,3 @@ ENC_OUT        enc.swifter.dat
 EXTRA_FORCE    no
 BIG_DISCARD    no
 RHILL_PRESENT  yes
-ENERGY         yes

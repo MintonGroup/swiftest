@@ -25,24 +25,23 @@ contains
       end if
 
       associate(body => self, n => self%nbody)
-         allocate(ind(n))
          select case(sortby)
          case("id")
-            call util_sort(direction * body%id(1:n), ind(1:n))
+            call util_sort(direction * body%id(1:n), ind)
          case("status")
-            call util_sort(direction * body%status(1:n), ind(1:n))
+            call util_sort(direction * body%status(1:n), ind)
          case("ir3h")
-            call util_sort(direction * body%ir3h(1:n), ind(1:n))
+            call util_sort(direction * body%ir3h(1:n), ind)
          case("a")
-            call util_sort(direction * body%a(1:n), ind(1:n))
+            call util_sort(direction * body%a(1:n), ind)
          case("e")
-            call util_sort(direction * body%e(1:n), ind(1:n))
+            call util_sort(direction * body%e(1:n), ind)
          case("inc")
-            call util_sort(direction * body%inc(1:n), ind(1:n))
+            call util_sort(direction * body%inc(1:n), ind)
          case("capom")
-            call util_sort(direction * body%capom(1:n), ind(1:n))
+            call util_sort(direction * body%capom(1:n), ind)
          case("mu")
-            call util_sort(direction * body%mu(1:n), ind(1:n))
+            call util_sort(direction * body%mu(1:n), ind)
          case("lfirst", "nbody", "ldiscard", "xh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
@@ -58,7 +57,7 @@ contains
    end subroutine util_sort_body
 
 
-   module subroutine util_sort_dp(arr)
+   module pure subroutine util_sort_dp(arr)
       !! author: David A. Minton
       !!
       !! Sort input double precision array in place into ascending numerical order using insertion sort.
@@ -74,9 +73,11 @@ contains
       n = size(arr)
       do i = 2, n
          tmp = arr(i)
-         do j = i - 1, 1, -1
+         j = i - 1
+         do while (j >= 1)
             if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
+            j = j - 1
          end do
          arr(j + 1) = tmp
       end do
@@ -85,36 +86,42 @@ contains
    end subroutine util_sort_dp
 
 
-   module subroutine util_sort_index_dp(arr, ind)
+   module pure subroutine util_sort_index_dp(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input double precision array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
+      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+      !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
       real(DP), dimension(:), intent(in)  :: arr
-      integer(I4B), dimension(:), intent(out) :: ind
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      real(DP) :: tmp
-      integer(I4B) :: n, i, j
+      integer(I4B) :: n, i, j, itmp
 
       n = size(arr)
-      ind = [(i, i=1, n)]
+      if (.not.allocated(ind)) then
+         allocate(ind(n))
+         ind = [(i, i=1, n)]
+      end if
       do i = 2, n
-         tmp = arr(ind(i))
-         do j = i - 1, 1, -1
-            if (arr(ind(j)) <= tmp) exit
+         itmp = ind(i)
+         j = i - 1
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
+            j = j - 1
          end do
-         ind(j + 1) = i
+         ind(j + 1) = itmp
       end do
 
       return
    end subroutine util_sort_index_dp
 
 
-   module subroutine util_sort_i4b(arr)
+   module pure subroutine util_sort_i4b(arr)
       !! author: David A. Minton
       !!
       !! Sort input integer array in place into ascending numerical order using insertion sort.
@@ -130,9 +137,11 @@ contains
       n = size(arr)
       do i = 2, n
          tmp = arr(i)
-         do j = i - 1, 1, -1
+         j = i - 1
+         do while (j >= 1)
             if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
+            j = j - 1
          end do
          arr(j + 1) = tmp
       end do
@@ -141,36 +150,42 @@ contains
    end subroutine util_sort_i4b
 
 
-   module subroutine util_sort_index_i4b(arr, ind)
+   module pure subroutine util_sort_index_i4b(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input integer array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
+      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+      !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
       integer(I4B), dimension(:), intent(in)  :: arr
-      integer(I4B), dimension(:), intent(out) :: ind
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      integer(I4B) :: tmp
-      integer(I4B) :: n, i, j
+      integer(I4B) :: n, i, j, itmp
 
       n = size(arr)
-      ind = [(i, i=1, n)]
+      if (.not.allocated(ind)) then
+         allocate(ind(n))
+         ind = [(i, i=1, n)]
+      end if
       do i = 2, n
-         tmp = arr(ind(i))
-         do j = i - 1, 1, -1
-            if (arr(ind(j)) <= tmp) exit
+         itmp = ind(i)
+         j = i - 1
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
+            j = j - 1
          end do
-         ind(j + 1) = i
+         ind(j + 1) = itmp
       end do
 
       return
    end subroutine util_sort_index_i4b
 
 
-   module subroutine util_sort_sp(arr)
+   module pure subroutine util_sort_sp(arr)
       !! author: David A. Minton
       !!
       !! Sort input single precision array in place into ascending numerical order using insertion sort.
@@ -186,9 +201,11 @@ contains
       n = size(arr)
       do i = 2, n
          tmp = arr(i)
-         do j = i - 1, 1, -1
+         j = i - 1
+         do while (j >= 1)
             if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
+            j = j - 1
          end do
          arr(j + 1) = tmp
       end do
@@ -197,29 +214,35 @@ contains
    end subroutine util_sort_sp
 
 
-   module subroutine util_sort_index_sp(arr, ind)
+   module pure subroutine util_sort_index_sp(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input single precision array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
+      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+      !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
       real(SP), dimension(:), intent(in)  :: arr
-      integer(I4B), dimension(:), intent(out) :: ind
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      real(SP) :: tmp
-      integer(I4B) :: n, i, j
+      integer(I4B) :: n, i, j, itmp
 
       n = size(arr)
-      ind = [(i, i=1, n)]
+      if (.not.allocated(ind)) then
+         allocate(ind(n))
+         ind = [(i, i=1, n)]
+      end if
       do i = 2, n
-         tmp = arr(ind(i))
-         do j = i - 1, 1, -1
-            if (arr(ind(j)) <= tmp) exit
+         itmp = ind(i)
+         j = i - 1
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
+            j = j - 1
          end do
-         ind(j + 1) = i
+         ind(j + 1) = itmp
       end do
 
       return
@@ -249,22 +272,23 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
-         allocate(ind(npl))
          select case(sortby)
          case("Gmass","mass")
-            call util_sort(direction * pl%Gmass(1:npl), ind(1:npl))
+            call util_sort(direction * pl%Gmass(1:npl), ind)
          case("rhill")
-            call util_sort(direction * pl%rhill(1:npl), ind(1:npl))
+            call util_sort(direction * pl%rhill(1:npl), ind)
+         case("renc")
+            call util_sort(direction * pl%renc(1:npl), ind)
          case("radius")
-            call util_sort(direction * pl%radius(1:npl), ind(1:npl))
+            call util_sort(direction * pl%radius(1:npl), ind)
          case("density")
-            call util_sort(direction * pl%density(1:npl), ind(1:npl))
+            call util_sort(direction * pl%density(1:npl), ind)
          case("k2")
-            call util_sort(direction * pl%k2(1:npl), ind(1:npl))
+            call util_sort(direction * pl%k2(1:npl), ind)
          case("Q")
-            call util_sort(direction * pl%Q(1:npl), ind(1:npl))
+            call util_sort(direction * pl%Q(1:npl), ind)
          case("tlag")
-            call util_sort(direction * pl%tlag(1:npl), ind(1:npl))
+            call util_sort(direction * pl%tlag(1:npl), ind)
          case("xbeg", "xend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -303,12 +327,11 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
-         allocate(ind(ntp))
          select case(sortby)
          case("peri")
-            call util_sort(direction * tp%peri(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%peri(1:ntp), ind)
          case("atp")
-            call util_sort(direction * tp%atp(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%atp(1:ntp), ind)
          case("isperi")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -362,7 +385,7 @@ contains
    end subroutine util_sort_rearrange_body
 
 
-   module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of character string in-place from an index list.
@@ -376,14 +399,14 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return
    end subroutine util_sort_rearrange_arr_char_string
 
 
-   module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_DP(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of DP type in-place from an index list.
@@ -397,14 +420,14 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return
    end subroutine util_sort_rearrange_arr_DP
 
 
-   module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of (NDIM,n) DP-type vectors in-place from an index list.
@@ -418,14 +441,14 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(:,1:n) = arr(:, ind(1:n))
+      tmp(:,1:n) = arr(:, ind)
       call move_alloc(tmp, arr)
 
       return
    end subroutine util_sort_rearrange_arr_DPvec
 
 
-   module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of integers in-place from an index list.
@@ -439,14 +462,14 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return
    end subroutine util_sort_rearrange_arr_I4B
 
 
-   module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of logicals in-place from an index list.
@@ -460,7 +483,7 @@ contains
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind(1:n))
+      tmp(1:n) = arr(ind)
       call move_alloc(tmp, arr)
 
       return

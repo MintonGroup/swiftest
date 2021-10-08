@@ -20,7 +20,10 @@ program swiftest_driver
    integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
-   type(walltimer)                            :: timer            !! Object used for computing elapsed wall time
+   type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
+   real(DP)                                   :: tfrac
+   character(*), parameter                    :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
+   character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -57,11 +60,13 @@ program swiftest_driver
       ioutput = ioutput_t0
       ! Prevent duplicate frames from being written if this is a restarted run
       if ((param%lrestart) .and. ((param%out_type == REAL8_TYPE) .or. param%out_type == REAL4_TYPE)) then
-         old_t_final = nbody_system%get_old_t_final(param)
+         old_t_final = nbody_system%get_old_t_final_bin(param)
+      else if ((param%lrestart) .and. ((param%out_type == NETCDF_DOUBLE_TYPE) .or. param%out_type == NETCDF_FLOAT_TYPE)) then
+         old_t_final = nbody_system%get_old_t_final_netcdf(param)
       else
          old_t_final = t0
          if (istep_out > 0) call nbody_system%write_frame(param)
-         call nbody_system%dump(param)
+         if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
       end if
 
       !> Define the maximum number of threads
@@ -70,11 +75,13 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-      call timer%reset(param)
+      call integration_timer%reset()
       write(*, *) " *************** Main Loop *************** "
       do iloop = 1, nloops
          !> Step the system forward in time
+         call integration_timer%start()
          call nbody_system%step(param, t, dt)
+         call integration_timer%stop()
 
          t = t0 + iloop * dt
 
@@ -86,9 +93,20 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
-               call timer%finish(nsubsteps=istep_out, message="Integration steps:", param=param)
                if (t > old_t_final) call nbody_system%write_frame(param)
-               call timer%finish(nsubsteps=1,         message="File I/O:         ", param=param)
+
+               tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+
+               select type(pl => nbody_system%pl)
+               class is (symba_pl)
+                  write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
+               class default
+                  write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
+               end select
+               if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+               call integration_timer%report(nsubsteps=istep_dump, message="Integration steps:")
+               call integration_timer%reset()
+
                iout = istep_out
             end if
          end if

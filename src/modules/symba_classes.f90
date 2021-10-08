@@ -4,9 +4,10 @@ module symba_classes
    !! Definition of classes and methods specific to the SyMBA integrator
    !! Adapted from David E. Kaufmann's Swifter routine: module_symba.f90
    use swiftest_globals
-   use swiftest_classes, only : swiftest_parameters, swiftest_base, swiftest_encounter, swiftest_particle_info, netcdf_parameters
-   use helio_classes,    only : helio_cb, helio_pl, helio_tp, helio_nbody_system
-   use fraggle_classes,  only : fraggle_colliders, fraggle_fragments
+   use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, netcdf_parameters
+   use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
+   use fraggle_classes,   only : fraggle_colliders, fraggle_fragments
+   use encounter_classes, only : encounter_list
    implicit none
    public
 
@@ -67,30 +68,31 @@ module symba_classes
       type(symba_kinship),       dimension(:), allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
    contains
       procedure :: make_colliders  => symba_collision_make_colliders_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
-      procedure :: flatten         => symba_util_flatten_eucl_plpl     !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
-      procedure :: discard         => symba_discard_pl               !! Process massive body discards
-      procedure :: drift           => symba_drift_pl                 !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
-      procedure :: encounter_check => symba_encounter_check_pl       !! Checks if massive bodies are going through close encounters with each other
-      procedure :: accel_int       => symba_kick_getacch_int_pl      !! Compute direct cross (third) term heliocentric accelerations of massive bodiess, with no mutual interactions between bodies below GMTINY
-      procedure :: accel           => symba_kick_getacch_pl          !! Compute heliocentric accelerations of massive bodies
-      procedure :: setup           => symba_setup_pl                 !! Constructor method - Allocates space for the input number of bodies
-      procedure :: append          => symba_util_append_pl           !! Appends elements from one structure to another
-      procedure :: fill            => symba_util_fill_pl             !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
-      procedure :: get_peri        => symba_util_peri_pl             !! Determine system pericenter passages for massive bodies
-      procedure :: rearray         => symba_util_rearray_pl          !! Clean up the massive body structures to remove discarded bodies and add new bodies
-      procedure :: reset_kinship   => symba_util_reset_kinship       !! Resets the kinship status of bodies
-      procedure :: resize          => symba_util_resize_pl           !! Checks the current size of a SyMBA massive body against the requested size and resizes it if it is too small.
-      procedure :: sort            => symba_util_sort_pl             !! Sorts body arrays by a sortable componen
-      procedure :: rearrange       => symba_util_sort_rearrange_pl   !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill           => symba_util_spill_pl            !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: flatten         => symba_util_flatten_eucl_plpl      !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure :: discard         => symba_discard_pl                  !! Process massive body discards
+      procedure :: drift           => symba_drift_pl                    !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
+      procedure :: encounter_check => symba_encounter_check_pl          !! Checks if massive bodies are going through close encounters with each other
+      procedure :: accel_int       => symba_kick_getacch_int_pl         !! Compute direct cross (third) term heliocentric accelerations of massive bodiess, with no mutual interactions between bodies below GMTINY
+      procedure :: accel           => symba_kick_getacch_pl             !! Compute heliocentric accelerations of massive bodies
+      procedure :: setup           => symba_setup_pl                    !! Constructor method - Allocates space for the input number of bodies
+      procedure :: append          => symba_util_append_pl              !! Appends elements from one structure to another
+      procedure :: fill            => symba_util_fill_pl                !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: get_peri        => symba_util_peri_pl                !! Determine system pericenter passages for massive bodies
+      procedure :: rearray         => symba_util_rearray_pl             !! Clean up the massive body structures to remove discarded bodies and add new bodies
+      procedure :: reset_kinship   => symba_util_reset_kinship          !! Resets the kinship status of bodies
+      procedure :: resize          => symba_util_resize_pl              !! Checks the current size of a SyMBA massive body against the requested size and resizes it if it is too small.
+      procedure :: set_renc_I4B    => symba_util_set_renc               !! Sets the critical radius for encounter given an input recursion depth
+      procedure :: sort            => symba_util_sort_pl                !! Sorts body arrays by a sortable componen
+      procedure :: rearrange       => symba_util_sort_rearrange_pl      !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill           => symba_util_spill_pl               !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
    end type symba_pl
 
    type, extends(symba_pl) :: symba_merger
       integer(I4B), dimension(:), allocatable :: ncomp
    contains
-      procedure :: append          => symba_util_append_merger       !! Appends elements from one structure to another
-      procedure :: resize          => symba_util_resize_merger       !! Checks the current size of a SyMBA merger list against the requested size and resizes it if it is too small.
-      procedure :: setup           => symba_setup_merger             !! Constructor method - Allocates space for the input number of bodies
+      procedure :: append          => symba_util_append_merger  !! Appends elements from one structure to another
+      procedure :: resize          => symba_util_resize_merger  !! Checks the current size of a SyMBA merger list against the requested size and resizes it if it is too small.
+      procedure :: setup           => symba_setup_merger        !! Constructor method - Allocates space for the input number of bodies
    end type symba_merger
 
    !********************************************************************************************************************************
@@ -118,16 +120,16 @@ module symba_classes
    !                                    symba_encounter class definitions and method interfaces
    !*******************************************************************************************************************************
    !> SyMBA class for tracking close encounters in a step
-   type, extends(swiftest_encounter) :: symba_encounter
+   type, extends(encounter_list) :: symba_encounter
       integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
    contains
       procedure :: collision_check => symba_collision_check_encounter !! Checks if a test particle is going to collide with a massive body
       procedure :: encounter_check => symba_encounter_check           !! Checks if massive bodies are going through close encounters with each other
       procedure :: kick            => symba_kick_encounter            !! Kick barycentric velocities of active test particles within SyMBA recursion
-      procedure :: setup           => symba_setup_encounter           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: copy            => symba_util_copy_encounter       !! Copies elements from the source encounter list into self.
-      procedure :: spill           => symba_util_spill_encounter      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: append          => symba_util_append_encounter     !! Appends elements from one structure to another
+      procedure :: setup           => symba_setup_encounter_list           !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: copy            => symba_util_copy_encounter_list       !! Copies elements from the source encounter list into self.
+      procedure :: spill           => symba_util_spill_encounter_list      !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: append          => symba_util_append_encounter_list     !! Appends elements from one structure to another
    end type symba_encounter
 
    !********************************************************************************************************************************
@@ -160,6 +162,7 @@ module symba_classes
       class(symba_plplenc), allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
       class(symba_plplenc), allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
       integer(I4B)                      :: irec               !! System recursion level
+      integer(I4B)                      :: collision_counter  !! Counter for number of collisions over total simulation 
    contains
       procedure :: write_discard      => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize         => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
@@ -174,7 +177,7 @@ module symba_classes
       module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_encounter),       intent(inout) :: self           !! SyMBA pl-tp encounter list object
+         class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
          class(swiftest_parameters), intent(in)    :: param          !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t              !! current time
@@ -269,7 +272,7 @@ module symba_classes
       module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-         class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -279,7 +282,7 @@ module symba_classes
       module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_tp),            intent(inout) :: self           !! SyMBA test particle object  
-         class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -322,6 +325,12 @@ module symba_classes
          class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine symba_util_flatten_eucl_plpl
+
+      module subroutine symba_util_set_renc(self, scale)
+         implicit none
+         class(symba_pl), intent(inout) :: self !! SyMBA massive body object
+         integer(I4B),    intent(in)    :: scale !! Current recursion depth
+      end subroutine symba_util_set_renc
 
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -410,11 +419,11 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_setup_pl
 
-      module subroutine symba_setup_encounter(self,n)
+      module subroutine symba_setup_encounter_list(self,n)
          implicit none
          class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
-         integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine symba_setup_encounter
+         integer(I4B),           intent(in)    :: n    !! Number of encounters to allocate space for
+      end subroutine symba_setup_encounter_list
 
       module subroutine symba_setup_tp(self, n, param)
          use swiftest_classes, only : swiftest_parameters
@@ -475,12 +484,12 @@ module symba_classes
    end interface
 
    interface
-      module subroutine symba_util_append_encounter(self, source, lsource_mask)
+      module subroutine symba_util_append_encounter_list(self, source, lsource_mask)
          implicit none
          class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
-         class(swiftest_encounter), intent(in)    :: source       !! Source object to append
+         class(encounter_list), intent(in)    :: source       !! Source object to append
          logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine symba_util_append_encounter
+      end subroutine symba_util_append_encounter_list
 
       module subroutine symba_util_append_merger(self, source, lsource_mask)
          use swiftest_classes, only : swiftest_body
@@ -506,12 +515,12 @@ module symba_classes
          logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_tp
 
-      module subroutine symba_util_copy_encounter(self, source)
-         use swiftest_classes, only : swiftest_encounter
+      module subroutine symba_util_copy_encounter_list(self, source)
+         use encounter_classes, only : encounter_list
          implicit none
          class(symba_encounter),    intent(inout) :: self   !! Encounter list 
-         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_encounter
+         class(encounter_list), intent(in)    :: source !! Source object to copy into
+      end subroutine symba_util_copy_encounter_list
    end interface 
 
    interface util_fill
@@ -634,7 +643,7 @@ module symba_classes
          implicit none
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
          type(symba_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,               dimension(:),            intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,             dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
          logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine symba_util_spill_arr_kin
    end interface
@@ -649,14 +658,14 @@ module symba_classes
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine symba_util_spill_pl
 
-      module subroutine symba_util_spill_encounter(self, discards, lspill_list, ldestructive)
-         use swiftest_classes, only : swiftest_encounter
+      module subroutine symba_util_spill_encounter_list(self, discards, lspill_list, ldestructive)
+         use encounter_classes, only : encounter_list
          implicit none
-         class(symba_encounter),    intent(inout) :: self         !! SyMBA pl-tp encounter list
-         class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
-         logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      end subroutine symba_util_spill_encounter
+         class(symba_encounter), intent(inout) :: self         !! SyMBA pl-tp encounter list
+         class(encounter_list),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:),  intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      end subroutine symba_util_spill_encounter_list
 
       module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_body

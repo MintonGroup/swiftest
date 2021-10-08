@@ -718,6 +718,7 @@ contains
                ncolliders = colliders%ncoll
                nfrag = frag%nbody
 
+               system%collision_counter = system%collision_counter + 1
                ! Setup new bodies
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
@@ -745,7 +746,7 @@ contains
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Disruption", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
+                     call plnew%info(i)%set_value(origin_type="Disruption", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), collision_id=system%collision_counter)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) then
@@ -759,7 +760,7 @@ contains
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
+                     call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), collision_id=system%collision_counter)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) then
@@ -774,7 +775,7 @@ contains
                   plnew%status(1) = OLD_PARTICLE
                   do i = 2, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Hit and run fragment", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i))
+                     call plnew%info(i)%set_value(origin_type="Hit and run fragment", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), collision_id=system%collision_counter)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) cycle
@@ -935,6 +936,9 @@ contains
  
                   frag%regime = COLLRESOLVE_REGIME_MERGE
                   frag%mtot = sum(colliders%mass(:))
+                  frag%mass_dist(1) = frag%mtot
+                  frag%mass_dist(2) = 0.0_DP
+                  frag%mass_dist(3) = 0.0_DP
                   frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
                   frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
                   plplcollision_list%status(i) = symba_collision_casemerge(system, param, colliders, frag)

@@ -27,7 +27,7 @@ contains
                                                          "; DM/M0 = ", ES12.5)'
 
       associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody)
-         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE) .and. (param%energy_out /= "")) then
+         if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
             if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
                write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
@@ -35,8 +35,10 @@ contains
                open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append", err = 667, iomsg = errmsg)
             end if
          end if
+
          call pl%vb2vh(cb)
          call pl%xh2xb(cb)
+
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit
          ke_spin_now = system%ke_spin
@@ -56,7 +58,7 @@ contains
             param%lfirstenergy = .false.
          end if
 
-         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE) .and. (param%energy_out /= "")) then
+         if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
             write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, param%Ecollisions, Ltot_now, GMtot_now
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
@@ -71,11 +73,10 @@ contains
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                call pl%xv2el(cb)
-               call param%nciu%open(param)
                call self%write_hdr(param%nciu, param)
                call cb%write_frame(param%nciu, param)
                call pl%write_frame(param%nciu, param)
-               call param%nciu%close(param)
+               call param%nciu%close()
                call util_exit(FAILURE)
             end if
          end if
@@ -135,6 +136,7 @@ contains
       write(iu, err = 667, iomsg = errmsg) self%particle_type
       write(iu, err = 667, iomsg = errmsg) self%origin_type
       write(iu, err = 667, iomsg = errmsg) self%origin_time
+      write(iu, err = 667, iomsg = errmsg) self%collision_id
       write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
       write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
@@ -200,9 +202,7 @@ contains
          close(unit = LUN, err = 667, iomsg = errmsg)
       !else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
       if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         call param%nciu%open(param) 
          call self%write_particle_info(param%nciu)
-         call param%nciu%close(param)
       end if
 
       return
@@ -272,44 +272,43 @@ contains
       integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
                                                             !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
-      real(DP)                      :: tfrac
-      character(*),     parameter   :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
-      character(*),     parameter   :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
-      logical, save                 :: lfirst = .true.
-    
-      if (lfirst) then
-         lfirst = .false.
-         if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
-      else
-         allocate(dump_param, source=param)
-         param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
+   
+      allocate(dump_param, source=param)
+      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
+      dump_param%in_form  = XV
+      dump_param%out_form = XV
+      dump_param%out_stat = 'APPEND'
+      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
          dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
          dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
          dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-         dump_param%in_form  = XV
-         dump_param%out_stat = 'APPEND'
          dump_param%in_type = REAL8_TYPE
-         dump_param%T0 = param%t
+      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
+         dump_param%in_type = NETCDF_DOUBLE_TYPE
+      end if
+      dump_param%T0 = param%t
+      dump_param%ioutput = 0 
 
-         call dump_param%dump(param_file_name)
+      call dump_param%dump(param_file_name)
 
-         dump_param%out_form = XV
+      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
          call self%cb%dump(dump_param)
          call self%pl%dump(dump_param)
          call self%tp%dump(dump_param)
-
-         idx = idx + 1
-         if (idx > NDUMPFILES) idx = 1
-
-         tfrac = (param%t - param%t0) / (param%tstop - param%t0)
-         
-         select type(pl => self%pl)
-         class is (symba_pl)
-            write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, self%tp%nbody
-         class default
-            write(*, statusfmt) param%t, tfrac, pl%nbody, self%tp%nbody
-         end select
+      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         call dump_param%nciu%initialize(dump_param)
+         call self%write_hdr(dump_param%nciu, dump_param)
+         call self%cb%write_frame(dump_param%nciu, dump_param)
+         call self%pl%write_frame(dump_param%nciu, dump_param)
+         call self%tp%write_frame(dump_param%nciu, dump_param)
+         call dump_param%nciu%close()
+         ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+         call param%nciu%sync()
       end if
+
+      idx = idx + 1
+      if (idx > NDUMPFILES) idx = 1
 
       return
    end subroutine io_dump_system
@@ -393,7 +392,7 @@ contains
       class(swiftest_nbody_system), allocatable :: tmpsys
       class(swiftest_parameters),   allocatable :: tmpparam
       integer(I4B) :: ierr, iu = LUN
-      character(len=STRMAX)            :: errmsg
+      character(len=STRMAX) :: errmsg
 
       old_t_final = 0.0_DP
       allocate(tmpsys, source=self)
@@ -477,13 +476,13 @@ contains
       ! Internals
       character(STRMAX) :: errmsg
 
-      open(unit=LUN, file=file, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      open(unit=LUN, file=trim(adjustl(file)), status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
       write(LUN, *) trim(adjustl(message)) 
       close(LUN)
 
       return
       667 continue
-      write(*,*) "Error writing  message to log file: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing message to log file: " // trim(adjustl(errmsg))
    end subroutine io_log_one_message
 
 
@@ -500,7 +499,7 @@ contains
       character(STRMAX) :: errmsg
       logical           :: fileExists
 
-      inquire(file=file, exist=fileExists)
+      inquire(file=trim(adjustl(file)), exist=fileExists)
       if (.not.param%lrestart .or. .not.fileExists) then
          open(unit=LUN, file=file, status="REPLACE", err = 667, iomsg = errmsg)
          write(LUN, *, err = 667, iomsg = errmsg) trim(adjustl(header))
@@ -651,6 +650,16 @@ contains
                case ("INTERACTION_LOOPS")
                   call io_toupper(param_value)
                   param%interaction_loops = param_value
+               case ("ENCOUNTER_CHECK_PLPL")
+                  call io_toupper(param_value)
+                  param%encounter_check_plpl = param_value
+               case ("ENCOUNTER_CHECK_PLTP")
+                  call io_toupper(param_value)
+                  param%encounter_check_pltp = param_value
+               case ("ENCOUNTER_CHECK")
+                  call io_toupper(param_value)
+                  param%encounter_check_plpl = param_value
+                  param%encounter_check_pltp = param_value
                case ("FIRSTKICK")
                   call io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
@@ -815,17 +824,14 @@ contains
          case("ADAPTIVE")
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
             call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
             call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .false.
-            param%lflatten_encounters = .false.
          case("FLAT")
             param%ladaptive_interactions = .false.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
          case default
             write(*,*) "Unknown value for parameter INTERACTION_LOOPS: -> ",trim(adjustl(param%interaction_loops))
             write(*,*) "Must be one of the following: TRIANGULAR, FLAT, or ADAPTIVE"
@@ -833,7 +839,54 @@ contains
             param%interaction_loops = "ADAPTIVE"
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            param%lflatten_encounters = .true.
+            call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
+            call io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         end select
+
+         select case(trim(adjustl(param%encounter_check_plpl)))
+         case("ADAPTIVE")
+            param%ladaptive_encounters_plpl = .true.
+            param%lencounter_sas_plpl = .true.
+            call io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         case("TRIANGULAR")
+            param%ladaptive_encounters_plpl = .false.
+            param%lencounter_sas_plpl = .false.
+         case("SORTSWEEP")
+            param%ladaptive_encounters_plpl = .false.
+            param%lencounter_sas_plpl = .true.
+         case default
+            write(*,*) "Unknown value for parameter ENCOUNTER_CHECK_PLPL: -> ",trim(adjustl(param%encounter_check_plpl))
+            write(*,*) "Must be one of the following: TRIANGULAR, SORTSWEEP, or ADAPTIVE"
+            write(*,*) "Using default value of ADAPTIVE"
+            param%encounter_check_plpl = "ADAPTIVE"
+            param%ladaptive_encounters_plpl = .true.
+            param%lencounter_sas_plpl = .true.
+            call io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+         end select
+
+         select case(trim(adjustl(param%encounter_check_pltp)))
+         case("ADAPTIVE")
+            param%ladaptive_encounters_pltp = .true.
+            param%lencounter_sas_pltp = .true.
+            call io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
+         case("TRIANGULAR")
+            param%ladaptive_encounters_pltp = .false.
+            param%lencounter_sas_pltp = .false.
+         case("SORTSWEEP")
+            param%ladaptive_encounters_pltp = .false.
+            param%lencounter_sas_pltp = .true.
+         case default
+            write(*,*) "Unknown value for parameter ENCOUNTER_CHECK_PLTP: -> ",trim(adjustl(param%encounter_check_pltp))
+            write(*,*) "Must be one of the following: TRIANGULAR, SORTSWEEP, or ADAPTIVE"
+            write(*,*) "Using default value of ADAPTIVE"
+            param%encounter_check_pltp = "ADAPTIVE"
+            param%ladaptive_encounters_pltp = .true.
+            param%lencounter_sas_pltp = .true.
+            call io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
          end select
 
          iostat = 0
@@ -926,6 +979,8 @@ contains
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
+         call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
+         call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
@@ -1143,7 +1198,42 @@ contains
    end subroutine io_param_writer_one_QP
 
 
-   module subroutine io_read_in_body(self, param) 
+   module subroutine io_read_in_base(self,param)
+      !! author: Carlisle A. Wishard and David A. Minton
+      !!
+      !! Reads in either a central body, test particle, or massive body object. For the swiftest_body types (non-central body), it allocates array space for them
+      implicit none
+      class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      ! Internals
+      integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
+
+      select case(param%in_type)
+      case(NETCDF_DOUBLE_TYPE, NETCDF_FLOAT_TYPE)
+         select type(self)
+         class is (swiftest_body)
+            if (self%nbody == 0) return
+            call self%setup(self%nbody, param)
+         end select
+
+         ierr = self%read_frame(param%nciu, param)
+         if (ierr == 0) return
+      case default
+         select type(self)
+         class is (swiftest_body)
+            call io_read_in_body(self, param)
+         class is (swiftest_cb)
+            call io_read_in_cb(self, param)
+         end select
+         return
+      end select
+
+      667 continue
+      write(*,*) "Error reading body in io_read_in_base"
+   end subroutine io_read_in_base
+
+
+   subroutine io_read_in_body(self, param) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read in either test particle or massive body data 
@@ -1157,20 +1247,19 @@ contains
       ! Internals
       integer(I4B)                  :: iu = LUN
       integer(I4B)                  :: i, nbody
-      logical                       :: is_ascii, is_pl
+      logical                       :: is_ascii
       character(len=:), allocatable :: infile
       real(DP)                      :: t
       character(STRMAX)             :: errmsg
       integer(I4B)                  :: ierr
 
       ! Select the appropriate polymorphic class (test particle or massive body)
+
       select type(self)
       class is (swiftest_pl)
          infile = param%inplfile
-         is_pl = .true.
       class is (swiftest_tp)
          infile = param%intpfile
-         is_pl = .false.
       end select
 
       is_ascii = (param%in_type == 'ASCII') 
@@ -1207,7 +1296,7 @@ contains
    end subroutine io_read_in_body
 
 
-   module subroutine io_read_in_cb(self, param) 
+   subroutine io_read_in_cb(self, param) 
       !! author: David A. Minton
       !!
       !! Reads in central body data 
@@ -1266,6 +1355,30 @@ contains
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_read_in_cb
+
+
+   module subroutine io_read_in_system(self, param)
+      !! author: David A. Minton and Carlisle A. Wishard
+      !!
+      !! Reads in the system from input files
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self
+      class(swiftest_parameters),   intent(inout) :: param
+      ! Internals
+      integer(I4B) :: ierr
+
+      if ((param%in_type == NETCDF_DOUBLE_TYPE) .or. (param%in_type == NETCDF_FLOAT_TYPE)) then
+         ierr =  self%read_frame(param%nciu, param)
+         if (ierr /=0) call util_exit(FAILURE)
+      else
+         call self%cb%read_in(param)
+         call self%pl%read_in(param)
+         call self%tp%read_in(param)
+      end if
+
+      return
+   end subroutine io_read_in_system
 
 
    function io_read_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, &
@@ -1657,6 +1770,7 @@ contains
       read(iu, err = 667, iomsg = errmsg) self%particle_type
       read(iu, err = 667, iomsg = errmsg) self%origin_type
       read(iu, err = 667, iomsg = errmsg) self%origin_time
+      read(iu, err = 667, iomsg = errmsg) self%collision_id 
       read(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
       read(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
 
@@ -1787,9 +1901,7 @@ contains
 
          ! Record the discarded body metadata information to file
          if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-            call param%nciu%open(param) 
             call tp_discards%write_particle_info(param%nciu)
-            call param%nciu%close(param)
          end if
    
          if (param%discard_out == "") return
@@ -1845,62 +1957,6 @@ contains
       write(*,*) "Error writing discard file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_write_discard
-
-
-   module subroutine io_write_encounter(self, pl, encbody, param)
-      implicit none
-      ! Arguments
-      class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
-      class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
-      class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
-      class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
-      ! Internals
-      logical , save          :: lfirst = .true.
-      integer(I4B)            :: k, ierr
-      character(len=STRMAX)   :: errmsg
-
-      if (param%enc_out == "" .or. self%nenc == 0) return
-
-      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr, iomsg = errmsg)
-      if (ierr /= 0) then
-         if (lfirst) then
-            open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         else
-            goto 667
-         end if
-      end if
-      lfirst = .false.
-
-      associate(ind1 => self%index1, ind2 => self%index2)
-         select type(encbody)
-         class is (swiftest_pl)
-            do k = 1, self%nenc
-               call io_write_frame_encounter(LUN, self%t(k), &
-                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
-                                             pl%Gmass(ind1(k)),  encbody%Gmass(ind2(k)), &
-                                             pl%radius(ind1(k)), encbody%radius(ind2(k)), &
-                                             self%x1(:,k),       self%x2(:,k), &
-                                             self%v1(:,k),       self%v2(:,k))
-            end do
-         class is (swiftest_tp)
-            do k = 1, self%nenc
-               call io_write_frame_encounter(LUN, self%t(k), &
-                                             pl%id(ind1(k)),     encbody%id(ind2(k)), &
-                                             pl%Gmass(ind1(k)),  0.0_DP, &
-                                             pl%radius(ind1(k)), 0.0_DP, &
-                                             self%x1(:,k),       self%x2(:,k), &
-                                             self%v1(:,k),       self%v2(:,k))
-            end do 
-         end select
-      end associate
-
-      close(unit = LUN, err = 667, iomsg = errmsg)
-
-      return
-      667 continue
-      write(*,*) "Error writing encounter file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_write_encounter
 
 
    module subroutine io_write_frame_body(self, iu, param)
@@ -2009,36 +2065,6 @@ contains
    end subroutine io_write_frame_cb
 
 
-  module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
-      !! author: David A. Minton
-      !!
-      !! Write a single frame of close encounter data to output binary files
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_write_encounter.f90
-      !! Adapted from Hal Levison's Swift routine io_write_encounter.f
-      implicit none
-      ! Arguments
-      integer(I4B),           intent(in) :: iu               !! Open file unit number
-      real(DP),               intent(in) :: t                !! Time of encounter
-      integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
-      real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
-      real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
-      real(DP), dimension(:), intent(in) :: xh1, xh2         !! Heliocentric position vectors of the two encountering bodies 
-      real(DP), dimension(:), intent(in) :: vh1, vh2         !! Heliocentric velocity vectors of the two encountering bodies  
-      ! Internals
-      character(len=STRMAX)   :: errmsg
-
-      write(iu, err = 667, iomsg = errmsg) t
-      write(iu, err = 667, iomsg = errmsg) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
-      write(iu, err = 667, iomsg = errmsg) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
-
-      return
-      667 continue
-      write(*,*) "Error writing encounter file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine
-
-
    module subroutine io_write_frame_system(self, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -2059,8 +2085,6 @@ contains
       character(len=STRMAX)            :: errmsg
       integer(I4B)                     :: iu = BINUNIT   !! Unit number for the output file to write frame to
       logical                          :: fileExists
-
-      if (.not.lfirst .and. param%lenergy) call self%conservation_report(param, lterminal=.true.)
 
       allocate(cb, source = self%cb)
       allocate(pl, source = self%pl)
@@ -2094,29 +2118,20 @@ contains
                   errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
                   goto 667
                end if
+               call param%nciu%open(param)
             case('NEW')
                if (fileExists) then
-                  errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = OLD, REPLACE, or UNKNOWN"
+                  errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
                   goto 667
                end if
+               call param%nciu%initialize(param)
             case('REPLACE', 'UNKNOWN')
-               if (fileExists) then
-                  open(file=param%outfile, unit=iu, status='OLD')
-                  close (unit=BINUNIT, status="delete")
-               end if
+               call param%nciu%initialize(param)
             end select
 
-            select case(param%out_stat)
-            case('APPEND')
-               call param%nciu%open(param)
-            case('NEW', 'REPLACE', 'UNKNOWN')
-               call param%nciu%initialize(param)
-               call param%nciu%close(param)
-               call param%nciu%open(param)
-            end select
             lfirst = .false.
          else
-            call param%nciu%open(param)
+            !call param%nciu%open(param)
          end if
       end if
 
@@ -2142,7 +2157,6 @@ contains
          call cb%write_frame(param%nciu, param)
          call pl%write_frame(param%nciu, param)
          call tp%write_frame(param%nciu, param)
-         call param%nciu%close(param)
       end if
 
       return

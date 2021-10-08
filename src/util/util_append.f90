@@ -222,38 +222,6 @@ contains
    end subroutine util_append_body
 
 
-   module subroutine util_append_encounter(self, source, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append components from one Swiftest body object to another. 
-      !! This method will automatically resize the destination body if it is too small
-      implicit none
-      ! Arguments
-      class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list object
-      class(swiftest_encounter), intent(in)    :: source       !! Source object to append
-      logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nold, nsrc
-
-      nold = self%nenc
-      nsrc = source%nenc
-      call util_append(self%lvdotr, source%lvdotr, nold, nsrc, lsource_mask)
-      call util_append(self%status, source%status, nold, nsrc, lsource_mask)
-      call util_append(self%index1, source%index1, nold, nsrc, lsource_mask)
-      call util_append(self%index2, source%index2, nold, nsrc, lsource_mask)
-      call util_append(self%id1, source%id1, nold, nsrc, lsource_mask)
-      call util_append(self%id2, source%id2, nold, nsrc, lsource_mask)
-      call util_append(self%x1, source%x1, nold, nsrc, lsource_mask)
-      call util_append(self%x2, source%x2, nold, nsrc, lsource_mask)
-      call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
-      call util_append(self%v2, source%v2, nold, nsrc, lsource_mask)
-      call util_append(self%t, source%t, nold, nsrc, lsource_mask)
-      self%nenc = nold + count(lsource_mask(1:nsrc))
-
-      return
-   end subroutine util_append_encounter
-
-
    module subroutine util_append_pl(self, source, lsource_mask)
       !! author: David A. Minton
       !!
@@ -271,6 +239,7 @@ contains
             call util_append(self%mass, source%mass, nold, nsrc, lsource_mask)
             call util_append(self%Gmass, source%Gmass, nold, nsrc, lsource_mask)
             call util_append(self%rhill, source%rhill, nold, nsrc, lsource_mask)
+            call util_append(self%renc, source%renc, nold, nsrc, lsource_mask)
             call util_append(self%radius, source%radius, nold, nsrc, lsource_mask)
             call util_append(self%xbeg, source%xbeg, nold, nsrc, lsource_mask)
             call util_append(self%xend, source%xend, nold, nsrc, lsource_mask)

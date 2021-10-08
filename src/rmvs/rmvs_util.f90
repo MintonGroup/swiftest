@@ -201,14 +201,13 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
-         allocate(ind(npl))
          select case(sortby)
          case("nenc")
-            call util_sort(direction * pl%nenc(1:npl), ind(1:npl))
+            call util_sort(direction * pl%nenc(1:npl), ind)
          case("tpenc1P")
-            call util_sort(direction * pl%tpenc1P(1:npl), ind(1:npl))
+            call util_sort(direction * pl%tpenc1P(1:npl), ind)
          case("plind")
-            call util_sort(direction * pl%plind(1:npl), ind(1:npl))
+            call util_sort(direction * pl%plind(1:npl), ind)
          case("outer", "inner", "planetocentric", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -246,12 +245,11 @@ contains
       end if
 
       associate(tp => self, ntp => self%nbody)
-         allocate(ind(ntp))
          select case(sortby)
          case("plperP")
-            call util_sort(direction * tp%plperP(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%plperP(1:ntp), ind)
          case("plencP")
-            call util_sort(direction * tp%plencP(1:ntp), ind(1:ntp))
+            call util_sort(direction * tp%plencP(1:ntp), ind)
          case("lperi", "cb_heliocentric", "xheliocentric", "index", "ipleP", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class (*NOTE whm_tp does not need its own sort method, so we go straight to the swiftest_tp method)

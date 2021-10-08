@@ -71,59 +71,25 @@ contains
    end subroutine setup_construct_system
 
 
-   module subroutine setup_encounter(self, n)
+   module subroutine setup_finalize_system(self, param)
       !! author: David A. Minton
       !!
-      !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      !! Runs any finalization subroutines when ending the simulation.
       !!
       implicit none
       ! Arguments
-      class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
-      integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      integer(I4B)                                :: ierr
 
-      if (n < 0) return
-
-      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
-      if (allocated(self%status)) deallocate(self%status)
-      if (allocated(self%index1)) deallocate(self%index1)
-      if (allocated(self%index2)) deallocate(self%index2)
-      if (allocated(self%id1)) deallocate(self%id1)
-      if (allocated(self%id2)) deallocate(self%id2)
-      if (allocated(self%x1)) deallocate(self%x1)
-      if (allocated(self%x2)) deallocate(self%x2)
-      if (allocated(self%v1)) deallocate(self%v1)
-      if (allocated(self%v2)) deallocate(self%v2)
-      if (allocated(self%t)) deallocate(self%t)
-
-      self%nenc = n
-      if (n == 0) return
-
-      allocate(self%lvdotr(n))
-      allocate(self%status(n))
-      allocate(self%index1(n))
-      allocate(self%index2(n))
-      allocate(self%id1(n))
-      allocate(self%id2(n))
-      allocate(self%x1(NDIM,n))
-      allocate(self%x2(NDIM,n))
-      allocate(self%v1(NDIM,n))
-      allocate(self%v2(NDIM,n))
-      allocate(self%t(n))
-
-      self%lvdotr(:) = .false.
-      self%status(:) = INACTIVE
-      self%index1(:) = 0
-      self%index2(:) = 0
-      self%id1(:) = 0
-      self%id2(:) = 0
-      self%x1(:,:) = 0.0_DP
-      self%x2(:,:) = 0.0_DP
-      self%v1(:,:) = 0.0_DP
-      self%v2(:,:) = 0.0_DP
-      self%t(:) = 0.0_DP
+      associate(system => self)
+         if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+            call param%nciu%close()
+         end if
+      end associate
 
       return
-   end subroutine setup_encounter
+   end subroutine setup_finalize_system
 
 
    module subroutine setup_initialize_particle_info_system(self, param)
@@ -140,12 +106,12 @@ contains
 
       associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
 
-         call cb%info%set_value(particle_type=CB_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP])
+         call cb%info%set_value(particle_type=CB_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP], collision_id=0)
          do i = 1, self%pl%nbody
-            call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%pl%xh(:,i), origin_vh=self%pl%vh(:,i))
+            call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%pl%xh(:,i), origin_vh=self%pl%vh(:,i), collision_id=0)
          end do
          do i = 1, self%tp%nbody
-            call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%tp%xh(:,i), origin_vh=self%tp%vh(:,i))
+            call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", origin_time=param%t0, origin_xh=self%tp%xh(:,i), origin_vh=self%tp%vh(:,i), collision_id=0)
          end do
 
       end associate
@@ -163,28 +129,31 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
- 
-      call self%cb%read_in(param)
-      call self%pl%read_in(param)
-      call self%tp%read_in(param)
-      call self%validate_ids(param)
-      call self%set_msys()
-      call self%pl%set_mu(self%cb) 
-      call self%tp%set_mu(self%cb) 
-      if (param%in_form == EL) then
-         call self%pl%el2xv(self%cb)
-         call self%tp%el2xv(self%cb)
-      end if
-      call self%pl%flatten(param)
-      if (.not.param%lrhill_present) call self%pl%set_rhill(self%cb)
-      self%pl%lfirst = param%lfirstkick
-      self%tp%lfirst = param%lfirstkick
+      integer(I4B)                                :: ierr
 
-      if (param%lrestart) then
-         call self%read_particle_info(param)
-      else
-         call self%init_particle_info(param)
-      end if
+      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+
+         call system%read_in(param)
+         call system%validate_ids(param)
+         call system%set_msys()
+         call pl%set_mu(cb) 
+         call tp%set_mu(cb) 
+         if (param%in_form == EL) then
+            call pl%el2xv(cb)
+            call tp%el2xv(cb)
+         end if
+         call pl%flatten(param)
+         if (.not.param%lrhill_present) call pl%set_rhill(cb)
+         pl%lfirst = param%lfirstkick
+         tp%lfirst = param%lfirstkick
+
+         if (param%lrestart) then
+            call system%read_particle_info(param)
+         else
+            call system%init_particle_info(param)
+         end if
+      end associate
+
       return
    end subroutine setup_initialize_system
 
@@ -253,6 +222,7 @@ contains
             particle_type = "UNKNOWN", &
             status = "INACTIVE", & 
             origin_type = "UNKNOWN", &
+            collision_id = 0, &
             origin_time = -huge(1.0_DP), & 
             origin_xh = [0.0_DP, 0.0_DP, 0.0_DP], &
             origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
@@ -310,6 +280,7 @@ contains
       if (allocated(self%mass)) deallocate(self%mass)
       if (allocated(self%Gmass)) deallocate(self%Gmass)
       if (allocated(self%rhill)) deallocate(self%rhill)
+      if (allocated(self%renc)) deallocate(self%renc)
       if (allocated(self%radius)) deallocate(self%radius)
       if (allocated(self%density)) deallocate(self%density)
       if (allocated(self%rot)) deallocate(self%rot)
@@ -323,10 +294,12 @@ contains
       allocate(self%mass(n))
       allocate(self%Gmass(n))
       allocate(self%rhill(n))
+      allocate(self%renc(n))
 
       self%mass(:) = 0.0_DP
       self%Gmass(:) = 0.0_DP
       self%rhill(:) = 0.0_DP
+      self%renc(:) = 0.0_DP
 
       self%nplpl = 0   
 
