@@ -57,7 +57,7 @@ contains
    end subroutine util_sort_body
 
 
-   module subroutine util_sort_dp(arr)
+   module pure subroutine util_sort_dp(arr)
       !! author: David A. Minton
       !!
       !! Sort input double precision array in place into ascending numerical order using insertion sort.
@@ -86,7 +86,7 @@ contains
    end subroutine util_sort_dp
 
 
-   module subroutine util_sort_index_dp(arr, ind)
+   module pure subroutine util_sort_index_dp(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input double precision array by index in ascending numerical order using insertion sort.
@@ -121,7 +121,7 @@ contains
    end subroutine util_sort_index_dp
 
 
-   module subroutine util_sort_i4b(arr)
+   module pure subroutine util_sort_i4b(arr)
       !! author: David A. Minton
       !!
       !! Sort input integer array in place into ascending numerical order using insertion sort.
@@ -150,7 +150,7 @@ contains
    end subroutine util_sort_i4b
 
 
-   module subroutine util_sort_index_i4b(arr, ind)
+   module pure subroutine util_sort_index_i4b(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input integer array by index in ascending numerical order using insertion sort.
@@ -185,7 +185,7 @@ contains
    end subroutine util_sort_index_i4b
 
 
-   module subroutine util_sort_sp(arr)
+   module pure subroutine util_sort_sp(arr)
       !! author: David A. Minton
       !!
       !! Sort input single precision array in place into ascending numerical order using insertion sort.
@@ -214,7 +214,7 @@ contains
    end subroutine util_sort_sp
 
 
-   module subroutine util_sort_index_sp(arr, ind)
+   module pure subroutine util_sort_index_sp(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input single precision array by index in ascending numerical order using insertion sort.
@@ -385,7 +385,7 @@ contains
    end subroutine util_sort_rearrange_body
 
 
-   module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of character string in-place from an index list.
@@ -406,7 +406,7 @@ contains
    end subroutine util_sort_rearrange_arr_char_string
 
 
-   module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_DP(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of DP type in-place from an index list.
@@ -427,7 +427,7 @@ contains
    end subroutine util_sort_rearrange_arr_DP
 
 
-   module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of (NDIM,n) DP-type vectors in-place from an index list.
@@ -448,7 +448,7 @@ contains
    end subroutine util_sort_rearrange_arr_DPvec
 
 
-   module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of integers in-place from an index list.
@@ -469,7 +469,7 @@ contains
    end subroutine util_sort_rearrange_arr_I4B
 
 
-   module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+   module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of logicals in-place from an index list.

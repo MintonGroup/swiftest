@@ -1612,34 +1612,34 @@ module swiftest_classes
    end interface
 
    interface util_sort
-      module subroutine util_sort_i4b(arr)
+      module pure subroutine util_sort_i4b(arr)
          implicit none
          integer(I4B), dimension(:), intent(inout) :: arr
       end subroutine util_sort_i4b
 
-      module subroutine util_sort_index_i4b(arr,ind)
+      module pure subroutine util_sort_index_i4b(arr,ind)
          implicit none
          integer(I4B), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
-      module subroutine util_sort_sp(arr)
+      module pure subroutine util_sort_sp(arr)
          implicit none
          real(SP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_sp
 
-      module subroutine util_sort_index_sp(arr,ind)
+      module pure subroutine util_sort_index_sp(arr,ind)
          implicit none
          real(SP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_sp
 
-      module subroutine util_sort_dp(arr)
+      module pure subroutine util_sort_dp(arr)
          implicit none
          real(DP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_dp
 
-      module subroutine util_sort_index_dp(arr,ind)
+      module pure subroutine util_sort_index_dp(arr,ind)
          implicit none
          real(DP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
@@ -1647,28 +1647,28 @@ module swiftest_classes
    end interface util_sort
 
    interface util_sort_rearrange
-      module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_char_string
 
-      module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_DP(arr, ind, n)
          implicit none
          real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DP
 
-      module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
          implicit none
          real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DPvec
 
-      module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
@@ -1682,7 +1682,7 @@ module swiftest_classes
          integer(I4B),                                   intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_info
 
-      module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
          implicit none
          logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against

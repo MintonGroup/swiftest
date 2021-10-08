@@ -550,7 +550,7 @@ contains
             associate(nfrag => frag%nbody)
                allocate(v_shift, mold=frag%vb)
                v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, frag%v_r_unit, frag%v_t_mag, frag%v_t_unit, frag%mass, frag%vbcom) 
-               !$omp do simd 
+               !$omp do simd firstprivate(nfrag) lastprivate(rotmag2, vmag2) 
                do i = 1,nfrag
                   rotmag2 = frag%rot(1,i)**2 + frag%rot(2,i)**2 + frag%rot(3,i)**2
                   vmag2 = v_shift(1,i)**2 + v_shift(2,i)**2 + v_shift(3,i)**2
