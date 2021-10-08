@@ -79,6 +79,8 @@ contains
       real(SP) :: sfill
       logical :: fileExists
       character(len=STRMAX) :: errmsg
+      integer(I4B) :: storage, ndims, i
+      integer(I4B), parameter :: chunk = 2048
 
       dfill = ieee_value(dfill, IEEE_QUIET_NAN)
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
@@ -184,7 +186,7 @@ contains
       ! Set fill mode to NaN for all variables
       call check( nf90_inquire(self%ncid, nVariables=nvar) )
       do varid = 1, nvar
-         call check( nf90_inquire_variable(self%ncid, varid, xtype=vartype) )
+         call check( nf90_inquire_variable(self%ncid, varid, xtype=vartype, ndims=ndims) )
          select case(vartype)
          case(NF90_INT)
             call check( nf90_def_var_fill(self%ncid, varid, 0, NF90_FILL_INT) )
@@ -194,6 +196,13 @@ contains
             call check( nf90_def_var_fill(self%ncid, varid, 0, dfill) )
          case(NF90_CHAR)
             call check( nf90_def_var_fill(self%ncid, varid, 0, 0) )
+         end select
+
+         select case(vartype)
+         case(NF90_CHAR)
+            call check( nf90_def_var_chunking(self%ncid, varid, NF90_CHUNKED, [NAMELEN, chunk]) )
+         case default
+            call check( nf90_def_var_chunking(self%ncid, varid, NF90_CHUNKED, [(chunk, i = 1, ndims)]) )
          end select
       end do
 
