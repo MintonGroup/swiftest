@@ -114,7 +114,7 @@ module rmvs_classes
       module function rmvs_encounter_check_tp(self, param, system, dt) result(lencounter)
          implicit none
          class(rmvs_tp),             intent(inout) :: self       !! RMVS test particle object  
-         class(swiftest_parameters), intent(in)    :: param      !! Current run configuration parameters 
+         class(swiftest_parameters), intent(inout) :: param      !! Current run configuration parameters 
          class(rmvs_nbody_system),   intent(inout) :: system     !! RMVS nbody system object
          real(DP),                   intent(in)    :: dt         !! step size
          logical                                   :: lencounter !! Returns true if there is at least one close encounter      

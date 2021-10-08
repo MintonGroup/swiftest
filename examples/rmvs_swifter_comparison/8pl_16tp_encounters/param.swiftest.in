@@ -33,3 +33,4 @@ ROTATION         NO
 TIDES            NO
 ENERGY           NO
 GR               NO
+ENCOUNTER_CHECK SORTSWEEP

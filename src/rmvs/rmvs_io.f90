@@ -33,7 +33,7 @@ contains
          call util_exit(FAILURE)
       end if
       lfirst = .false.
-      call io_write_frame_encounter(LUN, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
+      call encounter_io_write_frame(LUN, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
       close(unit = LUN, iostat = ierr)
       if (ierr /= 0) then
          write(*, *) "Swiftest Error:"

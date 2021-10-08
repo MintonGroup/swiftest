@@ -13,6 +13,7 @@ module swiftest
    use fraggle_classes
    use lambda_function
    use walltime_classes
+   use encounter_classes
    !use advisor_annotate
    !$ use omp_lib
    implicit none

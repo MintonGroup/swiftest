@@ -137,14 +137,13 @@ contains
       end if
 
       associate(pl => self, npl => self%nbody)
-         allocate(ind(npl))
          select case(sortby)
          case("eta")
-            call util_sort(direction * pl%eta(1:npl), ind(1:npl))
+            call util_sort(direction * pl%eta(1:npl), ind)
          case("muj")
-            call util_sort(direction * pl%muj(1:npl), ind(1:npl))
+            call util_sort(direction * pl%muj(1:npl), ind)
          case("ir3j")
-            call util_sort(direction * pl%ir3j(1:npl), ind(1:npl))
+            call util_sort(direction * pl%ir3j(1:npl), ind)
          case("xj", "vj")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default

@@ -18,67 +18,37 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       integer(I8B) :: k, nplplm, kenc
-      integer(I4B) :: i, j, nenc, npl, nplm
+      integer(I4B) :: i, j, nenc, npl, nplm, nplt
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
+      type(walltimer) :: timer 
   
       if (self%nbody == 0) return
 
       associate(pl => self, plplenc_list => system%plplenc_list)
 
-         if (param%ladaptive_interactions) then
-            if (self%nplplm > 0) then
-               if (lfirst) then
-                  write(itimer%loopname, *)  "symba_encounter_check_pl"
-                  write(itimer%looptype, *)  "ENCOUNTERS"
-                  call itimer%time_this_loop(param, pl, pl%nplplm)
-                  lfirst = .false.
-               else
-                  if (itimer%check(param, pl%nplplm)) call itimer%time_this_loop(param, pl, pl%nplplm)
-               end if
-            else
-               param%lflatten_encounters = .false.
-            end if
-         end if
-
          npl = pl%nbody
-         if (param%lflatten_encounters) then
-            nplplm = pl%nplplm
+         nplm = pl%nplm
+         nplt = npl - nplm
 
-            allocate(lencounter(nplplm))
-            allocate(loc_lvdotr(nplplm))
-  
-            call encounter_check_all_flat_plpl(nplplm, pl%k_plpl, pl%xh, pl%vh, pl%renc, dt, lencounter, loc_lvdotr)
-
-            nenc = count(lencounter(:))
-
-            lany_encounter = nenc > 0
-            if (lany_encounter) then 
-               call plplenc_list%resize(nenc)
-               allocate(lvdotr(nenc))					
-               allocate(index1(nenc))					
-               allocate(index2(nenc))					
-               lvdotr(:) = pack(loc_lvdotr(:), lencounter(:))					
-               index1(:) = pack(pl%k_plpl(1,1:nplplm), lencounter(:)) 					
-               index2(:) = pack(pl%k_plpl(2,1:nplplm), lencounter(:)) 					
-               deallocate(lencounter, loc_lvdotr)					
-               call move_alloc(lvdotr, plplenc_list%lvdotr)					
-               call move_alloc(index1, plplenc_list%index1) 					
-               call move_alloc(index2, plplenc_list%index2) 
-            end if					
+         ! call timer%reset()
+         ! call timer%start()
+         if (nplt == 0) then
+            call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
          else
-            nplm = pl%nplm
-            call encounter_check_all_triangular_plpl(npl, nplm, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
-            lany_encounter = nenc > 0
-            if (lany_encounter) then
-               call plplenc_list%resize(nenc)
-               call move_alloc(lvdotr, plplenc_list%lvdotr)
-               call move_alloc(index1, plplenc_list%index1)
-               call move_alloc(index2, plplenc_list%index2)
-            end if
+            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, lvdotr, index1, index2, nenc)
+         end if
+         ! call timer%stop()
+         ! call timer%report(nsubsteps=nthreads, message="Encounter Check Total:")
+         lany_encounter = nenc > 0
+         if (lany_encounter) then
+            call plplenc_list%resize(nenc)
+            call move_alloc(lvdotr, plplenc_list%lvdotr)
+            call move_alloc(index1, plplenc_list%index1)
+            call move_alloc(index2, plplenc_list%index2)
          end if
 
          if (lany_encounter) then 
@@ -100,10 +70,6 @@ contains
             end do
          end if
 
-         if (param%ladaptive_interactions .and. self%nplplm > 0) then 
-            if (itimer%is_on) call itimer%adapt(param, pl, pl%nplplm)
-         end if
-
       end associate
 
       return
@@ -120,7 +86,7 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-      class(swiftest_parameters), intent(in)    :: param          !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -221,7 +187,7 @@ contains
       implicit none
       ! Arguments
       class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(in)    :: param  !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
@@ -238,7 +204,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
-         call encounter_check_all_triangular_pltp(npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 

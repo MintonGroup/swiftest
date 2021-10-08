@@ -12,7 +12,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_tp),             intent(inout) :: self   !! RMVS test particle object  
-      class(swiftest_parameters), intent(in)    :: param  !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
       class(rmvs_nbody_system),   intent(inout) :: system !! RMVS nbody system object
       real(DP),                   intent(in)    :: dt     !! step size
       ! Result
@@ -35,7 +35,7 @@ contains
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody)
             tp%plencP(1:ntp) = 0
-            call encounter_check_all_triangular_pltp(npl, ntp, pl%xbeg, pl%vbeg, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+            call encounter_check_all_pltp(param, npl, ntp, pl%xbeg, pl%vbeg, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
 
             lencounter = (nenc > 0)
             if (lencounter) then
