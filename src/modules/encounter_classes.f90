@@ -137,7 +137,7 @@ module encounter_classes
          logical,              dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
       end subroutine encounter_check_collapse_ragged_list
 
-      module pure subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
+      module subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
          implicit none
          class(encounter_bounding_box_1D), intent(inout) :: self       !! Bounding box structure along a single dimension
          integer(I4B),                     intent(in)    :: n          !! Number of bodies with extents

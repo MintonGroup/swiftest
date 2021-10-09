@@ -868,17 +868,18 @@ contains
    end subroutine encounter_check_collapse_ragged_list
 
 
-   pure subroutine encounter_check_make_ragged_list(lencounteri, ind_arr, lenci)
+   pure subroutine encounter_check_make_ragged_list(lencounteri, ind_arr, nenc,index2)
       implicit none
       ! Arguments
       logical, dimension(:), intent(in) :: lencounteri
       integer(I4B), dimension(:), intent(in) :: ind_arr
-      type(encounter_list), intent(out) :: lenci
+      integer(I4B),                            intent(out) :: nenc
+      integer(I4B), dimension(:), allocatable, intent(out) :: index2
 
-      lenci%nenc = count(lencounteri(:))
-      if (lenci%nenc > 0) then
-         allocate(lenci%index2(lenci%nenc))
-         lenci%index2(:) = pack(ind_arr(:), lencounteri(:)) 
+      nenc = count(lencounteri(:))
+      if (nenc > 0) then
+         allocate(index2(nenc))
+         index2(:) = pack(ind_arr(:), lencounteri(:)) 
       end if
 
       return
@@ -1017,7 +1018,7 @@ contains
             ibegyi = ibegy(i) 
             iendyi = iendy(i)
             call encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind(:), ibegxi, iendxi, ibegyi, iendyi, ibegx(:), iendx(:), ibegy(:), iendy(:), lencounteri(:))
-            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i))
+            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
          else
             lenc(i)%nenc = 0
          end if
@@ -1055,7 +1056,7 @@ contains
             ibegyi = ibegy(i) 
             iendyi = iendy(i)
             call encounter_check_sweep_aabb_one_single_list(n, ext_ind(:), ibegxi, iendxi, ibegyi, iendyi, ibegx(:), iendx(:), ibegy(:), iendy(:), lencounteri(:))
-            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i))
+            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
          else
             lenc(i)%nenc = 0
          end if
