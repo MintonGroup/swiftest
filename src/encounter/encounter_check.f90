@@ -770,7 +770,7 @@ contains
 
 
    module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
-      !$omp declare simd(encounter_check_one)
+      !!$omp declare simd(encounter_check_one)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -1068,7 +1068,7 @@ contains
 
 
    pure subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind, ibegxi, iendxi, ibegyi, iendyi, ibegx, iendx, ibegy, iendy, lencounteri)
-      !$omp declare simd(encounter_check_sweep_aabb_one_double_list)
+      !!$omp declare simd(encounter_check_sweep_aabb_one_double_list)
       !! author: David A. Minton
       !!
       !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
@@ -1101,7 +1101,7 @@ contains
  
 
    pure subroutine encounter_check_sweep_aabb_one_single_list(n, ext_ind, ibegxi, iendxi, ibegyi, iendyi, ibegx, iendx, ibegy, iendy, lencounteri)
-      !$omp declare simd(encounter_check_sweep_aabb_one_single_list)
+      !!$omp declare simd(encounter_check_sweep_aabb_one_single_list)
       !! author: David A. Minton
       !!
       !! Performs a sweep operation on a single body. Mutual encounters allowed (e.g. pl-pl)

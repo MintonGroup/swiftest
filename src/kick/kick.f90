@@ -108,7 +108,8 @@ contains
          zr = x(3, j) - x(3, i) 
          rji2 = xr**2 + yr**2 + zr**2
          rlim2 = (radius(i) + radius(j))**2
-         if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+                                 ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
       end do
       !$omp end parallel do 
      
@@ -156,7 +157,8 @@ contains
             zr = x(3, j) - x(3, i) 
             rji2 = xr**2 + yr**2 + zr**2
             rlim2 = (radius(i) + radius(j))**2
-            if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+            if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+                                    ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
          end do
       end do
       !$omp end parallel do
@@ -210,7 +212,7 @@ contains
 
 
    module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
-      !$omp declare simd(kick_getacch_int_one_pl)
+      !!$omp declare simd(kick_getacch_int_one_pl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for a single pair of massive bodies
@@ -242,7 +244,7 @@ contains
 
 
    module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl, ax, ay, az)
-      !$omp declare simd(kick_getacch_int_one_tp)
+      !!$omp declare simd(kick_getacch_int_one_tp)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of a single test particle massive body pair.

@@ -64,18 +64,18 @@ GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
 GPAR = -fopenmp #-ftree-parallelize-loops=4
 GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-strict -fsanitize=undefined -fsanitize=signed-integer-overflow -fsanitize=object-size -fstack-protector-all
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
-GPRODUCTION = -O2 -ffree-line-length-none $(GPAR)
+GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
 #FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
 #FFASTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
-FSTRICTFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT)  #$(ADVIXE_FLAGS)
-FFLAGS = $(IPRODUCTION) -fp-model=fast $(OPTREPORT)  #$(ADVIXE_FLAGS)
-FORTRAN = ifort
+#FSTRICTFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT)  #$(ADVIXE_FLAGS)
+#FFLAGS = $(IPRODUCTION) -fp-model=fast $(OPTREPORT)  #$(ADVIXE_FLAGS)
+#FORTRAN = ifort
 AR     = xiar
 
-#FORTRAN = gfortran
-#FFLAGS =  $(GDEBUG) # $(GMEM) $(GPAR)
-#FFLAGS =  $(GPRODUCTION) -g -fbacktrace #-fcheck=all #-Wall AR     = ar # DO NOT include in CFLAGS the "-c" option to compile object only
+FORTRAN = gfortran
+FFLAGS =  $(GDEBUG) # $(GMEM) $(GPAR)
+#FFLAGS =  $(GPRODUCTION) -g -fbacktrace -fcheck=all #-Wall AR     = ar # DO NOT include in CFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
 
 CC              = icc
