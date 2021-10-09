@@ -65,7 +65,7 @@ module encounter_classes
       end subroutine encounter_check_all
 
       module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, lvdotr, index1, index2, nenc)
-         import swiftest_parameters
+         use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
@@ -80,7 +80,7 @@ module encounter_classes
       end subroutine encounter_check_all_plpl
 
       module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr, index1, index2, nenc)
-         import swiftest_parameters
+         use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
@@ -99,7 +99,7 @@ module encounter_classes
       end subroutine encounter_check_all_plplm
 
       module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
-         import swiftest_parameters
+         use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
@@ -175,6 +175,7 @@ module encounter_classes
       end subroutine encounter_io_write_frame
 
       module subroutine encounter_io_write_list(self, pl, encbody, param)
+         use swiftest_classes, only : swiftest_pl, swiftest_body, swiftest_parameters
          implicit none
          class(encounter_list),  intent(in) :: self    !! Swiftest encounter list object
          class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
