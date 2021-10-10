@@ -38,7 +38,7 @@ contains
       real(DP) :: astar                         !! 1D minimized value 
       real(DP), dimension(N) :: y, P
       real(DP), dimension(N,N) :: PP, PyH, HyP
-      real(DP) :: yHy, Py
+      real(DP), save :: yHy, Py
       type(ieee_status_type) :: original_fpe_status
       logical, dimension(:), allocatable :: fpe_flag 
 

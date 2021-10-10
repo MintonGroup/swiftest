@@ -76,7 +76,6 @@ contains
 
 
    pure elemental subroutine helio_drift_linear_one(xhx, xhy, xhz, ptx, pty, ptz, dt)
-      !$omp declare simd(helio_drift_linear_one)
       implicit none
       real(DP), intent(inout) :: xhx, xhy, xhz
       real(DP), intent(in) :: ptx, pty, ptz, dt

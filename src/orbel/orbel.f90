@@ -129,7 +129,6 @@ contains
 
 
    module pure subroutine orbel_scget(angle, sx, cx)
-      !$omp declare simd(orbel_scget)
       !! author: David A. Minton
       !!
       !! Efficiently compute the sine and cosine of an input angle
@@ -182,7 +181,6 @@ contains
    !     REVISIONS:
    !**********************************************************************
    pure subroutine orbel_schget(angle,shx,chx)
-      !$omp declare simd(orbel_schget)
       real(DP), intent(in)  ::  angle
       real(DP), intent(out) :: shx,chx
       
@@ -213,7 +211,6 @@ contains
    !     REVISIONS:
    !**********************************************************************
    real(DP) pure function orbel_flon(e,icapn)
-      !$omp declare simd(orbel_flon)
       implicit none
       real(DP), intent(in) ::  e, icapn
       integer(I4B) :: iflag,i
@@ -301,7 +298,6 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_fget(e,capn)
-      !$omp declare simd(orbel_fget)
       implicit none
 
       real(DP), intent(in) ::  e,capn
@@ -372,7 +368,6 @@ contains
    !       series for small Q.
    !**********************************************************************
    real(DP) pure function orbel_zget(iq)
-      !$omp declare simd(orbel_zget)
       implicit none
 
       real(DP), intent(in)  :: iq
@@ -428,7 +423,6 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_esolmd(e,m)
-      !$omp declare simd(orbel_esolmd)
       implicit none
 
       real(DP), intent(in)  :: e
@@ -484,7 +478,6 @@ contains
    !     REVISIONS:
    !**********************************************************************
    real(DP) pure function orbel_ehie(e,im)
-      !$omp declare simd(orbel_ehie)
       implicit none
 
       real(DP), intent(in) :: e,im
@@ -560,7 +553,6 @@ contains
    !          we have an ellipse with e between 0.15 and 0.8
    !**********************************************************************
    real(DP) pure function orbel_eget(e,m)
-      !$omp declare simd(orbel_eget)
       implicit none
       
       real(DP), intent(in) ::  e,m
@@ -634,7 +626,6 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_ehybrid(e,m)
-      !$omp declare simd(orbel_ehybrid)
       implicit none
 
       real(DP), intent(in) :: e,m
@@ -674,7 +665,6 @@ contains
    !     REVISIONS: 2/26/93 hfl
    !**********************************************************************
    real(DP) pure function orbel_fhybrid(e,n)
-      !$omp declare simd(orbel_fhybrid)
       implicit none
       real(DP), intent(in) :: e,n
 
@@ -694,7 +684,6 @@ contains
    
 
    module pure subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
-      !$omp declare simd(orbel_xv2aeq)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
@@ -760,7 +749,6 @@ contains
 
 
    module pure subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
-      !$omp declare simd(orbel_xv2aqt)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, pericentric distance, mean anomaly, and time to nearest pericenter passage from
@@ -899,7 +887,6 @@ contains
 
 
    pure subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
-      !$omp declare simd(orbel_xv2el)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity

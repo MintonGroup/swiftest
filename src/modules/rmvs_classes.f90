@@ -112,6 +112,7 @@ module rmvs_classes
       end subroutine rmvs_discard_tp
 
       module function rmvs_encounter_check_tp(self, param, system, dt) result(lencounter)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(rmvs_tp),             intent(inout) :: self       !! RMVS test particle object  
          class(swiftest_parameters), intent(inout) :: param      !! Current run configuration parameters 

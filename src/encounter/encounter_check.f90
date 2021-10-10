@@ -770,7 +770,6 @@ contains
 
 
    module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
-      !$omp declare simd(encounter_check_one)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -838,6 +837,7 @@ contains
       end associate
       if (nenc == 0) return
 
+
       allocate(index1(nenc))
       allocate(index2(nenc))
       if (present(lvdotr)) allocate(lvdotr(nenc))
@@ -868,17 +868,18 @@ contains
    end subroutine encounter_check_collapse_ragged_list
 
 
-   pure subroutine encounter_check_make_ragged_list(lencounteri, ind_arr, lenci)
+   pure subroutine encounter_check_make_ragged_list(lencounteri, ind_arr, nenc,index2)
       implicit none
       ! Arguments
       logical, dimension(:), intent(in) :: lencounteri
       integer(I4B), dimension(:), intent(in) :: ind_arr
-      type(encounter_list), intent(out) :: lenci
+      integer(I4B),                            intent(out) :: nenc
+      integer(I4B), dimension(:), allocatable, intent(out) :: index2
 
-      lenci%nenc = count(lencounteri(:))
-      if (lenci%nenc > 0) then
-         allocate(lenci%index2(lenci%nenc))
-         lenci%index2(:) = pack(ind_arr(:), lencounteri(:)) 
+      nenc = count(lencounteri(:))
+      if (nenc > 0) then
+         allocate(index2(nenc))
+         index2(:) = pack(ind_arr(:), lencounteri(:)) 
       end if
 
       return
@@ -1017,7 +1018,7 @@ contains
             ibegyi = ibegy(i) 
             iendyi = iendy(i)
             call encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind(:), ibegxi, iendxi, ibegyi, iendyi, ibegx(:), iendx(:), ibegy(:), iendy(:), lencounteri(:))
-            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i))
+            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
          else
             lenc(i)%nenc = 0
          end if
@@ -1055,7 +1056,7 @@ contains
             ibegyi = ibegy(i) 
             iendyi = iendy(i)
             call encounter_check_sweep_aabb_one_single_list(n, ext_ind(:), ibegxi, iendxi, ibegyi, iendyi, ibegx(:), iendx(:), ibegy(:), iendy(:), lencounteri(:))
-            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i))
+            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
          else
             lenc(i)%nenc = 0
          end if
@@ -1067,7 +1068,6 @@ contains
 
 
    pure subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind, ibegxi, iendxi, ibegyi, iendyi, ibegx, iendx, ibegy, iendy, lencounteri)
-      !$omp declare simd(encounter_check_sweep_aabb_one_double_list)
       !! author: David A. Minton
       !!
       !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
@@ -1100,7 +1100,6 @@ contains
  
 
    pure subroutine encounter_check_sweep_aabb_one_single_list(n, ext_ind, ibegxi, iendxi, ibegyi, iendyi, ibegx, iendx, ibegy, iendy, lencounteri)
-      !$omp declare simd(encounter_check_sweep_aabb_one_single_list)
       !! author: David A. Minton
       !!
       !! Performs a sweep operation on a single body. Mutual encounters allowed (e.g. pl-pl)
