@@ -7,7 +7,6 @@ submodule(swiftest_operators) s_operator_mag
    contains
 
    module pure function operator_mag_sp(A) result(B)
-      !!$omp declare simd(operator_mag_sp)
       implicit none
       real(SP), dimension(:), intent(in) :: A
       real(SP)                           :: B
@@ -16,7 +15,6 @@ submodule(swiftest_operators) s_operator_mag
    end function operator_mag_sp
 
    module pure function operator_mag_dp(A) result(B)
-      !!$omp declare simd(operator_mag_dp)
       implicit none
       real(DP), dimension(:), intent(in) :: A
       real(DP)                           :: B

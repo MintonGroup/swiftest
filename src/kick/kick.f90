@@ -212,7 +212,6 @@ contains
 
 
    module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
-      !!$omp declare simd(kick_getacch_int_one_pl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for a single pair of massive bodies
@@ -244,7 +243,6 @@ contains
 
 
    module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl, ax, ay, az)
-      !!$omp declare simd(kick_getacch_int_one_tp)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of a single test particle massive body pair.

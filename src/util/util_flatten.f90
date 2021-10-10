@@ -3,7 +3,6 @@ submodule (swiftest_classes) s_util_index
 contains
 
    module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
-      !!$omp declare simd(util_flatten_eucl_ij_to_k)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix for pl-pl interactions.

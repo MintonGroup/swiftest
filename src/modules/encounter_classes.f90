@@ -10,7 +10,7 @@ module encounter_classes
    integer(I4B), parameter :: SWEEPDIM = 2
 
    type :: encounter_list
-      integer(I4B)                              :: nenc   !! Total number of encounters
+      integer(I4B)                              :: nenc = 0  !! Total number of encounters
       logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
@@ -52,7 +52,7 @@ module encounter_classes
    interface
       module subroutine encounter_check_all(nenc, index1, index2, x1, v1, x2, v2, renc1, renc2, dt, lencounter, lvdotr)
          implicit none
-         integer(I4B),                 intent(in)  :: nenc       !! Number of encounters in the encounter lists
+         integer(I4B),                 intent(in)  :: nenc         !! Number of encounters in the encounter lists
          integer(I4B), dimension(:),   intent(in)  :: index1     !! List of indices for body 1 in each encounter
          integer(I4B), dimension(:),   intent(in)  :: index2     !! List of indices for body 2 in each encounter1
          real(DP),     dimension(:,:), intent(in)  :: x1, v1     !! Array of indices of bodies 1
