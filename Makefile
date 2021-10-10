@@ -60,10 +60,6 @@ SWIFTEST_MODULES =   swiftest_globals.f90 \
 
 include Makefile.Defines
 
-#MKL_ROOT = /apps/spack/bell/apps/intel-parallel-studio/cluster.2019.5-intel-19.0.5-4brgqlf/mkl/lib
-#IMKL = -I$(MKLROOT)/include
-#LMKL = -L$(MKLROOT)/lib/intel64 -qopt-matmul 
-
 MODULES         = $(SWIFTEST_MODULES) $(USER_MODULES) 
 
 .PHONY : all mod fast strict drivers bin clean force 
