@@ -71,7 +71,7 @@ GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 #FSTRICTFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT)  #$(ADVIXE_FLAGS)
 #FFLAGS = $(IPRODUCTION) -fp-model=fast $(OPTREPORT)  #$(ADVIXE_FLAGS)
 #FORTRAN = ifort
-AR     = xiar
+#AR     = xiar
 
 FORTRAN = gfortran
 #FFLAGS =  $(GDEBUG)  $(GMEM) #$(GPAR)
