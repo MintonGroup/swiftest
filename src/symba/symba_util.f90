@@ -1102,6 +1102,7 @@ contains
       logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       ! Internals
       integer(I4B) :: nspill, nkeep, nlist
+      type(symba_kinship), dimension(:), allocatable :: tmp
 
       nkeep = count(.not.lspill_list(:))
       nspill = count(lspill_list(:))
@@ -1118,7 +1119,9 @@ contains
       discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
       if (ldestructive) then
          if (nkeep > 0) then
-            keeps(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            allocate(tmp(nkeep))
+            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
          end if
