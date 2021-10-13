@@ -25,7 +25,8 @@ contains
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
       type(walltimer) :: timer 
-  
+ 
+      lany_encounter = .false.
       if (self%nbody == 0) return
 
       associate(pl => self, plplenc_list => system%plplenc_list)
@@ -200,7 +201,8 @@ contains
       real(DP)                                  :: rshell_irec
       logical,      dimension(:),   allocatable :: lvdotr
       integer(I4B), dimension(:),   allocatable :: index1, index2
-  
+ 
+      lany_encounter = .false.
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
