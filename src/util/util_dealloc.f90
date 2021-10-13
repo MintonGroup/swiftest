@@ -72,11 +72,6 @@ contains
       ! Argument
       class(swiftest_nbody_system),  intent(inout) :: self !! Swiftest nbody system object
 
-      call self%pl%dealloc()
-      call self%tp%dealloc()
-      call self%tp_discards%dealloc()
-      call self%pl_discards%dealloc()
-
       if (allocated(self%cb)) deallocate(self%cb)
       if (allocated(self%pl)) deallocate(self%pl)
       if (allocated(self%tp)) deallocate(self%tp)
