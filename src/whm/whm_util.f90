@@ -32,6 +32,27 @@ contains
       return
    end subroutine whm_util_append_pl
 
+
+   module subroutine whm_util_dealloc_pl(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Arguments
+      class(whm_pl),  intent(inout) :: self !! WHM massive body object
+
+      if (allocated(self%eta)) deallocate(self%eta)
+      if (allocated(self%muj)) deallocate(self%muj)
+      if (allocated(self%xj)) deallocate(self%xj)
+      if (allocated(self%vj)) deallocate(self%vj)
+      if (allocated(self%ir3j)) deallocate(self%ir3j)
+
+      call util_dealloc_pl(self)
+
+      return
+   end subroutine whm_util_dealloc_pl
+
+
    module subroutine whm_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -65,6 +86,48 @@ contains
    
       return
    end subroutine whm_util_fill_pl
+
+
+   module subroutine whm_util_final_pl(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the WHM massive body object - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(whm_pl),  intent(inout) :: self !! WHM massive body object
+
+      call self%dealloc()
+
+      return
+   end subroutine whm_util_final_pl
+
+
+   module subroutine whm_util_final_system(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the WHM nbody system object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
+
+      call self%dealloc()
+
+      return
+   end subroutine whm_util_final_system
+
+
+   module subroutine whm_util_final_tp(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the WHM test particle object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(whm_tp),  intent(inout) :: self !! WHM test particle object
+
+      call self%dealloc()
+
+      return
+   end subroutine whm_util_final_tp
 
 
    module subroutine whm_util_resize_pl(self, nnew)

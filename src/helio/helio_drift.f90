@@ -19,7 +19,7 @@ contains
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
-      real(DP), dimension(:), allocatable    :: dtp, mu
+      real(DP), dimension(:), allocatable    :: mu
 
       if (self%nbody == 0) return
 
@@ -37,6 +37,7 @@ contains
          end if
       end associate
 
+      deallocate(iflag, mu)
       return
    end subroutine helio_drift_body
 

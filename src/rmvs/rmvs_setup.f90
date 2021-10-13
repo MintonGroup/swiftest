@@ -19,12 +19,6 @@ contains
       !> Call allocation method for parent class
       associate(pl => self)
          call whm_setup_pl(pl, n, param) 
-         if (n < 0) return
-
-         if (allocated(pl%outer)) deallocate(pl%outer)
-         if (allocated(pl%inner)) deallocate(pl%inner)
-         if (allocated(pl%nenc))  deallocate(pl%nenc)
-
          if (n == 0) return
 
          allocate(pl%outer(0:NTENC))
@@ -153,9 +147,7 @@ contains
       call setup_tp(self, n, param) 
       if (n < 0) return
 
-      if (allocated(self%lperi)) deallocate(self%lperi)
-      if (allocated(self%plperP)) deallocate(self%plperP)
-      if (allocated(self%plencP)) deallocate(self%plencP)
+      call self%dealloc()
 
       if (n == 0) return
 
@@ -163,10 +155,7 @@ contains
       allocate(self%plperP(n))
       allocate(self%plencP(n))
 
-      if (self%lplanetocentric) then
-         if (allocated(self%xheliocentric)) deallocate(self%xheliocentric)
-         allocate(self%xheliocentric(NDIM, n))
-      end if
+      if (self%lplanetocentric) allocate(self%xheliocentric(NDIM, n))
 
       self%lperi(:)  = .false.
 

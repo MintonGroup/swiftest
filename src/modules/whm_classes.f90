@@ -39,6 +39,7 @@ module whm_classes
       procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => whm_kick_vh_pl             !! Kick heliocentric velocities of massive bodies
       procedure :: append      => whm_util_append_pl         !! Appends elements from one structure to another
+      procedure :: dealloc     => whm_util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill        => whm_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize      => whm_util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3     => whm_util_set_ir3j          !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
@@ -48,6 +49,7 @@ module whm_classes
       procedure :: spill       => whm_util_spill_pl          !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: setup       => whm_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
+      final     :: whm_util_final_pl                         !! Finalizes the WHM massive body object - deallocates all allocatables
    end type whm_pl
 
    !********************************************************************************************************************************
@@ -64,6 +66,7 @@ module whm_classes
       procedure :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
       procedure :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
       procedure :: step        => whm_step_tp            !! Steps the particle forward one stepsize
+      final     :: whm_util_final_tp                   !! Finalizes the WHM test particle object - deallocates all allocatables 
    end type whm_tp
 
    !********************************************************************************************************************************
@@ -73,8 +76,9 @@ module whm_classes
    type, extends(swiftest_nbody_system) :: whm_nbody_system
    contains
       !> Replace the abstract procedures with concrete ones
-      procedure :: initialize   => whm_setup_initialize_system ! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure :: initialize   => whm_setup_initialize_system !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
       procedure :: step         => whm_step_system             !! Advance the WHM nbody system forward in time by one step
+      final     :: whm_util_final_system                     !! Finalizes the WHM system object - deallocates all allocatables 
    end type whm_nbody_system
 
    interface
@@ -234,6 +238,26 @@ module whm_classes
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
          logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine whm_util_append_pl
+
+      module subroutine whm_util_dealloc_pl(self)
+         implicit none
+         class(whm_pl),  intent(inout) :: self !! WHM massive body object
+      end subroutine whm_util_dealloc_pl
+
+      module subroutine whm_util_final_pl(self)
+         implicit none
+         type(whm_pl),  intent(inout) :: self !! WHM massive body object
+      end subroutine whm_util_final_pl
+
+      module subroutine whm_util_final_system(self)
+         implicit none
+         type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
+      end subroutine whm_util_final_system
+
+      module subroutine whm_util_final_tp(self)
+         implicit none
+         type(whm_tp),  intent(inout) :: self !! WHM test particle object
+      end subroutine whm_util_final_tp
 
       module subroutine whm_util_spill_pl(self, discards, lspill_list, ldestructive)
          use swiftest_classes, only : swiftest_body

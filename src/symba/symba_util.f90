@@ -181,6 +181,113 @@ contains
    end subroutine symba_util_copy_encounter_list
 
 
+   module subroutine symba_util_dealloc_encounter_list(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Argumentse
+      class(symba_encounter),  intent(inout) :: self !! SyMBA encounter list
+
+      if (allocated(self%level)) deallocate(self%level)
+
+      return
+   end subroutine symba_util_dealloc_encounter_list
+
+
+   module subroutine symba_util_dealloc_kin(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Arguments
+      class(symba_kinship),  intent(inout) :: self !! SyMBA kinship object
+
+      if (allocated(self%child)) deallocate(self%child)
+
+      return
+   end subroutine symba_util_dealloc_kin
+
+
+   module subroutine symba_util_dealloc_merger(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Arguments
+      class(symba_merger),  intent(inout) :: self !! SyMBA body merger object
+
+      if (allocated(self%ncomp)) deallocate(self%ncomp)
+
+      call symba_util_dealloc_pl(self)
+
+      return
+   end subroutine symba_util_dealloc_merger
+
+
+   module subroutine symba_util_dealloc_system(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+
+      if (allocated(self%pl_adds)) deallocate(self%pl_adds)
+      if (allocated(self%pltpenc_list)) deallocate(self%pltpenc_list)
+      if (allocated(self%plplenc_list)) deallocate(self%plplenc_list)
+      if (allocated(self%plplcollision_list)) deallocate(self%plplcollision_list)
+
+      call util_dealloc_system(self)
+
+      return
+   end subroutine symba_util_dealloc_system
+
+
+   module subroutine symba_util_dealloc_pl(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Arguments
+      class(symba_pl),  intent(inout) :: self !! SyMBA massive body object
+
+      if (allocated(self%lcollision)) deallocate(self%lcollision)
+      if (allocated(self%lencounter)) deallocate(self%lencounter)
+      if (allocated(self%lmtiny)) deallocate(self%lmtiny)
+      if (allocated(self%nplenc)) deallocate(self%nplenc)
+      if (allocated(self%ntpenc)) deallocate(self%ntpenc)
+      if (allocated(self%levelg)) deallocate(self%levelg)
+      if (allocated(self%levelm)) deallocate(self%levelm)
+      if (allocated(self%isperi)) deallocate(self%isperi)
+      if (allocated(self%peri)) deallocate(self%peri)
+      if (allocated(self%atp)) deallocate(self%atp)
+      if (allocated(self%kin)) deallocate(self%kin)
+
+      call util_dealloc_pl(self)
+
+      return
+   end subroutine symba_util_dealloc_pl
+
+
+   module subroutine symba_util_dealloc_tp(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Arguments
+      class(symba_tp),  intent(inout) :: self !! SyMBA test particle object
+
+      if (allocated(self%nplenc)) deallocate(self%nplenc)
+      if (allocated(self%levelg)) deallocate(self%levelg)
+      if (allocated(self%levelm)) deallocate(self%levelm)
+
+      call util_dealloc_tp(self)
+
+      return
+   end subroutine symba_util_dealloc_tp
+
+
    module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -315,6 +422,85 @@ contains
 
       return
    end subroutine symba_util_flatten_eucl_plpl
+
+
+   module subroutine symba_util_final_encounter_list(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA encounter list object - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(symba_encounter),  intent(inout) :: self !! SyMBA encounter list object
+
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_encounter_list
+
+   module subroutine symba_util_final_kin(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA kinship object - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(symba_kinship),  intent(inout) :: self !! SyMBA kinship object
+
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_kin
+
+   module subroutine symba_util_final_merger(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA merger object - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(symba_merger),  intent(inout) :: self !! SyMBA merger object
+
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_merger
+
+   module subroutine symba_util_final_pl(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA massive body object - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(symba_pl),  intent(inout) :: self !! SyMBA massive body object
+
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_pl
+
+   module subroutine symba_util_final_system(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA nbody system object - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
+
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_system
+
+   module subroutine symba_util_final_tp(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA test particleobject - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(symba_tp),  intent(inout) :: self !! SyMBA test particle object
+
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_tp
 
 
    module subroutine symba_util_peri_pl(self, system, param)

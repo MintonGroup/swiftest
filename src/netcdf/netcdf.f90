@@ -19,6 +19,7 @@ contains
       return
    end subroutine check
 
+
    module subroutine netcdf_close(self)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
@@ -31,6 +32,24 @@ contains
 
       return
    end subroutine netcdf_close
+
+
+   module subroutine netcdf_flush(self, param)
+      !! author: David A. Minton
+      !!
+      !! Flushes the current buffer to disk by closing and re-opening the file.
+      !!    
+      implicit none
+      ! Arguments
+      class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+
+      call self%close()
+      call self%open(param)
+
+      return
+   end subroutine netcdf_flush
+
 
    module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
       !! author: David A. Minton
@@ -462,6 +481,7 @@ contains
 
    end function netcdf_read_frame_system
 
+
    module subroutine netcdf_read_hdr_system(self, iu, param) 
       !! author: David A. Minton
       !!
@@ -505,6 +525,7 @@ contains
 
       return
    end subroutine netcdf_read_hdr_system
+
 
    module subroutine netcdf_read_particle_info_base(self, iu, ind)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -619,9 +640,9 @@ contains
          call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
       end select
 
-      !call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
       return
    end subroutine netcdf_read_particle_info_base
+
 
    module subroutine netcdf_sync(self)
       !! author: David A. Minton
@@ -636,6 +657,7 @@ contains
 
       return
    end subroutine netcdf_sync
+
 
    module subroutine netcdf_write_frame_base(self, iu, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -736,6 +758,7 @@ contains
       return
    end subroutine netcdf_write_frame_base
 
+
    module subroutine netcdf_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -753,6 +776,7 @@ contains
 
       return
    end subroutine netcdf_write_frame_system
+
 
    module subroutine netcdf_write_particle_info_base(self, iu)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -913,6 +937,5 @@ contains
 
       return
    end subroutine netcdf_write_hdr_system
-
 
 end submodule s_netcdf

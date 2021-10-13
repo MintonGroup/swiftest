@@ -78,6 +78,7 @@ module swiftest_classes
       integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
+      procedure :: flush      => netcdf_flush             !! Flushes the current buffer to disk by closing and re-opening the file.
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => netcdf_open              !! Opens a NetCDF file
       procedure :: sync       => netcdf_sync              !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
@@ -303,6 +304,7 @@ module swiftest_classes
       procedure :: setup           => setup_body                   !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user      => user_kick_getacch_body       !! Add user-supplied heliocentric accelerations to planets
       procedure :: append          => util_append_body             !! Appends elements from one structure to another
+      procedure :: dealloc         => util_dealloc_body            !! Deallocates all allocatable arrays
       procedure :: fill            => util_fill_body               !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize          => util_resize_body             !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3         => util_set_ir3h                !! Sets the inverse heliocentric radius term (1/rh**3)
@@ -352,6 +354,7 @@ module swiftest_classes
       procedure :: vh2vb        => util_coord_vh2vb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure :: vb2vh        => util_coord_vb2vh_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
       procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
+      procedure :: dealloc      => util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
@@ -391,6 +394,7 @@ module swiftest_classes
       procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
       procedure :: xh2xb     => util_coord_xh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
+      procedure :: dealloc   => util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
       procedure :: resize    => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -449,6 +453,7 @@ module swiftest_classes
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
       procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
+      procedure :: dealloc                 => util_dealloc_system                    !! Deallocates all allocatable components of the system
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
@@ -946,11 +951,17 @@ module swiftest_classes
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_close
 
+      module subroutine netcdf_flush(self, param)
+         implicit none
+         class(netcdf_parameters),   intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine netcdf_flush
+
       module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
          implicit none
-         class(swiftest_nbody_system), intent(in)    :: self
-         class(swiftest_parameters),   intent(inout) :: param
-         real(DP)                                    :: old_t_final
+         class(swiftest_nbody_system), intent(in)    :: self        !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param       !! Current run configuration parameters 
+         real(DP)                                    :: old_t_final !! Final time from last run
       end function netcdf_get_old_t_final_system
 
       module subroutine netcdf_initialize_output(self, param)
@@ -1305,6 +1316,26 @@ module swiftest_classes
          class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata information object
          integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source object
       end subroutine util_copy_particle_info_arr
+
+      module subroutine util_dealloc_body(self)
+         implicit none
+         class(swiftest_body),  intent(inout) :: self
+      end subroutine util_dealloc_body
+
+      module subroutine util_dealloc_pl(self)
+         implicit none
+         class(swiftest_pl),  intent(inout) :: self
+      end subroutine util_dealloc_pl
+
+      module subroutine util_dealloc_system(self)
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self
+      end subroutine util_dealloc_system
+
+      module subroutine util_dealloc_tp(self)
+         implicit none
+         class(swiftest_tp),  intent(inout) :: self
+      end subroutine util_dealloc_tp
 
       module subroutine util_exit(code)
          implicit none

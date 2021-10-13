@@ -304,7 +304,7 @@ contains
          call self%tp%write_frame(dump_param%nciu, dump_param)
          call dump_param%nciu%close()
          ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
-         call param%nciu%sync()
+         call param%nciu%flush(param)
       end if
 
       idx = idx + 1
@@ -2130,8 +2130,6 @@ contains
             end select
 
             lfirst = .false.
-         else
-            !call param%nciu%open(param)
          end if
       end if
 
