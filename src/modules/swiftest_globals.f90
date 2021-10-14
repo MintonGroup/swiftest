@@ -124,7 +124,8 @@ module swiftest_globals
    character(*), parameter :: CB_INFILE        = 'cb.in'
    character(*), parameter :: PL_INFILE        = 'pl.in'
    character(*), parameter :: TP_INFILE        = 'tp.in'
-   character(*), parameter :: BIN_OUTFILE      = 'bin.dat'
+   character(*), parameter :: NC_INFILE        = 'in.nc'
+   character(*), parameter :: BIN_OUTFILE      = 'bin.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    character(*), parameter :: PARTICLE_OUTFILE = 'particle.dat'
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file

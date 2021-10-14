@@ -275,29 +275,30 @@ contains
       allocate(dump_param, source=param)
       param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
       dump_param%in_form  = XV
-      dump_param%out_form = XV
       dump_param%out_stat = 'APPEND'
       if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
+         dump_param%in_type = REAL8_TYPE
          dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
          dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
          dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-         dump_param%in_type = REAL8_TYPE
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
          dump_param%in_type = NETCDF_DOUBLE_TYPE
+         dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
          dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
          dump_param%nciu%time_chunk = 1
       end if
       dump_param%T0 = param%t
-      dump_param%ioutput = 0 
 
       call dump_param%dump(param_file_name)
 
+      dump_param%out_form = XV
       if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
          call self%cb%dump(dump_param)
          call self%pl%dump(dump_param)
          call self%tp%dump(dump_param)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
+         dump_param%ioutput = 0 
          call dump_param%nciu%initialize(dump_param)
          call self%write_hdr(dump_param%nciu, dump_param)
          call self%cb%write_frame(dump_param%nciu, dump_param)
@@ -575,6 +576,8 @@ contains
                   param%inplfile = param_value
                case ("TP_IN")
                   param%intpfile = param_value
+               case ("NC_IN")
+                  param%in_netcdf = param_value
                case ("IN_TYPE")
                   call io_toupper(param_value)
                   param%in_type = param_value
@@ -935,10 +938,15 @@ contains
          call io_param_writer_one("T0", param%t0, unit)
          call io_param_writer_one("TSTOP", param%tstop, unit)
          call io_param_writer_one("DT", param%dt, unit)
-         call io_param_writer_one("CB_IN", param%incbfile, unit)
-         call io_param_writer_one("PL_IN", param%inplfile, unit)
-         call io_param_writer_one("TP_IN", param%intpfile, unit)
          call io_param_writer_one("IN_TYPE", param%in_type, unit)
+         if ((param%in_type == REAL4_TYPE) .or. (param%in_type == REAL8_TYPE)) then
+            call io_param_writer_one("CB_IN", param%incbfile, unit)
+            call io_param_writer_one("PL_IN", param%inplfile, unit)
+            call io_param_writer_one("TP_IN", param%intpfile, unit)
+         else if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) then
+            call io_param_writer_one("NC_IN", param%in_netcdf, unit)
+         end if
+
          call io_param_writer_one("IN_FORM", param%in_form, unit)
          if (param%istep_dump > 0) call io_param_writer_one("ISTEP_DUMP",param%istep_dump, unit)
          if (param%istep_out > 0) then
@@ -948,7 +956,7 @@ contains
             call io_param_writer_one("OUT_FORM", param%out_form, unit)
             call io_param_writer_one("OUT_STAT", "APPEND", unit) 
          end if
-         if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE)) then
+         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
             call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
          end if
          if (param%enc_out /= "") then
