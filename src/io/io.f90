@@ -164,7 +164,7 @@ contains
       integer(I4B)              :: i
       character(STRMAX)         :: errmsg
 
-      !if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
+      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
          if (lfirst) then
             select case(param%out_stat)
             case('APPEND')
@@ -200,15 +200,14 @@ contains
          end select
 
          close(unit = LUN, err = 667, iomsg = errmsg)
-      !else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-      if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
          call self%write_particle_info(param%nciu)
       end if
 
       return
 
       667 continue
-      write(*,*) "Error reading particle information file: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing particle information file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_dump_particle_info_base
 
