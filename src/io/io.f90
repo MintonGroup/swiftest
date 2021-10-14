@@ -1215,8 +1215,8 @@ contains
       case(NETCDF_DOUBLE_TYPE, NETCDF_FLOAT_TYPE)
          select type(self)
          class is (swiftest_body)
-            if (self%nbody == 0) return
             call self%setup(self%nbody, param)
+            if (self%nbody == 0) return
          end select
 
          ierr = self%read_frame(param%nciu, param)
