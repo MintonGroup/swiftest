@@ -735,7 +735,7 @@ contains
             iostat = -1
             return
          end if
-         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII")) then
+         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII") .and. (param%in_type /= NETCDF_FLOAT_TYPE) .and. (param%in_type /= NETCDF_DOUBLE_TYPE))  then
             write(iomsg,*) 'Invalid input file type:',trim(adjustl(param%in_type))
             iostat = -1
             return
@@ -948,7 +948,9 @@ contains
             call io_param_writer_one("OUT_FORM", param%out_form, unit)
             call io_param_writer_one("OUT_STAT", "APPEND", unit) 
          end if
-         call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
+         if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE)) then
+            call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
+         end if
          if (param%enc_out /= "") then
             call io_param_writer_one("ENC_OUT", param%enc_out, unit)
          end if
