@@ -62,6 +62,74 @@ contains
    end subroutine encounter_util_copy_list
 
 
+   module subroutine encounter_util_dealloc_aabb(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(encounter_bounding_box_1D), intent(inout) :: self
+
+      if (allocated(self%ind)) deallocate(self%ind)
+      if (allocated(self%ibeg)) deallocate(self%ibeg)
+      if (allocated(self%iend)) deallocate(self%iend)
+
+      return
+   end subroutine encounter_util_dealloc_aabb
+
+
+   module subroutine encounter_util_dealloc_list(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(encounter_list), intent(inout) :: self
+
+      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
+      if (allocated(self%status)) deallocate(self%status)
+      if (allocated(self%index1)) deallocate(self%index1)
+      if (allocated(self%index2)) deallocate(self%index2)
+      if (allocated(self%id1)) deallocate(self%id1)
+      if (allocated(self%id2)) deallocate(self%id2)
+      if (allocated(self%x1)) deallocate(self%x1)
+      if (allocated(self%x2)) deallocate(self%x2)
+      if (allocated(self%v1)) deallocate(self%v1)
+      if (allocated(self%v2)) deallocate(self%v2)
+      if (allocated(self%t)) deallocate(self%t)
+
+      return
+   end subroutine encounter_util_dealloc_list
+
+
+   module subroutine encounter_util_final_aabb(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the axis aligned bounding box (1D) - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(encounter_bounding_box_1D), intent(inout) :: self
+
+      call self%dealloc()
+
+      return
+   end subroutine encounter_util_final_aabb
+
+
+   module subroutine encounter_util_final_list(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the encounter list - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(encounter_list), intent(inout) :: self
+
+      call self%dealloc()
+
+      return
+   end subroutine encounter_util_final_list
+
+
    module subroutine encounter_util_resize_list(self, nnew)
       !! author: David A. Minton
       !!

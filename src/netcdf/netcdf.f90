@@ -19,6 +19,7 @@ contains
       return
    end subroutine check
 
+
    module subroutine netcdf_close(self)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
@@ -31,6 +32,24 @@ contains
 
       return
    end subroutine netcdf_close
+
+
+   module subroutine netcdf_flush(self, param)
+      !! author: David A. Minton
+      !!
+      !! Flushes the current buffer to disk by closing and re-opening the file.
+      !!    
+      implicit none
+      ! Arguments
+      class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+
+      call self%close()
+      call self%open(param)
+
+      return
+   end subroutine netcdf_flush
+
 
    module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
       !! author: David A. Minton
@@ -80,10 +99,13 @@ contains
       logical :: fileExists
       character(len=STRMAX) :: errmsg
       integer(I4B) :: storage, ndims, i
-      integer(I4B), parameter :: chunk = 2048
+      integer(I4B) :: time_chunk, id_chunk 
 
       dfill = ieee_value(dfill, IEEE_QUIET_NAN)
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
+
+      time_chunk = param%istep_out / param%istep_dump
+      id_chunk = param%maxid
 
       ! Check if the file exists, and if it does, delete it
       inquire(file=param%outfile, exist=fileExists)
@@ -108,80 +130,146 @@ contains
 
       !! Define the variables
       call check( nf90_def_var(self%ncid, TIME_DIMNAME, self%out_type, self%time_dimid, self%time_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%time_varid, NF90_CHUNKED, [time_chunk]) )
       call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, self%id_dimid, self%id_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%id_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%npl_varid, NF90_CHUNKED, [time_chunk]) )
       call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%ntp_varid, NF90_CHUNKED, [time_chunk]) )
       call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%name_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%name_varid, NF90_CHUNKED, [NAMELEN, id_chunk]) )
       call check( nf90_def_var(self%ncid, PTYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%ptype_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%ptype_varid, NF90_CHUNKED, [NAMELEN, id_chunk]) )
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%xhx_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhy_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%xhy_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, XHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%xhz_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, VHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%vhx_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, VHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhy_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%vhy_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, VHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%vhz_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
       end if
    
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, A_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%a_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%a_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, E_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%e_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%e_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, INC_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%inc_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%inc_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, CAPOM_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%capom_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%capom_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, OMEGA_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%omega_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%omega_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, CAPM_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%capm_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%capm_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
       end if
 
       call check( nf90_def_var(self%ncid, GMASS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Gmass_varid) )
-      if (param%lrhill_present) call check( nf90_def_var(self%ncid, RHILL_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rhill_varid) )
-      if (param%lclose) call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%radius_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%Gmass_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
+      if (param%lrhill_present) then
+         call check( nf90_def_var(self%ncid, RHILL_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rhill_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%rhill_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
+      end if
+      if (param%lclose) then
+         call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%radius_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%radius_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
+      end if
       if (param%lrotation) then
          call check( nf90_def_var(self%ncid, IP1_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip1_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%Ip1_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, IP2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip2_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%Ip2_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, IP3_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip3_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%Ip3_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, ROTX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%rotx_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, ROTY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%roty_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%roty_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, ROTZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%rotz_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
       end if
       if (param%ltides) then
          call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%k2_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%k2_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
          call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Q_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%Q_varid, NF90_CHUNKED, [id_chunk, time_chunk]) )
       end if
       if (param%lenergy) then
          call check( nf90_def_var(self%ncid, KE_ORB_VARNAME, self%out_type, self%time_dimid, self%KE_orb_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%KE_orb_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, KE_SPIN_VARNAME, self%out_type, self%time_dimid, self%KE_spin_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%KE_spin_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, PE_VARNAME, self%out_type, self%time_dimid, self%PE_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%PE_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ORBX_VARNAME, self%out_type, self%time_dimid, self%L_orbx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_orbx_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ORBY_VARNAME, self%out_type, self%time_dimid, self%L_orby_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_orby_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ORBZ_VARNAME, self%out_type, self%time_dimid, self%L_orbz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_orbz_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_SPINX_VARNAME, self%out_type, self%time_dimid, self%L_spinx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_spinx_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_SPINY_VARNAME, self%out_type, self%time_dimid, self%L_spiny_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_spiny_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_SPINZ_VARNAME, self%out_type, self%time_dimid, self%L_spinz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_spinz_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ESCAPEX_VARNAME, self%out_type, self%time_dimid, self%L_escapex_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_escapex_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ESCAPEY_VARNAME, self%out_type, self%time_dimid, self%L_escapey_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_escapey_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ESCAPEZ_VARNAME, self%out_type, self%time_dimid, self%L_escapez_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%L_escapez_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, ECOLLISIONS_VARNAME, self%out_type, self%time_dimid, self%Ecollisions_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%Ecollisions_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, EUNTRACKED_VARNAME, self%out_type, self%time_dimid, self%Euntracked_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%Euntracked_varid, NF90_CHUNKED, [time_chunk]) )
          call check( nf90_def_var(self%ncid, GMESCAPE_VARNAME, self%out_type, self%time_dimid, self%GMescape_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%GMescape_varid, NF90_CHUNKED, [time_chunk]) )
       end if
 
       call check( nf90_def_var(self%ncid, STATUS_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%status_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%status_varid, NF90_CHUNKED, [NAMELEN, id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_TYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%origin_type_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_type_varid, NF90_CHUNKED, [NAMELEN, id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_TIME_VARNAME, self%out_type, self%id_dimid, self%origin_time_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_time_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, COLLISION_ID_VARNAME, self%out_type, self%id_dimid, self%collision_id_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%collision_id_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_XHX_VARNAME, self%out_type, self%id_dimid, self%origin_xhx_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_xhx_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_XHY_VARNAME, self%out_type, self%id_dimid, self%origin_xhy_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_xhy_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_XHZ_VARNAME, self%out_type, self%id_dimid, self%origin_xhz_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_xhz_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_VHX_VARNAME, self%out_type, self%id_dimid, self%origin_vhx_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_vhx_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_VHY_VARNAME, self%out_type, self%id_dimid, self%origin_vhy_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_vhy_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_VHZ_VARNAME, self%out_type, self%id_dimid,  self%origin_vhz_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%origin_vhz_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_TIME_VARNAME, self%out_type, self%id_dimid, self%discard_time_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_time_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_XHX_VARNAME, self%out_type, self%id_dimid, self%discard_xhx_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_xhx_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_XHY_VARNAME, self%out_type, self%id_dimid, self%discard_xhy_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_xhy_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_XHZ_VARNAME, self%out_type, self%id_dimid, self%discard_xhz_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_xhz_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_VHX_VARNAME, self%out_type, self%id_dimid, self%discard_vhx_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_vhx_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_VHY_VARNAME, self%out_type, self%id_dimid, self%discard_vhy_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_vhy_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_VHZ_VARNAME, self%out_type, self%id_dimid,  self%discard_vhz_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_vhz_varid, NF90_CHUNKED, [id_chunk]) )
       call check( nf90_def_var(self%ncid, DISCARD_BODY_ID_VARNAME, NF90_INT, self%id_dimid, self%discard_body_id_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%discard_body_id_varid, NF90_CHUNKED, [id_chunk]) )
 
       ! Set fill mode to NaN for all variables
       call check( nf90_inquire(self%ncid, nVariables=nvar) )
@@ -196,13 +284,6 @@ contains
             call check( nf90_def_var_fill(self%ncid, varid, 0, dfill) )
          case(NF90_CHAR)
             call check( nf90_def_var_fill(self%ncid, varid, 0, 0) )
-         end select
-
-         select case(vartype)
-         case(NF90_CHAR)
-            call check( nf90_def_var_chunking(self%ncid, varid, NF90_CHUNKED, [NAMELEN, chunk]) )
-         case default
-            call check( nf90_def_var_chunking(self%ncid, varid, NF90_CHUNKED, [(chunk, i = 1, ndims)]) )
          end select
       end do
 
@@ -471,6 +552,7 @@ contains
 
    end function netcdf_read_frame_system
 
+
    module subroutine netcdf_read_hdr_system(self, iu, param) 
       !! author: David A. Minton
       !!
@@ -514,6 +596,7 @@ contains
 
       return
    end subroutine netcdf_read_hdr_system
+
 
    module subroutine netcdf_read_particle_info_base(self, iu, ind)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -628,9 +711,9 @@ contains
          call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
       end select
 
-      !call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
       return
    end subroutine netcdf_read_particle_info_base
+
 
    module subroutine netcdf_sync(self)
       !! author: David A. Minton
@@ -645,6 +728,7 @@ contains
 
       return
    end subroutine netcdf_sync
+
 
    module subroutine netcdf_write_frame_base(self, iu, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -745,6 +829,7 @@ contains
       return
    end subroutine netcdf_write_frame_base
 
+
    module subroutine netcdf_write_frame_system(self, iu, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -762,6 +847,7 @@ contains
 
       return
    end subroutine netcdf_write_frame_system
+
 
    module subroutine netcdf_write_particle_info_base(self, iu)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
@@ -922,6 +1008,5 @@ contains
 
       return
    end subroutine netcdf_write_hdr_system
-
 
 end submodule s_netcdf

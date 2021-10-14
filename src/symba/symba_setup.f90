@@ -72,20 +72,6 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call setup_pl(self, n, param) 
-      if (n < 0) return
-
-      if (allocated(self%lcollision)) deallocate(self%lcollision)
-      if (allocated(self%lencounter)) deallocate(self%lencounter)
-      if (allocated(self%lmtiny)) deallocate(self%lmtiny)
-      if (allocated(self%nplenc)) deallocate(self%nplenc)
-      if (allocated(self%ntpenc)) deallocate(self%ntpenc)
-      if (allocated(self%levelg)) deallocate(self%levelg)
-      if (allocated(self%levelm)) deallocate(self%levelm)
-      if (allocated(self%isperi)) deallocate(self%isperi)
-      if (allocated(self%peri)) deallocate(self%peri)
-      if (allocated(self%atp)) deallocate(self%atp)
-      if (allocated(self%kin)) deallocate(self%kin)
-
       if (n == 0) return
 
       allocate(self%lcollision(n))
@@ -128,7 +114,7 @@ contains
       call encounter_setup_list(self, n)
       if (n < 0) return
 
-      if (allocated(self%level)) deallocate(self%level)
+      call self%dealloc()
 
       if (n ==0) return
 
@@ -154,13 +140,6 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_tp does not have its own setup method so we use the base method for swiftest_tp
       call setup_tp(self, n, param) 
-      if (n < 0) return
-
-      if (allocated(self%nplenc)) deallocate(self%nplenc)
-      if (allocated(self%levelg)) deallocate(self%levelg)
-      if (allocated(self%levelm)) deallocate(self%levelm)
-      if (allocated(self%info)) deallocate(self%info)
-
       if (n == 0) return
 
       allocate(self%nplenc(n))

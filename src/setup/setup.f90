@@ -176,28 +176,7 @@ contains
 
       self%lfirst = .true.
 
-      if (allocated(self%info)) deallocate(self%info)
-      if (allocated(self%id)) deallocate(self%id)
-      if (allocated(self%status)) deallocate(self%status)
-      if (allocated(self%ldiscard)) deallocate(self%ldiscard)
-      if (allocated(self%lmask)) deallocate(self%lmask)
-      if (allocated(self%mu)) deallocate(self%mu)
-      if (allocated(self%xh)) deallocate(self%xh)
-      if (allocated(self%vh)) deallocate(self%vh)
-      if (allocated(self%xb)) deallocate(self%xb)
-      if (allocated(self%vb)) deallocate(self%vb)
-      if (allocated(self%ah)) deallocate(self%ah)
-      if (allocated(self%aobl)) deallocate(self%aobl)
-      if (allocated(self%agr)) deallocate(self%lmask)
-      if (allocated(self%atide)) deallocate(self%lmask)
-      if (allocated(self%ir3h)) deallocate(self%ir3h)
-      if (allocated(self%a)) deallocate(self%a)
-      if (allocated(self%e)) deallocate(self%e)
-      if (allocated(self%e)) deallocate(self%e)
-      if (allocated(self%inc)) deallocate(self%inc)
-      if (allocated(self%capom)) deallocate(self%capom)
-      if (allocated(self%omega)) deallocate(self%omega)
-      if (allocated(self%capm)) deallocate(self%capm)
+      call self%dealloc()
 
       self%nbody = n
       if (n == 0) return
@@ -275,20 +254,6 @@ contains
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
-      if (n < 0) return 
-
-      if (allocated(self%mass)) deallocate(self%mass)
-      if (allocated(self%Gmass)) deallocate(self%Gmass)
-      if (allocated(self%rhill)) deallocate(self%rhill)
-      if (allocated(self%renc)) deallocate(self%renc)
-      if (allocated(self%radius)) deallocate(self%radius)
-      if (allocated(self%density)) deallocate(self%density)
-      if (allocated(self%rot)) deallocate(self%rot)
-      if (allocated(self%Ip)) deallocate(self%Ip)
-      if (allocated(self%k2)) deallocate(self%k2)
-      if (allocated(self%Q)) deallocate(self%Q)
-      if (allocated(self%tlag)) deallocate(self%tlag)
-
       if (n == 0) return
 
       allocate(self%mass(n))
@@ -344,12 +309,6 @@ contains
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call setup_body(self, n, param)
-      if (n < 0) return
-
-      if (allocated(self%isperi)) deallocate(self%isperi)
-      if (allocated(self%peri)) deallocate(self%peri)
-      if (allocated(self%atp)) deallocate(self%atp)
-
       if (n == 0) return
 
       allocate(self%isperi(n))

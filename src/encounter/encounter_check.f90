@@ -403,6 +403,7 @@ contains
          call encounter_check_all(nenc, index1, index2, x, v, x, v, renc, renc, dt, lencounter, lvdotr)
 
          call encounter_check_reduce_broadphase(npl, nenc, index1, index2, lencounter, lvdotr)
+         deallocate(lencounter)
       end if
 
       return
@@ -836,7 +837,6 @@ contains
          nenc = sum(nenc_arr(:))
       end associate
       if (nenc == 0) return
-
 
       allocate(index1(nenc))
       allocate(index2(nenc))
