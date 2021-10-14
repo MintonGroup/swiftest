@@ -66,6 +66,77 @@ contains
    end subroutine rmvs_util_append_tp
 
 
+   module subroutine rmvs_util_dealloc_cb(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Argument
+      class(rmvs_cb),  intent(inout) :: self !! RMVS central body object
+
+      if (allocated(self%outer)) deallocate(self%outer)
+      if (allocated(self%inner)) deallocate(self%inner)
+
+      return
+   end subroutine rmvs_util_dealloc_cb
+
+
+   module subroutine rmvs_util_dealloc_interp(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Argument
+      class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated system variables object
+      
+      if (allocated(self%x)) deallocate(self%x)
+      if (allocated(self%v)) deallocate(self%v)
+      if (allocated(self%aobl)) deallocate(self%aobl)
+      if (allocated(self%atide)) deallocate(self%atide)
+
+      return
+   end subroutine rmvs_util_dealloc_interp
+
+
+   module subroutine rmvs_util_dealloc_pl(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Argumente
+      class(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
+
+      if (allocated(self%outer)) deallocate(self%outer)
+      if (allocated(self%inner)) deallocate(self%inner)
+      if (allocated(self%nenc))  deallocate(self%nenc)
+      if (allocated(self%planetocentric)) deallocate(self%planetocentric)
+
+      call whm_util_dealloc_pl(self)
+
+      return
+   end subroutine rmvs_util_dealloc_pl
+
+
+   module subroutine rmvs_util_dealloc_tp(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatabale arrays
+      implicit none
+      ! Argument
+      class(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
+
+      if (allocated(self%lperi)) deallocate(self%lperi)
+      if (allocated(self%plperP)) deallocate(self%plperP)
+      if (allocated(self%plencP)) deallocate(self%plencP)
+      if (allocated(self%xheliocentric)) deallocate(self%xheliocentric)
+      call self%cb_heliocentric%dealloc()
+
+      call util_dealloc_tp(self)
+
+      return
+   end subroutine rmvs_util_dealloc_tp
+
+
    module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -102,6 +173,76 @@ contains
 
       return
    end subroutine rmvs_util_fill_pl
+
+
+   module subroutine rmvs_util_final_cb(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the RMVS massive body object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(rmvs_cb),  intent(inout) :: self !! RMVS central body object
+
+      call self%dealloc()
+
+      return
+   end subroutine rmvs_util_final_cb
+
+
+   module subroutine rmvs_util_final_interp(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the RMVS nbody system object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(rmvs_interp),  intent(inout) :: self !! RMVS nbody system object
+
+      call self%dealloc()
+
+      return
+   end subroutine rmvs_util_final_interp
+
+
+   module subroutine rmvs_util_final_pl(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the RMVS massive body object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
+
+      call self%dealloc()
+
+      return
+   end subroutine rmvs_util_final_pl
+
+
+   module subroutine rmvs_util_final_system(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the RMVS nbody system object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
+
+      call self%dealloc()
+
+      return
+   end subroutine rmvs_util_final_system
+
+
+   module subroutine rmvs_util_final_tp(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the RMVS test particle object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      type(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
+
+      call self%dealloc()
+
+      return
+   end subroutine rmvs_util_final_tp
 
 
    module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)

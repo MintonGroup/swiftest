@@ -10,7 +10,7 @@ module encounter_classes
    integer(I4B), parameter :: SWEEPDIM = 2
 
    type :: encounter_list
-      integer(I4B)                              :: nenc   !! Total number of encounters
+      integer(I4B)                              :: nenc = 0  !! Total number of encounters
       logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
       integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
       integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
@@ -23,12 +23,14 @@ module encounter_classes
       real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
       real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
    contains
-      procedure :: setup  => encounter_setup_list       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: append => encounter_util_append_list !! Appends elements from one structure to another
-      procedure :: copy   => encounter_util_copy_list   !! Copies elements from the source encounter list into self.
-      procedure :: spill  => encounter_util_spill_list  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: resize => encounter_util_resize_list !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      procedure :: write  => encounter_io_write_list    !! Write close encounter data to output binary file
+      procedure :: setup   => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: append  => encounter_util_append_list  !! Appends elements from one structure to another
+      procedure :: copy    => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
+      procedure :: dealloc => encounter_util_dealloc_list !! Deallocates all allocatables
+      procedure :: spill   => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: resize  => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      procedure :: write   => encounter_io_write_list     !! Write close encounter data to output binary file
+      final     :: encounter_util_final_list            !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
 
    type encounter_bounding_box_1D
@@ -38,6 +40,8 @@ module encounter_classes
       integer(I4B), dimension(:), allocatable :: iend !! Ending index for box
    contains
       procedure :: sort  => encounter_check_sort_aabb_1D !! Sorts the bounding box extents along a single dimension prior to the sweep phase
+      procedure :: dealloc => encounter_util_dealloc_aabb !! Deallocates all allocatables
+      final     :: encounter_util_final_aabb             !! Finalize the axis-aligned bounding box (1D) - deallocates all allocatables
    end type
 
    type encounter_bounding_box
@@ -52,7 +56,7 @@ module encounter_classes
    interface
       module subroutine encounter_check_all(nenc, index1, index2, x1, v1, x2, v2, renc1, renc2, dt, lencounter, lvdotr)
          implicit none
-         integer(I4B),                 intent(in)  :: nenc       !! Number of encounters in the encounter lists
+         integer(I4B),                 intent(in)  :: nenc         !! Number of encounters in the encounter lists
          integer(I4B), dimension(:),   intent(in)  :: index1     !! List of indices for body 1 in each encounter
          integer(I4B), dimension(:),   intent(in)  :: index2     !! List of indices for body 2 in each encounter1
          real(DP),     dimension(:,:), intent(in)  :: x1, v1     !! Array of indices of bodies 1
@@ -65,7 +69,7 @@ module encounter_classes
       end subroutine encounter_check_all
 
       module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, lvdotr, index1, index2, nenc)
-         import swiftest_parameters
+         use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
@@ -80,7 +84,7 @@ module encounter_classes
       end subroutine encounter_check_all_plpl
 
       module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr, index1, index2, nenc)
-         import swiftest_parameters
+         use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
@@ -99,7 +103,7 @@ module encounter_classes
       end subroutine encounter_check_all_plplm
 
       module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
-         import swiftest_parameters
+         use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
@@ -175,6 +179,7 @@ module encounter_classes
       end subroutine encounter_io_write_frame
 
       module subroutine encounter_io_write_list(self, pl, encbody, param)
+         use swiftest_classes, only : swiftest_pl, swiftest_body, swiftest_parameters
          implicit none
          class(encounter_list),  intent(in) :: self    !! Swiftest encounter list object
          class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
@@ -208,10 +213,30 @@ module encounter_classes
          class(encounter_list), intent(in)    :: source !! Source object to copy into
       end subroutine encounter_util_copy_list
 
+      module subroutine encounter_util_dealloc_aabb(self)
+         implicit none
+         class(encounter_bounding_box_1D), intent(inout) :: self !!Bounding box structure along a single dimension
+      end subroutine encounter_util_dealloc_aabb
+
+      module subroutine encounter_util_dealloc_list(self)
+         implicit none
+         class(encounter_list), intent(inout) :: self !! Swiftest encounter list object
+      end subroutine encounter_util_dealloc_list
+
+      module subroutine encounter_util_final_aabb(self)
+         implicit none
+         type(encounter_bounding_box_1D), intent(inout) :: self !!Bounding box structure along a single dimension
+      end subroutine encounter_util_final_aabb
+
+      module subroutine encounter_util_final_list(self)
+         implicit none
+         type(encounter_list), intent(inout) :: self !! Swiftest encounter list object
+      end subroutine encounter_util_final_list
+
       module subroutine encounter_util_resize_list(self, nnew)
          implicit none
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
-         integer(I4B),          intent(in)    :: nnew !! New size of list needed
+         integer(I4B),         intent(in)    :: nnew !! New size of list needed
       end subroutine encounter_util_resize_list
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)

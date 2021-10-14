@@ -27,6 +27,7 @@ module rmvs_classes
       !> Replace the abstract procedures with concrete ones
       procedure :: initialize => rmvs_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
       procedure :: step       => rmvs_step_system              !! Advance the RMVS nbody system forward in time by one step
+      final     :: rmvs_util_final_system                      !! Finalizes the RMVS nbody system object - deallocates all allocatables
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -34,6 +35,9 @@ module rmvs_classes
       real(DP), dimension(:, :), allocatable :: v     !! interpolated heliocentric planet velocity for outer encounter
       real(DP), dimension(:, :), allocatable :: aobl  !! Encountering planet's oblateness acceleration value
       real(DP), dimension(:, :), allocatable :: atide !! Encountering planet's tidal acceleration value
+   contains
+      procedure :: dealloc => rmvs_util_dealloc_interp !! Deallocates all allocatable arrays
+      final     :: rmvs_util_final_interp              !! Finalizes the RMVS interpolated system variables object - deallocates all allocatables
    end type rmvs_interp
 
    !********************************************************************************************************************************
@@ -44,6 +48,9 @@ module rmvs_classes
       type(rmvs_interp), dimension(:), allocatable :: outer !! interpolated heliocentric central body position for outer encounters
       type(rmvs_interp), dimension(:), allocatable :: inner !! interpolated heliocentric central body position for inner encounters
       logical                                      :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
+   contains
+      procedure :: dealloc => rmvs_util_dealloc_cb !! Deallocates all allocatable arrays
+      final     :: rmvs_util_final_cb              !! Finalizes the RMVS central body object - deallocates all allocatables
    end type rmvs_cb
 
    !********************************************************************************************************************************
@@ -72,11 +79,13 @@ module rmvs_classes
                                                                   !!    if the test particle is undergoing a close encounter or not
       procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: append          => rmvs_util_append_tp         !! Appends elements from one structure to another
+      procedure :: dealloc         => rmvs_util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill            => rmvs_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize          => rmvs_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort            => rmvs_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => rmvs_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => rmvs_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      final     :: rmvs_util_final_tp                             !! Finalizes the RMVS test particle object - deallocates all allocatables
    end type rmvs_tp
 
    !********************************************************************************************************************************
@@ -95,11 +104,13 @@ module rmvs_classes
    contains
       procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: append    => rmvs_util_append_pl         !! Appends elements from one structure to another
+      procedure :: dealloc   => rmvs_util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize    => rmvs_util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: sort      => rmvs_util_sort_pl           !! Sorts body arrays by a sortable componen
       procedure :: rearrange => rmvs_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill     => rmvs_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      final     :: rmvs_util_final_pl                       !! Finalizes the RMVS massive body object - deallocates all allocatables
    end type rmvs_pl
 
    interface
@@ -112,6 +123,7 @@ module rmvs_classes
       end subroutine rmvs_discard_tp
 
       module function rmvs_encounter_check_tp(self, param, system, dt) result(lencounter)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(rmvs_tp),             intent(inout) :: self       !! RMVS test particle object  
          class(swiftest_parameters), intent(inout) :: param      !! Current run configuration parameters 
@@ -177,6 +189,26 @@ module rmvs_classes
          logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine rmvs_util_append_tp
 
+      module subroutine rmvs_util_dealloc_cb(self)
+         implicit none
+         class(rmvs_cb),  intent(inout) :: self !! RMVS central body object
+      end subroutine rmvs_util_dealloc_cb
+
+      module subroutine rmvs_util_dealloc_interp(self)
+         implicit none
+         class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated system variables object
+      end subroutine rmvs_util_dealloc_interp
+
+      module subroutine rmvs_util_dealloc_pl(self)
+         implicit none
+         class(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
+      end subroutine rmvs_util_dealloc_pl
+
+      module subroutine rmvs_util_dealloc_tp(self)
+         implicit none
+         class(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
+      end subroutine rmvs_util_dealloc_tp
+
       module subroutine rmvs_util_fill_pl(self, inserts, lfill_list)
          use swiftest_classes, only : swiftest_body
          implicit none
@@ -192,6 +224,31 @@ module rmvs_classes
          class(swiftest_body),  intent(in)    :: inserts     !!  Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_util_fill_tp
+
+      module subroutine rmvs_util_final_cb(self)
+         implicit none
+         type(rmvs_cb),  intent(inout) :: self !! RMVS central body object
+      end subroutine rmvs_util_final_cb
+
+      module subroutine rmvs_util_final_interp(self)
+         implicit none
+         type(rmvs_interp),  intent(inout) :: self !! RMVS interpolated system variables object
+      end subroutine rmvs_util_final_interp
+
+      module subroutine rmvs_util_final_pl(self)
+         implicit none
+         type(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
+      end subroutine rmvs_util_final_pl
+
+      module subroutine rmvs_util_final_system(self)
+         implicit none
+         type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
+      end subroutine rmvs_util_final_system
+
+      module subroutine rmvs_util_final_tp(self)
+         implicit none
+         type(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
+      end subroutine rmvs_util_final_tp
 
       module subroutine rmvs_util_resize_pl(self, nnew)
          implicit none

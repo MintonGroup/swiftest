@@ -113,7 +113,8 @@ contains
       if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl, pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
+         associate(tp => self, cb => system%cb, pl => system%pl, &
+            pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
             call helio_kick_getacch_tp(tp, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
