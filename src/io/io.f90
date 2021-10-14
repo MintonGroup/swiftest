@@ -164,7 +164,7 @@ contains
       integer(I4B)              :: i
       character(STRMAX)         :: errmsg
 
-      !if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
+      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
          if (lfirst) then
             select case(param%out_stat)
             case('APPEND')
@@ -200,15 +200,14 @@ contains
          end select
 
          close(unit = LUN, err = 667, iomsg = errmsg)
-      !else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-      if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
          call self%write_particle_info(param%nciu)
       end if
 
       return
 
       667 continue
-      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing particle information file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_dump_particle_info_base
 
@@ -286,6 +285,8 @@ contains
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
          dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
          dump_param%in_type = NETCDF_DOUBLE_TYPE
+         dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
+         dump_param%nciu%time_chunk = 1
       end if
       dump_param%T0 = param%t
       dump_param%ioutput = 0 
@@ -734,7 +735,7 @@ contains
             iostat = -1
             return
          end if
-         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII")) then
+         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII") .and. (param%in_type /= NETCDF_FLOAT_TYPE) .and. (param%in_type /= NETCDF_DOUBLE_TYPE))  then
             write(iomsg,*) 'Invalid input file type:',trim(adjustl(param%in_type))
             iostat = -1
             return
@@ -947,7 +948,9 @@ contains
             call io_param_writer_one("OUT_FORM", param%out_form, unit)
             call io_param_writer_one("OUT_STAT", "APPEND", unit) 
          end if
-         call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
+         if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE)) then
+            call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
+         end if
          if (param%enc_out /= "") then
             call io_param_writer_one("ENC_OUT", param%enc_out, unit)
          end if
@@ -1625,7 +1628,7 @@ contains
       return
 
       667 continue
-      write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
+      write(*,*) "Error reading central body frame: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end function io_read_frame_cb
 
@@ -1795,6 +1798,8 @@ contains
       logical                       :: lmatch  
       character(STRMAX)             :: errmsg
       type(swiftest_particle_info), allocatable :: tmpinfo
+
+      if (.not.((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE))) return ! This subroutine is only necessary for classic binary input files
 
       open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
 
@@ -2109,6 +2114,8 @@ contains
          end if
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
 
+         param%nciu%id_chunk = pl%nbody + tp%nbody
+         param%nciu%time_chunk = param%istep_out / param%istep_dump
          if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)
           
