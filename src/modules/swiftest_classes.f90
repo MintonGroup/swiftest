@@ -76,6 +76,8 @@ module swiftest_classes
       integer(I4B) :: discard_vhy_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard y variable
       integer(I4B) :: discard_vhz_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard z variable
       integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
+      integer(I4B) :: id_chunk              !! Chunk size for the id dimension variables
+      integer(I4B) :: time_chunk            !! Chunk size for the time dimension variables
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: flush      => netcdf_flush             !! Flushes the current buffer to disk by closing and re-opening the file.
