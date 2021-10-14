@@ -63,20 +63,14 @@ contains
       ! Result
       real(DP)                                    :: old_t_final
       ! Internals
-      !class(swiftest_nbody_system), allocatable :: tmpsys
-      !class(swiftest_parameters),   allocatable :: tmpparam
-      !integer(I4B)                              :: ierr
       integer(I4B)                              :: itmax
       real(DP), dimension(:), allocatable       :: tvals
 
 
-
-      call check( nf90_open(param%outfile, NF90_NOWRITE, param%nciu%ncid) )
+      call param%nciu%open(param)
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%time_dimid, len=itmax) )
       allocate(tvals(itmax))
-      call check( nf90_inq_varid(param%nciu%ncid, TIME_DIMNAME, param%nciu%time_varid) )
       call check( nf90_get_var(param%nciu%ncid, param%nciu%time_varid, tvals(:)) )
-      call check( nf90_close(param%nciu%ncid) )
 
       old_t_final = tvals(itmax)
 
