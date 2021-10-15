@@ -721,13 +721,13 @@ contains
             call tp%info(i)%set_value(origin_type=ctemp(tpind(i)))
          end do
 
-         ! call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp) )
-         ! do i = 1, npl
-         !    call pl%info(i)%set_value(collision_id=itemp(plind(i)))
-         ! end do
-         ! do i = 1, ntp
-         !    call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
-         ! end do
+         call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp) )
+         do i = 1, npl
+            call pl%info(i)%set_value(collision_id=itemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
+         end do
 
          call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp) )
          call cb%info%set_value(origin_time=rtemp(1))
