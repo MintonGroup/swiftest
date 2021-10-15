@@ -302,6 +302,10 @@ contains
 
       call check( nf90_open(param%outfile, NF90_WRITE, self%ncid) )
 
+      call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid) )
+      call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid) )
+      call check( nf90_inq_dimid(self%ncid, STR_DIMNAME, self%str_dimid) )
+
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid))
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid))
       call check( nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid))
