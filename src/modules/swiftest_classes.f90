@@ -215,11 +215,8 @@ module swiftest_classes
       procedure :: dump_particle_info         => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
       procedure :: read_in                    => io_read_in_base              !! Read in body initial conditions from a file
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
-      procedure :: read_frame_netcdf          => netcdf_read_frame_base       !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
-      procedure :: read_particle_info         => netcdf_read_particle_info_base  !! Reads out the particle information metadata to NetCDF file
       generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
-      generic   :: read_frame                 => read_frame_netcdf            !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
       generic   :: write_particle_info        => write_particle_info_netcdf
    end type swiftest_base
 
@@ -450,7 +447,8 @@ module swiftest_classes
       procedure :: read_hdr_netcdf         => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
       procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
-      procedure :: read_particle_info      => io_read_particle_info_system           !! Read in particle metadata from file
+      procedure :: read_particle_info_bin  => io_read_particle_info_system           !! Read in particle metadata from file
+      procedure :: read_particle_info_netcdf  => netcdf_read_particle_info_system           !! Read in particle metadata from file
       procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
@@ -466,6 +464,7 @@ module swiftest_classes
       generic   :: read_hdr                => read_hdr_netcdf                        !! Generic method call for reading headers
       generic   :: read_frame              => read_frame_bin, read_frame_netcdf      !! Generic method call for reading a frame of output data
       generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for writing a frame of output data
+      generic   :: read_particle_info      => read_particle_info_bin, read_particle_info_netcdf !! Genereric method call for reading in the particle information metadata
    end type swiftest_nbody_system
 
    abstract interface
@@ -974,24 +973,17 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       end subroutine netcdf_initialize_output
 
-      module subroutine netcdf_open(self, param)
+      module subroutine netcdf_open(self, param, readonly)
          implicit none
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+         logical, optional,          intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       end subroutine netcdf_open
 
       module subroutine netcdf_sync(self)
          implicit none
          class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_sync
-
-      module function netcdf_read_frame_base(self, iu, param) result(ierr)
-         implicit none
-         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
-         class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
-      end function netcdf_read_frame_base
 
       module function netcdf_read_frame_system(self, iu, param) result(ierr)
          implicit none
@@ -1008,12 +1000,13 @@ module swiftest_classes
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_read_hdr_system
 
-      module subroutine netcdf_read_particle_info_base(self, iu, ind)
+      module subroutine netcdf_read_particle_info_system(self, iu, plmask, tpmask)
          implicit none
-         class(swiftest_base),       intent(inout) :: self   !! Swiftest particle object
-         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
-         integer(I4B), dimension(:), intent(in)    :: ind    !! Index mapping from netcdf to active particles
-      end subroutine netcdf_read_particle_info_base
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+         class(netcdf_parameters),     intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
+         logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
+      end subroutine netcdf_read_particle_info_system
 
       module subroutine netcdf_write_frame_base(self, iu, param)
          implicit none

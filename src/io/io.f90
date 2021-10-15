@@ -1222,28 +1222,16 @@ contains
       ! Internals
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
 
-      select case(param%in_type)
-      case(NETCDF_DOUBLE_TYPE, NETCDF_FLOAT_TYPE)
-         select type(self)
-         class is (swiftest_body)
-            call self%setup(self%nbody, param)
-            if (self%nbody == 0) return
-         end select
+      if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) return ! This method is not used in NetCDF mode, as reading is done for the whole system, not on individual particle types
 
-         ierr = self%read_frame(param%nciu, param)
-         if (ierr == 0) return
-      case default
-         select type(self)
-         class is (swiftest_body)
-            call io_read_in_body(self, param)
-         class is (swiftest_cb)
-            call io_read_in_cb(self, param)
-         end select
-         return
+      select type(self)
+      class is (swiftest_body)
+         call io_read_in_body(self, param)
+      class is (swiftest_cb)
+         call io_read_in_cb(self, param)
       end select
 
-      667 continue
-      write(*,*) "Error reading body in io_read_in_base"
+      return
    end subroutine io_read_in_base
 
 
@@ -1381,9 +1369,14 @@ contains
       class(swiftest_parameters),   intent(inout) :: param
       ! Internals
       integer(I4B) :: ierr
+      class(swiftest_parameters), allocatable :: tmp_param
 
       if ((param%in_type == NETCDF_DOUBLE_TYPE) .or. (param%in_type == NETCDF_FLOAT_TYPE)) then
-         ierr =  self%read_frame(param%nciu, param)
+         allocate(tmp_param, source=param)
+         tmp_param%outfile = param%in_netcdf
+         tmp_param%out_form = param%in_form
+         ierr =  self%read_frame(tmp_param%nciu, tmp_param)
+         deallocate(tmp_param)
          if (ierr /=0) call util_exit(FAILURE)
       else
          call self%cb%read_in(param)

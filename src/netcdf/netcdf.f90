@@ -63,20 +63,14 @@ contains
       ! Result
       real(DP)                                    :: old_t_final
       ! Internals
-      !class(swiftest_nbody_system), allocatable :: tmpsys
-      !class(swiftest_parameters),   allocatable :: tmpparam
-      !integer(I4B)                              :: ierr
       integer(I4B)                              :: itmax
       real(DP), dimension(:), allocatable       :: tvals
 
 
-
-      call check( nf90_open(param%outfile, NF90_NOWRITE, param%nciu%ncid) )
+      call param%nciu%open(param)
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%time_dimid, len=itmax) )
       allocate(tvals(itmax))
-      call check( nf90_inq_varid(param%nciu%ncid, TIME_DIMNAME, param%nciu%time_varid) )
       call check( nf90_get_var(param%nciu%ncid, param%nciu%time_varid, tvals(:)) )
-      call check( nf90_close(param%nciu%ncid) )
 
       old_t_final = tvals(itmax)
 
@@ -239,7 +233,7 @@ contains
          call check( nf90_def_var_chunking(self%ncid, self%origin_type_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_TIME_VARNAME, self%out_type, self%id_dimid, self%origin_time_varid) )
          call check( nf90_def_var_chunking(self%ncid, self%origin_time_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, COLLISION_ID_VARNAME, self%out_type, self%id_dimid, self%collision_id_varid) )
+      call check( nf90_def_var(self%ncid, COLLISION_ID_VARNAME, NF90_INT, self%id_dimid, self%collision_id_varid) )
          call check( nf90_def_var_chunking(self%ncid, self%collision_id_varid, NF90_CHUNKED, [self%id_chunk]) )
       call check( nf90_def_var(self%ncid, ORIGIN_XHX_VARNAME, self%out_type, self%id_dimid, self%origin_xhx_varid) )
          call check( nf90_def_var_chunking(self%ncid, self%origin_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
@@ -297,16 +291,28 @@ contains
    end subroutine netcdf_initialize_output
 
 
-   module subroutine netcdf_open(self, param)
+   module subroutine netcdf_open(self, param, readonly)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Opens a NetCDF file and does the variable inquiries to activate variable ids
       implicit none
       ! Arguments
-      class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      class(netcdf_parameters),   intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
+      logical, optional,          intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      ! Internals
+      integer(I4B) :: mode
+
+      mode = NF90_WRITE
+      if (present(readonly)) then
+         if (readonly) mode = NF90_NOWRITE
+      end if
 
       call check( nf90_open(param%outfile, NF90_WRITE, self%ncid) )
+
+      call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid) )
+      call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid) )
+      call check( nf90_inq_dimid(self%ncid, STR_DIMNAME, self%str_dimid) )
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid))
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid))
@@ -391,139 +397,6 @@ contains
    end subroutine netcdf_open
 
 
-   module function netcdf_read_frame_base(self, iu, param) result(ierr)
-      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
-      !!
-      !! Read a frame of output of either test particle or massive body data from the binary output file
-      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
-      implicit none
-      ! Arguments
-      class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
-      class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      ! Returns
-      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
-      ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot, idmax, n
-      integer(I4B), dimension(:), allocatable   :: ind
-      character(len=:), allocatable             :: charstring
-      real(DP), dimension(:), allocatable       :: real_temp
-      logical, dimension(:), allocatable        :: validmask, tpmask
-
-      tslot = int(param%ioutput, kind=I4B) + 1
-
-      select type(self)
-         class is (swiftest_body)
-            if (self%nbody == 0) return
-            call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax) )
-            allocate(ind(idmax))
-            allocate(real_temp(idmax))
-            allocate(validmask(idmax))
-            allocate(tpmask(idmax))
-            ind(:) = [(i, i = 1, idmax)]
-
-            ! First filter out only the id slots that contain valid bodies
-            if (param%in_form == XV) then
-               call check( nf90_get_var(iu%ncid, iu%xhx_varid, real_temp(:)) )
-            else
-               call check( nf90_get_var(iu%ncid, iu%a_varid, real_temp(:)) )
-            end if
-            validmask(:) = real_temp(:) == real_temp(:)
-
-            ! Filter out the central body, which is always in id dimension array position 1
-            validmask(1) = .false.
-
-            ! Next, filter only bodies that don't have mass (test particles)
-            call check( nf90_get_var(iu%ncid, iu%Gmass_varid, real_temp(:)) )
-            tpmask(:) = real_temp(:) /= real_temp(:)
-
-            select type(self)
-            class is (swiftest_pl)
-               ind(:) = pack(ind(:), (.not.tpmask(:) .and. validmask(:)))
-               n = count(.not.tpmask(:) .and. validmask(:))
-            class is (swiftest_tp)
-               ind(:) = pack(ind(:), (tpmask(:) .and. validmask(:)))
-               n = count(tpmask(:) .and. validmask(:))
-            end select
-
-            do j = 1, n
-               idslot = ind(j)
-   
-               if (param%in_form == XV) then
-                  call check( nf90_get_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
-               else if (param%in_form == EL) then
-                  call check( nf90_get_var(iu%ncid, iu%a_varid,     self%a(j),     start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%e_varid,     self%e(j),     start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%inc_varid,   self%inc(j),   start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%capom_varid, self%capom(j), start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%omega_varid, self%omega(j), start=[idslot, tslot]) )
-                  call check( nf90_get_var(iu%ncid, iu%capm_varid,  self%capm(j),  start=[idslot, tslot]) ) 
-               end if
-   
-               select type(pl => self)  
-               class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-                  call check( nf90_get_var(iu%ncid, iu%Gmass_varid, pl%Gmass(j), start=[idslot, tslot]) )
-                  pl%mass(j) = pl%Gmass(j) / param%GU
-                  if (param%lrhill_present) then 
-                     call check( nf90_get_var(iu%ncid, iu%rhill_varid, pl%rhill(j), start=[idslot, tslot]) )
-                  end if
-                  if (param%lclose) then
-                     call check( nf90_get_var(iu%ncid, iu%radius_varid, pl%radius(j), start=[idslot, tslot]) )
-                  end if
-                  if (param%lrotation) then
-                     call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  pl%Ip(1, j),  start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  pl%Ip(2, j),  start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  pl%Ip(3, j),  start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%rotx_varid, pl%rot(1, j), start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%roty_varid, pl%rot(2, j), start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%rotz_varid, pl%rot(3, j), start=[idslot, tslot]) )
-                  end if
-                  if (param%ltides) then
-                     call check( nf90_get_var(iu%ncid, iu%k2_varid, pl%k2(j), start=[idslot, tslot]) )
-                     call check( nf90_get_var(iu%ncid, iu%Q_varid,  pl%Q(j),  start=[idslot, tslot]) )
-                  end if
-   
-               end select
-            end do
-
-         class is (swiftest_cb)
-
-            idslot = 1
-            call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
-
-            call check( nf90_get_var(iu%ncid, iu%Gmass_varid,  self%Gmass,  start=[idslot, tslot]) )
-            self%mass = self%Gmass / param%GU
-            call check( nf90_get_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
-            if (param%lrotation) then
-               call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  self%Ip(1),  start=[idslot, tslot]) )
-               call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  self%Ip(2),  start=[idslot, tslot]) )
-               call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  self%Ip(3),  start=[idslot, tslot]) )
-               call check( nf90_get_var(iu%ncid, iu%rotx_varid, self%rot(1), start=[idslot, tslot]) )
-               call check( nf90_get_var(iu%ncid, iu%roty_varid, self%rot(2), start=[idslot, tslot]) )
-               call check( nf90_get_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[idslot, tslot]) )
-            end if
-            if (param%ltides) then
-               call check( nf90_get_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]) )
-               call check( nf90_get_var(iu%ncid, iu%Q_varid,  self%Q,  start=[idslot, tslot]) )
-            end if
-
-
-         end select
-
-         call self%read_particle_info(iu, ind) 
-
-         ierr = 0
-
-      return
-
-   end function netcdf_read_frame_base
-
-
    module function netcdf_read_frame_system(self, iu, param) result(ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -533,14 +406,173 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
       class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
+      ! Internals
+      integer(I4B)                              :: dim, i, j, tslot, idmax, npl_check, ntp_check
+      character(len=:), allocatable             :: charstring
+      real(DP), dimension(:), allocatable       :: rtemp
+      integer(I4B), dimension(:), allocatable   :: itemp
+      logical, dimension(:), allocatable        :: validmask, tpmask, plmask
 
-      call iu%open(param)
-
+      call iu%open(param, readonly=.true.)
       call self%read_hdr(iu, param)
-      call self%cb%read_in(param)
-      call self%pl%read_in(param)
-      call self%tp%read_in(param)
+
+      associate(cb => self%cb, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
+
+         call pl%setup(npl, param)
+         call tp%setup(ntp, param)
+
+         tslot = int(param%ioutput, kind=I4B) + 1
+
+         call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax) )
+         allocate(rtemp(idmax))
+         allocate(itemp(idmax))
+         allocate(validmask(idmax))
+         allocate(tpmask(idmax))
+         allocate(plmask(idmax))
+
+         ! First filter out only the id slots that contain valid bodies
+         if (param%in_form == XV) then
+            call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp(:), start=[1, tslot]) )
+         else
+            call check( nf90_get_var(iu%ncid, iu%a_varid, rtemp(:), start=[1, tslot]) )
+         end if
+
+         validmask(:) = rtemp(:) == rtemp(:)
+
+         ! Next, filter only bodies that don't have mass (test particles)
+         call check( nf90_get_var(iu%ncid, iu%Gmass_varid, rtemp(:), start=[1, tslot]) )
+         plmask(:) = rtemp(:) == rtemp(:)  .and. validmask(:)
+         tpmask(:) = .not. plmask(:) .and. validmask(:)
+         plmask(1) = .false. ! This is the central body
+
+         ! Check to make sure the number of bodies is correct
+         npl_check = count(plmask(:))
+         ntp_check = count(tpmask(:))
+
+         if (npl_check /= npl) then
+            write(*,*) "Error reading in NetCDF file: The recorded value of npl does not match the number of active massive bodies"
+            call util_exit(failure)
+         end if
+
+         if (ntp_check /= ntp) then
+            write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
+            call util_exit(failure)
+         end if
+
+         ! Now read in each variable and split the outputs by body type
+         if ((param%in_form == XV) .or. (param%in_form == XVEL)) then
+            call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp, start=[1, tslot]) )
+            pl%xh(1,:) = pack(rtemp, plmask)
+            tp%xh(1,:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp, start=[1, tslot]) )
+            pl%xh(2,:) = pack(rtemp, plmask)
+            tp%xh(2,:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp, start=[1, tslot]) )
+            pl%xh(3,:) = pack(rtemp, plmask)
+            tp%xh(3,:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp, start=[1, tslot]) )
+            pl%vh(1,:) = pack(rtemp, plmask)
+            tp%vh(1,:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp, start=[1, tslot]) )
+            pl%vh(2,:) = pack(rtemp, plmask)
+            tp%vh(2,:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp, start=[1, tslot]) )
+            pl%vh(3,:) = pack(rtemp, plmask)
+            tp%vh(3,:) = pack(rtemp, tpmask)
+         end if
+
+         if ((param%in_form == EL)  .or. (param%in_form == XVEL)) then
+
+            call check( nf90_get_var(iu%ncid, iu%a_varid, rtemp, start=[1, tslot]) )
+            pl%a(:) = pack(rtemp, plmask)
+            tp%a(:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%e_varid, rtemp, start=[1, tslot]) )
+            pl%e(:) = pack(rtemp, plmask)
+            tp%e(:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%inc_varid, rtemp, start=[1, tslot]) )
+            pl%inc(:) = pack(rtemp, plmask)
+            tp%inc(:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%capom_varid, rtemp, start=[1, tslot]) )
+            pl%capom(:) = pack(rtemp, plmask)
+            tp%capom(:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%omega_varid, rtemp, start=[1, tslot]) )
+            pl%omega(:) = pack(rtemp, plmask)
+            tp%omega(:) = pack(rtemp, tpmask)
+
+            call check( nf90_get_var(iu%ncid, iu%capm_varid, rtemp, start=[1, tslot]) )
+            pl%capm(:) = pack(rtemp, plmask)
+            tp%capm(:) = pack(rtemp, tpmask)
+
+         end if
+      
+         call check( nf90_get_var(iu%ncid, iu%Gmass_varid, rtemp, start=[1, tslot]) )
+         cb%Gmass = rtemp(1)
+         cb%mass = cb%Gmass / param%GU
+
+         pl%Gmass(:) = pack(rtemp, plmask)
+         pl%mass(:) = pl%Gmass(:) / param%GU
+
+         if (param%lrhill_present) then 
+            call check( nf90_get_var(iu%ncid, iu%rhill_varid, rtemp, start=[1, tslot]) )
+            pl%rhill(:) = pack(rtemp, plmask)
+         end if
+
+         if (param%lclose) then
+            call check( nf90_get_var(iu%ncid, iu%radius_varid, rtemp, start=[1, tslot]) )
+            cb%radius = rtemp(1)
+            pl%radius(:) = pack(rtemp, plmask)
+         end if
+
+         if (param%lrotation) then
+            call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  rtemp, start=[1, tslot]) )
+            cb%Ip(1) = rtemp(1)
+            pl%Ip(1,:) = pack(rtemp, plmask)
+
+            call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  rtemp, start=[1, tslot]) )
+            cb%Ip(2) = rtemp(1)
+            pl%Ip(2,:) = pack(rtemp, plmask)
+
+            call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  rtemp, start=[1, tslot]) )
+            cb%Ip(3) = rtemp(1)
+            pl%Ip(3,:) = pack(rtemp, plmask)
+
+            call check( nf90_get_var(iu%ncid, iu%rotx_varid, rtemp, start=[1, tslot]) )
+            cb%rot(1) = rtemp(1)
+            pl%rot(1,:) = pack(rtemp, plmask)
+
+            call check( nf90_get_var(iu%ncid, iu%roty_varid, rtemp, start=[1, tslot]) )
+            cb%rot(2) = rtemp(1)
+            pl%rot(2,:) = pack(rtemp, plmask)
+
+            call check( nf90_get_var(iu%ncid, iu%rotz_varid, rtemp, start=[1, tslot]) )
+            cb%rot(3) = rtemp(1)
+            pl%rot(3,:) = pack(rtemp, plmask)
+         end if
+
+         if (param%ltides) then
+            call check( nf90_get_var(iu%ncid, iu%k2_varid, rtemp, start=[1, tslot]) )
+            cb%k2 = rtemp(1)
+            pl%k2(:) = pack(rtemp, plmask)
+
+            call check( nf90_get_var(iu%ncid, iu%Q_varid,  rtemp,  start=[1, tslot]) )
+            cb%Q = rtemp(1)
+            pl%Q(:) = pack(rtemp, plmask)
+         end if
+
+         call self%read_particle_info(iu, plmask, tpmask) 
+      end associate
+
       call iu%close()
 
       ierr = 0
@@ -564,12 +596,11 @@ contains
       class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: tslot, old_mode
+      integer(I4B) :: tslot
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
-      call check( nf90_open(param%outfile, nf90_nowrite, iu%ncid) )
-      !call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
+      call check( nf90_open(param%outfile, NF90_NOWRITE, iu%ncid) )
 
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]) )
@@ -597,122 +628,169 @@ contains
    end subroutine netcdf_read_hdr_system
 
 
-   module subroutine netcdf_read_particle_info_base(self, iu, ind)
+   module subroutine netcdf_read_particle_info_system(self, iu, plmask, tpmask)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Write all current particle to file
+      !! Reads particle information metadata from file
       implicit none
       ! Arguments
-      class(swiftest_base),       intent(inout) :: self   !! Swiftest particle object
-      class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
-      integer(I4B), dimension(:), intent(in)    :: ind    !! Index mapping from netcdf to active particles
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+      class(netcdf_parameters),     intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
+      logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
+      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode, idmax
       character(len=:), allocatable             :: charstring
       character(len=NAMELEN)                    :: emptystr, lenstr
       character(len=:), allocatable :: fmtlabel
+      real(DP), dimension(:), allocatable       :: rtemp
+      real(DP), dimension(:,:), allocatable       :: rtemp_arr
+      integer(I4B), dimension(:), allocatable   :: itemp
+      character(len=NAMELEN), dimension(:), allocatable :: ctemp
+      integer(I4B), dimension(:), allocatable :: plind, tpind
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      !call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
       write(lenstr, *) NAMELEN
       fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
       write(emptystr, fmtlabel) " "
 
-      call check( nf90_inq_dimid(iu%ncid, TIME_DIMNAME, iu%time_dimid) )
-      call check( nf90_inq_dimid(iu%ncid, ID_DIMNAME,   iu%id_dimid) )
-      call check( nf90_inq_dimid(iu%ncid, STR_DIMNAME,  iu%str_dimid) )
+      idmax = size(plmask)
+      allocate(rtemp(idmax))
+      allocate(rtemp_arr(NDIM,idmax))
+      allocate(itemp(idmax))
+      allocate(ctemp(idmax))
 
-      select type(self)
-         class is (swiftest_body)
-         associate(n => self%nbody)
-            if (n == 0) return
+      associate(cb => self%cb, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
 
-            self%status(:) = ACTIVE
-            self%lmask(:) = .true.
-            do i = 1, n
-               call self%info(i)%set_value(status="ACTIVE")
+         if (npl > 0) then
+            pl%status(:) = ACTIVE
+            pl%lmask(:) = .true.
+            do i = 1, npl
+               call pl%info(i)%set_value(status="ACTIVE")
             end do
-
-            do i = 1, n
-               idslot = ind(i)
-
-               call check( nf90_get_var(iu%ncid, iu%id_varid, self%id(i), start=[idslot]) )
-
-               call check( nf90_get_var(iu%ncid, iu%name_varid, self%info(i)%name, start=[1, idslot], count=[NAMELEN, 1]) )
-               strlen = len(trim(adjustl(self%info(i)%name)))
-               call check( nf90_get_var(iu%ncid, iu%name_varid, self%info(i)%name, start=[1, idslot], count=[strlen, 1]) )
-
-               call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info(i)%particle_type, start=[1, idslot], count=[NAMELEN, 1]) )
-               strlen = len(trim(adjustl(self%info(i)%particle_type)))
-               call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info(i)%particle_type, start=[1, idslot], count=[strlen, 1]) )
-
-               call check( nf90_get_var(iu%ncid, iu%status_varid, self%info(i)%status, start=[1, idslot], count=[NAMELEN, 1]) )
-               strlen = len(trim(adjustl(self%info(i)%status)))
-               call check( nf90_get_var(iu%ncid, iu%status_varid, self%info(i)%status, start=[1, idslot], count=[strlen, 1]) )
-
-               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info(i)%origin_type, start=[1, idslot], count=[NAMELEN, 1]) )
-               strlen = len(trim(adjustl(self%info(i)%origin_type)))
-               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info(i)%origin_type, start=[1, idslot], count=[strlen, 1]) )
-
-               call check( nf90_get_var(iu%ncid, iu%collision_id_varid, self%info(i)%collision_id, start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_time_varid, self%info(i)%origin_time,   start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, self%info(i)%origin_xh(1),   start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, self%info(i)%origin_xh(2),   start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, self%info(i)%origin_xh(3),   start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, self%info(i)%origin_vh(1),   start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, self%info(i)%origin_vh(2),   start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, self%info(i)%origin_vh(3),   start=[idslot]) )
-
-               call check( nf90_get_var(iu%ncid, iu%discard_time_varid, self%info(i)%discard_time, start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, self%info(i)%discard_xh(1), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, self%info(i)%discard_xh(2), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, self%info(i)%discard_xh(3), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, self%info(i)%discard_vh(1), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, self%info(i)%discard_vh(2), start=[idslot]) )
-               call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info(i)%discard_vh(3), start=[idslot]) )
+            allocate(plind(npl))
+            plind(:) = pack([(i, i = 1, idmax)], plmask(:))
+         end if
+         if (ntp > 0) then
+            tp%status(:) = ACTIVE
+            tp%lmask(:) = .true.
+            do i = 1, ntp
+               call tp%info(i)%set_value(status="ACTIVE")
             end do
-         end associate
+            tpind(:) = pack([(i, i = 1, idmax)], tpmask(:))
+         end if
 
-      class is (swiftest_cb)
-         idslot = 1
-         call check( nf90_get_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
+         call check( nf90_get_var(iu%ncid, iu%id_varid, itemp) )
+         cb%id = itemp(1)
+         pl%id(:) = pack(itemp, plmask)
+         tp%id(:) = pack(itemp, tpmask)
 
-         call check( nf90_get_var(iu%ncid, iu%name_varid, self%info%name, start=[1, idslot], count=[NAMELEN, 1]) )
-         strlen = len(trim(adjustl(self%info%name)))
-         call check( nf90_get_var(iu%ncid, iu%name_varid, self%info%name, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%name_varid, ctemp, count=[NAMELEN, 1]) )
+         call cb%info%set_value(name=ctemp(1))
+         do i = 1, npl
+            call pl%info(i)%set_value(name=ctemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(name=ctemp(tpind(i)))
+         end do
 
-         call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info%particle_type, start=[1, idslot], count=[NAMELEN, 1]) )
-         strlen = len(trim(adjustl(self%info%particle_type)))
-         call check( nf90_get_var(iu%ncid, iu%ptype_varid, self%info%particle_type, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%ptype_varid, ctemp, count=[NAMELEN, 1]) )
+         call cb%info%set_value(particle_type=ctemp(1))
+         do i = 1, npl
+            call pl%info(i)%set_value(particle_type=ctemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(particle_type=ctemp(tpind(i)))
+         end do
 
-         call check( nf90_get_var(iu%ncid, iu%status_varid, self%info%status, start=[1, idslot], count=[NAMELEN, 1]) )
-         strlen = len(trim(adjustl(self%info%status)))
-         call check( nf90_get_var(iu%ncid, iu%status_varid, self%info%status, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%status_varid, ctemp, count=[NAMELEN, 1]) )
+         call cb%info%set_value(status=ctemp(1))
+         do i = 1, npl
+            call pl%info(i)%set_value(status=ctemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(status=ctemp(tpind(i)))
+         end do
 
-         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info%origin_type, start=[1, idslot], count=[NAMELEN, 1]) )
-         strlen = len(trim(adjustl(self%info%origin_type)))
-         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info%origin_type, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, 1]) )
+         call cb%info%set_value(origin_type=ctemp(1))
+         do i = 1, npl
+            call pl%info(i)%set_value(origin_type=ctemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(origin_type=ctemp(tpind(i)))
+         end do
 
-         call check( nf90_get_var(iu%ncid, iu%collision_id_varid, self%info%collision_id, start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]) )
+         call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp) )
+         do i = 1, npl
+            call pl%info(i)%set_value(collision_id=itemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
+         end do
 
-         call check( nf90_get_var(iu%ncid, iu%discard_time_varid, self%info%discard_time, start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, self%info%discard_xh(1), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, self%info%discard_xh(2), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, self%info%discard_xh(3), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, self%info%discard_vh(1), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, self%info%discard_vh(2), start=[idslot]) )
-         call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
-      end select
+         call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp) )
+         call cb%info%set_value(origin_time=rtemp(1))
+         do i = 1, npl
+            call pl%info(i)%set_value(origin_time=rtemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(origin_time=rtemp(tpind(i)))
+         end do
+
+         call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)) )
+         call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)) )
+         call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)) )
+         do i = 1, npl
+            call pl%info(i)%set_value(origin_xh=rtemp_arr(:,plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(origin_xh=rtemp_arr(:,tpind(i)))
+         end do
+
+         call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)) )
+         call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)) )
+         call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)) )
+         do i = 1, npl
+            call pl%info(i)%set_value(origin_vh=rtemp_arr(:,plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(origin_vh=rtemp_arr(:,tpind(i)))
+         end do
+
+         call check( nf90_get_var(iu%ncid, iu%discard_time_varid, rtemp) )
+         call cb%info%set_value(discard_time=rtemp(1))
+         do i = 1, npl
+            call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
+         end do
+
+         call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, rtemp_arr(1,:)) )
+         call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, rtemp_arr(2,:)) )
+         call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, rtemp_arr(3,:)) )
+         do i = 1, npl
+            call pl%info(i)%set_value(discard_xh=rtemp_arr(:,plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(discard_xh=rtemp_arr(:,tpind(i)))
+         end do
+
+         call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, rtemp_arr(1,:)) )
+         call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, rtemp_arr(2,:)) )
+         call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, rtemp_arr(3,:)) )
+         do i = 1, npl
+            call pl%info(i)%set_value(discard_vh=rtemp_arr(:,plind(i)))
+         end do
+         do i = 1, ntp
+            call tp%info(i)%set_value(discard_vh=rtemp_arr(:,tpind(i)))
+         end do
+
+      end associate
 
       return
-   end subroutine netcdf_read_particle_info_base
+   end subroutine netcdf_read_particle_info_system
 
 
    module subroutine netcdf_sync(self)
