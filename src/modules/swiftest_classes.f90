@@ -96,6 +96,7 @@ module swiftest_classes
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
       character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
       integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
+      integer(I4B)         :: maxid_collision = -1                !! The current maximum collision id number
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time

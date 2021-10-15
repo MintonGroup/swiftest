@@ -710,6 +710,8 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%Euntracked
                case ("MAXID")
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
+               case ("MAXID_COLLISION")
+                  read(param_value, *, err = 667, iomsg = iomsg) param%maxid_collision
                case ("PARTICLE_OUT")
                   param%particle_out = param_value
                case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
@@ -1007,6 +1009,7 @@ contains
          end if
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
          call io_param_writer_one("MAXID",param%maxid, unit)
+         call io_param_writer_one("MAXID_COLLISION",param%maxid_collision, unit)
    
          iostat = 0
          iomsg = "UDIO not implemented"

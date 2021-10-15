@@ -693,6 +693,7 @@ contains
          strlen = len(trim(adjustl(self%info%origin_type)))
          call check( nf90_get_var(iu%ncid, iu%origin_type_varid, self%info%origin_type, start=[1, idslot], count=[strlen, 1]) )
 
+         call check( nf90_get_var(iu%ncid, iu%collision_id_varid, self%info%collision_id, start=[idslot]) )
          call check( nf90_get_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
          call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
          call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
@@ -943,6 +944,7 @@ contains
          call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
          call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
 
+         call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info%collision_id, start=[idslot]) )
          call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
          call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
          call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
