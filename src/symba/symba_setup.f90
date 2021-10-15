@@ -145,7 +145,6 @@ contains
       allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
-      allocate(self%info(n))
 
       self%nplenc(:) = 0
       self%levelg(:) = -1
