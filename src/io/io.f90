@@ -1378,9 +1378,14 @@ contains
       class(swiftest_parameters),   intent(inout) :: param
       ! Internals
       integer(I4B) :: ierr
+      class(swiftest_parameters), allocatable :: tmp_param
 
       if ((param%in_type == NETCDF_DOUBLE_TYPE) .or. (param%in_type == NETCDF_FLOAT_TYPE)) then
-         ierr =  self%read_frame(param%nciu, param)
+         allocate(tmp_param, source=param)
+         tmp_param%outfile = param%in_netcdf
+         tmp_param%out_form = param%in_form
+         ierr =  self%read_frame(tmp_param%nciu, tmp_param)
+         deallocate(tmp_param)
          if (ierr /=0) call util_exit(FAILURE)
       else
          call self%cb%read_in(param)
