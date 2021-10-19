@@ -677,6 +677,7 @@ contains
             do i = 1, ntp
                call tp%info(i)%set_value(status="ACTIVE")
             end do
+            allocate(tpind(ntp))
             tpind(:) = pack([(i, i = 1, idmax)], tpmask(:))
          end if
 
