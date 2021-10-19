@@ -75,8 +75,9 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-      call integration_timer%reset()
       write(*, *) " *************** Main Loop *************** "
+      if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+      call integration_timer%reset()
       do iloop = 1, nloops
          !> Step the system forward in time
          call integration_timer%start()
