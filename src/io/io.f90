@@ -1000,7 +1000,7 @@ contains
             call io_param_writer_one("LTOT_ORIG", param%Ltot_orig(:), unit)
             call io_param_writer_one("LORBIT_ORIG", param%Lorbit_orig(:), unit)
             call io_param_writer_one("LSPIN_ORIG", param%Lspin_orig(:), unit)
-            call io_param_writer_one("LESCAPE", param%Lspin_orig(:), unit)
+            call io_param_writer_one("LESCAPE", param%Lescape(:), unit)
             call io_param_writer_one("GMESCAPE",param%GMescape, unit)
             call io_param_writer_one("ECOLLISIONS",param%Ecollisions, unit)
             call io_param_writer_one("EUNTRACKED",param%Euntracked, unit)
