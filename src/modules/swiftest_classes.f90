@@ -153,12 +153,12 @@ module swiftest_classes
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
-      real(DP)                  :: GMtot_orig = 0.0_DP     !! Initial system mass
+      real(DP)                  :: GMtot_orig = 0.0_DP    !! Initial system mass
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
       real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: GMescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: GMescape = 0.0_DP      !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
       real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
@@ -425,6 +425,15 @@ module swiftest_classes
       real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
       real(DP), dimension(NDIM)       :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)       :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP)                        :: Eorbit_orig = 0.0_DP !! Initial orbital energy
+      real(DP)                        :: GMtot_orig = 0.0_DP  !! Initial system mass
+      real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP   !! Initial total angular momentum vector
+      real(DP), dimension(NDIM)       :: Lorbit_orig = 0.0_DP !! Initial orbital angular momentum
+      real(DP), dimension(NDIM)       :: Lspin_orig = 0.0_DP  !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM)       :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                        :: GMescape = 0.0_DP    !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                        :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
+      real(DP)                        :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                               !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                               !!    the test particles
@@ -443,7 +452,6 @@ module swiftest_classes
       procedure :: read_frame_netcdf       => netcdf_read_frame_system               !! Read in a frame of input data from file
       procedure :: write_frame_netcdf      => netcdf_write_frame_system              !! Write a frame of input data from file
       procedure :: write_hdr_bin           => io_write_hdr_system                    !! Write a header for an output frame in Fortran binary format
-      !procedure :: read_hdr_bin            => io_read_hdr                            !! Read a header for an output frame in Fortran binary format
       procedure :: read_hdr_netcdf         => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
       procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
@@ -962,7 +970,7 @@ module swiftest_classes
 
       module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
          implicit none
-         class(swiftest_nbody_system), intent(in)    :: self        !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: self        !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param       !! Current run configuration parameters 
          real(DP)                                    :: old_t_final !! Final time from last run
       end function netcdf_get_old_t_final_system

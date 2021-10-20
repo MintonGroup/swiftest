@@ -46,29 +46,29 @@ contains
          Lorbit_now(:) = system%Lorbit(:)
          Lspin_now(:) = system%Lspin(:)
          Eorbit_now = ke_orbit_now + ke_spin_now + pe_now
-         Ltot_now(:) = system%Ltot(:) + param%Lescape(:)
-         GMtot_now = system%GMtot + param%GMescape 
+         Ltot_now(:) = system%Ltot(:) + system%Lescape(:)
+         GMtot_now = system%GMtot + system%GMescape 
 
          if (param%lfirstenergy) then
-            param%Eorbit_orig = Eorbit_now
-            param%GMtot_orig = GMtot_now
-            param%Lorbit_orig(:) = Lorbit_now(:)
-            param%Lspin_orig(:) = Lspin_now(:)
-            param%Ltot_orig(:) = Ltot_now(:)
+            system%Eorbit_orig = Eorbit_now
+            system%GMtot_orig = GMtot_now
+            system%Lorbit_orig(:) = Lorbit_now(:)
+            system%Lspin_orig(:) = Lspin_now(:)
+            system%Ltot_orig(:) = Ltot_now(:)
             param%lfirstenergy = .false.
          end if
 
          if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
-            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, param%Ecollisions, Ltot_now, GMtot_now
+            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, system%Ecollisions, Ltot_now, GMtot_now
             close(EGYIU, err = 667, iomsg = errmsg)
          end if
 
          if (.not.param%lfirstenergy) then 
-            Lerror = norm2(Ltot_now(:) - param%Ltot_orig(:)) / norm2(param%Ltot_orig(:))
-            Eorbit_error = (Eorbit_now - param%Eorbit_orig) / abs(param%Eorbit_orig)
-            Ecoll_error = param%Ecollisions / abs(param%Eorbit_orig)
-            Etotal_error = (Eorbit_now - param%Ecollisions - param%Eorbit_orig - param%Euntracked) / abs(param%Eorbit_orig)
-            Merror = (GMtot_now - param%GMtot_orig) / param%GMtot_orig
+            Lerror = norm2(Ltot_now(:) - system%Ltot_orig(:)) / norm2(system%Ltot_orig(:))
+            Eorbit_error = (Eorbit_now - system%Eorbit_orig) / abs(system%Eorbit_orig)
+            Ecoll_error = system%Ecollisions / abs(system%Eorbit_orig)
+            Etotal_error = (Eorbit_now - system%Ecollisions - system%Eorbit_orig - system%Euntracked) / abs(system%Eorbit_orig)
+            Merror = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
             if (lterminal) write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
@@ -281,6 +281,17 @@ contains
          dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
          dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
          dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
+
+         dump_param%Eorbit_orig = self%Eorbit_orig 
+         dump_param%GMtot_orig = self%GMtot_orig
+         dump_param%Ltot_orig(:) = self%Ltot_orig(:)
+         dump_param%Lorbit_orig(:) = self%Lorbit_orig(:)
+         dump_param%Lspin_orig(:) = self%Lspin_orig(:)
+         dump_param%GMescape = self%GMescape
+         dump_param%Ecollisions = self%Ecollisions
+         dump_param%Euntracked = self%Euntracked
+         dump_param%Lescape(:) = self%Lescape
+
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
          dump_param%in_type = NETCDF_DOUBLE_TYPE
          dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
@@ -997,15 +1008,17 @@ contains
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
-            call io_param_writer_one("EORBIT_ORIG", param%Eorbit_orig, unit)
-            call io_param_writer_one("GMTOT_ORIG", param%GMtot_orig, unit)
-            call io_param_writer_one("LTOT_ORIG", param%Ltot_orig(:), unit)
-            call io_param_writer_one("LORBIT_ORIG", param%Lorbit_orig(:), unit)
-            call io_param_writer_one("LSPIN_ORIG", param%Lspin_orig(:), unit)
-            call io_param_writer_one("LESCAPE", param%Lescape(:), unit)
-            call io_param_writer_one("GMESCAPE",param%GMescape, unit)
-            call io_param_writer_one("ECOLLISIONS",param%Ecollisions, unit)
-            call io_param_writer_one("EUNTRACKED",param%Euntracked, unit)
+            if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
+               call io_param_writer_one("EORBIT_ORIG", param%Eorbit_orig, unit)
+               call io_param_writer_one("GMTOT_ORIG", param%GMtot_orig, unit)
+               call io_param_writer_one("LTOT_ORIG", param%Ltot_orig(:), unit)
+               call io_param_writer_one("LORBIT_ORIG", param%Lorbit_orig(:), unit)
+               call io_param_writer_one("LSPIN_ORIG", param%Lspin_orig(:), unit)
+               call io_param_writer_one("LESCAPE", param%Lescape(:), unit)
+               call io_param_writer_one("GMESCAPE",param%GMescape, unit)
+               call io_param_writer_one("ECOLLISIONS",param%Ecollisions, unit)
+               call io_param_writer_one("EUNTRACKED",param%Euntracked, unit)
+            end if
          end if
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
          call io_param_writer_one("MAXID",param%maxid, unit)
@@ -1375,13 +1388,22 @@ contains
          allocate(tmp_param, source=param)
          tmp_param%outfile = param%in_netcdf
          tmp_param%out_form = param%in_form
-         ierr =  self%read_frame(tmp_param%nciu, tmp_param)
+         ierr = self%read_frame(tmp_param%nciu, tmp_param)
          deallocate(tmp_param)
          if (ierr /=0) call util_exit(FAILURE)
       else
          call self%cb%read_in(param)
          call self%pl%read_in(param)
          call self%tp%read_in(param)
+         ! Copy over param file variable inputs
+         self%Eorbit_orig = param%Eorbit_orig
+         self%GMtot_orig = param%GMtot_orig
+         self%Ltot_orig(:) = param%Ltot_orig(:)
+         self%Lorbit_orig(:) = param%Lorbit_orig(:)
+         self%Lspin_orig(:) = param%Lspin_orig(:)
+         self%Lescape(:) = param%Lescape(:)
+         self%Ecollisions = param%Ecollisions
+         self%Euntracked = param%Euntracked
       end if
 
       return

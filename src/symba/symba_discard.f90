@@ -114,7 +114,7 @@ contains
          ! Add the pre-collision ke of the central body to the records
          ! Add planet mass to central body accumulator
          if (lescape_body) then
-            param%GMescape = param%GMescape + pl%Gmass(ipl)
+            system%GMescape = system%GMescape + pl%Gmass(ipl)
             do i = 1, pl%nbody
                if (i == ipl) cycle
                pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
@@ -137,8 +137,8 @@ contains
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
             Ltot(:) = Ltot(:) - cb%mass * (cb%xb(:) .cross. cb%vb(:))
-            param%Lescape(:) = param%Lescape(:) + Ltot(:)
-            if (param%lrotation) param%Lescape(:) = param%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
+            system%Lescape(:) = system%Lescape(:) + Ltot(:)
+            if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else
             xcom(:) = (pl%mass(ipl) * pl%xb(:, ipl) + cb%mass * cb%xb(:)) / (cb%mass + pl%mass(ipl))
@@ -172,11 +172,11 @@ contains
    
          ! We must do this for proper book-keeping, since we can no longer track this body's contribution to energy directly
          if (lescape_body) then
-            param%Ecollisions  = param%Ecollisions + ke_orbit + ke_spin + pe
-            param%Euntracked  = param%Euntracked - (ke_orbit + ke_spin + pe)
+            system%Ecollisions  = system%Ecollisions + ke_orbit + ke_spin + pe
+            system%Euntracked  = system%Euntracked - (ke_orbit + ke_spin + pe)
          else
-            param%Ecollisions  = param%Ecollisions + pe 
-            param%Euntracked = param%Euntracked - pe
+            system%Ecollisions  = system%Ecollisions + pe 
+            system%Euntracked = system%Euntracked - pe
          end if
    
       end select
@@ -358,7 +358,7 @@ contains
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
                   Eorbit_after = system%te
-                  param%Ecollisions = param%Ecollisions + (Eorbit_after - Eorbit_before)
+                  system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
                end if
 
             end associate
