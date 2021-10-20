@@ -409,7 +409,8 @@ def make_swiftest_labels(param):
         tlab.append('capm')
     plab = tlab.copy()
     plab.append('Gmass')
-    plab.append('radius')
+    if param['CHK_CLOSE'] == 'YES':
+       plab.append('radius')
     if param['RHILL_PRESENT'] == 'YES':
         plab.append('rhill')
     clab = ['Gmass', 'radius', 'J_2', 'J_4']
@@ -817,7 +818,10 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
     GMSun = np.double(cb['Gmass'])
-    RSun = np.double(cb['radius'])
+    if param['CHK_CLOSE'] == 'YES':
+       RSun = np.double(cb['radius'])
+    else:
+       RSun = param['CHK_RMIN']
     J2 = np.double(cb['J_2'])
     J4 = np.double(cb['J_4'])
     cbname = cb['name'].values[0]
@@ -851,7 +855,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
                print(pli['name'].values, pli['Gmass'].values, pli['rhill'].values, file=plfile)
             else:
                print(pli['name'].values, pli['Gmass'].values, file=plfile)
-            print(pli['radius'].values, file=plfile)
+            if param['CHK_CLOSE'] == 'YES':
+               print(pli['radius'].values, file=plfile)
             if param['IN_FORM'] == 'XV':
                 print(pli['xhx'].values, pli['xhy'].values, pli['xhz'].values, file=plfile)
                 print(pli['vhx'].values, pli['vhy'].values, pli['vhz'].values, file=plfile)
@@ -918,7 +923,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         else:
             print(f"{param['IN_FORM']} is not a valid input format type.")
         Gmass = pl['Gmass'].values
-        radius = pl['radius'].values  
+        if param['CHK_CLOSE'] == 'YES':
+           radius = pl['radius'].values  
         
         plfile.write_record(npl)
         plfile.write_record(plid)
@@ -931,7 +937,8 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         plfile.write_record(Gmass)
         if param['RHILL_PRESENT'] == 'YES':
             plfile.write_record(pl['rhill'].values)
-        plfile.write_record(radius)
+        if param['CHK_CLOSE'] == 'YES':
+           plfile.write_record(radius)
         if param['ROTATION'] == 'YES':
             plfile.write_record(pl['Ip1'].values)
             plfile.write_record(pl['Ip2'].values)
@@ -995,7 +1002,10 @@ def swifter_xr2infile(ds, param, framenum=-1):
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
     
     GMSun = np.double(cb['Gmass'])
-    RSun = np.double(cb['radius'])
+    if param['CHK_CLOSE'] == 'YES':
+       RSun = np.double(cb['radius'])
+    else:
+       RSun = param['CHK_RMIN']
     param['J2'] = np.double(cb['J_2'])
     param['J4'] = np.double(cb['J_4'])
     
