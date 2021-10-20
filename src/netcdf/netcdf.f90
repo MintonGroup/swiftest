@@ -567,6 +567,9 @@ contains
             call check( nf90_get_var(iu%ncid, iu%radius_varid, rtemp, start=[1, tslot]) )
             cb%radius = rtemp(1)
             pl%radius(:) = pack(rtemp, plmask)
+         else
+            cb%radius = param%rmin
+            pl%radius(:) = 0.0_DP
          end if
 
          if (param%lrotation) then
@@ -896,12 +899,8 @@ contains
                select type(self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
                   call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]) )
-                  if (param%lrhill_present) then 
-                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, self%rhill(j), start=[idslot, tslot]) )
-                  end if
-                  if (param%lclose) then
-                     call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius(j), start=[idslot, tslot]) )
-                  end if
+                  if (param%lrhill_present) call check( nf90_put_var(iu%ncid, iu%rhill_varid, self%rhill(j), start=[idslot, tslot]) )
+                  if (param%lclose) call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius(j), start=[idslot, tslot]) )
                   if (param%lrotation) then
                      call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1, j), start=[idslot, tslot]) )
                      call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2, j), start=[idslot, tslot]) )
@@ -923,7 +922,7 @@ contains
          call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
 
          call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[idslot, tslot]) )
-         call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
+         if (param%lclose) call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
          if (param%lrotation) then
             call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1), start=[idslot, tslot]) )
             call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2), start=[idslot, tslot]) )

@@ -907,23 +907,23 @@ module swiftest_classes
 
       module subroutine kick_getacch_int_all_flat_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
          implicit none
-         integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
-         integer(I8B),                 intent(in)    :: nplpl  !! Number of massive body interactions to compute
-         integer(I4B), dimension(:,:), intent(in)    :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
-         real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
-         real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
-         real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
-         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+         integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
+         integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
+         integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
+         real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+         real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+         real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       end subroutine kick_getacch_int_all_flat_pl
 
       module subroutine kick_getacch_int_all_triangular_pl(npl, nplm, x, Gmass, radius, acc)
          implicit none
-         integer(I4B),                 intent(in)    :: npl    !! Total number of massive bodies
-         integer(I4B),                 intent(in)    :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
-         real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
-         real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
-         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+         integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
+         integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
+         real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+         real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+         real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       end subroutine kick_getacch_int_all_triangular_pl
 
       module subroutine kick_getacch_int_all_tp(ntp, npl, xtp, xpl, GMpl, lmask, acc)
