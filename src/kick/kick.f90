@@ -33,9 +33,17 @@ contains
       end if
 
       if (param%lflatten_interactions) then
-         call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+         if (param%lclose) then
+            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+         else
+            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, acc=self%ah)
+         end if
       else
-         call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, self%radius, self%ah)
+         if (param%lclose) then
+            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, self%radius, self%ah)
+         else
+            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, acc=self%ah)
+         end if
       end if
 
       if (param%ladaptive_interactions .and. self%nplpl > 0) then 
@@ -78,13 +86,13 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
-      integer(I8B),                 intent(in)    :: nplpl  !! Number of massive body interactions to compute
-      integer(I4B), dimension(:,:), intent(in)    :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
-      real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
-      real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
-      real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+      integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
+      integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
+      integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
+      real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+      real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       ! Internals
       integer(I8B)                      :: k
       real(DP), dimension(NDIM,npl) :: ahi, ahj
@@ -95,23 +103,42 @@ contains
       ahi(:,:) = 0.0_DP
       ahj(:,:) = 0.0_DP
 
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(nplpl, k_plpl, x, Gmass, radius) &
-      !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
-      !$omp reduction(+:ahi) &
-      !$omp reduction(-:ahj) 
-      do k = 1_I8B, nplpl
-         i = k_plpl(1, k)
-         j = k_plpl(2, k)
-         xr = x(1, j) - x(1, i) 
-         yr = x(2, j) - x(2, i) 
-         zr = x(3, j) - x(3, i) 
-         rji2 = xr**2 + yr**2 + zr**2
-         rlim2 = (radius(i) + radius(j))**2
-         if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
-                                 ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-      end do
-      !$omp end parallel do 
+      if (present(radius)) then
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(nplpl, k_plpl, x, Gmass, radius) &
+         !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
+         !$omp reduction(+:ahi) &
+         !$omp reduction(-:ahj) 
+         do k = 1_I8B, nplpl
+            i = k_plpl(1, k)
+            j = k_plpl(2, k)
+            xr = x(1, j) - x(1, i) 
+            yr = x(2, j) - x(2, i) 
+            zr = x(3, j) - x(3, i) 
+            rji2 = xr**2 + yr**2 + zr**2
+            rlim2 = (radius(i) + radius(j))**2
+            if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+                                    ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         end do
+         !$omp end parallel do 
+      else
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(nplpl, k_plpl, x, Gmass, radius) &
+         !$omp lastprivate(rji2, xr, yr, zr) &
+         !$omp reduction(+:ahi) &
+         !$omp reduction(-:ahj) 
+         do k = 1_I8B, nplpl
+            i = k_plpl(1, k)
+            j = k_plpl(2, k)
+            xr = x(1, j) - x(1, i) 
+            yr = x(2, j) - x(2, i) 
+            zr = x(3, j) - x(3, i) 
+            rji2 = xr**2 + yr**2 + zr**2
+            call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+                                         ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         end do
+         !$omp end parallel do 
+      end if
      
       do concurrent(i = 1:npl)
          acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
@@ -130,12 +157,12 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      integer(I4B),                 intent(in)    :: npl    !! Total number of massive bodies
-      integer(I4B),                 intent(in)    :: nplm   !! Number of fully interacting massive bodies 
-      real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
-      real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
-      real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+      integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
+      integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
+      real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+      real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       ! Internals
       real(DP), dimension(NDIM,npl) :: ahi, ahj
       integer(I4B) :: i, j
@@ -145,23 +172,42 @@ contains
       ahi(:,:) = 0.0_DP
       ahj(:,:) = 0.0_DP
 
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(npl, nplm, x, Gmass, radius) &
-      !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
-      !$omp reduction(+:ahi) &
-      !$omp reduction(-:ahj) 
-      do i = 1, nplm
-         do concurrent(j = i+1:npl)
-            xr = x(1, j) - x(1, i) 
-            yr = x(2, j) - x(2, i) 
-            zr = x(3, j) - x(3, i) 
-            rji2 = xr**2 + yr**2 + zr**2
-            rlim2 = (radius(i) + radius(j))**2
-            if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
-                                    ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+      if (present(radius)) then
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl, nplm, x, Gmass, radius) &
+         !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
+         !$omp reduction(+:ahi) &
+         !$omp reduction(-:ahj) 
+         do i = 1, nplm
+            do concurrent(j = i+1:npl)
+               xr = x(1, j) - x(1, i) 
+               yr = x(2, j) - x(2, i) 
+               zr = x(3, j) - x(3, i) 
+               rji2 = xr**2 + yr**2 + zr**2
+               rlim2 = (radius(i) + radius(j))**2
+               if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+                                       ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+            end do
          end do
-      end do
-      !$omp end parallel do
+         !$omp end parallel do
+      else
+                  !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl, nplm, x, Gmass, radius) &
+         !$omp lastprivate(rji2, xr, yr, zr) &
+         !$omp reduction(+:ahi) &
+         !$omp reduction(-:ahj) 
+         do i = 1, nplm
+            do concurrent(j = i+1:npl)
+               xr = x(1, j) - x(1, i) 
+               yr = x(2, j) - x(2, i) 
+               zr = x(3, j) - x(3, i) 
+               rji2 = xr**2 + yr**2 + zr**2
+               call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+                                            ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+            end do
+         end do
+         !$omp end parallel do
+      end if
 
       do concurrent(i = 1:npl)
          acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
