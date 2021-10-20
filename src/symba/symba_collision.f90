@@ -192,8 +192,8 @@ contains
                pe = pe - pl%Gmass(i) * pl%mass(j) / norm2(pl%xb(:, i) - pl%xb(:, j))
             end do
          end do
-         param%Ecollisions = param%Ecollisions + pe 
-         param%Euntracked  = param%Euntracked - pe 
+         system%Ecollisions = system%Ecollisions + pe 
+         system%Euntracked  = system%Euntracked - pe 
 
          ! Update any encounter lists that have the removed bodies in them so that they instead point to the new 
          do k = 1, system%plplenc_list%nenc
@@ -1025,7 +1025,7 @@ contains
                if (param%lenergy) then
                   call system%get_energy_and_momentum(param)
                   Eorbit_after = system%te
-                  param%Ecollisions = param%Ecollisions + (Eorbit_after - Eorbit_before)
+                  system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
                end if
 
             end select 

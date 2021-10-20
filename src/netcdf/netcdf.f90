@@ -58,23 +58,58 @@ contains
       !!
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(in)    :: self
+      class(swiftest_nbody_system), intent(inout) :: self
       class(swiftest_parameters),   intent(inout) :: param
       ! Result
       real(DP)                                    :: old_t_final
       ! Internals
-      integer(I4B)                              :: itmax
-      real(DP), dimension(:), allocatable       :: tvals
-
+      integer(I4B)                              :: itmax, idmax
+      real(DP), dimension(:), allocatable       :: vals
+      real(DP), dimension(1)                    :: val
+      real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, Ltmp
 
       call param%nciu%open(param)
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%time_dimid, len=itmax) )
-      allocate(tvals(itmax))
-      call check( nf90_get_var(param%nciu%ncid, param%nciu%time_varid, tvals(:)) )
+      call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%id_dimid, len=idmax) )
+      allocate(vals(idmax))
+      call check( nf90_get_var(param%nciu%ncid, param%nciu%time_varid, val, start=[itmax], count=[1]) )
 
-      old_t_final = tvals(itmax)
+      old_t_final = val(1)
 
-      deallocate(tvals)
+      if (param%lenergy) then
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%KE_orb_varid, val, start=[1], count=[1]) )
+         KE_orb_orig = val(1)
+
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%KE_spin_varid, val, start=[1], count=[1]) )
+         KE_spin_orig = val(1)
+
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%PE_varid, val, start=[1], count=[1]) )
+         PE_orig = val(1)
+
+         self%Eorbit_orig = KE_orb_orig + KE_spin_orig + PE_orig
+
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orbx_varid, val, start=[1], count=[1]) )
+         self%Lorbit_orig(1) = val(1)
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orby_varid, val, start=[1], count=[1]) )
+         self%Lorbit_orig(2) = val(1)
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orbz_varid, val, start=[1], count=[1]) )
+         self%Lorbit_orig(3) = val(1)
+
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinx_varid, val, start=[1], count=[1]) )
+         self%Lspin_orig(1) = val(1)
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spiny_varid, val, start=[1], count=[1]) )
+         self%Lspin_orig(2) = val(1)
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinz_varid, val, start=[1], count=[1]) )
+         self%Lspin_orig(3) = val(1)
+
+         self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:)
+
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%Gmass_varid, vals, start=[1,1], count=[idmax,1]) )
+         self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax))
+
+      end if
+
+      deallocate(vals)
       
       return
    end function netcdf_get_old_t_final_system
@@ -607,21 +642,21 @@ contains
       call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]) )
 
       if (param%lenergy) then
-         call check( nf90_get_var(iu%ncid, iu%KE_orb_varid,      self%ke_orbit,     start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%KE_spin_varid,     self%ke_spin,      start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%PE_varid,          self%pe,           start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_orbx_varid,      self%Lorbit(1),    start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_orby_varid,      self%Lorbit(2),    start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_orbz_varid,      self%Lorbit(3),    start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_spinx_varid,     self%Lspin(1),     start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_spiny_varid,     self%Lspin(2),     start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_spinz_varid,     self%Lspin(3),     start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_escapex_varid,   param%Lescape(1),  start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_escapey_varid,   param%Lescape(2),  start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%L_escapez_varid,   param%Lescape(3),  start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%Ecollisions_varid, param%Ecollisions, start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%Euntracked_varid,  param%Euntracked,  start=[tslot]) )
-         call check( nf90_get_var(iu%ncid, iu%GMescape_varid,    param%GMescape,    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%KE_orb_varid,      self%ke_orbit,    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%KE_spin_varid,     self%ke_spin,     start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%PE_varid,          self%pe,          start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_orbx_varid,      self%Lorbit(1),   start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_orby_varid,      self%Lorbit(2),   start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_orbz_varid,      self%Lorbit(3),   start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_spinx_varid,     self%Lspin(1),    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_spiny_varid,     self%Lspin(2),    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_spinz_varid,     self%Lspin(3),    start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_escapex_varid,   self%Lescape(1),  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_escapey_varid,   self%Lescape(2),  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%L_escapez_varid,   self%Lescape(3),  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%Ecollisions_varid, self%Ecollisions, start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%Euntracked_varid,  self%Euntracked,  start=[tslot]) )
+         call check( nf90_get_var(iu%ncid, iu%GMescape_varid,    self%GMescape,    start=[tslot]) )
       end if
 
       return
@@ -1077,12 +1112,12 @@ contains
          call check( nf90_put_var(iu%ncid, iu%L_spinx_varid, self%Lspin(1), start=[tslot]) )
          call check( nf90_put_var(iu%ncid, iu%L_spiny_varid, self%Lspin(2), start=[tslot]) )
          call check( nf90_put_var(iu%ncid, iu%L_spinz_varid, self%Lspin(3), start=[tslot]) )
-         call check( nf90_put_var(iu%ncid, iu%L_escapex_varid, param%Lescape(1), start=[tslot]) )
-         call check( nf90_put_var(iu%ncid, iu%L_escapey_varid, param%Lescape(2), start=[tslot]) )
-         call check( nf90_put_var(iu%ncid, iu%L_escapez_varid, param%Lescape(3), start=[tslot]) )
-         call check( nf90_put_var(iu%ncid, iu%Ecollisions_varid, param%Ecollisions, start=[tslot]) )
-         call check( nf90_put_var(iu%ncid, iu%Euntracked_varid, param%Euntracked, start=[tslot]) )
-         call check( nf90_put_var(iu%ncid, iu%GMescape_varid, param%GMescape, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_escapex_varid, self%Lescape(1), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_escapey_varid, self%Lescape(2), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%L_escapez_varid, self%Lescape(3), start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%Ecollisions_varid, self%Ecollisions, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%Euntracked_varid, self%Euntracked, start=[tslot]) )
+         call check( nf90_put_var(iu%ncid, iu%GMescape_varid, self%GMescape, start=[tslot]) )
       end if
 
       return
