@@ -201,7 +201,7 @@ contains
 
          close(unit = LUN, err = 667, iomsg = errmsg)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         call self%write_particle_info(param%nciu)
+         call self%write_particle_info(param%nciu, param)
       end if
 
       return
@@ -1932,7 +1932,7 @@ contains
 
          ! Record the discarded body metadata information to file
          if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-            call tp_discards%write_particle_info(param%nciu)
+            call tp_discards%write_particle_info(param%nciu, param)
          end if
    
          if (param%discard_out == "") return
