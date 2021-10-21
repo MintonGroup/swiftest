@@ -60,6 +60,7 @@ FSTRICTFLAGS = $(ADVIXE_FLAGS) $(STRICTREAL) $(SIMDVEC) $(PAR)
 FFLAGS = $(ADVIXE_FLAGS) -fp-model=fast $(SIMDVEC) $(PAR)
 FORTRAN = ifort
 AR     = xiar
+CC    = icc
 
 CC              = icc
 CFLAGS          = -O3 -w -m64 -std=c99
