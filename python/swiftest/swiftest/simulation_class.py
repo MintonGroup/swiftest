@@ -34,12 +34,12 @@ class Simulation:
             'CHK_QMIN': "-1.0",
             'CHK_QMIN_COORD': "HELIO",
             'CHK_QMIN_RANGE': "-1.0 -1.0",
-            'ENC_OUT': "enc.dat",
+            'ENC_OUT': "",
             'MU2KG': constants.MSun,
             'TU2S': constants.JD2S,
             'DU2M': constants.AU2M,
             'EXTRA_FORCE': "NO",
-            'DISCARD_OUT': "discard.out",
+            'DISCARD_OUT': "",
             'PARTICLE_OUT' : "",
             'BIG_DISCARD': "NO",
             'CHK_CLOSE': "YES",
@@ -48,7 +48,9 @@ class Simulation:
             'ROTATION': "NO",
             'TIDES': "NO",
             'ENERGY': "NO",
-            'GR': "NO",
+            'GR': "YES",
+            'INTERACTION_LOOPS': "ADAPTIVE",
+            'ENCOUNTER_CHECK': "ADAPTIVE"
         }
         self.codename = codename
         if param_file != "" :
