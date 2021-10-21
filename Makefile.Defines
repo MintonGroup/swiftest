@@ -66,13 +66,12 @@ GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-stri
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
-
 MKL_ROOT = /apps/spack/bell/apps/intel-parallel-studio/cluster.2019.5-intel-19.0.5-4brgqlf/mkl/lib
 IMKL = -I$(MKLROOT)/include
 LMKL = -L$(MKLROOT)/lib/intel64 -qopt-matmul 
 
-FSTRICTFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR)
-FFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR)
+FSTRICTFLAGS = $(IPRODUCTION) $(STRICTREAL)
+FFLAGS = $(IPRODUCTION) -fp-model=fast
 FORTRAN = ifort
 AR     = xiar
 CC    = icc
