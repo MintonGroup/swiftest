@@ -58,6 +58,11 @@ def read_swiftest_param(param_file_name, param):
         
         param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
         param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
+        param['OUT_TYPE'] = param['OUT_TYPE'].upper()
+        param['OUT_FORM'] = param['OUT_FORM'].upper()
+        param['OUT_STAT'] = param['OUT_STAT'].upper()
+        param['IN_TYPE'] = param['IN_TYPE'].upper()
+        param['IN_FORM'] = param['IN_FORM'].upper()
         param['T0'] = real2float(param['T0'])
         param['TSTOP'] = real2float(param['TSTOP'])
         param['DT'] = real2float(param['DT'])
@@ -74,11 +79,14 @@ def read_swiftest_param(param_file_name, param):
         param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
         param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
         if param['FRAGMENTATION'] == 'YES' and param['PARTICLE_OUT'] == '':
-            param['PARTICLE_OUT'] = 'particle.dat'
+            if param['OUT_TYPE'] == 'REAL8' or param['OUT_TYPE'] == 'REAL4':
+                param['PARTICLE_OUT'] = 'particle.dat'
         param['ROTATION'] = param['ROTATION'].upper()
         param['TIDES'] = param['TIDES'].upper()
         param['ENERGY'] = param['ENERGY'].upper()
         param['GR'] = param['GR'].upper()
+        param['INTERACTION_LOOPS'] = param['INTERACTION_LOOPS'].upper()
+        param['ENCOUNTER_CHECK'] = param['ENCOUNTER_CHECK'].upper()
         if 'GMTINY' in param:
             param['GMTINY'] = real2float(param['GMTINY'])
     except IOError:
@@ -1517,6 +1525,11 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
        swifter_param['OUT_TYPE'] = 'REAL4'
     if swifter_param['OUT_FORM'] == 'XVEL':
        swifter_param['OUT_FORM'] = 'XV'
+    IN_FORM = swifter_param.pop("IN_FORM", None)
+    INTERACTION_LOOPS = swifter_param.pop("INTERACTION_LOOPS", None)
+    ENCOUNTER_CHECK = swifter_param.pop("ENCOUNTER_CHECK", None)
+    ENCOUNTER_CHECK_PLPL = swifter_param.pop("ENCOUNTER_CHECK_PLPL", None)
+    ENCOUNTER_CHECK_PLTP = swifter_param.pop("ENCOUNTER_CHECK_PLTP", None)
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"
 
     return swifter_param
