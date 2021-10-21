@@ -169,6 +169,9 @@ contains
          call check( nf90_def_var_chunking(self%ncid, self%name_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
       call check( nf90_def_var(self%ncid, PTYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%ptype_varid) )
          call check( nf90_def_var_chunking(self%ncid, self%ptype_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
+      call check( nf90_def_var(self%ncid, STATUS_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%status_varid) )
+         call check( nf90_def_var_chunking(self%ncid, self%status_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
+
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhx_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%xhx_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
@@ -201,14 +204,53 @@ contains
 
       call check( nf90_def_var(self%ncid, GMASS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Gmass_varid) )
          call check( nf90_def_var_chunking(self%ncid, self%Gmass_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
+
       if (param%lrhill_present) then
          call check( nf90_def_var(self%ncid, RHILL_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rhill_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%rhill_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
       end if
+
       if (param%lclose) then
          call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%radius_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%radius_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
+
+         call check( nf90_def_var(self%ncid, ORIGIN_TIME_VARNAME, self%out_type, self%id_dimid, self%origin_time_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_time_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, ORIGIN_TYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%origin_type_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_type_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, ORIGIN_XHX_VARNAME, self%out_type, self%id_dimid, self%origin_xhx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, ORIGIN_XHY_VARNAME, self%out_type, self%id_dimid, self%origin_xhy_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_xhy_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, ORIGIN_XHZ_VARNAME, self%out_type, self%id_dimid, self%origin_xhz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_xhz_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, ORIGIN_VHX_VARNAME, self%out_type, self%id_dimid, self%origin_vhx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_vhx_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, ORIGIN_VHY_VARNAME, self%out_type, self%id_dimid, self%origin_vhy_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_vhy_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, ORIGIN_VHZ_VARNAME, self%out_type, self%id_dimid,  self%origin_vhz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%origin_vhz_varid, NF90_CHUNKED, [self%id_chunk]) )
+
+         call check( nf90_def_var(self%ncid, COLLISION_ID_VARNAME, NF90_INT, self%id_dimid, self%collision_id_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%collision_id_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_TIME_VARNAME, self%out_type, self%id_dimid, self%discard_time_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_time_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_XHX_VARNAME, self%out_type, self%id_dimid, self%discard_xhx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_XHY_VARNAME, self%out_type, self%id_dimid, self%discard_xhy_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_xhy_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_XHZ_VARNAME, self%out_type, self%id_dimid, self%discard_xhz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_xhz_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_VHX_VARNAME, self%out_type, self%id_dimid, self%discard_vhx_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_vhx_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_VHY_VARNAME, self%out_type, self%id_dimid, self%discard_vhy_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_vhy_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_VHZ_VARNAME, self%out_type, self%id_dimid,  self%discard_vhz_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_vhz_varid, NF90_CHUNKED, [self%id_chunk]) )
+         call check( nf90_def_var(self%ncid, DISCARD_BODY_ID_VARNAME, NF90_INT, self%id_dimid, self%discard_body_id_varid) )
+            call check( nf90_def_var_chunking(self%ncid, self%discard_body_id_varid, NF90_CHUNKED, [self%id_chunk]) )
       end if
+
       if (param%lrotation) then
          call check( nf90_def_var(self%ncid, IP1_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip1_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%Ip1_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
@@ -223,12 +265,14 @@ contains
          call check( nf90_def_var(self%ncid, ROTZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotz_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%rotz_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
       end if
+
       if (param%ltides) then
          call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%k2_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%k2_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Q_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%Q_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
       end if
+
       if (param%lenergy) then
          call check( nf90_def_var(self%ncid, KE_ORB_VARNAME, self%out_type, self%time_dimid, self%KE_orb_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%KE_orb_varid, NF90_CHUNKED, [self%time_chunk]) )
@@ -261,43 +305,6 @@ contains
          call check( nf90_def_var(self%ncid, GMESCAPE_VARNAME, self%out_type, self%time_dimid, self%GMescape_varid) )
             call check( nf90_def_var_chunking(self%ncid, self%GMescape_varid, NF90_CHUNKED, [self%time_chunk]) )
       end if
-
-      call check( nf90_def_var(self%ncid, STATUS_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%status_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%status_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_TYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%origin_type_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_type_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_TIME_VARNAME, self%out_type, self%id_dimid, self%origin_time_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_time_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, COLLISION_ID_VARNAME, NF90_INT, self%id_dimid, self%collision_id_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%collision_id_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_XHX_VARNAME, self%out_type, self%id_dimid, self%origin_xhx_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_XHY_VARNAME, self%out_type, self%id_dimid, self%origin_xhy_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_xhy_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_XHZ_VARNAME, self%out_type, self%id_dimid, self%origin_xhz_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_xhz_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_VHX_VARNAME, self%out_type, self%id_dimid, self%origin_vhx_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_vhx_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_VHY_VARNAME, self%out_type, self%id_dimid, self%origin_vhy_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_vhy_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, ORIGIN_VHZ_VARNAME, self%out_type, self%id_dimid,  self%origin_vhz_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%origin_vhz_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_TIME_VARNAME, self%out_type, self%id_dimid, self%discard_time_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_time_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_XHX_VARNAME, self%out_type, self%id_dimid, self%discard_xhx_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_XHY_VARNAME, self%out_type, self%id_dimid, self%discard_xhy_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_xhy_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_XHZ_VARNAME, self%out_type, self%id_dimid, self%discard_xhz_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_xhz_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_VHX_VARNAME, self%out_type, self%id_dimid, self%discard_vhx_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_vhx_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_VHY_VARNAME, self%out_type, self%id_dimid, self%discard_vhy_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_vhy_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_VHZ_VARNAME, self%out_type, self%id_dimid,  self%discard_vhz_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_vhz_varid, NF90_CHUNKED, [self%id_chunk]) )
-      call check( nf90_def_var(self%ncid, DISCARD_BODY_ID_VARNAME, NF90_INT, self%id_dimid, self%discard_body_id_varid) )
-         call check( nf90_def_var_chunking(self%ncid, self%discard_body_id_varid, NF90_CHUNKED, [self%id_chunk]) )
 
       ! Set fill mode to NaN for all variables
       call check( nf90_inquire(self%ncid, nVariables=nvar) )
@@ -355,6 +362,7 @@ contains
       call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid))
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid))
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid))
+      call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid))
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid))
@@ -364,6 +372,7 @@ contains
          call check( nf90_inq_varid(self%ncid, VHY_VARNAME, self%vhy_varid))
          call check( nf90_inq_varid(self%ncid, VHZ_VARNAME, self%vhz_varid))
       end if
+
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, A_VARNAME, self%a_varid))
          call check( nf90_inq_varid(self%ncid, E_VARNAME, self%e_varid))
@@ -373,8 +382,30 @@ contains
          call check( nf90_inq_varid(self%ncid, CAPM_VARNAME, self%capm_varid))
       end if
       call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid))
-      if (param%lclose) call check( nf90_inq_varid(self%ncid, RADIUS_VARNAME, self%radius_varid))
+
       if (param%lrhill_present) call check( nf90_inq_varid(self%ncid, RHILL_VARNAME, self%rhill_varid))
+
+      if (param%lclose) then
+         call check( nf90_inq_varid(self%ncid, RADIUS_VARNAME, self%radius_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_VHX_VARNAME, self%origin_vhx_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_VHY_VARNAME, self%origin_vhy_varid))
+         call check( nf90_inq_varid(self%ncid, ORIGIN_VHZ_VARNAME, self%origin_vhz_varid))
+
+         call check( nf90_inq_varid(self%ncid, COLLISION_ID_VARNAME, self%collision_id_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_TIME_VARNAME, self%discard_time_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_XHX_VARNAME, self%discard_xhx_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_XHY_VARNAME, self%discard_xhy_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_XHZ_VARNAME, self%discard_xhz_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_VHX_VARNAME, self%discard_vhx_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_VHY_VARNAME, self%discard_vhy_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_VHZ_VARNAME, self%discard_vhz_varid))
+         call check( nf90_inq_varid(self%ncid, DISCARD_BODY_ID_VARNAME, self%discard_body_id_varid))
+      end if
 
       if (param%lrotation) then
          call check( nf90_inq_varid(self%ncid, IP1_VARNAME, self%Ip1_varid))
@@ -407,26 +438,6 @@ contains
          call check( nf90_inq_varid(self%ncid, EUNTRACKED_VARNAME, self%Euntracked_varid) )
          call check( nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid) )
       end if
-
-      call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid))
-      call check( nf90_inq_varid(self%ncid, COLLISION_ID_VARNAME, self%collision_id_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_VHX_VARNAME, self%origin_vhx_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_VHY_VARNAME, self%origin_vhy_varid))
-      call check( nf90_inq_varid(self%ncid, ORIGIN_VHZ_VARNAME, self%origin_vhz_varid))
-
-      call check( nf90_inq_varid(self%ncid, DISCARD_TIME_VARNAME, self%discard_time_varid))
-      call check( nf90_inq_varid(self%ncid, DISCARD_XHX_VARNAME, self%discard_xhx_varid))
-      call check( nf90_inq_varid(self%ncid, DISCARD_XHY_VARNAME, self%discard_xhy_varid))
-      call check( nf90_inq_varid(self%ncid, DISCARD_XHZ_VARNAME, self%discard_xhz_varid))
-      call check( nf90_inq_varid(self%ncid, DISCARD_VHX_VARNAME, self%discard_vhx_varid))
-      call check( nf90_inq_varid(self%ncid, DISCARD_VHY_VARNAME, self%discard_vhy_varid))
-      call check( nf90_inq_varid(self%ncid, DISCARD_VHZ_VARNAME, self%discard_vhz_varid))
-      call check( nf90_inq_varid(self%ncid, DISCARD_BODY_ID_VARNAME, self%discard_body_id_varid))
 
       return
    end subroutine netcdf_open
@@ -608,7 +619,7 @@ contains
             pl%Q(:) = pack(rtemp, plmask)
          end if
 
-         call self%read_particle_info(iu, plmask, tpmask) 
+         call self%read_particle_info(iu, param, plmask, tpmask) 
       end associate
 
       call iu%close()
@@ -666,7 +677,7 @@ contains
    end subroutine netcdf_read_hdr_system
 
 
-   module subroutine netcdf_read_particle_info_system(self, iu, plmask, tpmask)
+   module subroutine netcdf_read_particle_info_system(self, iu, param, plmask, tpmask)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Reads particle information metadata from file
@@ -674,6 +685,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
       class(netcdf_parameters),     intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
       logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       ! Internals
@@ -751,80 +763,82 @@ contains
             call tp%info(i)%set_value(status=ctemp(tpind(i)))
          end do
 
-         call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, 1]) )
-         call cb%info%set_value(origin_type=ctemp(1))
-         do i = 1, npl
-            call pl%info(i)%set_value(origin_type=ctemp(plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(origin_type=ctemp(tpind(i)))
-         end do
+         if (param%lclose) then
+            call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, 1]) )
+            call cb%info%set_value(origin_type=ctemp(1))
+            do i = 1, npl
+               call pl%info(i)%set_value(origin_type=ctemp(plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(origin_type=ctemp(tpind(i)))
+            end do
 
-         call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp) )
-         do i = 1, npl
-            call pl%info(i)%set_value(collision_id=itemp(plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
-         end do
+            call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp) )
+            call cb%info%set_value(origin_time=rtemp(1))
+            do i = 1, npl
+               call pl%info(i)%set_value(origin_time=rtemp(plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(origin_time=rtemp(tpind(i)))
+            end do
 
-         call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp) )
-         call cb%info%set_value(origin_time=rtemp(1))
-         do i = 1, npl
-            call pl%info(i)%set_value(origin_time=rtemp(plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(origin_time=rtemp(tpind(i)))
-         end do
+            call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)) )
+            call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)) )
+            call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)) )
+            do i = 1, npl
+               call pl%info(i)%set_value(origin_xh=rtemp_arr(:,plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(origin_xh=rtemp_arr(:,tpind(i)))
+            end do
 
-         call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)) )
-         call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)) )
-         call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)) )
-         do i = 1, npl
-            call pl%info(i)%set_value(origin_xh=rtemp_arr(:,plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(origin_xh=rtemp_arr(:,tpind(i)))
-         end do
+            call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)) )
+            call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)) )
+            call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)) )
+            do i = 1, npl
+               call pl%info(i)%set_value(origin_vh=rtemp_arr(:,plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(origin_vh=rtemp_arr(:,tpind(i)))
+            end do
 
-         call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)) )
-         call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)) )
-         call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)) )
-         do i = 1, npl
-            call pl%info(i)%set_value(origin_vh=rtemp_arr(:,plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(origin_vh=rtemp_arr(:,tpind(i)))
-         end do
+            call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp) )
+            do i = 1, npl
+               call pl%info(i)%set_value(collision_id=itemp(plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
+            end do
 
-         call check( nf90_get_var(iu%ncid, iu%discard_time_varid, rtemp) )
-         call cb%info%set_value(discard_time=rtemp(1))
-         do i = 1, npl
-            call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
-         end do
+            call check( nf90_get_var(iu%ncid, iu%discard_time_varid, rtemp) )
+            call cb%info%set_value(discard_time=rtemp(1))
+            do i = 1, npl
+               call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
+            end do
 
-         call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, rtemp_arr(1,:)) )
-         call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, rtemp_arr(2,:)) )
-         call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, rtemp_arr(3,:)) )
-         do i = 1, npl
-            call pl%info(i)%set_value(discard_xh=rtemp_arr(:,plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(discard_xh=rtemp_arr(:,tpind(i)))
-         end do
+            call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, rtemp_arr(1,:)) )
+            call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, rtemp_arr(2,:)) )
+            call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, rtemp_arr(3,:)) )
+            do i = 1, npl
+               call pl%info(i)%set_value(discard_xh=rtemp_arr(:,plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(discard_xh=rtemp_arr(:,tpind(i)))
+            end do
 
-         call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, rtemp_arr(1,:)) )
-         call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, rtemp_arr(2,:)) )
-         call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, rtemp_arr(3,:)) )
-         do i = 1, npl
-            call pl%info(i)%set_value(discard_vh=rtemp_arr(:,plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(discard_vh=rtemp_arr(:,tpind(i)))
-         end do
+            call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, rtemp_arr(1,:)) )
+            call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, rtemp_arr(2,:)) )
+            call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, rtemp_arr(3,:)) )
+            do i = 1, npl
+               call pl%info(i)%set_value(discard_vh=rtemp_arr(:,plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(discard_vh=rtemp_arr(:,tpind(i)))
+            end do
+         end if
 
       end associate
 
@@ -856,13 +870,13 @@ contains
       ! Arguments
       class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
 
-      call self%write_particle_info(iu)
+      call self%write_particle_info(iu, param)
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
@@ -950,8 +964,8 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-      class(netcdf_parameters),   intent(inout)   :: iu    !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
 
       call self%write_hdr(iu, param)
       call self%cb%write_frame(iu, param)
@@ -962,7 +976,7 @@ contains
    end subroutine netcdf_write_frame_system
 
 
-   module subroutine netcdf_write_particle_info_base(self, iu)
+   module subroutine netcdf_write_particle_info_base(self, iu, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Write all current particle to file
@@ -970,6 +984,7 @@ contains
       ! Arguments
       class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
@@ -1009,27 +1024,29 @@ contains
                call check( nf90_put_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
                call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
 
-               charstring = trim(adjustl(self%info(j)%origin_type))
-               strlen = len(charstring)
-               call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               if (param%lclose) then
+                  charstring = trim(adjustl(self%info(j)%origin_type))
+                  strlen = len(charstring)
+                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid,   self%info(j)%origin_xh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid,   self%info(j)%origin_xh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid,   self%info(j)%origin_xh(3), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid,   self%info(j)%origin_vh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid,   self%info(j)%origin_vh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid,   self%info(j)%origin_vh(3), start=[idslot]) )
+   
+                  call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info(j)%collision_id, start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info(j)%discard_time, start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info(j)%discard_xh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info(j)%discard_xh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info(j)%discard_xh(3), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info(j)%discard_vh(1), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info(j)%discard_vh(2), start=[idslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info(j)%discard_vh(3), start=[idslot]) )
+               end if
 
-               call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info(j)%collision_id, start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid,   self%info(j)%origin_xh(1), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid,   self%info(j)%origin_xh(2), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid,   self%info(j)%origin_xh(3), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid,   self%info(j)%origin_vh(1), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid,   self%info(j)%origin_vh(2), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid,   self%info(j)%origin_vh(3), start=[idslot]) )
-
-               call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info(j)%discard_time, start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info(j)%discard_xh(1), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info(j)%discard_xh(2), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info(j)%discard_xh(3), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info(j)%discard_vh(1), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info(j)%discard_vh(2), start=[idslot]) )
-               call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info(j)%discard_vh(3), start=[idslot]) )
             end do
          end associate
 
@@ -1052,27 +1069,30 @@ contains
          call check( nf90_put_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
          call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
 
-         charstring = trim(adjustl(self%info%origin_type))
-         strlen = len(charstring)
-         call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         if (param%lclose) then
+            charstring = trim(adjustl(self%info%origin_type))
+            strlen = len(charstring)
+            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
 
-         call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info%collision_id, start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]) )
+   
+            call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info%collision_id, start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info%discard_time, start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info%discard_xh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info%discard_xh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info%discard_xh(3), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info%discard_vh(1), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info%discard_vh(2), start=[idslot]) )
+            call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
+         end if
 
-         call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info%discard_time, start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info%discard_xh(1), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info%discard_xh(2), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info%discard_xh(3), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info%discard_vh(1), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info%discard_vh(2), start=[idslot]) )
-         call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]) )
       end select
 
       call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
@@ -1090,7 +1110,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
       class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B) :: tslot
 
