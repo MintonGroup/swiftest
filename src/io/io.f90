@@ -2138,7 +2138,7 @@ contains
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
 
          param%nciu%id_chunk = pl%nbody + tp%nbody
-         param%nciu%time_chunk = param%istep_out / param%istep_dump
+         param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
          if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)
           
