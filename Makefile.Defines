@@ -69,6 +69,7 @@ FSTRICTFLAGS = $(IPRODUCTION) $(STRICTREAL) $(OPTREPORT)
 FFLAGS = $(IPRODUCTION) -fp-model=fast $(OPTREPORT) 
 FORTRAN = ifort
 AR     = xiar
+CC    = icc
 
 #FORTRAN = gfortran
 #FFLAGS =  $(GDEBUG)  $(GMEM) #$(GPAR)
