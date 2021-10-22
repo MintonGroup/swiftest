@@ -177,7 +177,7 @@ contains
       end do
   
       return
-   end subroutine Partition_index_DP
+   end subroutine Partition_DP
  
 
    module pure subroutine util_sort_i4b(arr)
