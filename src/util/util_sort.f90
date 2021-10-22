@@ -74,15 +74,12 @@ contains
       do i = 2, n
          tmp = arr(i)
          j = i - 1
-         do while ((j > 1) .and. (arr(j) > tmp))
+         do while (j >= 1)
+            if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(j) > tmp)) then
-            arr(j + 1) = arr(j)
-            j = j - 1
-         end if
-         arr(j + 1) = tmp
+         arr(j + 1) = tmp 
       end do
 
       return
@@ -102,7 +99,7 @@ contains
       real(DP), dimension(:), intent(in)  :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      integer(I4B) :: n, i, j, itmp
+      integer(I4B) :: n, i, j, jp, itmp
 
       n = size(arr)
       if (.not.allocated(ind)) then
@@ -112,15 +109,12 @@ contains
       do i = 2, n
          itmp = ind(i)
          j = i - 1
-         do while ((j > 1) .and. (arr(ind(j)) > arr(itmp)))
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(ind(j)) > arr(itmp))) then
-            ind(j + 1) = ind(j)
-            j = j - 1
-         end if
-         ind(j + 1) = itmp
+         ind(j + 1) = itmp 
       end do
 
       return
@@ -144,15 +138,12 @@ contains
       do i = 2, n
          tmp = arr(i)
          j = i - 1
-         do while ((j > 1) .and. (arr(j) > tmp))
+         do while (j >= 1)
+            if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(j) > tmp)) then
-            arr(j + 1) = arr(j)
-            j = j - 1
-         end if
-         arr(j + 1) = tmp
+         arr(j + 1) = tmp 
       end do
 
       return
@@ -182,15 +173,12 @@ contains
       do i = 2, n
          itmp = ind(i)
          j = i - 1
-         do while ((j > 1) .and. (arr(ind(j)) > arr(itmp)))
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(ind(j)) > arr(itmp))) then
-            ind(j + 1) = ind(j)
-            j = j - 1
-         end if
-         ind(j + 1) = itmp
+         ind(j + 1) = itmp 
       end do
 
       return
@@ -214,15 +202,12 @@ contains
       do i = 2, n
          tmp = arr(i)
          j = i - 1
-         do while ((j > 1) .and. (arr(j) > tmp))
+         do while (j >= 1)
+            if (arr(j) <= tmp) exit
             arr(j + 1) = arr(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(j) > tmp)) then
-            arr(j + 1) = arr(j)
-            j = j - 1
-         end if
-         arr(j + 1) = tmp
+         arr(j + 1) = tmp 
       end do
 
       return
@@ -252,15 +237,12 @@ contains
       do i = 2, n
          itmp = ind(i)
          j = i - 1
-         do while ((j > 1) .and. (arr(ind(j)) > arr(itmp)))
+         do while (j >= 1)
+            if (arr(ind(j)) <= arr(itmp)) exit
             ind(j + 1) = ind(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(ind(j)) > arr(itmp))) then
-            ind(j + 1) = ind(j)
-            j = j - 1
-         end if
-         ind(j + 1) = itmp
+         ind(j + 1) = itmp 
       end do
 
       return
