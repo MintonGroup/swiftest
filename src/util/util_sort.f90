@@ -118,9 +118,12 @@ contains
       !! author: David A. Minton
       !!
       !! Sort input DP precision array by index in ascending numerical order using quicksort sort.
+      !!
       implicit none
+      ! Arguments
       real(DP), dimension(:), intent(inout) :: arr
       integer(I4B),dimension(:),intent(out) :: ind
+      !! Internals
       integer :: iq
 
       if (size(arr) > 1) then
@@ -137,16 +140,24 @@ contains
       !! author: David A. Minton
       !!
       !! Partition function for quicksort on DP type
-      real(DP),     intent(inout), dimension(:) :: arr
+      !!
+      implicit none
+      ! Arguments
+      real(DP),     intent(inout), dimension(:)           :: arr
       integer(I4B), intent(inout), dimension(:), optional :: ind
-      integer(I4B), intent(out) :: marker
-      integer(I4B) :: i, j, itmp
+      integer(I4B), intent(out)                           :: marker
+      ! Internals
+      integer(I4B) :: i, j, itmp, narr, ipiv
       real(DP) :: temp
-      real(DP) :: x      ! pivot point
+      real(DP) :: x   ! pivot point
 
-      x = arr(1)
+      narr = size(arr)
+
+      ! Get center as pivot, as this is likely partially sorted
+      ipiv = narr / 2
+      x = arr(ipiv)
       i = 0
-      j = size(arr) + 1
+      j = narr + 1
    
       do
          j = j - 1
@@ -164,9 +175,11 @@ contains
             temp = arr(i)
             arr(i) = arr(j)
             arr(j) = temp
-            itmp = ind(i)
-            ind(i) = ind(j)
-            ind(j) = itmp
+            if (present(ind)) then
+               itmp = ind(i)
+               ind(i) = ind(j)
+               ind(j) = itmp
+            end if
          else if (i == j) then
             marker = i + 1
             return
