@@ -60,7 +60,7 @@ contains
    module pure subroutine util_sort_dp(arr)
       !! author: David A. Minton
       !!
-      !! Sort input double precision array in place into ascending numerical order using insertion sort.
+      !! Sort input DP precision array in place into ascending numerical order using insertion sort.
       !! This algorithm works well for partially sorted arrays (which is usually the case here)
       !!
       implicit none
@@ -89,7 +89,7 @@ contains
    module pure subroutine util_sort_index_dp(arr, ind)
       !! author: David A. Minton
       !!
-      !! Sort input double precision array by index in ascending numerical order using insertion sort.
+      !! Sort input DP precision array by index in ascending numerical order using insertion sort.
       !! This algorithm works well for partially sorted arrays (which is usually the case here).
       !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
       !! sorted array). If it is not allocated, this subroutine allocates it.
@@ -99,27 +99,86 @@ contains
       real(DP), dimension(:), intent(in)  :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      integer(I4B) :: n, i, j, jp, itmp
+      integer(I4B) :: n, i, j, itmp
+      real(DP), dimension(:), allocatable :: tmparr
 
       n = size(arr)
       if (.not.allocated(ind)) then
          allocate(ind(n))
          ind = [(i, i=1, n)]
       end if
-      do i = 2, n
-         itmp = ind(i)
-         j = i - 1
-         do while (j >= 1)
-            if (arr(ind(j)) <= arr(itmp)) exit
-            ind(j + 1) = ind(j)
-            j = j - 1
-         end do
-         ind(j + 1) = itmp 
-      end do
-
+      allocate(tmparr, source=arr)
+      call qsort_index_DP(tmparr, ind)
+   
       return
    end subroutine util_sort_index_dp
 
+
+   recursive pure subroutine qsort_index_DP(arr, ind)
+      !! author: David A. Minton
+      !!
+      !! Sort input DP precision array by index in ascending numerical order using quicksort sort.
+      implicit none
+      real(DP), dimension(:), intent(inout) :: arr
+      integer(I4B),dimension(:),intent(out) :: ind
+      integer :: iq
+
+      if (size(arr) > 1) then
+         call partition_DP(arr, iq, ind)
+         call qsort_index_DP(arr(:iq-1),ind(:iq-1))
+         call qsort_index_DP(arr(iq:),  ind(iq:))
+      end if
+
+      return
+   end subroutine qsort_index_DP
+
+ 
+   pure subroutine partition_DP(arr, marker, ind)
+      !! author: David A. Minton
+      !!
+      !! Partition function for quicksort on DP type
+      real(DP),     intent(inout), dimension(:) :: arr
+      integer(I4B), intent(inout), dimension(:), optional :: ind
+      integer(I4B), intent(out) :: marker
+      integer(I4B) :: i, j, itmp
+      real(DP) :: temp
+      real(DP) :: x      ! pivot point
+
+      x = arr(1)
+      i = 0
+      j = size(arr) + 1
+   
+      do
+         j = j - 1
+         do
+            if (arr(j) <= x) exit
+            j = j - 1
+         end do
+         i = i + 1
+         do
+            if (arr(i) >= x) exit
+            i = i + 1
+         end do
+         if (i < j) then
+            ! exchange A(i) and A(j)
+            temp = arr(i)
+            arr(i) = arr(j)
+            arr(j) = temp
+            itmp = ind(i)
+            ind(i) = ind(j)
+            ind(j) = itmp
+         else if (i == j) then
+            marker = i + 1
+            return
+         else
+            marker = i
+            return
+         endif
+      end do
+  
+      return
+   end subroutine Partition_DP
+ 
 
    module pure subroutine util_sort_i4b(arr)
       !! author: David A. Minton
