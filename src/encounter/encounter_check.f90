@@ -467,6 +467,8 @@ contains
          ntot_last = ntot
       end if
     
+      call timer%reset()
+      call timer%start()
       !$omp parallel do default(private) schedule(static) &
       !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)
