@@ -452,7 +452,7 @@ contains
 
          ntot_last = ntot
       end if
-     
+    
       !$omp parallel do default(private) schedule(static) &
       !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)

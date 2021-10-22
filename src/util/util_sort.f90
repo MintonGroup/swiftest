@@ -74,10 +74,14 @@ contains
       do i = 2, n
          tmp = arr(i)
          j = i - 1
-         do while ((j >= 1) .and. (arr(j) > tmp))
+         do while ((j > 1) .and. (arr(j) > tmp))
             arr(j + 1) = arr(j)
             j = j - 1
          end do
+         if ((j == 1) .and. (arr(j) > tmp)) then
+            arr(j + 1) = arr(j)
+            j = j - 1
+         end if
          arr(j + 1) = tmp
       end do
 
@@ -108,11 +112,14 @@ contains
       do i = 2, n
          itmp = ind(i)
          j = i - 1
-         do while ((j >= 2) .and. (arr(ind(j)) > itmp))
+         do while ((j > 1) .and. (arr(ind(j)) > arr(itmp)))
             ind(j + 1) = ind(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(ind(1)) > itmp)) ind(2) = ind(1)
+         if ((j == 1) .and. (arr(ind(j)) > arr(itmp))) then
+            ind(j + 1) = ind(j)
+            j = j - 1
+         end if
          ind(j + 1) = itmp
       end do
 
@@ -137,10 +144,14 @@ contains
       do i = 2, n
          tmp = arr(i)
          j = i - 1
-         do while ((j >= 1) .and. (arr(j) > tmp))
+         do while ((j > 1) .and. (arr(j) > tmp))
             arr(j + 1) = arr(j)
             j = j - 1
          end do
+         if ((j == 1) .and. (arr(j) > tmp)) then
+            arr(j + 1) = arr(j)
+            j = j - 1
+         end if
          arr(j + 1) = tmp
       end do
 
@@ -168,21 +179,17 @@ contains
          allocate(ind(n))
          ind = [(i, i=1, n)]
       end if
-
-      itmp = ind(2)
-      if (arr(ind(1)) > itmp) then
-         ind(2) = ind(1)
-         ind(1) = itmp
-      end if
-         
       do i = 2, n
          itmp = ind(i)
          j = i - 1
-         do while ((j >= 2) .and. (arr(ind(j)) > itmp))
+         do while ((j > 1) .and. (arr(ind(j)) > arr(itmp)))
             ind(j + 1) = ind(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(ind(1)) > itmp)) ind(2) = ind(1)
+         if ((j == 1) .and. (arr(ind(j)) > arr(itmp))) then
+            ind(j + 1) = ind(j)
+            j = j - 1
+         end if
          ind(j + 1) = itmp
       end do
 
@@ -207,10 +214,14 @@ contains
       do i = 2, n
          tmp = arr(i)
          j = i - 1
-         do while ((j >= 1) .and. (arr(j) > tmp))
+         do while ((j > 1) .and. (arr(j) > tmp))
             arr(j + 1) = arr(j)
             j = j - 1
          end do
+         if ((j == 1) .and. (arr(j) > tmp)) then
+            arr(j + 1) = arr(j)
+            j = j - 1
+         end if
          arr(j + 1) = tmp
       end do
 
@@ -241,11 +252,14 @@ contains
       do i = 2, n
          itmp = ind(i)
          j = i - 1
-         do while ((j >= 2) .and. (arr(ind(j)) > itmp))
+         do while ((j > 1) .and. (arr(ind(j)) > arr(itmp)))
             ind(j + 1) = ind(j)
             j = j - 1
          end do
-         if ((j == 1) .and. (arr(ind(1)) > itmp)) ind(2) = ind(1)
+         if ((j == 1) .and. (arr(ind(j)) > arr(itmp))) then
+            ind(j + 1) = ind(j)
+            j = j - 1
+         end if
          ind(j + 1) = itmp
       end do
 
