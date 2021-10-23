@@ -7,7 +7,7 @@ module encounter_classes
    implicit none
    public
 
-   integer(I4B), parameter :: SWEEPDIM = 2
+   integer(I4B), parameter :: SWEEPDIM = 3
 
    type :: encounter_list
       integer(I4B)                              :: nenc = 0  !! Total number of encounters

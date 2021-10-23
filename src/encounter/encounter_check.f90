@@ -989,22 +989,14 @@ contains
       call timer%stop()
       write(*,*) "sweep double: ",timer%count_stop_step - timer%count_start_step
 
-      call timer%reset()
-      call timer%start()
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
-      call timer%stop()
-      write(*,*) "collapse rag: ",timer%count_stop_step - timer%count_start_step
 
-      call timer%reset()
-      call timer%start()
       ! Reorder the pairs and sort the first index in order to remove any duplicates
       do concurrent(k = 1:nenc, index2(k) < index1(k))
          i = index2(k)
          index2(k) = index1(k)
          index1(k) = i
       end do
-      call timer%stop()
-      write(*,*) "reorder arr : ",timer%count_stop_step - timer%count_start_step
 
       return
    end subroutine encounter_check_sweep_aabb_double_list
@@ -1146,7 +1138,6 @@ contains
       logical, dimension(:),        intent(out) :: lencounteri    !! Encounter list for the ith body
       ! Internals
       integer(I4B) :: j, jbox, dim, jlo, jhi
-      logical, dimension(2:SWEEPDIM) :: lenc
       integer(I4B), dimension(:), allocatable :: box
 
       lencounteri(:) = .false.
@@ -1157,14 +1148,12 @@ contains
       where(box(:) > ntot)
          box(:) = box(:) - ntot
       endwhere
-      do concurrent(jbox = jlo:jhi) ! Sweep forward until the end of the interval
+      
+      do concurrent (jbox = jlo:jhi)
          j = box(jbox)
          if (((i <= n1) .and. (j <= n1)) .or. ((i > n1) .and. (j > n1))) cycle  ! only pairs from the two different lists allowed
-         ! Check the y-dimension
-         do dim = 2, SWEEPDIM
-            lenc(dim) = (iend(dim,j) > ibegi(dim)) .and. (ibeg(dim,j) < iendi(dim))
-         end do
-         lencounteri(j) = all(lenc(:))
+         ! Check the other dimensions
+         lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
       end do
 
       return
@@ -1184,7 +1173,6 @@ contains
       logical, dimension(:),        intent(out) :: lencounteri  !! Encounter list for the ith body
       ! Internals
       integer(I4B) :: j, jbox, dim, jlo, jhi
-      logical, dimension(2:SWEEPDIM) :: lenc
       integer(I4B), dimension(:), allocatable :: box
 
       lencounteri(:) = .false.
@@ -1202,10 +1190,7 @@ contains
       do concurrent(jbox = jlo:jhi) ! Sweep forward until the end of the interval
          j = box(jbox)
          ! Check the other dimensions
-         do dim = 2, SWEEPDIM
-            lenc(dim) = (iend(dim,j) > ibegi(dim)) .and. (ibeg(dim,j) < iendi(dim))
-         end do
-         lencounteri(j) = all(lenc(:))
+         lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
       end do
 
       return
