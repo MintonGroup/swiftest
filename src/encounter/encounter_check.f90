@@ -1079,7 +1079,7 @@ contains
    end subroutine encounter_check_sweep_aabb_all_single_list
 
 
-   subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
+   pure subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
       !! author: David A. Minton
       !!
       !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
