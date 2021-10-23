@@ -1020,10 +1020,9 @@ contains
       integer(I4B), dimension(SWEEPDIM) :: ibegi, iendi
 
       ntot = n1 + n2
-      !$omp parallel do default(private) schedule(guided)&
+      !$omp parallel do default(private) schedule(dynamic)&
       !$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
-      !$omp firstprivate(ntot, n1, n2) &
-      !$omp lastprivate(ibegi, iendi) 
+      !$omp firstprivate(ntot, n1, n2) 
       do i = 1, ntot
          ibegi(1) = ibeg(1,i) + 1
          iendi(1) = iend(1,i) - 1
@@ -1058,10 +1057,10 @@ contains
       logical, dimension(n) :: lencounteri
       integer(I4B), dimension(SWEEPDIM) :: ibegi, iendi
 
-      !$omp parallel do default(private) schedule(guided)&
+      !$omp parallel do default(private) schedule(dynamic)&
       !$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
       !$omp firstprivate(n) &
-      !$omp lastprivate(ibegi, iendi) 
+      !$omp lastprivate(ibegi, iendi, lencounteri) 
       do i = 1, n
          ibegi(1) = ibeg(1,i) + 1
          iendi(1) = iend(1,i) - 1
@@ -1080,7 +1079,7 @@ contains
    end subroutine encounter_check_sweep_aabb_all_single_list
 
 
-   pure subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
+   subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
       !! author: David A. Minton
       !!
       !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
@@ -1095,20 +1094,23 @@ contains
       integer(I4B), dimension(:,:), intent(in)  :: ibeg, iend   !! Beginning and ending index lists in the n-dimensions
       logical, dimension(:),        intent(out) :: lencounteri    !! Encounter list for the ith body
       ! Internals
-      integer(I4B) :: j, jbox, dim
-      logical, dimension(SWEEPDIM) :: lenc
+      integer(I4B) :: j, jbox, dim, jlo, jhi
+      integer(I4B), dimension(:), allocatable :: box
 
       lencounteri(:) = .false.
-      lenc(1) = .true.
-      do concurrent(jbox = ibegi(1):iendi(1)) ! Sweep forward until the end of the interval
-         j = ext_ind(jbox)
-         if (j > ntot) j = j - ntot ! If this is an endpoint index, shift it to the correct range
+      jlo = ibegi(1)
+      jhi = iendi(1)
+      allocate(box(jlo:jhi))
+      box(:) = ext_ind(jlo:jhi)
+      where(box(:) > ntot)
+         box(:) = box(:) - ntot
+      endwhere
+      
+      do concurrent (jbox = jlo:jhi)
+         j = box(jbox)
          if (((i <= n1) .and. (j <= n1)) .or. ((i > n1) .and. (j > n1))) cycle  ! only pairs from the two different lists allowed
-         ! Check the y-dimension
-         do dim = 2, SWEEPDIM
-            lenc(dim) = (iend(dim,j) > ibegi(dim)) .and. (ibeg(dim,j) < iendi(dim))
-         end do
-         lencounteri(j) = all(lenc(:))
+         ! Check the other dimensions
+         lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
       end do
 
       return
@@ -1127,19 +1129,25 @@ contains
       integer(I4B), dimension(:,:), intent(in)  :: ibeg, iend   !! Beginning and ending index lists in the x-dimension
       logical, dimension(:),        intent(out) :: lencounteri  !! Encounter list for the ith body
       ! Internals
-      integer(I4B) :: j, jbox, dim
-      logical, dimension(SWEEPDIM) :: lenc
+      integer(I4B) :: j, jbox, dim, jlo, jhi
+      integer(I4B), dimension(:), allocatable :: box
 
       lencounteri(:) = .false.
-            lenc(1) = .true.
-      do concurrent(jbox = ibegi(1):iendi(1)) ! Sweep forward until the end of the interval
-         j = ext_ind(jbox)
-         if (j > n) j = j - n ! If this is an endpoint index, shift it to the correct range
+
+      jlo = ibegi(1)
+      jhi = iendi(1)
+
+      allocate(box(jlo:jhi))
+      box(:) = ext_ind(jlo:jhi)
+
+      where(box(:) > n)
+         box(:) = box(:) - n
+      endwhere
+
+      do concurrent(jbox = jlo:jhi) ! Sweep forward until the end of the interval
+         j = box(jbox)
          ! Check the other dimensions
-         do dim = 2, SWEEPDIM
-            lenc(dim) = (iend(dim,j) > ibegi(dim)) .and. (ibeg(dim,j) < iendi(dim))
-         end do
-         lencounteri(j) = all(lenc(:))
+         lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
       end do
 
       return
