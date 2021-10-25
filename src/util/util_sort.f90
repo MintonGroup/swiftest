@@ -93,7 +93,8 @@ contains
          allocate(ind(n))
          ind = [(i, i=1, n)]
       end if
-      allocate(tmparr, source=arr)
+      allocate(tmparr, mold=arr)
+      tmparr(:) = arr(ind(:))
       call qsort_DP(tmparr, ind)
    
       return
@@ -221,7 +222,8 @@ contains
          allocate(ind(n))
          ind = [(i, i=1, n)]
       end if
-      allocate(tmparr, source=arr)
+      allocate(tmparr, mold=arr)
+      tmparr(:) = arr(ind(:))
       call qsort_I4B(tmparr, ind)
 
       return
@@ -348,7 +350,8 @@ contains
          allocate(ind(n))
          ind = [(i, i=1, n)]
       end if
-      allocate(tmparr, source=arr)
+      allocate(tmparr, mold=arr)
+      tmparr(:) = arr(ind(:))
       call qsort_SP(tmparr, ind)
    
       return
