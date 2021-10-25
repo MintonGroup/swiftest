@@ -77,29 +77,29 @@ contains
       old_t_final = val(1)
 
       if (param%lenergy) then
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%KE_orb_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%KE_orb_varid, val, start=[1], count=[1]) )
          KE_orb_orig = val(1)
 
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%KE_spin_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%KE_spin_varid, val, start=[1], count=[1]) )
          KE_spin_orig = val(1)
 
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%PE_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%PE_varid, val, start=[1], count=[1]) )
          PE_orig = val(1)
 
          self%Eorbit_orig = KE_orb_orig + KE_spin_orig + PE_orig
 
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orbx_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orbx_varid, val, start=[1], count=[1]) )
          self%Lorbit_orig(1) = val(1)
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orby_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orby_varid, val, start=[1], count=[1]) )
          self%Lorbit_orig(2) = val(1)
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orbz_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orbz_varid, val, start=[1], count=[1]) )
          self%Lorbit_orig(3) = val(1)
 
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinx_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinx_varid, val, start=[1], count=[1]) )
          self%Lspin_orig(1) = val(1)
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spiny_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spiny_varid, val, start=[1], count=[1]) )
          self%Lspin_orig(2) = val(1)
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinz_varid, val, start=[itmax], count=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinz_varid, val, start=[1], count=[1]) )
          self%Lspin_orig(3) = val(1)
 
          self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:)
