@@ -289,6 +289,12 @@ contains
       logical, dimension(:), allocatable :: ltmp
 
       nenc = count(lencounter(:)) ! Count the true number of encounters
+      if (nenc == 0) then
+         if (allocated(index1)) deallocate(index1)
+         if (allocated(index2)) deallocate(index2)
+         if (allocated(lvdotr)) deallocate(lvdotr)
+         return
+      end if
 
       allocate(itmp(nenc))
       itmp(:) = pack(index1(:), lencounter(:))

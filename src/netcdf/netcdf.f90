@@ -68,11 +68,11 @@ contains
       real(DP), dimension(1)                    :: val
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, Ltmp
 
-      call param%nciu%open(param)
+      call param%nciu%open(param, readonly=.true.)
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%time_dimid, len=itmax) )
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%id_dimid, len=idmax) )
       allocate(vals(idmax))
-      call check( nf90_get_var(param%nciu%ncid, param%nciu%time_varid, val, start=[itmax], count=[1]) )
+      call check( nf90_get_var(param%nciu%ncid, param%nciu%time_varid, val, start=[1], count=[1]) )
 
       old_t_final = val(1)
 
@@ -110,6 +110,7 @@ contains
       end if
 
       deallocate(vals)
+      call param%nciu%close()
       
       return
    end function netcdf_get_old_t_final_system
@@ -350,7 +351,7 @@ contains
          if (readonly) mode = NF90_NOWRITE
       end if
 
-      call check( nf90_open(param%outfile, NF90_WRITE, self%ncid) )
+      call check( nf90_open(param%outfile, mode, self%ncid) )
 
       call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid) )
       call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid) )
