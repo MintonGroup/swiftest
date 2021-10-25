@@ -981,9 +981,11 @@ contains
       call util_index_array(ind_arr, n)
       allocate(ibeg(SWEEPDIM * n))
       allocate(iend(SWEEPDIM * n))
-      do dim = 1, SWEEPDIM
-         ibeg((dim - 1) * n + 1:dim * n) = self%aabb(dim)%ibeg(:)
-         iend((dim - 1) * n + 1:dim * n) = self%aabb(dim)%iend(:)
+      do i = 1, n
+         do dim = 1, SWEEPDIM
+            ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
+            iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
+         end do
       end do
 
       ! Sweep the intervals for each of the massive bodies along one dimension
