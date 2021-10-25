@@ -938,9 +938,11 @@ contains
       call util_index_array(ind_arr, ntot)
       allocate(ibeg(SWEEPDIM * ntot))
       allocate(iend(SWEEPDIM * ntot))
-      do dim = 1, SWEEPDIM
-         ibeg((dim - 1) * ntot + 1:dim * ntot) = self%aabb(dim)%ibeg(:)
-         iend((dim - 1) * ntot + 1:dim * ntot) = self%aabb(dim)%iend(:)
+      do i = 1, ntot
+         do dim = 1, SWEEPDIM
+            ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
+            iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
+         end do
       end do
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
