@@ -35,15 +35,12 @@ contains
          nplm = pl%nplm
          nplt = npl - nplm
 
-         ! call timer%reset()
-         ! call timer%start()
          if (nplt == 0) then
             call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
          else
             call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, lvdotr, index1, index2, nenc)
          end if
-         ! call timer%stop()
-         ! call timer%report(nsubsteps=nthreads, message="Encounter Check Total:")
+         
          lany_encounter = nenc > 0
          if (lany_encounter) then
             call plplenc_list%resize(nenc)
