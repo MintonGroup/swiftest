@@ -61,26 +61,6 @@ contains
    end subroutine fraggle_io_log_generate
 
 
-   ! module subroutine io_log_one_message(FRAGGLE_LOG_OUT, message)
-   !    !! author: David A. Minton
-   !    !!
-   !    !! Writes a single message to the fraggle log file
-   !    implicit none
-   !    ! Arguments
-   !    character(len=*), intent(in) :: message
-   !    ! Internals
-   !    character(STRMAX) :: errmsg
-
-   !    open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-   !    write(LUN, *) trim(adjustl(message)) 
-   !    close(LUN)
-
-   !    return
-   !    667 continue
-   !    write(*,*) "Error writing Fraggle message to log file: " // trim(adjustl(errmsg))
-   ! end subroutine fraggle_io_log_one_message
-
-
    module subroutine fraggle_io_log_pl(pl, param)
       !! author: David A. Minton
       !!
@@ -226,30 +206,5 @@ contains
       667 continue
       write(*,*) "Error writing Fraggle regime information to log file: " // trim(adjustl(errmsg))
    end subroutine fraggle_io_log_regime
-
-
-   ! module subroutine fraggle_io_log_start(param)
-   !    !! author: David A. Minton
-   !    !!
-   !    !! Checks to see if the Fraggle log file needs to be replaced if this is a new run, or appended if this is a restarted run
-   !    implicit none
-   !    ! Arguments
-   !    class(swiftest_parameters), intent(in) :: param
-   !    ! Internals
-   !    character(STRMAX) :: errmsg
-   !    logical           :: fileExists
-
-   !    inquire(file=FRAGGLE_LOG_OUT, exist=fileExists)
-   !    if (.not.param%lrestart .or. .not.fileExists) then
-   !       open(unit=LUN, file=FRAGGLE_LOG_OUT, status="REPLACE", err = 667, iomsg = errmsg)
-   !       write(LUN, *, err = 667, iomsg = errmsg) "Fraggle logfile"
-   !    end if
-   !    close(LUN)
-
-   !    return
-
-   !    667 continue
-   !    write(*,*) "Error writing Fraggle log file: " // trim(adjustl(errmsg))
-   ! end subroutine fraggle_io_log_start
 
 end submodule s_fraggle_io
