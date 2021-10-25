@@ -918,7 +918,6 @@ contains
       real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
       ! Internals
       integer(I4B) :: i, j, k, ibox, jbox
-      integer(I4B), dimension(2) :: extent
       logical, dimension(:), allocatable :: lfresh
 
       call util_sort(extent_arr, self%ind)
