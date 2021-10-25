@@ -60,27 +60,13 @@ contains
    module pure subroutine util_sort_dp(arr)
       !! author: David A. Minton
       !!
-      !! Sort input DP precision array in place into ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
+      !! Sort input DP precision array in place into ascending numerical order using quicksort.
       !!
       implicit none
       ! Arguments
       real(DP), dimension(:), intent(inout) :: arr
-      ! Internals
-      real(DP)                :: tmp
-      integer(I4B)            :: n, i, j
 
-      n = size(arr)
-      do i = 2, n
-         tmp = arr(i)
-         j = i - 1
-         do while (j >= 1)
-            if (arr(j) <= tmp) exit
-            arr(j + 1) = arr(j)
-            j = j - 1
-         end do
-         arr(j + 1) = tmp 
-      end do
+      call qsort_DP(arr)
 
       return
    end subroutine util_sort_dp
@@ -89,17 +75,17 @@ contains
    module pure subroutine util_sort_index_dp(arr, ind)
       !! author: David A. Minton
       !!
-      !! Sort input DP precision array by index in ascending numerical order using insertion sort.
+      !! Sort input DP precision array by index in ascending numerical order using quick sort.
       !! This algorithm works well for partially sorted arrays (which is usually the case here).
       !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
       !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
-      real(DP), dimension(:), intent(in)  :: arr
+      real(DP),     dimension(:),              intent(in)    :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      integer(I4B) :: n, i, j, itmp
+      integer(I4B) :: n, i
       real(DP), dimension(:), allocatable :: tmparr
 
       n = size(arr)
@@ -108,32 +94,38 @@ contains
          ind = [(i, i=1, n)]
       end if
       allocate(tmparr, source=arr)
-      call qsort_index_DP(tmparr, ind)
+      call qsort_DP(tmparr, ind)
    
       return
    end subroutine util_sort_index_dp
 
 
-   recursive pure subroutine qsort_index_DP(arr, ind)
+   recursive pure subroutine qsort_DP(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input DP precision array by index in ascending numerical order using quicksort sort.
       !!
       implicit none
       ! Arguments
-      real(DP), dimension(:), intent(inout) :: arr
-      integer(I4B),dimension(:),intent(out) :: ind
+      real(DP), dimension(:), intent(inout)           :: arr
+      integer(I4B),dimension(:),intent(out), optional :: ind
       !! Internals
       integer :: iq
 
       if (size(arr) > 1) then
-         call partition_DP(arr, iq, ind)
-         call qsort_index_DP(arr(:iq-1),ind(:iq-1))
-         call qsort_index_DP(arr(iq:),  ind(iq:))
+         if (present(ind)) then
+            call partition_DP(arr, iq, ind)
+            call qsort_DP(arr(:iq-1),ind(:iq-1))
+            call qsort_DP(arr(iq:),  ind(iq:))
+         else
+            call partition_DP(arr, iq)
+            call qsort_DP(arr(:iq-1))
+            call qsort_DP(arr(iq:))
+         end if
       end if
 
       return
-   end subroutine qsort_index_DP
+   end subroutine qsort_DP
 
  
    pure subroutine partition_DP(arr, marker, ind)
@@ -190,33 +182,20 @@ contains
       end do
   
       return
-   end subroutine Partition_DP
+   end subroutine partition_DP
  
 
    module pure subroutine util_sort_i4b(arr)
       !! author: David A. Minton
       !!
-      !! Sort input integer array in place into ascending numerical order using insertion sort.
+      !! Sort input integer array in place into ascending numerical order using quick sort.
       !! This algorithm works well for partially sorted arrays (which is usually the case here)
       !!
       implicit none
       ! Arguments
       integer(I4B), dimension(:), intent(inout) :: arr
-      ! Internals
-      integer(I4B) :: tmp
-      integer(I4B) :: n, i, j
 
-      n = size(arr)
-      do i = 2, n
-         tmp = arr(i)
-         j = i - 1
-         do while (j >= 1)
-            if (arr(j) <= tmp) exit
-            arr(j + 1) = arr(j)
-            j = j - 1
-         end do
-         arr(j + 1) = tmp 
-      end do
+      call qsort_I4B(arr)
 
       return
    end subroutine util_sort_i4b
@@ -225,62 +204,125 @@ contains
    module pure subroutine util_sort_index_i4b(arr, ind)
       !! author: David A. Minton
       !!
-      !! Sort input integer array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! Sort input integer array by index in ascending numerical order using quicksort.
       !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
       !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
-      integer(I4B), dimension(:), intent(in)  :: arr
+      integer(I4B), dimension(:),              intent(in)  :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      integer(I4B) :: n, i, j, itmp
+      integer(I4B) :: n, i
+      integer(I4B), dimension(:), allocatable :: tmparr
 
       n = size(arr)
       if (.not.allocated(ind)) then
          allocate(ind(n))
          ind = [(i, i=1, n)]
       end if
-      do i = 2, n
-         itmp = ind(i)
-         j = i - 1
-         do while (j >= 1)
-            if (arr(ind(j)) <= arr(itmp)) exit
-            ind(j + 1) = ind(j)
-            j = j - 1
-         end do
-         ind(j + 1) = itmp 
-      end do
+      allocate(tmparr, source=arr)
+      call qsort_I4B(tmparr, ind)
 
       return
    end subroutine util_sort_index_i4b
 
 
+   recursive pure subroutine qsort_I4B(arr, ind)
+      !! author: David A. Minton
+      !!
+      !! Sort input DP precision array by index in ascending numerical order using quicksort.
+      !!
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:), intent(inout)          :: arr
+      integer(I4B), dimension(:), intent(out),  optional :: ind
+      !! Internals
+      integer :: iq
+
+      if (size(arr) > 1) then
+         if (present(ind)) then
+            call partition_I4B(arr, iq, ind)
+            call qsort_I4B(arr(:iq-1),ind(:iq-1))
+            call qsort_I4B(arr(iq:),  ind(iq:))
+         else
+            call partition_I4B(arr, iq)
+            call qsort_I4B(arr(:iq-1))
+            call qsort_I4B(arr(iq:))
+         end if
+      end if
+
+      return
+   end subroutine qsort_I4B
+
+ 
+   pure subroutine partition_I4B(arr, marker, ind)
+      !! author: David A. Minton
+      !!
+      !! Partition function for quicksort on I4B type
+      !!
+      implicit none
+      ! Arguments
+      integer(I4B), intent(inout), dimension(:)           :: arr
+      integer(I4B), intent(inout), dimension(:), optional :: ind
+      integer(I4B), intent(out)                           :: marker
+      ! Internals
+      integer(I4B) :: i, j, itmp, narr, ipiv
+      integer(I4B) :: temp
+      integer(I4B) :: x   ! pivot point
+
+      narr = size(arr)
+
+      ! Get center as pivot, as this is likely partially sorted
+      ipiv = narr / 2
+      x = arr(ipiv)
+      i = 0
+      j = narr + 1
+   
+      do
+         j = j - 1
+         do
+            if (arr(j) <= x) exit
+            j = j - 1
+         end do
+         i = i + 1
+         do
+            if (arr(i) >= x) exit
+            i = i + 1
+         end do
+         if (i < j) then
+            ! exchange A(i) and A(j)
+            temp = arr(i)
+            arr(i) = arr(j)
+            arr(j) = temp
+            if (present(ind)) then
+               itmp = ind(i)
+               ind(i) = ind(j)
+               ind(j) = itmp
+            end if
+         else if (i == j) then
+            marker = i + 1
+            return
+         else
+            marker = i
+            return
+         endif
+      end do
+  
+      return
+   end subroutine partition_I4B
+
+
    module pure subroutine util_sort_sp(arr)
       !! author: David A. Minton
       !!
-      !! Sort input single precision array in place into ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
-      !
+      !! Sort input DP precision array in place into ascending numerical order using quicksort.
+      !!
       implicit none
       ! Arguments
       real(SP), dimension(:), intent(inout) :: arr
-      ! Internals
-      real(SP) :: tmp
-      integer(I4B) :: n, i, j
 
-      n = size(arr)
-      do i = 2, n
-         tmp = arr(i)
-         j = i - 1
-         do while (j >= 1)
-            if (arr(j) <= tmp) exit
-            arr(j + 1) = arr(j)
-            j = j - 1
-         end do
-         arr(j + 1) = tmp 
-      end do
+      call qsort_SP(arr)
 
       return
    end subroutine util_sort_sp
@@ -289,36 +331,113 @@ contains
    module pure subroutine util_sort_index_sp(arr, ind)
       !! author: David A. Minton
       !!
-      !! Sort input single precision array by index in ascending numerical order using insertion sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here).
+      !! Sort input DP precision array by index in ascending numerical order using quicksort.
       !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
       !! sorted array). If it is not allocated, this subroutine allocates it.
       !!
       implicit none
       ! Arguments
-      real(SP), dimension(:), intent(in)  :: arr
+      real(SP),     dimension(:),              intent(in)    :: arr
       integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       ! Internals
-      integer(I4B) :: n, i, j, itmp
+      integer(I4B) :: n, i
+      real(SP), dimension(:), allocatable :: tmparr
 
       n = size(arr)
       if (.not.allocated(ind)) then
          allocate(ind(n))
          ind = [(i, i=1, n)]
       end if
-      do i = 2, n
-         itmp = ind(i)
-         j = i - 1
-         do while (j >= 1)
-            if (arr(ind(j)) <= arr(itmp)) exit
-            ind(j + 1) = ind(j)
-            j = j - 1
-         end do
-         ind(j + 1) = itmp 
-      end do
-
+      allocate(tmparr, source=arr)
+      call qsort_SP(tmparr, ind)
+   
       return
    end subroutine util_sort_index_sp
+
+
+   recursive pure subroutine qsort_SP(arr, ind)
+      !! author: David A. Minton
+      !!
+      !! Sort input DP precision array by index in ascending numerical order using quicksort.
+      !!
+      implicit none
+      ! Arguments
+      real(SP), dimension(:), intent(inout)           :: arr
+      integer(I4B),dimension(:),intent(out), optional :: ind
+      !! Internals
+      integer :: iq
+
+      if (size(arr) > 1) then
+         if (present(ind)) then
+            call partition_SP(arr, iq, ind)
+            call qsort_SP(arr(:iq-1),ind(:iq-1))
+            call qsort_SP(arr(iq:),  ind(iq:))
+         else
+            call partition_SP(arr, iq)
+            call qsort_SP(arr(:iq-1))
+            call qsort_SP(arr(iq:))
+         end if
+      end if
+
+      return
+   end subroutine qsort_SP
+
+
+   pure subroutine partition_SP(arr, marker, ind)
+      !! author: David A. Minton
+      !!
+      !! Partition function for quicksort on SP type
+      !!
+      implicit none
+      ! Arguments
+      real(SP),     intent(inout), dimension(:)           :: arr
+      integer(I4B), intent(inout), dimension(:), optional :: ind
+      integer(I4B), intent(out)                           :: marker
+      ! Internals
+      integer(I4B) :: i, j, itmp, narr, ipiv
+      real(SP) :: temp
+      real(SP) :: x   ! pivot point
+
+      narr = size(arr)
+
+      ! Get center as pivot, as this is likely partially sorted
+      ipiv = narr / 2
+      x = arr(ipiv)
+      i = 0
+      j = narr + 1
+   
+      do
+         j = j - 1
+         do
+            if (arr(j) <= x) exit
+            j = j - 1
+         end do
+         i = i + 1
+         do
+            if (arr(i) >= x) exit
+            i = i + 1
+         end do
+         if (i < j) then
+            ! exchange A(i) and A(j)
+            temp = arr(i)
+            arr(i) = arr(j)
+            arr(j) = temp
+            if (present(ind)) then
+               itmp = ind(i)
+               ind(i) = ind(j)
+               ind(j) = itmp
+            end if
+         else if (i == j) then
+            marker = i + 1
+            return
+         else
+            marker = i
+            return
+         endif
+      end do
+  
+      return
+   end subroutine partition_SP
 
 
    module subroutine util_sort_pl(self, sortby, ascending)
