@@ -282,10 +282,10 @@ contains
       logical,      dimension(:), allocatable, intent(inout) :: lencounter !! Logical flag indicating which of the pairs identified in the broad phase was selected in the narrow phase
       logical,      dimension(:), allocatable, intent(inout) :: lvdotr     !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      integer(I4B) :: i, i0, j, k
+      integer(I4B) :: i, i0, j, k, nenci, klo, khi
       integer(I4B), dimension(:), allocatable :: itmp
-      logical, dimension(n) :: lfresh
       integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B), dimension(n) :: ibeg, iend
       logical, dimension(:), allocatable :: ltmp
 
       nenc = count(lencounter(:)) ! Count the true number of encounters
@@ -307,25 +307,44 @@ contains
       lencounter(:) = .true.
 
       call util_sort(index1, ind)
-      lfresh(:) = .true.
+      call util_sort_rearrange(index1, ind, nenc)
+      call util_sort_rearrange(index2, ind, nenc)
+      call util_sort_rearrange(lvdotr, ind, nenc)
 
-      ! Remove duplicates
-      do k = 1, nenc 
-         i = index1(ind(k))
-         j = index2(ind(k))
-         if (k == 1) then
-            lfresh(j) = .false.
-         else
-            i0 = index1(ind(k-1))
-            if (i /= i0) lfresh(:) = .true.
-            if (.not.lfresh(j)) lencounter(ind(k)) = .false.
-            lfresh(j) = .false.
+      ! Get the bounds on the bodies in the first index
+      ibeg(:) = n
+      iend(:) = 1
+      i0 = index1(1) 
+      ibeg(i0) = 1
+      do k = 2, nenc 
+         i = index1(k)
+         if (i /= i0) then
+            iend(i0) = k - 1
+            ibeg(i) = k
+            i0 = i
          end if
+         if (k == nenc) iend(i) = k
+      end do
+
+      ! Sort on the second index and remove duplicates 
+      if (allocated(itmp)) deallocate(itmp)
+      allocate(itmp, source=index2)
+      do concurrent(i = 1:n, iend(i) - ibeg(i) > 0)
+         klo = ibeg(i)
+         khi = iend(i)
+         nenci = khi - klo + 1
+         if (allocated(ind)) deallocate(ind)
+         call util_sort(index2(klo:khi), ind)
+         index2(klo:khi) = itmp(klo - 1 + ind(:))
+         do j = klo + 1, khi
+            if (index2(j) == index2(j - 1)) lencounter(j) = .false. 
+         end do
       end do
 
       if (count(lencounter(:)) == nenc) return
       nenc = count(lencounter(:)) ! Count the true number of encounters
 
+      if (allocated(itmp)) deallocate(itmp)
       allocate(itmp(nenc))
       itmp(:) = pack(index1(:), lencounter(:))
       call move_alloc(itmp, index1)
@@ -875,6 +894,7 @@ contains
       integer(I4B), dimension(:), intent(in) :: ind_arr
       integer(I4B),                            intent(out) :: nenc
       integer(I4B), dimension(:), allocatable, intent(out) :: index2
+      ! Internals
 
       nenc = count(lencounteri(:))
       if (nenc > 0) then
