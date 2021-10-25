@@ -198,39 +198,6 @@ contains
    end subroutine fraggle_set_coordinate_system
 
 
-   ! module subroutine symba_set_collresolve_colliders(self, cb, pl, idx)
-   !    !! author: David A. Minton
-   !    !!
-   !    !! Calculate the two-body equivalent values given a set of input collider indices
-   !    use swiftest_classes, only : swiftest_nbody_system
-   !    implicit none
-   !    ! Arguments
-   !    class(fraggle_colliders),               intent(inout) :: self !! Fraggle collider object
-   !    class(symba_cb),                     intent(in)    :: cb   !! Swiftest central body object system object
-   !    class(symba_pl),                     intent(in)    :: pl   !! Swiftest central body object system object
-   !    integer(I4B),             dimension(:), intent(in)    :: idx  !! Index array of bodies from the pl object to use to calculate a "two-body equivalent" collisional pair
-   !    ! Internals
-   !    real(DP), dimension(NDIM, 2)  :: mxc, vc
-   !    real(DP), dimension(NDIM) :: vcom, xcom
-
-   !    associate(colliders => self)
-
-   !       ! Compute orbital angular momentum of pre-impact system
-   !       xcom(:) = (colliders%mass(1) * colliders%xb(:, 1) + colliders%mass(2) * colliders%xb(:, 2)) / sum(colliders%mass(:))
-   !       vcom(:) = (colliders%mass(1) * colliders%vb(:, 1) + colliders%mass(2) * colliders%vb(:, 2)) / sum(colliders%mass(:))
-   !       mxc(:, 1) = colliders%mass(1) * (colliders%xb(:, 1) - xcom(:))
-   !       mxc(:, 2) = colliders%mass(2) * (colliders%xb(:, 2) - xcom(:))
-   !       vc(:, 1) = colliders%vb(:, 1) - vcom(:)
-   !       vc(:, 2) = colliders%vb(:, 2) - vcom(:)
-
-   !       colliders%L_orbit(:,:) = mxc(:,:) .cross. vc(:,:)
-
-   !    end associate
-
-   !    return
-   ! end subroutine symbe_set_collresolve_colliders
-
-
    module subroutine fraggle_set_natural_scale_factors(self, colliders)
       !! author: David A. Minton
       !!
