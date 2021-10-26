@@ -35,6 +35,8 @@ contains
          nplm = pl%nplm
          nplt = npl - nplm
 
+         call pl%set_renc(irec)
+
          if (nplt == 0) then
             call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
          else
@@ -115,6 +117,8 @@ contains
             lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
             nenc_enc = count(lencmask(:))
             if (nenc_enc == 0) return
+
+            call pl%set_renc(irec)
 
             allocate(encidx(nenc_enc))
             allocate(lencounter(nenc_enc))
@@ -203,6 +207,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
+         call pl%set_renc(irec)
          call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
    
          lany_encounter = nenc > 0
