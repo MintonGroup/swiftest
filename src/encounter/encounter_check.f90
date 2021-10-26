@@ -189,7 +189,7 @@ contains
          call move_alloc(itmp, index1)
          allocate(itmp(nenc+plmplt_nenc))
          itmp(1:nenc) = index2(1:nenc)
-         itmp(nenc+1:nenc+plmplt_nenc) = plmplt_index2(1:plmplt_nenc) - nplm ! Be sure to shift these indices back to their natural range
+         itmp(nenc+1:nenc+plmplt_nenc) = plmplt_index2(1:plmplt_nenc) + nplm ! Be sure to shift these indices back to their natural range
          call move_alloc(itmp, index2)
          allocate(ltmp(nenc+plmplt_nenc))
          ltmp(1:nenc) = lvdotr(1:nenc)
