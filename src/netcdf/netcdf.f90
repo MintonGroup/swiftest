@@ -68,7 +68,7 @@ contains
       real(DP), dimension(1)                    :: val
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, Ltmp
 
-      call param%nciu%open(param, readonly=.true.)
+      call param%nciu%open(param)
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%time_dimid, len=itmax) )
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%id_dimid, len=idmax) )
       allocate(vals(idmax))
@@ -110,7 +110,6 @@ contains
       end if
 
       deallocate(vals)
-      call param%nciu%close()
       
       return
    end function netcdf_get_old_t_final_system
