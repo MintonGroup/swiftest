@@ -157,6 +157,7 @@ contains
       end select
 
       !! Define the variables
+      !! Disabled chunking for now, as it was causing uncontrolled memory growth in some runs
       call check( nf90_def_var(self%ncid, TIME_DIMNAME, self%out_type, self%time_dimid, self%time_varid) )
          !call check( nf90_def_var_chunking(self%ncid, self%time_varid, NF90_CHUNKED, [self%time_chunk]) )
       call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, self%id_dimid, self%id_varid) )
@@ -736,7 +737,7 @@ contains
          pl%id(:) = pack(itemp, plmask)
          tp%id(:) = pack(itemp, tpmask)
 
-         call check( nf90_get_var(iu%ncid, iu%name_varid, ctemp, count=[NAMELEN, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%name_varid, ctemp, count=[NAMELEN, idmax]) )
          call cb%info%set_value(name=ctemp(1))
          do i = 1, npl
             call pl%info(i)%set_value(name=ctemp(plind(i)))
@@ -745,7 +746,7 @@ contains
             call tp%info(i)%set_value(name=ctemp(tpind(i)))
          end do
 
-         call check( nf90_get_var(iu%ncid, iu%ptype_varid, ctemp, count=[NAMELEN, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%ptype_varid, ctemp, count=[NAMELEN, idmax]) )
          call cb%info%set_value(particle_type=ctemp(1))
          do i = 1, npl
             call pl%info(i)%set_value(particle_type=ctemp(plind(i)))
@@ -754,7 +755,7 @@ contains
             call tp%info(i)%set_value(particle_type=ctemp(tpind(i)))
          end do
 
-         call check( nf90_get_var(iu%ncid, iu%status_varid, ctemp, count=[NAMELEN, 1]) )
+         call check( nf90_get_var(iu%ncid, iu%status_varid, ctemp, count=[NAMELEN, idmax]) )
          call cb%info%set_value(status=ctemp(1))
          do i = 1, npl
             call pl%info(i)%set_value(status=ctemp(plind(i)))
@@ -764,7 +765,7 @@ contains
          end do
 
          if (param%lclose) then
-            call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, 1]) )
+            call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, idmax]) )
             call cb%info%set_value(origin_type=ctemp(1))
             do i = 1, npl
                call pl%info(i)%set_value(origin_type=ctemp(plind(i)))
