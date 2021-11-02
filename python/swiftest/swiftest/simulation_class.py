@@ -5,12 +5,13 @@ from swiftest import constants
 from datetime import date
 import xarray as xr
 import numpy as np
+import os
 
 class Simulation:
     """
     This is a class that define the basic Swift/Swifter/Swiftest simulation object
     """
-    def __init__(self, codename="Swiftest", param_file=""):
+    def __init__(self, codename="Swiftest", param_file="", readbin=True):
         self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
@@ -55,6 +56,11 @@ class Simulation:
         self.codename = codename
         if param_file != "" :
             self.read_param(param_file, codename)
+            if readbin:
+                if os.path.exists(self.param['BIN_OUT']):
+                    self.bin2xr()
+                else:
+                    print(f"BIN_OUT file {self.param['BIN_OUT']} not found.")
         return
     
     
