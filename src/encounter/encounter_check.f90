@@ -402,8 +402,6 @@ contains
          npl_last = npl
       end if
 
-      call timer%reset()
-      call timer%start()
       !$omp parallel do default(private) schedule(static) &
       !$omp shared(x, v, renc, boundingbox) &
       !$omp firstprivate(dt, npl, n)
@@ -419,31 +417,17 @@ contains
                                                x(dim,1:npl) + renc(1:npl) + vshift_max(1:npl) * v(dim,1:npl) * dt])
       end do
       !$omp end parallel do 
-      call timer%stop()
-      write(*,*) "plpl  sort  : ",timer%count_stop_step - timer%count_start_step
 
-      call timer%reset()
-      call timer%start()
       call boundingbox%sweep(npl, nenc, index1, index2)
-      call timer%stop()
-      write(*,*) "plpl  sweep : ",timer%count_stop_step - timer%count_start_step
 
       if (nenc > 0) then
          ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
          allocate(lencounter(nenc))
          allocate(lvdotr(nenc))
 
-         call timer%reset()
-         call timer%start()
          call encounter_check_all(nenc, index1, index2, x, v, x, v, renc, renc, dt, lencounter, lvdotr)
-         call timer%stop()
-         write(*,*) "plpl  check : ",timer%count_stop_step - timer%count_start_step
 
-         call timer%reset()
-         call timer%start()
          call encounter_check_reduce_broadphase(npl, nenc, index1, index2, lencounter, lvdotr)
-         call timer%stop()
-         write(*,*) "plpl  reduce: ",timer%count_stop_step - timer%count_start_step
          deallocate(lencounter)
       end if
 
@@ -520,14 +504,8 @@ contains
                                                 xplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
       end do
       !$omp end parallel do
-      call timer%stop()
-      write(*,*) "plplm sort  : ",timer%count_stop_step - timer%count_start_step
-
-      call timer%reset()
-      call timer%start()
+      
       call boundingbox%sweep(nplm, nplt, nenc, index1, index2)
-      call timer%stop()
-      write(*,*) "plplm sweep : ",timer%count_stop_step - timer%count_start_step
 
       if (nenc > 0) then
          ! Shift tiny body indices back into the range of the input position and velocity arrays
@@ -537,15 +515,9 @@ contains
          allocate(lencounter(nenc))
          allocate(lvdotr(nenc))
 
-         call timer%reset()
-         call timer%start()
          call encounter_check_all(nenc, index1, index2, xplm, vplm, xplt, vplt, rencm, renct, dt, lencounter, lvdotr)
-         call timer%stop()
-         write(*,*) "plplm check : ",timer%count_stop_step - timer%count_start_step
 
          call encounter_check_reduce_broadphase(ntot, nenc, index1, index2, lencounter, lvdotr)
-         call timer%stop()
-         write(*,*) "plplm reduce: ",timer%count_stop_step - timer%count_start_step
       end if
       return
    end subroutine encounter_check_all_sort_and_sweep_plplm
@@ -706,8 +678,6 @@ contains
 
       call util_index_array(ind_arr, npl) 
 
-      call timer%reset()
-      call timer%start()
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(x, v, renc, lenc, ind_arr) &
       !$omp firstprivate(npl, dt)
@@ -719,8 +689,6 @@ contains
                                                          renc(i), renc(:), dt, ind_arr(:), lenc(i))
       end do
       !$omp end parallel do
-      call timer%stop()
-      write(*,*) "plpl  triang: ",timer%count_stop_step - timer%count_start_step
 
       call encounter_check_collapse_ragged_list(lenc, npl, nenc, index1, index2, lvdotr)
 
@@ -758,8 +726,6 @@ contains
 
       call util_index_array(ind_arr, nplt)
 
-      call timer%reset()
-      call timer%start()
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(xplm, vplm, xplt, vplt, rencm, renct, lenc, ind_arr) &
       !$omp firstprivate(nplm, nplt, dt)
@@ -771,8 +737,6 @@ contains
                                                           rencm(i), renct(:), dt, ind_arr(:), lenc(i))
       end do
       !$omp end parallel do
-      call timer%stop()
-      write(*,*) "plplm triang: ",timer%count_stop_step - timer%count_start_step
 
       call encounter_check_collapse_ragged_list(lenc, nplm, nenc, index1, index2, lvdotr)
 
@@ -991,7 +955,6 @@ contains
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I4B), dimension(:), allocatable :: ibeg, iend
-      type(walltimer) :: timer 
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
@@ -1005,12 +968,8 @@ contains
       end do
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
-      call timer%reset()
-      call timer%start()
       call encounter_check_sweep_aabb_all_double_list(n1, n2, self%aabb(1)%ind(:), reshape(ibeg(:), [SWEEPDIM, ntot]), reshape(iend(:), [SWEEPDIM, ntot]), ind_arr(:), lenc(:))
-      call timer%stop()
-      write(*,*) "sweep double: ",timer%count_stop_step - timer%count_start_step
-
+      
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
 
       ! Reorder the pairs and sort the first index in order to remove any duplicates
