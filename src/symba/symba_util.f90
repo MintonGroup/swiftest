@@ -265,11 +265,12 @@ contains
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
 
-      do i = 1, self%nbody
-         call self%kin(i)%dealloc()
-      end do
-
-      if (allocated(self%kin)) deallocate(self%kin)
+      if (allocated(self%kin)) then
+         do i = 1, self%nbody
+            call self%kin(i)%dealloc()
+         end do
+         deallocate(self%kin)
+      end if
 
       call util_dealloc_pl(self)
 
