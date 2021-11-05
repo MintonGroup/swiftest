@@ -2151,7 +2151,6 @@ contains
                   errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
                   goto 667
                end if
-               call param%nciu%open(param)
             case('NEW')
                if (fileExists) then
                   errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
