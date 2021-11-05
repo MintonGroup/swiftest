@@ -45,13 +45,9 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
 # DO NOT include in FFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
-ADVIXE_DIR = /apps/cent7/intel/advisor_2019
-ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vecabi=cmdtarget -simd -shared-intel -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -xhost -traceback 
-
-VTUNE_FLAGS = -g -O2 -qopt-report=5 -simd -shared-intel -qopenmp -debug inline-debug-info -parallel-source-info=2 -parallel -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -qopenmp -fp-model no-except -mp1 -xhost -traceback 
+ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vec -shared-intel -ldl -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -traceback 
 #Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
 
-IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin
 STRICTREAL = -fp-model=precise -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -fp-model no-except -fma
 PAR = -qopenmp -parallel
@@ -76,15 +72,7 @@ FORTRAN = ifort
 AR     = xiar
 CC    = icc
 
-#FORTRAN = gfortran
-#FFLAGS =  $(GDEBUG)  $(GMEM) #$(GPAR)
-#FSTRICTFLAGS =  $(GDEBUG)  $(GMEM) #$(GPAR)
-#AR     = ar 
-#CC     = cc
-
-# DO NOT include in CFLAGS the "-c" option to compile object only
-# this is done explicitly as needed in the Makefile
-
+CC              = icc
 CFLAGS          = -O3 -w -m64 -std=c99
 
 64_BIT_REALS    = -r8

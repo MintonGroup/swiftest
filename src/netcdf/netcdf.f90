@@ -649,8 +649,6 @@ contains
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
-      call check( nf90_open(param%outfile, NF90_NOWRITE, iu%ncid) )
-
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]) )
@@ -1086,8 +1084,6 @@ contains
       integer(I4B) :: tslot
 
       tslot = int(param%ioutput, kind=I4B) + 1
-
-      call check( nf90_open(param%outfile, nf90_write, iu%ncid) )
 
       call check( nf90_put_var(iu%ncid, iu%time_varid, param%t, start=[tslot]) )
       call check( nf90_put_var(iu%ncid, iu%npl_varid, self%pl%nbody, start=[tslot]) )
