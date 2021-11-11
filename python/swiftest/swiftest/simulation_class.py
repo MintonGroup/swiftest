@@ -58,9 +58,7 @@ class Simulation:
             dir_path = os.path.dirname(os.path.realpath(param_file))
             self.read_param(param_file, codename)
             if readbin:
-                if os.path.exists(self.param['BIN_OUT']):
-                    self.bin2xr()
-                elif os.path.exists(dir_path + '/' + self.param['BIN_OUT']):
+                if os.path.exists(dir_path + '/' + self.param['BIN_OUT']):
                     self.param['BIN_OUT'] = dir_path + '/' + self.param['BIN_OUT']
                     self.bin2xr()
                 else:
