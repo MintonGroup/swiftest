@@ -251,6 +251,8 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),  intent(inout) :: self !! SyMBA massive body object
+      ! Internals
+      integer(I4B) :: i
 
       if (allocated(self%lcollision)) deallocate(self%lcollision)
       if (allocated(self%lencounter)) deallocate(self%lencounter)
@@ -262,7 +264,13 @@ contains
       if (allocated(self%isperi)) deallocate(self%isperi)
       if (allocated(self%peri)) deallocate(self%peri)
       if (allocated(self%atp)) deallocate(self%atp)
-      if (allocated(self%kin)) deallocate(self%kin)
+
+      if (allocated(self%kin)) then
+         do i = 1, self%nbody
+            call self%kin(i)%dealloc()
+         end do
+         deallocate(self%kin)
+      end if
 
       call util_dealloc_pl(self)
 
@@ -408,7 +416,7 @@ contains
          if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
-            if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
+            if (err /= 0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
                param%lflatten_interactions = .false.
             else
                do concurrent (i=1:npl, j=1:npl, j>i)

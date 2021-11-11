@@ -457,7 +457,6 @@ contains
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       integer(I4B)                              :: dim, i, j, tslot, idmax, npl_check, ntp_check
-      character(len=:), allocatable             :: charstring
       real(DP), dimension(:), allocatable       :: rtemp
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: validmask, tpmask, plmask
@@ -650,8 +649,6 @@ contains
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
-      call check( nf90_open(param%outfile, NF90_NOWRITE, iu%ncid) )
-
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]) )
@@ -690,10 +687,7 @@ contains
       logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
       logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode, idmax
-      character(len=:), allocatable             :: charstring
-      character(len=NAMELEN)                    :: emptystr, lenstr
-      character(len=:), allocatable :: fmtlabel
+      integer(I4B)                              :: i, j, tslot, idslot, old_mode, idmax
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable       :: rtemp_arr
       integer(I4B), dimension(:), allocatable   :: itemp
@@ -701,10 +695,6 @@ contains
       integer(I4B), dimension(:), allocatable :: plind, tpind
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      write(lenstr, *) NAMELEN
-      fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
-      write(emptystr, fmtlabel) " "
-
       idmax = size(plmask)
       allocate(rtemp(idmax))
       allocate(rtemp_arr(NDIM,idmax))
@@ -873,9 +863,8 @@ contains
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
+      integer(I4B)                              :: i, j, tslot, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
-      character(len=:), allocatable             :: charstring
 
       call self%write_particle_info(iu, param)
 
@@ -987,17 +976,12 @@ contains
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                              :: i, j, tslot, strlen, idslot, old_mode
+      integer(I4B)                              :: i, j, tslot, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
-      character(len=:), allocatable             :: charstring
-      character(len=NAMELEN)                    :: emptystr, lenstr
-      character(len=:), allocatable :: fmtlabel
+      character(len=NAMELEN)                    :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode) )
-      write(lenstr, *) NAMELEN
-      fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
-      write(emptystr, fmtlabel) " "
 
       select type(self)
          class is (swiftest_body)
@@ -1011,25 +995,17 @@ contains
                call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]) )
 
                charstring = trim(adjustl(self%info(j)%name))
-               strlen = len(charstring)
-               call check( nf90_put_var(iu%ncid, iu%name_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
 
                charstring = trim(adjustl(self%info(j)%particle_type))
-               strlen = len(charstring)
-               call check( nf90_put_var(iu%ncid, iu%ptype_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
 
                charstring = trim(adjustl(self%info(j)%status))
-               strlen = len(charstring)
-               call check( nf90_put_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-               call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+               call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
 
                if (param%lclose) then
                   charstring = trim(adjustl(self%info(j)%origin_type))
-                  strlen = len(charstring)
-                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
                   call check( nf90_put_var(iu%ncid, iu%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]) )
                   call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid,   self%info(j)%origin_xh(1), start=[idslot]) )
                   call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid,   self%info(j)%origin_xh(2), start=[idslot]) )
@@ -1056,25 +1032,17 @@ contains
          call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]) )
 
          charstring = trim(adjustl(self%info%name))
-         strlen = len(charstring)
-         call check( nf90_put_var(iu%ncid, iu%name_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
 
          charstring = trim(adjustl(self%info%particle_type))
-         strlen = len(charstring)
-         call check( nf90_put_var(iu%ncid, iu%ptype_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
 
          charstring = trim(adjustl(self%info%status))
-         strlen = len(charstring)
-         call check( nf90_put_var(iu%ncid, iu%status_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-         call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+         call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
 
          if (param%lclose) then
             charstring = trim(adjustl(self%info%origin_type))
-            strlen = len(charstring)
-            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, emptystr, start=[1, idslot], count=[NAMELEN, 1]) )
-            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[strlen, 1]) )
+            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]) )
 
             call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]) )
             call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]) )
@@ -1116,8 +1084,6 @@ contains
       integer(I4B) :: tslot
 
       tslot = int(param%ioutput, kind=I4B) + 1
-
-      call check( nf90_open(param%outfile, nf90_write, iu%ncid) )
 
       call check( nf90_put_var(iu%ncid, iu%time_varid, param%t, start=[tslot]) )
       call check( nf90_put_var(iu%ncid, iu%npl_varid, self%pl%nbody, start=[tslot]) )

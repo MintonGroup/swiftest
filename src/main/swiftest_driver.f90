@@ -123,6 +123,8 @@ program swiftest_driver
       end do
    end associate
 
+   call nbody_system%dealloc()
+
    call util_exit(SUCCESS)
 
    stop
