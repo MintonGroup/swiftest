@@ -41,6 +41,9 @@ SWIFTEST_HOME    = $(ROOT_DIR)
 USER_MODULES    =
 COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
+#NETCDF_FORTRAN_HOME = /home/daminton/local
+
+
 # Compiler definitions
 
 # DO NOT include in FFLAGS the "-c" option to compile object only
@@ -48,13 +51,13 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vecabi=cmdtarget -simd -shared-intel -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -xhost -traceback 
 #Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
 
-IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin
+IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -qopt-matmul -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin
 STRICTREAL = -fp-model=precise -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -fp-model no-except -fma
-PAR = -qopenmp -parallel  
+PAR = -qopenmp -parallel -parallel-source-info=2  
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
-IPRODUCTION = -no-wrap-margin -O3 -qopt-prefetch=0 -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
+IPRODUCTION = -no-wrap-margin -O3 -qopt-prefetch=0 -qopt-matmul -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
 
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
@@ -63,13 +66,12 @@ GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-stri
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
+INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include -I$(ADVISOR_2019_DIR)/include/intel64
+LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -L$(ADVISOR_2019_DIR)/lib64 -lswiftest -lnetcdf -lnetcdff -ladvisor  -qopt-matmul $(PAR)
 
-MKL_ROOT = /apps/spack/bell/apps/intel-parallel-studio/cluster.2019.5-intel-19.0.5-4brgqlf/mkl/lib
-IMKL = -I$(MKLROOT)/include
-LMKL = -L$(MKLROOT)/lib/intel64 -qopt-matmul 
+FSTRICTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
+FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
 
-FSTRICTFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR)
-FFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR)
 FORTRAN = ifort
 AR     = xiar
 CC    = icc
