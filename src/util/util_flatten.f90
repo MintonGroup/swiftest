@@ -75,12 +75,12 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i, j, npl, err
-      integer(I8B) :: k
+      integer(I4B) :: i, j, err
+      integer(I8B) :: k, npl
 
       npl = int(self%nbody, kind=I8B)
       associate(nplpl => self%nplpl)
-         nplpl = (npl * (npl - 1) / 2) ! number of entries in a strict lower triangle, npl x npl
+         nplpl = npl * (npl - 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl
          if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
@@ -88,7 +88,7 @@ contains
                param%lflatten_interactions = .false.
             else
                do concurrent (i=1:npl, j=1:npl, j>i)
-                  call util_flatten_eucl_ij_to_k(npl, i, j, k)
+                  call util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
                   self%k_plpl(1, k) = i
                   self%k_plpl(2, k) = j
                end do
