@@ -41,9 +41,6 @@ SWIFTEST_HOME    = $(ROOT_DIR)
 USER_MODULES    =
 COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
-#NETCDF_FORTRAN_HOME = /home/daminton/local
-
-
 # Compiler definitions
 
 # DO NOT include in FFLAGS the "-c" option to compile object only
@@ -69,8 +66,8 @@ GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include 
 LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -L$(ADVISOR_2019_DIR)/lib64 -lswiftest -lnetcdf -lnetcdff  -qopt-matmul $(PAR)
 
-FSTRICTFLAGS  = $(IPRODUCTION) $(STRICTREAL) -g -traceback
-FFLAGS  = $(IPRODUCTION) -fp-model=fast -g -traceback
+FSTRICTFLAGS  = $(IPRODUCTION) $(STRICTREAL) 
+FFLAGS  = $(IPRODUCTION) -fp-model=fast
 
 FORTRAN = ifort
 AR     = xiar
