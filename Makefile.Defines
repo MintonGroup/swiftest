@@ -66,11 +66,13 @@ GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-stri
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
-INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include -I$(ADVISOR_2019_DIR)/include/intel64
-LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -L$(ADVISOR_2019_DIR)/lib64 -lswiftest -lnetcdf -lnetcdff -ladvisor  -qopt-matmul $(PAR)
+INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include
+LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -lswiftest -lnetcdf -lnetcdff -qopt-matmul $(PAR)
 
 FSTRICTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
 FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
+#FSTRICTFLAGS  = $(IPRODUCTION) $(STRICTREAL) -g -traceback
+#FFLAGS  = $(IPRODUCTION) -fp-model=fast -g -traceback
 
 FORTRAN = ifort
 AR     = xiar
