@@ -259,5 +259,4 @@ clean:
 	cd $(SWIFTEST_HOME)/include; rm -f *.mod *.smod 
 	cd $(COLLRESOLVE_HOME); rm -rf autom4te.cache aux Makefile stamp-h1 configure config.status config.h config.log aclocal.m4 lib* *.in *.o *.lo cambioni2019/*.o cambioni2019/*.lo
 
-
 force:
