@@ -476,8 +476,6 @@ contains
          ntot_last = ntot
       end if
     
-      call timer%reset()
-      call timer%start()
       !$omp parallel do default(private) schedule(static) &
       !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)
@@ -872,7 +870,7 @@ contains
          j0 = j0 + nenci
       end do
 
-      !$omp parallel do default(private) &
+      !$omp parallel do simd default(private) schedule(simd: static)&
       !$omp shared(ragged_list, index1, index2, ibeg, lvdotr) &
       !$omp firstprivate(n1)
       do i = 1,n1
@@ -884,7 +882,7 @@ contains
          index2(j0:j1) = ragged_list(i)%index2(:)
          if (present(lvdotr)) lvdotr(j0:j1) = ragged_list(i)%lvdotr(:)
       end do
-      !$omp end parallel do
+      !$omp end parallel do simd
 
       return
    end subroutine encounter_check_collapse_ragged_list
@@ -954,18 +952,15 @@ contains
       integer(I4B) :: i, k, ntot, dim
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      integer(I4B), dimension(:), allocatable :: ibeg, iend
+      integer(I4B), dimension(SWEEPDIM * (n1 + n2)) :: ibeg, iend
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
-      allocate(ibeg(SWEEPDIM * ntot))
-      allocate(iend(SWEEPDIM * ntot))
-      do i = 1, ntot
-         do dim = 1, SWEEPDIM
-            ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
-            iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
-         end do
+      do concurrent (dim=1:SWEEPDIM, i = 1:ntot)
+         ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
+         iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
       end do
+
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
       call encounter_check_sweep_aabb_all_double_list(n1, n2, self%aabb(1)%ind(:), reshape(ibeg(:), [SWEEPDIM, ntot]), reshape(iend(:), [SWEEPDIM, ntot]), ind_arr(:), lenc(:))
@@ -1000,16 +995,12 @@ contains
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(walltimer) :: timer 
-      integer(I4B), dimension(:), allocatable :: ibeg, iend
+      integer(I4B), dimension(SWEEPDIM * n) :: ibeg, iend
 
       call util_index_array(ind_arr, n)
-      allocate(ibeg(SWEEPDIM * n))
-      allocate(iend(SWEEPDIM * n))
-      do i = 1, n
-         do dim = 1, SWEEPDIM
-            ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
-            iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
-         end do
+      do concurrent(dim = 1:SWEEPDIM, i = 1:n)
+         ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
+         iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
       end do
 
       ! Sweep the intervals for each of the massive bodies along one dimension
@@ -1049,13 +1040,13 @@ contains
       !$omp parallel do default(private) schedule(dynamic)&
       !$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
       !$omp firstprivate(ntot, n1, n2) 
-      do i = 1, ntot
+      do i = 1,ntot
          ibegi(1) = ibeg(1,i) + 1
          iendi(1) = iend(1,i) - 1
          if (iendi(1) >= ibegi(1)) then
             ibegi(2:SWEEPDIM) = ibeg(2:SWEEPDIM,i) 
             iendi(2:SWEEPDIM) = iend(2:SWEEPDIM,i) 
-            call encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
+            call sweep_dl(i, n1, n2, ntot, ext_ind(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
             call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
          else
             lenc(i)%nenc = 0
@@ -1064,6 +1055,45 @@ contains
       !$omp end parallel do
 
       return
+
+      contains
+         pure subroutine sweep_dl(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
+            !! author: David A. Minton
+            !!
+            !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
+            implicit none
+            ! Arguments
+            integer(I4B),                 intent(in)  :: i            !! The current index of the ith body
+            integer(I4B),                 intent(in)  :: n1           !! Number of bodies 1
+            integer(I4B),                 intent(in)  :: n2           !! Number of bodies 2
+            integer(I4B),                 intent(in)  :: ntot         !! n1 + n2
+            integer(I4B), dimension(:),   intent(in)  :: ext_ind      !! Sorted index array of extents
+            integer(I4B), dimension(:),   intent(in)  :: ibegi, iendi !! The beginning and ending indices of the ith bounding box in the n-dimensions
+            integer(I4B), dimension(:,:), intent(in)  :: ibeg, iend   !! Beginning and ending index lists in the n-dimensions
+            logical, dimension(:),        intent(out) :: lencounteri    !! Encounter list for the ith body
+            ! Internals
+            integer(I4B) :: j, jbox, dim, jlo, jhi
+            integer(I4B), dimension(ibegi(1):iendi(1)) :: box
+
+            lencounteri(:) = .false.
+            jlo = ibegi(1)
+            jhi = iendi(1)
+            box(:) = ext_ind(jlo:jhi)
+            where(box(:) > ntot)
+               box(:) = box(:) - ntot
+            endwhere
+            
+            do concurrent (jbox = jlo:jhi)
+               j = box(jbox)
+               if (((i <= n1) .and. (j <= n1)) .or. ((i > n1) .and. (j > n1))) cycle  ! only pairs from the two different lists allowed
+               ! Check the other dimensions
+               !lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
+               if ((iend(2,j) < ibegi(2)) .or. ibeg(2,j) > iendi(2)) cycle
+               lencounteri(j) = (iend(SWEEPDIM,j) > ibegi(SWEEPDIM)) .and. (ibeg(SWEEPDIM,j) < iendi(SWEEPDIM))
+            end do
+
+            return
+         end subroutine sweep_dl
    end subroutine encounter_check_sweep_aabb_all_double_list
 
 
@@ -1093,7 +1123,7 @@ contains
          if (iendi(1) >= ibegi(1)) then
             ibegi(2:SWEEPDIM) = ibeg(2:SWEEPDIM,i) 
             iendi(2:SWEEPDIM) = iend(2:SWEEPDIM,i) 
-            call encounter_check_sweep_aabb_one_single_list(n, ext_ind(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
+            call sweep_sl(n, ext_ind(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
             call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
          else
             lenc(i)%nenc = 0
@@ -1102,81 +1132,44 @@ contains
       !$omp end parallel do
 
       return
-   end subroutine encounter_check_sweep_aabb_all_single_list
-
-
-   pure subroutine encounter_check_sweep_aabb_one_double_list(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
-      !! author: David A. Minton
-      !!
-      !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
-      implicit none
-      ! Arguments
-      integer(I4B),                 intent(in)  :: i            !! The current index of the ith body
-      integer(I4B),                 intent(in)  :: n1           !! Number of bodies 1
-      integer(I4B),                 intent(in)  :: n2           !! Number of bodies 2
-      integer(I4B),                 intent(in)  :: ntot         !! n1 + n2
-      integer(I4B), dimension(:),   intent(in)  :: ext_ind      !! Sorted index array of extents
-      integer(I4B), dimension(:),   intent(in)  :: ibegi, iendi !! The beginning and ending indices of the ith bounding box in the n-dimensions
-      integer(I4B), dimension(:,:), intent(in)  :: ibeg, iend   !! Beginning and ending index lists in the n-dimensions
-      logical, dimension(:),        intent(out) :: lencounteri    !! Encounter list for the ith body
-      ! Internals
-      integer(I4B) :: j, jbox, dim, jlo, jhi
-      integer(I4B), dimension(:), allocatable :: box
-
-      lencounteri(:) = .false.
-      jlo = ibegi(1)
-      jhi = iendi(1)
-      allocate(box(jlo:jhi))
-      box(:) = ext_ind(jlo:jhi)
-      where(box(:) > ntot)
-         box(:) = box(:) - ntot
-      endwhere
       
-      do concurrent (jbox = jlo:jhi)
-         j = box(jbox)
-         if (((i <= n1) .and. (j <= n1)) .or. ((i > n1) .and. (j > n1))) cycle  ! only pairs from the two different lists allowed
-         ! Check the other dimensions
-         lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
-      end do
+      contains
+         pure subroutine sweep_sl(n, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
+            !! author: David A. Minton
+            !!
+            !! Performs a sweep operation on a single body. Mutual encounters allowed (e.g. pl-pl)
+            implicit none
+            ! Arguments
+            integer(I4B),                 intent(in)  :: n            !! Number of bodies
+            integer(I4B), dimension(:),   intent(in)  :: ext_ind      !! Sorted index array of extents
+            integer(I4B), dimension(:),   intent(in)  :: ibegi, iendi !! The beginning and ending indices of the ith bounding box in the n-dimensions
+            integer(I4B), dimension(:,:), intent(in)  :: ibeg, iend   !! Beginning and ending index lists in the x-dimension
+            logical, dimension(:),        intent(out) :: lencounteri  !! Encounter list for the ith body
+            ! Internals
+            integer(I4B) :: j, jbox, dim, jlo, jhi
+            integer(I4B), dimension(ibegi(1):iendi(1)) :: box
 
-      return
-   end subroutine encounter_check_sweep_aabb_one_double_list
- 
+            lencounteri(:) = .false.
 
-   pure subroutine encounter_check_sweep_aabb_one_single_list(n, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
-      !! author: David A. Minton
-      !!
-      !! Performs a sweep operation on a single body. Mutual encounters allowed (e.g. pl-pl)
-      implicit none
-      ! Arguments
-      integer(I4B),                 intent(in)  :: n            !! Number of bodies
-      integer(I4B), dimension(:),   intent(in)  :: ext_ind      !! Sorted index array of extents
-      integer(I4B), dimension(:),   intent(in)  :: ibegi, iendi !! The beginning and ending indices of the ith bounding box in the n-dimensions
-      integer(I4B), dimension(:,:), intent(in)  :: ibeg, iend   !! Beginning and ending index lists in the x-dimension
-      logical, dimension(:),        intent(out) :: lencounteri  !! Encounter list for the ith body
-      ! Internals
-      integer(I4B) :: j, jbox, dim, jlo, jhi
-      integer(I4B), dimension(:), allocatable :: box
+            jlo = ibegi(1)
+            jhi = iendi(1)
 
-      lencounteri(:) = .false.
+            box(:) = ext_ind(jlo:jhi)
 
-      jlo = ibegi(1)
-      jhi = iendi(1)
+            where(box(:) > n)
+               box(:) = box(:) - n
+            endwhere
 
-      allocate(box(jlo:jhi))
-      box(:) = ext_ind(jlo:jhi)
+            do concurrent(jbox = jlo:jhi) ! Sweep forward until the end of the interval
+               j = box(jbox)
+               ! Check the other dimensions
+               !lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
+               if ((iend(2,j) < ibegi(2)) .or. ibeg(2,j) > iendi(2)) cycle
+               lencounteri(j) = (iend(SWEEPDIM,j) > ibegi(SWEEPDIM)) .and. (ibeg(SWEEPDIM,j) < iendi(SWEEPDIM))
+            end do
 
-      where(box(:) > n)
-         box(:) = box(:) - n
-      endwhere
-
-      do concurrent(jbox = jlo:jhi) ! Sweep forward until the end of the interval
-         j = box(jbox)
-         ! Check the other dimensions
-         lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
-      end do
-
-      return
-   end subroutine encounter_check_sweep_aabb_one_single_list
+            return
+         end subroutine sweep_sl
+   end subroutine encounter_check_sweep_aabb_all_single_list
 
 end submodule s_encounter_check
