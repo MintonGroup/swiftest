@@ -72,6 +72,10 @@ contains
             if (lterminal) write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
+               write(*,*) "Merror = ", Merror
+               write(*,*) "GMtot_now : ",GMtot_now
+               write(*,*) "GMtot_orig: ",system%GMtot_orig
+               write(*,*) "Difference: ",GMtot_now - system%GMtot_orig
                call pl%xv2el(cb)
                call self%write_hdr(param%nciu, param)
                call cb%write_frame(param%nciu, param)
