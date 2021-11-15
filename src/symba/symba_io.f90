@@ -44,6 +44,9 @@ contains
                ifirst = ilast + 1
                param_value = io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
+               case ("OUT_STAT") ! We need to duplicate this from the standard io_param_reader in order to make sure that the restart flag gets set properly in SyMBA
+                  call io_toupper(param_value)
+                  param%out_stat = param_value 
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
@@ -79,6 +82,8 @@ contains
          end do
          1 continue
          close(unit)
+
+         param%lrestart = (param%out_stat == "APPEND")
 
          if (self%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", self%GMTINY
