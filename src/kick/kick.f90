@@ -189,7 +189,7 @@ contains
          end do
          !$omp end parallel do
       else
-                  !$omp parallel do default(private) schedule(static)&
+         !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, x, Gmass, radius) &
          !$omp lastprivate(rji2, xr, yr, zr) &
          !$omp reduction(+:ahi) &
