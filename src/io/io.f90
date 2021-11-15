@@ -72,11 +72,20 @@ contains
             if (lterminal) write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
-               call pl%xv2el(cb)
-               call self%write_hdr(param%nciu, param)
-               call cb%write_frame(param%nciu, param)
-               call pl%write_frame(param%nciu, param)
-               call param%nciu%close()
+               if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
+                  write(*,*) "Merror = ", Merror
+                  write(*,*) "GMtot_now : ",GMtot_now
+                  write(*,*) "GMtot_orig: ",system%GMtot_orig
+                  write(*,*) "Difference: ",GMtot_now - system%GMtot_orig
+               else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+                  ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
+                  param%ioutput = param%ioutput + 1_I8B
+                  call pl%xv2el(cb)
+                  call self%write_hdr(param%nciu, param)
+                  call cb%write_frame(param%nciu, param)
+                  call pl%write_frame(param%nciu, param)
+                  call param%nciu%close()
+               end if
                call util_exit(FAILURE)
             end if
          end if
