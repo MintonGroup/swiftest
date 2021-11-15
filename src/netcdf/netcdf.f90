@@ -66,7 +66,7 @@ contains
       integer(I4B)                              :: itmax, idmax
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: val
-      real(DP), dimension(NDIM)                 :: rot0
+      real(DP), dimension(NDIM)                 :: rot0, Ip0, Lnow
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, Ltmp
 
       call param%nciu%open(param)
@@ -117,14 +117,27 @@ contains
             call check( nf90_get_var(param%nciu%ncid, param%nciu%radius_varid, val, start=[1,1], count=[1,1]) )
             cb%R0 = val(1) 
 
-            call check( nf90_get_var(param%nciu%ncid, param%nciu%rotx_varid, val, start=[1,1], count=[1,1]) )
-            rot0(1) = val(1)
-            call check( nf90_get_var(param%nciu%ncid, param%nciu%roty_varid, val, start=[1,1], count=[1,1]) )
-            rot0(2) = val(1)
-            call check( nf90_get_var(param%nciu%ncid, param%nciu%rotz_varid, val, start=[1,1], count=[1,1]) )
-            rot0(3) = val(1)
+            if (param%lrotation) then
 
-            cb%L0(:) = cb%Ip(3) * cb%GM0 * cb%R0**2 * rot0(:)
+               call check( nf90_get_var(param%nciu%ncid, param%nciu%rotx_varid, val, start=[1,1], count=[1,1]) )
+               rot0(1) = val(1)
+               call check( nf90_get_var(param%nciu%ncid, param%nciu%roty_varid, val, start=[1,1], count=[1,1]) )
+               rot0(2) = val(1)
+               call check( nf90_get_var(param%nciu%ncid, param%nciu%rotz_varid, val, start=[1,1], count=[1,1]) )
+               rot0(3) = val(1)
+
+               call check( nf90_get_var(param%nciu%ncid, param%nciu%Ip1_varid, val, start=[1,1], count=[1,1]) )
+               Ip0(1) = val(1)
+               call check( nf90_get_var(param%nciu%ncid, param%nciu%Ip2_varid, val, start=[1,1], count=[1,1]) )
+               Ip0(2) = val(1)
+               call check( nf90_get_var(param%nciu%ncid, param%nciu%Ip3_varid, val, start=[1,1], count=[1,1]) )
+               Ip0(3) = val(1)
+
+               cb%L0(:) = Ip0(3) * cb%GM0 * cb%R0**2 * rot0(:)
+
+               Lnow(:) = cb%Ip(3) * cb%Gmass * cb%radius**2 * cb%rot(:)
+               cb%dL(:) = Lnow(:) - cb%L0(:)
+            end if
          end select
 
       end if

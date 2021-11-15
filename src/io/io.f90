@@ -1364,7 +1364,10 @@ contains
             cb%GM0 = cb%Gmass
             cb%dGM = 0.0_DP
             cb%R0 = cb%radius
-            cb%L0(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+            if (param%lrotation) then
+               cb%L0(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+               cb%dL(:) = 0.0_DP
+            end if
          end select
       end if
       return
