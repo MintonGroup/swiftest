@@ -66,6 +66,7 @@ contains
       integer(I4B)                              :: itmax, idmax
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: val
+      real(DP), dimension(NDIM)                 :: rot0
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, Ltmp
 
       call param%nciu%open(param)
@@ -74,7 +75,8 @@ contains
       allocate(vals(idmax))
       call check( nf90_get_var(param%nciu%ncid, param%nciu%time_varid, val, start=[1], count=[1]) )
 
-      old_t_final = val(1)
+      !old_t_final = val(1)
+      old_t_final = param%t0 ! For NetCDF it is safe to overwrite the final t value on a restart
 
       if (param%lenergy) then
          call check( nf90_get_var(param%nciu%ncid, param%nciu%KE_orb_varid, val, start=[1], count=[1]) )
@@ -106,6 +108,24 @@ contains
 
          call check( nf90_get_var(param%nciu%ncid, param%nciu%Gmass_varid, vals, start=[1,1], count=[idmax,1]) )
          self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax))
+
+         select type(cb => self%cb)
+         class is (symba_cb)
+            cb%GM0 = vals(1)
+            cb%dGM = cb%Gmass - cb%GM0
+
+            call check( nf90_get_var(param%nciu%ncid, param%nciu%radius_varid, val, start=[1,1], count=[1,1]) )
+            cb%R0 = val(1) 
+
+            call check( nf90_get_var(param%nciu%ncid, param%nciu%rotx_varid, val, start=[1,1], count=[1,1]) )
+            rot0(1) = val(1)
+            call check( nf90_get_var(param%nciu%ncid, param%nciu%roty_varid, val, start=[1,1], count=[1,1]) )
+            rot0(2) = val(1)
+            call check( nf90_get_var(param%nciu%ncid, param%nciu%rotz_varid, val, start=[1,1], count=[1,1]) )
+            rot0(3) = val(1)
+
+            cb%L0(:) = cb%Ip(3) * cb%GM0 * cb%R0**2 * rot0(:)
+         end select
 
       end if
 

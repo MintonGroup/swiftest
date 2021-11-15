@@ -1355,7 +1355,6 @@ contains
       close(iu, err = 667, iomsg = errmsg)
 
       if (ierr == 0) then
-
    
          if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
          if (param%rmin < 0.0) param%rmin = self%radius
