@@ -144,7 +144,8 @@ contains
       end do
 
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(nplpl, k_plpl, xb, mass, Gmass, pepl, lstatpl, lmask)
+      !$omp shared(k_plpl, xb, mass, Gmass, pepl, lstatpl, lmask) &
+      !$omp firstprivate(nplpl)
       do k = 1, nplpl
          i = k_plpl(1,k)
          j = k_plpl(2,k)
@@ -178,7 +179,7 @@ contains
       real(DP),                     intent(out) :: pe
       ! Internals
       integer(I4B) :: i, j
-      real(DP), dimension(npl) :: pecb
+      real(DP), dimension(npl) :: pecb, pepl
 
       ! Do the central body potential energy component first
       where(.not. lmask(1:npl))
@@ -189,10 +190,19 @@ contains
          pecb(i) = -GMcb * mass(i) / norm2(xb(:,i)) 
       end do
 
-      pe = sum(pecb(1:npl), lmask(1:npl))
-      do concurrent(i = 1:npl, j = 1:npl, (j > i) .and. lmask(i) .and. lmask(j))
-         pe = pe - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+      pe = 0.0_DP
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(lmask, Gmass, mass, xb) &
+      !$omp firstprivate(npl) &
+      !$omp reduction(+:pe) 
+      do i = 1, npl
+         do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
+            pepl(j) = - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+         end do
+         pe = pe + sum(pepl(i+1:npl), lmask(i) .and. lmask(j))
       end do
+      !$omp end parallel do
+      pe = pe + sum(pecb(1:npl), lmask(1:npl))
 
       return
    end subroutine util_get_energy_potential_triangular

@@ -403,7 +403,7 @@ contains
       integer(I8B) :: k, npl, nplm
       integer(I4B) :: i, j, err
 
-      associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
+      associate(pl => self, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
          select type(param)
          class is (symba_parameters)
@@ -411,21 +411,9 @@ contains
          end select
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
-         nplpl = (npl * (npl - 1_I8B)) / 2_I8B ! number of entries in a strict lower triangle, npl x npl, minus first column
          nplplm = nplm * npl - nplm * (nplm + 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
-         if (param%lflatten_interactions) then
-            if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
-            allocate(self%k_plpl(2, nplpl), stat=err)
-            if (err /= 0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
-               param%lflatten_interactions = .false.
-            else
-               do concurrent (i=1:npl, j=1:npl, j>i)
-                  call util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
-                  self%k_plpl(1, k) = i
-                  self%k_plpl(2, k) = j
-               end do
-            end if
-         end if
+
+         call util_flatten_eucl_plpl(pl, param)
       end associate
 
       return
