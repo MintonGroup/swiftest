@@ -139,12 +139,14 @@ contains
       class(swiftest_parameters), allocatable :: tmp_param     !! Temporary parameter structure to turn off adaptive timer for the pl-pl phase if necessary
       integer(I4B), dimension(:), allocatable :: itmp, ind
       logical, dimension(:), allocatable :: ltmp
+      type(walltimer), save :: timer
 
       if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          npl = nplm + nplt
          nplplm = nplm * npl - nplm * (nplm + 1) / 2 
          if (nplplm > 0) then
             if (lfirst) then  
+               call timer%reset()
                write(itimer%loopname, *) "encounter_check_all_plpl"
                write(itimer%looptype, *) "ENCOUNTER_PLPL"
                lfirst = .false.
@@ -162,6 +164,7 @@ contains
       ! Turn off adaptive encounter checks for the pl-pl group
       tmp_param%ladaptive_encounters_plpl = .false.
 
+      call timer%start()
       ! Start with the pl-pl group
       call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, lvdotr, index1, index2, nenc)
 
@@ -170,6 +173,9 @@ contains
       else
          call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_lvdotr, plmplt_index1, plmplt_index2, plmplt_nenc) 
       end if
+
+      call timer%stop()
+      call timer%report(nsubsteps=1, message="encounter check :")
 
       if (skipit) then
          skipit = .false.
@@ -973,7 +979,7 @@ contains
       ! This will build a ragged pair of index lists inside of the lenc data structure
       call encounter_check_sweep_aabb_all_double_list(n1, n2, self%aabb(1)%ind(:), reshape(ibeg(:), [SWEEPDIM, ntot]), reshape(iend(:), [SWEEPDIM, ntot]), ind_arr(:), lenc(:))
       call sweep_timer%stop()
-      call sweep_timer%report(nsubsteps=1, message="double sweep    (total / total per thread):")
+      call sweep_timer%report(nsubsteps=1, message="double sweep    :")
       
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
 
@@ -1043,49 +1049,42 @@ contains
       type(encounter_list), dimension(:),   intent(inout) :: lenc       !! Encounter list for the ith body   
       ! Internals
       integer(I4B) :: i, ntot
-      logical, dimension(n1+n2) :: lencounteri
+      logical, dimension(n1+n2) :: lencounteri, loverlap
       integer(I4B), dimension(SWEEPDIM) :: ibegi, iendi
       type(walltimer), save :: timer1, timer2, timer3, timer4, timer5
-      logical, save :: lfirst=.true.
+      integer(I4B), dimension(:), allocatable :: ext_ind_true
 
-      if (lfirst) then
-         call timer1%reset()
-         call timer2%reset()
-         call timer3%reset()
-         call timer4%reset()
-         call timer5%reset()
-         lfirst = .false.
-      end if     
-      
       ntot = n1 + n2
-      !!$omp parallel do default(private) schedule(dynamic)&
-      !!$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
-      !!$omp firstprivate(ntot, n1, n2) 
+      allocate(ext_ind_true, mold=ext_ind)
+      where(ext_ind(:) > ntot)
+         ext_ind_true(:) = ext_ind(:) - ntot
+      elsewhere
+         ext_ind_true(:) = ext_ind(:)
+      endwhere
+
+      loverlap(:) = (iend(1,:) + 1) > (ibeg(1,:) - 1)
+      where(.not.loverlap(:)) lenc(:)%nenc = 0
+      
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(ext_ind_true, ibeg, iend, ind_arr, lenc, loverlap) &
+      !$omp firstprivate(ntot, n1, n2) 
       do i = 1,ntot
-         ibegi(1) = ibeg(1,i) + 1
-         iendi(1) = iend(1,i) - 1
-         if (iendi(1) >= ibegi(1)) then
+         if (loverlap(i)) then
+            ibegi(1) = ibeg(1,i) + 1
+            iendi(1) = iend(1,i) - 1
             ibegi(2:SWEEPDIM) = ibeg(2:SWEEPDIM,i) 
             iendi(2:SWEEPDIM) = iend(2:SWEEPDIM,i) 
-            call sweep_dl(i, n1, n2, ntot, ext_ind(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
+            call sweep_dl(i, n1, n2, ntot, ext_ind_true(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
             call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
-         else
-            lenc(i)%nenc = 0
          end if
       end do
-      !!$omp end parallel do
-
-      call timer1%report(nsubsteps=1, message="timer1          (total / total per thread):")
-      call timer2%report(nsubsteps=1, message="timer2          (total / total per thread):")
-      call timer3%report(nsubsteps=1, message="timer3          (total / total per thread):")
-      call timer4%report(nsubsteps=1, message="timer4          (total / total per thread):")
-      call timer5%report(nsubsteps=1, message="timer5          (total / total per thread):")
+      !$omp end parallel do
 
       return
 
       contains
 
-         subroutine sweep_dl(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
+         pure subroutine sweep_dl(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
             !! author: David A. Minton
             !!
             !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
@@ -1106,49 +1105,25 @@ contains
             integer(I4B), dimension(ibegi(1):iendi(1)) :: iendy, ibegy
             integer(I4B), dimension(ibegi(1):iendi(1)) :: iendz, ibegz
 
-            call timer1%start()
             jlo = ibegi(1)
             jhi = iendi(1)
 
             lencounteri(:) = .false.
             lencounterj(jlo:jhi) = .false.
-
-            where(ext_ind(jlo:jhi) > ntot)
-               box(jlo:jhi) = ext_ind(jlo:jhi) - ntot
-            elsewhere
-               box(jlo:jhi) = ext_ind(jlo:jhi)
-            endwhere
-
-            call timer1%stop()
-
-            call timer2%start()
-            ! only pairs from the two different lists allowed
-            where (box(jlo:jhi) > n1)
-               lencounterj(jlo:jhi) = (i <= n1)
-            elsewhere
-               lencounterj(jlo:jhi) = (i > n1)
-            end where
-            call timer2%stop()
-
-            call timer3%start()
+            
+            box(jlo:jhi) = ext_ind(jlo:jhi)
+            
             ibegy(jlo:jhi) = ibeg(2,box(jlo:jhi))
             iendy(jlo:jhi) = iend(2,box(jlo:jhi))
             ibegz(jlo:jhi) = ibeg(3,box(jlo:jhi))
             iendz(jlo:jhi) = iend(3,box(jlo:jhi))
-            call timer3%stop()
-
-            call timer4%start()
+            
             lencounterj(jlo:jhi) = lencounterj(jlo:jhi) .and. (iendy(jlo:jhi) > ibegi(2)) &
                                                         .and. (ibegy(jlo:jhi) < iendi(2)) &
                                                         .and. (iendz(jlo:jhi) > ibegi(3)) &
                                                         .and. (ibegz(jlo:jhi) < iendi(3))
             
-            call timer4%stop()
-            call timer5%start()
-            do concurrent(jbox = jlo:jhi)
-               lencounteri(box(jbox)) = lencounterj(jbox)
-            end do
-            call timer5%stop()
+            where (lencounterj(jlo:jhi)) lencounteri(box(jlo:jhi)) = .true. 
             
             return
          end subroutine sweep_dl
@@ -1168,23 +1143,31 @@ contains
       type(encounter_list), dimension(:),   intent(inout) :: lenc       !! Encounter list for the ith body   
       ! Internals
       integer(I4B) :: i
-      logical, dimension(n) :: lencounteri
+      logical, dimension(n) :: lencounteri, loverlap
       integer(I4B), dimension(SWEEPDIM) :: ibegi, iendi
+      integer(I4B), dimension(:), allocatable :: ext_ind_true
 
-      !$omp parallel do default(private) schedule(dynamic)&
-      !$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
+      allocate(ext_ind_true, mold=ext_ind)
+      where(ext_ind(:) > n)
+         ext_ind_true(:) = ext_ind(:) - n
+      elsewhere
+         ext_ind_true(:) = ext_ind(:)
+      endwhere
+
+      loverlap(:) = (iend(1,:) + 1) > (ibeg(1,:) - 1)
+      where(.not.loverlap(:)) lenc(:)%nenc = 0
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(ext_ind_true, ibeg, iend, ind_arr, lenc, loverlap) &
       !$omp firstprivate(n) &
       !$omp lastprivate(ibegi, iendi, lencounteri) 
       do i = 1, n
-         ibegi(1) = ibeg(1,i) + 1
-         iendi(1) = iend(1,i) - 1
-         if (iendi(1) >= ibegi(1)) then
+         if (loverlap(i)) then
+            ibegi(1) = ibeg(1,i) + 1
+            iendi(1) = iend(1,i) - 1
             ibegi(2:SWEEPDIM) = ibeg(2:SWEEPDIM,i) 
             iendi(2:SWEEPDIM) = iend(2:SWEEPDIM,i) 
-            call sweep_sl(n, ext_ind(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
+            call sweep_sl(n, ext_ind_true(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:))
             call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), lenc(i)%nenc, lenc(i)%index2)
-         else
-            lenc(i)%nenc = 0
          end if
       end do
       !$omp end parallel do
@@ -1217,11 +1200,7 @@ contains
             lencounteri(:) = .false.
             lencounterj(jlo:jhi) = .false.
 
-            where(ext_ind(jlo:jhi) > n)
-               box(jlo:jhi) = ext_ind(jlo:jhi) - n
-            elsewhere
-               box(jlo:jhi) = ext_ind(jlo:jhi)
-            endwhere
+            box(jlo:jhi) = ext_ind(jlo:jhi)
 
             ibegy(jlo:jhi) = ibeg(2,box(jlo:jhi))
             iendy(jlo:jhi) = iend(2,box(jlo:jhi))

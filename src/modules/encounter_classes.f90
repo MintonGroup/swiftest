@@ -35,7 +35,7 @@ module encounter_classes
 
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
-      integer(I4B), dimension(:), allocatable :: ind  !! Sorted minimum/maximum extent indices
+      integer(I4B), dimension(:), allocatable :: ind  !! Sorted minimum/maximum extent indices (value > n indicates an ending index)
       integer(I4B), dimension(:), allocatable :: ibeg !! Beginning index for box
       integer(I4B), dimension(:), allocatable :: iend !! Ending index for box
    contains
