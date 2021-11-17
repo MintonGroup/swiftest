@@ -1112,10 +1112,11 @@ contains
 
             lencounteri(:) = .false.
             lencounterj(jlo:jhi) = .false.
-            box(:) = ext_ind(jlo:jhi)
 
-            where(box(jlo:jhi) > ntot)
-               box(jlo:jhi) = box(jlo:jhi) - ntot
+            where(ext_ind(jlo:jhi) > ntot)
+               box(jlo:jhi) = ext_ind(jlo:jhi) - ntot
+            elsewhere
+               box(jlo:jhi) = ext_ind(jlo:jhi)
             endwhere
 
             call timer1%stop()
@@ -1215,10 +1216,11 @@ contains
 
             lencounteri(:) = .false.
             lencounterj(jlo:jhi) = .false.
-            box(:) = ext_ind(jlo:jhi)
 
-            where(box(:) > n)
-               box(:) = box(:) - n
+            where(ext_ind(jlo:jhi) > n)
+               box(jlo:jhi) = ext_ind(jlo:jhi) - n
+            elsewhere
+               box(jlo:jhi) = ext_ind(jlo:jhi)
             endwhere
 
             ibegy(jlo:jhi) = ibeg(2,box(jlo:jhi))
