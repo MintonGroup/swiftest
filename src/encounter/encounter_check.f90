@@ -464,7 +464,7 @@ contains
       logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(nplm) :: vplmshift_min, vplmshift_max
       integer(I2B), dimension(nplt) :: vpltshift_min, vpltshift_max
-      type(walltimer) :: timer 
+      logical, save :: lfirst=.true.
 
       ! If this is the first time through, build the index lists
       if ((nplm == 0) .or. (nplt == 0)) return
@@ -475,7 +475,7 @@ contains
          call boundingbox%setup(ntot, ntot_last)
          ntot_last = ntot
       end if
-    
+
       !$omp parallel do default(private) schedule(static) &
       !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)
@@ -502,7 +502,7 @@ contains
                                                 xplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
       end do
       !$omp end parallel do
-      
+
       call boundingbox%sweep(nplm, nplt, nenc, index1, index2)
 
       if (nenc > 0) then
@@ -953,6 +953,13 @@ contains
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I4B), dimension(SWEEPDIM * (n1 + n2)) :: ibeg, iend
+      type(walltimer), save :: sweep_timer
+      logical, save :: lfirst=.true.
+
+      if (lfirst) then
+         call sweep_timer%reset()
+         lfirst = .false.
+      end if
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
@@ -961,9 +968,12 @@ contains
          iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
       end do
 
+      call sweep_timer%start()
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
       call encounter_check_sweep_aabb_all_double_list(n1, n2, self%aabb(1)%ind(:), reshape(ibeg(:), [SWEEPDIM, ntot]), reshape(iend(:), [SWEEPDIM, ntot]), ind_arr(:), lenc(:))
+      call sweep_timer%stop()
+      call sweep_timer%report(nsubsteps=1, message="double sweep    (total / total per thread):")
       
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
 
@@ -1035,11 +1045,22 @@ contains
       integer(I4B) :: i, ntot
       logical, dimension(n1+n2) :: lencounteri
       integer(I4B), dimension(SWEEPDIM) :: ibegi, iendi
+      type(walltimer), save :: timer1, timer2, timer3, timer4, timer5
+      logical, save :: lfirst=.true.
 
+      if (lfirst) then
+         call timer1%reset()
+         call timer2%reset()
+         call timer3%reset()
+         call timer4%reset()
+         call timer5%reset()
+         lfirst = .false.
+      end if     
+      
       ntot = n1 + n2
-      !$omp parallel do default(private) schedule(dynamic)&
-      !$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
-      !$omp firstprivate(ntot, n1, n2) 
+      !!$omp parallel do default(private) schedule(dynamic)&
+      !!$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
+      !!$omp firstprivate(ntot, n1, n2) 
       do i = 1,ntot
          ibegi(1) = ibeg(1,i) + 1
          iendi(1) = iend(1,i) - 1
@@ -1052,13 +1073,19 @@ contains
             lenc(i)%nenc = 0
          end if
       end do
-      !$omp end parallel do
+      !!$omp end parallel do
+
+      call timer1%report(nsubsteps=1, message="timer1          (total / total per thread):")
+      call timer2%report(nsubsteps=1, message="timer2          (total / total per thread):")
+      call timer3%report(nsubsteps=1, message="timer3          (total / total per thread):")
+      call timer4%report(nsubsteps=1, message="timer4          (total / total per thread):")
+      call timer5%report(nsubsteps=1, message="timer5          (total / total per thread):")
 
       return
 
       contains
 
-         pure subroutine sweep_dl(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
+         subroutine sweep_dl(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
             !! author: David A. Minton
             !!
             !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
@@ -1076,8 +1103,10 @@ contains
             integer(I4B) :: j, jbox, dim, jlo, jhi
             integer(I4B), dimension(ibegi(1):iendi(1)) :: box
             logical, dimension(ibegi(1):iendi(1)) :: lencounterj
-            integer(I4B), dimension(NDIM, ibegi(1):iendi(1)) :: iend_box, ibeg_box
+            integer(I4B), dimension(ibegi(1):iendi(1)) :: iendy, ibegy
+            integer(I4B), dimension(ibegi(1):iendi(1)) :: iendz, ibegz
 
+            call timer1%start()
             jlo = ibegi(1)
             jhi = iendi(1)
 
@@ -1089,29 +1118,36 @@ contains
                box(jlo:jhi) = box(jlo:jhi) - ntot
             endwhere
 
+            call timer1%stop()
+
+            call timer2%start()
             ! only pairs from the two different lists allowed
             where (box(jlo:jhi) > n1)
                lencounterj(jlo:jhi) = (i <= n1)
             elsewhere
                lencounterj(jlo:jhi) = (i > n1)
             end where
+            call timer2%stop()
 
-            ibeg_box(1:NDIM,jlo:jhi) = ibeg(1:NDIM,box(jlo:jhi))
-            iend_box(1:NDIM,jlo:jhi) = iend(1:NDIM,box(jlo:jhi))
+            call timer3%start()
+            ibegy(jlo:jhi) = ibeg(2,box(jlo:jhi))
+            iendy(jlo:jhi) = iend(2,box(jlo:jhi))
+            ibegz(jlo:jhi) = ibeg(3,box(jlo:jhi))
+            iendz(jlo:jhi) = iend(3,box(jlo:jhi))
+            call timer3%stop()
 
-            where (lencounterj(jlo:jhi))
-               where (iend_box(2,jlo:jhi) > ibegi(2))
-                  where (ibeg_box(2,jlo:jhi) < iendi(2))
-                     where (iend_box(3,jlo:jhi) > ibegi(3))
-                        lencounterj(jlo:jhi) = (ibeg_box(3,jlo:jhi) < iendi(3))
-                     end where
-                  end where
-               end where
-            end where
+            call timer4%start()
+            lencounterj(jlo:jhi) = lencounterj(jlo:jhi) .and. (iendy(jlo:jhi) > ibegi(2)) &
+                                                        .and. (ibegy(jlo:jhi) < iendi(2)) &
+                                                        .and. (iendz(jlo:jhi) > ibegi(3)) &
+                                                        .and. (ibegz(jlo:jhi) < iendi(3))
             
+            call timer4%stop()
+            call timer5%start()
             do concurrent(jbox = jlo:jhi)
                lencounteri(box(jbox)) = lencounterj(jbox)
             end do
+            call timer5%stop()
             
             return
          end subroutine sweep_dl
@@ -1171,7 +1207,8 @@ contains
             integer(I4B) :: j, jbox, dim, jlo, jhi
             integer(I4B), dimension(ibegi(1):iendi(1)) :: box
             logical, dimension(ibegi(1):iendi(1)) :: lencounterj
-            integer(I4B), dimension(NDIM, ibegi(1):iendi(1)) :: iend_box, ibeg_box
+            integer(I4B), dimension(ibegi(1):iendi(1)) :: iendy, ibegy
+            integer(I4B), dimension(ibegi(1):iendi(1)) :: iendz, ibegz
 
             jlo = ibegi(1)
             jhi = iendi(1)
@@ -1184,16 +1221,15 @@ contains
                box(:) = box(:) - n
             endwhere
 
-            ibeg_box(:,jlo:jhi) = ibeg(:,box(jlo:jhi))
-            iend_box(:,jlo:jhi) = iend(:,box(jlo:jhi))
+            ibegy(jlo:jhi) = ibeg(2,box(jlo:jhi))
+            iendy(jlo:jhi) = iend(2,box(jlo:jhi))
+            ibegz(jlo:jhi) = ibeg(3,box(jlo:jhi))
+            iendz(jlo:jhi) = iend(3,box(jlo:jhi))
 
-            where (iend_box(2,jlo:jhi) > ibegi(2))
-               where (ibeg_box(2,jlo:jhi) < iendi(2))
-                  where (iend_box(3,jlo:jhi) > ibegi(3))
-                     lencounterj(jlo:jhi) = (ibeg_box(3,jlo:jhi) < iendi(3))
-                  end where
-               end where
-            end where
+            lencounterj(jlo:jhi) = lencounterj(jlo:jhi) .and. (iendy(jlo:jhi) > ibegi(2)) &
+                                                        .and. (ibegy(jlo:jhi) < iendi(2)) &
+                                                        .and. (iendz(jlo:jhi) > ibegi(3)) &
+                                                        .and. (ibegz(jlo:jhi) < iendi(3)) 
 
             do concurrent(jbox = jlo:jhi)
                lencounteri(box(jbox)) = lencounterj(jbox)
