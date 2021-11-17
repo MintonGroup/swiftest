@@ -164,7 +164,6 @@ contains
       ! Turn off adaptive encounter checks for the pl-pl group
       tmp_param%ladaptive_encounters_plpl = .false.
 
-      call timer%start()
       ! Start with the pl-pl group
       call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, lvdotr, index1, index2, nenc)
 
@@ -173,9 +172,6 @@ contains
       else
          call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_lvdotr, plmplt_index1, plmplt_index2, plmplt_nenc) 
       end if
-
-      call timer%stop()
-      call timer%report(nsubsteps=1, message="encounter check :")
 
       if (skipit) then
          skipit = .false.
@@ -959,13 +955,6 @@ contains
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I4B), dimension(SWEEPDIM * (n1 + n2)) :: ibeg, iend
-      type(walltimer), save :: sweep_timer
-      logical, save :: lfirst=.true.
-
-      if (lfirst) then
-         call sweep_timer%reset()
-         lfirst = .false.
-      end if
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
@@ -974,12 +963,9 @@ contains
          iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
       end do
 
-      call sweep_timer%start()
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
       call encounter_check_sweep_aabb_all_double_list(n1, n2, self%aabb(1)%ind(:), reshape(ibeg(:), [SWEEPDIM, ntot]), reshape(iend(:), [SWEEPDIM, ntot]), ind_arr(:), lenc(:))
-      call sweep_timer%stop()
-      call sweep_timer%report(nsubsteps=1, message="double sweep    :")
       
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
 
@@ -1010,7 +996,6 @@ contains
       Integer(I4B) :: i, k, dim
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      type(walltimer) :: timer 
       integer(I4B), dimension(SWEEPDIM * n) :: ibeg, iend
 
       call util_index_array(ind_arr, n)
@@ -1051,7 +1036,6 @@ contains
       integer(I4B) :: i, ntot
       logical, dimension(n1+n2) :: lencounteri, loverlap
       integer(I4B), dimension(SWEEPDIM) :: ibegi, iendi
-      type(walltimer), save :: timer1, timer2, timer3, timer4, timer5
       integer(I4B), dimension(:), allocatable :: ext_ind_true
 
       ntot = n1 + n2
