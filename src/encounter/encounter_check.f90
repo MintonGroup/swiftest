@@ -1226,10 +1226,10 @@ contains
             ibegz(jlo:jhi) = ibeg(3,box(jlo:jhi))
             iendz(jlo:jhi) = iend(3,box(jlo:jhi))
 
-            lencounterj(jlo:jhi) = lencounterj(jlo:jhi) .and. (iendy(jlo:jhi) > ibegi(2)) &
-                                                        .and. (ibegy(jlo:jhi) < iendi(2)) &
-                                                        .and. (iendz(jlo:jhi) > ibegi(3)) &
-                                                        .and. (ibegz(jlo:jhi) < iendi(3)) 
+            lencounterj(jlo:jhi) =       iendy(jlo:jhi) > ibegi(2) &
+                                   .and. (ibegy(jlo:jhi) < iendi(2)) &
+                                   .and. (iendz(jlo:jhi) > ibegi(3)) &
+                                   .and. (ibegz(jlo:jhi) < iendi(3)) 
 
             do concurrent(jbox = jlo:jhi)
                lencounteri(box(jbox)) = lencounterj(jbox)
