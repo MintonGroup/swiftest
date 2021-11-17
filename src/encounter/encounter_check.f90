@@ -1057,6 +1057,7 @@ contains
       return
 
       contains
+
          pure subroutine sweep_dl(i, n1, n2, ntot, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
             !! author: David A. Minton
             !!
@@ -1075,13 +1076,14 @@ contains
             integer(I4B) :: j, jbox, dim, jlo, jhi
             integer(I4B), dimension(ibegi(1):iendi(1)) :: box
             logical, dimension(ibegi(1):iendi(1)) :: lencounterj
+            integer(I4B), dimension(NDIM, ibegi(1):iendi(1)) :: iend_box, ibeg_box
 
             jlo = ibegi(1)
             jhi = iendi(1)
 
             lencounteri(:) = .false.
             lencounterj(jlo:jhi) = .false.
-            box(jlo:jhi) = ext_ind(jlo:jhi)
+            box(:) = ext_ind(jlo:jhi)
 
             where(box(jlo:jhi) > ntot)
                box(jlo:jhi) = box(jlo:jhi) - ntot
@@ -1094,24 +1096,23 @@ contains
                lencounterj(jlo:jhi) = (i > n1)
             end where
 
-            where (lencounterj(jlo:jhi) .and. (iend(2,box(jlo:jhi)) > ibegi(2)) .and. (ibeg(2,box(jlo:jhi)) < iendi(2)) )
-               lencounterj(jlo:jhi) = (iend(3,box(jlo:jhi)) > ibegi(3)) .and. (ibeg(3,box(jlo:jhi)) < iendi(3))
+            ibeg_box(1:NDIM,jlo:jhi) = ibeg(1:NDIM,box(jlo:jhi))
+            iend_box(1:NDIM,jlo:jhi) = iend(1:NDIM,box(jlo:jhi))
+
+            where (lencounterj(jlo:jhi))
+               where (iend_box(2,jlo:jhi) > ibegi(2))
+                  where (ibeg_box(2,jlo:jhi) < iendi(2))
+                     where (iend_box(3,jlo:jhi) > ibegi(3))
+                        lencounterj(jlo:jhi) = (ibeg_box(3,jlo:jhi) < iendi(3))
+                     end where
+                  end where
+               end where
             end where
             
             do concurrent(jbox = jlo:jhi)
                lencounteri(box(jbox)) = lencounterj(jbox)
             end do
             
-            !do concurrent (jbox = jlo:jhi, ( ( (i <= n1).and.(box(jbox) > n1) ) .or. ( (i > n1).and.(box(jbox) <= n1) ) ) .and. & 
-               !                              ( ( iend(2,box(j)) >= ibegi(2) )    .and. ( ibeg(2,box(j)) <= iendi(2)   ) ) )
-               !j = box(jbox)
-               !if (((i <= n1) .and. (j <= n1)) .or. ((i > n1) .and. (j > n1))) cycle  ! only pairs from the two different lists allowed
-               ! Check the other dimensions
-               !lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
-               !if ((iend(2,j) < ibegi(2)) .or. ibeg(2,j) > iendi(2)) cycle
-            !   lencounteri(box(jbox)) = (iend(SWEEPDIM,box(jbox)) > ibegi(SWEEPDIM)) .and. (ibeg(SWEEPDIM,box(jbox)) < iendi(SWEEPDIM))
-            !end do
-
             return
          end subroutine sweep_dl
    end subroutine encounter_check_sweep_aabb_all_double_list
@@ -1135,7 +1136,8 @@ contains
 
       !$omp parallel do default(private) schedule(dynamic)&
       !$omp shared(ext_ind, ibeg, iend, ind_arr, lenc) &
-      !$omp firstprivate(n) 
+      !$omp firstprivate(n) &
+      !$omp lastprivate(ibegi, iendi, lencounteri) 
       do i = 1, n
          ibegi(1) = ibeg(1,i) + 1
          iendi(1) = iend(1,i) - 1
@@ -1153,6 +1155,7 @@ contains
       return
       
       contains
+
          pure subroutine sweep_sl(n, ext_ind, ibegi, iendi, ibeg, iend, lencounteri)
             !! author: David A. Minton
             !!
@@ -1168,35 +1171,37 @@ contains
             integer(I4B) :: j, jbox, dim, jlo, jhi
             integer(I4B), dimension(ibegi(1):iendi(1)) :: box
             logical, dimension(ibegi(1):iendi(1)) :: lencounterj
+            integer(I4B), dimension(NDIM, ibegi(1):iendi(1)) :: iend_box, ibeg_box
 
             jlo = ibegi(1)
             jhi = iendi(1)
+
             lencounteri(:) = .false.
             lencounterj(jlo:jhi) = .false.
-            box(jlo:jhi) = ext_ind(jlo:jhi)
+            box(:) = ext_ind(jlo:jhi)
 
-            where(box(jlo:jhi) > n)
-               box(jlo:jhi) = box(jlo:jhi) - n
+            where(box(:) > n)
+               box(:) = box(:) - n
             endwhere
 
-            where ((iend(2,box(jlo:jhi)) > ibegi(2) ) .and. (ibeg(2,box(jlo:jhi)) < iendi(2)) )
-               lencounterj(jlo:jhi) = (iend(3,box(jlo:jhi)) > ibegi(3)) .and. (ibeg(3,box(jlo:jhi)) < iendi(3))
+            ibeg_box(:,jlo:jhi) = ibeg(:,box(jlo:jhi))
+            iend_box(:,jlo:jhi) = iend(:,box(jlo:jhi))
+
+            where (iend_box(2,jlo:jhi) > ibegi(2))
+               where (ibeg_box(2,jlo:jhi) < iendi(2))
+                  where (iend_box(3,jlo:jhi) > ibegi(3))
+                     lencounterj(jlo:jhi) = (ibeg_box(3,jlo:jhi) < iendi(3))
+                  end where
+               end where
             end where
 
             do concurrent(jbox = jlo:jhi)
                lencounteri(box(jbox)) = lencounterj(jbox)
             end do
 
-            ! do concurrent(jbox = jlo:jhi) ! Sweep forward until the end of the interval
-            !    j = box(jbox)
-            !    ! Check the other dimensions
-            !    !lencounteri(j) = all((iend(2:SWEEPDIM,j) > ibegi(2:SWEEPDIM)) .and. (ibeg(2:SWEEPDIM,j) < iendi(2:SWEEPDIM)))
-            !    if ((iend(2,j) < ibegi(2)) .or. ibeg(2,j) > iendi(2)) cycle
-            !    lencounteri(j) = (iend(SWEEPDIM,j) > ibegi(SWEEPDIM)) .and. (ibeg(SWEEPDIM,j) < iendi(SWEEPDIM))
-            ! end do
-
             return
          end subroutine sweep_sl
+
    end subroutine encounter_check_sweep_aabb_all_single_list
 
 end submodule s_encounter_check
