@@ -52,7 +52,7 @@ contains
       implicit none
       ! Arguments
       class(encounter_list), intent(inout) :: self !! Swiftest encounter structure
-      integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
+      integer(I8B),          intent(in)    :: n    !! Number of encounters to allocate space for
 
       if (n < 0) return
 
@@ -69,7 +69,7 @@ contains
       if (allocated(self%t)) deallocate(self%t)
 
       self%nenc = n
-      if (n == 0) return
+      if (n == 0_I8B) return
 
       allocate(self%lvdotr(n))
       allocate(self%status(n))

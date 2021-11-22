@@ -1661,6 +1661,12 @@ module swiftest_classes
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
+      module pure subroutine util_sort_index_i4b_I8Bind(arr,ind)
+         implicit none
+         integer(I4B), dimension(:), intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+      end subroutine util_sort_index_i4b_I8Bind
+
       module pure subroutine util_sort_sp(arr)
          implicit none
          real(SP), dimension(:), intent(inout) :: arr
@@ -1713,6 +1719,13 @@ module swiftest_classes
          integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_I4B
 
+      module pure subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_I4B_I8Bind
+
       module subroutine util_sort_rearrange_arr_info(arr, ind, n)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
@@ -1726,6 +1739,13 @@ module swiftest_classes
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_logical
+
+      module pure subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
+         implicit none
+         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_logical_I8Bind
    end interface util_sort_rearrange
 
    interface

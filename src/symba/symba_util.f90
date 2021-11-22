@@ -38,17 +38,19 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
-      class(encounter_list), intent(in)    :: source       !! Source object to append
-      logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(symba_encounter), intent(inout) :: self         !! SyMBA encounter list object
+      class(encounter_list),  intent(in)    :: source       !! Source object to append
+      logical, dimension(:),  intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nold, nsrc
 
-      associate(nold => self%nenc, nsrc => source%nenc)
-         select type(source)
-         class is (symba_encounter)
-            call util_append(self%level, source%level, nold, nsrc, lsource_mask)
-         end select
-         call encounter_util_append_list(self, source, lsource_mask) 
-      end associate
+      nold = self%nenc
+      nsrc = source%nenc
+      select type(source)
+      class is (symba_encounter)
+         call util_append(self%level, source%level, nold, nsrc, lsource_mask)
+      end select
+      call encounter_util_append_list(self, source, lsource_mask) 
 
       return
    end subroutine symba_util_append_encounter_list

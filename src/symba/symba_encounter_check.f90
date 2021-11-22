@@ -17,8 +17,8 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      integer(I8B) :: k, nplplm, kenc
-      integer(I4B) :: i, j, nenc, npl, nplm, nplt
+      integer(I8B) :: k, nplplm, kenc, nenc
+      integer(I4B) :: i, j, npl, nplm, nplt
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
@@ -43,7 +43,7 @@ contains
             call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, lvdotr, index1, index2, nenc)
          end if
          
-         lany_encounter = nenc > 0
+         lany_encounter = nenc > 0_I8B
          if (lany_encounter) then
             call plplenc_list%resize(nenc)
             call move_alloc(lvdotr, plplenc_list%lvdotr)
@@ -52,7 +52,7 @@ contains
          end if
 
          if (lany_encounter) then 
-            do k = 1, nenc
+            do k = 1_I8B, nenc
                i = plplenc_list%index1(k)
                j = plplenc_list%index2(k)
                plplenc_list%id1(k) = pl%id(i)
@@ -197,7 +197,8 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
-      integer(I4B)                              :: i, j, k,nenc, plind, tpind
+      integer(I4B)                              :: i, j, plind, tpind
+      integer(I8B)                              :: k, nenc
       real(DP),     dimension(NDIM)             :: xr, vr
       real(DP)                                  :: rshell_irec
       logical,      dimension(:),   allocatable :: lvdotr
@@ -224,7 +225,7 @@ contains
                select type(pl)
                class is (symba_pl)
                   pl%lencounter(1:npl) = .false.
-                  do k = 1, nenc
+                  do k = 1_I8B, nenc
                      plind = pltpenc_list%index1(k)
                      tpind = pltpenc_list%index2(k)
                      pl%lencounter(plind) = .true.

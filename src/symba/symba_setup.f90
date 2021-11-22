@@ -109,14 +109,14 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
-      integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
+      integer(I8B),           intent(in)    :: n    !! Number of encounters to allocate space for
 
       call encounter_setup_list(self, n)
-      if (n < 0) return
+      if (n < 0_I8B) return
 
       call self%dealloc()
 
-      if (n ==0) return
+      if (n ==0_I8B) return
 
       allocate(self%level(n))
 

@@ -140,27 +140,27 @@ contains
       implicit none
       ! Arguments
       class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
-      integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      integer(I8B),              intent(in)    :: nnew !! New size of list needed
       ! Internals
       class(encounter_list), allocatable :: enc_temp
-      integer(I4B)                           :: nold
+      integer(I8B)                           :: nold
       logical                                :: lmalloc
 
       lmalloc = allocated(self%status)
       if (lmalloc) then
          nold = size(self%status)
       else
-         nold = 0
+         nold = 0_I8B
       end if
       if (nnew > nold) then
          if (lmalloc) allocate(enc_temp, source=self)
-         call self%setup(2 * nnew)
+         call self%setup(2_I8B * nnew)
          if (lmalloc) then
             call self%copy(enc_temp)
             deallocate(enc_temp)
          end if
       else
-         self%status(nnew+1:nold) = INACTIVE
+         self%status(nnew+1_I8B:nold) = INACTIVE
       end if
       self%nenc = nnew
 
@@ -179,7 +179,7 @@ contains
       logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
       ! Internals
-      integer(I4B) :: nenc_old
+      integer(I8B) :: nenc_old
   
       associate(keeps => self)
          call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)

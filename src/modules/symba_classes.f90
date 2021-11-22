@@ -427,7 +427,7 @@ module symba_classes
       module subroutine symba_setup_encounter_list(self,n)
          implicit none
          class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
-         integer(I4B),           intent(in)    :: n    !! Number of encounters to allocate space for
+         integer(I8B),           intent(in)    :: n    !! Number of encounters to allocate space for
       end subroutine symba_setup_encounter_list
 
       module subroutine symba_setup_tp(self, n, param)

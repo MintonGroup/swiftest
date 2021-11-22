@@ -226,7 +226,8 @@ contains
       class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
       class(symba_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       ! Internals
-      integer(I4B) :: i, nenc_old
+      integer(I4B) :: i
+      integer(I8B) :: nenc_old
 
       associate(system => self)
          select type(pl => system%pl)
