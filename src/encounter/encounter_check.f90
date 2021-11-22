@@ -570,7 +570,7 @@ contains
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibegix, iendix
       integer(I8B), pointer :: ibegx, ibegy
-      integer(I4B), dimension(:), allocatable :: index1i, index2i, itmp
+      integer(I4B), dimension(:), allocatable :: index1i, index2i, itmp, box
       type(walltimer) :: timer1, timer2, timer3, timer4, timer5
       logical, save :: lfirst = .true.
 
@@ -603,7 +603,7 @@ contains
          
          call timer1%start()
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(ext_ind_true, ibegx, iendx, ind_arr, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
+         !$omp shared(ext_ind_true, ibegx, iendx, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
          !$omp firstprivate(ntot, n1, dt) 
          do i = 1, ntot
             if (loverlap(i)) then
@@ -611,64 +611,51 @@ contains
                iendix = iendx(i) - 1_I8B
                call timer2%start()
                if (i <= n1) then
-                  lenc(i)%nenc = count(.not.llist1(ibegix:iendix))
+                  nbox = count(.not.llist1(ibegix:iendix))
                else
-                  lenc(i)%nenc = count(llist1(ibegix:iendix))
+                  nbox = count(llist1(ibegix:iendix))
                end if
                call timer2%stop()
-               if (lenc(i)%nenc > 0_I8B) then
+               if (nbox > 0_I8B) then
                   ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
-                  call timer3%start()
-                  nbox = iendix - ibegix + 1_I8B
-                  if (allocated(lenctrue)) deallocate(lenctrue); allocate(lenctrue(nbox))
-                  if (allocated(lvdotri)) deallocate(lvdotri); allocate(lvdotri(nbox))
+
+                  if (allocated(box)) deallocate(box); allocate(box(nbox))
                   if (allocated(index1i)) deallocate(index1i); allocate(index1i(nbox))
                   if (allocated(index2i)) deallocate(index2i); allocate(index2i(nbox))
-                  lenctrue(:) = .false.
-                  lvdotri(:) = .false.
-                  call timer3%stop()
 
-                  call timer4%start()
                   if (i <= n1) then
-                     do concurrent(k=ibegix:iendix, .not.llist1(k))
-                        kk = k - ibegix + 1_I8B
-                        ii = i
-                        jj = ext_ind_true(k) - n1
-                        index1i(kk) = ii
-                        index2i(kk) = jj
-                     end do
-                     do concurrent(kk=1:nbox, .not.llist1(kk+ibegix-1_I8B))
-                        ii = index1i(kk)
-                        jj = index2i(kk)
-                        call encounter_check_sweep_check_one(x1(1,ii), x1(2,ii), x1(3,ii), &
-                                                             x2(1,jj), x2(2,jj), x2(3,jj), &  
-                                                             v1(1,ii), v1(2,ii), v1(3,ii), &  
-                                                             v2(1,jj), v2(2,jj), v2(3,jj), &  
-                                                             renc1(ii), renc2(jj), dt, &
-                                                             lenctrue(kk), lvdotri(kk))
-                     end do
+                     call timer3%start()
+                     box(:) = pack(ext_ind_true(ibegix:iendix), .not.llist1(ibegix:iendix))
+                     call timer3%stop()
+                     call timer4%start()
+                     index1i(:) = i
+                     index2i(:) = box(:) - n1
+                     call timer4%stop()
                   else
-                     do concurrent(k=ibegix:iendix, llist1(k))
-                        kk = k - ibegix + 1_I8B
-                        ii = ext_ind_true(k)
-                        jj = i - n1
-                        index1i(kk) = ii
-                        index2i(kk) = jj
-                     end do
-                     do concurrent(kk=1:nbox, llist1(kk+ibegix-1_I8B))
-                        ii = index1i(kk)
-                        jj = index2i(kk)
-                        call encounter_check_sweep_check_one(x1(1,ii), x1(2,ii), x1(3,ii), &
-                                                             x2(1,jj), x2(2,jj), x2(3,jj), &  
-                                                             v1(1,ii), v1(2,ii), v1(3,ii), &  
-                                                             v2(1,jj), v2(2,jj), v2(3,jj), &  
-                                                             renc1(ii), renc2(jj), dt, &
-                                                             lenctrue(kk), lvdotri(kk))
-                     end do
+                     call timer3%start()
+                     box(:) = pack(ext_ind_true(ibegix:iendix), llist1(ibegix:iendix))
+                     call timer3%stop()
+                     call timer4%start()
+                     index1i(:) = box(:)
+                     index2i(:) = i - n1
+                     call timer4%stop()
                   end if
-                  call timer4%stop()
 
                   call timer5%start()
+                  if (allocated(lenctrue)) deallocate(lenctrue); allocate(lenctrue(nbox))
+                  if (allocated(lvdotri)) deallocate(lvdotri); allocate(lvdotri(nbox))
+                  do k=1,nbox
+                     ii = index1i(k)
+                     jj = index2i(k)
+                     call encounter_check_sweep_check_one(x1(1,ii), x1(2,ii), x1(3,ii), &
+                                                          x2(1,jj), x2(2,jj), x2(3,jj), &  
+                                                          v1(1,ii), v1(2,ii), v1(3,ii), &  
+                                                          v2(1,jj), v2(2,jj), v2(3,jj), &  
+                                                          renc1(ii), renc2(jj), dt, &
+                                                          lenctrue(k), lvdotri(k))
+                  end do
+                  call timer5%stop()
+
                   lenc(i)%nenc = count(lenctrue(:))
                   if (lenc(i)%nenc > 0_I8B) then
                      allocate(itmp(lenc(i)%nenc))
@@ -683,7 +670,6 @@ contains
                      ltmp = pack(lvdotri(:), lenctrue(:))
                      call move_alloc(ltmp, lenc(i)%lvdotr)
                   end if
-                  call timer5%stop()
                end if
             end if
          end do
@@ -691,10 +677,10 @@ contains
 
          call timer1%stop()
          call timer1%report(nsubsteps=1, message="timer1           :")
-         call timer2%report(nsubsteps=1, message="timer2           :")
-         call timer3%report(nsubsteps=1, message="timer3           :")
-         call timer4%report(nsubsteps=1, message="timer4           :")
-         call timer5%report(nsubsteps=1, message="timer5           :")
+         !call timer2%report(nsubsteps=1, message="timer2           :")
+         !call timer3%report(nsubsteps=1, message="timer3           :")
+         !call timer4%report(nsubsteps=1, message="timer4           :")
+         !call timer5%report(nsubsteps=1, message="timer5           :")
 
       end associate
 
