@@ -1020,7 +1020,7 @@ contains
          endwhere
          llist1(:) = ext_ind_true(:) <= n1
 
-         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) > (self%aabb(1)%iend(:) - 1_I8B)
+         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) < (self%aabb(1)%iend(:) - 1_I8B)
          where(.not.loverlap(:)) lenc(:)%nenc = 0
 
          call timer1%start()
@@ -1124,7 +1124,7 @@ contains
             ext_ind_true(:) = ext_ind(:)
          endwhere
 
-         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) > (self%aabb(1)%iend(:) - 1_I8B)
+         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) < (self%aabb(1)%iend(:) - 1_I8B)
          where(.not.loverlap(:)) lenc(:)%nenc = 0
 
          call timer1%start()
