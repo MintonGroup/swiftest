@@ -68,7 +68,7 @@ module encounter_classes
          logical,      dimension(:),   intent(out) :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_all
 
-      module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, lvdotr, index1, index2, nenc)
+      module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
          use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
@@ -83,7 +83,7 @@ module encounter_classes
          integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
       end subroutine encounter_check_all_plpl
 
-      module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr, index1, index2, nenc)
+      module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
          use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
@@ -96,13 +96,13 @@ module encounter_classes
          real(DP),     dimension(:),              intent(in)    :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
          real(DP),     dimension(:),              intent(in)    :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
          real(DP),                                intent(in)    :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
          integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
          integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
-         integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
+         logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       end subroutine encounter_check_all_plplm
 
-      module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+      module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
          use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
@@ -114,10 +114,10 @@ module encounter_classes
          real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of massive bodies
          real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter
          real(DP),                                intent(in)    :: dt     !! Step size
-         logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+         integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
          integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
          integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
-         integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
+         logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       end subroutine encounter_check_all_pltp
 
       module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
@@ -148,23 +148,33 @@ module encounter_classes
          real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
       end subroutine encounter_check_sort_aabb_1D
 
-      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, nenc, index1, index2)
+      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, nenc, index1, index2, lvdotr)
          implicit none
-         class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
-         integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
-         integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
-         integer(I8B),                            intent(out)   :: nenc     !! Total number of encounter candidates
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
+         class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
+         integer(I4B),                            intent(in)    :: n1         !! Number of bodies 1
+         integer(I4B),                            intent(in)    :: n2         !! Number of bodies 2
+         real(DP),     dimension(:,:),            intent(in)    :: x1, v1     !! Array of indices of bodies 1
+         real(DP),     dimension(:,:),            intent(in)    :: x2, v2     !! Array of indices of bodies 2
+         real(DP),     dimension(:),              intent(in)    :: renc1      !! Radius of encounter regions of bodies 1
+         real(DP),     dimension(:),              intent(in)    :: renc2      !! Radius of encounter regions of bodies 2
+         real(DP),                                intent(in)    :: dt         !! Step size
+         integer(I8B),                            intent(out)   :: nenc       !! Total number of encounter candidates
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1     !! List of indices for body 1 in each encounter candidate pair
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for body 2 in each encounter candidate pair
+         logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_double_list
 
-      module subroutine encounter_check_sweep_aabb_single_list(self, n, nenc, index1, index2)
+      module subroutine encounter_check_sweep_aabb_single_list(self, n, x, v, renc, dt, nenc, index1, index2, lvdotr)
          implicit none
-         class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
-         integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
-         integer(I8B),                            intent(out)   :: nenc    !! Total number of encounter candidates
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
-         integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair
+         class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
+         integer(I4B),                            intent(in)    :: n          !! Number of bodies
+         real(DP),     dimension(:,:),            intent(in)    :: x, v       !! Array of position and velocity vectors 
+         real(DP),     dimension(:),              intent(in)    :: renc       !! Radius of encounter regions of bodies 1
+         real(DP),                                intent(in)    :: dt         !! Step size
+         integer(I8B),                            intent(out)   :: nenc       !! Total number of encounter candidates
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index1     !! List of indices for one body in each encounter candidate pair
+         integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for the other body in each encounter candidate pair
+         logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
       module subroutine encounter_io_write_frame(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)

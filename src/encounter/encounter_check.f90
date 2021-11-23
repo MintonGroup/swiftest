@@ -46,7 +46,7 @@ contains
    end subroutine encounter_check_all
 
 
-   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, lvdotr, index1, index2, nenc)
+   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -59,10 +59,10 @@ contains
       real(DP),     dimension(:,:),            intent(in)    :: v      !! Velocity vectors of massive bodies
       real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter 
       real(DP),                                intent(in)    :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
       integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
+      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
@@ -86,9 +86,9 @@ contains
       end if
 
       if (param%lencounter_sas_plpl) then
-         call encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
       else
-         call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
       end if
 
       if (skipit) then
@@ -106,7 +106,7 @@ contains
    end subroutine encounter_check_all_plpl
 
 
-   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr, index1, index2, nenc)
+   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between fully interacting massive bodies partially interacting massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -123,10 +123,10 @@ contains
       real(DP),     dimension(:),              intent(in)    :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)    :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
       real(DP),                                intent(in)    :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
       integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
+      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
@@ -169,12 +169,12 @@ contains
 
       ! Start with the pl-pl group
       call timer%start()
-      call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, lvdotr, index1, index2, nenc)
+      call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
       if (param%lencounter_sas_plpl) then
-         call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_lvdotr, plmplt_index1, plmplt_index2, plmplt_nenc)
+         call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
       else
-         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_lvdotr, plmplt_index1, plmplt_index2, plmplt_nenc) 
+         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
       end if
       call timer%stop()
       call timer%report(nsubsteps=1, message="Encounter check  :")
@@ -222,7 +222,7 @@ contains
    end subroutine encounter_check_all_plplm
 
 
-   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -238,10 +238,10 @@ contains
       real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of test particles
       real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter
       real(DP),                                intent(in)    :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
       integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
+      logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
@@ -271,9 +271,9 @@ contains
       end if
 
       if (param%lencounter_sas_pltp) then
-         call encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+         call encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       else
-         call encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
       end if
 
       if (.not.lfirst .and. param%ladaptive_encounters_pltp .and. npltp > 0) then 
@@ -284,108 +284,7 @@ contains
    end subroutine encounter_check_all_pltp
 
 
-   pure subroutine encounter_check_reduce_broadphase(n, nenc, index1, index2, lencounter, lvdotr)
-      !! author: David A. Minton
-      !!
-      !! Takes the candidate encounter lists that came out of the broad phase and narrow it down to the true encounters
-      implicit none
-      ! Arguments
-      integer(I4B),                            intent(in)    :: n          !! Number of bodies 
-      integer(I8B),                            intent(inout) :: nenc       !! Number of encountering bodies (input is the broad phase value, output is the final narrow phase value)
-      integer(I4B), dimension(:), allocatable, intent(inout) :: index1     !! List of indices for body 1 in each encounter
-      integer(I4B), dimension(:), allocatable, intent(inout) :: index2     !! List of indices for body 2 in each encounter
-      logical,      dimension(:), allocatable, intent(inout) :: lencounter !! Logical flag indicating which of the pairs identified in the broad phase was selected in the narrow phase
-      logical,      dimension(:), allocatable, intent(inout) :: lvdotr     !! Logical flag indicating the sign of v .dot. x
-      ! Internals
-      integer(I4B) :: i, i0, j
-      integer(I8B) :: k, klo, khi, nenci
-      integer(I4B), dimension(:), allocatable :: itmp
-      integer(I8B), dimension(:), allocatable :: ind
-      integer(I8B), dimension(n) :: ibeg, iend
-      logical, dimension(:), allocatable :: ltmp
-
-      nenc = count(lencounter(:)) ! Count the true number of encounters
-      if (nenc == 0) then
-         if (allocated(index1)) deallocate(index1)
-         if (allocated(index2)) deallocate(index2)
-         if (allocated(lvdotr)) deallocate(lvdotr)
-         return
-      end if
-
-      if (any(.not.lencounter(:))) then
-         allocate(itmp(nenc))
-         itmp(:) = pack(index1(:), lencounter(:))
-         call move_alloc(itmp, index1)
-
-         allocate(itmp(nenc))
-         itmp(:) = pack(index2(:), lencounter(:))
-         call move_alloc(itmp, index2)
-
-         allocate(ltmp(nenc))
-         ltmp(:) = pack(lvdotr(:), lencounter(:))
-         call move_alloc(ltmp, lvdotr)
-
-         if (allocated(lencounter)) deallocate(lencounter)
-         allocate(lencounter(nenc))
-         lencounter(:) = .true.
-      end if
-
-      call util_sort(index1, ind)
-      call util_sort_rearrange(index1, ind, nenc)
-      call util_sort_rearrange(index2, ind, nenc)
-      call util_sort_rearrange(lvdotr, ind, nenc)
-
-      ! Get the bounds on the bodies in the first index
-      ibeg(:) = n
-      iend(:) = 1
-      i0 = index1(1) 
-      ibeg(i0) = 1
-      do k = 2, nenc 
-         i = index1(k)
-         if (i /= i0) then
-            iend(i0) = k - 1
-            ibeg(i) = k
-            i0 = i
-         end if
-         if (k == nenc) iend(i) = k
-      end do
-
-      ! Sort on the second index and remove duplicates 
-      if (allocated(itmp)) deallocate(itmp)
-      allocate(itmp, source=index2)
-      do concurrent(i = 1:n, iend(i) - ibeg(i) > 0)
-         klo = ibeg(i)
-         khi = iend(i)
-         nenci = khi - klo + 1
-         if (allocated(ind)) deallocate(ind)
-         call util_sort(index2(klo:khi), ind)
-         index2(klo:khi) = itmp(klo - 1 + ind(:))
-         do j = klo + 1, khi
-            if (index2(j) == index2(j - 1)) lencounter(j) = .false. 
-         end do
-      end do
-
-      if (count(lencounter(:)) == nenc) return
-      nenc = count(lencounter(:)) ! Count the true number of encounters
-
-      if (allocated(itmp)) deallocate(itmp)
-      allocate(itmp(nenc))
-      itmp(:) = pack(index1(:), lencounter(:))
-      call move_alloc(itmp, index1)
-
-      allocate(itmp(nenc))
-      itmp(:) = pack(index2(:), lencounter(:))
-      call move_alloc(itmp, index2)
-
-      allocate(ltmp(nenc))
-      ltmp(:) = pack(lvdotr(:), lencounter(:))
-      call move_alloc(ltmp, lvdotr)
-
-      return
-   end subroutine encounter_check_reduce_broadphase
-
-
-   subroutine encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. 
@@ -399,10 +298,10 @@ contains
       real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
       real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter 
       real(DP),                                intent(in)  :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
+      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       integer(I4B) :: i, dim, n
       integer(I4B), save :: npl_last = 0
@@ -436,24 +335,13 @@ contains
       end do
       !$omp end parallel do 
 
-      call boundingbox%sweep(npl, nenc, index1, index2)
-
-      if (nenc > 0_I8B) then
-         ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
-         allocate(lencounter(nenc))
-         allocate(lvdotr(nenc))
-
-         call encounter_check_all(nenc, index1, index2, x, v, x, v, renc, renc, dt, lencounter, lvdotr)
-
-         call encounter_check_reduce_broadphase(npl, nenc, index1, index2, lencounter, lvdotr)
-         deallocate(lencounter)
-      end if
+      call boundingbox%sweep(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
 
-   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -471,10 +359,10 @@ contains
       real(DP),     dimension(:),              intent(in)  :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)  :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
       real(DP),                                intent(in)  :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out) :: nenc   !! Total number of encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out) :: nenc   !! Total number of encounter
+      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       type(encounter_bounding_box), save :: boundingbox
       integer(I4B) :: i, dim, n, ntot
@@ -521,192 +409,13 @@ contains
       end do
       !$omp end parallel do
 
-      call encounter_check_sweep_aabb_double_list_2(boundingbox, nplm, nplt, nenc, index1, index2, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr) 
+      call boundingbox%sweep(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr) 
 
-      !call boundingbox%sweep(nplm, nplt, nenc, index1, index2)
-
-      ! if (nenc > 0_I8B) then
-      !    ! Shift tiny body indices back into the range of the input position and velocity arrays
-      !    !index2(:) = index2(:) - nplm
-
-      !    ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
-      !    allocate(lencounter(nenc))
-      !    allocate(lvdotr(nenc))
-
-      !    call encounter_check_all(nenc, index1, index2, xplm, vplm, xplt, vplt, rencm, renct, dt, lencounter, lvdotr)
-
-      !    call encounter_check_reduce_broadphase(ntot, nenc, index1, index2, lencounter, lvdotr)
-      ! end if
       return
    end subroutine encounter_check_all_sort_and_sweep_plplm
 
 
-   subroutine encounter_check_sweep_aabb_double_list_2(self, n1, n2, nenc, index1, index2, x1, v1, x2, v2, renc1, renc2, dt, lvdotr)
-      !! author: David A. Minton
-      !!
-      !! Sweeps the sorted bounding box extents and returns the true encounters (combines broad and narrow phases)
-      implicit none
-      ! Arguments
-      class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
-      integer(I4B),                            intent(in)    :: n1         !! Number of bodies 1
-      integer(I4B),                            intent(in)    :: n2         !! Number of bodies 2
-      integer(I8B),                            intent(out)   :: nenc       !! Total number of encounter candidates
-      integer(I4B), dimension(:), allocatable, intent(out)   :: index1     !! List of indices for body 1 in each encounter candidate pair
-      integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for body 2 in each encounter candidate pair
-      real(DP),     dimension(:,:),            intent(in)    :: x1, v1     !! Array of indices of bodies 1
-      real(DP),     dimension(:,:),            intent(in)    :: x2, v2     !! Array of indices of bodies 2
-      real(DP),     dimension(:),              intent(in)    :: renc1      !! Radius of encounter regions of bodies 1
-      real(DP),     dimension(:),              intent(in)    :: renc2      !! Radius of encounter regions of bodies 2
-      real(DP),                                intent(in)    :: dt         !! Step size
-      logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
-      ! Internals
-      integer(I4B) :: ii, i, j, jj, ntot, dim
-      integer(I8B) :: k, kk
-      logical, dimension(n1+n2) :: loverlap
-      logical, dimension(n1) :: lencounter1
-      logical, dimension(n2) :: lencounter2
-      logical, dimension(:), allocatable  :: lencounter, lvdotri
-      logical, dimension(:), allocatable :: lencounterj, lenctrue, ltmp, llist1
-      integer(I4B), dimension(:), allocatable :: ext_ind_true
-      type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
-      integer(I4B), dimension(:), allocatable, save :: ind_arr
-      integer(I8B) :: ibegix, iendix
-      integer(I8B), pointer :: ibegx, ibegy
-      integer(I4B), dimension(:), allocatable :: index1i, index2i, itmp, box
-      type(walltimer) :: timer1, timer2, timer3, timer4, timer5
-      logical, save :: lfirst = .true.
-
-      if (lfirst) then
-         call timer1%reset()
-         call timer2%reset()
-         call timer3%reset()
-         call timer4%reset()
-         call timer5%reset()
-         lfirst = .false.
-      end if
-
-      ntot = n1 + n2
-      call util_index_array(ind_arr, ntot)
-
-      associate(ext_ind => self%aabb(1)%ind(:), ibegx => self%aabb(1)%ibeg(:), iendx => self%aabb(1)%iend(:))
-         ! Sweep the intervals for each of the massive bodies along one dimension
-         ! This will build a ragged pair of index lists inside of the lenc data structure
-         allocate(ext_ind_true, mold=ext_ind)
-         allocate(llist1(size(ext_ind)))
-         where(ext_ind(:) > ntot)
-            ext_ind_true(:) = ext_ind(:) - ntot
-         elsewhere
-            ext_ind_true(:) = ext_ind(:)
-         endwhere
-         llist1(:) = ext_ind_true(:) <= n1
-
-         loverlap(:) = (iendx(:) + 1) > (ibegx(:) - 1)
-         where(.not.loverlap(:)) lenc(:)%nenc = 0
-
-         ! call timer1%start()
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
-         !$omp firstprivate(ntot, n1, n2, dt) 
-         do i = 1, n1
-            if (loverlap(i)) then
-               ibegix = ibegx(i) + 1_I8B
-               iendix = iendx(i) - 1_I8B
-
-               lencounter2(:) = .false.
-               where(.not.llist1(ibegix:iendix)) lencounter2(ext_ind_true(ibegix:iendix) - n1) = .true.
-               call encounter_check_sweep_check_all_one(i, n2, x1(1,i), x1(2,i), x1(3,i), v1(1,i), v1(2,i), v1(3,i), &
-                                                               x2(1,:), x2(2,:), x2(3,:), v2(1,:), v2(2,:), v2(3,:), &
-                                                               renc1(i), renc2(:), dt, ind_arr, lencounter2(:), &
-                                                               lenc(i)%nenc, lenc(i)%lvdotr, lenc(i)%index1, lenc(i)%index2)
-             end if
-         end do
-         !$omp end parallel do
-
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
-         !$omp firstprivate(ntot, n1, n2, dt) 
-         do i = n1+1, ntot
-            if (loverlap(i)) then
-               ibegix = ibegx(i) + 1_I8B
-               iendix = iendx(i) - 1_I8B
-               lencounter1(:) = .false.
-               where(llist1(ibegix:iendix)) lencounter1(ext_ind_true(ibegix:iendix)) = .true.
-               ii = i - n1
-               call encounter_check_sweep_check_all_one(ii, n1, x2(1,ii), x2(2,ii), x2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
-                                                                x1(1, :), x1(2, :), x1(3, :), v1(1, :), v1(2, :), v1(3, :), &
-                                                                renc2(ii), renc1(:), dt, ind_arr, lencounter1(:), &
-                                                                lenc(i)%nenc, lenc(i)%lvdotr, lenc(i)%index2, lenc(i)%index1)
-            end if
-         end do
-         !$omp end parallel do
-
-         ! call timer1%stop()
-         ! call timer1%report(nsubsteps=1, message="timer1           :")
-         ! call timer2%report(nsubsteps=1, message="timer2           :")
-         ! call timer3%report(nsubsteps=1, message="timer3           :")
-         ! call timer4%report(nsubsteps=1, message="timer4           :")
-         ! call timer5%report(nsubsteps=1, message="timer5           :")
-      end associate
-
-      call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2, lvdotr)
-
-      if (allocated(lencounter)) deallocate(lencounter)
-      allocate(lencounter(nenc))
-      lencounter(:) = .true.
-
-      call encounter_check_reduce_broadphase(ntot, nenc, index1, index2, lencounter, lvdotr)
-
-      return
-   end subroutine encounter_check_sweep_aabb_double_list_2
-
-
-   pure subroutine encounter_check_sweep_check_all_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, ind_arr, lgood, nenci, lvdotr, index1, index2)
-      implicit none
-      ! Arguments
-      integer(I4B),                       intent(in)  :: i
-      integer(I4B),                       intent(in)  :: n
-      real(DP),                           intent(in)  :: xi, yi, zi
-      real(DP),                           intent(in)  :: vxi, vyi, vzi
-      real(DP),             dimension(:), intent(in)  :: x, y, z
-      real(DP),             dimension(:), intent(in)  :: vx, vy, vz
-      real(DP),                           intent(in)  :: renci
-      real(DP),             dimension(:), intent(in)  :: renc
-      real(DP),                           intent(in)  :: dt
-      integer(I4B),         dimension(:), intent(in)  :: ind_arr
-      logical,              dimension(:), intent(in)  :: lgood
-      integer(I8B),                       intent(out) :: nenci
-      logical, allocatable, dimension(:), intent(inout) :: lvdotr
-      integer(I4B), allocatable, dimension(:), intent(inout) :: index1, index2
-      ! Internals
-      integer(I4B) :: j
-      integer(I8B) :: k
-      real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
-      logical, dimension(n) :: lencounteri, lvdotri
-
-      lencounteri(:) = .false.
-      do concurrent(j = 1:n, lgood(j))
-         xr = x(j) - xi
-         yr = y(j) - yi
-         zr = z(j) - zi
-         vxr = vx(j) - vxi
-         vyr = vy(j) - vyi
-         vzr = vz(j) - vzi
-         renc12 = renci + renc(j)
-         call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lencounteri(j), lvdotri(j))
-      end do
-      nenci = count(lencounteri(1:n))
-      if (nenci > 0_I8B) then
-         allocate(lvdotr(nenci), index1(nenci), index2(nenci))
-         lvdotr(:) = pack(lvdotri(1:n), lencounteri(1:n)) 
-         index1(:) = i
-         index2(:) = pack(ind_arr(1:n), lencounteri(1:n)) 
-      end if
-
-      return
-   end subroutine encounter_check_sweep_check_all_one
-
-
-   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -723,10 +432,10 @@ contains
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
       real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
       real(DP),                                intent(in)  :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out) :: nenc   !! Total number of encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out) :: nenc   !! Total number of encounter
+      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       type(encounter_bounding_box), save :: boundingbox
       integer(I4B) :: i, dim, n, ntot
@@ -773,41 +482,81 @@ contains
       end do
       !$omp end parallel do
 
-      call boundingbox%sweep(npl, ntp, nenc, index1, index2)
-
-      if (nenc > 0_I8B) then
-         ! Shift test particle indices back into the proper range
-         index2(:) = index2(:) - npl
-
-         ! Now that we have identified potential pairs, use the narrow-phase process to get the final values
-         allocate(lencounter(nenc))
-         allocate(lvdotr(nenc))
-         renctp(:) = 0.0_DP
-
-         call encounter_check_all(nenc, index1, index2, xpl, vpl, xtp, vtp, renc, renctp, dt, lencounter, lvdotr)
-
-         call encounter_check_reduce_broadphase(ntot, nenc, index1, index2, lencounter, lvdotr)
-
-      end if
+      call boundingbox%sweep(npl, ntp, xpl, vpl, xtp, vtp, renc, renctp, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_sort_and_sweep_pltp
 
 
-   pure subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, ind_arr, lenci)
+   pure subroutine encounter_check_all_sweep_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, ind_arr, lgood, nenci, index1, index2, lvdotr)
+      !! author: David A. Minton
+      !!
+      !! Check for encounters between the ith body and all other bodies.
+      !! This is used in the narrow phase of the sort & sweep algorithm
       implicit none
       ! Arguments
-      integer(I4B),                       intent(in)  :: i
-      integer(I4B),                       intent(in)  :: n
-      real(DP),                           intent(in)  :: xi, yi, zi
-      real(DP),                           intent(in)  :: vxi, vyi, vzi
-      real(DP),             dimension(:), intent(in)  :: x, y, z
-      real(DP),             dimension(:), intent(in)  :: vx, vy, vz
-      real(DP),                           intent(in)  :: renci
-      real(DP),             dimension(:), intent(in)  :: renc
-      real(DP),                           intent(in)  :: dt
-      integer(I4B),         dimension(:), intent(in)  :: ind_arr
-      type(encounter_list),               intent(out) :: lenci
+      integer(I4B),                            intent(in)    :: i             !! Index of the ith body that is being checked
+      integer(I4B),                            intent(in)    :: n             !! Total number of bodies being checked
+      real(DP),                                intent(in)    :: xi, yi, zi    !! Position vector components of the ith body
+      real(DP),                                intent(in)    :: vxi, vyi, vzi !! Velocity vector components of the ith body
+      real(DP),     dimension(:),              intent(in)    :: x, y, z       !! Arrays of position vector components of all bodies
+      real(DP),     dimension(:),              intent(in)    :: vx, vy, vz    !! Arrays of velocity vector components of all bodies
+      real(DP),                                intent(in)    :: renci         !! Encounter radius of the ith body
+      real(DP),     dimension(:),              intent(in)    :: renc          !! Array of encounter radii of all bodies
+      real(DP),                                intent(in)    :: dt            !! Step size
+      integer(I4B), dimension(:),              intent(in)    :: ind_arr       !! Index array [1, 2, ..., n]
+      logical,      dimension(:),              intent(in)    :: lgood         !! Logical array mask where true values correspond to bodies selected in the broad phase
+      integer(I8B),                            intent(out)   :: nenci         !! Total number of encountering bodies
+      integer(I4B), dimension(:), allocatable, intent(inout) :: index1        !! Array of indices of the ith body of size nenci [i, i, ..., i]
+      integer(I4B), dimension(:), allocatable, intent(inout) :: index2        !! Array of indices of the encountering bodies of size nenci 
+      logical,      dimension(:), allocatable, intent(inout) :: lvdotr        !! v.dot.r direction array
+      ! Internals
+      integer(I4B) :: j
+      integer(I8B) :: k
+      real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
+      logical, dimension(n) :: lencounteri, lvdotri
+
+      lencounteri(:) = .false.
+      do concurrent(j = 1:n, lgood(j))
+         xr = x(j) - xi
+         yr = y(j) - yi
+         zr = z(j) - zi
+         vxr = vx(j) - vxi
+         vyr = vy(j) - vyi
+         vzr = vz(j) - vzi
+         renc12 = renci + renc(j)
+         call encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc12, dt, lencounteri(j), lvdotri(j))
+      end do
+      nenci = count(lencounteri(1:n))
+      if (nenci > 0_I8B) then
+         allocate(lvdotr(nenci), index1(nenci), index2(nenci))
+         lvdotr(:) = pack(lvdotri(1:n), lencounteri(1:n)) 
+         index1(:) = i
+         index2(:) = pack(ind_arr(1:n), lencounteri(1:n)) 
+      end if
+
+      return
+   end subroutine encounter_check_all_sweep_one
+
+
+   pure subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, ind_arr, lenci)
+      !! author: David A. Minton
+      !!
+      !! Check for encounters between the ith body and all other bodies.
+      !! This is the upper triangular (double loop) version.
+      implicit none
+      ! Arguments
+      integer(I4B),                       intent(in)  :: i             !! Index of the ith body that is being checked
+      integer(I4B),                       intent(in)  :: n             !! Total number of bodies being checked
+      real(DP),                           intent(in)  :: xi, yi, zi    !! Position vector components of the ith body
+      real(DP),                           intent(in)  :: vxi, vyi, vzi !! Velocity vector components of the ith body
+      real(DP),             dimension(:), intent(in)  :: x, y, z       !! Arrays of position vector components of all bodies
+      real(DP),             dimension(:), intent(in)  :: vx, vy, vz    !! Arrays of velocity vector components of all bodies
+      real(DP),                           intent(in)  :: renci         !! Encounter radius of the ith body
+      real(DP),             dimension(:), intent(in)  :: renc          !! Array of encounter radii of all bodies
+      real(DP),                           intent(in)  :: dt            !! Step size
+      integer(I4B),         dimension(:), intent(in)  :: ind_arr       !! Index array [1, 2, ..., n]
+      type(encounter_list),               intent(out) :: lenci         !! Output encounter lists containing number of encounters, the v.dot.r direction array, and the index list of encountering bodies 
       ! Internals
       integer(I4B) :: j
       integer(I8B) :: k, nenci
@@ -836,7 +585,7 @@ contains
    end subroutine encounter_check_all_triangular_one
 
 
-   subroutine encounter_check_all_triangular_plpl(npl, x, v, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_triangular_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. Split off from the main subroutine for performance
@@ -848,10 +597,10 @@ contains
       real(DP),     dimension(:,:),            intent(in)  :: v      !! Velocity vectors of massive bodies
       real(DP),     dimension(:),              intent(in)  :: renc  !! Critical radii of massive bodies that defines an encounter 
       real(DP),                                intent(in)  :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
+      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       integer(I4B) :: i, j, k, nenci, j0, j1
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
@@ -881,7 +630,7 @@ contains
    end subroutine encounter_check_all_triangular_plpl
 
 
-   subroutine encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Split off from the main subroutine for performance
@@ -897,10 +646,10 @@ contains
       real(DP),     dimension(:),              intent(in)  :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)  :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
       real(DP),                                intent(in)  :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
+      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       integer(I4B) :: i
       logical, dimension(nplt) :: lencounteri, lvdotri
@@ -929,7 +678,7 @@ contains
    end subroutine encounter_check_all_triangular_plplm
 
 
-   subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, lvdotr, index1, index2, nenc)
+   subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Split off from the main subroutine for performance
@@ -944,10 +693,10 @@ contains
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
       real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
       real(DP),                                intent(in)  :: dt     !! Step size
-      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
+      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
-      integer(I8B),                            intent(out) :: nenc   !! Total number of encounters
+      logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       integer(I4B) :: i
       logical, dimension(ntp) :: lencounteri, lvdotri
@@ -1076,30 +825,89 @@ contains
    end subroutine encounter_check_collapse_ragged_list
 
 
-   pure subroutine encounter_check_make_ragged_list(lencounteri, ind_arr, i, lenci)
+   subroutine encounter_check_remove_duplicates(n, nenc, index1, index2, lvdotr)
+      !! author: David A. Minton
+      !!
+      !! Takes the candidate encounter lists that came out of the sort & sweep method and remove any duplicates.
       implicit none
       ! Arguments
-      logical,      dimension(:),              intent(in)  :: lencounteri !! Array of logicals indicating which bodies are candidates for encounter with body i
-      integer(I4B), dimension(:),              intent(in)  :: ind_arr     !! Index array 
-      integer(I4B),                            intent(in)  :: i           !! Index value of body i that will fill index1 
-      type(encounter_list),                    intent(out) :: lenci       !! The ith row of the ragged encounter list
+      integer(I4B),                            intent(in)    :: n          !! Number of bodies 
+      integer(I8B),                            intent(inout) :: nenc       !! Number of encountering bodies (input is the broad phase value, output is the final narrow phase value)
+      integer(I4B), dimension(:), allocatable, intent(inout) :: index1     !! List of indices for body 1 in each encounter
+      integer(I4B), dimension(:), allocatable, intent(inout) :: index2     !! List of indices for body 2 in each encounter
+      logical,      dimension(:), allocatable, intent(inout) :: lvdotr     !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      integer(I8B) :: k
+      integer(I4B) :: i, i0
+      integer(I8B) :: j, k, klo, khi, nenci
+      integer(I4B), dimension(:), allocatable :: itmp
+      integer(I8B), dimension(:), allocatable :: ind
+      integer(I8B), dimension(n) :: ibeg, iend
+      logical, dimension(:), allocatable :: ltmp
+      logical, dimension(nenc) :: lencounter
 
-      lenci%nenc = count(lencounteri(:))
-      if (lenci%nenc > 0_I8B) then
-         if (allocated(lenci%index1)) deallocate(lenci%index1)
-         if (allocated(lenci%index2)) deallocate(lenci%index2)
-         allocate(lenci%index1(lenci%nenc))
-         allocate(lenci%index2(lenci%nenc))
-         lenci%index1(:) = [(i, k = 1_I8B, lenci%nenc)]
-         lenci%index2(:) = pack(ind_arr(:), lencounteri(:)) 
+      if (nenc == 0) then
+         if (allocated(index1)) deallocate(index1)
+         if (allocated(index2)) deallocate(index2)
+         if (allocated(lvdotr)) deallocate(lvdotr)
+         return
       end if
 
-      return
-   end subroutine encounter_check_make_ragged_list
+      call util_sort(index1, ind)
+      call util_sort_rearrange(index1, ind, nenc)
+      call util_sort_rearrange(index2, ind, nenc)
+      call util_sort_rearrange(lvdotr, ind, nenc)
 
-  
+      ! Get the bounds on the bodies in the first index
+      ibeg(:) = n
+      iend(:) = 1_I8B
+      i0 = index1(1) 
+      ibeg(i0) = 1_I8B
+      do k = 2_I8B, nenc 
+         i = index1(k)
+         if (i /= i0) then
+            iend(i0) = k - 1_I8B
+            ibeg(i) = k
+            i0 = i
+         end if
+         if (k == nenc) iend(i) = k
+      end do
+
+      lencounter(:) = .true.
+      ! Sort on the second index and remove duplicates 
+      if (allocated(itmp)) deallocate(itmp)
+      allocate(itmp, source=index2)
+      do concurrent(i = 1:n, iend(i) - ibeg(i) > 0_I8B)
+         klo = ibeg(i)
+         khi = iend(i)
+         nenci = khi - klo + 1_I8B
+         if (allocated(ind)) deallocate(ind)
+         call util_sort(index2(klo:khi), ind)
+         index2(klo:khi) = itmp(klo - 1_I8B + ind(:))
+         do j = klo + 1_I8B, khi
+            if (index2(j) == index2(j - 1_I8B)) lencounter(j) = .false. 
+         end do
+      end do
+
+      if (count(lencounter(:)) == nenc) return
+      nenc = count(lencounter(:)) ! Count the true number of encounters
+
+      if (allocated(itmp)) deallocate(itmp)
+      allocate(itmp(nenc))
+      itmp(:) = pack(index1(:), lencounter(:))
+      call move_alloc(itmp, index1)
+
+      allocate(itmp(nenc))
+      itmp(:) = pack(index2(:), lencounter(:))
+      call move_alloc(itmp, index2)
+
+      allocate(ltmp(nenc))
+      ltmp(:) = pack(lvdotr(:), lencounter(:))
+      call move_alloc(ltmp, lvdotr)
+
+      return
+   end subroutine encounter_check_remove_duplicates
+
+
    module pure subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
       !! author: David A. Minton
       !!
@@ -1128,256 +936,202 @@ contains
       return
    end subroutine encounter_check_sort_aabb_1D 
 
-   
-   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, nenc, index1, index2)
+
+   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
-      !! Sweeps the sorted bounding box extents and returns the encounter candidates
+      !! Sweeps the sorted bounding box extents and returns the true encounters (combines broad and narrow phases)
+      !! Double list version (e.g. pl-tp or plm-plt)
       implicit none
       ! Arguments
-      class(encounter_bounding_box),           intent(inout) :: self     !! Multi-dimensional bounding box structure
-      integer(I4B),                            intent(in)    :: n1       !! Number of bodies 1
-      integer(I4B),                            intent(in)    :: n2       !! Number of bodies 2
-      integer(I8B),                            intent(out)   :: nenc     !! Total number of encounter candidates
-      integer(I4B), dimension(:), allocatable, intent(out)   :: index1   !! List of indices for body 1 in each encounter candidate pair
-      integer(I4B), dimension(:), allocatable, intent(out)   :: index2   !! List of indices for body 2 in each encounter candidate pair
+      class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
+      integer(I4B),                            intent(in)    :: n1         !! Number of bodies 1
+      integer(I4B),                            intent(in)    :: n2         !! Number of bodies 2
+      real(DP),     dimension(:,:),            intent(in)    :: x1, v1     !! Array of position and velocity vectorrs for bodies 1
+      real(DP),     dimension(:,:),            intent(in)    :: x2, v2     !! Array of position and velocity vectorrs for bodies 2
+      real(DP),     dimension(:),              intent(in)    :: renc1      !! Radius of encounter regions of bodies 1
+      real(DP),     dimension(:),              intent(in)    :: renc2      !! Radius of encounter regions of bodies 2
+      real(DP),                                intent(in)    :: dt         !! Step size
+      integer(I8B),                            intent(out)   :: nenc       !! Total number of encounter candidates
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index1     !! List of indices for body 1 in each encounter candidate pair
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for body 2 in each encounter candidate pair
+      logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       ! Internals
-      integer(I4B) :: i, ntot, dim
+      integer(I4B) :: ii, i, ntot
       integer(I8B) :: k
+      logical, dimension(n1+n2) :: loverlap
+      logical, dimension(n1) :: lencounter1
+      logical, dimension(n2) :: lencounter2
+      logical, dimension(:), allocatable :: llist1
+      integer(I4B), dimension(:), allocatable :: ext_ind_true
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      integer(I8B), dimension(SWEEPDIM * (n1 + n2)) :: ibeg, iend
+      integer(I8B) :: ibegix, iendix
+      integer(I8B), pointer :: ibegx, iendx
+      type(walltimer) :: timer1, timer2, timer3, timer4, timer5
+      logical, save :: lfirst = .true.
+
+      if (lfirst) then
+         call timer1%reset()
+         call timer2%reset()
+         call timer3%reset()
+         call timer4%reset()
+         call timer5%reset()
+         lfirst = .false.
+      end if
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
-      do concurrent (dim=1:SWEEPDIM, i = 1:ntot)
-         ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
-         iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
-      end do
 
-      ! Sweep the intervals for each of the massive bodies along one dimension
-      ! This will build a ragged pair of index lists inside of the lenc data structure
-      call encounter_check_sweep_aabb_all_double_list(n1, n2, self%aabb(1)%ind(:), reshape(ibeg(:), [SWEEPDIM, ntot]), reshape(iend(:), [SWEEPDIM, ntot]), ind_arr(:), lenc(:))
-      
-      call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2)
+      associate(ext_ind => self%aabb(1)%ind(:), ibegx => self%aabb(1)%ibeg(:), iendx => self%aabb(1)%iend(:))
+         ! Sweep the intervals for each of the massive bodies along one dimension
+         ! This will build a ragged pair of index lists inside of the lenc data structure
+         allocate(ext_ind_true, mold=ext_ind)
+         allocate(llist1(size(ext_ind)))
+         where(ext_ind(:) > ntot)
+            ext_ind_true(:) = ext_ind(:) - ntot
+         elsewhere
+            ext_ind_true(:) = ext_ind(:)
+         endwhere
+         llist1(:) = ext_ind_true(:) <= n1
 
-      ! Reorder the pairs and sort the first index in order to remove any duplicates
-      do concurrent(k = 1_I8B:nenc, index2(k) < index1(k))
-         i = index2(k)
-         index2(k) = index1(k)
-         index1(k) = i
-      end do
+         loverlap(:) = (iendx(:) + 1_I8B) > (ibegx(:) - 1_I8B)
+         where(.not.loverlap(:)) lenc(:)%nenc = 0
+
+         call timer1%start()
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
+         !$omp firstprivate(ntot, n1, n2, dt) 
+         do i = 1, n1
+            if (loverlap(i)) then
+               ibegix = ibegx(i) + 1_I8B
+               iendix = iendx(i) - 1_I8B
+
+               lencounter2(:) = .false.
+               where(.not.llist1(ibegix:iendix)) lencounter2(ext_ind_true(ibegix:iendix) - n1) = .true.
+               call encounter_check_all_sweep_one(i, n2, x1(1,i), x1(2,i), x1(3,i), v1(1,i), v1(2,i), v1(3,i), &
+                                                               x2(1,:), x2(2,:), x2(3,:), v2(1,:), v2(2,:), v2(3,:), &
+                                                               renc1(i), renc2(:), dt, ind_arr, lencounter2(:), &
+                                                               lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
+             end if
+         end do
+         !$omp end parallel do
+         call timer1%stop()
+
+         call timer2%start()
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
+         !$omp firstprivate(ntot, n1, dt) 
+         do i = n1+1, ntot
+            if (loverlap(i)) then
+               ibegix = ibegx(i) + 1_I8B
+               iendix = iendx(i) - 1_I8B
+               lencounter1(:) = .false.
+               where(llist1(ibegix:iendix)) lencounter1(ext_ind_true(ibegix:iendix)) = .true.
+               ii = i - n1
+               call encounter_check_all_sweep_one(ii, n1, x2(1,ii), x2(2,ii), x2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
+                                                                x1(1, :), x1(2, :), x1(3, :), v1(1, :), v1(2, :), v1(3, :), &
+                                                                renc2(ii), renc1(:), dt, ind_arr, lencounter1(:), &
+                                                                lenc(i)%nenc, lenc(i)%index2, lenc(i)%index1, lenc(i)%lvdotr)
+            end if
+         end do
+         !$omp end parallel do
+         call timer2%stop()
+
+         write(*,*) 'double list'
+         call timer1%report(nsubsteps=1, message="timer1           :")
+         call timer2%report(nsubsteps=1, message="timer2           :")
+         ! call timer3%report(nsubsteps=1, message="timer3           :")
+         ! call timer4%report(nsubsteps=1, message="timer4           :")
+         ! call timer5%report(nsubsteps=1, message="timer5           :")
+      end associate
+
+      call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2, lvdotr)
+
+      call encounter_check_remove_duplicates(ntot, nenc, index1, index2, lvdotr)
 
       return
    end subroutine encounter_check_sweep_aabb_double_list
 
 
-   module subroutine encounter_check_sweep_aabb_single_list(self, n, nenc, index1, index2)
+   module subroutine encounter_check_sweep_aabb_single_list(self, n, x, v, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
-      !! Sweeps the sorted bounding box extents and returns the encounter candidates. Mutual encounters
-      !! allowed. That is, all bodies are from the same list
+      !! Sweeps the sorted bounding box extents and returns the true encounters (combines broad and narrow phases)
+      !! Double list version (e.g. pl-tp or plm-plt)
       implicit none
       ! Arguments
-      class(encounter_bounding_box),           intent(inout) :: self    !! Multi-dimensional bounding box structure
-      integer(I4B),                            intent(in)    :: n       !! Number of bodies 1
-      integer(I8B),                            intent(out)   :: nenc    !! Total number of encounter candidates
-      integer(I4B), dimension(:), allocatable, intent(out)   :: index1  !! List of indices for body 1 in each encounter candidate pair
-      integer(I4B), dimension(:), allocatable, intent(out)   :: index2  !! List of indices for body 2 in each encounter candidate pair
-      !Internals
-      integer(I4B) :: i, dim
+      class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
+      integer(I4B),                            intent(in)    :: n          !! Number of bodies
+      real(DP),     dimension(:,:),            intent(in)    :: x, v       !! Array of position and velocity vectors 
+      real(DP),     dimension(:),              intent(in)    :: renc       !! Radius of encounter regions of bodies 1
+      real(DP),                                intent(in)    :: dt         !! Step size
+      integer(I8B),                            intent(out)   :: nenc       !! Total number of encounter candidates
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index1     !! List of indices for one body in each encounter candidate pair
+      integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for the other body in each encounter candidate pair
+      logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
+      ! Internals
+      integer(I4B) :: ii, i
       integer(I8B) :: k
+      logical, dimension(n) :: loverlap
+      logical, dimension(n) :: lencounteri
+      integer(I4B), dimension(:), allocatable :: ext_ind_true
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      integer(I8B), dimension(SWEEPDIM * n) :: ibeg, iend
+      integer(I8B) :: ibegix, iendix
+      integer(I8B), pointer :: ibegx, iendx
+      type(walltimer) :: timer1
+      logical, save :: lfirst = .true.
+
+      if (lfirst) then
+         call timer1%reset()
+         lfirst = .false.
+      end if
 
       call util_index_array(ind_arr, n)
-      do concurrent(dim = 1:SWEEPDIM, i = 1:n)
-         ibeg((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%ibeg(i)
-         iend((i - 1) * SWEEPDIM + dim) = self%aabb(dim)%iend(i)
-      end do
 
-      ! Sweep the intervals for each of the massive bodies along one dimension
-      ! This will build a ragged pair of index lists inside of the lenc data structure
-      call encounter_check_sweep_aabb_all_single_list(n, self%aabb(1)%ind(:), reshape(ibeg(:), [SWEEPDIM, n]), reshape(iend(:), [SWEEPDIM, n]), ind_arr(:), lenc(:))
+      associate(ext_ind => self%aabb(1)%ind(:), ibegx => self%aabb(1)%ibeg(:), iendx => self%aabb(1)%iend(:))
+         ! Sweep the intervals for each of the massive bodies along one dimension
+         ! This will build a ragged pair of index lists inside of the lenc data structure
+         allocate(ext_ind_true, mold=ext_ind)
+         where(ext_ind(:) > n)
+            ext_ind_true(:) = ext_ind(:) - n
+         elsewhere
+            ext_ind_true(:) = ext_ind(:)
+         endwhere
 
-      call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2)
+         loverlap(:) = (iendx(:) + 1_I8B) > (ibegx(:) - 1_I8B)
+         where(.not.loverlap(:)) lenc(:)%nenc = 0
 
-      ! Reorder the pairs and sort the first index in order to remove any duplicates
-      do concurrent(k = 1_I8B:nenc, index2(k) < index1(k))
-         i = index2(k)
-         index2(k) = index1(k)
-         index1(k) = i
-      end do
+         call timer1%start()
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x, v, renc) &
+         !$omp firstprivate(n, dt) 
+         do i = 1, n
+            if (loverlap(i)) then
+               ibegix = ibegx(i) + 1_I8B
+               iendix = iendx(i) - 1_I8B
+
+               lencounteri(:) = .false.
+               lencounteri(ext_ind_true(ibegix:iendix)) = .true.
+               call encounter_check_all_sweep_one(i, n, x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), &
+                                                        x(1,:), x(2,:), x(3,:), v(1,:), v(2,:), v(3,:), &
+                                                        renc(i), renc(:), dt, ind_arr, lencounteri(:), &
+                                                        lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
+             end if
+         end do
+         !$omp end parallel do
+         call timer1%stop()
+
+         write(*,*) 'single list'
+         call timer1%report(nsubsteps=1, message="timer1           :")
+      end associate
+
+      call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2, lvdotr)
+
+      call encounter_check_remove_duplicates(n, nenc, index1, index2, lvdotr)
 
       return
    end subroutine encounter_check_sweep_aabb_single_list
 
-
-   subroutine encounter_check_sweep_aabb_all_double_list(n1, n2, ext_ind, ibeg, iend, ind_arr, lenc)
-      !! author: David A. Minton
-      !!
-      !! Performs the loop part of the sweep operation. Double list version (e.g. pl-tp or plm-plt)
-      implicit none
-      ! Arguments
-      integer(I4B),                         intent(in)    :: n1, n2     !! Number of bodies
-      integer(I4B),         dimension(:),   intent(in)    :: ext_ind    !! Sorted index array of extents
-      integer(I8B),         dimension(:,:), intent(in)    :: ibeg, iend !! Beginning and ending index lists in the n-dimensions
-      integer(I4B),         dimension(:),   intent(in)    :: ind_arr    !! index array for mapping body 2 indexes
-      type(encounter_list), dimension(:),   intent(inout) :: lenc       !! Encounter list for the ith body   
-      ! Internals
-      integer(I4B) :: i, j, ntot
-      integer(I8B) :: ibegx, iendx
-      logical, dimension(n1+n2) :: lencounteri, loverlap
-      integer(I8B), dimension(SWEEPDIM) :: ibegi, iendi
-      logical, dimension(:), allocatable :: lencounterj
-      integer(I4B), dimension(:), allocatable :: ext_ind_true
-
-      ntot = n1 + n2
-      allocate(ext_ind_true, mold=ext_ind)
-      where(ext_ind(:) > ntot)
-         ext_ind_true(:) = ext_ind(:) - ntot
-      elsewhere
-         ext_ind_true(:) = ext_ind(:)
-      endwhere
-
-      loverlap(:) = (iend(1,:) + 1) > (ibeg(1,:) - 1)
-      where(.not.loverlap(:)) lenc(:)%nenc = 0
-      
-      lencounteri(:) = .false.
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(ext_ind_true, ibeg, iend, ind_arr, lenc, loverlap) &
-      !$omp firstprivate(ntot, n1, lencounteri) 
-      do i = 1,n1
-         if (loverlap(i)) then
-            ibegi(1) = ibeg(1,i) + 1_I8B
-            iendi(1) = iend(1,i) - 1_I8B
-            ibegi(2:SWEEPDIM) = ibeg(2:SWEEPDIM,i) 
-            iendi(2:SWEEPDIM) = iend(2:SWEEPDIM,i) 
-            allocate(lencounterj(1 + iendi(1) - ibegi(1)))
-            lencounterj(:) = ext_ind_true(ibegi(1):iendi(1)) > n1
-            call sweep_list(ext_ind_true(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:), lencounterj(:))
-            deallocate(lencounterj)
-            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), i, lenc(i))
-            lencounteri(ext_ind_true(ibegi(1):iendi(1))) = .false.
-         end if
-      end do
-      !$omp end parallel do
-
-      lencounteri(:) = .false.
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(ext_ind_true, ibeg, iend, ind_arr, lenc, loverlap) &
-      !$omp firstprivate(n1, n2, lencounteri) 
-      do i = n1+1, n1+n2
-         if (loverlap(i)) then
-            ibegi(1) = ibeg(1,i) + 1_I8B
-            iendi(1) = iend(1,i) - 1_I8B
-            ibegi(2:SWEEPDIM) = ibeg(2:SWEEPDIM,i) 
-            iendi(2:SWEEPDIM) = iend(2:SWEEPDIM,i) 
-            allocate(lencounterj(1 + iendi(1) - ibegi(1)))
-            lencounterj(:) = ext_ind_true(ibegi(1):iendi(1)) <= n1
-            call sweep_list(ext_ind_true(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:), lencounterj(:))
-            deallocate(lencounterj)
-            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), i, lenc(i))
-            lencounteri(ext_ind_true(ibegi(1):iendi(1))) = .false.
-         end if
-      end do
-      !$omp end parallel do
-
-      return
-
-      contains
-
-   end subroutine encounter_check_sweep_aabb_all_double_list
-
-
-   subroutine encounter_check_sweep_aabb_all_single_list(n, ext_ind, ibeg, iend, ind_arr, lenc)
-      !! author: David A. Minton
-      !!
-      !! Performs the loop part of the sweep operation. Single list version (e.g. pl-pl)
-      implicit none
-      ! Arguments
-      integer(I4B),                         intent(in)    :: n          !! Number of bodies
-      integer(I4B),         dimension(:),   intent(in)    :: ext_ind    !! Sorted index array of extents
-      integer(I8B),         dimension(:,:), intent(in)    :: ibeg, iend !! Beginning and ending index lists in the n-dimension
-      integer(I4B),         dimension(:),   intent(in)    :: ind_arr    !! index array for mapping body 2 indexes
-      type(encounter_list), dimension(:),   intent(inout) :: lenc       !! Encounter list for the ith body   
-      ! Internals
-      integer(I4B) :: i
-      logical, dimension(n) :: lencounteri, loverlap
-      logical, dimension(:), allocatable :: lencounterj
-      integer(I8B), dimension(SWEEPDIM) :: ibegi, iendi
-      integer(I4B), dimension(:), allocatable :: ext_ind_true
-
-      allocate(ext_ind_true, mold=ext_ind)
-      where(ext_ind(:) > n)
-         ext_ind_true(:) = ext_ind(:) - n
-      elsewhere
-         ext_ind_true(:) = ext_ind(:)
-      endwhere
-
-      loverlap(:) = (iend(1,:) + 1_I8B) > (ibeg(1,:) - 1_I8B)
-      where(.not.loverlap(:)) lenc(:)%nenc = 0
-      lencounteri(:) = .false.
-      !$omp parallel do default(private) schedule(static)&
-      !$omp shared(ext_ind_true, ibeg, iend, ind_arr, lenc, loverlap) &
-      !$omp firstprivate(n, lencounteri)
-      do i = 1, n
-         if (loverlap(i)) then
-            ibegi(1) = ibeg(1,i) + 1_I8B
-            iendi(1) = iend(1,i) - 1_I8B
-            ibegi(2:SWEEPDIM) = ibeg(2:SWEEPDIM,i) 
-            iendi(2:SWEEPDIM) = iend(2:SWEEPDIM,i) 
-            allocate(lencounterj(1 + iendi(1) - ibegi(1)))
-            lencounterj(:) = .true.
-            call sweep_list(ext_ind_true(:), ibegi(:), iendi(:), ibeg(:,:), iend(:,:), lencounteri(:), lencounterj(:))
-            deallocate(lencounterj)
-            call encounter_check_make_ragged_list(lencounteri(:), ind_arr(:), i, lenc(i))
-            lencounteri(ext_ind_true(ibegi(1):iendi(1))) = .false.
-         end if
-      end do
-      !$omp end parallel do
-
-      return
-   end subroutine encounter_check_sweep_aabb_all_single_list
-
-
-   pure subroutine sweep_list(ext_ind, ibegi, iendi, ibeg, iend, lencounteri, lencounterj)
-      !! author: David A. Minton
-      !!
-      !! Performs a sweep operation on a single body. Encounters from the same lists not allowed (e.g. pl-tp encounters only)
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:),   intent(in)    :: ext_ind      !! Sorted index array of extents
-      integer(I8B), dimension(:),   intent(in)    :: ibegi, iendi !! The beginning and ending indices of the ith bounding box in the n-dimensions
-      integer(I8B), dimension(:,:), intent(in)    :: ibeg, iend   !! Beginning and ending index lists in the n-dimensions
-      logical, dimension(:),        intent(out)   :: lencounteri    !! Encounter list for the ith body
-      logical, dimension(:),        intent(inout) :: lencounterj
-      ! Internals
-      integer(I8B) :: j, jbox, dim, jlo, jhi
-      integer(I4B), dimension(ibegi(1):iendi(1)) :: box
-      integer(I8B), dimension(ibegi(1):iendi(1)) :: iendy, ibegy
-      integer(I8B), dimension(ibegi(1):iendi(1)) :: iendz, ibegz
-
-      jlo = ibegi(1)
-      jhi = iendi(1)
-
-      box(jlo:jhi) = ext_ind(jlo:jhi)
-      
-      ibegy(jlo:jhi) = ibeg(2,box(jlo:jhi))
-      iendy(jlo:jhi) = iend(2,box(jlo:jhi))
-      ibegz(jlo:jhi) = ibeg(3,box(jlo:jhi))
-      iendz(jlo:jhi) = iend(3,box(jlo:jhi))
-      
-      lencounterj(:) = lencounterj(:) .and. (iendy(jlo:jhi) > ibegi(2)) &
-                                      .and. (ibegy(jlo:jhi) < iendi(2)) &
-                                      .and. (iendz(jlo:jhi) > ibegi(3)) &
-                                      .and. (ibegz(jlo:jhi) < iendi(3))
-     
-      do concurrent (j = jlo:jhi, lencounterj(j - jlo + 1))
-         lencounteri(box(j)) = .true. 
-      end do
-      
-      return
-   end subroutine sweep_list
 end submodule s_encounter_check

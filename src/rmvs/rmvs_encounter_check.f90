@@ -36,7 +36,7 @@ contains
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody)
             tp%plencP(1:ntp) = 0
-            call encounter_check_all_pltp(param, npl, ntp, pl%xbeg, pl%vbeg, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+            call encounter_check_all_pltp(param, npl, ntp, pl%xbeg, pl%vbeg, tp%xh, tp%vh, pl%renc, dt, nenc, index1, index2, lvdotr)
 
             lencounter = (nenc > 0_I8B)
             if (lencounter) then

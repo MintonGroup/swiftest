@@ -38,9 +38,9 @@ contains
          call pl%set_renc(irec)
 
          if (nplt == 0) then
-            call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+            call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, nenc, index1, index2, lvdotr)
          else
-            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, lvdotr, index1, index2, nenc)
+            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, nenc, index1, index2, lvdotr)
          end if
          
          lany_encounter = nenc > 0_I8B
@@ -209,7 +209,7 @@ contains
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
          call pl%set_renc(irec)
-         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, nenc, index1, index2, lvdotr) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 
