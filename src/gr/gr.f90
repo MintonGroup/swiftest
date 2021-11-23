@@ -28,7 +28,8 @@ contains
             rmag = norm2(self%xh(:,i))
             vmag2 = dot_product(self%vh(:,i), self%vh(:,i))
             rdotv = dot_product(self%xh(:,i), self%vh(:,i))
-            self%agr(:, i) = self%mu * inv_c2 / rmag**3 * ((4 * self%mu(i) / rmag - vmag2) * self%xh(:,i) + 4 * rdotv * self%vh(:,i))
+            self%agr(:, i) = self%mu * inv_c2 / rmag**3 * ((4 * self%mu(i) / rmag - vmag2) &
+                           * self%xh(:,i) + 4 * rdotv * self%vh(:,i))
          end do
 
          select type(self)

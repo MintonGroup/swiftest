@@ -30,11 +30,12 @@ contains
                      write(idstrj, *) pl%id(iplperP)
                      write(timestr, *) t
                      write(*, *) "Particle "  // trim(adjustl(tp%info(i)%name)) // " (" // trim(adjustl(idstri)) &
-                              // ") q with respect to massive body " // trim(adjustl(pl%info(iplperP)%name)) // " (" // trim(adjustl(idstrj)) &
-                              // ") is too small at t = " // trim(adjustl(timestr))
+                              // ") q with respect to massive body " // trim(adjustl(pl%info(iplperP)%name))   &
+                              // " (" // trim(adjustl(idstrj)) // ") is too small at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
-                     call tp%info(i)%set_value(status="DISCARDED_PLQ", discard_time=t, discard_xh=tp%xh(:,i), discard_vh=tp%vh(:,i), discard_body_id=pl%id(iplperP))
+                     call tp%info(i)%set_value(status="DISCARDED_PLQ", discard_time=t, discard_xh=tp%xh(:,i), &
+                                               discard_vh=tp%vh(:,i), discard_body_id=pl%id(iplperP))
                   end if
                end if
             end associate

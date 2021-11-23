@@ -39,7 +39,8 @@ contains
       integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
       character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
       ! Internals
-      character(len=*), parameter     :: walltimefmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, "; Interval wall time/step:  ", es12.5'
+      character(len=*), parameter     :: walltimefmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, ";' //&
+                                                       'Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
       integer(I8B)                    :: count_delta_step, count_delta_main, count_now
       real(DP)                        :: wall_main         !! Value of total elapsed time at the end of a timed step
@@ -196,7 +197,8 @@ contains
 
       write(cstr,*) self%count_stop_step - self%count_start_step
 
-      call io_log_one_message(logfile, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
+      call io_log_one_message(logfile, adjustl(lstyle) // " " // trim(adjustl(cstr)) // " " // &
+                                       trim(adjustl(nstr)) // " " // trim(adjustl(mstr)))
 
       if (self%stage == 2) then
          if (ladvanced_final) then
@@ -204,7 +206,8 @@ contains
          else
             lstyle = standardstyle
          end if 
-         call io_log_one_message(logfile, trim(adjustl(self%loopname)) // ": the fastest loop method tested is " // trim(adjustl(lstyle)))
+         call io_log_one_message(logfile, trim(adjustl(self%loopname)) // &
+                                 ": the fastest loop method tested is " // trim(adjustl(lstyle)))
       end if
 
       return

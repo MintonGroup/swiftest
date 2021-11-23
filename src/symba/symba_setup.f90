@@ -18,9 +18,9 @@ contains
       ! Call parent method
       associate(system => self)
          call helio_setup_initialize_system(system, param)
-         call system%pltpenc_list%setup(0)
-         call system%plplenc_list%setup(0)
-         call system%plplcollision_list%setup(0)
+         call system%pltpenc_list%setup(0_I8B)
+         call system%plplenc_list%setup(0_I8B)
+         call system%plplcollision_list%setup(0_I8B)
       end associate
 
       return

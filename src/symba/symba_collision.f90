@@ -312,7 +312,8 @@ contains
                   vr(:) = pl%vb(:, i) - pl%vb(:, j)
                   rlim = pl%radius(i) + pl%radius(j)
                   Gmtot = pl%Gmass(i) + pl%Gmass(j)
-                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k))
+                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), &
+                                                            Gmtot, rlim, dt, self%lvdotr(k))
                end do
             else
                do concurrent(k = 1:nenc, lmask(k))
@@ -320,7 +321,8 @@ contains
                   j = self%index2(k)
                   xr(:) = pl%xh(:, i) - tp%xh(:, j) 
                   vr(:) = pl%vb(:, i) - tp%vb(:, j)
-                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k))
+                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), &
+                                                            pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k))
                end do
             end if
 
@@ -356,8 +358,8 @@ contains
                      write(timestr, *) t
                      call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_xh=tp%xh(:,j), discard_vh=tp%vh(:,j))
                      write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
-                             //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
-                             //  " at t = " // trim(adjustl(timestr))
+                             //  " collided with massive body " // trim(adjustl(pl%info(i)%name))  &
+                             // " (" // trim(adjustl(idstri)) // ")" //  " at t = " // trim(adjustl(timestr))
                      call io_log_one_message(FRAGGLE_LOG_OUT, message)
                   end if
                end if
@@ -528,7 +530,9 @@ contains
                   xcrossv(:) = xc(:) .cross. vc(:) 
                   colliders%L_spin(:, j) = colliders%L_spin(:, j) + mchild * xcrossv(:)
 
-                  colliders%L_spin(:, j) = colliders%L_spin(:, j) + mchild * pl%Ip(3, idx_child) * pl%radius(idx_child)**2 * pl%rot(:, idx_child)
+                  colliders%L_spin(:, j) = colliders%L_spin(:, j) + mchild * pl%Ip(3, idx_child)  &
+                                                                           * pl%radius(idx_child)**2 &
+                                                                           * pl%rot(:, idx_child)
                   colliders%Ip(:, j) = colliders%Ip(:, j) + mchild * pl%Ip(:, idx_child)
                end if
 
@@ -748,7 +752,9 @@ contains
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Disruption", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), collision_id=param%maxid_collision)
+                     call plnew%info(i)%set_value(origin_type="Disruption", origin_time=param%t, name=newname, &
+                                                  origin_xh=plnew%xh(:,i), &
+                                                  origin_vh=plnew%vh(:,i), collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) then
@@ -756,13 +762,16 @@ contains
                      else
                         iother = ibiggest
                      end if
-                     call pl%info(colliders%idx(i))%set_value(status="Disruption", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
+                     call pl%info(colliders%idx(i))%set_value(status="Disruption", discard_time=param%t, &
+                                                              discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do
                case(SUPERCATASTROPHIC)
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), collision_id=param%maxid_collision)
+                     call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=param%t, name=newname, &
+                                                  origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), &
+                                                  collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) then
@@ -770,19 +779,25 @@ contains
                      else
                         iother = ibiggest
                      end if
-                     call pl%info(colliders%idx(i))%set_value(status="Supercatastrophic", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
+                     call pl%info(colliders%idx(i))%set_value(status="Supercatastrophic", discard_time=param%t, &
+                                                              discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), &
+                                                              discard_body_id=iother)
                   end do
                case(HIT_AND_RUN_DISRUPT)
                   call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
                   do i = 2, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Hit and run fragment", origin_time=param%t, name=newname, origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), collision_id=param%maxid_collision)
+                     call plnew%info(i)%set_value(origin_type="Hit and run fragment", origin_time=param%t, name=newname, &
+                                                  origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), &
+                                                  collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) cycle
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status="Hit and run fragmention", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
+                     call pl%info(colliders%idx(i))%set_value(status="Hit and run fragmention", discard_time=param%t, &
+                                                              discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), &
+                                                              discard_body_id=iother)
                   end do 
                case(MERGED)
                   call plnew%info(1)%copy(pl%info(ibiggest))
@@ -791,7 +806,8 @@ contains
                      if (colliders%idx(i) == ibiggest) cycle
 
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status="MERGED", discard_time=param%t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
+                     call pl%info(colliders%idx(i))%set_value(status="MERGED", discard_time=param%t, discard_xh=pl%xh(:,i), &
+                                                              discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do 
                end select
    
@@ -991,9 +1007,12 @@ contains
                do
                   write(timestr,*) t
                   call io_log_one_message(FRAGGLE_LOG_OUT, "")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "Collision between massive bodies detected at time t = " // trim(adjustl(timestr)))
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************************************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
+                                                           "***********************************************************")
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "Collision between massive bodies detected at time t = " // &
+                                                           trim(adjustl(timestr)))
+                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
+                                                           "***********************************************************")
                   allocate(tmp_param, source=param)
                   tmp_param%t = t
                   if (param%lfragmentation) then
@@ -1003,7 +1022,7 @@ contains
                   end if
 
                   ! Destroy the collision list now that the collisions are resolved
-                  call plplcollision_list%setup(0)
+                  call plplcollision_list%setup(0_I8B)
 
                   if ((system%pl_adds%nbody == 0) .and. (system%pl_discards%nbody == 0)) exit
 

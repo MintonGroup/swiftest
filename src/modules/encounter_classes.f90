@@ -83,7 +83,8 @@ module encounter_classes
          integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
       end subroutine encounter_check_all_plpl
 
-      module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
+      module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+                                                  nenc, index1, index2, lvdotr)
          use swiftest_classes, only: swiftest_parameters
          implicit none
          class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
@@ -148,7 +149,8 @@ module encounter_classes
          real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
       end subroutine encounter_check_sort_aabb_1D
 
-      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, nenc, index1, index2, lvdotr)
+      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, &
+                                                               nenc, index1, index2, lvdotr)
          implicit none
          class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
          integer(I4B),                            intent(in)    :: n1         !! Number of bodies 1

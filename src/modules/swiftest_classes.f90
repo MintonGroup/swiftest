@@ -1574,7 +1574,8 @@ module swiftest_classes
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_mu_tp
 
-      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, &
+                                               origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
          implicit none
          class(swiftest_particle_info), intent(inout)           :: self
          character(len=*),              intent(in),    optional :: name            !! Non-unique name

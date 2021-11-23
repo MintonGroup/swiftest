@@ -212,7 +212,8 @@ contains
 
       associate(frag => self)
          ! Set scale factors
-         frag%Escale = 0.5_DP * (colliders%mass(1) * dot_product(colliders%vb(:,1), colliders%vb(:,1)) + colliders%mass(2) * dot_product(colliders%vb(:,2), colliders%vb(:,2)))
+         frag%Escale = 0.5_DP * (colliders%mass(1) * dot_product(colliders%vb(:,1), colliders%vb(:,1)) &
+                               + colliders%mass(2)  * dot_product(colliders%vb(:,2), colliders%vb(:,2)))
          frag%dscale = sum(colliders%radius(:))
          frag%mscale = frag%mtot 
          frag%vscale = sqrt(frag%Escale / frag%mscale) 

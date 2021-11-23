@@ -2,7 +2,8 @@ submodule (encounter_classes) s_encounter_check
    use swiftest
 contains
 
-   module subroutine encounter_check_all(nenc, index1, index2, x1, v1, x2, v2, renc1, renc2, dt, lencounter, lvdotr)
+   module subroutine encounter_check_all(nenc, index1, index2, x1, v1, x2, v2, renc1, renc2, dt, &
+                                         lencounter, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between n pairs of bodies. 
@@ -46,7 +47,8 @@ contains
    end subroutine encounter_check_all
 
 
-   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, &
+                                              nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -68,11 +70,14 @@ contains
       logical, save :: lfirst = .true.
       logical, save :: skipit = .false. ! This will be used to ensure that the sort & sweep subroutine gets called at least once before timing it so that the extent array is nearly sorted when it is timed
       integer(I8B) :: nplpl = 0_I8B
+      integer(I8B) :: k
+      type(walltimer), save :: timer
 
       if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          nplpl = (npl * (npl - 1) / 2) 
          if (nplpl > 0) then
             if (lfirst) then  
+               call timer%reset()
                write(itimer%loopname, *) "encounter_check_all_plpl"
                write(itimer%looptype, *) "ENCOUNTER_PLPL"
                lfirst = .false.
@@ -84,12 +89,15 @@ contains
             param%lencounter_sas_plpl = .false.
          end if
       end if
-
+      
+      call timer%start()
       if (param%lencounter_sas_plpl) then
          call encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
       else
          call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
       end if
+      call timer%stop()
+      call timer%report(nsubsteps=1, message="plpl Encounter check  :")
 
       if (skipit) then
          skipit = .false.
@@ -102,11 +110,19 @@ contains
          end if
       end if
 
+      ! TEMP FOR TESTING
+      open(unit=22,file="enclist.csv", status="replace")
+      do k = 1_I8B, nenc
+         write(22,*) index1(k), index2(k)
+      end do
+      close(22)
+
       return
    end subroutine encounter_check_all_plpl
 
 
-   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+                                               nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between fully interacting massive bodies partially interacting massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -172,12 +188,14 @@ contains
       call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
       if (param%lencounter_sas_plpl) then
-         call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
+         call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+                                                       plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
       else
-         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
+         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+                                                       plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
       end if
       call timer%stop()
-      call timer%report(nsubsteps=1, message="Encounter check  :")
+      call timer%report(nsubsteps=1, message="plplm Encounter check  :")
 
       if (skipit) then
          skipit = .false.
@@ -222,7 +240,8 @@ contains
    end subroutine encounter_check_all_plplm
 
 
-   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
+                                              nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -308,7 +327,7 @@ contains
       type(encounter_bounding_box), save :: boundingbox
       logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(npl) :: vshift_min, vshift_max
-      type(walltimer) :: timer 
+      type(walltimer), save :: timer 
 
       if (npl == 0) return
 
@@ -341,7 +360,8 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
 
-   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+                                                       nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -415,7 +435,8 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plplm
 
 
-   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
+                                                      nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -488,7 +509,8 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_pltp
 
 
-   pure subroutine encounter_check_all_sweep_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, ind_arr, lgood, nenci, index1, index2, lvdotr)
+   pure subroutine encounter_check_all_sweep_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, &
+                                                 ind_arr, lgood, nenci, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between the ith body and all other bodies.
@@ -539,7 +561,8 @@ contains
    end subroutine encounter_check_all_sweep_one
 
 
-   pure subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, dt, ind_arr, lenci)
+   pure subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, &
+                                                      dt, ind_arr, lenci)
       !! author: David A. Minton
       !!
       !! Check for encounters between the ith body and all other bodies.
@@ -607,7 +630,7 @@ contains
       logical, dimension(npl) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(npl) :: lenc
-      type(walltimer) :: timer 
+      type(walltimer), save :: timer 
 
       call util_index_array(ind_arr, npl) 
 
@@ -630,7 +653,8 @@ contains
    end subroutine encounter_check_all_triangular_plpl
 
 
-   subroutine encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+                                                   nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Split off from the main subroutine for performance
@@ -655,7 +679,7 @@ contains
       logical, dimension(nplt) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(nplm) :: lenc
-      type(walltimer) :: timer 
+      type(walltimer), save :: timer 
 
       call util_index_array(ind_arr, nplt)
 
@@ -678,7 +702,8 @@ contains
    end subroutine encounter_check_all_triangular_plplm
 
 
-   subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
+                                                  nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Split off from the main subroutine for performance
@@ -937,7 +962,8 @@ contains
    end subroutine encounter_check_sort_aabb_1D 
 
 
-   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, &
+                                                            nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Sweeps the sorted bounding box extents and returns the true encounters (combines broad and narrow phases)
@@ -967,8 +993,7 @@ contains
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibegix, iendix
-      integer(I8B), pointer :: ibegx, iendx
-      type(walltimer) :: timer1, timer2, timer3, timer4, timer5
+      type(walltimer), save :: timer1, timer2, timer3, timer4, timer5
       logical, save :: lfirst = .true.
 
       if (lfirst) then
@@ -983,7 +1008,7 @@ contains
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
 
-      associate(ext_ind => self%aabb(1)%ind(:), ibegx => self%aabb(1)%ibeg(:), iendx => self%aabb(1)%iend(:))
+      associate(ext_ind => self%aabb(1)%ind(:))
          ! Sweep the intervals for each of the massive bodies along one dimension
          ! This will build a ragged pair of index lists inside of the lenc data structure
          allocate(ext_ind_true, mold=ext_ind)
@@ -995,17 +1020,17 @@ contains
          endwhere
          llist1(:) = ext_ind_true(:) <= n1
 
-         loverlap(:) = (iendx(:) + 1_I8B) > (ibegx(:) - 1_I8B)
+         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) > (self%aabb(1)%iend(:) - 1_I8B)
          where(.not.loverlap(:)) lenc(:)%nenc = 0
 
          call timer1%start()
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
+         !$omp shared(self, ext_ind_true, ind_arr, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
          !$omp firstprivate(ntot, n1, n2, dt) 
          do i = 1, n1
             if (loverlap(i)) then
-               ibegix = ibegx(i) + 1_I8B
-               iendix = iendx(i) - 1_I8B
+               ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
+               iendix =  self%aabb(1)%iend(i) - 1_I8B
 
                lencounter2(:) = .false.
                where(.not.llist1(ibegix:iendix)) lencounter2(ext_ind_true(ibegix:iendix) - n1) = .true.
@@ -1020,12 +1045,12 @@ contains
 
          call timer2%start()
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
+         !$omp shared(self, ext_ind_true, ind_arr, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
          !$omp firstprivate(ntot, n1, dt) 
          do i = n1+1, ntot
             if (loverlap(i)) then
-               ibegix = ibegx(i) + 1_I8B
-               iendix = iendx(i) - 1_I8B
+               ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
+               iendix =  self%aabb(1)%iend(i) - 1_I8B
                lencounter1(:) = .false.
                where(llist1(ibegix:iendix)) lencounter1(ext_ind_true(ibegix:iendix)) = .true.
                ii = i - n1
@@ -1079,8 +1104,7 @@ contains
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibegix, iendix
-      integer(I8B), pointer :: ibegx, iendx
-      type(walltimer) :: timer1
+      type(walltimer), save :: timer1
       logical, save :: lfirst = .true.
 
       if (lfirst) then
@@ -1090,7 +1114,7 @@ contains
 
       call util_index_array(ind_arr, n)
 
-      associate(ext_ind => self%aabb(1)%ind(:), ibegx => self%aabb(1)%ibeg(:), iendx => self%aabb(1)%iend(:))
+      associate(ext_ind => self%aabb(1)%ind(:))
          ! Sweep the intervals for each of the massive bodies along one dimension
          ! This will build a ragged pair of index lists inside of the lenc data structure
          allocate(ext_ind_true, mold=ext_ind)
@@ -1100,17 +1124,17 @@ contains
             ext_ind_true(:) = ext_ind(:)
          endwhere
 
-         loverlap(:) = (iendx(:) + 1_I8B) > (ibegx(:) - 1_I8B)
+         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) > (self%aabb(1)%iend(:) - 1_I8B)
          where(.not.loverlap(:)) lenc(:)%nenc = 0
 
          call timer1%start()
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(ext_ind_true, ind_arr, ibegx, iendx, lenc, loverlap, x, v, renc) &
+         !$omp shared(self, ext_ind_true, ind_arr, lenc, loverlap, x, v, renc) &
          !$omp firstprivate(n, dt) 
          do i = 1, n
             if (loverlap(i)) then
-               ibegix = ibegx(i) + 1_I8B
-               iendix = iendx(i) - 1_I8B
+               ibegix = self%aabb(1)%ibeg(i) + 1_I8B
+               iendix = self%aabb(1)%iend(i) - 1_I8B
 
                lencounteri(:) = .false.
                lencounteri(ext_ind_true(ibegix:iendix)) = .true.

@@ -483,8 +483,10 @@ contains
    
                            do j = 2, npl
                               ipc2hc = plenci%plind(j)
-                              plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) - cbenci%inner(inner_index)%x(:,1)
-                              plenci%inner(inner_index)%v(:,j) = pl%inner(inner_index)%v(:, ipc2hc) - cbenci%inner(inner_index)%v(:,1)
+                              plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) &
+                                                                 - cbenci%inner(inner_index)%x(:,1)
+                              plenci%inner(inner_index)%v(:,j) = pl%inner(inner_index)%v(:, ipc2hc) &
+                                                                 - cbenci%inner(inner_index)%v(:,1)
                            end do
                         end do
                         call tpenci%set_mu(cbenci)
@@ -554,7 +556,8 @@ contains
                            id2 = tp%id(i)
                            xh2(:) = xpc(:, i) + xh1(:)
                            vh2(:) = xpc(:, i) + vh1(:)
-                           call rmvs_io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:), param%enc_out)
+                           call rmvs_io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, &
+                                                        xh1(:), xh2(:), vh1(:), vh2(:), param%enc_out)
                         end if
                         if (tp%lperi(i)) then
                            if (peri < tp%peri(i)) then
