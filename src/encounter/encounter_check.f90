@@ -924,7 +924,7 @@ contains
 
       call util_sort(extent_arr, self%ind)
 
-      do concurrent(k = 1_I8B:2_I8B*n)
+      do concurrent(k = 1_I8B:2_I8B * n)
          i = self%ind(k)
          if (i <= n) then
             self%ibeg(i) = k
@@ -1072,7 +1072,7 @@ contains
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       ! Internals
       integer(I4B) :: ii, i
-      integer(I8B) :: k
+      integer(I8B) :: k, itmp
       logical, dimension(n) :: loverlap
       logical, dimension(n) :: lencounteri
       integer(I4B), dimension(:), allocatable :: ext_ind_true
@@ -1128,6 +1128,13 @@ contains
       end associate
 
       call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2, lvdotr)
+
+      ! By convention, we always assume that index1 < index2, and so we must swap any that are out of order
+      do concurrent(k = 1_I8B:nenc, index1(k) > index2(k))
+         itmp = index1(k)
+         index1(k) = index2(k)
+         index2(k) = itmp
+      end do
 
       call encounter_check_remove_duplicates(n, nenc, index1, index2, lvdotr)
 
