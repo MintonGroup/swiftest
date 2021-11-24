@@ -250,7 +250,8 @@ contains
 
          call check( nf90_def_var(self%ncid, ORIGIN_TIME_VARNAME, self%out_type, self%id_dimid, self%origin_time_varid) )
             !call check( nf90_def_var_chunking(self%ncid, self%origin_time_varid, NF90_CHUNKED, [self%id_chunk]) )
-         call check( nf90_def_var(self%ncid, ORIGIN_TYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%origin_type_varid) )
+         call check( nf90_def_var(self%ncid, ORIGIN_TYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], &
+                                  self%origin_type_varid) )
             !call check( nf90_def_var_chunking(self%ncid, self%origin_type_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_XHX_VARNAME, self%out_type, self%id_dimid, self%origin_xhx_varid) )
             !call check( nf90_def_var_chunking(self%ncid, self%origin_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
@@ -543,55 +544,55 @@ contains
          ! Now read in each variable and split the outputs by body type
          if ((param%in_form == XV) .or. (param%in_form == XVEL)) then
             call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp, start=[1, tslot]) )
-            pl%xh(1,:) = pack(rtemp, plmask)
-            tp%xh(1,:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%xh(1,:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%xh(1,:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp, start=[1, tslot]) )
-            pl%xh(2,:) = pack(rtemp, plmask)
-            tp%xh(2,:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%xh(2,:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%xh(2,:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp, start=[1, tslot]) )
-            pl%xh(3,:) = pack(rtemp, plmask)
-            tp%xh(3,:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%xh(3,:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%xh(3,:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp, start=[1, tslot]) )
-            pl%vh(1,:) = pack(rtemp, plmask)
-            tp%vh(1,:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%vh(1,:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%vh(1,:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp, start=[1, tslot]) )
-            pl%vh(2,:) = pack(rtemp, plmask)
-            tp%vh(2,:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%vh(2,:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%vh(2,:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp, start=[1, tslot]) )
-            pl%vh(3,:) = pack(rtemp, plmask)
-            tp%vh(3,:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%vh(3,:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%vh(3,:) = pack(rtemp, tpmask)
          end if
 
          if ((param%in_form == EL)  .or. (param%in_form == XVEL)) then
 
             call check( nf90_get_var(iu%ncid, iu%a_varid, rtemp, start=[1, tslot]) )
-            pl%a(:) = pack(rtemp, plmask)
-            tp%a(:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%a(:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%a(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%e_varid, rtemp, start=[1, tslot]) )
-            pl%e(:) = pack(rtemp, plmask)
-            tp%e(:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%e(:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%e(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%inc_varid, rtemp, start=[1, tslot]) )
-            pl%inc(:) = pack(rtemp, plmask)
-            tp%inc(:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%inc(:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%inc(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capom_varid, rtemp, start=[1, tslot]) )
-            pl%capom(:) = pack(rtemp, plmask)
-            tp%capom(:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%capom(:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%capom(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%omega_varid, rtemp, start=[1, tslot]) )
-            pl%omega(:) = pack(rtemp, plmask)
-            tp%omega(:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%omega(:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%omega(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capm_varid, rtemp, start=[1, tslot]) )
-            pl%capm(:) = pack(rtemp, plmask)
-            tp%capm(:) = pack(rtemp, tpmask)
+            if (npl > 0) pl%capm(:) = pack(rtemp, plmask)
+            if (ntp > 0) tp%capm(:) = pack(rtemp, tpmask)
 
          end if
       
@@ -599,57 +600,59 @@ contains
          cb%Gmass = rtemp(1)
          cb%mass = cb%Gmass / param%GU
 
-         pl%Gmass(:) = pack(rtemp, plmask)
-         pl%mass(:) = pl%Gmass(:) / param%GU
+         if (npl > 0) then
+            pl%Gmass(:) = pack(rtemp, plmask)
+            pl%mass(:) = pl%Gmass(:) / param%GU
 
-         if (param%lrhill_present) then 
-            call check( nf90_get_var(iu%ncid, iu%rhill_varid, rtemp, start=[1, tslot]) )
-            pl%rhill(:) = pack(rtemp, plmask)
+            if (param%lrhill_present) then 
+               call check( nf90_get_var(iu%ncid, iu%rhill_varid, rtemp, start=[1, tslot]) )
+               pl%rhill(:) = pack(rtemp, plmask)
+            end if
          end if
 
          if (param%lclose) then
             call check( nf90_get_var(iu%ncid, iu%radius_varid, rtemp, start=[1, tslot]) )
             cb%radius = rtemp(1)
-            pl%radius(:) = pack(rtemp, plmask)
+            if (npl > 0) pl%radius(:) = pack(rtemp, plmask)
          else
             cb%radius = param%rmin
-            pl%radius(:) = 0.0_DP
+            if (npl > 0) pl%radius(:) = 0.0_DP
          end if
 
          if (param%lrotation) then
             call check( nf90_get_var(iu%ncid, iu%Ip1_varid,  rtemp, start=[1, tslot]) )
             cb%Ip(1) = rtemp(1)
-            pl%Ip(1,:) = pack(rtemp, plmask)
+            if (npl > 0) pl%Ip(1,:) = pack(rtemp, plmask)
 
             call check( nf90_get_var(iu%ncid, iu%Ip2_varid,  rtemp, start=[1, tslot]) )
             cb%Ip(2) = rtemp(1)
-            pl%Ip(2,:) = pack(rtemp, plmask)
+            if (npl > 0) pl%Ip(2,:) = pack(rtemp, plmask)
 
             call check( nf90_get_var(iu%ncid, iu%Ip3_varid,  rtemp, start=[1, tslot]) )
             cb%Ip(3) = rtemp(1)
-            pl%Ip(3,:) = pack(rtemp, plmask)
+            if (npl > 0) pl%Ip(3,:) = pack(rtemp, plmask)
 
             call check( nf90_get_var(iu%ncid, iu%rotx_varid, rtemp, start=[1, tslot]) )
             cb%rot(1) = rtemp(1)
-            pl%rot(1,:) = pack(rtemp, plmask)
+            if (npl > 0) pl%rot(1,:) = pack(rtemp, plmask)
 
             call check( nf90_get_var(iu%ncid, iu%roty_varid, rtemp, start=[1, tslot]) )
             cb%rot(2) = rtemp(1)
-            pl%rot(2,:) = pack(rtemp, plmask)
+            if (npl > 0) pl%rot(2,:) = pack(rtemp, plmask)
 
             call check( nf90_get_var(iu%ncid, iu%rotz_varid, rtemp, start=[1, tslot]) )
             cb%rot(3) = rtemp(1)
-            pl%rot(3,:) = pack(rtemp, plmask)
+            if (npl > 0) pl%rot(3,:) = pack(rtemp, plmask)
          end if
 
          if (param%ltides) then
             call check( nf90_get_var(iu%ncid, iu%k2_varid, rtemp, start=[1, tslot]) )
             cb%k2 = rtemp(1)
-            pl%k2(:) = pack(rtemp, plmask)
+            if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
 
             call check( nf90_get_var(iu%ncid, iu%Q_varid,  rtemp,  start=[1, tslot]) )
             cb%Q = rtemp(1)
-            pl%Q(:) = pack(rtemp, plmask)
+            if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
          end if
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
@@ -936,7 +939,9 @@ contains
                select type(self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
                   call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]) )
-                  if (param%lrhill_present) call check( nf90_put_var(iu%ncid, iu%rhill_varid, self%rhill(j), start=[idslot, tslot]) )
+                  if (param%lrhill_present) then
+                     call check( nf90_put_var(iu%ncid, iu%rhill_varid, self%rhill(j), start=[idslot, tslot]) )
+                  end if
                   if (param%lclose) call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius(j), start=[idslot, tslot]) )
                   if (param%lrotation) then
                      call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1, j), start=[idslot, tslot]) )

@@ -189,10 +189,17 @@ contains
          pecb(i) = -GMcb * mass(i) / norm2(xb(:,i)) 
       end do
 
-      pe = sum(pecb(1:npl), lmask(1:npl))
-      do concurrent(i = 1:npl, j = 1:npl, (j > i) .and. lmask(i) .and. lmask(j))
-         pe = pe - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+      pe = 0.0_DP
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(npl, lmask, Gmass, mass, xb) &
+      !$omp reduction(-:pe) 
+      do i = 1, npl
+         do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
+            pe = pe - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+         end do
       end do
+      !$omp end parallel do
+      pe = pe + sum(pecb(1:npl), lmask(1:npl))
 
       return
    end subroutine util_get_energy_potential_triangular
