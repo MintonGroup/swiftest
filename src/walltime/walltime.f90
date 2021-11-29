@@ -29,18 +29,19 @@ contains
    end subroutine walltime_stop
 
 
-   module subroutine walltime_report(self, nsubsteps, message)
+   module subroutine walltime_report(self, message, nsubsteps)
       !! author: David A. Minton
       !!
       !! Prints the elapsed time information to the terminal
       implicit none
       ! Arguments
       class(walltimer),           intent(inout) :: self      !! Walltimer object
-      integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
       character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
+      integer(I4B), optional,     intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
       ! Internals
-      character(len=*), parameter     :: walltimefmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, ";' //&
-                                                       'Interval wall time/step:  ", es12.5'
+      character(len=*), parameter     :: nosubstepfmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5 ' 
+      character(len=*), parameter     :: substepfmt   = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, ";' //&
+                                                        'Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
       integer(I8B)                    :: count_delta_step, count_delta_main, count_now
       real(DP)                        :: wall_main         !! Value of total elapsed time at the end of a timed step
@@ -57,10 +58,15 @@ contains
       count_delta_step = count_now - self%count_start_step
       wall_main = count_delta_main / (self%count_rate * 1.0_DP)
       wall_step = count_delta_step / (self%count_rate * 1.0_DP)
-      wall_per_substep = wall_step / nsubsteps
+      if (present(nsubsteps)) then
+         wall_per_substep = wall_step / nsubsteps
+         fmt = '("' //  adjustl(message) // '",' // substepfmt // ')'
+         write(*,trim(adjustl(fmt))) wall_main, self%wall_step, wall_per_substep
+      else
+         fmt = '("' //  adjustl(message) // '",' // nosubstepfmt // ')'
+         write(*,trim(adjustl(fmt))) wall_main, self%wall_step
+      end if
 
-      fmt = '("' //  adjustl(message) // '",' // walltimefmt // ')'
-      write(*,trim(adjustl(fmt))) wall_main, self%wall_step, wall_per_substep
 
       return
    end subroutine walltime_report
@@ -111,7 +117,10 @@ contains
       integer(I8B) :: count_resume, count_delta
 
 
-      if (.not.self%main_is_started) call self%start_main()
+      if (.not.self%main_is_started) then
+         call self%reset()
+         call self%start_main()
+      end if
 
       if (self%is_paused) then ! Resume a paused step timer
          call system_clock(count_resume)

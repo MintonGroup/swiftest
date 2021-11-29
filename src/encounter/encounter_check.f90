@@ -71,13 +71,11 @@ contains
       logical, save :: skipit = .false. ! This will be used to ensure that the sort & sweep subroutine gets called at least once before timing it so that the extent array is nearly sorted when it is timed
       integer(I8B) :: nplpl = 0_I8B
       integer(I8B) :: k
-      type(walltimer), save :: timer
 
       if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          nplpl = (npl * (npl - 1) / 2) 
          if (nplpl > 0) then
             if (lfirst) then  
-               call timer%reset()
                write(itimer%loopname, *) "encounter_check_all_plpl"
                write(itimer%looptype, *) "ENCOUNTER_PLPL"
                lfirst = .false.
@@ -90,14 +88,11 @@ contains
          end if
       end if
       
-      call timer%start()
       if (param%lencounter_sas_plpl) then
          call encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
       else
          call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
       end if
-      call timer%stop()
-      call timer%report(nsubsteps=1, message="plpl Encounter check  :")
 
       if (skipit) then
          skipit = .false.
@@ -109,13 +104,6 @@ contains
             end if
          end if
       end if
-
-      ! TEMP FOR TESTING
-      open(unit=22,file="enclist.csv", status="replace")
-      do k = 1_I8B, nenc
-         write(22,*) index1(k), index2(k)
-      end do
-      close(22)
 
       return
    end subroutine encounter_check_all_plpl
@@ -158,14 +146,13 @@ contains
       integer(I8B), dimension(:), allocatable :: ind
       integer(I4B), dimension(:), allocatable :: itmp
       logical, dimension(:), allocatable :: ltmp
-      type(walltimer), save :: timer
+      type(walltimer) :: timer
 
       if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          npl = nplm + nplt
          nplplm = nplm * npl - nplm * (nplm + 1) / 2 
          if (nplplm > 0) then
             if (lfirst) then  
-               call timer%reset()
                write(itimer%loopname, *) "encounter_check_all_plpl"
                write(itimer%looptype, *) "ENCOUNTER_PLPL"
                lfirst = .false.
@@ -184,7 +171,7 @@ contains
       tmp_param%ladaptive_encounters_plpl = .false.
 
       ! Start with the pl-pl group
-      call timer%start()
+      ! call timer%start()
       call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
       if (param%lencounter_sas_plpl) then
@@ -194,8 +181,8 @@ contains
          call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
                                                        plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
       end if
-      call timer%stop()
-      call timer%report(nsubsteps=1, message="plplm Encounter check  :")
+      ! call timer%stop()
+      ! call timer%report("Encounter check pl-plm: ")
 
       if (skipit) then
          skipit = .false.
@@ -228,12 +215,12 @@ contains
          call util_sort_rearrange(index2, ind, nenc)
          call util_sort_rearrange(lvdotr, ind, nenc)
 
-         ! TEMP FOR TESTING
-         open(unit=22,file="enclist.csv", status="replace")
-         do k = 1_I8B, nenc
-            write(22,*) index1(k), index2(k)
-         end do
-         close(22)
+         ! ! TEMP FOR TESTING
+         ! open(unit=22,file="enclist.csv", status="replace")
+         ! do k = 1_I8B, nenc
+         !    write(22,*) index1(k), index2(k)
+         ! end do
+         ! close(22)
       end if
 
       return
@@ -552,9 +539,9 @@ contains
       nenci = count(lencounteri(1:n))
       if (nenci > 0_I8B) then
          allocate(lvdotr(nenci), index1(nenci), index2(nenci))
-         lvdotr(:) = pack(lvdotri(1:n), lencounteri(1:n)) 
          index1(:) = i
          index2(:) = pack(ind_arr(1:n), lencounteri(1:n)) 
+         lvdotr(:) = pack(lvdotri(1:n), lencounteri(1:n)) 
       end if
 
       return
@@ -600,8 +587,9 @@ contains
       if (nenci > 0_I8B) then
          allocate(lenci%lvdotr(nenci), lenci%index1(nenci), lenci%index2(nenci))
          lenci%nenc = nenci
-         lenci%lvdotr(:) = pack(lvdotri(i+1:n), lencounteri(i+1:n)) 
+         lenci%index1(:) = i
          lenci%index2(:) = pack(ind_arr(i+1:n), lencounteri(i+1:n)) 
+         lenci%lvdotr(:) = pack(lvdotri(i+1:n), lencounteri(i+1:n)) 
       end if
 
       return
@@ -751,7 +739,7 @@ contains
    end subroutine encounter_check_all_triangular_pltp
 
 
-   module pure subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
+   module elemental subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -983,93 +971,96 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for body 2 in each encounter candidate pair
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       ! Internals
-      integer(I4B) :: ii, i, ntot
+      integer(I4B) :: ii, i, ntot, nbox
       integer(I8B) :: k
       logical, dimension(n1+n2) :: loverlap
-      logical, dimension(n1) :: lencounter1
-      logical, dimension(n2) :: lencounter2
-      logical, dimension(:), allocatable :: llist1
-      integer(I4B), dimension(:), allocatable :: ext_ind_true
+      logical, dimension(2*(n1+n2)) :: llist1, lencounteri
+      integer(I4B), dimension(2*(n1+n2)) :: ext_ind_true
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibegix, iendix
-      type(walltimer), save :: timer1, timer2, timer3, timer4, timer5
-      logical, save :: lfirst = .true.
-
-      if (lfirst) then
-         call timer1%reset()
-         call timer2%reset()
-         call timer3%reset()
-         call timer4%reset()
-         call timer5%reset()
-         lfirst = .false.
-      end if
+      real(DP), dimension(2*(n1+n2)) :: xind, yind, zind, vxind, vyind, vzind, rencind
+      type(walltimer) :: timer1, timer2, timer3
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
+      
+      ! Sweep the intervals for each of the massive bodies along one dimension
+      ! This will build a ragged pair of index lists inside of the lenc data structure
+      where(self%aabb(1)%ind(:) > ntot)
+         ext_ind_true(:) = self%aabb(1)%ind(:)- ntot
+      elsewhere
+         ext_ind_true(:) = self%aabb(1)%ind(:)
+      endwhere
 
-      associate(ext_ind => self%aabb(1)%ind(:))
-         ! Sweep the intervals for each of the massive bodies along one dimension
-         ! This will build a ragged pair of index lists inside of the lenc data structure
-         allocate(ext_ind_true, mold=ext_ind)
-         allocate(llist1(size(ext_ind)))
-         where(ext_ind(:) > ntot)
-            ext_ind_true(:) = ext_ind(:) - ntot
-         elsewhere
-            ext_ind_true(:) = ext_ind(:)
-         endwhere
-         llist1(:) = ext_ind_true(:) <= n1
+      llist1(:) = ext_ind_true(:) <= n1
+      where(.not.llist1(:)) ext_ind_true(:) = ext_ind_true(:) - n1
+      where(llist1(:))
+         xind(:) = x1(1,ext_ind_true(:))
+         yind(:) = x1(2,ext_ind_true(:))
+         zind(:) = x1(3,ext_ind_true(:))
+         vxind(:) = v1(1,ext_ind_true(:))
+         vyind(:) = v1(2,ext_ind_true(:))
+         vzind(:) = v1(3,ext_ind_true(:))
+         rencind(:) = renc1(ext_ind_true(:))
+      elsewhere
+         xind(:) = x2(1,ext_ind_true(:))
+         yind(:) = x2(2,ext_ind_true(:))
+         zind(:) = x2(3,ext_ind_true(:))
+         vxind(:) = v2(1,ext_ind_true(:))
+         vyind(:) = v2(2,ext_ind_true(:))
+         vzind(:) = v2(3,ext_ind_true(:))
+         rencind(:) = renc2(ext_ind_true(:))
+      endwhere
 
-         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) < (self%aabb(1)%iend(:) - 1_I8B)
-         where(.not.loverlap(:)) lenc(:)%nenc = 0
+      loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) < (self%aabb(1)%iend(:) - 1_I8B)
+      where(.not.loverlap(:)) lenc(:)%nenc = 0
 
-         call timer1%start()
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(self, ext_ind_true, ind_arr, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
-         !$omp firstprivate(ntot, n1, n2, dt) 
-         do i = 1, n1
-            if (loverlap(i)) then
-               ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
-               iendix =  self%aabb(1)%iend(i) - 1_I8B
+      ! call timer1%start()
+      ! call timer2%start()
+      !$omp parallel default(private) &
+      !$omp shared(self, ext_ind_true, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, xind, yind, zind, vxind, vyind, vzind, rencind, llist1) &
+      !$omp firstprivate(ntot, n1, n2, dt) 
+     
+      ! Do the first group of bodies (i is in list 1, all the others are from list 2)
+      !$omp do schedule(static)
+      do i = 1, n1
+         if (loverlap(i)) then
+            ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
+            iendix =  self%aabb(1)%iend(i) - 1_I8B
+            nbox = iendix - ibegix + 1
+            lencounteri(ibegix:iendix) = .not.llist1(ibegix:iendix)
+            call encounter_check_all_sweep_one(i, nbox, x1(1,i), x1(2,i), x1(3,i), v1(1,i), v1(2,i), v1(3,i), &
+                                                        xind(ibegix:iendix), yind(ibegix:iendix), zind(ibegix:iendix),&
+                                                        vxind(ibegix:iendix), vyind(ibegix:iendix), vzind(ibegix:iendix), &
+                                                        renc1(i), rencind(ibegix:iendix), dt, ext_ind_true(ibegix:iendix), &
+                                                        lencounteri(ibegix:iendix), lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
+         end if
+      end do
+      !$omp end do nowait
 
-               lencounter2(:) = .false.
-               where(.not.llist1(ibegix:iendix)) lencounter2(ext_ind_true(ibegix:iendix) - n1) = .true.
-               call encounter_check_all_sweep_one(i, n2, x1(1,i), x1(2,i), x1(3,i), v1(1,i), v1(2,i), v1(3,i), &
-                                                               x2(1,:), x2(2,:), x2(3,:), v2(1,:), v2(2,:), v2(3,:), &
-                                                               renc1(i), renc2(:), dt, ind_arr, lencounter2(:), &
-                                                               lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
-             end if
-         end do
-         !$omp end parallel do
-         call timer1%stop()
+      ! Do the second group of bodies (i is in list 2, all the others are in list 1)
+      !$omp do schedule(static)
+      do i = n1+1, ntot
+         if (loverlap(i)) then
+            ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
+            iendix =  self%aabb(1)%iend(i) - 1_I8B
+            nbox = iendix - ibegix + 1
+            lencounteri(ibegix:iendix) = llist1(ibegix:iendix)
+            ii = i - n1
+            call encounter_check_all_sweep_one(ii, nbox, x2(1,ii), x2(2,ii), x2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
+                                                         xind(ibegix:iendix), yind(ibegix:iendix), zind(ibegix:iendix),&
+                                                         vxind(ibegix:iendix), vyind(ibegix:iendix), vzind(ibegix:iendix), &
+                                                         renc2(ii), rencind(ibegix:iendix), dt, ext_ind_true(ibegix:iendix), &
+                                                         lencounteri(ibegix:iendix), lenc(i)%nenc, lenc(i)%index2, lenc(i)%index1, lenc(i)%lvdotr)
+         end if
+      end do
+      !$omp end do nowait
 
-         call timer2%start()
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(self, ext_ind_true, ind_arr, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, llist1) &
-         !$omp firstprivate(ntot, n1, dt) 
-         do i = n1+1, ntot
-            if (loverlap(i)) then
-               ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
-               iendix =  self%aabb(1)%iend(i) - 1_I8B
-               lencounter1(:) = .false.
-               where(llist1(ibegix:iendix)) lencounter1(ext_ind_true(ibegix:iendix)) = .true.
-               ii = i - n1
-               call encounter_check_all_sweep_one(ii, n1, x2(1,ii), x2(2,ii), x2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
-                                                                x1(1, :), x1(2, :), x1(3, :), v1(1, :), v1(2, :), v1(3, :), &
-                                                                renc2(ii), renc1(:), dt, ind_arr, lencounter1(:), &
-                                                                lenc(i)%nenc, lenc(i)%index2, lenc(i)%index1, lenc(i)%lvdotr)
-            end if
-         end do
-         !$omp end parallel do
-         call timer2%stop()
+      !$omp end parallel
+      ! call timer1%stop()
 
-         write(*,*) 'double list'
-         call timer1%report(nsubsteps=1, message="timer1           :")
-         call timer2%report(nsubsteps=1, message="timer2           :")
-         ! call timer3%report(nsubsteps=1, message="timer3           :")
-         ! call timer4%report(nsubsteps=1, message="timer4           :")
-         ! call timer5%report(nsubsteps=1, message="timer5           :")
-      end associate
+      ! call timer1%report("timer1: ")
 
       call encounter_check_collapse_ragged_list(lenc, ntot, nenc, index1, index2, lvdotr)
 
@@ -1096,60 +1087,58 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for the other body in each encounter candidate pair
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       ! Internals
-      integer(I4B) :: ii, i
+      integer(I4B) :: i, nbox
       integer(I8B) :: k, itmp
       logical, dimension(n) :: loverlap
-      logical, dimension(n) :: lencounteri
-      integer(I4B), dimension(:), allocatable :: ext_ind_true
+      logical, dimension(2*n) :: lencounteri
+      real(DP), dimension(2*n) :: xind, yind, zind, vxind, vyind, vzind, rencind
+      integer(I4B), dimension(2*n) :: ext_ind_true
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibegix, iendix
-      type(walltimer), save :: timer1
-      logical, save :: lfirst = .true.
-
-      if (lfirst) then
-         call timer1%reset()
-         lfirst = .false.
-      end if
+      type(walltimer) :: timer0
 
       call util_index_array(ind_arr, n)
 
-      associate(ext_ind => self%aabb(1)%ind(:))
-         ! Sweep the intervals for each of the massive bodies along one dimension
-         ! This will build a ragged pair of index lists inside of the lenc data structure
-         allocate(ext_ind_true, mold=ext_ind)
-         where(ext_ind(:) > n)
-            ext_ind_true(:) = ext_ind(:) - n
-         elsewhere
-            ext_ind_true(:) = ext_ind(:)
-         endwhere
+      ! Sweep the intervals for each of the massive bodies along one dimension
+      ! This will build a ragged pair of index lists inside of the lenc data structure
+      where(self%aabb(1)%ind(:) > n)
+         ext_ind_true(:) = self%aabb(1)%ind(:) - n
+      elsewhere
+         ext_ind_true(:) = self%aabb(1)%ind(:)
+      endwhere
 
-         loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) < (self%aabb(1)%iend(:) - 1_I8B)
-         where(.not.loverlap(:)) lenc(:)%nenc = 0
+      xind(:) = x(1,ext_ind_true(:))
+      yind(:) = x(2,ext_ind_true(:))
+      zind(:) = x(3,ext_ind_true(:))
+      vxind(:) = v(1,ext_ind_true(:))
+      vyind(:) = v(2,ext_ind_true(:))
+      vzind(:) = v(3,ext_ind_true(:))
+      rencind(:) = renc(ext_ind_true(:))
 
-         call timer1%start()
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(self, ext_ind_true, ind_arr, lenc, loverlap, x, v, renc) &
-         !$omp firstprivate(n, dt) 
-         do i = 1, n
-            if (loverlap(i)) then
-               ibegix = self%aabb(1)%ibeg(i) + 1_I8B
-               iendix = self%aabb(1)%iend(i) - 1_I8B
+      loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) < (self%aabb(1)%iend(:) - 1_I8B)
+      where(.not.loverlap(:)) lenc(:)%nenc = 0
 
-               lencounteri(:) = .false.
-               lencounteri(ext_ind_true(ibegix:iendix)) = .true.
-               call encounter_check_all_sweep_one(i, n, x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), &
-                                                        x(1,:), x(2,:), x(3,:), v(1,:), v(2,:), v(3,:), &
-                                                        renc(i), renc(:), dt, ind_arr, lencounteri(:), &
-                                                        lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
-             end if
-         end do
-         !$omp end parallel do
-         call timer1%stop()
-
-         write(*,*) 'single list'
-         call timer1%report(nsubsteps=1, message="timer1           :")
-      end associate
+      ! call timer0%start()
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(self, ext_ind_true, lenc, loverlap, x, v, renc, xind, yind, zind, vxind, vyind, vzind, rencind) &
+      !$omp firstprivate(n, dt) 
+      do i = 1, n
+         if (loverlap(i)) then
+            ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
+            iendix =  self%aabb(1)%iend(i) - 1_I8B
+            nbox = iendix - ibegix + 1
+            lencounteri(ibegix:iendix) = .true.
+            call encounter_check_all_sweep_one(i, nbox, x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), &
+                                                      xind(ibegix:iendix), yind(ibegix:iendix), zind(ibegix:iendix),&
+                                                      vxind(ibegix:iendix), vyind(ibegix:iendix), vzind(ibegix:iendix), &
+                                                      renc(i), rencind(ibegix:iendix), dt, ext_ind_true(ibegix:iendix), &
+                                                      lencounteri(ibegix:iendix), lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
+            end if
+      end do
+      !$omp end parallel do
+      ! call timer0%stop()
+      ! call timer0%report("timer0: ")
 
       call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2, lvdotr)
 
