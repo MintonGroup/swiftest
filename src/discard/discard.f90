@@ -247,7 +247,7 @@ contains
                      write(idstrj, *) pl%id(j)
                      write(timestr, *) param%t
                      write(*, *) "Test particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
-                                                  // "  too close to massive body " // trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstrj)) &
+                                                  // "  too close to massive body " // trim(adjustl(pl%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                                                   // " at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      call tp%info(i)%set_value(status="DISCARDED_PLR", discard_time=param%t, discard_xh=tp%xh(:,i), discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))
