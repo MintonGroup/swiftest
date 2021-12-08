@@ -71,22 +71,26 @@ contains
                   call pl%vh2vb(cb)
                   call pl%lindrift(cb, dth, lbeg=.true.)
                   call pl%kick(system, param, t, dth, lbeg=.true.)
+                  if (param%lgr) call pl%gr_pos_kick(param, dth)
                   call pl%drift(system, param, dt)
 
                   call tp%vh2vb(vbcb = -cb%ptbeg)
                   call tp%lindrift(cb, dth, lbeg=.true.)
                   call tp%kick(system, param, t, dth, lbeg=.true.)
+                  if (param%lgr) call tp%gr_pos_kick(param, dth)
                   call tp%drift(system, param, dt)
 
                   call system%recursive_step(param, t, 0)
 
                   call pl%kick(system, param, t, dth, lbeg=.false.)
-                  call pl%vb2vh(cb)
+                  if (param%lgr) call pl%gr_pos_kick(param, dth)
                   call pl%lindrift(cb, dth, lbeg=.false.)
+                  call pl%vb2vh(cb)
 
                   call tp%kick(system, param, t, dth, lbeg=.false.)
-                  call tp%vb2vh(vbcb = -cb%ptend)
+                  if (param%lgr) call tp%gr_pos_kick(param, dth)
                   call tp%lindrift(cb, dth, lbeg=.false.)
+                  call tp%vb2vh(vbcb = -cb%ptend)
                end select
             end select
          end select
