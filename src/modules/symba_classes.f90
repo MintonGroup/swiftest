@@ -75,6 +75,7 @@ module symba_classes
       procedure :: discard         => symba_discard_pl                  !! Process massive body discards
       procedure :: drift           => symba_drift_pl                    !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_pl          !! Checks if massive bodies are going through close encounters with each other
+      procedure :: gr_pos_kick     => symba_gr_p4_pl                    !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel_int       => symba_kick_getacch_int_pl         !! Compute direct cross (third) term heliocentric accelerations of massive bodiess, with no mutual interactions between bodies below GMTINY
       procedure :: accel           => symba_kick_getacch_pl             !! Compute heliocentric accelerations of massive bodies
       procedure :: setup           => symba_setup_pl                    !! Constructor method - Allocates space for the input number of bodies
@@ -113,6 +114,7 @@ module symba_classes
    contains
       procedure :: drift           => symba_drift_tp               !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
+      procedure :: gr_pos_kick     => symba_gr_p4_tp               !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
       procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for the input number of bodies
       procedure :: append          => symba_util_append_tp         !! Appends elements from one structure to another
@@ -272,6 +274,7 @@ module symba_classes
       end subroutine symba_drift_tp
 
       module function symba_encounter_check_pl(self, param, system, dt, irec) result(lany_encounter)
+         use swiftest_classes, only : swiftest_nbody_system
          implicit none
          class(symba_pl),            intent(inout) :: self           !! SyMBA test particle object  
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
@@ -282,6 +285,7 @@ module symba_classes
       end function symba_encounter_check_pl
 
       module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
@@ -292,6 +296,7 @@ module symba_classes
       end function symba_encounter_check
 
       module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
+         use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_tp),            intent(inout) :: self           !! SyMBA test particle object  
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
@@ -300,6 +305,24 @@ module symba_classes
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
+
+      module pure subroutine symba_gr_p4_pl(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
+         implicit none
+         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Step size
+      end subroutine symba_gr_p4_pl
+   
+      module pure subroutine symba_gr_p4_tp(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
+         implicit none
+         class(symba_tp),              intent(inout) :: self   !! SyMBA test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Step size
+      end subroutine symba_gr_p4_tp
 
       module function symba_collision_casedisruption(system, param, colliders, frag) result(status)
          use fraggle_classes, only : fraggle_colliders, fraggle_fragments

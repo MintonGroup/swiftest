@@ -35,7 +35,7 @@ contains
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -54,10 +54,10 @@ contains
             end if
             call pl%lindrift(cb, dth, lbeg=.true.)
             call pl%kick(system, param, t, dth, lbeg=.true.)
-            if (param%lgr) call pl%gr_pos_kick(param, dth)
+            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
             call pl%drift(system, param, dt)
             call pl%kick(system, param, t + dt, dth, lbeg=.false.)
-            if (param%lgr) call pl%gr_pos_kick(param, dth)
+            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
             call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
          end select
@@ -78,7 +78,7 @@ contains
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self    !! Helio test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -97,10 +97,10 @@ contains
             end if
             call tp%lindrift(cb, dth, lbeg=.true.)
             call tp%kick(system, param, t, dth, lbeg=.true.)
-            if (param%lgr) call tp%gr_pos_kick(param, dth)
+            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
             call tp%drift(system, param, dt)
             call tp%kick(system, param, t + dt, dth, lbeg=.false.)
-            if (param%lgr) call tp%gr_pos_kick(param, dth)
+            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
             call tp%lindrift(cb, dth, lbeg=.false.)
             call tp%vb2vh(vbcb = -cb%ptend)
          end select

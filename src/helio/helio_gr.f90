@@ -56,7 +56,7 @@ contains
    end subroutine helio_gr_kick_getacch_tp
    
 
-   module pure subroutine helio_gr_p4_pl(self, param, dt)
+   module pure subroutine helio_gr_p4_pl(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -65,11 +65,12 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_helio_p4.f90
       implicit none
       ! Arguments
-      class(helio_pl),            intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: dt     !! Step size
+      class(helio_pl),              intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
-      integer(I4B)                                 :: i
+      integer(I4B) :: i
 
       if (self%nbody == 0) return
 
@@ -82,7 +83,8 @@ contains
      return
    end subroutine helio_gr_p4_pl
 
-   module pure subroutine helio_gr_p4_tp(self, param, dt)
+
+   module pure subroutine helio_gr_p4_tp(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction
@@ -91,11 +93,12 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_helio_p4.f90
       implicit none
       ! Arguments
-      class(helio_tp),              intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: dt    !! Step size
+      class(helio_tp),              intent(inout) :: self   !! Swiftest particle object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
-      integer(I4B)                              :: i
+      integer(I4B) :: i
 
       if (self%nbody == 0) return
 
