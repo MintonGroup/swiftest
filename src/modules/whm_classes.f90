@@ -170,20 +170,22 @@ module whm_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine whm_gr_kick_getacch_tp
 
-      module pure subroutine whm_gr_p4_pl(self, param, dt)
+      module pure subroutine whm_gr_p4_pl(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(whm_pl),              intent(inout) :: self  !! WHM massive body object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: dt    !! Step size
+         class(whm_pl),                intent(inout) :: self  !! WHM massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt    !! Step size
       end subroutine whm_gr_p4_pl
 
-      module pure subroutine whm_gr_p4_tp(self, param, dt)
+      module pure subroutine whm_gr_p4_tp(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(whm_tp),              intent(inout) :: self  !! WHM test particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                    intent(in)   :: dt    !! Step size
+         class(whm_tp),                intent(inout) :: self   !! WHM test particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine whm_gr_p4_tp
 
       !> Reads WHM massive body object in from file

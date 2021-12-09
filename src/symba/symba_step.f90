@@ -71,24 +71,24 @@ contains
                   call pl%vh2vb(cb)
                   call pl%lindrift(cb, dth, lbeg=.true.)
                   call pl%kick(system, param, t, dth, lbeg=.true.)
-                  if (param%lgr) call pl%gr_pos_kick(param, dth)
+                  if (param%lgr) call pl%gr_pos_kick(system, param, dth)
                   call pl%drift(system, param, dt)
 
                   call tp%vh2vb(vbcb = -cb%ptbeg)
                   call tp%lindrift(cb, dth, lbeg=.true.)
                   call tp%kick(system, param, t, dth, lbeg=.true.)
-                  if (param%lgr) call tp%gr_pos_kick(param, dth)
+                  if (param%lgr) call tp%gr_pos_kick(system, param, dth)
                   call tp%drift(system, param, dt)
 
                   call system%recursive_step(param, t, 0)
 
                   call pl%kick(system, param, t, dth, lbeg=.false.)
-                  if (param%lgr) call pl%gr_pos_kick(param, dth)
+                  if (param%lgr) call pl%gr_pos_kick(system, param, dth)
                   call pl%lindrift(cb, dth, lbeg=.false.)
                   call pl%vb2vh(cb)
 
                   call tp%kick(system, param, t, dth, lbeg=.false.)
-                  if (param%lgr) call tp%gr_pos_kick(param, dth)
+                  if (param%lgr) call tp%gr_pos_kick(system, param, dth)
                   call tp%lindrift(cb, dth, lbeg=.false.)
                   call tp%vb2vh(vbcb = -cb%ptend)
                end select
@@ -185,7 +185,10 @@ contains
                      call plplenc_list%kick(system, dth, irecp, -1)
                      call pltpenc_list%kick(system, dth, irecp, -1)
                   end if
-
+                  if (param%lgr) then
+                     call pl%gr_pos_kick(system, param, dth)
+                     call tp%gr_pos_kick(system, param, dth)
+                  end if
                   call pl%drift(system, param, dtl)
                   call tp%drift(system, param, dtl)
 
@@ -197,6 +200,10 @@ contains
                   if (ireci /= 0) then
                      call plplenc_list%kick(system, dth, irecp, -1)
                      call pltpenc_list%kick(system, dth, irecp, -1)
+                  end if
+                  if (param%lgr) then
+                     call pl%gr_pos_kick(system, param, dth)
+                     call tp%gr_pos_kick(system, param, dth)
                   end if
 
                   if (param%lclose) then

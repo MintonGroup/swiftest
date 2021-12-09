@@ -50,9 +50,9 @@ contains
          dth = 0.5_DP * dt
          call pl%kick(system, param, t, dth,lbeg=.true.)
          call pl%vh2vj(cb) 
-         if (param%lgr) call pl%gr_pos_kick(param, dth)
+         if (param%lgr) call pl%gr_pos_kick(system, param, dth)
          call pl%drift(system, param, dt)
-         if (param%lgr) call pl%gr_pos_kick(param, dth)
+         if (param%lgr) call pl%gr_pos_kick(system, param, dth)
          call pl%j2h(cb)
          call pl%kick(system, param, t + dt, dth, lbeg=.false.)
       end associate
@@ -85,9 +85,9 @@ contains
          associate(tp => self, cb => system%cb, pl => system%pl)
             dth = 0.5_DP * dt
             call tp%kick(system, param, t, dth, lbeg=.true.)
-            if (param%lgr) call tp%gr_pos_kick(param, dth)
+            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
             call tp%drift(system, param, dt)
-            if (param%lgr) call tp%gr_pos_kick(param, dth)
+            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
             call tp%kick(system, param, t + dt, dth, lbeg=.false.)
          end associate
       end select
