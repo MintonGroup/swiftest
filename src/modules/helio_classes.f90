@@ -122,20 +122,22 @@ module helio_classes
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
       end subroutine helio_gr_kick_getacch_tp
       
-      module pure subroutine helio_gr_p4_pl(self, param, dt)
-         use swiftest_classes, only : swiftest_parameters
+      module pure subroutine helio_gr_p4_pl(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
-         class(helio_pl),            intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: dt     !! Step size
+         class(helio_pl),              intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine helio_gr_p4_pl
    
-      module pure subroutine helio_gr_p4_tp(self, param, dt)
-         use swiftest_classes, only : swiftest_parameters
+      module pure subroutine helio_gr_p4_tp(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
-         class(helio_tp),            intent(inout) :: self  !! Swiftest particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: dt    !! Step size
+         class(helio_tp),              intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine helio_gr_p4_tp
 
       module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
@@ -191,7 +193,7 @@ module helio_classes
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsize
