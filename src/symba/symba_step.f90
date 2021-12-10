@@ -33,6 +33,7 @@ contains
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
+                  param%lfirstkick = pl%lfirst
                end if
             end select
          end select
