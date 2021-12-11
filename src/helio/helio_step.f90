@@ -56,8 +56,8 @@ contains
             call pl%kick(system, param, t, dth, lbeg=.true.)
             if (param%lgr) call pl%gr_pos_kick(system, param, dth)
             call pl%drift(system, param, dt)
-            call pl%kick(system, param, t + dt, dth, lbeg=.false.)
             if (param%lgr) call pl%gr_pos_kick(system, param, dth)
+            call pl%kick(system, param, t + dt, dth, lbeg=.false.)
             call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
          end select
@@ -99,8 +99,8 @@ contains
             call tp%kick(system, param, t, dth, lbeg=.true.)
             if (param%lgr) call tp%gr_pos_kick(system, param, dth)
             call tp%drift(system, param, dt)
-            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
             if (param%lgr) call tp%gr_pos_kick(system, param, dth)
+            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
             call tp%lindrift(cb, dth, lbeg=.false.)
             call tp%vb2vh(vbcb = -cb%ptend)
          end select

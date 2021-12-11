@@ -23,7 +23,7 @@ contains
       associate(pl => self, npl => self%nbody)
          select type(system)
          class is (symba_nbody_system)
-            do concurrent(i = 1:npl, pl%lmask(i) .and. pl%levelg(i) == system%irec )
+            do concurrent(i = 1:npl, pl%lmask(i) .and. (pl%levelg(i) == system%irec) )
                call gr_p4_pos_kick(param, pl%xh(:, i), pl%vb(:, i), dt)
             end do
          end select
@@ -54,7 +54,7 @@ contains
       associate(tp => self, ntp => self%nbody)
          select type(system)
          class is (symba_nbody_system)
-            do concurrent(i = 1:ntp, tp%lmask(i) .and. tp%levelg(i) == system%irec)
+            do concurrent(i = 1:ntp, tp%lmask(i) .and. (tp%levelg(i) == system%irec))
                call gr_p4_pos_kick(param, tp%xh(:, i), tp%vb(:, i), dt)
             end do
          end select
