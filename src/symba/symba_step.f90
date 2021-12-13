@@ -82,6 +82,7 @@ contains
                   call tp%drift(system, param, dt)
 
                   call system%recursive_step(param, t, 0)
+                  system%irec = -1
 
                   if (param%lgr) call pl%gr_pos_kick(system, param, dth)
                   call pl%kick(system, param, t, dth, lbeg=.false.)
