@@ -476,12 +476,6 @@ module swiftest_classes
    end type swiftest_nbody_system
 
    abstract interface
-      subroutine abstract_discard_body(self, system, param) 
-         import swiftest_body, swiftest_nbody_system, swiftest_parameters
-         class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine abstract_discard_body
 
       subroutine abstract_accel(self, system, param, t, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
@@ -491,6 +485,14 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
+
+      subroutine abstract_discard_body(self, system, param) 
+         import swiftest_body, swiftest_nbody_system, swiftest_parameters
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine abstract_discard_body
+
 
       subroutine abstract_kick_body(self, system, param, t, dt, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
