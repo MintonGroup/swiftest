@@ -61,7 +61,7 @@ capm_tp = sim.ds.sel(id=1)['capm'].values - 1.0
 GMcb = sim.ds.isel(id=0)['Gmass'].values
 GU = swiftest.GC / (sim.param['DU2M']**3 / (sim.param['MU2KG'] * sim.param['TU2S']**2))
 dens = 3000.0 / (sim.param['MU2KG'] / sim.param['DU2M']**3) # Assume a bulk density of 3 g/cm^3
-GM_pl = sim.ds.sel(id=1)['Gmass'].values * 0.01
+GM_pl = sim.ds.sel(id=1)['Gmass'].values * 0.0001
 M_pl = GM_pl / GU
 R_pl = (3 * M_pl / (4 * np.pi * dens))**(1.0 / 3.0)
 Rh_pl = Me_a * (GM_pl / (3 * GMcb))**(1.0/3.0)
