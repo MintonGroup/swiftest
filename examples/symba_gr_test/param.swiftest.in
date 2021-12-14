@@ -1,9 +1,9 @@
 ! VERSION        Swiftest parameter input
 T0               0.0
 TSTOP            1000.0
-DT               0.0006844626967830253
-ISTEP_OUT        1461
-ISTEP_DUMP       1461
+DT               0.00034223134839151266
+ISTEP_OUT        2922
+ISTEP_DUMP       2922
 OUT_FORM         XVEL
 OUT_TYPE         NETCDF_DOUBLE
 OUT_STAT         UNKNOWN
@@ -33,3 +33,4 @@ ENERGY           NO
 GR               YES
 INTERACTION_LOOPS ADAPTIVE
 ENCOUNTER_CHECK  ADAPTIVE
+GMTINY           1e-7
