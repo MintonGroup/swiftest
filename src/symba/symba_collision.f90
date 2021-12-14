@@ -275,7 +275,7 @@ contains
       real(DP)                                  :: rlim, Gmtot
       logical                                   :: isplpl
       character(len=STRMAX)                     :: timestr, idstri, idstrj, message
-       
+      class(symba_encounter), allocatable       :: tmp       
 
       lany_collision = .false.
       if (self%nenc == 0) return
@@ -324,54 +324,58 @@ contains
                end do
             end if
 
-            if (any(lcollision(1:nenc))) call pl%xh2xb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
-            do k = 1, nenc
-               i = self%index1(k)
-               j = self%index2(k)
-               if (lcollision(k)) self%status(k) = COLLISION
-               self%t(k) = t
-               self%x1(:,k) = pl%xh(:,i) + system%cb%xb(:)
-               self%v1(:,k) = pl%vb(:,i) 
-               if (isplpl) then
-                  self%x2(:,k) = pl%xh(:,j) + system%cb%xb(:)
-                  self%v2(:,k) = pl%vb(:,j) 
-                  if (lcollision(k)) then
-                     ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional colliders%idx
-                     if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_colliders([i,j])
-
-                     ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
-                     pl%lcollision([i, j]) = .true.
-                     pl%status([i, j]) = COLLISION
-                     call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
-                     call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,j), discard_vh=pl%vh(:,j))
+            lany_collision = any(lcollision(:))
+            if (lany_collision) then
+               call pl%xh2xb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+               do k = 1, nenc
+                  i = self%index1(k)
+                  j = self%index2(k)
+                  if (lcollision(k)) self%status(k) = COLLISION
+                  self%t(k) = t
+                  self%x1(:,k) = pl%xh(:,i) + system%cb%xb(:)
+                  self%v1(:,k) = pl%vb(:,i) 
+                  if (isplpl) then
+                     self%x2(:,k) = pl%xh(:,j) + system%cb%xb(:)
+                     self%v2(:,k) = pl%vb(:,j) 
+                     if (lcollision(k)) then
+                        ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional colliders%idx
+                        if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_colliders([i,j])
+   
+                        ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
+                        pl%lcollision([i, j]) = .true.
+                        pl%status([i, j]) = COLLISION
+                        call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
+                        call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,j), discard_vh=pl%vh(:,j))
+                     end if
+                  else
+                     self%x2(:,k) = tp%xh(:,j) + system%cb%xb(:)
+                     self%v2(:,k) = tp%vb(:,j) 
+                     if (lcollision(k)) then
+                        tp%status(j) = DISCARDED_PLR
+                        tp%ldiscard(j) = .true.
+                        write(idstri, *) pl%id(i)
+                        write(idstrj, *) tp%id(j)
+                        write(timestr, *) t
+                        call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_xh=tp%xh(:,j), discard_vh=tp%vh(:,j))
+                        write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
+                              //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
+                              //  " at t = " // trim(adjustl(timestr))
+                        call io_log_one_message(FRAGGLE_LOG_OUT, message)
+                     end if
                   end if
-               else
-                  self%x2(:,k) = tp%xh(:,j) + system%cb%xb(:)
-                  self%v2(:,k) = tp%vb(:,j) 
-                  if (lcollision(k)) then
-                     tp%status(j) = DISCARDED_PLR
-                     tp%ldiscard(j) = .true.
-                     write(idstri, *) pl%id(i)
-                     write(idstrj, *) tp%id(j)
-                     write(timestr, *) t
-                     call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_xh=tp%xh(:,j), discard_vh=tp%vh(:,j))
-                     write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
-                             //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
-                             //  " at t = " // trim(adjustl(timestr))
-                     call io_log_one_message(FRAGGLE_LOG_OUT, message)
-                  end if
-               end if
-            end do
+               end do
+            end if
          end select
       end select
 
-      lany_collision = any(lcollision(:))
-
-      ! Extract the pl-pl encounter list and return the plplcollision_list
+      ! Extract the pl-pl or pl-tpencounter list and return the plplcollision_list
       if (lany_collision) then
-         select type(plplenc_list => self)
+         select type(self)
          class is (symba_plplenc)
-            call plplenc_list%extract_collisions(system, param)
+            call self%extract_collisions(system, param)
+         class default
+            allocate(tmp, mold=self)
+            call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
          end select
       end if
 
