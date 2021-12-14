@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import swiftest
+from numpy.random import default_rng
+import numpy as np
 
 sim = swiftest.Simulation()
 sim.param['PL_IN'] = "pl.swiftest.in"
@@ -43,7 +45,30 @@ bodyid = {
 
 for name, id in bodyid.items():
    sim.add(name, idval=id, date="2027-04-30")
-   
+
+Me_a = sim.ds.isel(id=1)['a'].values
+Me_e = sim.ds.sel(id=1)['e'].values
+Me_i = sim.ds.sel(id=1)['inc'].values
+
+capom_pl = default_rng().uniform(0.0, 360.0, 1)
+omega_pl = default_rng().uniform(0.0, 360.0, 1)
+capm_pl = default_rng().uniform(0.0, 360.0, 1)
+
+capom_tp = default_rng().uniform(0.0, 360.0, 1)
+omega_tp = default_rng().uniform(0.0, 360.0, 1)
+capm_tp = default_rng().uniform(0.0, 360.0, 1)
+
+GMcb = sim.ds.isel(id=0)['Gmass'].values
+GU = swiftest.GC / (sim.param['DU2M']**3 / (sim.param['MU2KG'] * sim.param['TU2S']**2))
+dens = 3000.0 / (sim.param['MU2KG'] / sim.param['DU2M']**3) # Assume a bulk density of 3 g/cm^3
+GM_pl = 2e-7
+M_pl = GM_pl / GU
+R_pl = (3 * M_pl / (4 * np.pi * dens))**(1.0 / 3.0)
+Rh_pl = Me_a * (GM_pl / (3 * GMcb))**(1.0/3.0)
+
+sim.addp(np.full(1,9), np.full(1,'Planetesimal'), Me_a, Me_e, Me_i, capom_pl, omega_pl, capm_pl, GMpl=np.full(1, GM_pl), Rpl=np.full(1, R_pl), rhill=Rh_pl)
+sim.addp(np.full(1,10), np.full(1,'TestParticle'), Me_a, Me_e, Me_i, capom_tp, omega_tp, capm_tp)
+
 sim.save("param.swiftest.in")
 sim.param['PL_IN'] = "pl.swifter.in"
 sim.param['TP_IN'] = "tp.swifter.in"

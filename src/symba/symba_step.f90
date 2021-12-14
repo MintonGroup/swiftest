@@ -274,7 +274,7 @@ contains
                      tp%levelg(1:ntp) = -1
                      tp%levelm(1:ntp) = -1
                      tp%lmask(1:ntp) = .true.
-                     tp%ldiscard(1:npl) = .false.
+                     tp%ldiscard(1:ntp) = .false.
                      nenc_old = system%pltpenc_list%nenc
                      call system%pltpenc_list%setup(0)
                      call system%pltpenc_list%setup(nenc_old)
