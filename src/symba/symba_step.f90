@@ -250,6 +250,9 @@ contains
             select type(tp => system%tp)
             class is (symba_tp)
                associate(npl => pl%nbody, ntp => tp%nbody)
+                  nenc_old = system%plplenc_list%nenc
+                  call system%plplenc_list%setup(0)
+                  call system%plplcollision_list%setup(0)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
                      call pl%reset_kinship([(i, i=1, npl)])
@@ -261,24 +264,21 @@ contains
                      pl%lcollision(1:npl) = .false.
                      pl%ldiscard(1:npl) = .false.
                      pl%lmask(1:npl) = .true.
-                     nenc_old = system%plplenc_list%nenc
-                     call system%plplenc_list%setup(0)
-                     call system%plplenc_list%setup(nenc_old)
-                     system%plplenc_list%nenc = 0
-                     call system%plplcollision_list%setup(0)
-                     call system%pl%set_renc(0)
+                     call pl%set_renc(0)
+                     call system%plplenc_list%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+                     system%plplenc_list%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
                   end if
             
+                  nenc_old = system%pltpenc_list%nenc
+                  call system%pltpenc_list%setup(0)
                   if (ntp > 0) then
                      tp%nplenc(1:ntp) = 0 
                      tp%levelg(1:ntp) = -1
                      tp%levelm(1:ntp) = -1
                      tp%lmask(1:ntp) = .true.
                      tp%ldiscard(1:ntp) = .false.
-                     nenc_old = system%pltpenc_list%nenc
-                     call system%pltpenc_list%setup(0)
-                     call system%pltpenc_list%setup(nenc_old)
-                     system%pltpenc_list%nenc = 0
+                     call system%pltpenc_list%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+                     system%pltpenc_list%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
                   end if
 
                   call system%pl_adds%setup(0, param)
