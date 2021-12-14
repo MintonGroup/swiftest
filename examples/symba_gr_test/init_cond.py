@@ -11,10 +11,10 @@ sim.param['MU2KG'] = swiftest.MSun
 sim.param['TU2S'] = swiftest.YR2S
 sim.param['DU2M'] = swiftest.AU2M
 sim.param['T0'] = 0.0
-sim.param['DT'] = 0.25 * swiftest.JD2S / swiftest.YR2S
+sim.param['DT'] = 0.125 * swiftest.JD2S / swiftest.YR2S
 sim.param['TSTOP'] = 1000.0
-sim.param['ISTEP_OUT']  = 1461
-sim.param['ISTEP_DUMP'] = 1461
+sim.param['ISTEP_OUT']  = 2922
+sim.param['ISTEP_DUMP'] = 2922
 sim.param['CHK_QMIN_COORD'] = "HELIO"
 sim.param['CHK_QMIN'] = swiftest.RSun / swiftest.AU2M
 sim.param['CHK_QMIN_RANGE'] = f"{swiftest.RSun / swiftest.AU2M} 1000.0"
@@ -27,6 +27,7 @@ sim.param['OUT_FORM'] = "XVEL"
 sim.param['OUT_TYPE'] = "NETCDF_DOUBLE"
 sim.param['RHILL_PRESENT'] = "YES"
 sim.param['GR'] = 'YES'
+sim.param['GMTINY'] = '1e-7'
 
 bodyid = {
    "Sun": 0,
