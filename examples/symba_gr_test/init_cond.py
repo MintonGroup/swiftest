@@ -70,10 +70,5 @@ sim.addp([9], ['Planetesimal'], Me_a, Me_e, Me_i, capom_pl, omega_pl, capm_pl, G
 sim.addp([10], ['TestParticle'], Me_a, Me_e, Me_i, capom_tp, omega_tp, capm_tp)
 
 sim.save("param.swiftest.in")
-sim.param['PL_IN'] = "pl.swifter.in"
-sim.param['TP_IN'] = "tp.swifter.in"
-sim.param['BIN_OUT'] = "bin.swifter.dat"
-sim.param['ENC_OUT'] = "enc.swifter.dat"
-sim.save("param.swifter.in", codename="Swifter")
 
 
