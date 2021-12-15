@@ -33,6 +33,7 @@ contains
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
+                  param%lfirstkick = pl%lfirst
                end if
             end select
          end select
@@ -81,14 +82,15 @@ contains
                   call tp%drift(system, param, dt)
 
                   call system%recursive_step(param, t, 0)
+                  system%irec = -1
 
-                  call pl%kick(system, param, t, dth, lbeg=.false.)
                   if (param%lgr) call pl%gr_pos_kick(system, param, dth)
+                  call pl%kick(system, param, t, dth, lbeg=.false.)
                   call pl%lindrift(cb, dth, lbeg=.false.)
                   call pl%vb2vh(cb)
 
-                  call tp%kick(system, param, t, dth, lbeg=.false.)
                   if (param%lgr) call tp%gr_pos_kick(system, param, dth)
+                  call tp%kick(system, param, t, dth, lbeg=.false.)
                   call tp%lindrift(cb, dth, lbeg=.false.)
                   call tp%vb2vh(vbcb = -cb%ptend)
                end select
@@ -195,25 +197,28 @@ contains
                      call plplenc_list%kick(system, dth, irecp, -1)
                      call pltpenc_list%kick(system, dth, irecp, -1)
                   end if
+
                   if (param%lgr) then
                      call pl%gr_pos_kick(system, param, dth)
                      call tp%gr_pos_kick(system, param, dth)
                   end if
+
                   call pl%drift(system, param, dtl)
                   call tp%drift(system, param, dtl)
 
                   if (lencounter) call system%recursive_step(param, t+dth,irecp)
                   system%irec = ireci
 
+                  if (param%lgr) then
+                     call pl%gr_pos_kick(system, param, dth)
+                     call tp%gr_pos_kick(system, param, dth)
+                  end if
+
                   call plplenc_list%kick(system, dth, irecp, 1)
                   call pltpenc_list%kick(system, dth, irecp, 1)
                   if (ireci /= 0) then
                      call plplenc_list%kick(system, dth, irecp, -1)
                      call pltpenc_list%kick(system, dth, irecp, -1)
-                  end if
-                  if (param%lgr) then
-                     call pl%gr_pos_kick(system, param, dth)
-                     call tp%gr_pos_kick(system, param, dth)
                   end if
 
                   if (param%lclose) then
@@ -280,7 +285,7 @@ contains
                      tp%levelg(1:ntp) = -1
                      tp%levelm(1:ntp) = -1
                      tp%lmask(1:ntp) = .true.
-                     tp%ldiscard(1:npl) = .false.
+                     tp%ldiscard(1:ntp) = .false.
                      nenc_old = system%pltpenc_list%nenc
                      call system%pltpenc_list%setup(0_I8B)
                      call system%pltpenc_list%setup(nenc_old)

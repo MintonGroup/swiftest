@@ -15,17 +15,15 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
-      ! Internals
-      integer(I4B)                                 :: i
 
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
          select type(system)
          class is (symba_nbody_system)
-            do concurrent(i = 1:npl, pl%lmask(i) .and. pl%levelg(i) == system%irec )
-               call gr_p4_pos_kick(param, pl%xh(:, i), pl%vb(:, i), dt)
-            end do
+            pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
+            call helio_gr_p4_pl(pl, system, param, dt)
+            pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE 
          end select
       end associate
 
@@ -54,9 +52,9 @@ contains
       associate(tp => self, ntp => self%nbody)
          select type(system)
          class is (symba_nbody_system)
-            do concurrent(i = 1:ntp, tp%lmask(i) .and. tp%levelg(i) == system%irec)
-               call gr_p4_pos_kick(param, tp%xh(:, i), tp%vb(:, i), dt)
-            end do
+            tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == system%irec
+            call helio_gr_p4_tp(tp, system, param, dt)
+            tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE 
          end select
       end associate
 
