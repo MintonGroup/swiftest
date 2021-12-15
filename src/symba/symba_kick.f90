@@ -163,7 +163,6 @@ contains
 
       if (self%nenc == 0) return
 
-
       select type(self)
       class is (symba_plplenc)
          isplpl = .true.
@@ -175,8 +174,12 @@ contains
          select type(tp => system%tp)
          class is (symba_tp)
             associate(npl => pl%nbody, ntp => tp%nbody, nenc => self%nenc)
-               if (npl > 0) pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
-               if (ntp > 0) tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE
+               if (npl == 0)  return
+               pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
+               if (.not. isplpl) then
+                  if (ntp == 0) return
+                  tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE
+               end if
                allocate(lgoodlevel(nenc))
 
                irm1 = irec - 1
