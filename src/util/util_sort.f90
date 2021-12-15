@@ -312,6 +312,34 @@ contains
       return
    end subroutine qsort_I4B_I8Bind
 
+
+   recursive pure subroutine qsort_I8B_I8Bind(arr, ind)
+      !! author: David A. Minton
+      !!
+      !! Sort input I8B array by index in ascending numerical order using quicksort.
+      !!
+      implicit none
+      ! Arguments
+      integer(I8B), dimension(:), intent(inout)          :: arr
+      integer(I8B), dimension(:), intent(out),  optional :: ind
+      ! Internals
+      integer(I8B) :: iq
+
+      if (size(arr) > 1_I8B) then
+         if (present(ind)) then
+            call partition_I8B_I8Bind(arr, iq, ind)
+            call qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+            call qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
+         else
+            call partition_I8B_I8Bind(arr, iq)
+            call qsort_I8B_I8Bind(arr(:iq-1_I8B))
+            call qsort_I8B_I8Bind(arr(iq:))
+         end if
+      end if
+
+      return
+   end subroutine qsort_I8B_I8Bind
+
  
    pure subroutine partition_I4B(arr, marker, ind)
       !! author: David A. Minton
@@ -424,6 +452,62 @@ contains
   
       return
    end subroutine partition_I4B_I8Bind
+
+   pure subroutine partition_I8B_I8Bind(arr, marker, ind)
+      !! author: David A. Minton
+      !!
+      !! Partition function for quicksort on I8B type with I8B index
+      !!
+      implicit none
+      ! Arguments
+      integer(I8B), intent(inout), dimension(:)           :: arr
+      integer(I8B), intent(inout), dimension(:), optional :: ind
+      integer(I8B), intent(out)                           :: marker
+      ! Internals
+      integer(I8B) :: i, j, itmp, narr, ipiv
+      integer(I8B) :: temp
+      integer(I8B) :: x   ! pivot point
+
+      narr = size(arr)
+
+      ! Get center as pivot, as this is likely partially sorted
+      ipiv = narr / 2_I8B
+      x = arr(ipiv)
+      i = 0_I8B
+      j = narr + 1_I8B
+   
+      do
+         j = j - 1_I8B
+         do
+            if (arr(j) <= x) exit
+            j = j - 1_I8B
+         end do
+         i = i + 1_I8B
+         do
+            if (arr(i) >= x) exit
+            i = i + 1_I8B
+         end do
+         if (i < j) then
+            ! exchange A(i) and A(j)
+            temp = arr(i)
+            arr(i) = arr(j)
+            arr(j) = temp
+            if (present(ind)) then
+               itmp = ind(i)
+               ind(i) = ind(j)
+               ind(j) = itmp
+            end if
+         else if (i == j) then
+            marker = i + 1_I8B
+            return
+         else
+            marker = i
+            return
+         endif
+      end do
+  
+      return
+   end subroutine partition_I8B_I8Bind
 
 
    module pure subroutine util_sort_sp(arr)

@@ -1662,11 +1662,17 @@ module swiftest_classes
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
-      module pure subroutine util_sort_index_i4b_I8Bind(arr,ind)
+      module pure subroutine util_sort_index_I4B_I8Bind(arr,ind)
          implicit none
          integer(I4B), dimension(:), intent(in)  :: arr
          integer(I8B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine util_sort_index_i4b_I8Bind
+      end subroutine util_sort_index_I4b_I8Bind
+
+      module pure subroutine util_sort_index_I8B_I8Bind(arr,ind)
+         implicit none
+         integer(I8B), dimension(:), intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+      end subroutine util_sort_index_I8B_I8Bind
 
       module pure subroutine util_sort_sp(arr)
          implicit none

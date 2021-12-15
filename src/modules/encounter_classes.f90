@@ -54,20 +54,6 @@ module encounter_classes
    end type
 
    interface
-      module subroutine encounter_check_all(nenc, index1, index2, x1, v1, x2, v2, renc1, renc2, dt, lencounter, lvdotr)
-         implicit none
-         integer(I8B),                 intent(in)  :: nenc         !! Number of encounters in the encounter lists
-         integer(I4B), dimension(:),   intent(in)  :: index1     !! List of indices for body 1 in each encounter
-         integer(I4B), dimension(:),   intent(in)  :: index2     !! List of indices for body 2 in each encounter1
-         real(DP),     dimension(:,:), intent(in)  :: x1, v1     !! Array of indices of bodies 1
-         real(DP),     dimension(:,:), intent(in)  :: x2, v2     !! Array of indices of bodies 2
-         real(DP),     dimension(:),   intent(in)  :: renc1      !! Radius of encounter regions of bodies 1
-         real(DP),     dimension(:),   intent(in)  :: renc2      !! Radius of encounter regions of bodies 2
-         real(DP),                     intent(in)  :: dt         !! Step size
-         logical,      dimension(:),   intent(out) :: lencounter !! Logical array indicating which pairs are in a close encounter state
-         logical,      dimension(:),   intent(out) :: lvdotr     !! Logical array indicating which pairs are approaching
-      end subroutine encounter_check_all
-
       module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
          use swiftest_classes, only: swiftest_parameters
          implicit none
