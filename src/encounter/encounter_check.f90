@@ -930,7 +930,6 @@ contains
       logical, dimension(n1+n2) :: loverlap
       logical, dimension(SWEEPDIM,n1+n2) :: loverlap_by_dimension
       integer(I4B), dimension(SWEEPDIM) :: noverlap
-      integer(I8B), dimension(SWEEPDIM) :: ibegi, iendi
       integer(I4B), dimension(SWEEPDIM,n1+n2) :: nbox_arr
       logical, dimension(SWEEPDIM,2*(n1+n2)) :: llist1
       integer(I4B), dimension(SWEEPDIM,2*(n1+n2)) :: ext_ind
@@ -989,8 +988,8 @@ contains
       !$omp do schedule(static)
       do i = 1, n1
          if (loverlap(i)) then
-            ibegi =  self%aabb(dim)%ibeg(i) + 1_I8B
-            iendi =  self%aabb(dim)%iend(i) - 1_I8B
+            ibeg =  self%aabb(dim)%ibeg(i) + 1_I8B
+            iend =  self%aabb(dim)%iend(i) - 1_I8B
             nbox = iend - ibeg + 1
             call encounter_check_all_sweep_one(i, nbox, x1(1,i), x1(2,i), x1(3,i), v1(1,i), v1(2,i), v1(3,i), &
                                                          xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
@@ -1053,7 +1052,7 @@ contains
       integer(I4B), dimension(SWEEPDIM,2*n) :: ext_ind
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      integer(I8B) :: ibegix, iendix
+      integer(I8B) :: ibeg, iend
       type(walltimer) :: timer0
 
       call util_index_array(ind_arr, n)
@@ -1061,7 +1060,7 @@ contains
 
       ! Sweep the intervals for each of the massive bodies along one dimension
       ! This will build a ragged pair of index lists inside of the lenc data structure
-      where(self%aabb(1)%ind(:) > n)
+      where(self%aabb(dim)%ind(:) > n)
          ext_ind(dim,:) = self%aabb(1)%ind(:) - n
       elsewhere
          ext_ind(dim,:) = self%aabb(1)%ind(:)
@@ -1075,24 +1074,24 @@ contains
       vzind(:) = v(3,ext_ind(dim,:))
       rencind(:) = renc(ext_ind(dim,:))
 
-      loverlap(:) = (self%aabb(1)%ibeg(:) + 1_I8B) < (self%aabb(1)%iend(:) - 1_I8B)
+      loverlap(:) = (self%aabb(dim)%ibeg(:) + 1_I8B) < (self%aabb(dim)%iend(:) - 1_I8B)
       where(.not.loverlap(:)) lenc(:)%nenc = 0
 
       ! call timer0%start()
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(self, ext_ind_x, lenc, loverlap, x, v, renc, xind, yind, zind, vxind, vyind, vzind, rencind) &
-      !$omp firstprivate(n, dt) 
+      !$omp shared(self, ext_ind, lenc, loverlap, x, v, renc, xind, yind, zind, vxind, vyind, vzind, rencind) &
+      !$omp firstprivate(n, dt, dim) 
       do i = 1, n
          if (loverlap(i)) then
-            ibegix =  self%aabb(1)%ibeg(i) + 1_I8B
-            iendix =  self%aabb(1)%iend(i) - 1_I8B
-            nbox = iendix - ibegix + 1
-            lencounteri(ibegix:iendix) = .true.
+            ibeg =  self%aabb(dim)%ibeg(i) + 1_I8B
+            iend =  self%aabb(dim)%iend(i) - 1_I8B
+            nbox = iend - ibeg + 1
+            lencounteri(ibeg:iend) = .true.
             call encounter_check_all_sweep_one(i, nbox, x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), &
-                                                      xind(ibegix:iendix), yind(ibegix:iendix), zind(ibegix:iendix),&
-                                                      vxind(ibegix:iendix), vyind(ibegix:iendix), vzind(ibegix:iendix), &
-                                                      renc(i), rencind(ibegix:iendix), dt, ext_ind(dim,ibegix:iendix), &
-                                                      lencounteri(ibegix:iendix), lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
+                                                      xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
+                                                      vxind(ibeg:iend), vyind(ibeg:iend), vzind(ibeg:iend), &
+                                                      renc(i), rencind(ibeg:iend), dt, ext_ind(dim,ibeg:iend), &
+                                                      lencounteri(ibeg:iend), lenc(i)%nenc, lenc(i)%index1, lenc(i)%index2, lenc(i)%lvdotr)
             end if
       end do
       !$omp end parallel do
