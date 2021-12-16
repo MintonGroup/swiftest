@@ -101,7 +101,6 @@ contains
       integer(I8B), dimension(:), allocatable :: ind
       integer(I4B), dimension(:), allocatable :: itmp
       logical, dimension(:), allocatable :: ltmp
-      type(walltimer) :: timer
 
       if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          npl = nplm + nplt
@@ -126,7 +125,6 @@ contains
       tmp_param%ladaptive_encounters_plpl = .false.
 
       ! Start with the pl-pl group
-      !call timer%start()
       call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
       if (param%lencounter_sas_plpl) then
@@ -136,8 +134,6 @@ contains
          call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
                                                        plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
       end if
-      !call timer%stop()
-      !call timer%report("Encounter check pl-plm: ")
 
       if (skipit) then
          skipit = .false.
@@ -170,12 +166,6 @@ contains
          call util_sort_rearrange(index2, ind, nenc)
          call util_sort_rearrange(lvdotr, ind, nenc)
 
-         ! ! TEMP FOR TESTING
-         open(unit=22,file="enclist.csv", status="replace")
-         do k = 1_I8B, nenc
-            write(22,*) index1(k), index2(k)
-         end do
-         close(22)
       end if
 
       return
@@ -269,7 +259,6 @@ contains
       type(encounter_bounding_box), save :: boundingbox
       logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(npl) :: vshift_min, vshift_max
-      type(walltimer), save :: timer 
 
       if (npl == 0) return
 
@@ -573,7 +562,6 @@ contains
       logical, dimension(npl) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(npl) :: lenc
-      type(walltimer), save :: timer 
 
       call util_index_array(ind_arr, npl) 
 
@@ -622,7 +610,6 @@ contains
       logical, dimension(nplt) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(nplm) :: lenc
-      type(walltimer), save :: timer 
 
       call util_index_array(ind_arr, nplt)
 
@@ -938,12 +925,10 @@ contains
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibeg, iend
       real(DP), dimension(2*(n1+n2)) :: xind, yind, zind, vxind, vyind, vzind, rencind
-      type(walltimer) :: timer1, timer2, timer3, timer4
 
       ntot = n1 + n2
       call util_index_array(ind_arr, ntot)
 
-      !call timer1%start()
       do concurrent(dim = 1:SWEEPDIM)
          loverlap_by_dimension(dim,:) = (self%aabb(dim)%ibeg(:) + 1_I8B) < (self%aabb(dim)%iend(:) - 1_I8B)
          where(self%aabb(dim)%ind(:) > ntot)
@@ -1053,7 +1038,6 @@ contains
       type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibeg, iend
-      type(walltimer) :: timer0
 
       call util_index_array(ind_arr, n)
       dim = 1
@@ -1077,7 +1061,6 @@ contains
       loverlap(:) = (self%aabb(dim)%ibeg(:) + 1_I8B) < (self%aabb(dim)%iend(:) - 1_I8B)
       where(.not.loverlap(:)) lenc(:)%nenc = 0
 
-      ! call timer0%start()
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(self, ext_ind, lenc, loverlap, x, v, renc, xind, yind, zind, vxind, vyind, vzind, rencind) &
       !$omp firstprivate(n, dt, dim) 
@@ -1095,8 +1078,6 @@ contains
             end if
       end do
       !$omp end parallel do
-      ! call timer0%stop()
-      ! call timer0%report("timer0: ")
 
       call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2, lvdotr)
 
