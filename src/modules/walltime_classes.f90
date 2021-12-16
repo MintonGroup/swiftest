@@ -51,11 +51,11 @@ module walltime_classes
    end type interaction_timer
 
    interface
-      module subroutine walltime_report(self, nsubsteps, message)
+      module subroutine walltime_report(self, message, nsubsteps)
          implicit none
          class(walltimer),           intent(inout) :: self      !! Walltimer object
-         integer(I4B),               intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
          character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
+         integer(I4B), optional,     intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
       end subroutine walltime_report
 
       module subroutine walltime_reset(self)

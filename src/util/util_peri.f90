@@ -29,7 +29,8 @@ contains
                if (tp%isperi(i) == -1) then
                   if (vdotr(i) >= 0.0_DP) then
                      tp%isperi(i) = 0
-                     call orbel_xv2aeq(tp%mu(i), tp%xh(1,i), tp%xh(2,i), tp%xh(3,i), tp%vh(1,i), tp%vh(2,i), tp%vh(3,i), tp%atp(i), e, tp%peri(i))
+                     call orbel_xv2aeq(tp%mu(i), tp%xh(1,i), tp%xh(2,i), tp%xh(3,i), tp%vh(1,i), tp%vh(2,i), tp%vh(3,i), &
+                                       tp%atp(i), e, tp%peri(i))
                   end if
                else
                   if (vdotr(i) > 0.0_DP) then
@@ -45,7 +46,8 @@ contains
                if (tp%isperi(i) == -1) then
                   if (vdotr(i) >= 0.0_DP) then
                      tp%isperi(i) = 0
-                     call orbel_xv2aeq(system%Gmtot, tp%xb(1,i), tp%xb(2,i), tp%xb(3,i), tp%vb(1,i), tp%vb(2,i), tp%vb(3,i), tp%atp(i), e, tp%peri(i))
+                     call orbel_xv2aeq(system%Gmtot, tp%xb(1,i), tp%xb(2,i), tp%xb(3,i), tp%vb(1,i), tp%vb(2,i), tp%vb(3,i), &
+                                       tp%atp(i), e, tp%peri(i))
                   end if
                else
                   if (vdotr(i) > 0.0_DP) then

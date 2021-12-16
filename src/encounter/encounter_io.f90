@@ -22,9 +22,9 @@ contains
       ! Internals
       character(len=STRMAX)   :: errmsg
 
-      write(iu, err = 667, iomsg = errmsg) t
-      write(iu, err = 667, iomsg = errmsg) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
-      write(iu, err = 667, iomsg = errmsg) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
+      write(iu, err=667, iomsg=errmsg) t
+      write(iu, err=667, iomsg=errmsg) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), Gmass1, radius1
+      write(iu, err=667, iomsg=errmsg) id2, xh2(1), xh2(2), xh2(3), vh2(1), vh2(2), Gmass2, radius2
 
       return
       667 continue
@@ -46,10 +46,10 @@ contains
 
       if (param%enc_out == "" .or. self%nenc == 0) return
 
-      open(unit = LUN, file = param%enc_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', iostat = ierr, iomsg = errmsg)
+      open(unit=LUN, file=param%enc_out, status='OLD', position='APPEND', form='UNFORMATTED', iostat=ierr, iomsg=errmsg)
       if (ierr /= 0) then
          if (lfirst) then
-            open(unit = LUN, file = param%enc_out, status = 'NEW', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+            open(unit=LUN, file=param%enc_out, status='NEW', form='UNFORMATTED', err=667, iomsg=errmsg)
          else
             goto 667
          end if

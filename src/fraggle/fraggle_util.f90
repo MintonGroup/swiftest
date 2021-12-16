@@ -166,7 +166,8 @@ contains
             lexclude(1:npl_after) = .false.
             lexclude(colliders%idx(1:colliders%ncoll)) = .true.
             if (.not.allocated(tmpsys)) then
-               write(*,*) "Error in fraggle_util_get_energy_momentum. This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
+               write(*,*) "Error in fraggle_util_get_energy_momentum. " // &
+                         " This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
                call util_exit(FAILURE)
             end if
             call fraggle_util_add_fragments_to_system(frag, colliders, tmpsys, tmpparam)
@@ -232,7 +233,8 @@ contains
             ! Linearly interpolate the last two failed solution ke deficits to find a new distance value to try
             ke_tot_deficit = ke_tot_deficit - (frag%ke_budget - frag%ke_orbit - frag%ke_spin)
             ke_avg_deficit = ke_tot_deficit / try
-            delta_r = (r_max_start - r_max_start_old) * (ke_avg_deficit_target - ke_avg_deficit_old) / (ke_avg_deficit - ke_avg_deficit_old)
+            delta_r = (r_max_start - r_max_start_old) * (ke_avg_deficit_target - ke_avg_deficit_old) &
+                                                      / (ke_avg_deficit - ke_avg_deficit_old)
             if (abs(delta_r) > delta_r_max) delta_r = sign(delta_r_max, delta_r)
          end if
          r_max_start_old = r_max_start

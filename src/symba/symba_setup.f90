@@ -18,9 +18,9 @@ contains
       ! Call parent method
       associate(system => self)
          call helio_setup_initialize_system(system, param)
-         call system%pltpenc_list%setup(0)
-         call system%plplenc_list%setup(0)
-         call system%plplcollision_list%setup(0)
+         call system%pltpenc_list%setup(0_I8B)
+         call system%plplenc_list%setup(0_I8B)
+         call system%plplcollision_list%setup(0_I8B)
       end associate
 
       return
@@ -109,14 +109,14 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
-      integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
+      integer(I8B),           intent(in)    :: n    !! Number of encounters to allocate space for
 
       call encounter_setup_list(self, n)
-      if (n < 0) return
+      if (n < 0_I8B) return
 
       call self%dealloc()
 
-      if (n ==0) return
+      if (n ==0_I8B) return
 
       allocate(self%level(n))
 

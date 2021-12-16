@@ -50,8 +50,9 @@ contains
          dentot = sum(mass_si(:) * density_si(:)) / mtot 
 
          !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
-         call fraggle_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), x1_si(:), x2_si(:),& 
-               v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), min_mfrag_si, frag%regime, mlr, mslr, frag%Qloss)
+         call fraggle_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
+                                         x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
+                                         min_mfrag_si, frag%regime, mlr, mslr, frag%Qloss)
 
          frag%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
          frag%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
@@ -73,7 +74,8 @@ contains
    end subroutine fraggle_regime_colliders
 
 
-   subroutine fraggle_regime_collresolve(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, min_mfrag, regime, Mlr, Mslr, Qloss)
+   subroutine fraggle_regime_collresolve(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, min_mfrag, &
+                                         regime, Mlr, Mslr, Qloss)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Determine the collisional regime of two colliding bodies. 
@@ -182,7 +184,8 @@ contains
          Mlr = Mtot
          Mslr = 0.0_DP
          Qloss = 0.0_DP
-         call io_log_one_message(FRAGGLE_LOG_OUT, "Fragments would have mass below the minimum. Converting this collision into a merger.")
+         call io_log_one_message(FRAGGLE_LOG_OUT, &
+                                 "Fragments would have mass below the minimum. Converting this collision into a merger.")
       else 
          if( Vimp < Vescp) then
             regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime

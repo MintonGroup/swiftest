@@ -98,7 +98,8 @@ contains
       return
    end subroutine util_set_mu_tp
 
-   module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+   module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh,&
+                                            origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
       !! author: David A. Minton
       !!
       !! Sets one or more values of the particle information metadata object
