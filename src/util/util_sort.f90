@@ -202,7 +202,7 @@ contains
    end subroutine util_sort_i4b
 
 
-   module pure subroutine util_sort_index_i4b(arr, ind)
+   module pure subroutine util_sort_index_I4B(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input integer array by index in ascending numerical order using quicksort.
@@ -227,20 +227,48 @@ contains
       call qsort_I4B(tmparr, ind)
 
       return
-   end subroutine util_sort_index_i4b
+   end subroutine util_sort_index_I4B
+
+
+   module pure subroutine util_sort_index_I4B_I8Bind(arr, ind)
+      !! author: David A. Minton
+      !!
+      !! Sort input integer array by index in ascending numerical order using quicksort.
+      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+      !! sorted array). If it is not allocated, this subroutine allocates it.
+      !!
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:),              intent(in)  :: arr
+      integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+      ! Internals
+      integer(I8B) :: n, i
+      integer(I4B), dimension(:), allocatable :: tmparr
+
+      n = size(arr)
+      if (.not.allocated(ind)) then
+         allocate(ind(n))
+         ind = [(i, i=1_I8B, n)]
+      end if
+      allocate(tmparr, mold=arr)
+      tmparr(:) = arr(ind(:))
+      call qsort_I4B_I8Bind(tmparr, ind)
+
+      return
+   end subroutine util_sort_index_I4B_I8Bind
 
 
    recursive pure subroutine qsort_I4B(arr, ind)
       !! author: David A. Minton
       !!
-      !! Sort input DP precision array by index in ascending numerical order using quicksort.
+      !! Sort input I4B array by index in ascending numerical order using quicksort.
       !!
       implicit none
       ! Arguments
       integer(I4B), dimension(:), intent(inout)          :: arr
       integer(I4B), dimension(:), intent(out),  optional :: ind
-      !! Internals
-      integer :: iq
+      ! Internals
+      integer(I4B) :: iq
 
       if (size(arr) > 1) then
          if (present(ind)) then
@@ -256,6 +284,61 @@ contains
 
       return
    end subroutine qsort_I4B
+
+   recursive pure subroutine qsort_I4B_I8Bind(arr, ind)
+      !! author: David A. Minton
+      !!
+      !! Sort input I4B array by index in ascending numerical order using quicksort.
+      !!
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:), intent(inout)          :: arr
+      integer(I8B), dimension(:), intent(out),  optional :: ind
+      ! Internals
+      integer(I8B) :: iq
+
+      if (size(arr) > 1_I8B) then
+         if (present(ind)) then
+            call partition_I4B_I8Bind(arr, iq, ind)
+            call qsort_I4B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+            call qsort_I4B_I8Bind(arr(iq:),  ind(iq:))
+         else
+            call partition_I4B_I8Bind(arr, iq)
+            call qsort_I4B_I8Bind(arr(:iq-1_I8B))
+            call qsort_I4B_I8Bind(arr(iq:))
+         end if
+      end if
+
+      return
+   end subroutine qsort_I4B_I8Bind
+
+
+   recursive pure subroutine qsort_I8B_I8Bind(arr, ind)
+      !! author: David A. Minton
+      !!
+      !! Sort input I8B array by index in ascending numerical order using quicksort.
+      !!
+      implicit none
+      ! Arguments
+      integer(I8B), dimension(:), intent(inout)          :: arr
+      integer(I8B), dimension(:), intent(out),  optional :: ind
+      ! Internals
+      integer(I8B) :: iq
+
+      if (size(arr) > 1_I8B) then
+         if (present(ind)) then
+            call partition_I8B_I8Bind(arr, iq, ind)
+            call qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+            call qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
+         else
+            call partition_I8B_I8Bind(arr, iq)
+            call qsort_I8B_I8Bind(arr(:iq-1_I8B))
+            call qsort_I8B_I8Bind(arr(iq:))
+         end if
+      end if
+
+      return
+   end subroutine qsort_I8B_I8Bind
 
  
    pure subroutine partition_I4B(arr, marker, ind)
@@ -313,6 +396,118 @@ contains
   
       return
    end subroutine partition_I4B
+
+   pure subroutine partition_I4B_I8Bind(arr, marker, ind)
+      !! author: David A. Minton
+      !!
+      !! Partition function for quicksort on I4B type
+      !!
+      implicit none
+      ! Arguments
+      integer(I4B), intent(inout), dimension(:)           :: arr
+      integer(I8B), intent(inout), dimension(:), optional :: ind
+      integer(I8B), intent(out)                           :: marker
+      ! Internals
+      integer(I8B) :: i, j, itmp, narr, ipiv
+      integer(I4B) :: temp
+      integer(I8B) :: x   ! pivot point
+
+      narr = size(arr)
+
+      ! Get center as pivot, as this is likely partially sorted
+      ipiv = narr / 2_I8B
+      x = arr(ipiv)
+      i = 0_I8B
+      j = narr + 1_I8B
+   
+      do
+         j = j - 1_I8B
+         do
+            if (arr(j) <= x) exit
+            j = j - 1_I8B
+         end do
+         i = i + 1_I8B
+         do
+            if (arr(i) >= x) exit
+            i = i + 1_I8B
+         end do
+         if (i < j) then
+            ! exchange A(i) and A(j)
+            temp = arr(i)
+            arr(i) = arr(j)
+            arr(j) = temp
+            if (present(ind)) then
+               itmp = ind(i)
+               ind(i) = ind(j)
+               ind(j) = itmp
+            end if
+         else if (i == j) then
+            marker = i + 1_I8B
+            return
+         else
+            marker = i
+            return
+         endif
+      end do
+  
+      return
+   end subroutine partition_I4B_I8Bind
+
+   pure subroutine partition_I8B_I8Bind(arr, marker, ind)
+      !! author: David A. Minton
+      !!
+      !! Partition function for quicksort on I8B type with I8B index
+      !!
+      implicit none
+      ! Arguments
+      integer(I8B), intent(inout), dimension(:)           :: arr
+      integer(I8B), intent(inout), dimension(:), optional :: ind
+      integer(I8B), intent(out)                           :: marker
+      ! Internals
+      integer(I8B) :: i, j, itmp, narr, ipiv
+      integer(I8B) :: temp
+      integer(I8B) :: x   ! pivot point
+
+      narr = size(arr)
+
+      ! Get center as pivot, as this is likely partially sorted
+      ipiv = narr / 2_I8B
+      x = arr(ipiv)
+      i = 0_I8B
+      j = narr + 1_I8B
+   
+      do
+         j = j - 1_I8B
+         do
+            if (arr(j) <= x) exit
+            j = j - 1_I8B
+         end do
+         i = i + 1_I8B
+         do
+            if (arr(i) >= x) exit
+            i = i + 1_I8B
+         end do
+         if (i < j) then
+            ! exchange A(i) and A(j)
+            temp = arr(i)
+            arr(i) = arr(j)
+            arr(j) = temp
+            if (present(ind)) then
+               itmp = ind(i)
+               ind(i) = ind(j)
+               ind(j) = itmp
+            end if
+         else if (i == j) then
+            marker = i + 1_I8B
+            return
+         else
+            marker = i
+            return
+         endif
+      end do
+  
+      return
+   end subroutine partition_I8B_I8Bind
 
 
    module pure subroutine util_sort_sp(arr)
@@ -662,6 +857,26 @@ contains
       return
    end subroutine util_sort_rearrange_arr_I4B
 
+   module pure subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of integers in-place from an index list.
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      integer(I4B), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0_I8B) return
+      allocate(tmp, mold=arr)
+      tmp(1:n) = arr(ind)
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_I4B_I8Bind
+
 
    module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
       !! author: David A. Minton
@@ -682,6 +897,27 @@ contains
 
       return
    end subroutine util_sort_rearrange_arr_logical
+
+
+   module pure subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of logicals in-place from an index list.
+      implicit none
+      ! Arguments
+      logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      logical, dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+      tmp(1:n) = arr(ind)
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine util_sort_rearrange_arr_logical_I8Bind
 
 
    module subroutine util_sort_rearrange_arr_info(arr, ind, n)

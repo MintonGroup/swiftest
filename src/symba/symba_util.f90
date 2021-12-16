@@ -38,17 +38,19 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
-      class(encounter_list), intent(in)    :: source       !! Source object to append
-      logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(symba_encounter), intent(inout) :: self         !! SyMBA encounter list object
+      class(encounter_list),  intent(in)    :: source       !! Source object to append
+      logical, dimension(:),  intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nold, nsrc
 
-      associate(nold => self%nenc, nsrc => source%nenc)
-         select type(source)
-         class is (symba_encounter)
-            call util_append(self%level, source%level, nold, nsrc, lsource_mask)
-         end select
-         call encounter_util_append_list(self, source, lsource_mask) 
-      end associate
+      nold = self%nenc
+      nsrc = source%nenc
+      select type(source)
+      class is (symba_encounter)
+         call util_append(self%level, source%level, nold, nsrc, lsource_mask)
+      end select
+      call encounter_util_append_list(self, source, lsource_mask) 
 
       return
    end subroutine symba_util_append_encounter_list
@@ -403,7 +405,7 @@ contains
       integer(I8B) :: k, npl, nplm
       integer(I4B) :: i, j, err
 
-      associate(pl => self, nplpl => self%nplpl, nplplm => self%nplplm)
+      associate(pl => self, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
          select type(param)
          class is (symba_parameters)
@@ -411,21 +413,9 @@ contains
          end select
          nplm = count(.not. pl%lmtiny(1:npl))
          pl%nplm = int(nplm, kind=I4B)
-         nplpl = (npl * (npl - 1_I8B)) / 2_I8B ! number of entries in a strict lower triangle, npl x npl, minus first column
          nplplm = nplm * npl - nplm * (nplm + 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
-         if (param%lflatten_interactions) then
-            if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
-            allocate(self%k_plpl(2, nplpl), stat=err)
-            if (err /= 0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
-               param%lflatten_interactions = .false.
-            else
-               do concurrent (i=1:npl, j=1:npl, j>i)
-                  call util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
-                  self%k_plpl(1, k) = i
-                  self%k_plpl(2, k) = j
-               end do
-            end if
-         end if
+
+         call util_flatten_eucl_plpl(pl, param)
       end associate
 
       return
@@ -579,7 +569,8 @@ contains
                      if (pl%isperi(i) == -1) then
                         if (vdotr >= 0.0_DP) then
                            pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),  pl%atp(i), e, pl%peri(i))
+                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),&
+                                             pl%atp(i), e, pl%peri(i))
                         end if
                      else
                         if (vdotr > 0.0_DP) then
@@ -613,7 +604,8 @@ contains
       logical, dimension(:), allocatable :: lmask, ldump_mask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
-      integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp, nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
+      integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp
+      integer(I4B), dimension(:), allocatable :: nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
 
       associate(pl => self, pl_adds => system%pl_adds)
 

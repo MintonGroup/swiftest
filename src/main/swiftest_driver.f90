@@ -22,8 +22,10 @@ program swiftest_driver
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
-   character(*), parameter                    :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active pl, tp = ", I5, ", ", I5)'
-   character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, "; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
+   character(*), parameter                    :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
+                                                                '"; Number of active pl, tp = ", I5, ", ", I5)'
+   character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+                                                                   '"; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -77,7 +79,6 @@ program swiftest_driver
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       write(*, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-      call integration_timer%reset()
       do iloop = 1, nloops
          !> Step the system forward in time
          call integration_timer%start()
@@ -105,7 +106,7 @@ program swiftest_driver
                   write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
                end select
                if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-               call integration_timer%report(nsubsteps=istep_dump, message="Integration steps:")
+               call integration_timer%report(message="Integration steps:", nsubsteps=istep_dump)
                call integration_timer%reset()
 
                iout = istep_out

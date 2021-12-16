@@ -116,7 +116,8 @@ contains
       ! Internals
       integer(I4B) :: k, irecp
 
-      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, npl => self%pl%nbody, ntp => self%tp%nbody)
+      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, &
+                npl => self%pl%nbody, ntp => self%tp%nbody)
          select type(pl => self%pl)
          class is (symba_pl)
             select type(tp => self%tp)
@@ -125,8 +126,16 @@ contains
 
                if (npl >0) where(pl%levelg(1:npl) == irecp) pl%levelg(1:npl) = ireci
                if (ntp > 0) where(tp%levelg(1:ntp) == irecp) tp%levelg(1:ntp) = ireci
-               if (plplenc_list%nenc > 0) where(plplenc_list%level(1:plplenc_list%nenc) == irecp) plplenc_list%level(1:plplenc_list%nenc) = ireci
-               if (pltpenc_list%nenc > 0) where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) pltpenc_list%level(1:pltpenc_list%nenc) = ireci
+               if (plplenc_list%nenc > 0) then
+                  where(plplenc_list%level(1:plplenc_list%nenc) == irecp) 
+                     plplenc_list%level(1:plplenc_list%nenc) = ireci
+                  endwhere
+               end if
+               if (pltpenc_list%nenc > 0) then
+                  where(pltpenc_list%level(1:pltpenc_list%nenc) == irecp) 
+                     pltpenc_list%level(1:pltpenc_list%nenc) = ireci
+                  endwhere
+               end if
 
                system%irec = ireci
 
@@ -179,7 +188,8 @@ contains
                   nloops = NTENC
                end if
                do j = 1, nloops
-                  lencounter = plplenc_list%encounter_check(param, system, dtl, irecp) .or. pltpenc_list%encounter_check(param, system, dtl, irecp)
+                  lencounter = plplenc_list%encounter_check(param, system, dtl, irecp) &
+                          .or. pltpenc_list%encounter_check(param, system, dtl, irecp)
                    
                   call plplenc_list%kick(system, dth, irecp, 1)
                   call pltpenc_list%kick(system, dth, irecp, 1)
@@ -242,7 +252,8 @@ contains
       class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
       class(symba_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       ! Internals
-      integer(I4B) :: i, nenc_old
+      integer(I4B) :: i
+      integer(I8B) :: nenc_old
 
       associate(system => self)
          select type(pl => system%pl)

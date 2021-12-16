@@ -17,8 +17,8 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      integer(I8B) :: k, nplplm, kenc
-      integer(I4B) :: i, j, nenc, npl, nplm, nplt
+      integer(I8B) :: k, nplplm, kenc, nenc
+      integer(I4B) :: i, j, npl, nplm, nplt
       logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
@@ -38,12 +38,13 @@ contains
          call pl%set_renc(irec)
 
          if (nplt == 0) then
-            call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, lvdotr, index1, index2, nenc)
+            call encounter_check_all_plpl(param, npl, pl%xh, pl%vh, pl%renc, dt, nenc, index1, index2, lvdotr)
          else
-            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, lvdotr, index1, index2, nenc)
+            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vh(:,1:nplm), pl%xh(:,nplm+1:npl), &
+                  pl%vh(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, nenc, index1, index2, lvdotr)
          end if
          
-         lany_encounter = nenc > 0
+         lany_encounter = nenc > 0_I8B
          if (lany_encounter) then
             call plplenc_list%resize(nenc)
             call move_alloc(lvdotr, plplenc_list%lvdotr)
@@ -52,7 +53,7 @@ contains
          end if
 
          if (lany_encounter) then 
-            do k = 1, nenc
+            do k = 1_I8B, nenc
                i = plplenc_list%index1(k)
                j = plplenc_list%index2(k)
                plplenc_list%id1(k) = pl%id(i)
@@ -146,7 +147,8 @@ contains
                   j = self%index2(k)
                   xr(:) = tp%xh(:,j) - pl%xh(:,i)
                   vr(:) = tp%vb(:,j) - pl%vb(:,i)
-                  call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%renc(i), dt, lencounter(lidx), self%lvdotr(k))
+                  call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%renc(i), dt, &
+                                           lencounter(lidx), self%lvdotr(k))
                   if (lencounter(lidx)) then
                      rlim2 = (pl%radius(i))**2
                      rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
@@ -197,7 +199,8 @@ contains
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
       real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
-      integer(I4B)                              :: i, j, k,nenc, plind, tpind
+      integer(I4B)                              :: i, j, plind, tpind
+      integer(I8B)                              :: k, nenc
       real(DP),     dimension(NDIM)             :: xr, vr
       real(DP)                                  :: rshell_irec
       logical,      dimension(:),   allocatable :: lvdotr
@@ -208,7 +211,7 @@ contains
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
          call pl%set_renc(irec)
-         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, lvdotr, index1, index2, nenc) 
+         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vh, tp%xh, tp%vh, pl%renc, dt, nenc, index1, index2, lvdotr) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 
@@ -224,7 +227,7 @@ contains
                select type(pl)
                class is (symba_pl)
                   pl%lencounter(1:npl) = .false.
-                  do k = 1, nenc
+                  do k = 1_I8B, nenc
                      plind = pltpenc_list%index1(k)
                      tpind = pltpenc_list%index2(k)
                      pl%lencounter(plind) = .true.

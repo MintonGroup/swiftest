@@ -48,12 +48,14 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 
 # DO NOT include in FFLAGS the "-c" option to compile object only
 # this is done explicitly as needed in the Makefile
-ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vecabi=cmdtarget -simd -shared-intel -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -xhost -traceback -parallel-source-info=2 
+ADVIXE_INCLUDE = -I$(ADVISOR_2019_DIR)/include/intel64 
+ADVIXE_LINK = -L$(ADVISOR_2019_DIR)/lib64 -ladvisor
+ADVIXE_FLAGS = -g -O2 -qopt-report=5 -vecabi=cmdtarget -simd -shared-intel -debug inline-debug-info -DTBB_DEBUG -DTBB_USE_THREADING_TOOLS -xhost -traceback 
 #Be sure to set the environment variable KMP_FORKJOIN_FRAMES=1 for OpenMP debuging in vtune
 
-IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -qopt-matmul -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin 
+IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -qopt-matmul -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin
 STRICTREAL = -fp-model=precise -prec-div -prec-sqrt -assume protect-parens 
-SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -fp-model no-except -fma
+SIMDVEC = -simd -xhost -align all -pad -assume contiguous_assumed_shape -vecabi=cmdtarget -fp-model no-except -fma 
 PAR = -qopenmp -parallel -parallel-source-info=2 
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
@@ -66,14 +68,14 @@ GMEM =  -fsanitize-address-use-after-scope -fstack-check  -fsanitize=bounds-stri
 GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporaries
 GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
-INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include
-LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -lswiftest -lnetcdf -lnetcdff -qopt-matmul #$(PAR)
+INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include 
+LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -lswiftest -lnetcdf -lnetcdff -qopt-matmul $(PAR)
 
-FSTRICTFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR) $(HEAPARR)
-FFLAGS  = $(IDEBUG) #$(SIMDVEC) $(PAR) $(HEAPARR)
-#FSTRICTFLAGS  = $(IPRODUCTION) $(STRICTREAL) -g -traceback
-#FFLAGS  = $(IPRODUCTION) -fp-model=fast -g -traceback
+#FSTRICTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
+#FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
 
+FSTRICTFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC) $(STRICTREAL) 
+FFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC)  -fp-model=fast 
 FORTRAN = ifort
 AR     = xiar
 CC    = icc

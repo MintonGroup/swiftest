@@ -1576,7 +1576,8 @@ module swiftest_classes
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_mu_tp
 
-      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, &
+                                               origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
          implicit none
          class(swiftest_particle_info), intent(inout)           :: self
          character(len=*),              intent(in),    optional :: name            !! Non-unique name
@@ -1663,6 +1664,18 @@ module swiftest_classes
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
+      module pure subroutine util_sort_index_I4B_I8Bind(arr,ind)
+         implicit none
+         integer(I4B), dimension(:), intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+      end subroutine util_sort_index_I4b_I8Bind
+
+      module pure subroutine util_sort_index_I8B_I8Bind(arr,ind)
+         implicit none
+         integer(I8B), dimension(:), intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+      end subroutine util_sort_index_I8B_I8Bind
+
       module pure subroutine util_sort_sp(arr)
          implicit none
          real(SP), dimension(:), intent(inout) :: arr
@@ -1715,6 +1728,13 @@ module swiftest_classes
          integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_I4B
 
+      module pure subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_I4B_I8Bind
+
       module subroutine util_sort_rearrange_arr_info(arr, ind, n)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
@@ -1728,6 +1748,13 @@ module swiftest_classes
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_logical
+
+      module pure subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
+         implicit none
+         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_logical_I8Bind
    end interface util_sort_rearrange
 
    interface

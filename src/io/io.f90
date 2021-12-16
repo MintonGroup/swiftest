@@ -29,10 +29,11 @@ contains
       associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody)
          if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
             if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
-               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "replace", action = "write", err = 667, iomsg = errmsg)
-               write(EGYIU,EGYHEADER, err = 667, iomsg = errmsg)
+               open(unit=EGYIU, file=param%energy_out, form="formatted", status="replace", action="write", err=667, iomsg=errmsg)
+               write(EGYIU,EGYHEADER, err=667, iomsg=errmsg)
             else
-               open(unit = EGYIU, file = param%energy_out, form = "formatted", status = "old", action = "write", position = "append", err = 667, iomsg = errmsg)
+               open(unit=EGYIU, file=param%energy_out, form="formatted", status="old", action="write", &
+                    position="append", err=667, iomsg=errmsg)
             end if
          end if
 
@@ -177,9 +178,9 @@ contains
          if (lfirst) then
             select case(param%out_stat)
             case('APPEND')
-               open(unit = LUN, file = param%particle_out, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+               open(unit=LUN, file=param%particle_out, status='OLD', position='APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
             case('NEW', 'UNKNOWN', 'REPLACE')
-               open(unit = LUN, file = param%particle_out, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+               open(unit=LUN, file=param%particle_out, status=param%out_stat, form='UNFORMATTED', err=667, iomsg=errmsg)
             case default
                write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
                call util_exit(FAILURE)
@@ -187,7 +188,7 @@ contains
 
             lfirst = .false.
          else
-            open(unit = LUN, file = param%particle_out, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+            open(unit=LUN, file=param%particle_out, status='OLD', position= 'APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
          end if
 
          select type(self)
@@ -760,7 +761,8 @@ contains
             iostat = -1
             return
          end if
-         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII") .and. (param%in_type /= NETCDF_FLOAT_TYPE) .and. (param%in_type /= NETCDF_DOUBLE_TYPE))  then
+         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII") &
+       .and. (param%in_type /= NETCDF_FLOAT_TYPE) .and. (param%in_type /= NETCDF_DOUBLE_TYPE))  then
             write(iomsg,*) 'Invalid input file type:',trim(adjustl(param%in_type))
             iostat = -1
             return
@@ -788,7 +790,8 @@ contains
                iostat = -1
                return
             end if
-            if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")  .and. (param%out_stat /= "UNKNOWN")) then
+            if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")  &
+          .and. (param%out_stat /= "UNKNOWN")) then
                write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(param%out_stat))
                iostat = -1
                return
@@ -1956,9 +1959,9 @@ contains
          end if
          select case(out_stat)
          case('APPEND')
-            open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+            open(unit=LUN, file=param%discard_out, status='OLD', position='APPEND', form='FORMATTED', err=667, iomsg=errmsg)
          case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', err = 667, iomsg = errmsg)
+            open(unit=LUN, file=param%discard_out, status=param%out_stat, form='FORMATTED', err=667, iomsg=errmsg)
          case default
             write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
             call util_exit(FAILURE)
@@ -2137,9 +2140,9 @@ contains
          if (lfirst) then
             select case(param%out_stat)
             case('APPEND')
-               open(unit = iu, file = param%outfile, status = 'OLD', position = 'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+               open(unit=iu, file=param%outfile, status='OLD', position='APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
             case('NEW', 'REPLACE', 'UNKNOWN')
-               open(unit = iu, file = param%outfile, status = param%out_stat, form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+               open(unit=iu, file=param%outfile, status=param%out_stat, form='UNFORMATTED', err=667, iomsg=errmsg)
             case default
                write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
                call util_exit(FAILURE)
@@ -2147,7 +2150,7 @@ contains
    
             lfirst = .false.
          else
-            open(unit = iu, file = param%outfile, status = 'OLD', position =  'APPEND', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
+            open(unit=iu, file=param%outfile, status='OLD', position= 'APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
          end if
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
 
