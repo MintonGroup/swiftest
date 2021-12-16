@@ -366,7 +366,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plplm
 
 
-   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, rencpl, dt, &
                                                       nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
@@ -382,7 +382,7 @@ contains
       real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
-      real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
+      real(DP),     dimension(:),              intent(in)  :: rencpl !! Critical radii of massive bodies that defines an encounter
       real(DP),                                intent(in)  :: dt     !! Step size
       integer(I8B),                            intent(out) :: nenc   !! Total number of encounter
       integer(I4B), dimension(:), allocatable, intent(out) :: index1 !! List of indices for body 1 in each encounter
@@ -395,7 +395,7 @@ contains
       logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(npl) :: vplshift_min, vplshift_max
       integer(I2B), dimension(ntp) :: vtpshift_min, vtpshift_max
-      real(DP), dimension(ntp) :: renctp
+      real(DP), dimension(ntp) :: renctp 
 
       ! If this is the first time through, build the index lists
       if ((ntp == 0) .or. (npl == 0)) return
@@ -406,9 +406,11 @@ contains
          call boundingbox%setup(ntot, ntot_last)
          ntot_last = ntot
       end if
+
+      renctp(:) = 0.0_DP
       
       !$omp parallel do default(private) schedule(static) &
-      !$omp shared(xpl, xtp, vpl, vtp, renc, boundingbox) &
+      !$omp shared(xpl, xtp, vpl, vtp, rencpl, renctp, boundingbox) &
       !$omp firstprivate(dt, npl, ntp, ntot)
       do dim = 1, SWEEPDIM
          where(vpl(dim,1:npl) < 0.0_DP)
@@ -427,14 +429,14 @@ contains
             vtpshift_max(1:ntp) = 1
          end where
 
-         call boundingbox%aabb(dim)%sort(ntot, [xpl(dim,1:npl) - renc(1:npl) + vplshift_min(1:npl) * vpl(dim,1:npl) * dt, &
-                                                xtp(dim,1:ntp)               + vtpshift_min(1:ntp) * vtp(dim,1:ntp) * dt, &
-                                                xpl(dim,1:npl) + renc(1:npl) + vplshift_max(1:npl) * vpl(dim,1:npl) * dt, &
-                                                xtp(dim,1:ntp)               + vtpshift_max(1:ntp) * vtp(dim,1:ntp) * dt])
+         call boundingbox%aabb(dim)%sort(ntot, [xpl(dim,1:npl) - rencpl(1:npl) + vplshift_min(1:npl) * vpl(dim,1:npl) * dt, &
+                                                xtp(dim,1:ntp) - renctp(1:ntp) + vtpshift_min(1:ntp) * vtp(dim,1:ntp) * dt, &
+                                                xpl(dim,1:npl) + rencpl(1:npl) + vplshift_max(1:npl) * vpl(dim,1:npl) * dt, &
+                                                xtp(dim,1:ntp) + renctp(1:ntp) + vtpshift_max(1:ntp) * vtp(dim,1:ntp) * dt])
       end do
       !$omp end parallel do
 
-      call boundingbox%sweep(npl, ntp, xpl, vpl, xtp, vtp, renc, renctp, dt, nenc, index1, index2, lvdotr) 
+      call boundingbox%sweep(npl, ntp, xpl, vpl, xtp, vtp, rencpl, renctp, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_sort_and_sweep_pltp
