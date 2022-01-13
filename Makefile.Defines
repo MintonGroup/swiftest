@@ -71,11 +71,11 @@ GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include 
 LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -lswiftest -lnetcdf -lnetcdff -qopt-matmul $(PAR)
 
-#FSTRICTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
-#FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
+FSTRICTFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
+FFLAGS  = $(IDEBUG) $(SIMDVEC) $(PAR)
 
-FSTRICTFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC) $(STRICTREAL) 
-FFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC)  -fp-model=fast 
+# FSTRICTFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC) $(STRICTREAL) 
+# FFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC)  -fp-model=fast 
 FORTRAN = ifort
 AR     = xiar
 CC    = icc
