@@ -66,8 +66,8 @@ LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib  -lswiftest -lnetc
 FSTRICTFLAGS  = $(IPRODUCTION) $(STRICTREAL) 
 FFLAGS  = $(IPRODUCTION) -fp-model=fast
 
-# FSTRICTFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC) $(STRICTREAL) 
-# FFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC)  -fp-model=fast 
+FSTRICTFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC) $(STRICTREAL) 
+FFLAGS = $(ADVIXE_FLAGS) $(PAR) $(SIMDVEC)  -fp-model=fast 
 FORTRAN = ifort
 AR     = xiar
 CC    = icc
