@@ -131,7 +131,7 @@ contains
                   i = self%index1(k)
                   j = self%index2(k)
                   xr(:) = pl%xh(:,j) - pl%xh(:,i)
-                  vr(:) = pl%vb(:,j) - pl%vb(:,i)
+                  vr(:) = pl%vh(:,j) - pl%vh(:,i)
                   rcrit12 = pl%renc(i) + pl%renc(j)
                   call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), rcrit12, dt, lencounter(lidx), self%lvdotr(k))
                   if (lencounter(lidx)) then
@@ -146,7 +146,7 @@ contains
                   i = self%index1(k)
                   j = self%index2(k)
                   xr(:) = tp%xh(:,j) - pl%xh(:,i)
-                  vr(:) = tp%vb(:,j) - pl%vb(:,i)
+                  vr(:) = tp%vh(:,j) - pl%vh(:,i)
                   call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%renc(i), dt, &
                                            lencounter(lidx), self%lvdotr(k))
                   if (lencounter(lidx)) then
