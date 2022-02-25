@@ -9,7 +9,7 @@ import os
 
 class Simulation:
     """
-    This is a class that define the basic Swift/Swifter/Swiftest simulation object
+    This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
     def __init__(self, codename="Swiftest", param_file="", readbin=True):
         self.ds = xr.Dataset()

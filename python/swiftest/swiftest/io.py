@@ -4,6 +4,7 @@ from scipy.io import FortranFile
 import xarray as xr
 import sys
 import tempfile
+import re
 
 newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP", "IN_FORM")
 
@@ -1157,11 +1158,11 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     try:
         with open(swift_param['PL_IN'], 'r') as plold:
             line = plold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
+            i_list = [i for i in re.split('  +|\t',line) if i.strip()]
             npl = int(i_list[0])
             print(npl, file=plnew)
             line = plold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
+            i_list = [i for i in re.split('  +|\t',line) if i.strip()]
             GMcb = real2float(i_list[0])
             if swift_param['L1'] == "T":
                 swifter_param['J2'] = real2float(i_list[1])
@@ -1176,7 +1177,7 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
             line = plold.readline()
             for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 GMpl = real2float(i_list[0])
                 if isSyMBA:
                     rhill = real2float(i_list[1])
@@ -1192,13 +1193,13 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                 if swifter_param['CHK_CLOSE'] == 'YES':
                     print(plrad, file=plnew)
                 line = plold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 xh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
                 print(xh, yh, zh, file=plnew)
                 line = plold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])
                 vhy = real2float(i_list[1])
                 vhz = real2float(i_list[2])
@@ -1225,19 +1226,19 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
         print(f'Writing out new TP file: {swifter_param["TP_IN"]}')
         with open(swift_param['TP_IN'], 'r') as tpold:
             line = tpold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
+            i_list = [i for i in re.split('  +|\t',line) if i.strip()]
             ntp = int(i_list[0])
             print(ntp, file=tpnew)
             for n in range(0, ntp):  # Loop over test particles
                 print(npl + n + 1, file=tpnew)
                 line = tpold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 xh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
                 print(xh, yh, zh, file=tpnew)
                 line = tpold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])
                 vhy = real2float(i_list[1])
                 vhz = real2float(i_list[2])
@@ -1275,17 +1276,17 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         with open(swifter_param['PL_IN'], 'r') as plold:
             line = plold.readline()
             line = line.split("!")[0]  # Ignore comments
-            i_list = [i for i in line.split(" ") if i.strip()]
+            i_list = [i for i in re.split('  +|\t',line) if i.strip()]
             npl = int(i_list[0])
             print(npl - 1, file=plnew)
             line = plold.readline()
-            i_list = [i for i in line.split(" ") if i.strip()]
+            i_list = [i for i in re.split('  +|\t',line) if i.strip()]
             GMcb = real2float(i_list[1])  # Store central body GM for later
             line = plold.readline()  # Ignore the two zero vector lines
             line = plold.readline()
             for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 idnum = int(i_list[0])
                 GMpl = real2float(i_list[1])
                 if swifter_param['RHILL_PRESENT'] == 'YES':
@@ -1295,17 +1296,17 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                    print(idnum, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE'] == 'YES':
                     line = plold.readline()
-                    i_list = [i for i in line.split(" ") if i.strip()]
+                    i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                     plrad = real2float(i_list[0])
                     print(plrad, file=plnew)
                 line = plold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 xh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
                 print(xh, yh, zh, file=plnew)
                 line = plold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])
                 vhy = real2float(i_list[1])
                 vhz = real2float(i_list[2])
@@ -1334,22 +1335,22 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         with open(swifter_param['TP_IN'], 'r') as tpold:
             line = tpold.readline()
             line = line.split("!")[0]  # Ignore comments
-            i_list = [i for i in line.split(" ") if i.strip()]
+            i_list = [i for i in re.split('  +|\t',line) if i.strip()]
             ntp = int(i_list[0])
             print(ntp, file=tpnew)
             for n in range(0, ntp):  # Loop over test particles
                 line = tpold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 name = int(i_list[0])
                 print(name, file=tpnew)
                 line = tpold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 xh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
                 print(xh, yh, zh, file=tpnew)
                 line = tpold.readline()
-                i_list = [i for i in line.split(" ") if i.strip()]
+                i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])
                 vhy = real2float(i_list[1])
                 vhz = real2float(i_list[2])
