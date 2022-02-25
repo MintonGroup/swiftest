@@ -1437,7 +1437,11 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         elif cbrad_type == 2:
             cbrad = input("Enter radius of central body in simulation Distance Units: ")
             cbrad = real2float(cbrad.strip())
-    
+    cbname = conversion_questions.get('CNAME', None)
+    if not cbname:
+        print("Set central body name:")
+        cbname = input("> ")
+
     print(f'Writing out new CB file: {swiftest_param["CB_IN"]}')
     # Write out new central body file
     try:
@@ -1463,6 +1467,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         swiftest_param.pop('C', None)
     swiftest_param.pop('J2', None)
     swiftest_param.pop('J4', None)
+    swiftest_param['IN_FORM'] = "XV"
 
     swiftest_param['DISCARD_OUT'] = conversion_questions.get('DISCARD_OUT', '')
     if not swiftest_param['DISCARD_OUT']:
