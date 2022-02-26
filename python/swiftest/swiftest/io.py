@@ -1446,6 +1446,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
     # Write out new central body file
     try:
         cbnew = open(swiftest_param['CB_IN'], 'w')
+        print(cbname, file=cbnew)
         print(GMcb, file=cbnew)
         print(cbrad, file=cbnew)
         print(swifter_param['J2'], file=cbnew)
