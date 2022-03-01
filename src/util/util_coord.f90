@@ -198,9 +198,10 @@ contains
       associate(pl => self, npl => self%nbody)
          Gmtot = cb%Gmass + sum(pl%Gmass(1:npl))
          cb%vb(:) = 0.0_DP
-         do i = npl, 1, -1
-            cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vh(:, i) / Gmtot
+         do i = 1, npl
+            cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vh(:, i) 
          end do
+         cb%vb(:) = cb%vb(:) / Gmtot
          do concurrent(i = 1:npl)
             pl%vb(:, i) = pl%vh(:, i) + cb%vb(:)
          end do
