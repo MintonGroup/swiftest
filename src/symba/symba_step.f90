@@ -29,12 +29,11 @@ contains
                lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                if (lencounter) then
                   call self%interp(param, t, dt)
-                  param%lfirstkick = .true.
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
-                  param%lfirstkick = pl%lfirst
                end if
+               param%lfirstkick = pl%lfirst
             end select
          end select
       end select
@@ -69,17 +68,19 @@ contains
                select type(cb => system%cb)
                class is (symba_cb)
                   system%irec = -1
-                  call pl%vh2vb(cb)
+                  if (pl%lfirst) call pl%vh2vb(cb)
                   call pl%lindrift(cb, dth, lbeg=.true.)
                   call pl%kick(system, param, t, dth, lbeg=.true.)
                   if (param%lgr) call pl%gr_pos_kick(system, param, dth)
                   call pl%drift(system, param, dt)
 
-                  call tp%vh2vb(vbcb = -cb%ptbeg)
-                  call tp%lindrift(cb, dth, lbeg=.true.)
-                  call tp%kick(system, param, t, dth, lbeg=.true.)
-                  if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-                  call tp%drift(system, param, dt)
+                  if (tp%nbody > 0) then
+                     if (tp%lfirst) call tp%vh2vb(vbcb = -cb%ptbeg)
+                     call tp%lindrift(cb, dth, lbeg=.true.)
+                     call tp%kick(system, param, t, dth, lbeg=.true.)
+                     if (param%lgr) call tp%gr_pos_kick(system, param, dth)
+                     call tp%drift(system, param, dt)
+                  end if
 
                   call system%recursive_step(param, t, 0)
                   system%irec = -1
@@ -89,10 +90,12 @@ contains
                   call pl%lindrift(cb, dth, lbeg=.false.)
                   call pl%vb2vh(cb)
 
-                  if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-                  call tp%kick(system, param, t, dth, lbeg=.false.)
-                  call tp%lindrift(cb, dth, lbeg=.false.)
-                  call tp%vb2vh(vbcb = -cb%ptend)
+                  if (tp%nbody > 0) then
+                     if (param%lgr) call tp%gr_pos_kick(system, param, dth)
+                     call tp%kick(system, param, t, dth, lbeg=.false.)
+                     call tp%lindrift(cb, dth, lbeg=.false.)
+                     call tp%vb2vh(vbcb = -cb%ptend)
+                  end if
                end select
             end select
          end select
