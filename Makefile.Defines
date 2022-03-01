@@ -51,7 +51,7 @@ SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdta
 PAR = -qopenmp -parallel 
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
-IPRODUCTION = -no-wrap-margin -O1 -qopt-prefetch=0 -qopt-matmul -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
+IPRODUCTION = -no-wrap-margin -O3 -qopt-prefetch=0 -qopt-matmul -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
 
 #gfortran flags
 GDEBUG = -g -Og -fbacktrace -fbounds-check -ffree-line-length-none
@@ -61,10 +61,10 @@ GWARNINGS = -Wall -Warray-bounds  -Wimplicit-interface -Wextra -Warray-temporari
 GPRODUCTION = -O3 -ffree-line-length-none $(GPAR)
 
 INCLUDES = -I$(SWIFTEST_HOME)/include -I$(NETCDF_FORTRAN_HOME)/include -I$(MKLROOT)/include 
-LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib -lswiftest -lnetcdf -lnetcdff -qopt-matmul $(PAR)
+LINKS = -L$(MKLROOT)/lib/intel64 -L$(NETCDF_FORTRAN_HOME)/lib  -lswiftest -lnetcdf -lnetcdff -qopt-matmul $(PAR)
 
-FSTRICTFLAGS  = $(IDEBUG) $(PAR) $(SIMDVEC)
-FFLAGS  = $(IDEBUG) $(PAR) $(SIMDVEC)
+FSTRICTFLAGS  = $(IPRODUCTION) $(STRICTREAL) 
+FFLAGS  = $(IPRODUCTION) -fp-model=fast
 
 FORTRAN = ifort
 AR     = xiar
