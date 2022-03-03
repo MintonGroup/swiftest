@@ -341,6 +341,11 @@ contains
             !call check( nf90_def_var_chunking(self%ncid, self%GMescape_varid, NF90_CHUNKED, [self%time_chunk]) )
       end if
 
+      if (param%loblatecb) then
+         call check( nf90_def_var(self%ncid, J2RP2_VARNAME, self%out_type, self%time_dimid, self%j2rp2_varid) )
+         call check( nf90_def_var(self%ncid, J4RP4_VARNAME, self%out_type, self%time_dimid, self%j4rp4_varid) )
+      end if
+
       ! Set fill mode to NaN for all variables
       call check( nf90_inquire(self%ncid, nVariables=nvar) )
       do varid = 1, nvar
@@ -472,6 +477,11 @@ contains
          call check( nf90_inq_varid(self%ncid, ECOLLISIONS_VARNAME, self%Ecollisions_varid) )
          call check( nf90_inq_varid(self%ncid, EUNTRACKED_VARNAME, self%Euntracked_varid) )
          call check( nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid) )
+      end if
+
+      if (param%loblatecb) then
+         call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid) )
+         call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid) )
       end if
 
       return
