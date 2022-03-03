@@ -201,5 +201,7 @@ module swiftest_globals
    character(*), parameter :: DISCARD_VHY_VARNAME     = "discard_vhy"     !! NetCDF name of the heliocentric velocity of the body at the time of discard y variable
    character(*), parameter :: DISCARD_VHZ_VARNAME     = "discard_vhz"     !! NetCDF name of the heliocentric velocity of the body at the time of discard z variable
    character(*), parameter :: DISCARD_BODY_ID_VARNAME = "discard_body_id" !! NetCDF name of the id of the other body involved in the discard
+   character(*), parameter :: J2RP2_VARNAME           = "j2rp2"           !! NetCDF name of the j2rp2 variable
+   character(*), parameter :: J4RP4_VARNAME           = "j4rp4"           !! NetCDF name of the j4pr4 variable
 
 end module swiftest_globals

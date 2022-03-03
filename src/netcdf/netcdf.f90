@@ -965,6 +965,10 @@ contains
 
          call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[idslot, tslot]) )
          if (param%lclose) call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
+         if (param%loblatecb) then
+            call check( nf90_put_var(iu%ncid, iu%j2rp2_varid, self%j2rp2, start=[idslot, tslot]))
+            call check( nf90_put_var(iu%ncid, iu%j4rp4_varid, self%j4rp4, start=[idslot, tslot]))
+         end if
          if (param%lrotation) then
             call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1), start=[idslot, tslot]) )
             call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2), start=[idslot, tslot]) )
