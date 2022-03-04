@@ -663,7 +663,6 @@ contains
 
          call check( nf90_get_var(iu%ncid, iu%j2rp2_varid, cb%j2rp2, start=[tslot]) )
          call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]) )
-         param%loblatecb = ((cb%j2rp2 /= 0.0_DP) .or. (cb%j4rp4 /= 0.0_DP))
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
       end associate

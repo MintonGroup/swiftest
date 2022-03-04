@@ -196,6 +196,7 @@ contains
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
+      allocate(self%aobl(NDIM, n))
 
       self%id(:) = 0
       do i = 1, n
@@ -216,20 +217,17 @@ contains
       end do
 
       self%status(:) = INACTIVE
-      self%lmask(:)  = .false.
       self%ldiscard(:) = .false.
+      self%lmask(:)  = .false.
+      self%mu(:)     = 0.0_DP
       self%xh(:,:)   = 0.0_DP
       self%vh(:,:)   = 0.0_DP
       self%xb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
       self%ir3h(:)   = 0.0_DP
-      self%mu(:)     = 0.0_DP
+      self%aobl(:,:) = 0.0_DP
 
-      if (param%loblatecb) then
-         allocate(self%aobl(NDIM, n))
-         self%aobl(:,:) = 0.0_DP
-      end if
       if (param%ltides) then
          allocate(self%atide(NDIM, n))
          self%atide(:,:) = 0.0_DP
