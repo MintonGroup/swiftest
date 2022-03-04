@@ -1364,7 +1364,7 @@ contains
 
       if (ierr == 0) then
    
-         if (self%j2rp2 /= 0.0_DP) param%loblatecb = .true.
+         param%loblatecb = ((self%j2rp2 /= 0.0_DP) .or. (self%j4rp4 /= 0.0_DP))
          if (param%rmin < 0.0) param%rmin = self%radius
          
          select type(cb => self)
