@@ -41,6 +41,8 @@ module swiftest_classes
       integer(I4B) :: rotx_varid            !! NetCDF ID for the rotation x variable
       integer(I4B) :: roty_varid            !! NetCDF ID for the rotation y variable
       integer(I4B) :: rotz_varid            !! NetCDF ID for the rotation z variable
+      integer(I4B) :: j2rp2_varid           !! NetCDF ID for the j2 variable
+      integer(I4B) :: j4rp4_varid           !! NetCDF ID for the j4 variable
       integer(I4B) :: k2_varid              !! NetCDF ID for the Love number variable
       integer(I4B) :: Q_varid               !! NetCDF ID for the energy dissipation variable
       integer(I4B) :: KE_orb_varid          !! NetCDF ID for the system orbital kinetic energy variable
