@@ -1364,7 +1364,6 @@ contains
 
       if (ierr == 0) then
    
-         param%loblatecb = ((self%j2rp2 /= 0.0_DP) .or. (self%j4rp4 /= 0.0_DP))
          if (param%rmin < 0.0) param%rmin = self%radius
          
          select type(cb => self)
@@ -1418,6 +1417,12 @@ contains
          self%Lescape(:) = param%Lescape(:)
          self%Ecollisions = param%Ecollisions
          self%Euntracked = param%Euntracked
+      end if
+
+      param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP))
+      if (.not.param%loblatecb) then
+         if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
+         if (allocated(self%tp%aobl)) deallocate(self%tp%aobl)
       end if
 
       return
