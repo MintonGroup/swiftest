@@ -341,10 +341,8 @@ contains
             !call check( nf90_def_var_chunking(self%ncid, self%GMescape_varid, NF90_CHUNKED, [self%time_chunk]) )
       end if
 
-      if (param%loblatecb) then
-         call check( nf90_def_var(self%ncid, J2RP2_VARNAME, self%out_type, self%time_dimid, self%j2rp2_varid) )
-         call check( nf90_def_var(self%ncid, J4RP4_VARNAME, self%out_type, self%time_dimid, self%j4rp4_varid) )
-      end if
+      call check( nf90_def_var(self%ncid, J2RP2_VARNAME, self%out_type, self%time_dimid, self%j2rp2_varid) )
+      call check( nf90_def_var(self%ncid, J4RP4_VARNAME, self%out_type, self%time_dimid, self%j4rp4_varid) )
 
       ! Set fill mode to NaN for all variables
       call check( nf90_inquire(self%ncid, nVariables=nvar) )
@@ -479,10 +477,8 @@ contains
          call check( nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid) )
       end if
 
-      if (param%loblatecb) then
-         call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid) )
-         call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid) )
-      end if
+      call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid) )
+      call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid) )
 
       return
    end subroutine netcdf_open
@@ -664,6 +660,13 @@ contains
             cb%Q = rtemp(1)
             if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
          end if
+
+         call check( nf90_get_var(iu%ncid, iu%j2rp2_varid, rtemp, start=[1, tslot]) )
+         cb%j2rp2 = rtemp(1)
+         if (cb%j2rp2 /= 0.0_DP) param%loblatecb = .true.
+
+         call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, rtemp, start=[1, tslot]) )
+         cb%j4rp4 = rtemp(1)
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
       end associate
@@ -975,10 +978,8 @@ contains
 
          call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass, start=[idslot, tslot]) )
          if (param%lclose) call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius, start=[idslot, tslot]) )
-         if (param%loblatecb) then
-            call check( nf90_put_var(iu%ncid, iu%j2rp2_varid, self%j2rp2, start=[idslot, tslot]))
-            call check( nf90_put_var(iu%ncid, iu%j4rp4_varid, self%j4rp4, start=[idslot, tslot]))
-         end if
+         call check( nf90_put_var(iu%ncid, iu%j2rp2_varid, self%j2rp2, start=[idslot, tslot]))
+         call check( nf90_put_var(iu%ncid, iu%j4rp4_varid, self%j4rp4, start=[idslot, tslot]))
          if (param%lrotation) then
             call check( nf90_put_var(iu%ncid, iu%Ip1_varid, self%Ip(1), start=[idslot, tslot]) )
             call check( nf90_put_var(iu%ncid, iu%Ip2_varid, self%Ip(2), start=[idslot, tslot]) )
