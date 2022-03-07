@@ -883,6 +883,8 @@ contains
                           self%a(i), self%e(i), self%inc(i),  &
                           self%capom(i), self%omega(i), self%capm(i))
       end do
+
+      return
    end subroutine orbel_xv2el_vec 
 
 
