@@ -370,7 +370,7 @@ contains
          end select
       end select
 
-      ! Extract the pl-pl or pl-tpencounter list and return the plplcollision_list
+      ! Extract the pl-pl or pl-tp encounter list and return the pl-pl or pl-tp collision_list
       if (lany_collision) then
          select type(self)
          class is (symba_plplenc)
@@ -1074,8 +1074,14 @@ contains
       real(DP),                   intent(in)    :: t      !! Current simulation tim
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      
-      call system%tp%xh2xb(system%cb)
+     
+      ! Make sure coordinate systems are all synced up due to being inside the recursion at this point
+      call system%pl%vb2vh(system%cb)
+      call system%tp%vb2vh(system%cb%vb)
+      call system%pl%b2h(system%cb)
+      call system%tp%b2h(system%cb)
+
+      ! Discard the collider
       call system%tp%discard(system, param)
 
       return
