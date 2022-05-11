@@ -141,11 +141,7 @@ contains
 
       !> Call allocation method for parent class. In this case, whm does not have its own setup method, so we use the base method for swiftest_tp
       call setup_tp(self, n, param) 
-      if (n < 0) return
-
-      call self%dealloc()
-
-      if (n == 0) return
+      if (n <= 0) return
 
       allocate(self%lperi(n))
       allocate(self%plperP(n))
