@@ -22,6 +22,7 @@ module swiftest_globals
    real(DP), parameter :: PI3BY2 = 4.712388980384689857693965074919254326296_DP !! Definition of /(3 \pi / 2\)
    real(DP), parameter :: TWOPI  = 6.283185307179586476925286766559005768394_DP !! Definition of 2 \pi
    real(DP), parameter :: THIRD  = 0.333333333333333333333333333333333333333_DP !! Definition of 1 / 3
+   real(DP), parameter :: SIXTH  = 0.166666666666666666666666666666666666667_DP !! Definition of 1 / 3
    real(DP), parameter :: DEG2RAD = PI / 180.0_DP !! Definition of conversion factor from degrees to radians
    real(DP), parameter :: RAD2DEG = 180.0_DP / PI !! Definition of conversion factor from degrees to radians
    real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
@@ -31,7 +32,7 @@ module swiftest_globals
    integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
    integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
 
-   real(SP), parameter :: VERSION_NUMBER = 0.1_SP !! swiftest version
+   real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! swiftest version
 
    !> Symbolic name for integrator types
    integer(I4B), parameter :: UNKNOWN_INTEGRATOR = 1
@@ -113,16 +114,18 @@ module swiftest_globals
 
    !> Standard file names
    integer(I4B), parameter :: NDUMPFILES = 2
-   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'  ]
-   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'  ]
-   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'  ]
+   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'   ]
+   character(*), dimension(2), parameter :: DUMP_NC_FILE    = ['dump_bin1.nc',   'dump_bin2.nc'   ]
    character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.in',  'dump_param2.in']
 
    !> Default file names that can be changed by the user in the parameters file
    character(*), parameter :: CB_INFILE        = 'cb.in'
    character(*), parameter :: PL_INFILE        = 'pl.in'
    character(*), parameter :: TP_INFILE        = 'tp.in'
-   character(*), parameter :: BIN_OUTFILE      = 'bin.dat'
+   character(*), parameter :: NC_INFILE        = 'in.nc'
+   character(*), parameter :: BIN_OUTFILE      = 'bin.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    character(*), parameter :: PARTICLE_OUTFILE = 'particle.dat'
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
@@ -183,6 +186,7 @@ module swiftest_globals
    character(*), parameter :: STATUS_VARNAME          = "status"          !! NetCDF name of the current status of the body variable (includes discard type)
    character(*), parameter :: ORIGIN_TYPE_VARNAME     = "origin_type"     !! NetCDF name of the origin type variable (Initial Conditions, Disruption, etc.)
    character(*), parameter :: ORIGIN_TIME_VARNAME     = "origin_time"     !! NetCDF name of the time of origin variable
+   character(*), parameter :: COLLISION_ID_VARNAME    = "collision_id"    !! NetCDF name of the collision id variable
    character(*), parameter :: ORIGIN_XHX_VARNAME      = "origin_xhx"      !! NetCDF name of the heliocentric position of the body at the time of origin x variable
    character(*), parameter :: ORIGIN_XHY_VARNAME      = "origin_xhy"      !! NetCDF name of the heliocentric position of the body at the time of origin y variable
    character(*), parameter :: ORIGIN_XHZ_VARNAME      = "origin_xhz"      !! NetCDF name of the heliocentric position of the body at the time of origin z variable
@@ -197,5 +201,7 @@ module swiftest_globals
    character(*), parameter :: DISCARD_VHY_VARNAME     = "discard_vhy"     !! NetCDF name of the heliocentric velocity of the body at the time of discard y variable
    character(*), parameter :: DISCARD_VHZ_VARNAME     = "discard_vhz"     !! NetCDF name of the heliocentric velocity of the body at the time of discard z variable
    character(*), parameter :: DISCARD_BODY_ID_VARNAME = "discard_body_id" !! NetCDF name of the id of the other body involved in the discard
+   character(*), parameter :: J2RP2_VARNAME           = "j2rp2"           !! NetCDF name of the j2rp2 variable
+   character(*), parameter :: J4RP4_VARNAME           = "j4rp4"           !! NetCDF name of the j4pr4 variable
 
 end module swiftest_globals

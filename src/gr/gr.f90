@@ -28,13 +28,15 @@ contains
             rmag = norm2(self%xh(:,i))
             vmag2 = dot_product(self%vh(:,i), self%vh(:,i))
             rdotv = dot_product(self%xh(:,i), self%vh(:,i))
-            self%agr(:, i) = self%mu * inv_c2 / rmag**3 * ((4 * self%mu(i) / rmag - vmag2) * self%xh(:,i) + 4 * rdotv * self%vh(:,i))
+            self%agr(:, i) = self%mu * inv_c2 / rmag**3 * ((4 * self%mu(i) / rmag - vmag2) &
+                           * self%xh(:,i) + 4 * rdotv * self%vh(:,i))
          end do
 
          select type(self)
          class is (swiftest_pl)
-            do i = 1, NDIM
-               cb%agr(i) = -sum(self%Gmass(1:n) * self%agr(1:n, i) / cb%Gmass)
+            cb%agr(:) = 0.0_DP
+            do i = n, 1, -1
+               cb%agr(:) = cb%agr(:) - self%Gmass(i) * self%agr(:, i) / cb%Gmass
             end do
          end select
       end associate 
@@ -226,9 +228,9 @@ contains
 
             Jinv = Jinv * det
 
-            do i = 1, NDIM
-               pv(i) = pv(i) - dot_product(Jinv(i,:), F(:))
-            end do
+            pv(1) = pv(1) - dot_product(Jinv(1,:), F(:))
+            pv(2) = pv(2) - dot_product(Jinv(2,:), F(:))
+            pv(3) = pv(3) - dot_product(Jinv(3,:), F(:))
          end do 
       end associate
    

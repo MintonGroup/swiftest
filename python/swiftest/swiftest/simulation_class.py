@@ -5,12 +5,13 @@ from swiftest import constants
 from datetime import date
 import xarray as xr
 import numpy as np
+import os
 
 class Simulation:
     """
-    This is a class that define the basic Swift/Swifter/Swiftest simulation object
+    This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
-    def __init__(self, codename="Swiftest", param_file=""):
+    def __init__(self, codename="Swiftest", param_file="", readbin=True):
         self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
@@ -34,12 +35,12 @@ class Simulation:
             'CHK_QMIN': "-1.0",
             'CHK_QMIN_COORD': "HELIO",
             'CHK_QMIN_RANGE': "-1.0 -1.0",
-            'ENC_OUT': "enc.dat",
+            'ENC_OUT': "",
             'MU2KG': constants.MSun,
             'TU2S': constants.JD2S,
             'DU2M': constants.AU2M,
             'EXTRA_FORCE': "NO",
-            'DISCARD_OUT': "discard.out",
+            'DISCARD_OUT': "",
             'PARTICLE_OUT' : "",
             'BIG_DISCARD': "NO",
             'CHK_CLOSE': "YES",
@@ -48,13 +49,21 @@ class Simulation:
             'ROTATION': "NO",
             'TIDES': "NO",
             'ENERGY': "NO",
-            'GR': "NO",
+            'GR': "YES",
+            'INTERACTION_LOOPS': "ADAPTIVE",
+            'ENCOUNTER_CHECK': "ADAPTIVE"
         }
         self.codename = codename
         if param_file != "" :
+            dir_path = os.path.dirname(os.path.realpath(param_file))
             self.read_param(param_file, codename)
+            if readbin:
+                if os.path.exists(dir_path + '/' + self.param['BIN_OUT']):
+                    self.param['BIN_OUT'] = dir_path + '/' + self.param['BIN_OUT']
+                    self.bin2xr()
+                else:
+                    print(f"BIN_OUT file {self.param['BIN_OUT']} not found.")
         return
-    
     
     def add(self, plname, date=date.today().isoformat(), idval=None):
         """

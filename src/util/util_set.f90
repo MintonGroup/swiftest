@@ -98,7 +98,8 @@ contains
       return
    end subroutine util_set_mu_tp
 
-   module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+   module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh,&
+                                            origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
       !! author: David A. Minton
       !!
       !! Sets one or more values of the particle information metadata object
@@ -110,6 +111,7 @@ contains
       character(len=*),              intent(in),    optional :: status          !! Particle status description: ACTIVE, MERGED, FRAGMENTED, etc.
       character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
+      integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
       real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
       real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
@@ -138,6 +140,9 @@ contains
       if (present(origin_time)) then
          self%origin_time = origin_time
       end if
+      if (present(collision_id)) then
+         self%collision_id = collision_id
+      end if
       if (present(origin_xh)) then
          self%origin_xh(:) = origin_xh(:)
       end if
@@ -159,6 +164,42 @@ contains
 
       return
    end subroutine util_set_particle_info
+
+
+   module subroutine util_set_renc_I4B(self, scale)
+      !! author: David A. Minton
+      !!
+      !! Sets the critical radius for encounter given an input scale factor
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      integer(I4B),       intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+
+      associate(pl => self, npl => self%nbody)
+         pl%renc(1:npl) = pl%rhill(1:npl) * scale
+      end associate
+
+      return
+   end subroutine util_set_renc_I4B
+
+
+   module subroutine util_set_renc_DP(self, scale)
+      !! author: David A. Minton
+      !!
+      !! Sets the critical radius for encounter given an input scale factor
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      real(DP),           intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+
+      associate(pl => self, npl => self%nbody)
+         pl%renc(1:npl) = pl%rhill(1:npl) * scale
+      end associate
+
+      return
+   end subroutine util_set_renc_DP
 
 
    module subroutine util_set_rhill(self,cb)

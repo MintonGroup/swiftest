@@ -18,13 +18,17 @@ contains
       logical, save :: lfirst = .true.
 
       if (param%ladaptive_interactions) then
-         if (lfirst) then
-            write(itimer%loopname, *)  "symba_kick_getacch_int_pl"
-            write(itimer%looptype, *)  "INTERACTION"
-            call itimer%time_this_loop(param, self, self%nplplm)
-            lfirst = .false.
+         if (self%nplplm > 0) then
+            if (lfirst) then
+               write(itimer%loopname, *)  "symba_kick_getacch_int_pl"
+               write(itimer%looptype, *)  "INTERACTION"
+               call itimer%time_this_loop(param, self%nplplm, self)
+               lfirst = .false.
+            else
+               if (itimer%check(param, self%nplplm)) call itimer%time_this_loop(param, self%nplplm, self)
+            end if
          else
-            if (itimer%check(param, self%nplplm)) call itimer%time_this_loop(param, self, self%nplplm)
+            param%lflatten_interactions = .false.
          end if
       end if
 
@@ -34,8 +38,8 @@ contains
          call kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%xh, self%Gmass, self%radius, self%ah)
       end if
 
-      if (param%ladaptive_interactions) then 
-         if (itimer%is_on) call itimer%adapt(param, self, self%nplplm)
+      if (param%ladaptive_interactions .and. self%nplplm > 0) then 
+         if (itimer%is_on) call itimer%adapt(param, self%nplplm, self)
       end if
 
       return
@@ -58,7 +62,7 @@ contains
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)              :: i, j
-      integer(I8B)              :: k, nplplenc
+      integer(I8B)              :: nplplenc
       real(DP)                  :: rjj, rlim2, xr, yr, zr
       real(DP), dimension(NDIM,self%nbody) :: ah_enc
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc
@@ -109,7 +113,8 @@ contains
       if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl, pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
+         associate(tp => self, cb => system%cb, pl => system%pl, &
+            pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
             call helio_kick_getacch_tp(tp, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
@@ -158,7 +163,6 @@ contains
 
       if (self%nenc == 0) return
 
-
       select type(self)
       class is (symba_plplenc)
          isplpl = .true.
@@ -170,8 +174,12 @@ contains
          select type(tp => system%tp)
          class is (symba_tp)
             associate(npl => pl%nbody, ntp => tp%nbody, nenc => self%nenc)
-               if (npl > 0) pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
-               if (ntp > 0) tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE
+               if (npl == 0)  return
+               pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
+               if (.not. isplpl) then
+                  if (ntp == 0) return
+                  tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE
+               end if
                allocate(lgoodlevel(nenc))
 
                irm1 = irec - 1

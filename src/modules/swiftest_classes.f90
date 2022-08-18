@@ -41,6 +41,8 @@ module swiftest_classes
       integer(I4B) :: rotx_varid            !! NetCDF ID for the rotation x variable
       integer(I4B) :: roty_varid            !! NetCDF ID for the rotation y variable
       integer(I4B) :: rotz_varid            !! NetCDF ID for the rotation z variable
+      integer(I4B) :: j2rp2_varid           !! NetCDF ID for the j2 variable
+      integer(I4B) :: j4rp4_varid           !! NetCDF ID for the j4 variable
       integer(I4B) :: k2_varid              !! NetCDF ID for the Love number variable
       integer(I4B) :: Q_varid               !! NetCDF ID for the energy dissipation variable
       integer(I4B) :: KE_orb_varid          !! NetCDF ID for the system orbital kinetic energy variable
@@ -61,6 +63,7 @@ module swiftest_classes
       integer(I4B) :: status_varid          !! NetCDF ID for the status variable
       integer(I4B) :: origin_type_varid     !! NetCDF ID for the origin type
       integer(I4B) :: origin_time_varid     !! NetCDF ID for the origin time
+      integer(I4B) :: collision_id_varid    !! Netcdf ID for the origin collision ID
       integer(I4B) :: origin_xhx_varid      !! NetCDF ID for the origin xh x component
       integer(I4B) :: origin_xhy_varid      !! NetCDF ID for the origin xh y component
       integer(I4B) :: origin_xhz_varid      !! NetCDF ID for the origin xh z component
@@ -75,10 +78,14 @@ module swiftest_classes
       integer(I4B) :: discard_vhy_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard y variable
       integer(I4B) :: discard_vhz_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard z variable
       integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
+      integer(I4B) :: id_chunk              !! Chunk size for the id dimension variables
+      integer(I4B) :: time_chunk            !! Chunk size for the time dimension variables
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
+      procedure :: flush      => netcdf_flush             !! Flushes the current buffer to disk by closing and re-opening the file.
       procedure :: initialize => netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => netcdf_open              !! Opens a NetCDF file
+      procedure :: sync       => netcdf_sync              !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
    !********************************************************************************************************************************
@@ -91,6 +98,7 @@ module swiftest_classes
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
       character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
       integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
+      integer(I4B)         :: maxid_collision = 0                !! The current maximum collision id number
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
@@ -99,6 +107,7 @@ module swiftest_classes
       character(STRMAX)    :: incbfile       = CB_INFILE          !! Name of input file for the central body
       character(STRMAX)    :: inplfile       = PL_INFILE          !! Name of input file for massive bodies
       character(STRMAX)    :: intpfile       = TP_INFILE          !! Name of input file for test particles
+      character(STRMAX)    :: in_netcdf      = NC_INFILE          !! Name of system input file for NetCDF input
       character(STRMAX)    :: in_type        = ASCII_TYPE         !! Data representation type of input data files
       character(STRMAX)    :: in_form        = XV                 !! Format of input data files (EL or XV)
       integer(I4B)         :: istep_out      = -1                 !! Number of time steps between binary outputs
@@ -124,10 +133,15 @@ module swiftest_classes
       real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
       character(STRMAX)    :: energy_out     = ""                 !! Name of output energy and momentum report file
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
+      character(NAMELEN)   :: encounter_check_plpl = "ADAPTIVE"   !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      character(NAMELEN)   :: encounter_check_pltp = "ADAPTIVE"   !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
-      logical :: lflatten_encounters = .false. !! Use the flattened upper triangular matrix for pl-pl encounter check loops
-      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on
+      logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on (choose between TRIANGULAR and FLAT based on periodic timing tests)
+      logical :: lencounter_sas_plpl = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: lencounter_sas_pltp = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: ladaptive_encounters_plpl = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
+      logical :: ladaptive_encounters_pltp = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
@@ -141,12 +155,12 @@ module swiftest_classes
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
-      real(DP)                  :: GMtot_orig = 0.0_DP     !! Initial system mass
+      real(DP)                  :: GMtot_orig = 0.0_DP    !! Initial system mass
       real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
       real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: GMescape = 0.0_DP       !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: GMescape = 0.0_DP      !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
       real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
@@ -177,6 +191,7 @@ module swiftest_classes
       character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
       character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time     !! The time of the particle's formation
+      integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
       real(DP), dimension(NDIM) :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
       real(DP)                  :: discard_time    !! The time of the particle's discard
@@ -200,6 +215,7 @@ module swiftest_classes
       !! The minimal methods that all systems must have
       procedure :: dump                       => io_dump_base                 !! Dump contents to file
       procedure :: dump_particle_info         => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
+      procedure :: read_in                    => io_read_in_base              !! Read in body initial conditions from a file
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
       generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
@@ -236,10 +252,10 @@ module swiftest_classes
       real(DP), dimension(NDIM)                  :: L0       = 0.0_DP !! Initial angular momentum of the central body
       real(DP), dimension(NDIM)                  :: dL       = 0.0_DP !! Change in angular momentum of the central body
    contains
-      procedure :: read_in         => io_read_in_cb     !! I/O routine for reading in central body data
-      procedure :: read_frame      => io_read_frame_cb  !! I/O routine for reading out a single frame of time-series data for the central body
+      procedure :: read_frame_bin  => io_read_frame_cb  !! I/O routine for reading out a single frame of time-series data for the central body
       procedure :: write_frame_bin => io_write_frame_cb !! I/O routine for writing out a single frame of time-series data for the central body
       generic   :: write_frame     => write_frame_bin   !! Write a frame (either binary or NetCDF, using generic procedures)
+      generic   :: read_frame      => read_frame_bin    !! Write a frame (either binary or NetCDF, using generic procedures)
    end type swiftest_cb
 
    !********************************************************************************************************************************
@@ -283,8 +299,7 @@ module swiftest_classes
       procedure :: drift           => drift_body                   !! Loop through bodies and call Danby drift routine on heliocentric variables
       procedure :: v2pv            => gr_vh2pv_body                !! Converts from velocity to psudeovelocity for GR calculations using symplectic integrators
       procedure :: pv2v            => gr_pv2vh_body                !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
-      procedure :: read_in         => io_read_in_body              !! Read in body initial conditions from a file
-      procedure :: read_frame      => io_read_frame_body           !! I/O routine for writing out a single frame of time-series data for the central body
+      procedure :: read_frame_bin  => io_read_frame_body           !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: write_frame_bin => io_write_frame_body          !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: accel_obl       => obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: el2xv           => orbel_el2xv_vec              !! Convert orbital elements to position and velocity vectors
@@ -292,6 +307,7 @@ module swiftest_classes
       procedure :: setup           => setup_body                   !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user      => user_kick_getacch_body       !! Add user-supplied heliocentric accelerations to planets
       procedure :: append          => util_append_body             !! Appends elements from one structure to another
+      procedure :: dealloc         => util_dealloc_body            !! Deallocates all allocatable arrays
       procedure :: fill            => util_fill_body               !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize          => util_resize_body             !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_ir3         => util_set_ir3h                !! Sets the inverse heliocentric radius term (1/rh**3)
@@ -299,6 +315,7 @@ module swiftest_classes
       procedure :: rearrange       => util_sort_rearrange_body     !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => util_spill_body              !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: write_frame     => write_frame_bin              !! Add the generic write frame for Fortran binary files
+      generic   :: read_frame      => read_frame_bin               !! Add the generic read frame for Fortran binary files
    end type swiftest_body
       
    !********************************************************************************************************************************
@@ -310,6 +327,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: mass    !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: Gmass   !! Mass gravitational term G * mass (units GU * MU)
       real(DP),     dimension(:),   allocatable :: rhill   !! Body mass (units MU)
+      real(DP),     dimension(:),   allocatable :: renc    !! Critical radius for close encounters
       real(DP),     dimension(:),   allocatable :: radius  !! Body radius (units DU)
       real(DP),     dimension(:,:), allocatable :: xbeg    !! Position at beginning of step
       real(DP),     dimension(:,:), allocatable :: xend    !! Position at end of step
@@ -339,11 +357,15 @@ module swiftest_classes
       procedure :: vh2vb        => util_coord_vh2vb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure :: vb2vh        => util_coord_vb2vh_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
       procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
+      procedure :: dealloc      => util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_beg_end  => util_set_beg_end_pl    !! Sets the beginning and ending positions and velocities of planets.
       procedure :: set_mu       => util_set_mu_pl         !! Method used to construct the vectorized form of the central body mass
       procedure :: set_rhill    => util_set_rhill         !! Calculates the Hill's radii for each body
+      procedure :: set_renc_I4B => util_set_renc_I4B      !! Sets the critical radius for encounter given an inpput integer scale factor
+      procedure :: set_renc_DP  => util_set_renc_DP       !! Sets the critical radius for encounter given an input real scale factor
+      generic   :: set_renc     => set_renc_I4B, set_renc_DP 
       procedure :: sort         => util_sort_pl           !! Sorts body arrays by a sortable component
       procedure :: rearrange    => util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill        => util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
@@ -375,6 +397,7 @@ module swiftest_classes
       procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
       procedure :: xh2xb     => util_coord_xh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
+      procedure :: dealloc   => util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
       procedure :: resize    => util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -404,6 +427,15 @@ module swiftest_classes
       real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
       real(DP), dimension(NDIM)       :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)       :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP)                        :: Eorbit_orig = 0.0_DP !! Initial orbital energy
+      real(DP)                        :: GMtot_orig = 0.0_DP  !! Initial system mass
+      real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP   !! Initial total angular momentum vector
+      real(DP), dimension(NDIM)       :: Lorbit_orig = 0.0_DP !! Initial orbital angular momentum
+      real(DP), dimension(NDIM)       :: Lspin_orig = 0.0_DP  !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM)       :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                        :: GMescape = 0.0_DP    !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                        :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
+      real(DP)                        :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                               !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                               !!    the test particles
@@ -415,53 +447,37 @@ module swiftest_classes
       procedure :: discard                 => discard_system                         !! Perform a discard step on the system
       procedure :: conservation_report     => io_conservation_report                 !! Compute energy and momentum and print out the change with time
       procedure :: dump                    => io_dump_system                         !! Dump the state of the system to a file
-      procedure :: get_old_t_final         => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
-      procedure :: read_frame              => io_read_frame_system                   !! Read in a frame of input data from file
-      procedure :: read_particle_info      => io_read_particle_info_system           !! Read in particle metadata from file
-      procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
-      procedure :: write_frame             => io_write_frame_system                  !! Append a frame of output data to file
+      procedure :: get_old_t_final_bin     => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
+      procedure :: get_old_t_final_netcdf  => netcdf_get_old_t_final_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      procedure :: read_frame_bin          => io_read_frame_system                   !! Read in a frame of input data from file
+      procedure :: write_frame_bin         => io_write_frame_system                  !! Append a frame of output data to file
+      procedure :: read_frame_netcdf       => netcdf_read_frame_system               !! Read in a frame of input data from file
+      procedure :: write_frame_netcdf      => netcdf_write_frame_system              !! Write a frame of input data from file
       procedure :: write_hdr_bin           => io_write_hdr_system                    !! Write a header for an output frame in Fortran binary format
+      procedure :: read_hdr_netcdf         => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
+      procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
+      procedure :: read_particle_info_bin  => io_read_particle_info_system           !! Read in particle metadata from file
+      procedure :: read_particle_info_netcdf  => netcdf_read_particle_info_system           !! Read in particle metadata from file
+      procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
       procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
+      procedure :: dealloc                 => util_dealloc_system                    !! Deallocates all allocatable components of the system
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
       generic   :: write_hdr               => write_hdr_bin, write_hdr_netcdf        !! Generic method call for writing headers
+      generic   :: read_hdr                => read_hdr_netcdf                        !! Generic method call for reading headers
+      generic   :: read_frame              => read_frame_bin, read_frame_netcdf      !! Generic method call for reading a frame of output data
+      generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for writing a frame of output data
+      generic   :: read_particle_info      => read_particle_info_bin, read_particle_info_netcdf !! Genereric method call for reading in the particle information metadata
    end type swiftest_nbody_system
 
-   type :: swiftest_encounter
-      integer(I4B)                              :: nenc   !! Total number of encounters
-      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
-      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
-      integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
-      integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
-      integer(I4B), dimension(:),   allocatable :: id1    !! id of the first body in the encounter
-      integer(I4B), dimension(:),   allocatable :: id2    !! id of the second body in the encounter
-      real(DP),     dimension(:,:), allocatable :: x1     !! the position of body 1 in the encounter
-      real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
-      real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
-      real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
-      real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
-   contains
-      procedure :: setup  => setup_encounter       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: append => util_append_encounter !! Appends elements from one structure to another
-      procedure :: copy   => util_copy_encounter   !! Copies elements from the source encounter list into self.
-      procedure :: spill  => util_spill_encounter  !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: resize => util_resize_encounter !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      procedure :: write  => io_write_encounter    !! Write close encounter data to output binary file
-   end type swiftest_encounter
-
    abstract interface
-      subroutine abstract_discard_body(self, system, param) 
-         import swiftest_body, swiftest_nbody_system, swiftest_parameters
-         class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine abstract_discard_body
 
       subroutine abstract_accel(self, system, param, t, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
@@ -471,6 +487,14 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
+
+      subroutine abstract_discard_body(self, system, param) 
+         import swiftest_body, swiftest_nbody_system, swiftest_parameters
+         class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine abstract_discard_body
+
 
       subroutine abstract_kick_body(self, system, param, t, dt, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
@@ -565,36 +589,6 @@ module swiftest_classes
          real(DP),     intent(in)       :: dt    !! Step size
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
-
-      module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
-         !$omp declare simd(util_flatten_eucl_ij_to_k)
-         implicit none
-         integer(I4B), intent(in)  :: n !! Number of bodies
-         integer(I4B), intent(in)  :: i !! Index of the ith body
-         integer(I4B), intent(in)  :: j !! Index of the jth body
-         integer(I8B), intent(out) :: k !! Index of the flattened matrix
-      end subroutine util_flatten_eucl_ij_to_k
-
-      module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
-         implicit none
-         integer(I4B), intent(in)  :: n !! Number of bodies
-         integer(I8B), intent(in)  :: k !! Index of the flattened matrix
-         integer(I4B), intent(out) :: i !! Index of the ith body
-         integer(I4B), intent(out) :: j !! Index of the jth body
-      end subroutine util_flatten_eucl_k_to_ij
-
-      module subroutine util_flatten_eucl_plpl(self, param)
-         implicit none
-         class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine
-
-      module subroutine util_flatten_eucl_pltp(self, pl, param)
-         implicit none
-         class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
-         class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine
 
       module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
          implicit none
@@ -807,17 +801,12 @@ module swiftest_classes
    end interface io_param_writer_one
 
    interface
-      module subroutine io_read_in_body(self, param) 
-         implicit none
-         class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_in_body
 
-      module subroutine io_read_in_cb(self, param) 
+      module subroutine io_read_in_base(self,param)
          implicit none
-         class(swiftest_cb),         intent(inout) :: self  !! Swiftest central body object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine io_read_in_cb
+         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine io_read_in_base
 
       module subroutine io_read_in_param(self, param_file_name) 
          implicit none
@@ -830,6 +819,12 @@ module swiftest_classes
          class(swiftest_particle_info), intent(inout) :: self !! Particle metadata information object
          integer(I4B),                  intent(in)    :: iu   !! Open file unit number
       end subroutine io_read_in_particle_info
+
+      module subroutine io_read_in_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self
+         class(swiftest_parameters),   intent(inout) :: param
+      end subroutine io_read_in_system
 
       module function io_read_frame_body(self, iu, param) result(ierr)
          implicit none
@@ -872,14 +867,6 @@ module swiftest_classes
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine io_toupper
 
-      module subroutine io_write_encounter(self, pl, encbody, param)
-         implicit none
-         class(swiftest_encounter),  intent(in) :: self    !! Swiftest encounter list object
-         class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
-         class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
-         class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
-      end subroutine io_write_encounter
-
       module subroutine io_write_frame_body(self, iu, param)
          implicit none
          class(swiftest_body),       intent(in)    :: self  !! Swiftest body object
@@ -893,17 +880,6 @@ module swiftest_classes
          integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine io_write_frame_cb
-
-      module subroutine io_write_frame_encounter(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
-         implicit none
-         integer(I4B),           intent(in) :: iu               !! Open file unit number
-         real(DP),               intent(in) :: t                !! Time of encounter
-         integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
-         real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
-         real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
-         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Swiftestcentric position vectors of the two encountering bodies 
-         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Swiftestcentric velocity vectors of the two encountering bodies 
-      end subroutine io_write_frame_encounter
 
       module subroutine io_write_frame_system(self, param)
          implicit none
@@ -935,23 +911,23 @@ module swiftest_classes
 
       module subroutine kick_getacch_int_all_flat_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
          implicit none
-         integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
-         integer(I8B),                 intent(in)    :: nplpl  !! Number of massive body interactions to compute
-         integer(I4B), dimension(:,:), intent(in)    :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
-         real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
-         real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
-         real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
-         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+         integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
+         integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
+         integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
+         real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+         real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+         real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       end subroutine kick_getacch_int_all_flat_pl
 
       module subroutine kick_getacch_int_all_triangular_pl(npl, nplm, x, Gmass, radius, acc)
          implicit none
-         integer(I4B),                 intent(in)    :: npl    !! Total number of massive bodies
-         integer(I4B),                 intent(in)    :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:), intent(in)    :: x      !! Position vector array
-         real(DP),     dimension(:),   intent(in)    :: Gmass  !! Array of massive body G*mass
-         real(DP),     dimension(:),   intent(in)    :: radius !! Array of massive body radii
-         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+         integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
+         integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
+         real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+         real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+         real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       end subroutine kick_getacch_int_all_triangular_pl
 
       module subroutine kick_getacch_int_all_tp(ntp, npl, xtp, xpl, GMpl, lmask, acc)
@@ -985,11 +961,23 @@ module swiftest_classes
          real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
       end subroutine kick_getacch_int_one_tp
 
-      module subroutine netcdf_close(self, param)
+      module subroutine netcdf_close(self)
          implicit none
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine netcdf_close
+
+      module subroutine netcdf_flush(self, param)
+         implicit none
+         class(netcdf_parameters),   intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine netcdf_flush
+
+      module function netcdf_get_old_t_final_system(self, param) result(old_t_final)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self        !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param       !! Current run configuration parameters 
+         real(DP)                                    :: old_t_final !! Final time from last run
+      end function netcdf_get_old_t_final_system
 
       module subroutine netcdf_initialize_output(self, param)
          implicit none
@@ -997,37 +985,68 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       end subroutine netcdf_initialize_output
 
-      module subroutine netcdf_open(self, param)
+      module subroutine netcdf_open(self, param, readonly)
          implicit none
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+         logical, optional,          intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       end subroutine netcdf_open
+
+      module subroutine netcdf_sync(self)
+         implicit none
+         class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
+      end subroutine netcdf_sync
+
+      module function netcdf_read_frame_system(self, iu, param) result(ierr)
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
+         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
+         integer(I4B)                                 :: ierr  !! Error code: returns 0 if the read is successful
+      end function netcdf_read_frame_system
+
+      module subroutine netcdf_read_hdr_system(self, iu, param) 
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
+      end subroutine netcdf_read_hdr_system
+
+      module subroutine netcdf_read_particle_info_system(self, iu, param, plmask, tpmask)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+         class(netcdf_parameters),     intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+         logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
+         logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
+      end subroutine netcdf_read_particle_info_system
 
       module subroutine netcdf_write_frame_base(self, iu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
          class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_base
 
       module subroutine netcdf_write_frame_system(self, iu, param)
          implicit none
-         class(swiftest_nbody_system),  intent(in)    :: self  !! Swiftest system object
-         integer(I4B),                  intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters),    intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
+         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_system
 
       module subroutine netcdf_write_hdr_system(self, iu, param) 
          implicit none
          class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
          class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_hdr_system
 
-      module subroutine netcdf_write_particle_info_base(self, iu)
+      module subroutine netcdf_write_particle_info_base(self, iu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
          class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_particle_info_base
 
       module subroutine obl_acc_body(self, system)
@@ -1108,11 +1127,11 @@ module swiftest_classes
          class(swiftest_parameters),                 intent(inout) :: param  !! Current run configuration parameters
       end subroutine setup_construct_system
 
-      module subroutine setup_encounter(self, n)
+      module subroutine setup_finalize_system(self, param)
          implicit none
-         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter structure
-         integer(I4B),              intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine setup_encounter
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      end subroutine setup_finalize_system
 
       module subroutine setup_initialize_particle_info_system(self, param)
          implicit none
@@ -1222,13 +1241,6 @@ module swiftest_classes
          logical, dimension(:),           intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine util_append_body
 
-      module subroutine util_append_encounter(self, source, lsource_mask)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list object
-         class(swiftest_encounter), intent(in)    :: source       !! Source object to append
-         logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine util_append_encounter
-
       module subroutine util_append_pl(self, source, lsource_mask)
          implicit none
          class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
@@ -1303,12 +1315,6 @@ module swiftest_classes
          class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
       end subroutine util_coord_xh2xb_tp
 
-      module subroutine util_copy_encounter(self, source)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self   !! Encounter list 
-         class(swiftest_encounter), intent(in)    :: source !! Source object to copy into
-      end subroutine util_copy_encounter
-
       module subroutine util_copy_particle_info(self, source)
          implicit none
          class(swiftest_particle_info),  intent(inout) :: self
@@ -1321,6 +1327,26 @@ module swiftest_classes
          class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata information object
          integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source object
       end subroutine util_copy_particle_info_arr
+
+      module subroutine util_dealloc_body(self)
+         implicit none
+         class(swiftest_body),  intent(inout) :: self
+      end subroutine util_dealloc_body
+
+      module subroutine util_dealloc_pl(self)
+         implicit none
+         class(swiftest_pl),  intent(inout) :: self
+      end subroutine util_dealloc_pl
+
+      module subroutine util_dealloc_system(self)
+         implicit none
+         class(swiftest_nbody_system),  intent(inout) :: self
+      end subroutine util_dealloc_system
+
+      module subroutine util_dealloc_tp(self)
+         implicit none
+         class(swiftest_tp),  intent(inout) :: self
+      end subroutine util_dealloc_tp
 
       module subroutine util_exit(code)
          implicit none
@@ -1394,12 +1420,41 @@ module swiftest_classes
    end interface
 
    interface
-      module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
+      module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
+         !$omp declare simd(util_flatten_eucl_ij_to_k)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
-         real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
-      end subroutine util_rescale_system
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I4B), intent(in)  :: i !! Index of the ith body
+         integer(I4B), intent(in)  :: j !! Index of the jth body
+         integer(I8B), intent(out) :: k !! Index of the flattened matrix
+      end subroutine util_flatten_eucl_ij_to_k
+
+      module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
+         implicit none
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I8B), intent(in)  :: k !! Index of the flattened matrix
+         integer(I4B), intent(out) :: i !! Index of the ith body
+         integer(I4B), intent(out) :: j !! Index of the jth body
+      end subroutine util_flatten_eucl_k_to_ij
+
+      module subroutine util_flatten_eucl_plpl(self, param)
+         implicit none
+         class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      end subroutine
+
+      module subroutine util_flatten_eucl_pltp(self, pl, param)
+         implicit none
+         class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+         class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      end subroutine
+
+      module subroutine util_index_array(ind_arr, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
+         integer(I4B),                            intent(in)    :: n       !! The new size of the index array
+      end subroutine util_index_array
 
       module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function
@@ -1419,6 +1474,14 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
+
+
+      module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
+         real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
+      end subroutine util_rescale_system
    end interface
 
 
@@ -1466,12 +1529,6 @@ module swiftest_classes
          class(swiftest_body), intent(inout) :: self !! Swiftest body object
          integer(I4B),         intent(in)    :: nnew !! New size neded
       end subroutine util_resize_body
-
-      module subroutine util_resize_encounter(self, nnew)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self !! Swiftest encounter list 
-         integer(I4B),              intent(in)    :: nnew !! New size of list needed
-      end subroutine util_resize_encounter
 
       module subroutine util_resize_pl(self, nnew)
          implicit none
@@ -1521,7 +1578,8 @@ module swiftest_classes
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_mu_tp
 
-      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+      module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, &
+                                               origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
          implicit none
          class(swiftest_particle_info), intent(inout)           :: self
          character(len=*),              intent(in),    optional :: name            !! Non-unique name
@@ -1529,6 +1587,7 @@ module swiftest_classes
          character(len=*),              intent(in),    optional :: status          !! Particle status description: Active, Merged, Fragmented, etc.
          character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
          real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
+         integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
          real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
          real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
          real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
@@ -1542,6 +1601,18 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill
+
+      module subroutine util_set_renc_I4B(self, scale)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         integer(I4B),       intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+      end subroutine util_set_renc_I4B
+
+      module subroutine util_set_renc_DP(self, scale)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+         real(DP),           intent(in)    :: scale !! Input scale factor (multiplier of Hill's sphere size)
+      end subroutine util_set_renc_DP
 
       module subroutine util_set_rhill_approximate(self,cb)
          implicit none
@@ -1584,68 +1655,87 @@ module swiftest_classes
    end interface
 
    interface util_sort
-      module subroutine util_sort_i4b(arr)
+      module pure subroutine util_sort_i4b(arr)
          implicit none
          integer(I4B), dimension(:), intent(inout) :: arr
       end subroutine util_sort_i4b
 
-      module subroutine util_sort_index_i4b(arr,ind)
+      module pure subroutine util_sort_index_i4b(arr,ind)
          implicit none
          integer(I4B), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), intent(out) :: ind
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
-      module subroutine util_sort_sp(arr)
+      module pure subroutine util_sort_index_I4B_I8Bind(arr,ind)
+         implicit none
+         integer(I4B), dimension(:), intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+      end subroutine util_sort_index_I4b_I8Bind
+
+      module pure subroutine util_sort_index_I8B_I8Bind(arr,ind)
+         implicit none
+         integer(I8B), dimension(:), intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+      end subroutine util_sort_index_I8B_I8Bind
+
+      module pure subroutine util_sort_sp(arr)
          implicit none
          real(SP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_sp
 
-      module subroutine util_sort_index_sp(arr,ind)
+      module pure subroutine util_sort_index_sp(arr,ind)
          implicit none
          real(SP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), intent(out) :: ind
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_sp
 
-      module subroutine util_sort_dp(arr)
+      module pure subroutine util_sort_dp(arr)
          implicit none
          real(DP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_dp
 
-      module subroutine util_sort_index_dp(arr,ind)
+      module pure subroutine util_sort_index_dp(arr,ind)
          implicit none
          real(DP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), intent(out) :: ind
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_dp
    end interface util_sort
 
    interface util_sort_rearrange
-      module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_char_string
 
-      module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_DP(arr, ind, n)
          implicit none
          real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DP
 
-      module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
          implicit none
          real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DPvec
 
-      module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_I4B
+
+      module pure subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
+         implicit none
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_I4B_I8Bind
 
       module subroutine util_sort_rearrange_arr_info(arr, ind, n)
          implicit none
@@ -1654,12 +1744,19 @@ module swiftest_classes
          integer(I4B),                                   intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_info
 
-      module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+      module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
          implicit none
          logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_logical
+
+      module pure subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
+         implicit none
+         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      end subroutine util_sort_rearrange_arr_logical_I8Bind
    end interface util_sort_rearrange
 
    interface
@@ -1769,14 +1866,6 @@ module swiftest_classes
          logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_body
-
-      module subroutine util_spill_encounter(self, discards, lspill_list, ldestructive)
-         implicit none
-         class(swiftest_encounter), intent(inout) :: self         !! Swiftest encounter list 
-         class(swiftest_encounter), intent(inout) :: discards     !! Discarded object 
-         logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      end subroutine util_spill_encounter
 
       module subroutine util_spill_pl(self, discards, lspill_list, ldestructive)
          implicit none

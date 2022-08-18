@@ -150,7 +150,7 @@ module fraggle_classes
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(fraggle_fragments),     intent(inout) :: self   !! Helio massive body particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsiz

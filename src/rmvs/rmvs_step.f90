@@ -34,7 +34,7 @@ contains
                   allocate(vbeg, source=pl%vh)
                   call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
                   ! ****** Check for close encounters ***** !
-                  system%rts = RHSCALE
+                  call pl%set_renc(RHSCALE)
                   lencounter = tp%encounter_check(param, system, dt)
                   if (lencounter) then
                      lfirstpl = pl%lfirst
@@ -172,12 +172,12 @@ contains
          elsewhere  
             tp%lperi(1:ntp) = .false.
          end where
+         call pl%set_renc(RHPSCALE)
          do outer_index = 1, NTENC
             outer_time = t + (outer_index - 1) * dto
             call pl%set_beg_end(xbeg = pl%outer(outer_index - 1)%x(:, 1:npl), &
                                 vbeg = pl%outer(outer_index - 1)%v(:, 1:npl), &
                                 xend = pl%outer(outer_index    )%x(:, 1:npl))
-            system%rts = RHPSCALE
             lencounter = tp%encounter_check(param, system, dto) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
@@ -483,8 +483,10 @@ contains
    
                            do j = 2, npl
                               ipc2hc = plenci%plind(j)
-                              plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) - cbenci%inner(inner_index)%x(:,1)
-                              plenci%inner(inner_index)%v(:,j) = pl%inner(inner_index)%v(:, ipc2hc) - cbenci%inner(inner_index)%v(:,1)
+                              plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) &
+                                                                 - cbenci%inner(inner_index)%x(:,1)
+                              plenci%inner(inner_index)%v(:,j) = pl%inner(inner_index)%v(:, ipc2hc) &
+                                                                 - cbenci%inner(inner_index)%v(:,1)
                            end do
                         end do
                         call tpenci%set_mu(cbenci)
@@ -554,7 +556,8 @@ contains
                            id2 = tp%id(i)
                            xh2(:) = xpc(:, i) + xh1(:)
                            vh2(:) = xpc(:, i) + vh1(:)
-                           call rmvs_io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, xh1(:), xh2(:), vh1(:), vh2(:), param%enc_out)
+                           call rmvs_io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, &
+                                                        xh1(:), xh2(:), vh1(:), vh2(:), param%enc_out)
                         end if
                         if (tp%lperi(i)) then
                            if (peri < tp%peri(i)) then

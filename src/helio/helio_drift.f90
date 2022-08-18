@@ -19,7 +19,7 @@ contains
       integer(I4B) :: i !! Loop counter
       real(DP) :: rmag, vmag2, energy
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
-      real(DP), dimension(:), allocatable    :: dtp, mu
+      real(DP), dimension(:), allocatable    :: mu
 
       if (self%nbody == 0) return
 
@@ -37,6 +37,7 @@ contains
          end if
       end associate
 
+      deallocate(iflag, mu)
       return
    end subroutine helio_drift_body
 
@@ -76,7 +77,6 @@ contains
 
 
    pure elemental subroutine helio_drift_linear_one(xhx, xhy, xhz, ptx, pty, ptz, dt)
-      !$omp declare simd(helio_drift_linear_one)
       implicit none
       real(DP), intent(inout) :: xhx, xhy, xhz
       real(DP), intent(in) :: ptx, pty, ptz, dt

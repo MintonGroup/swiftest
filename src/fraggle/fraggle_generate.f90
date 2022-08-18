@@ -110,14 +110,16 @@ contains
             lfailure = ((abs(dEtot + frag%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
             if (lfailure) then
                write(message, *) dEtot, abs(dEtot + frag%Qloss) / FRAGGLE_ETOL
-               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high energy error: " // trim(adjustl(message)))
+               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high energy error: " // &
+                                                        trim(adjustl(message)))
                cycle
             end if
 
             lfailure = ((abs(dLmag) / (.mag.frag%Ltot_before)) > FRAGGLE_LTOL) 
             if (lfailure) then
                write(message,*) dLmag / (.mag.frag%Ltot_before(:))
-               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high angular momentum error: " // trim(adjustl(message)))
+               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
+                                                        trim(adjustl(message)))
                cycle
             end if
 
@@ -131,9 +133,11 @@ contains
 
          write(message,*) try
          if (lfailure) then
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation failed after " // trim(adjustl(message)) // " tries")
+            call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation failed after " // &
+                                                      trim(adjustl(message)) // " tries")
          else
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation succeeded after " // trim(adjustl(message)) // " tries")
+            call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation succeeded after " // &
+                                                       trim(adjustl(message)) // " tries")
             call fraggle_io_log_generate(frag)
          end if
 
@@ -240,14 +244,16 @@ contains
          frag%ke_spin = 0.0_DP
          do i = 1, nfrag
             ! Convert a fraction (f_spin) of either the remaining angular momentum or kinetic energy budget into spin, whichever gives the smaller rotation so as not to blow any budgets
-            rot_ke(:) = sqrt(2 * f_spin * frag%ke_budget / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))) * L_remainder(:) / norm2(L_remainder(:))
+            rot_ke(:) = sqrt(2 * f_spin * frag%ke_budget / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))) &
+                        * L_remainder(:) / norm2(L_remainder(:))
             rot_L(:) = f_spin * L_remainder(:) / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))
             if (norm2(rot_ke) < norm2(rot_L)) then
                frag%rot(:,i) = rot_ke(:)
             else
                frag%rot(:, i) = rot_L(:)
             end if
-            frag%ke_spin = frag%ke_spin + frag%mass(i) * frag%Ip(3, i) * frag%radius(i)**2 * dot_product(frag%rot(:, i), frag%rot(:, i))
+            frag%ke_spin = frag%ke_spin + frag%mass(i) * frag%Ip(3, i) * frag%radius(i)**2 &
+                                                       * dot_product(frag%rot(:, i), frag%rot(:, i))
          end do
          frag%ke_spin = 0.5_DP * frag%ke_spin
 
@@ -340,7 +346,8 @@ contains
          frag%v_t_mag(1:nfrag) = solve_fragment_tan_vel(v_t_mag_input=v_t_initial(7:nfrag), lfailure=lfailure)
 
          ! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional system (the origin)
-         frag%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(frag%v_r_mag(1:nfrag), frag%v_r_unit(:,1:nfrag), frag%v_t_mag(1:nfrag), frag%v_t_unit(:,1:nfrag), frag%mass(1:nfrag), frag%vbcom(:)) 
+         frag%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(frag%v_r_mag(1:nfrag), frag%v_r_unit(:,1:nfrag), frag%v_t_mag(1:nfrag), &
+                                                      frag%v_t_unit(:,1:nfrag), frag%mass(1:nfrag), frag%vbcom(:)) 
          do concurrent (i = 1:nfrag)
             frag%v_coll(:,i) = frag%vb(:,i) - frag%vbcom(:)
          end do
@@ -506,7 +513,8 @@ contains
          
          ! Shift the radial velocity vectors to align with the center of mass of the collisional system (the origin)
          frag%ke_orbit = 0.0_DP
-         frag%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(frag%v_r_mag(1:nfrag), frag%v_r_unit(:,1:nfrag), frag%v_t_mag(1:nfrag), frag%v_t_unit(:,1:nfrag), frag%mass(1:nfrag), frag%vbcom(:)) 
+         frag%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(frag%v_r_mag(1:nfrag), frag%v_r_unit(:,1:nfrag), &
+                              frag%v_t_mag(1:nfrag), frag%v_t_unit(:,1:nfrag), frag%mass(1:nfrag), frag%vbcom(:)) 
          do i = 1, nfrag
             frag%v_coll(:, i) = frag%vb(:, i) - frag%vbcom(:)
             frag%ke_orbit = frag%ke_orbit + frag%mass(i) * dot_product(frag%vb(:, i), frag%vb(:, i))
@@ -547,21 +555,19 @@ contains
             real(DP), dimension(frag%nbody)       :: kearr
             real(DP)                              :: keo, ke_radial, rotmag2, vmag2
       
-            associate(nfrag => frag%nbody)
-               allocate(v_shift, mold=frag%vb)
-               v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, frag%v_r_unit, frag%v_t_mag, frag%v_t_unit, frag%mass, frag%vbcom) 
-               !$omp do simd 
-               do i = 1,nfrag
-                  rotmag2 = frag%rot(1,i)**2 + frag%rot(2,i)**2 + frag%rot(3,i)**2
-                  vmag2 = v_shift(1,i)**2 + v_shift(2,i)**2 + v_shift(3,i)**2
-                  kearr(i) = frag%mass(i) * (frag%Ip(3, i) * frag%radius(i)**2 * rotmag2 + vmag2) 
-               end do
-               !$omp end do simd
-               keo = 2 * frag%ke_budget - sum(kearr(:))
-               ke_radial = frag%ke_budget - frag%ke_orbit - frag%ke_spin
-               ! The following ensures that fval = 0 is a local minimum, which is what the BFGS method is searching for
-               fval = (keo / (2 * ke_radial))**2
-            end associate
+            allocate(v_shift, mold=frag%vb)
+            v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, frag%v_r_unit, frag%v_t_mag, frag%v_t_unit, frag%mass, frag%vbcom) 
+            !$omp do simd firstprivate(frag)
+            do i = 1,frag%nbody
+               rotmag2 = frag%rot(1,i)**2 + frag%rot(2,i)**2 + frag%rot(3,i)**2
+               vmag2 = v_shift(1,i)**2 + v_shift(2,i)**2 + v_shift(3,i)**2
+               kearr(i) = frag%mass(i) * (frag%Ip(3, i) * frag%radius(i)**2 * rotmag2 + vmag2) 
+            end do
+            !$omp end do simd
+            keo = 2 * frag%ke_budget - sum(kearr(:))
+            ke_radial = frag%ke_budget - frag%ke_orbit - frag%ke_spin
+            ! The following ensures that fval = 0 is a local minimum, which is what the BFGS method is searching for
+            fval = (keo / (2 * ke_radial))**2
       
             return
          end function radial_objective_function

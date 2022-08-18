@@ -44,6 +44,9 @@ contains
                ifirst = ilast + 1
                param_value = io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
+               case ("OUT_STAT") ! We need to duplicate this from the standard io_param_reader in order to make sure that the restart flag gets set properly in SyMBA
+                  call io_toupper(param_value)
+                  param%out_stat = param_value 
                case ("FRAGMENTATION")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
@@ -71,7 +74,8 @@ contains
                         param_value = io_get_token(line, ifirst, ilast, iostat) 
                         read(param_value, *) param%seed(i)
                      end do
-                     param%seed(nseeds_from_file+1:nseeds) = [(param%seed(1) - param%seed(nseeds_from_file) + i, i=nseeds_from_file+1, nseeds)]
+                     param%seed(nseeds_from_file+1:nseeds) = [(param%seed(1) - param%seed(nseeds_from_file) + i, &
+                                                               i=nseeds_from_file+1, nseeds)]
                   end if
                   seed_set = .true.
                end select
@@ -79,6 +83,8 @@ contains
          end do
          1 continue
          close(unit)
+
+         param%lrestart = (param%out_stat == "APPEND")
 
          if (self%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", self%GMTINY
@@ -176,9 +182,7 @@ contains
 
             ! Record the discarded body metadata information to file
             if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-               call param%nciu%open(param) 
-               call pl_discards%write_particle_info(param%nciu)
-               call param%nciu%close(param)
+               call pl_discards%write_particle_info(param%nciu, param)
             end if
 
             if (param%discard_out == "") return
@@ -189,9 +193,9 @@ contains
             end if
             select case(out_stat)
             case('APPEND')
-               open(unit = LUN, file = param%discard_out, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+               open(unit=LUN, file=param%discard_out, status='OLD', position='APPEND', form='FORMATTED', err=667, iomsg=errmsg)
             case('NEW', 'REPLACE', 'UNKNOWN')
-               open(unit = LUN, file = param%discard_out, status = param%out_stat, form = 'FORMATTED', err = 667, iomsg = errmsg)
+               open(unit=LUN, file=param%discard_out, status=param%out_stat, form='FORMATTED', err=667, iomsg=errmsg)
             case default
                write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
                call util_exit(FAILURE)
@@ -202,7 +206,7 @@ contains
                call pl_adds%pv2v(param) 
             end if
 
-            write(LUN, HDRFMT, err = 667, iomsg = errmsg) param%t, pl_discards%nbody, param%lbig_discard
+            write(LUN, HDRFMT, err=667, iomsg=errmsg) param%t, pl_discards%nbody, param%lbig_discard
             iadd = 1
             isub = 1
             do while (iadd <= pl_adds%nbody)
@@ -210,9 +214,9 @@ contains
                nsub = pl_discards%ncomp(isub)
                do j = 1, nadd
                   if (iadd <= pl_adds%nbody) then
-                     write(LUN, NAMEFMT, err = 667, iomsg = errmsg) ADD, pl_adds%id(iadd), pl_adds%status(iadd)
-                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
-                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
+                     write(LUN, NAMEFMT, err=667, iomsg=errmsg) ADD, pl_adds%id(iadd), pl_adds%status(iadd)
+                     write(LUN, VECFMT, err=667, iomsg=errmsg) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
+                     write(LUN, VECFMT, err=667, iomsg=errmsg) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
                   else 
                      exit
                   end if
@@ -220,9 +224,9 @@ contains
                end do
                do j = 1, nsub
                   if (isub <= pl_discards%nbody) then
-                     write(LUN, NAMEFMT, err = 667, iomsg = errmsg) SUB, pl_discards%id(isub), pl_discards%status(isub)
-                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_discards%xh(1, isub), pl_discards%xh(2, isub), pl_discards%xh(3, isub)
-                     write(LUN, VECFMT, err = 667, iomsg = errmsg) pl_discards%vh(1, isub), pl_discards%vh(2, isub), pl_discards%vh(3, isub)
+                     write(LUN,NAMEFMT,err=667,iomsg=errmsg) SUB, pl_discards%id(isub), pl_discards%status(isub)
+                     write(LUN,VECFMT,err=667,iomsg=errmsg) pl_discards%xh(1,isub), pl_discards%xh(2,isub), pl_discards%xh(3,isub)
+                     write(LUN,VECFMT,err=667,iomsg=errmsg) pl_discards%vh(1,isub), pl_discards%vh(2,isub), pl_discards%vh(3,isub)
                   else
                      exit
                   end if

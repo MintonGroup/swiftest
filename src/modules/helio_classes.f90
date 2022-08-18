@@ -17,6 +17,7 @@ module helio_classes
    contains
       procedure :: step       => helio_step_system             !! Advance the Helio nbody system forward in time by one step
       procedure :: initialize => helio_setup_initialize_system !! Performs Helio-specific initilization steps, including converting to DH coordinates
+      final     :: helio_util_final_system                     !! Finalizes the Helio system object - deallocates all allocatables 
    end type helio_nbody_system
 
    !********************************************************************************************************************************
@@ -43,6 +44,7 @@ module helio_classes
       procedure :: accel       => helio_kick_getacch_pl    !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => helio_kick_vb_pl         !! Kicks the barycentric velocities
       procedure :: step        => helio_step_pl            !! Steps the body forward one stepsize
+      final     :: helio_util_final_pl                     !! Finalizes the Helio massive body object - deallocates all allocatables
    end type helio_pl
 
    !********************************************************************************************************************************
@@ -59,6 +61,7 @@ module helio_classes
       procedure :: accel       => helio_kick_getacch_tp    !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => helio_kick_vb_tp         !! Kicks the barycentric velocities
       procedure :: step        => helio_step_tp            !! Steps the body forward one stepsize
+      final     :: helio_util_final_tp                     !! Finalizes the Helio test particle object - deallocates all allocatables
    end type helio_tp
 
    interface
@@ -119,20 +122,22 @@ module helio_classes
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
       end subroutine helio_gr_kick_getacch_tp
       
-      module pure subroutine helio_gr_p4_pl(self, param, dt)
-         use swiftest_classes, only : swiftest_parameters
+      module pure subroutine helio_gr_p4_pl(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
-         class(helio_pl),            intent(inout) :: self   !! Swiftest particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: dt     !! Step size
+         class(helio_pl),              intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine helio_gr_p4_pl
    
-      module pure subroutine helio_gr_p4_tp(self, param, dt)
-         use swiftest_classes, only : swiftest_parameters
+      module pure subroutine helio_gr_p4_tp(self, system, param, dt)
+         use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
-         class(helio_tp),            intent(inout) :: self  !! Swiftest particle object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: dt    !! Step size
+         class(helio_tp),              intent(inout) :: self   !! Swiftest particle object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine helio_gr_p4_tp
 
       module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
@@ -188,7 +193,7 @@ module helio_classes
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Helio massive body particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nboody system
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -212,6 +217,21 @@ module helio_classes
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsizee
       end subroutine helio_step_tp
+
+      module subroutine helio_util_final_pl(self)
+         implicit none
+         type(helio_pl),  intent(inout) :: self !! Helio massive body object
+      end subroutine helio_util_final_pl
+
+      module subroutine helio_util_final_system(self)
+         implicit none
+         type(helio_nbody_system),  intent(inout) :: self !! Helio nbody system object
+      end subroutine helio_util_final_system
+
+      module subroutine helio_util_final_tp(self)
+         implicit none
+         type(helio_tp),  intent(inout) :: self !! Helio test particle object
+      end subroutine helio_util_final_tp
 
    end interface
 

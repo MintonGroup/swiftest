@@ -18,9 +18,9 @@ contains
       ! Call parent method
       associate(system => self)
          call helio_setup_initialize_system(system, param)
-         call system%pltpenc_list%setup(0)
-         call system%plplenc_list%setup(0)
-         call system%plplcollision_list%setup(0)
+         call system%pltpenc_list%setup(0_I8B)
+         call system%plplenc_list%setup(0_I8B)
+         call system%plplcollision_list%setup(0_I8B)
       end associate
 
       return
@@ -72,20 +72,6 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call setup_pl(self, n, param) 
-      if (n < 0) return
-
-      if (allocated(self%lcollision)) deallocate(self%lcollision)
-      if (allocated(self%lencounter)) deallocate(self%lencounter)
-      if (allocated(self%lmtiny)) deallocate(self%lmtiny)
-      if (allocated(self%nplenc)) deallocate(self%nplenc)
-      if (allocated(self%ntpenc)) deallocate(self%ntpenc)
-      if (allocated(self%levelg)) deallocate(self%levelg)
-      if (allocated(self%levelm)) deallocate(self%levelm)
-      if (allocated(self%isperi)) deallocate(self%isperi)
-      if (allocated(self%peri)) deallocate(self%peri)
-      if (allocated(self%atp)) deallocate(self%atp)
-      if (allocated(self%kin)) deallocate(self%kin)
-
       if (n == 0) return
 
       allocate(self%lcollision(n))
@@ -115,7 +101,7 @@ contains
    end subroutine symba_setup_pl
 
 
-   module subroutine symba_setup_encounter(self, n)
+   module subroutine symba_setup_encounter_list(self, n)
       !! author: David A. Minton
       !!
       !! A constructor that sets the number of encounters and allocates and initializes all arrays  
@@ -123,21 +109,17 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
-      integer(I4B),         intent(in)    :: n    !! Number of encounters to allocate space for
+      integer(I8B),           intent(in)    :: n    !! Number of encounters to allocate space for
 
-      call setup_encounter(self, n)
-      if (n < 0) return
-
-      if (allocated(self%level)) deallocate(self%level)
-
-      if (n ==0) return
+      call encounter_setup_list(self, n)
+      if (n <= 0_I8B) return
 
       allocate(self%level(n))
 
       self%level(:) = -1
 
       return
-   end subroutine symba_setup_encounter
+   end subroutine symba_setup_encounter_list
 
 
    module subroutine symba_setup_tp(self, n, param)
@@ -154,19 +136,11 @@ contains
 
       !> Call allocation method for parent class. In this case, helio_tp does not have its own setup method so we use the base method for swiftest_tp
       call setup_tp(self, n, param) 
-      if (n < 0) return
-
-      if (allocated(self%nplenc)) deallocate(self%nplenc)
-      if (allocated(self%levelg)) deallocate(self%levelg)
-      if (allocated(self%levelm)) deallocate(self%levelm)
-      if (allocated(self%info)) deallocate(self%info)
-
       if (n == 0) return
 
       allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
-      allocate(self%info(n))
 
       self%nplenc(:) = 0
       self%levelg(:) = -1
