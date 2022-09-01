@@ -727,16 +727,29 @@ def clean_string_values(param, ds):
     Returns
     -------
     ds : xarray dataset with the strings cleaned up
-    """  
+    """
+
+    def xstrip(a):
+        func = lambda x: np.char.strip(x)
+        return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'))
+
+    def string_converter(da):
+       if da.dtype == np.dtype(object):
+          da = da.astype('<U32')
+       elif da.dtype != np.dtype('<U32'):
+          da = xstrip(da)
+       return da
+
     if 'name' in ds:
-       ds['name'] = xstrip(ds['name'])
+       ds['name'] = string_converter(ds['name'])
     if 'particle_type' in ds:
-       ds['particle_type'] =  xstrip(ds['particle_type'])
+       ds['particle_type'] = string_converter(ds['particle_type'])
     if 'status' in ds:
-       ds['status'] = xstrip(ds['status'])
+        ds['status'] = string_converter(ds['status'])
     if 'origin_type' in ds:
-       ds['origin_type'] =  xstrip(ds['origin_type'])
+        ds['origin_type'] = string_converter(ds['origin_type'])
     return ds
+
 
 
 def swiftest_particle_stream(f):
