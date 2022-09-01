@@ -26,7 +26,7 @@ def real2float(realstr):
     return float(realstr.replace('d', 'E').replace('D', 'E'))
 
 
-def read_swiftest_param(param_file_name, param):
+def read_swiftest_param(param_file_name, param, verbose=True):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
 
@@ -43,7 +43,7 @@ def read_swiftest_param(param_file_name, param):
     param['! VERSION'] = f"Swiftest parameter input from file {param_file_name}"
     
     # Read param.in file
-    print(f'Reading Swiftest file {param_file_name}')
+    if verbose: print(f'Reading Swiftest file {param_file_name}')
     try:
         with open(param_file_name, 'r') as f:
             for line in f.readlines():
@@ -95,7 +95,7 @@ def read_swiftest_param(param_file_name, param):
     return param
 
 
-def read_swifter_param(param_file_name):
+def read_swifter_param(param_file_name, verbose=True):
     """
     Reads in a Swifter param.in file and saves it as a dictionary
 
@@ -140,7 +140,7 @@ def read_swifter_param(param_file_name):
     }
     
     # Read param.in file
-    print(f'Reading Swifter file {param_file_name}')
+    if verbose: print(f'Reading Swifter file {param_file_name}')
     try:
         with open(param_file_name, 'r') as f:
             for line in f.readlines():
@@ -179,7 +179,7 @@ def read_swifter_param(param_file_name):
     return param
 
 
-def read_swift_param(param_file_name, startfile="swift.in"):
+def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
     """
     Reads in a Swift param.in file and saves it as a dictionary
 
@@ -228,7 +228,7 @@ def read_swift_param(param_file_name, startfile="swift.in"):
     param['TP_IN'] = tpname
 
     # Read param.in file
-    print(f'Reading Swift file {param_file_name}')
+    if verbose: print(f'Reading Swift file {param_file_name}')
     try:
         with open(param_file_name, 'r') as f:
             line = f.readline().split()
@@ -603,7 +603,7 @@ def swiftest_stream(f, param):
               ntp, tpid, tpnames, tvec.T, tlab
 
 
-def swifter2xr(param):
+def swifter2xr(param, verbose=True):
     """
     Converts a Swifter binary data file into an xarray DataSet.
 
@@ -640,13 +640,13 @@ def swifter2xr(param):
         
         plds = plda.to_dataset(dim='vec')
         tpds = tpda.to_dataset(dim='vec')
-        print('\nCreating Dataset')
+        if verbose: print('\nCreating Dataset')
         ds = xr.combine_by_coords([plds, tpds])
-        print(f"Successfully converted {ds.sizes['time']} output frames.")
+        if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
 
-def swiftest2xr(param):
+def swiftest2xr(param, verbose=True):
     """
     Converts a Swiftest binary data file into an xarray DataSet.
 
@@ -700,23 +700,20 @@ def swiftest2xr(param):
         cbds = cbda.to_dataset(dim='vec')
         plds = plda.to_dataset(dim='vec')
         tpds = tpda.to_dataset(dim='vec')
-        print('\nCreating Dataset')
+        if verbose: print('\nCreating Dataset')
         ds = xr.combine_by_coords([cbds, plds, tpds])
 
     elif ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
-        print('\nCreating Dataset from NetCDF file')
+        if verbose: print('\nCreating Dataset from NetCDF file')
         ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
         ds = clean_string_values(param, ds)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
-    print(f"Successfully converted {ds.sizes['time']} output frames.")
+    if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
 
     return ds
 
-def xstrip(a):
-    func = lambda x: np.char.strip(x)
-    return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'))
 
 def clean_string_values(param, ds):
     """
