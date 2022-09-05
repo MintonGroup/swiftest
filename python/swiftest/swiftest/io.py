@@ -831,6 +831,13 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     A set of three input files for a Swiftest run
     """
     frame = ds.isel(time=framenum)
+
+    # For NETCDF input file type, just do a dump of the system at the correct time frame
+    if param['IN_TYPE'] == "NETCDF_DOUBLE" or param['IN_TYPE'] == "NETCDF_FLOAT":
+       frame.to_netcdf(path=param['NC_IN'])
+       return
+
+    # All other file types need seperate files for each of the inputs
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
@@ -1015,6 +1022,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
     A set of input files for a Swifter run
     """
     frame = ds.isel(time=framenum)
+
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
@@ -1060,6 +1068,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
         # Now make Swiftest files
         print(f"{param['IN_TYPE']} is an unknown input file type")
 
+    return
 
 def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     swifter_param = {}
