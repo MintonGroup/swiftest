@@ -7,6 +7,7 @@ import tempfile
 import re
 
 newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP", "IN_FORM")
+string_varnames = ["name", "particle_type", "status", "origin_type"]
 
 def real2float(realstr):
     """
@@ -714,6 +715,16 @@ def swiftest2xr(param, verbose=True):
 
     return ds
 
+def xstrip(a):
+    func = lambda x: np.char.strip(x)
+    return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'))
+
+def string_converter(da):
+   if da.dtype == np.dtype(object):
+      da = da.astype('<U32')
+   elif da.dtype != np.dtype('<U32'):
+      da = xstrip(da)
+   return da
 
 def clean_string_values(param, ds):
     """
@@ -729,27 +740,10 @@ def clean_string_values(param, ds):
     ds : xarray dataset with the strings cleaned up
     """
 
-    def xstrip(a):
-        func = lambda x: np.char.strip(x)
-        return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'))
-
-    def string_converter(da):
-       if da.dtype == np.dtype(object):
-          da = da.astype('<U32')
-       elif da.dtype != np.dtype('<U32'):
-          da = xstrip(da)
-       return da
-
-    if 'name' in ds:
-       ds['name'] = string_converter(ds['name'])
-    if 'particle_type' in ds:
-       ds['particle_type'] = string_converter(ds['particle_type'])
-    if 'status' in ds:
-        ds['status'] = string_converter(ds['status'])
-    if 'origin_type' in ds:
-        ds['origin_type'] = string_converter(ds['origin_type'])
+    for n in string_varnames:
+        if n in ds:
+           ds[n] = string_converter(ds[n])
     return ds
-
 
 
 def swiftest_particle_stream(f):
@@ -812,6 +806,7 @@ def swiftest_particle_2xr(param):
 
    return infoxr
 
+#def convert_to_fortran_readable(ds):
 
 def swiftest_xr2infile(ds, param, framenum=-1):
     """
@@ -830,12 +825,45 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     -------
     A set of three input files for a Swiftest run
     """
-    frame = ds.isel(time=framenum)
+
+    # Select the input time frame from the Dataset
+    frame = ds.isel(time=[framenum])
+
+    # Select only the active particles at this time step
+    def is_not_nan(x):
+        return np.invert(np.isnan(x))
 
     # For NETCDF input file type, just do a dump of the system at the correct time frame
+    frame_id_only = frame.drop_dims('time')
+    frame_time_only = frame.drop_dims('id')
+    frame_both = frame.drop_vars(frame_id_only.keys()).drop_vars(frame_time_only.keys())
+
+    def is_not_nan(x):
+        return np.invert(np.isnan(x))
+
+    # Remove the inactive particles
+    if param['OUT_FORM'] == 'XV':
+        active_masker = xr.apply_ufunc(is_not_nan, frame_both['xhx'].isel(time=0))
+    else:
+        active_masker = xr.apply_ufunc(is_not_nan, frame_both['a'].isel(time=0))
+    active_masker = active_masker.drop_vars("time")
+    active_masker = xr.where(active_masker['id'] == 0, True, active_masker)
+
+    frame_id_only = frame_id_only.where(active_masker, drop=True)
+    frame_both = frame_both.where(active_masker, drop=True)
+
+    frame = frame_both.combine_first(frame_time_only).combine_first(frame_id_only)
+    frame = frame.transpose("time", "id")
+
     if param['IN_TYPE'] == "NETCDF_DOUBLE" or param['IN_TYPE'] == "NETCDF_FLOAT":
-       frame.to_netcdf(path=param['NC_IN'])
-       return
+        # Convert strings back to byte form and save the NetCDF file
+        # Note: xarray will call the character array dimension string32. The Fortran code
+        # will rename this after reading
+        for c in string_varnames:
+            n = string_converter(frame[c])
+            frame[c] = n.str.ljust(32).str.encode('utf-8')
+        frame.to_netcdf(path=param['NC_IN'])
+        return
 
     # All other file types need seperate files for each of the inputs
     cb = frame.where(frame.id == 0, drop=True)
