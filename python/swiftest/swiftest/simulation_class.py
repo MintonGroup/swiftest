@@ -11,7 +11,7 @@ class Simulation:
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
-    def __init__(self, codename="Swiftest", param_file="", readbin=True):
+    def __init__(self, codename="Swiftest", param_file="param.in", readbin=True, verbose=True):
         self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
@@ -54,12 +54,14 @@ class Simulation:
             'ENCOUNTER_CHECK': "ADAPTIVE"
         }
         self.codename = codename
+        self.verbose = verbose
         if param_file != "" :
             dir_path = os.path.dirname(os.path.realpath(param_file))
-            self.read_param(param_file, codename)
+            self.read_param(param_file, codename=codename, verbose=self.verbose)
             if readbin:
-                if os.path.exists(dir_path + '/' + self.param['BIN_OUT']):
-                    self.param['BIN_OUT'] = dir_path + '/' + self.param['BIN_OUT']
+                binpath = os.path.join(dir_path,self.param['BIN_OUT'])
+                if os.path.exists(binpath):
+                    self.param['BIN_OUT'] = binpath
                     self.bin2xr()
                 else:
                     print(f"BIN_OUT file {self.param['BIN_OUT']} not found.")
@@ -114,15 +116,15 @@ class Simulation:
         return
     
     
-    def read_param(self, param_file, codename="Swiftest"):
+    def read_param(self, param_file, codename="Swiftest", verbose=True):
         if codename == "Swiftest":
-            self.param = io.read_swiftest_param(param_file, self.param)
+            self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
             self.codename = "Swiftest"
         elif codename == "Swifter":
-            self.param = io.read_swifter_param(param_file)
+            self.param = io.read_swifter_param(param_file, verbose=verbose)
             self.codename = "Swifter"
         elif codename == "Swift":
-            self.param = io.read_swift_param(param_file)
+            self.param = io.read_swift_param(param_file, verbose=verbose)
             self.codename = "Swift"
         else:
             print(f'{codename} is not a recognized code name. Valid options are "Swiftest", "Swifter", or "Swift".')
@@ -180,11 +182,11 @@ class Simulation:
     
     def bin2xr(self):
         if self.codename == "Swiftest":
-            self.ds = io.swiftest2xr(self.param)
-            print('Swiftest simulation data stored as xarray DataSet .ds')
+            self.ds = io.swiftest2xr(self.param, verbose=self.verbose)
+            if self.verbose: print('Swiftest simulation data stored as xarray DataSet .ds')
         elif self.codename == "Swifter":
-            self.ds = io.swifter2xr(self.param)
-            print('Swifter simulation data stored as xarray DataSet .ds')
+            self.ds = io.swifter2xr(self.param, verbose=self.verbose)
+            if self.verbose: print('Swifter simulation data stored as xarray DataSet .ds')
         elif self.codename == "Swift":
             print("Reading Swift simulation data is not implemented yet")
         else:
@@ -215,7 +217,7 @@ class Simulation:
         else:
             fol = None
         
-        print('follow.out written')
+        if self.verbose: print('follow.out written')
         return fol
     
     

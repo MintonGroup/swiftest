@@ -265,8 +265,8 @@ contains
             class is (symba_tp)
                associate(npl => pl%nbody, ntp => tp%nbody)
                   nenc_old = system%plplenc_list%nenc
-                  call system%plplenc_list%setup(0)
-                  call system%plplcollision_list%setup(0)
+                  call system%plplenc_list%setup(0_I8B)
+                  call system%plplcollision_list%setup(0_I8B)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
                      call pl%reset_kinship([(i, i=1, npl)])
@@ -284,7 +284,7 @@ contains
                   end if
             
                   nenc_old = system%pltpenc_list%nenc
-                  call system%pltpenc_list%setup(0)
+                  call system%pltpenc_list%setup(0_I8B)
                   if (ntp > 0) then
                      tp%nplenc(1:ntp) = 0 
                      tp%levelg(1:ntp) = -1

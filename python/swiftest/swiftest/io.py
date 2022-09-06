@@ -7,6 +7,7 @@ import tempfile
 import re
 
 newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP", "IN_FORM")
+string_varnames = ["name", "particle_type", "status", "origin_type"]
 
 def real2float(realstr):
     """
@@ -26,7 +27,7 @@ def real2float(realstr):
     return float(realstr.replace('d', 'E').replace('D', 'E'))
 
 
-def read_swiftest_param(param_file_name, param):
+def read_swiftest_param(param_file_name, param, verbose=True):
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
 
@@ -43,7 +44,7 @@ def read_swiftest_param(param_file_name, param):
     param['! VERSION'] = f"Swiftest parameter input from file {param_file_name}"
     
     # Read param.in file
-    print(f'Reading Swiftest file {param_file_name}')
+    if verbose: print(f'Reading Swiftest file {param_file_name}')
     try:
         with open(param_file_name, 'r') as f:
             for line in f.readlines():
@@ -95,7 +96,7 @@ def read_swiftest_param(param_file_name, param):
     return param
 
 
-def read_swifter_param(param_file_name):
+def read_swifter_param(param_file_name, verbose=True):
     """
     Reads in a Swifter param.in file and saves it as a dictionary
 
@@ -140,7 +141,7 @@ def read_swifter_param(param_file_name):
     }
     
     # Read param.in file
-    print(f'Reading Swifter file {param_file_name}')
+    if verbose: print(f'Reading Swifter file {param_file_name}')
     try:
         with open(param_file_name, 'r') as f:
             for line in f.readlines():
@@ -179,7 +180,7 @@ def read_swifter_param(param_file_name):
     return param
 
 
-def read_swift_param(param_file_name, startfile="swift.in"):
+def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
     """
     Reads in a Swift param.in file and saves it as a dictionary
 
@@ -228,7 +229,7 @@ def read_swift_param(param_file_name, startfile="swift.in"):
     param['TP_IN'] = tpname
 
     # Read param.in file
-    print(f'Reading Swift file {param_file_name}')
+    if verbose: print(f'Reading Swift file {param_file_name}')
     try:
         with open(param_file_name, 'r') as f:
             line = f.readline().split()
@@ -603,7 +604,7 @@ def swiftest_stream(f, param):
               ntp, tpid, tpnames, tvec.T, tlab
 
 
-def swifter2xr(param):
+def swifter2xr(param, verbose=True):
     """
     Converts a Swifter binary data file into an xarray DataSet.
 
@@ -640,13 +641,13 @@ def swifter2xr(param):
         
         plds = plda.to_dataset(dim='vec')
         tpds = tpda.to_dataset(dim='vec')
-        print('\nCreating Dataset')
+        if verbose: print('\nCreating Dataset')
         ds = xr.combine_by_coords([plds, tpds])
-        print(f"Successfully converted {ds.sizes['time']} output frames.")
+        if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
 
-def swiftest2xr(param):
+def swiftest2xr(param, verbose=True):
     """
     Converts a Swiftest binary data file into an xarray DataSet.
 
@@ -700,23 +701,30 @@ def swiftest2xr(param):
         cbds = cbda.to_dataset(dim='vec')
         plds = plda.to_dataset(dim='vec')
         tpds = tpda.to_dataset(dim='vec')
-        print('\nCreating Dataset')
+        if verbose: print('\nCreating Dataset')
         ds = xr.combine_by_coords([cbds, plds, tpds])
 
     elif ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
-        print('\nCreating Dataset from NetCDF file')
+        if verbose: print('\nCreating Dataset from NetCDF file')
         ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
         ds = clean_string_values(param, ds)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
-    print(f"Successfully converted {ds.sizes['time']} output frames.")
+    if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
 
     return ds
 
 def xstrip(a):
     func = lambda x: np.char.strip(x)
     return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'))
+
+def string_converter(da):
+   if da.dtype == np.dtype(object):
+      da = da.astype('<U32')
+   elif da.dtype != np.dtype('<U32'):
+      da = xstrip(da)
+   return da
 
 def clean_string_values(param, ds):
     """
@@ -730,15 +738,11 @@ def clean_string_values(param, ds):
     Returns
     -------
     ds : xarray dataset with the strings cleaned up
-    """  
-    if 'name' in ds:
-       ds['name'] = xstrip(ds['name'])
-    if 'particle_type' in ds:
-       ds['particle_type'] =  xstrip(ds['particle_type'])
-    if 'status' in ds:
-       ds['status'] = xstrip(ds['status'])
-    if 'origin_type' in ds:
-       ds['origin_type'] =  xstrip(ds['origin_type'])
+    """
+
+    for n in string_varnames:
+        if n in ds:
+           ds[n] = string_converter(ds[n])
     return ds
 
 
@@ -802,6 +806,7 @@ def swiftest_particle_2xr(param):
 
    return infoxr
 
+#def convert_to_fortran_readable(ds):
 
 def swiftest_xr2infile(ds, param, framenum=-1):
     """
@@ -820,7 +825,47 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     -------
     A set of three input files for a Swiftest run
     """
-    frame = ds.isel(time=framenum)
+
+    # Select the input time frame from the Dataset
+    frame = ds.isel(time=[framenum])
+
+    # Select only the active particles at this time step
+    def is_not_nan(x):
+        return np.invert(np.isnan(x))
+
+    # For NETCDF input file type, just do a dump of the system at the correct time frame
+    frame_id_only = frame.drop_dims('time')
+    frame_time_only = frame.drop_dims('id')
+    frame_both = frame.drop_vars(frame_id_only.keys()).drop_vars(frame_time_only.keys())
+
+    def is_not_nan(x):
+        return np.invert(np.isnan(x))
+
+    # Remove the inactive particles
+    if param['OUT_FORM'] == 'XV':
+        active_masker = xr.apply_ufunc(is_not_nan, frame_both['xhx'].isel(time=0))
+    else:
+        active_masker = xr.apply_ufunc(is_not_nan, frame_both['a'].isel(time=0))
+    active_masker = active_masker.drop_vars("time")
+    active_masker = xr.where(active_masker['id'] == 0, True, active_masker)
+
+    frame_id_only = frame_id_only.where(active_masker, drop=True)
+    frame_both = frame_both.where(active_masker, drop=True)
+
+    frame = frame_both.combine_first(frame_time_only).combine_first(frame_id_only)
+    frame = frame.transpose("time", "id")
+
+    if param['IN_TYPE'] == "NETCDF_DOUBLE" or param['IN_TYPE'] == "NETCDF_FLOAT":
+        # Convert strings back to byte form and save the NetCDF file
+        # Note: xarray will call the character array dimension string32. The Fortran code
+        # will rename this after reading
+        for c in string_varnames:
+            n = string_converter(frame[c])
+            frame[c] = n.str.ljust(32).str.encode('utf-8')
+        frame.to_netcdf(path=param['NC_IN'])
+        return
+
+    # All other file types need seperate files for each of the inputs
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
@@ -1005,6 +1050,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
     A set of input files for a Swifter run
     """
     frame = ds.isel(time=framenum)
+
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
@@ -1050,6 +1096,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
         # Now make Swiftest files
         print(f"{param['IN_TYPE']} is an unknown input file type")
 
+    return
 
 def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     swifter_param = {}
