@@ -382,6 +382,7 @@ contains
       logical, optional,          intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       ! Internals
       integer(I4B) :: mode
+      character(len=NF90_MAX_NAME) :: str_dim_name
 
       mode = NF90_WRITE
       if (present(readonly)) then
@@ -392,7 +393,9 @@ contains
 
       call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid) )
       call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid) )
-      call check( nf90_inq_dimid(self%ncid, STR_DIMNAME, self%str_dimid) )
+      call check( nf90_inquire_dimension(self%ncid, max(self%time_dimid,self%id_dimid)+1, name=str_dim_name) )
+      call check( nf90_inq_dimid(self%ncid, str_dim_name, self%str_dimid) )
+      if (str_dim_name /= "str") call check( nf90_rename_dim(self%ncid, str_dim_name, STR_DIMNAME) )
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid))
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid))
@@ -496,7 +499,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: dim, i, j, tslot, idmax, npl_check, ntp_check
+      integer(I4B)                              :: dim, i, j, tslot, idmax, npl_check, ntp_check, t_max, str_max
       real(DP), dimension(:), allocatable       :: rtemp
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: validmask, tpmask, plmask
@@ -517,6 +520,8 @@ contains
          allocate(validmask(idmax))
          allocate(tpmask(idmax))
          allocate(plmask(idmax))
+         call check( nf90_inquire_dimension(iu%ncid, iu%time_dimid, len=t_max) )
+         call check( nf90_inquire_dimension(iu%ncid, iu%str_dimid, len=str_max) )
 
          ! First filter out only the id slots that contain valid bodies
          if (param%in_form == XV) then
