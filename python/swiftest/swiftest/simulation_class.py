@@ -85,7 +85,7 @@ class Simulation:
         return
     
     
-    def addp(self, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None):
+    def addp(self, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=None):
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress
@@ -108,11 +108,15 @@ class Simulation:
         -------
         self.ds : xarray dataset
         """
-        t = self.param['T0']
+        if t is None:
+            t = self.param['T0']
 
         dsnew = init_cond.vec2xr(self.param, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl, Rpl, rhill, Ip1, Ip2, Ip3, rotx, roty, rotz, t)
         if dsnew is not None:
             self.ds = xr.combine_by_coords([self.ds, dsnew])
+        self.ds['ntp'] = self.ds['id'].where(np.isnan(self.ds['Gmass'])).count(dim="id")
+        self.ds['npl'] = self.ds['id'].where(np.invert(np.isnan(self.ds['Gmass']))).count(dim="id") - 1
+
         return
     
     

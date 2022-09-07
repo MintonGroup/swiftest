@@ -707,7 +707,7 @@ def swiftest2xr(param, verbose=True):
     elif ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         if verbose: print('\nCreating Dataset from NetCDF file')
         ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
-        ds = clean_string_values(param, ds)
+        ds = clean_string_values(ds)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
@@ -726,13 +726,12 @@ def string_converter(da):
       da = xstrip(da)
    return da
 
-def clean_string_values(param, ds):
+def clean_string_values(ds):
     """
     Cleans up the string values in the DataSet that have artifacts as a result of coming from NetCDF Fortran
 
     Parameters
     ----------
-    param : dict
     ds    : xarray dataset
  
     Returns
@@ -743,6 +742,25 @@ def clean_string_values(param, ds):
     for n in string_varnames:
         if n in ds:
            ds[n] = string_converter(ds[n])
+    return ds
+
+
+def unclean_string_values(ds):
+    """
+    Returns strings back to a format readable to NetCDF Fortran
+
+    Parameters
+    ----------
+    ds    : xarray dataset
+
+    Returns
+    -------
+    ds : xarray dataset with the strings cleaned up
+    """
+
+    for c in string_varnames:
+        n = string_converter(ds[c])
+        ds[c] = n.str.ljust(32).str.encode('utf-8')
     return ds
 
 
@@ -806,25 +824,24 @@ def swiftest_particle_2xr(param):
 
    return infoxr
 
-#def convert_to_fortran_readable(ds):
-
-def swiftest_xr2infile(ds, param, framenum=-1):
+def select_active_from_frame(ds, param, framenum=-1):
     """
-    Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
+    Selects a particular frame from a DataSet and returns only the active particles in that frame
 
     Parameters
     ----------
     ds : xarray dataset
-        Dataset containing Swiftest n-body data in XV format
-    framenum : int
-        Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+        Dataset containing Swiftest n-body data
     param : dict
         Swiftest input parameters. This method uses the names of the cb, pl, and tp files from the input
+    framenum : int (default=-1)
+        Time frame to extract. If this argument is not passed, the default is to use the last frame in the dataset.
 
     Returns
     -------
-    A set of three input files for a Swiftest run
+    Dataset containing only the active particles at frame, framenum
     """
+
 
     # Select the input time frame from the Dataset
     frame = ds.isel(time=[framenum])
@@ -842,7 +859,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         return np.invert(np.isnan(x))
 
     # Remove the inactive particles
-    if param['OUT_FORM'] == 'XV':
+    if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
         active_masker = xr.apply_ufunc(is_not_nan, frame_both['xhx'].isel(time=0))
     else:
         active_masker = xr.apply_ufunc(is_not_nan, frame_both['a'].isel(time=0))
@@ -855,21 +872,41 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     frame = frame_both.combine_first(frame_time_only).combine_first(frame_id_only)
     frame = frame.transpose("time", "id")
 
+    return frame
+
+def swiftest_xr2infile(ds, param, framenum=-1):
+    """
+    Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
+
+    Parameters
+    ----------
+    ds : xarray dataset
+        Dataset containing Swiftest n-body data in XV format
+    param : dict
+        Swiftest input parameters. This method uses the names of the cb, pl, and tp files from the input
+    framenum : int (default=-1)
+        Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+
+    Returns
+    -------
+    A set of input files for a new Swiftest run
+    """
+
+    frame = select_active_from_frame(ds, param, framenum)
+
     if param['IN_TYPE'] == "NETCDF_DOUBLE" or param['IN_TYPE'] == "NETCDF_FLOAT":
         # Convert strings back to byte form and save the NetCDF file
         # Note: xarray will call the character array dimension string32. The Fortran code
         # will rename this after reading
-        for c in string_varnames:
-            n = string_converter(frame[c])
-            frame[c] = n.str.ljust(32).str.encode('utf-8')
+        frame = unclean_string_values(frame)
         frame.to_netcdf(path=param['NC_IN'])
         return
 
     # All other file types need seperate files for each of the inputs
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'],errors="ignore")
+    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'],errors="ignore")
     
     GMSun = np.double(cb['Gmass'])
     if param['CHK_CLOSE'] == 'YES':
