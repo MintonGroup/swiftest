@@ -395,7 +395,8 @@ contains
       call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid) )
       call check( nf90_inquire_dimension(self%ncid, max(self%time_dimid,self%id_dimid)+1, name=str_dim_name) )
       call check( nf90_inq_dimid(self%ncid, str_dim_name, self%str_dimid) )
-      if (str_dim_name /= "str") call check( nf90_rename_dim(self%ncid, STR_DIMNAME, self%str_dimid ) )
+      write(str_dim_name,*) STR_DIMNAME
+      call check( nf90_rename_dim(self%ncid, self%str_dimid, str_dim_name) )
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid))
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid))
