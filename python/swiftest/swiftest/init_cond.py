@@ -135,6 +135,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
 
     dims = ['time', 'id', 'vec']
+    infodims = ['id', 'vec']
     t = np.array([0.0])
 
     key = plname
@@ -270,6 +271,7 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
             rotz = np.full_like(v1, 0.0)
     
     dims = ['time', 'id', 'vec']
+    infodims = ['id', 'vec']
     if GMpl is not None:
         ispl = True
     else:
@@ -285,23 +287,78 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     # Be sure we use the correct input format
     old_out_form = param['OUT_FORM']
     param['OUT_FORM'] = param['IN_FORM']
-    clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
+    clab, plab, tlab, infolab_float, infolab_int, infolab_str = swiftest.io.make_swiftest_labels(param)
     param['OUT_FORM'] = old_out_form
-    vec = np.vstack([v1, v2, v3, v4, v5, v6])
+    vec_float = np.vstack([v1, v2, v3, v4, v5, v6])
+    vec_str = np.vstack([namevals])
+    label_str = ["name"]
     if ispl:
-        vec = np.vstack([vec, GMpl, Rpl])
+        label_float = plab.copy()
+        vec_float = np.vstack([vec_float, GMpl, Rpl])
         if param['RHILL_PRESENT'] == 'YES':
-            vec = np.vstack([vec, rhill])
+            vec_float = np.vstack([vec_float, rhill])
         if param['ROTATION'] == 'YES':
-            vec = np.vstack([vec, Ip1, Ip2, Ip3, rotx, roty, rotz])
-    bodyframe = np.expand_dims(vec.T, axis=0)
-    if ispl:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': plab})
+            vec_float = np.vstack([vec_float, Ip1, Ip2, Ip3, rotx, roty, rotz])
     else:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': tlab})
-      
-    bodyxr = bodyxr.assign_coords(name=('id', namevals))
+        label_float = tlab.copy()
+    if param['OUT_STAT'] == 'APPEND': # Include particle information in initial conditions when appending an existing run
+        if ispl:
+            particle_type = np.repeat("Massive Body",idvals.size)
+        else:
+            particle_type = np.repeat("Test Particle",idvals.size)
+        origin_type = np.repeat("User Added Body",idvals.size)
+        origin_time = np.full_like(v1,t)
+        collision_id = np.full_like(idvals,0)
+        origin_xhx = v1
+        origin_xhy = v2
+        origin_xhz = v3
+        origin_vhx = v4
+        origin_vhy = v5
+        origin_vhz = v6
+        discard_time = np.full_like(v1,-1.0)
+        status = np.repeat("ACTIVE",idvals.size)
+        discard_xhx = np.zeros_like(v1)
+        discard_xhy = np.zeros_like(v1)
+        discard_xhz = np.zeros_like(v1)
+        discard_vhx = np.zeros_like(v1)
+        discard_vhy = np.zeros_like(v1)
+        discard_vhz = np.zeros_like(v1)
+        discard_body_id = np.full_like(idvals,-1)
+        info_vec_float = np.vstack([
+             origin_time,
+             origin_xhx,
+             origin_xhy,
+             origin_xhz,
+             origin_vhx,
+             origin_vhy,
+             origin_vhz,
+             discard_time,
+             discard_xhx,
+             discard_xhy,
+             discard_xhz,
+             discard_vhx,
+             discard_vhy,
+             discard_vhz])
+        info_vec_int = np.vstack([collision_id, discard_body_id])
+        info_vec_str = np.vstack([particle_type, origin_type, status])
+        frame_float = info_vec_float.T
+        frame_int = info_vec_int.T
+        frame_str = info_vec_str.T
+        da_float = xr.DataArray(frame_float, dims=infodims, coords={'id': idvals, 'vec': infolab_float})
+        da_int = xr.DataArray(frame_int, dims=infodims, coords={'id': idvals, 'vec': infolab_int})
+        da_str = xr.DataArray(frame_str, dims=infodims, coords={'id': idvals, 'vec': infolab_str})
+        ds_float = da_float.to_dataset(dim="vec")
+        ds_int = da_int.to_dataset(dim="vec")
+        ds_str = da_str.to_dataset(dim="vec")
+        info_ds = xr.combine_by_coords([ds_float, ds_int, ds_str])
 
-    ds = bodyxr.to_dataset(dim='vec')
-    ds = ds.reset_coords(names=["name"])
+    frame_float = np.expand_dims(vec_float.T, axis=0)
+    frame_str = vec_str.T
+    da_float = xr.DataArray(frame_float, dims=dims, coords={'time': [t], 'id': idvals, 'vec': label_float})
+    da_str= xr.DataArray(frame_str, dims=infodims, coords={'id': idvals, 'vec': label_str})
+    ds_float = da_float.to_dataset(dim="vec")
+    ds_str = da_str.to_dataset(dim="vec")
+    ds = xr.combine_by_coords([ds_float, ds_str])
+    if param['OUT_STAT'] == 'APPEND':
+        ds = xr.combine_by_coords([ds,info_ds])
     return ds

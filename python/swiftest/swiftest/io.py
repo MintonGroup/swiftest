@@ -442,7 +442,34 @@ def make_swiftest_labels(param):
         clab.append('Q')
         plab.append('k2')
         plab.append('Q')
-    return clab, plab, tlab
+
+    infolab_float = [
+        "origin_time",
+        "origin_xhx",
+        "origin_xhy",
+        "origin_xhz",
+        "origin_vhx",
+        "origin_vhy",
+        "origin_vhz",
+        "discard_time",
+        "discard_xhx",
+        "discard_xhy",
+        "discard_xhz",
+        "discard_vhx",
+        "discard_vhy",
+        "discard_vhz",
+        ]
+    infolab_int = [
+        "collision_id",
+        "discard_body_id"
+        ]
+    infolab_str = [
+        "particle_type",
+        "origin_type",
+        "status",
+        ]
+
+    return clab, plab, tlab, infolab_float, infolab_int, infolab_str
 
 
 def swiftest_stream(f, param):
