@@ -395,8 +395,6 @@ contains
       call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid) )
       call check( nf90_inquire_dimension(self%ncid, max(self%time_dimid,self%id_dimid)+1, name=str_dim_name) )
       call check( nf90_inq_dimid(self%ncid, str_dim_name, self%str_dimid) )
-      write(str_dim_name,*) STR_DIMNAME
-      call check( nf90_rename_dim(self%ncid, self%str_dimid, str_dim_name) )
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid))
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid))
@@ -491,7 +489,7 @@ contains
    module function netcdf_read_frame_system(self, iu, param) result(ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
-      !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
+      !! Read a frame (header plus records for each massive body and active test particle) from an output binary file
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
