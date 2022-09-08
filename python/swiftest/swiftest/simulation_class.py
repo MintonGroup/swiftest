@@ -263,6 +263,7 @@ class Simulation:
                 new_param['BIN_OUT'] = os.path.basename(self.param['BIN_OUT'])
             else:
                 if restart:
+                    print(f"Restart run with new output file. Copying {self.param['BIN_OUT']} to {new_bin_out_file}")
                     shutil.copy2(self.param['BIN_OUT'],new_bin_out_file)
                 new_param['BIN_OUT'] = new_bin_out_file
             new_param['IN_FORM'] = 'XV'
@@ -273,7 +274,9 @@ class Simulation:
             new_param.pop('PL_IN', None)
             new_param.pop('TP_IN', None)
             new_param.pop('CB_IN', None)
+            print(f"Extracting data from dataset at time frame number {framenum} and saving it to {new_param['NC_IN']}")
             io.swiftest_xr2infile(self.ds, new_param)
+            print(f"Saving parameter configuration file to {new_param_file}")
             self.write_param(new_param_file, param=new_param)
 
         return
