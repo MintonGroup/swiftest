@@ -6,6 +6,7 @@ from datetime import date
 import xarray as xr
 import numpy as np
 import os
+import shutil
 
 class Simulation:
     """
@@ -238,5 +239,41 @@ class Simulation:
             self.write_param(param_file, param=swifter_param)
         else:
             print(f'Saving to {codename} not supported')
+
+        return
+
+    def initial_conditions_from_bin(self, framenum=-1, new_param=None, new_param_file="param.new.in", new_initial_conditions_file="bin_in.nc", new_bin_out_file=None, restart=False, codename="Swiftest"):
+        if codename != "Swiftest":
+            self.save(new_param_file, framenum, codename)
+            return
+        if new_param is None:
+            new_param = self.param.copy()
+
+        if codename == "Swiftest":
+            if restart:
+                new_param['T0'] = self.ds.time.values[framenum]
+            if self.param['OUT_TYPE'] == 'NETCDF_DOUBLE' or self.param['OUT_TYPE'] == 'REAL8':
+                new_param['IN_TYPE'] = 'NETCDF_DOUBLE'
+            elif self.param['OUT_TYPE'] == 'NETCDF_FLOAT' or self.param['OUT_TYPE'] == 'REAL4':
+                new_param['IN_TYPE'] = 'NETCDF_FLOAT'
+            else:
+                print(f"{self.param['OUT_TYPE']} is an invalid OUT_TYPE file")
+                return
+            if new_bin_out_file is None:
+                new_param['BIN_OUT'] = os.path.basename(self.param['BIN_OUT'])
+            else:
+                if restart:
+                    shutil.copy2(self.param['BIN_OUT'],new_bin_out_file)
+                new_param['BIN_OUT'] = new_bin_out_file
+            new_param['IN_FORM'] = 'XV'
+            if restart:
+                new_param['OUT_STAT'] = 'APPEND'
+            new_param['FIRSTKICK'] = 'T'
+            new_param['NC_IN'] = new_initial_conditions_file
+            new_param.pop('PL_IN', None)
+            new_param.pop('TP_IN', None)
+            new_param.pop('CB_IN', None)
+            io.swiftest_xr2infile(self.ds, new_param)
+            self.write_param(new_param_file, param=new_param)
 
         return
