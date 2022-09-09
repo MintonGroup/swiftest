@@ -114,6 +114,7 @@ contains
       call encounter_setup_list(self, n)
       if (n <= 0_I8B) return
 
+      if (allocated(self%level)) deallocate(self%level)
       allocate(self%level(n))
 
       self%level(:) = -1
