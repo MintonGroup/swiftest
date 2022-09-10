@@ -88,7 +88,10 @@ contains
          call check( nf90_get_var(param%nciu%ncid, param%nciu%PE_varid, val, start=[1], count=[1]) )
          PE_orig = val(1)
 
-         self%Eorbit_orig = KE_orb_orig + KE_spin_orig + PE_orig
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%Ecollisions_varid, self%Ecollisions, start=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%Euntracked_varid,  self%Euntracked,  start=[1]) )
+
+         self%Eorbit_orig = KE_orb_orig + KE_spin_orig + PE_orig + self%Ecollisions + self%Euntracked
 
          call check( nf90_get_var(param%nciu%ncid, param%nciu%L_orbx_varid, val, start=[1], count=[1]) )
          self%Lorbit_orig(1) = val(1)
@@ -104,10 +107,15 @@ contains
          call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinz_varid, val, start=[1], count=[1]) )
          self%Lspin_orig(3) = val(1)
 
-         self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:)
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapex_varid,   self%Lescape(1),  start=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapey_varid,   self%Lescape(2),  start=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapez_varid,   self%Lescape(3),  start=[1]) )
+
+         self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:) + self%Lescape(:)
 
          call check( nf90_get_var(param%nciu%ncid, param%nciu%Gmass_varid, vals, start=[1,1], count=[idmax,1]) )
-         self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax))
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%GMescape_varid,    self%GMescape,    start=[1]) )
+         self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax)) + self%GMescape
 
          select type(cb => self%cb)
          class is (symba_cb)
