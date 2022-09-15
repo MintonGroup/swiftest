@@ -887,7 +887,7 @@ def select_active_from_frame(ds, param, framenum=-1):
 
     return frame
 
-def swiftest_xr2infile(ds, param, infile_name=None,framenum=-1):
+def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1):
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
 
@@ -906,7 +906,7 @@ def swiftest_xr2infile(ds, param, infile_name=None,framenum=-1):
     """
     frame = select_active_from_frame(ds, param, framenum)
 
-    if param['IN_TYPE'] == "NETCDF_DOUBLE" or param['IN_TYPE'] == "NETCDF_FLOAT":
+    if in_type == "NETCDF_DOUBLE" or in_type == "NETCDF_FLOAT":
         # Convert strings back to byte form and save the NetCDF file
         # Note: xarray will call the character array dimension string32. The Fortran code
         # will rename this after reading
@@ -937,7 +937,7 @@ def swiftest_xr2infile(ds, param, infile_name=None,framenum=-1):
         rotzcb = np.double(cb['rotz'])
     cbid = int(0)
     
-    if param['IN_TYPE'] == 'ASCII':
+    if in_type == 'ASCII':
         # Swiftest Central body file
         cbfile = open(param['CB_IN'], 'w')
         print(cbname, file=cbfile)
@@ -988,7 +988,7 @@ def swiftest_xr2infile(ds, param, infile_name=None,framenum=-1):
             else:
                 print(f"{param['IN_FORM']} is not a valid input format type.")
         tpfile.close()
-    elif param['IN_TYPE'] == 'REAL8':
+    elif in_type == 'REAL8':
         # Now make Swiftest files
         cbfile = FortranFile(param['CB_IN'], 'w')
         cbfile.write_record(cbid)
@@ -1078,7 +1078,7 @@ def swiftest_xr2infile(ds, param, infile_name=None,framenum=-1):
         tpfile.write_record(v5)
         tpfile.write_record(v6)
     else:
-        print(f"{param['IN_TYPE']} is an unknown file type")
+        print(f"{in_type} is an unknown file type")
 
 
 def swifter_xr2infile(ds, param, framenum=-1):
