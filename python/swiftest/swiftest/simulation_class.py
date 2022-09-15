@@ -271,7 +271,7 @@ class Simulation:
             new_param.pop('TP_IN', None)
             new_param.pop('CB_IN', None)
             print(f"Extracting data from dataset at time frame number {framenum} and saving it to {new_param['NC_IN']}")
-            frame = io.swiftest_xr2infile(self.ds, new_param, framenum)
+            frame = io.swiftest_xr2infile(self.ds, self.param, infile_name=new_param['NC_IN'],framenum)
             print(f"Saving parameter configuration file to {new_param_file}")
             self.write_param(new_param_file, param=new_param)
 
