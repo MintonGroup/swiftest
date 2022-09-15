@@ -883,7 +883,7 @@ def select_active_from_frame(ds, param, framenum=-1):
         iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['xhx'])), drop=True).id
     else:
         iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True).id
-    frame = frame.sel(id=iactive.values)
+    frame = frame.isel(id=iactive.values)
 
     return frame
 
@@ -904,7 +904,6 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     -------
     A set of input files for a new Swiftest run
     """
-
     frame = select_active_from_frame(ds, param, framenum)
 
     if param['IN_TYPE'] == "NETCDF_DOUBLE" or param['IN_TYPE'] == "NETCDF_FLOAT":
