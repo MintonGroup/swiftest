@@ -875,29 +875,15 @@ def select_active_from_frame(ds, param, framenum=-1):
 
     # Select the input time frame from the Dataset
     frame = ds.isel(time=[framenum])
-
-    # For NETCDF input file type, just do a dump of the system at the correct time frame
-    frame_id_only = frame.drop_dims('time')
-    frame_time_only = frame.drop_dims('id')
-    frame_both = frame.drop_vars(frame_id_only.keys()).drop_vars(frame_time_only.keys())
+    iframe = frame.isel(time=0)
 
     # Select only the active particles at this time step
-    def is_not_nan(x):
-        return np.invert(np.isnan(x))
-
     # Remove the inactive particles
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        active_masker = xr.apply_ufunc(is_not_nan, frame_both['xhx'].isel(time=0),dask='parallelized')
+        iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['xhx'])), drop=True).id
     else:
-        active_masker = xr.apply_ufunc(is_not_nan, frame_both['a'].isel(time=0),dask='parallelized')
-    active_masker = active_masker.drop_vars("time")
-    active_masker = xr.where(active_masker['id'] == 0, True, active_masker)
-
-    frame_id_only = frame_id_only.where(active_masker, drop=True)
-    frame_both = frame_both.where(active_masker, drop=True)
-
-    frame = frame_both.combine_first(frame_time_only).combine_first(frame_id_only)
-    frame = frame.transpose("time", "id")
+        iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True).id
+    frame = frame.sel(id=iactive.values)
 
     return frame
 
