@@ -6,6 +6,7 @@ from datetime import date
 import xarray as xr
 import numpy as np
 import os
+import shutil
 
 class Simulation:
     """
@@ -240,3 +241,38 @@ class Simulation:
             print(f'Saving to {codename} not supported')
 
         return
+
+    def initial_conditions_from_bin(self, framenum=-1, new_param=None, new_param_file="param.new.in", new_initial_conditions_file="bin_in.nc",  restart=False, codename="Swiftest"):
+        if codename != "Swiftest":
+            self.save(new_param_file, framenum, codename)
+            return
+        if new_param is None:
+            new_param = self.param.copy()
+
+        if codename == "Swiftest":
+            if restart:
+                new_param['T0'] = self.ds.time.values[framenum]
+            if self.param['OUT_TYPE'] == 'NETCDF_DOUBLE' or self.param['OUT_TYPE'] == 'REAL8':
+                new_param['IN_TYPE'] = 'NETCDF_DOUBLE'
+            elif self.param['OUT_TYPE'] == 'NETCDF_FLOAT' or self.param['OUT_TYPE'] == 'REAL4':
+                new_param['IN_TYPE'] = 'NETCDF_FLOAT'
+            else:
+                print(f"{self.param['OUT_TYPE']} is an invalid OUT_TYPE file")
+                return
+            if self.param['BIN_OUT'] != new_param['BIN_OUT'] and restart:
+               print(f"Restart run with new output file. Copying {self.param['BIN_OUT']} to {new_param['BIN_OUT']}")
+               shutil.copy2(self.param['BIN_OUT'],new_param['BIN_OUT'])
+            new_param['IN_FORM'] = 'XV'
+            if restart:
+                new_param['OUT_STAT'] = 'APPEND'
+            new_param['FIRSTKICK'] = 'T'
+            new_param['NC_IN'] = new_initial_conditions_file
+            new_param.pop('PL_IN', None)
+            new_param.pop('TP_IN', None)
+            new_param.pop('CB_IN', None)
+            print(f"Extracting data from dataset at time frame number {framenum} and saving it to {new_param['NC_IN']}")
+            frame = io.swiftest_xr2infile(self.ds, self.param, infile_name=new_param['NC_IN'],framenum=framenum)
+            print(f"Saving parameter configuration file to {new_param_file}")
+            self.write_param(new_param_file, param=new_param)
+
+        return frame

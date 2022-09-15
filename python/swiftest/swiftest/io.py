@@ -50,8 +50,11 @@ def read_swiftest_param(param_file_name, param, verbose=True):
             for line in f.readlines():
                 fields = line.split()
                 if len(fields) > 0:
-                    for key in param:
-                        if (key == fields[0].upper()): param[key] = fields[1]
+                    if fields[0][0] != '!':
+                        key = fields[0].upper()
+                        param[key] = fields[1]
+                    #for key in param:
+                    #    if (key == fields[0].upper()): param[key] = fields[1]
                     # Special case of CHK_QMIN_RANGE requires a second input
                     if fields[0].upper() == 'CHK_QMIN_RANGE':
                         alo = real2float(fields[1])
@@ -744,7 +747,7 @@ def swiftest2xr(param, verbose=True):
 
 def xstrip(a):
     func = lambda x: np.char.strip(x)
-    return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'))
+    return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'),dask='parallelized')
 
 def string_converter(da):
    if da.dtype == np.dtype(object):
@@ -872,36 +875,19 @@ def select_active_from_frame(ds, param, framenum=-1):
 
     # Select the input time frame from the Dataset
     frame = ds.isel(time=[framenum])
+    iframe = frame.isel(time=0)
 
     # Select only the active particles at this time step
-    def is_not_nan(x):
-        return np.invert(np.isnan(x))
-
-    # For NETCDF input file type, just do a dump of the system at the correct time frame
-    frame_id_only = frame.drop_dims('time')
-    frame_time_only = frame.drop_dims('id')
-    frame_both = frame.drop_vars(frame_id_only.keys()).drop_vars(frame_time_only.keys())
-
-    def is_not_nan(x):
-        return np.invert(np.isnan(x))
-
     # Remove the inactive particles
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        active_masker = xr.apply_ufunc(is_not_nan, frame_both['xhx'].isel(time=0))
+        iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['xhx'])), drop=True).id
     else:
-        active_masker = xr.apply_ufunc(is_not_nan, frame_both['a'].isel(time=0))
-    active_masker = active_masker.drop_vars("time")
-    active_masker = xr.where(active_masker['id'] == 0, True, active_masker)
-
-    frame_id_only = frame_id_only.where(active_masker, drop=True)
-    frame_both = frame_both.where(active_masker, drop=True)
-
-    frame = frame_both.combine_first(frame_time_only).combine_first(frame_id_only)
-    frame = frame.transpose("time", "id")
+        iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True).id
+    frame = frame.isel(id=iactive.values)
 
     return frame
 
-def swiftest_xr2infile(ds, param, framenum=-1):
+def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1):
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
 
@@ -918,16 +904,15 @@ def swiftest_xr2infile(ds, param, framenum=-1):
     -------
     A set of input files for a new Swiftest run
     """
-
     frame = select_active_from_frame(ds, param, framenum)
 
-    if param['IN_TYPE'] == "NETCDF_DOUBLE" or param['IN_TYPE'] == "NETCDF_FLOAT":
+    if in_type == "NETCDF_DOUBLE" or in_type == "NETCDF_FLOAT":
         # Convert strings back to byte form and save the NetCDF file
         # Note: xarray will call the character array dimension string32. The Fortran code
         # will rename this after reading
         frame = unclean_string_values(frame)
-        frame.to_netcdf(path=param['NC_IN'])
-        return
+        frame.to_netcdf(path=infile_name)
+        return frame
 
     # All other file types need seperate files for each of the inputs
     cb = frame.where(frame.id == 0, drop=True)
@@ -952,7 +937,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         rotzcb = np.double(cb['rotz'])
     cbid = int(0)
     
-    if param['IN_TYPE'] == 'ASCII':
+    if in_type == 'ASCII':
         # Swiftest Central body file
         cbfile = open(param['CB_IN'], 'w')
         print(cbname, file=cbfile)
@@ -1003,7 +988,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
             else:
                 print(f"{param['IN_FORM']} is not a valid input format type.")
         tpfile.close()
-    elif param['IN_TYPE'] == 'REAL8':
+    elif in_type == 'REAL8':
         # Now make Swiftest files
         cbfile = FortranFile(param['CB_IN'], 'w')
         cbfile.write_record(cbid)
@@ -1093,7 +1078,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         tpfile.write_record(v5)
         tpfile.write_record(v6)
     else:
-        print(f"{param['IN_TYPE']} is an unknown file type")
+        print(f"{in_type} is an unknown file type")
 
 
 def swifter_xr2infile(ds, param, framenum=-1):
