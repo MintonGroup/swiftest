@@ -198,159 +198,107 @@ contains
       end select
 
       !! Define the variables
-      !! Disabled chunking for now, as it was causing uncontrolled memory growth in some runs
       call check( nf90_def_var(self%ncid, TIME_DIMNAME, self%out_type, self%time_dimid, self%time_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%time_varid, NF90_CHUNKED, [self%time_chunk]) )
       call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, self%id_dimid, self%id_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%id_varid, NF90_CHUNKED, [self%id_chunk]) )
       call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%npl_varid, NF90_CHUNKED, [self%time_chunk]) )
       call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%ntp_varid, NF90_CHUNKED, [self%time_chunk]) )
       call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%name_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%name_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
       call check( nf90_def_var(self%ncid, PTYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%ptype_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%ptype_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
       call check( nf90_def_var(self%ncid, STATUS_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%status_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%status_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%xhx_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhy_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%xhy_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, XHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%xhz_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, VHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%vhx_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, VHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhy_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%vhy_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, VHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%vhz_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
+
+         !! When GR is enabled, we need to save the pseudovelocity vectors in addition to the true heliocentric velocity vectors, otherwise
+         !! we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors during the conversion.
+         if (param%lgr) then
+            call check( nf90_def_var(self%ncid, GR_PSEUDO_VHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%gr_pseudo_vhx_varid) )
+            call check( nf90_def_var(self%ncid, GR_PSEUDO_VHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%gr_pseudo_vhy_varid) )
+            call check( nf90_def_var(self%ncid, GR_PSEUDO_VHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%gr_pseudo_vhz_varid) )
+            self%lpseudo_vel_exists = .true.
+         end if
+
       end if
    
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
          call check( nf90_def_var(self%ncid, A_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%a_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%a_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, E_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%e_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%e_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, INC_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%inc_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%inc_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, CAPOM_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%capom_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%capom_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, OMEGA_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%omega_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%omega_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, CAPM_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%capm_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%capm_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
       end if
 
       call check( nf90_def_var(self%ncid, GMASS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Gmass_varid) )
-         !call check( nf90_def_var_chunking(self%ncid, self%Gmass_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
 
       if (param%lrhill_present) then
          call check( nf90_def_var(self%ncid, RHILL_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rhill_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%rhill_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
       end if
 
       if (param%lclose) then
          call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%radius_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%radius_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
 
          call check( nf90_def_var(self%ncid, ORIGIN_TIME_VARNAME, self%out_type, self%id_dimid, self%origin_time_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_time_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_TYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], &
                                   self%origin_type_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_type_varid, NF90_CHUNKED, [NAMELEN, self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_XHX_VARNAME, self%out_type, self%id_dimid, self%origin_xhx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_XHY_VARNAME, self%out_type, self%id_dimid, self%origin_xhy_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_xhy_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_XHZ_VARNAME, self%out_type, self%id_dimid, self%origin_xhz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_xhz_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_VHX_VARNAME, self%out_type, self%id_dimid, self%origin_vhx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_vhx_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_VHY_VARNAME, self%out_type, self%id_dimid, self%origin_vhy_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_vhy_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, ORIGIN_VHZ_VARNAME, self%out_type, self%id_dimid,  self%origin_vhz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%origin_vhz_varid, NF90_CHUNKED, [self%id_chunk]) )
 
          call check( nf90_def_var(self%ncid, COLLISION_ID_VARNAME, NF90_INT, self%id_dimid, self%collision_id_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%collision_id_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_TIME_VARNAME, self%out_type, self%id_dimid, self%discard_time_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_time_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_XHX_VARNAME, self%out_type, self%id_dimid, self%discard_xhx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_xhx_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_XHY_VARNAME, self%out_type, self%id_dimid, self%discard_xhy_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_xhy_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_XHZ_VARNAME, self%out_type, self%id_dimid, self%discard_xhz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_xhz_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_VHX_VARNAME, self%out_type, self%id_dimid, self%discard_vhx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_vhx_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_VHY_VARNAME, self%out_type, self%id_dimid, self%discard_vhy_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_vhy_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_VHZ_VARNAME, self%out_type, self%id_dimid,  self%discard_vhz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_vhz_varid, NF90_CHUNKED, [self%id_chunk]) )
          call check( nf90_def_var(self%ncid, DISCARD_BODY_ID_VARNAME, NF90_INT, self%id_dimid, self%discard_body_id_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%discard_body_id_varid, NF90_CHUNKED, [self%id_chunk]) )
       end if
 
       if (param%lrotation) then
          call check( nf90_def_var(self%ncid, IP1_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip1_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%Ip1_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, IP2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip2_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%Ip2_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, IP3_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Ip3_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%Ip3_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, ROTX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%rotx_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, ROTY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%roty_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%roty_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, ROTZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%rotz_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
       end if
 
       if (param%ltides) then
          call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%k2_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%k2_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
          call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Q_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%Q_varid, NF90_CHUNKED, [self%id_chunk, self%time_chunk]) )
       end if
 
       if (param%lenergy) then
          call check( nf90_def_var(self%ncid, KE_ORB_VARNAME, self%out_type, self%time_dimid, self%KE_orb_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%KE_orb_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, KE_SPIN_VARNAME, self%out_type, self%time_dimid, self%KE_spin_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%KE_spin_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, PE_VARNAME, self%out_type, self%time_dimid, self%PE_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%PE_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ORBX_VARNAME, self%out_type, self%time_dimid, self%L_orbx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_orbx_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ORBY_VARNAME, self%out_type, self%time_dimid, self%L_orby_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_orby_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ORBZ_VARNAME, self%out_type, self%time_dimid, self%L_orbz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_orbz_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_SPINX_VARNAME, self%out_type, self%time_dimid, self%L_spinx_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_spinx_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_SPINY_VARNAME, self%out_type, self%time_dimid, self%L_spiny_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_spiny_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_SPINZ_VARNAME, self%out_type, self%time_dimid, self%L_spinz_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_spinz_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ESCAPEX_VARNAME, self%out_type, self%time_dimid, self%L_escapex_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_escapex_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ESCAPEY_VARNAME, self%out_type, self%time_dimid, self%L_escapey_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_escapey_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, L_ESCAPEZ_VARNAME, self%out_type, self%time_dimid, self%L_escapez_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%L_escapez_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, ECOLLISIONS_VARNAME, self%out_type, self%time_dimid, self%Ecollisions_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%Ecollisions_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, EUNTRACKED_VARNAME, self%out_type, self%time_dimid, self%Euntracked_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%Euntracked_varid, NF90_CHUNKED, [self%time_chunk]) )
          call check( nf90_def_var(self%ncid, GMESCAPE_VARNAME, self%out_type, self%time_dimid, self%GMescape_varid) )
-            !call check( nf90_def_var_chunking(self%ncid, self%GMescape_varid, NF90_CHUNKED, [self%time_chunk]) )
       end if
 
       call check( nf90_def_var(self%ncid, J2RP2_VARNAME, self%out_type, self%time_dimid, self%j2rp2_varid) )
       call check( nf90_def_var(self%ncid, J4RP4_VARNAME, self%out_type, self%time_dimid, self%j4rp4_varid) )
+
 
       ! Set fill mode to NaN for all variables
       call check( nf90_inquire(self%ncid, nVariables=nvar) )
@@ -367,6 +315,8 @@ contains
             call check( nf90_def_var_fill(self%ncid, varid, 0, 0) )
          end select
       end do
+
+
 
       ! Take the file out of define mode
       call check( nf90_enddef(self%ncid) )
@@ -389,7 +339,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
       logical, optional,          intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       ! Internals
-      integer(I4B) :: mode
+      integer(I4B) :: mode, status
       character(len=NF90_MAX_NAME) :: str_dim_name
 
       mode = NF90_WRITE
@@ -419,6 +369,25 @@ contains
          call check( nf90_inq_varid(self%ncid, VHX_VARNAME, self%vhx_varid))
          call check( nf90_inq_varid(self%ncid, VHY_VARNAME, self%vhy_varid))
          call check( nf90_inq_varid(self%ncid, VHZ_VARNAME, self%vhz_varid))
+
+         if (param%lgr) then
+            !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not do the conversion.
+            status = nf90_inq_varid(self%ncid, GR_PSEUDO_VHX_VARNAME, self%gr_pseudo_vhx_varid)
+            self%lpseudo_vel_exists = (status == nf90_noerr)
+            if (self%lpseudo_vel_exists) then
+               status = nf90_inq_varid(self%ncid, GR_PSEUDO_VHY_VARNAME, self%gr_pseudo_vhy_varid)
+               self%lpseudo_vel_exists = (status == nf90_noerr)
+               if (self%lpseudo_vel_exists) then
+                  status = nf90_inq_varid(self%ncid, GR_PSEUDO_VHZ_VARNAME, self%gr_pseudo_vhz_varid)
+                  self%lpseudo_vel_exists = (status == nf90_noerr)
+               end if
+            end if
+            if (.not.self%lpseudo_vel_exists) then
+               write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run."
+            end if
+
+         end if
+
       end if
 
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
@@ -489,6 +458,7 @@ contains
 
       call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid) )
       call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid) )
+
 
       return
    end subroutine netcdf_open
@@ -573,17 +543,31 @@ contains
             if (npl > 0) pl%xh(3,:) = pack(rtemp, plmask)
             if (ntp > 0) tp%xh(3,:) = pack(rtemp, tpmask)
 
-            call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp, start=[1, tslot]) )
-            if (npl > 0) pl%vh(1,:) = pack(rtemp, plmask)
-            if (ntp > 0) tp%vh(1,:) = pack(rtemp, tpmask)
+            if (param%lgr .and. iu%lpseudo_vel_exists) then
+               call check( nf90_get_var(iu%ncid, iu%gr_pseudo_vhx_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(1,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(1,:) = pack(rtemp, tpmask)
 
-            call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp, start=[1, tslot]) )
-            if (npl > 0) pl%vh(2,:) = pack(rtemp, plmask)
-            if (ntp > 0) tp%vh(2,:) = pack(rtemp, tpmask)
+               call check( nf90_get_var(iu%ncid, iu%gr_pseudo_vhy_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(2,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(2,:) = pack(rtemp, tpmask)
 
-            call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp, start=[1, tslot]) )
-            if (npl > 0) pl%vh(3,:) = pack(rtemp, plmask)
-            if (ntp > 0) tp%vh(3,:) = pack(rtemp, tpmask)
+               call check( nf90_get_var(iu%ncid, iu%gr_pseudo_vhz_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(3,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(3,:) = pack(rtemp, tpmask)
+            else
+               call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(1,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(1,:) = pack(rtemp, tpmask)
+
+               call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(2,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(2,:) = pack(rtemp, tpmask)
+
+               call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(3,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(3,:) = pack(rtemp, tpmask)
+            end if
          end if
 
          if ((param%in_form == EL)  .or. (param%in_form == XVEL)) then
@@ -677,6 +661,15 @@ contains
          call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]) )
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
+
+         ! if this is a GR-enabled run, check to see if we got the pseudovelocities in. Otherwise, we'll need to generate them.
+         if (param%lgr .and. .not.(iu%lpseudo_vel_exists)) then
+            call pl%set_mu(cb)
+            call tp%set_mu(cb)
+            call pl%v2pv(param)
+            call tp%v2pv(param)
+         end if
+         
       end associate
 
       call iu%close()
@@ -922,6 +915,8 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, tslot, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
+      real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
+      real(DP)                                  :: a, e, inc, omega, capom, capm
 
       call self%write_particle_info(iu, param)
 
@@ -939,22 +934,44 @@ contains
                j = ind(i)
                idslot = self%id(j) + 1
 
+               !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity 
+               if (param%lgr) call gr_pseudovel2vel(param, self%mu(j), self%xh(:, j), self%vh(:, j), vh(:))
+
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
                   call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
+                  if (param%lgr) then !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity
+                     call check( nf90_put_var(iu%ncid, iu%vhx_varid, vh(1), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhy_varid, vh(2), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhz_varid, vh(3), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%gr_pseudo_vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%gr_pseudo_vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%gr_pseudo_vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
+
+                  else
+                     call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
+                  end if
                end if
 
                if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
-                  call check( nf90_put_var(iu%ncid, iu%a_varid, self%a(j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%e_varid, self%e(j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%inc_varid, self%inc(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%capom_varid, self%capom(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j) * RAD2DEG, start=[idslot, tslot]) ) 
+                  if (param%lgr) then !! For GR-enabled runs, use the true value of velocity computed above
+                     call orbel_xv2el(self%mu(j), self%xh(1,j), self%xh(2,j), self%xh(3,j), &
+                                       vh(1), vh(2), vh(3), &
+                                       a, e, inc, capom, omega, capm)
+                  else !! For non-GR runs just convert from the velocity we have
+                     call orbel_xv2el(self%mu(j), self%xh(1,j), self%xh(2,j), self%xh(3,j), &
+                                       self%vh(1,j), self%vh(2,j), self%vh(3,j), &
+                                       a, e, inc, capom, omega, capm)
+                  end if
+                  call check( nf90_put_var(iu%ncid, iu%a_varid, a, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%e_varid, e, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%inc_varid, inc * RAD2DEG, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%capom_varid, capom * RAD2DEG, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%omega_varid, omega * RAD2DEG, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%capm_varid, capm * RAD2DEG, start=[idslot, tslot]) ) 
                end if
 
                select type(self)  
