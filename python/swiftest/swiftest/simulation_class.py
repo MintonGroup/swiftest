@@ -242,7 +242,7 @@ class Simulation:
 
         return
 
-    def initial_conditions_from_bin(self, framenum=-1, new_param=None, new_param_file="param.new.in", new_initial_conditions_file="bin_in.nc", new_bin_out_file=None, restart=False, codename="Swiftest"):
+    def initial_conditions_from_bin(self, framenum=-1, new_param=None, new_param_file="param.new.in", new_initial_conditions_file="bin_in.nc",  restart=False, codename="Swiftest"):
         if codename != "Swiftest":
             self.save(new_param_file, framenum, codename)
             return
@@ -259,13 +259,9 @@ class Simulation:
             else:
                 print(f"{self.param['OUT_TYPE']} is an invalid OUT_TYPE file")
                 return
-            if new_bin_out_file is None:
-                new_param['BIN_OUT'] = os.path.basename(self.param['BIN_OUT'])
-            else:
-                if restart:
-                    print(f"Restart run with new output file. Copying {self.param['BIN_OUT']} to {new_bin_out_file}")
-                    shutil.copy2(self.param['BIN_OUT'],new_bin_out_file)
-                new_param['BIN_OUT'] = new_bin_out_file
+            if self.param['BIN_OUT'] != new_param['BIN_OUT'] and restart:
+               print(f"Restart run with new output file. Copying {self.param['BIN_OUT']} to {new_param['BIN_OUT']}")
+               shutil.copy2(self.param['BIN_OUT'],new_param['BIN_OUT'])
             new_param['IN_FORM'] = 'XV'
             if restart:
                 new_param['OUT_STAT'] = 'APPEND'
