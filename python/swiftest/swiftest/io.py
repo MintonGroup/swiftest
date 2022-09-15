@@ -887,7 +887,7 @@ def select_active_from_frame(ds, param, framenum=-1):
 
     return frame
 
-def swiftest_xr2infile(ds, param, framenum=-1):
+def swiftest_xr2infile(ds, param, infile_name=None,framenum=-1):
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
 
@@ -911,7 +911,7 @@ def swiftest_xr2infile(ds, param, framenum=-1):
         # Note: xarray will call the character array dimension string32. The Fortran code
         # will rename this after reading
         frame = unclean_string_values(frame)
-        frame.to_netcdf(path=param['NC_IN'])
+        frame.to_netcdf(path=infile_name)
         return frame
 
     # All other file types need seperate files for each of the inputs
