@@ -32,6 +32,9 @@ module swiftest_classes
       integer(I4B) :: vhx_varid             !! NetCDF ID for the heliocentric velocity x variable 
       integer(I4B) :: vhy_varid             !! NetCDF ID for the heliocentric velocity y variable 
       integer(I4B) :: vhz_varid             !! NetCDF ID for the heliocentric velocity z variable 
+      integer(I4B) :: gr_pseudo_vhx_varid   !! NetCDF ID for the heliocentric pseudovelocity x variable (used in GR)
+      integer(I4B) :: gr_pseudo_vhy_varid   !! NetCDF ID for the heliocentric pseudovelocity y variable (used in GR)
+      integer(I4B) :: gr_pseudo_vhz_varid   !! NetCDF ID for the heliocentric psuedovelocity z variable (used in GR)
       integer(I4B) :: Gmass_varid           !! NetCDF ID for the mass variable
       integer(I4B) :: rhill_varid           !! NetCDF ID for the hill radius variable
       integer(I4B) :: radius_varid          !! NetCDF ID for the radius variable
@@ -80,6 +83,7 @@ module swiftest_classes
       integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
       integer(I4B) :: id_chunk              !! Chunk size for the id dimension variables
       integer(I4B) :: time_chunk            !! Chunk size for the time dimension variables
+      logical      :: lpseudo_vel_exists = .false. !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
       procedure :: flush      => netcdf_flush             !! Flushes the current buffer to disk by closing and re-opening the file.
@@ -1107,6 +1111,19 @@ module swiftest_classes
          real(DP), intent(out) :: capm  !! mean anomaly
          real(DP), intent(out) :: tperi !! time of pericenter passage
       end subroutine orbel_xv2aqt
+
+      module pure subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
+         implicit none
+         real(DP), intent(in)  :: mu    !! Gravitational constant
+         real(DP), intent(in)  :: px,py,pz    !! Position vector
+         real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
+         real(DP), intent(out) :: a     !! semimajor axis
+         real(DP), intent(out) :: e     !! eccentricity
+         real(DP), intent(out) :: inc   !! inclination
+         real(DP), intent(out) :: capom !! longitude of ascending node
+         real(DP), intent(out) :: omega !! argument of periapsis
+         real(DP), intent(out) :: capm  !! mean anomaly
+      end subroutine orbel_xv2el
 
       module subroutine orbel_xv2el_vec(self, cb)
          implicit none

@@ -213,6 +213,16 @@ contains
          call check( nf90_def_var(self%ncid, VHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhx_varid) )
          call check( nf90_def_var(self%ncid, VHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhy_varid) )
          call check( nf90_def_var(self%ncid, VHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%vhz_varid) )
+
+         !! When GR is enabled, we need to save the pseudovelocity vectors in addition to the true heliocentric velocity vectors, otherwise
+         !! we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors during the conversion.
+         if (param%lgr) then
+            call check( nf90_def_var(self%ncid, GR_PSEUDO_VHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%gr_pseudo_vhx_varid) )
+            call check( nf90_def_var(self%ncid, GR_PSEUDO_VHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%gr_pseudo_vhy_varid) )
+            call check( nf90_def_var(self%ncid, GR_PSEUDO_VHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%gr_pseudo_vhz_varid) )
+            self%lpseudo_vel_exists = .true.
+         end if
+
       end if
    
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
@@ -329,7 +339,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
       logical, optional,          intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       ! Internals
-      integer(I4B) :: mode
+      integer(I4B) :: mode, status
       character(len=NF90_MAX_NAME) :: str_dim_name
 
       mode = NF90_WRITE
@@ -359,6 +369,25 @@ contains
          call check( nf90_inq_varid(self%ncid, VHX_VARNAME, self%vhx_varid))
          call check( nf90_inq_varid(self%ncid, VHY_VARNAME, self%vhy_varid))
          call check( nf90_inq_varid(self%ncid, VHZ_VARNAME, self%vhz_varid))
+
+         if (param%lgr) then
+            !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not do the conversion.
+            status = nf90_inq_varid(self%ncid, GR_PSEUDO_VHX_VARNAME, self%gr_pseudo_vhx_varid)
+            self%lpseudo_vel_exists = (status == nf90_noerr)
+            if (self%lpseudo_vel_exists) then
+               status = nf90_inq_varid(self%ncid, GR_PSEUDO_VHY_VARNAME, self%gr_pseudo_vhy_varid)
+               self%lpseudo_vel_exists = (status == nf90_noerr)
+               if (self%lpseudo_vel_exists) then
+                  status = nf90_inq_varid(self%ncid, GR_PSEUDO_VHZ_VARNAME, self%gr_pseudo_vhz_varid)
+                  self%lpseudo_vel_exists = (status == nf90_noerr)
+               end if
+            end if
+            if (.not.self%lpseudo_vel_exists) then
+               write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run."
+            end if
+
+         end if
+
       end if
 
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
@@ -430,8 +459,6 @@ contains
       call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid) )
       call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid) )
 
-      if (param%lgr) then
-      end if
 
       return
    end subroutine netcdf_open
@@ -516,17 +543,31 @@ contains
             if (npl > 0) pl%xh(3,:) = pack(rtemp, plmask)
             if (ntp > 0) tp%xh(3,:) = pack(rtemp, tpmask)
 
-            call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp, start=[1, tslot]) )
-            if (npl > 0) pl%vh(1,:) = pack(rtemp, plmask)
-            if (ntp > 0) tp%vh(1,:) = pack(rtemp, tpmask)
+            if (param%lgr .and. iu%lpseudo_vel_exists) then
+               call check( nf90_get_var(iu%ncid, iu%gr_pseudo_vhx_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(1,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(1,:) = pack(rtemp, tpmask)
 
-            call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp, start=[1, tslot]) )
-            if (npl > 0) pl%vh(2,:) = pack(rtemp, plmask)
-            if (ntp > 0) tp%vh(2,:) = pack(rtemp, tpmask)
+               call check( nf90_get_var(iu%ncid, iu%gr_pseudo_vhy_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(2,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(2,:) = pack(rtemp, tpmask)
 
-            call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp, start=[1, tslot]) )
-            if (npl > 0) pl%vh(3,:) = pack(rtemp, plmask)
-            if (ntp > 0) tp%vh(3,:) = pack(rtemp, tpmask)
+               call check( nf90_get_var(iu%ncid, iu%gr_pseudo_vhz_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(3,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(3,:) = pack(rtemp, tpmask)
+            else
+               call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(1,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(1,:) = pack(rtemp, tpmask)
+
+               call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(2,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(2,:) = pack(rtemp, tpmask)
+
+               call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp, start=[1, tslot]) )
+               if (npl > 0) pl%vh(3,:) = pack(rtemp, plmask)
+               if (ntp > 0) tp%vh(3,:) = pack(rtemp, tpmask)
+            end if
          end if
 
          if ((param%in_form == EL)  .or. (param%in_form == XVEL)) then
@@ -620,6 +661,15 @@ contains
          call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]) )
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
+
+         ! if this is a GR-enabled run, check to see if we got the pseudovelocities in. Otherwise, we'll need to generate them.
+         if (param%lgr .and. .not.(iu%lpseudo_vel_exists)) then
+            call pl%set_mu(cb)
+            call tp%set_mu(cb)
+            call pl%v2pv(param)
+            call tp%v2pv(param)
+         end if
+         
       end associate
 
       call iu%close()
@@ -865,6 +915,8 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, tslot, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
+      real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
+      real(DP)                                  :: a, e, inc, omega, capom, capm
 
       call self%write_particle_info(iu, param)
 
@@ -882,22 +934,44 @@ contains
                j = ind(i)
                idslot = self%id(j) + 1
 
+               !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity 
+               if (param%lgr) call gr_pseudovel2vel(param, self%mu(j), self%xh(:, j), self%vh(:, j), vh(:))
+
                if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
                   call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]) )
                   call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
+                  if (param%lgr) then !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity
+                     call check( nf90_put_var(iu%ncid, iu%vhx_varid, vh(1), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhy_varid, vh(2), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhz_varid, vh(3), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%gr_pseudo_vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%gr_pseudo_vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%gr_pseudo_vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
+
+                  else
+                     call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%vh(1, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%vh(2, j), start=[idslot, tslot]) )
+                     call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%vh(3, j), start=[idslot, tslot]) )
+                  end if
                end if
 
                if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
-                  call check( nf90_put_var(iu%ncid, iu%a_varid, self%a(j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%e_varid, self%e(j), start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%inc_varid, self%inc(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%capom_varid, self%capom(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%omega_varid, self%omega(j) * RAD2DEG, start=[idslot, tslot]) )
-                  call check( nf90_put_var(iu%ncid, iu%capm_varid, self%capm(j) * RAD2DEG, start=[idslot, tslot]) ) 
+                  if (param%lgr) then !! For GR-enabled runs, use the true value of velocity computed above
+                     call orbel_xv2el(self%mu(j), self%xh(1,j), self%xh(2,j), self%xh(3,j), &
+                                       vh(1), vh(2), vh(3), &
+                                       a, e, inc, capom, omega, capm)
+                  else !! For non-GR runs just convert from the velocity we have
+                     call orbel_xv2el(self%mu(j), self%xh(1,j), self%xh(2,j), self%xh(3,j), &
+                                       self%vh(1,j), self%vh(2,j), self%vh(3,j), &
+                                       a, e, inc, capom, omega, capm)
+                  end if
+                  call check( nf90_put_var(iu%ncid, iu%a_varid, a, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%e_varid, e, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%inc_varid, inc * RAD2DEG, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%capom_varid, capom * RAD2DEG, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%omega_varid, omega * RAD2DEG, start=[idslot, tslot]) )
+                  call check( nf90_put_var(iu%ncid, iu%capm_varid, capm * RAD2DEG, start=[idslot, tslot]) ) 
                end if
 
                select type(self)  
