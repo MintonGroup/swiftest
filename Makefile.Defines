@@ -48,7 +48,7 @@ COLLRESOLVE_HOME = $(ROOT_DIR)/collresolve/
 IDEBUG = -O0 -init=snan,arrays  -nogen-interfaces -no-pie -no-ftz -fpe-all=0 -g -traceback -mp1 -qopt-matmul -fp-model strict -fpe0 -debug all -align all -pad -ip -prec-div -prec-sqrt -assume protect-parens -CB -no-wrap-margin 
 STRICTREAL = -fp-model=precise -prec-div -prec-sqrt -assume protect-parens 
 SIMDVEC = -simd -xhost -align all -assume contiguous_assumed_shape -vecabi=cmdtarget -fp-model no-except -fma
-PAR = -qopenmp -parallel 
+PAR = -qopenmp 
 HEAPARR = -heap-arrays 4194304 
 OPTREPORT = -qopt-report=5 
 IPRODUCTION = -no-wrap-margin -O3 -qopt-prefetch=0 -qopt-matmul -sox $(PAR) $(SIMDVEC) #$(HEAPARR)
