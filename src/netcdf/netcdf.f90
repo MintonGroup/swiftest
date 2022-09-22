@@ -602,6 +602,13 @@ contains
          cb%Gmass = rtemp(1)
          cb%mass = cb%Gmass / param%GU
 
+         ! Set initial central body mass for Helio bookkeeping
+         select type(cb)
+            class is (symba_cb)
+               cb%GM0 = cb%Gmass
+         end select
+            
+
          if (npl > 0) then
             pl%Gmass(:) = pack(rtemp, plmask)
             pl%mass(:) = pl%Gmass(:) / param%GU
@@ -615,6 +622,12 @@ contains
          if (param%lclose) then
             call check( nf90_get_var(iu%ncid, iu%radius_varid, rtemp, start=[1, tslot]) )
             cb%radius = rtemp(1)
+
+            ! Set initial central body radius for SyMBA bookkeeping
+            select type(cb)
+               class is (symba_cb)
+                  cb%R0 = cb%radius
+            end select
             if (npl > 0) pl%radius(:) = pack(rtemp, plmask)
          else
             cb%radius = param%rmin
@@ -645,6 +658,12 @@ contains
             call check( nf90_get_var(iu%ncid, iu%rotz_varid, rtemp, start=[1, tslot]) )
             cb%rot(3) = rtemp(1)
             if (npl > 0) pl%rot(3,:) = pack(rtemp, plmask)
+
+            ! Set initial central body angular momentum for Helio bookkeeping
+            select type(cb)
+               class is (symba_cb)
+                  cb%L0(:) = cb%Ip(3) * cb%GM0 * cb%R0**2 * cb%rot(:)         
+            end select
          end if
 
          if (param%ltides) then
