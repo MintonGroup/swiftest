@@ -145,6 +145,7 @@ module swiftest_globals
    character(*), parameter :: NAME_VARNAME            = "name"            !! NetCDF name of the particle name variable
    character(*), parameter :: NPL_VARNAME             = "npl"             !! NetCDF name of the number of active massive bodies variable
    character(*), parameter :: NTP_VARNAME             = "ntp"             !! NetCDF name of the number of active test particles variable
+   character(*), parameter :: NPLM_VARNAME            = "nplm"            !! NetCDF name of the number of active fully interacting massive bodies variable (SyMBA)
    character(*), parameter :: A_VARNAME               = "a"               !! NetCDF name of the semimajor axis variable 
    character(*), parameter :: E_VARNAME               = "e"               !! NetCDF name of the eccentricity variable 
    character(*), parameter :: INC_VARNAME             = "inc"             !! NetCDF name of the inclination variable 
@@ -206,5 +207,86 @@ module swiftest_globals
    character(*), parameter :: DISCARD_BODY_ID_VARNAME = "discard_body_id" !! NetCDF name of the id of the other body involved in the discard
    character(*), parameter :: J2RP2_VARNAME           = "j2rp2"           !! NetCDF name of the j2rp2 variable
    character(*), parameter :: J4RP4_VARNAME           = "j4rp4"           !! NetCDF name of the j4pr4 variable
+
+   !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as the base class defined in swiftest_classes
+   type :: netcdf_variables
+      integer(I4B) :: out_type              !! NetCDF output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
+      integer(I4B) :: ncid                  !! NetCDF ID for the output file
+      integer(I4B) :: dimids(3)             !! Dimensions of the NetCDF file
+      integer(I4B) :: time_dimid            !! NetCDF ID for the time dimension 
+      integer(I4B) :: id_dimid              !! NetCDF ID for the particle id dimension
+      integer(I4B) :: str_dimid             !! NetCDF ID for the character string dimension
+      integer(I4B) :: time_varid            !! NetCDF ID for the time variable
+      integer(I4B) :: id_varid              !! NetCDF ID for the particle name variable
+      integer(I4B) :: name_varid            !! NetCDF ID for the namevariable 
+      integer(I4B) :: ptype_varid           !! NetCDF ID for the particle type variable
+      integer(I4B) :: npl_varid             !! NetCDF ID for the number of active massive bodies variable
+      integer(I4B) :: ntp_varid             !! NetCDF ID for the number of active test particles variable
+      integer(I4B) :: nplm_varid            !! NetCDF ID for the number of active fully interacting massive bodies variable (SyMBA)
+      integer(I4B) :: a_varid               !! NetCDF ID for the semimajor axis variable 
+      integer(I4B) :: e_varid               !! NetCDF ID for the eccentricity variable 
+      integer(I4B) :: inc_varid             !! NetCDF ID for the inclination variable 
+      integer(I4B) :: capom_varid           !! NetCDF ID for the long. asc. node variable 
+      integer(I4B) :: omega_varid           !! NetCDF ID for the arg. periapsis variable 
+      integer(I4B) :: capm_varid            !! NetCDF ID for the mean anomaly variable 
+      integer(I4B) :: xhx_varid             !! NetCDF ID for the heliocentric position x variable 
+      integer(I4B) :: xhy_varid             !! NetCDF ID for the heliocentric position y variable 
+      integer(I4B) :: xhz_varid             !! NetCDF ID for the heliocentric position z variable 
+      integer(I4B) :: vhx_varid             !! NetCDF ID for the heliocentric velocity x variable 
+      integer(I4B) :: vhy_varid             !! NetCDF ID for the heliocentric velocity y variable 
+      integer(I4B) :: vhz_varid             !! NetCDF ID for the heliocentric velocity z variable 
+      integer(I4B) :: gr_pseudo_vhx_varid   !! NetCDF ID for the heliocentric pseudovelocity x variable (used in GR)
+      integer(I4B) :: gr_pseudo_vhy_varid   !! NetCDF ID for the heliocentric pseudovelocity y variable (used in GR)
+      integer(I4B) :: gr_pseudo_vhz_varid   !! NetCDF ID for the heliocentric psuedovelocity z variable (used in GR)
+      integer(I4B) :: Gmass_varid           !! NetCDF ID for the mass variable
+      integer(I4B) :: rhill_varid           !! NetCDF ID for the hill radius variable
+      integer(I4B) :: radius_varid          !! NetCDF ID for the radius variable
+      integer(I4B) :: Ip1_varid             !! NetCDF ID for the axis 1 principal moment of inertia variable
+      integer(I4B) :: Ip2_varid             !! NetCDF ID for the axis 2 principal moment of inertia variable
+      integer(I4B) :: Ip3_varid             !! NetCDF ID for the axis 3 principal moment of inertia variable
+      integer(I4B) :: rotx_varid            !! NetCDF ID for the rotation x variable
+      integer(I4B) :: roty_varid            !! NetCDF ID for the rotation y variable
+      integer(I4B) :: rotz_varid            !! NetCDF ID for the rotation z variable
+      integer(I4B) :: j2rp2_varid           !! NetCDF ID for the j2 variable
+      integer(I4B) :: j4rp4_varid           !! NetCDF ID for the j4 variable
+      integer(I4B) :: k2_varid              !! NetCDF ID for the Love number variable
+      integer(I4B) :: Q_varid               !! NetCDF ID for the energy dissipation variable
+      integer(I4B) :: KE_orb_varid          !! NetCDF ID for the system orbital kinetic energy variable
+      integer(I4B) :: KE_spin_varid         !! NetCDF ID for the system spin kinetic energy variable
+      integer(I4B) :: PE_varid              !! NetCDF ID for the system potential energy variable
+      integer(I4B) :: L_orbx_varid          !! NetCDF ID for the system orbital angular momentum x variable
+      integer(I4B) :: L_orby_varid          !! NetCDF ID for the system orbital angular momentum y variable
+      integer(I4B) :: L_orbz_varid          !! NetCDF ID for the system orbital angular momentum z variable
+      integer(I4B) :: L_spinx_varid         !! NetCDF ID for the system spin angular momentum x variable
+      integer(I4B) :: L_spiny_varid         !! NetCDF ID for the system spin angular momentum y variable
+      integer(I4B) :: L_spinz_varid         !! NetCDF ID for the system spin angular momentum z variable
+      integer(I4B) :: L_escapex_varid       !! NetCDF ID for the escaped angular momentum x variable
+      integer(I4B) :: L_escapey_varid       !! NetCDF ID for the escaped angular momentum x variable
+      integer(I4B) :: L_escapez_varid       !! NetCDF ID for the escaped angular momentum x variable
+      integer(I4B) :: Ecollisions_varid     !! NetCDF ID for the energy lost in collisions variable
+      integer(I4B) :: Euntracked_varid      !! NetCDF ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      integer(I4B) :: GMescape_varid        !! NetCDF ID for the G*Mass of bodies that escape the system
+      integer(I4B) :: status_varid          !! NetCDF ID for the status variable
+      integer(I4B) :: origin_type_varid     !! NetCDF ID for the origin type
+      integer(I4B) :: origin_time_varid     !! NetCDF ID for the origin time
+      integer(I4B) :: collision_id_varid    !! Netcdf ID for the origin collision ID
+      integer(I4B) :: origin_xhx_varid      !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_xhy_varid      !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_xhz_varid      !! NetCDF ID for the origin xh z component
+      integer(I4B) :: origin_vhx_varid      !! NetCDF ID for the origin xh x component
+      integer(I4B) :: origin_vhy_varid      !! NetCDF ID for the origin xh y component
+      integer(I4B) :: origin_vhz_varid      !! NetCDF ID for the origin xh z component
+      integer(I4B) :: discard_time_varid    !! NetCDF ID for the time of discard variable
+      integer(I4B) :: discard_xhx_varid     !! NetCDF ID for the heliocentric position of the body at the time of discard x variable
+      integer(I4B) :: discard_xhy_varid     !! NetCDF ID for the heliocentric position of the body at the time of discard y variable
+      integer(I4B) :: discard_xhz_varid     !! NetCDF ID for the heliocentric position of the body at the time of discard z variable
+      integer(I4B) :: discard_vhx_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard x variable
+      integer(I4B) :: discard_vhy_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard y variable
+      integer(I4B) :: discard_vhz_varid     !! NetCDF ID for the heliocentric velocity of the body at the time of discard z variable
+      integer(I4B) :: discard_body_id_varid !! NetCDF ID for the id of the other body involved in the discard
+      integer(I4B) :: id_chunk              !! Chunk size for the id dimension variables
+      integer(I4B) :: time_chunk            !! Chunk size for the time dimension variables
+      logical      :: lpseudo_vel_exists = .false. !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
+   end type netcdf_variables
 
 end module swiftest_globals
