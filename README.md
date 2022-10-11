@@ -11,7 +11,7 @@ Swiftest is a software packaged designed to model the dynamical evolution of gra
 - **Democratic Heliocentric (HELIO)** - A symplectic integrator that uses the democratic heliocentric coordinate frame. See [Duncan, Levison, & Lee (1998)](https://iopscience.iop.org/article/10.1086/300541).
 - **Symplectic Massive Body Algorithm (SyMBA)** - An extension of HELIO that is capable of handling close encounters between massive bodies. See [Duncan, Levison, & Lee (1998)](https://iopscience.iop.org/article/10.1086/300541). 
 
-Swiftest also includes the collisional fragmentation algorithm **Fraggle**, which is built off of the SyMBA integrator. Fraggle is designed to resolve collisions between massive bodies by determining the collisional regime and generating the appropriate mass distribution of fragments. The collisional regimes incorporated into Fraggle were derived from the work of Leinhardt & Stewart (2012). Swiftest incorporates fragments that are generated as a result of a collision into the larger gravitational system. These fragments are evolved along with pre-existing bodies, including their growth and any future fragmentation events in which they are involved. 
+Swiftest also includes the collisional fragmentation algorithm **Fraggle**, an addition to the SyMBA integrator. Fraggle is designed to resolve collisions between massive bodies by determining the collisional regime, derived from the work of [Leinhardt & Stewart (2012)](https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79), and generating the appropriate mass distribution of fragments. Swiftest fully incorporates collisional fragments into the gravitational system, evolving these new bodies along with pre-existing bodies, including their growth and any future fragmentation events in which they are involved. 
 
 ---
 
@@ -21,11 +21,11 @@ Swiftest also includes the collisional fragmentation algorithm **Fraggle**, whic
 
 Swiftest is designed to be downloaded, compiled, and run on a Linux based system. It is untested on Windows systems, however it should be possible to successfully install Swiftest on a Windows machine with only a few minor tweaks. 
 
-Swiftest can be run on a personal machine with at least 400 MB of free disk space and 8 GB of RAM. To take full advantage of the parallelization and performance updates included in Swiftest, it is highly recommended that Swiftest be installed on a high-performance computing cluster. For reference, Swiftest is maintained on the Purdue University [Bell Community Cluster](https://www.rcac.purdue.edu/compute/bell). 
+It is possible to download, compile, and run Swiftest on a machine with at least 400 MB of free disk space and 8 GB of RAM. To take full advantage of the parallelization and performance updates included in Swiftest, it is highly recommended that Swiftest be installed on a high-performance computing cluster. For reference, Swiftest is maintained on the Purdue University [Bell Community Cluster](https://www.rcac.purdue.edu/compute/bell). 
 
-Swiftest is written in Modern Fortran and must be compiled using an appropriate compiler. We recommend the Intel Fortran Compiler Classic (ifort) version 19.0 or higher. For details on installing ifort, see the [Intel installation documentation](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.6xhjgy). It is also necessary to install the Intel Math Kernel Library (intel-mkl), the details of which can be found in the same documentation. The GCC/GNU Fortran Compiler (gfortran) version 9 or higher is also compatible. For details on installing gfortran, see the [GNU Fortran documentation](https://gcc.gnu.org/wiki/GFortran).
+Swiftest is written in Modern Fortran and must be compiled using an appropriate compiler. We recommend the Intel Fortran Compiler Classic (ifort) version 19.0 or higher. For details on installing ifort and the required Intel Math Kernel Library (intel-mkl), see the [Intel installation documentation](https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.6xhjgy). The GCC/GNU Fortran Compiler (gfortran) version 9 or higher is also compatible. For details on installing gfortran, see the [GNU Fortran documentation](https://gcc.gnu.org/wiki/GFortran).
 
-We strongly recommend using the NetCDF output format incorporated into Swiftest. This takes the place of the flat binary output file included in Swifter. While a binary output file format is included in Swiftest for backward compatibility, the NetCDF output format is encouraged due to its compatibility with Python, Java, and other languages that can be used to process and analyze data. Details on installing NetCDF and the NetCDF Fortran Library can be found on the [Unidata website](https://docs.unidata.ucar.edu/netcdf-fortran/current/). NetCDF is built on HDF5 and it is necessary to install HDF and HDF5 as well. Details on installing HDF and HDF5 can be found on the [HDF Group website](https://www.hdfgroup.org/solutions/hdf5).
+Swiftest output files are stored in the NetCDF file format. This takes the place of the flat binary output file included in Swifter (and its predecessor [Swift](https://www.boulder.swri.edu/~hal/swift.html)). The NetCDF output format is compatible with Python, Java, and other languages that can be used to process and analyze data. Details on installing NetCDF and the NetCDF Fortran Library can be found on the [Unidata website](https://docs.unidata.ucar.edu/netcdf-fortran/current/). NetCDF is built on HDF5 and it is necessary to install HDF and HDF5 as well. Details on installing HDF and HDF5 can be found on the [HDF Group website](https://www.hdfgroup.org/solutions/hdf5).
 
 Parallelization in Swiftest is done with OpenMP. Version 3.1.4 or higher is necessary to make use of parallelization in Swiftest. If Swiftest is only to be run in serial, this package is not necessary. See the [OpenMP website](https://www.openmp.org/resources/openmp-compilers-tools/) for more details and installation instructions.
 
@@ -42,7 +42,7 @@ Parallelization in Swiftest is done with OpenMP. Version 3.1.4 or higher is nece
 
 **Downloading Swiftest**
 
-The easiest way to get Swiftest on your machine is to clone the GitHub repository:
+The easiest way to get Swiftest on your machine is to clone the GitHub repository. To do so, open a terminal window and type the following:
 
 ```
 git clone https://github.itap.purdue.edu/MintonGroup/swiftest.git
@@ -72,7 +72,7 @@ Swiftest is fully customizable using the ```Makefile.Defines``` file included in
 
 #### Usage
 
-A Swiftest simulation, including all required input files, should exist in its own directory. A symbolic link to the Swiftest driver should also exist in the simulation directory. To create a symbolic link to the Swiftest driver from your current directory, type:
+When creating a new Swiftest simulation, ensure that all required input files exist in a unique directory. A symbolic link to the Swiftest driver should also exist in the simulation directory. To create a symbolic link to the Swiftest driver from your current directory, type:
 
 ```ln -s ~/PATH/TO/swiftest/bin/swiftest_driver .```
 
@@ -101,10 +101,10 @@ The **<span>param.in</span>** includes all user parameters available for the int
 | ```ISTEP_OUT```         | Output cadence in number of timesteps                                                                                        | integer (ex. ```200```)                                                                                 | all
 | ```ISTEP_DUMP```        | Dump cadence in number of timesteps                                                                                          | integer (ex. ```200```)                                                                                 | all
 | ```OUT_FORM```          | Output format                                                                                                                | ```XV```, ```EL```, ```XVEL```                                                                          | all
-| ```OUT_TYPE```          | Output file format                                                                                                           | ```REAL4```, ```REAL8```, ```NETCDF_FLOAT```, ```NETCDF_DOUBLE```                                       | all
+| ```OUT_TYPE```          | Output file format                                                                                                           | ```NETCDF_FLOAT```, ```NETCDF_DOUBLE```                                       | all
 | ```OUT_STAT```          | Output status                                                                                                                | ```NEW```, ```APPEND```, ```REPLACE```, ```UNKNOWN```                                                   | all
 | ```IN_FORM```           | Input format                                                                                                                 | ```EL```, ```XV```                                                                                      | all
-| ```IN_TYPE```           | Input file format                                                                                                            | ```ASCII``` (```REAL4```, ```REAL8```, ```NETCDF_FLOAT```, and ```NETCDF_DOUBLE``` *under development*) | all
+| ```IN_TYPE```           | Input file format                                                                                                            | ```ASCII``` (```NETCDF_FLOAT```, and ```NETCDF_DOUBLE``` *under development*) | all
 | ```NC_IN```             | NetCDF input file name                                                                                                       | string (ex. ```nc.in```)                | only if ```IN_TYPE``` is set to a NetCDF type, *under development*   
 | ```PL_IN```             | Massive body input file name                                                                                                 | string (ex. ```pl.in```)                                                                                | all
 | ```TP_IN```             | Test particle input file name                                                                                                | string (ex. ```tp.in```)                                                                                | all
@@ -144,8 +144,6 @@ In the above **<span>param.in</span>**, the following are defined as:
 - ```XV``` - Heliocentric position and velocity components for ```IN_FORM``` and/or ```OUT_FORM```
 - ```EL``` - Osculating orbital elements for ```IN_FORM``` and/or ```OUT_FORM```
 - ```XVEL``` - Heliocentric position and velocity components and osculating orbital elements for ```OUT_FORM```
-- ```REAL4``` - 4-byte native Fortran binary format for ```OUT_TYPE```
-- ```REAL8``` - 8-byte native Fortran binary format for ```OUT_TYPE```
 - ```NETCDF_FLOAT``` - Single precision NetCDF format for ```OUT_TYPE```
 - ```NETCDF_DOUBLE``` - Double precision NetCDF format for ```OUT_TYPE```
 
@@ -155,8 +153,8 @@ The **<span>cb.in</span>** includes all central body initial conditions. The str
 
 ```
 0                 ! ID number
-1.0               ! Gravitational mass (G*mass) in mass units (ex. 39.47841760435743 for M_sun/AU/year)
-1.0               ! Central body radius is distance units
+1.0               ! Gravitational mass (G*mass) in mass units (ex. 39.47841760435743 for Sun in M_sun/AU/year)
+1.0               ! Central body radius is distance units (ex. 0.004650467260962157 for Sun in AU)
 0.0               ! J2 term, optional, set to 0.0 for a spherical body
 0.0               ! J4 term, optional, set to 0.0 for a spherical body
 0.4 0.4 0.4       ! Principal moments of inertia, optional, leave off if not using, SyMBA only
@@ -171,8 +169,8 @@ The **<span>pl.in</span>** includes all massive body initial conditions. The str
 0.0               ! Radius is distance units if CHK_CLOSE is set to YES, leave off if not using
 1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric position vector, if it is set to EL then this is the semi-major axis, the eccentricity, and the inclination
 1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric velocity vector, if it is set to EL then this is the longitude of the ascending node, the argument of pericenter, and the mean anomaly
-0.4 0.4 0.4       ! Principal moments of inertia, optional, leave off if not using, SyMBA only 
-1.0 1.0 1.0       ! Rotational vectors in radians per second, optional, leave off if not using, SyMBA only 
+0.4 0.4 0.4       ! Principal moments of inertia, optional, leave off if not using, SyMBA only
+1.0 1.0 1.0       ! Rotational vectors in radians per second, optional, leave off if not using, SyMBA only
 2, 0.0, 0.0       
 0.0               
 1.0 1.0 1.0       
@@ -181,7 +179,7 @@ The **<span>pl.in</span>** includes all massive body initial conditions. The str
 1.0 1.0 1.0        
 ```
 
-The **<span>tp.in</span>** includes all test particle initial conditions. The structure of the **<span>tp.in</span>** is as follows:
+The **<span>tp.in</span>** includes all test particle initial conditions. In the event that no test particles are desired, the **<span>tp.in</span>** must still be included, however it can simply contain a single ```0```. The structure of the **<span>tp.in</span>** is as follows:
 
 ```
 2                 ! Total number of test particles 
@@ -193,15 +191,19 @@ The **<span>tp.in</span>** includes all test particle initial conditions. The st
 1.0 1.0 1.0       
 ```
 
-Note that the ID numbers of the test particles are a continuation of the ID numbers of the massive bodies. No two bodies in the system can have the same ID number. In the event that no massive bodies or test particles are desired, the **<span>pl.in</span>** and **<span>tp.in</span>** must both still be included, however they can simply contain a single ```0```.
+Note that the ID numbers of the test particles are a continuation of the ID numbers of the massive bodies. No two bodies in the system can have the same ID number. 
 
 **Outputs**
 
-Swiftest generates between 1 and 9 output files, depending on the parameters defined in the **<span>param.in</span>**. It also generates output in the terminal. 
+Swiftest generates between 1 and 6 output files, depending on the parameters defined in the **<span>param.in</span>**. The output files are as follows:
+- **<span>out.nc</span>** - Always generated, the output file containing the information for every body in the system, written every ```ISTEP_OUT``` timesteps, NetCDF file format only
+- **discard.out** - The output file containing the information for every body in the system and all discarded bodies, only if ```BIG_DISCARD``` is ```YES```, ASCII file format only
+- **fraggle.log** - The log containing the record of each fragmentation event, including the properties of the colliding bodies, the collisional regime, and the properties of the fragments created, only if ```FRAGMENTATION``` is ```YES```, SyMBA only, ASCII file format only
+- **encounter_check_plpl_timer.log** - The log containing the encounter check timer for each massive body/massive body encounter, only if ```ENCOUNTER_CHECK``` is ```ADAPTIVE```, ASCII file format only
+- **encounter_check_pltp_time.log** - The log containing the encounter check timer for each massive body/test particle encounter, only if ```ENCOUNTER_CHECK``` is ```ADAPTIVE```, ASCII file format only
+- **interaction_timer.log** - The log containing the interaction loop timer for each interacting pair of bodies, only if ```INTERACTION_LOOPS``` is ```ADAPTIVE```, ASCII file format only
 
-*The Terminal Output:*
-
-Each time Swiftest writes to the output files, it also writes an update to the terminal. At the start of the simulation, it outputs all user parameters set in the **<span>param.in</span>** to terminal. Each output is then appended beneath the listed parameters in the following fashion:
+Each time Swiftest writes to the output files, it also writes a short update to the terminal. At the start of the simulation, it outputs all user parameters set in the **<span>param.in</span>** to the terminal. Each subsequent output is then appended beneath the listed parameters in the following fashion:
 
 ``````
 Time =  1.00000E+03; fraction done =  0.001; Number of active plm, pl, tp =    57,   108,    50
@@ -209,30 +211,19 @@ Time =  1.00000E+03; fraction done =  0.001; Number of active plm, pl, tp =    5
 Integration steps: Total wall time:  2.99848E+02; Interval wall time:  9.36192E+01;Interval wall time/step:   4.68956E-04
 ``````
 
-The first line includes the simulation time, the fraction of the simulation that is complete relative to ```tmax```, the number of fully-interactive massive bodies (```plm```), the number of massive bodies (```pl```), and the number of test particles (```tp```) remaining in the system at that time. The second line includes the angular momentum error, the change in energy as a result of collisions only, the total change in energy, and the change in mass up to this point in the simulation. The third line contains the total wall time elapsed since the start of the simulation, the wall time elapsed since the start of the last step, and the average wall time per step since the start of the simulation.
-
-*The Output Files:*
-- **<span>out.nc</span>** or **bin.dat** - The output file containing the information for every body in the system, written to every ```ISTEP_OUT``` timesteps, either a NetCDF format or a binary format, always generated
-- **discard.out** - The output file containing the information for every body in the system and all discarded bodies, only if ```BIG_DISCARD``` is ```YES```, ASCII file format only
-- **energy.out** - The output file containing the energy and momentum information of the system, only if ```ENERGY``` is ```YES``` and if ```OUT_TYPE``` is ```REAL4``` or ```REAL8```, ASCII file format only
-- **particle.out** - The output file containing the particle information for every body in the system, only if ```OUT_TYPE``` is ```REAL4``` or ```REAL8```, ASCII file format only
-- **enc.out** - The output file containing the encounter information for every encounter over the course of the simulation, only if ```CHK_CLOSE``` is ```YES``` and if ```OUT_TYPE``` is ```REAL4``` or ```REAL8```, ASCII file format only
-
-*The Log Files:*
-- **fraggle.log** - The log containing the record of each fragmentation event, including the properties of the colliding bodies, the collisional regime, and the properties of the fragments created, only if ```FRAGMENTATION``` is ```YES```, SyMBA only, ASCII file format only
-- **encounter_check_plpl_timer.log** - The log containing the encounter check timer for each massive body/massive body encounter, only if ```ENCOUNTER_CHECK``` is ```ADAPTIVE```, ASCII file format only
-- **encounter_check_pltp_time.log** - The log containing the encounter check timer for each massive body/test particle encounter, only if ```ENCOUNTER_CHECK``` is ```ADAPTIVE```, ASCII file format only
-- **interaction_timer.log** - The log containing the interaction loop timer for each interacting pair of bodies, only if ```INTERACTION_LOOPS``` is ```ADAPTIVE```, ASCII file format only
+The first line includes the simulation time, the fraction of the simulation that is complete relative to ```tmax```, the number of fully-interactive massive bodies (```plm```), the total number of massive bodies (```pl```) including fully-interactive and semi-interactive bodies, and the number of test particles (```tp```) remaining in the system at that time. The second line includes the angular momentum error, the change in energy as a result of collisions only, the total change in energy, and the change in mass up to this point in the simulation. The third line contains the total wall time elapsed since the start of the simulation, the wall time elapsed since the start of the last step, and the average wall time per step since the start of the simulation.
 
 **Restarting a Simulation From t $\neq$ 0**
 
-In case of accidental termination of a simulation, or the desire to continue running a simulation from an end point, Swiftest generates a series of dump files. Every ```ISTEP_DUMP``` timesteps, Swiftest dumps all simulation information to the dump files. Every ```ISTEP_DUMP``` timestep, Swiftest alternates which set of dump files to dump to (either set "1" or set "2"). This way, even if Swiftest is terminated during the writing stage, at least one set of dump files is preserved and the information is not lost. When Swiftest is restarted from a dump file, it automatically determines which set of the dump files has proceeded further in simulation time, and picks up from that point. 
+Swiftest allows the user to restart a simulation in two different ways. Restarting from the dump files is ideal if there is a risk that the simulation was terminated in the writing stage or if the output was corrupted during termination. Restarting from a timestamp is ideal if the point at which the user would like to restart from is not the last timestep written to the output file. Both ways allow the user to restart a simulation from the last timestep written to the output file. 
+
+In case of accidental termination of a simulation, such as through a power outage or computer failure, Swiftest generates a series of dump files. Every ```ISTEP_DUMP``` timesteps, Swiftest dumps all simulation information to the dump files. Every ```ISTEP_DUMP``` timestep, Swiftest alternates which set of dump files to dump to (either set "1" or set "2"). This way, even if Swiftest is terminated during the writing stage, at least one set of dump files is preserved and the information is not lost. When Swiftest is restarted from a dump file, it automatically determines which set of dump files has proceeded further in simulation time, and picks up from that point. 
 
 The Dump Files:
 - **dump_param1.in** - The file storing all simulation parameters for set 1 of the dump files, ASCII file format only
 - **dump_param2.in** - The file storing all simulation parameters for set 2 of the dump files, ASCII file format only
-- **dump_bin1.nc** or **dump_bin1.dat** - The file storing all simulation information for set 1 of the dump files, NetCDF file format if  ```OUT_TYPE``` is  ```NETCDF_FLOAT``` or  ```NETCDF_DOUBLE```, binary file format if ```OUT_TYPE``` is  ```REAL4``` or  ```REAL8```
-- **dump_bin2.nc** or **dump_bin2.dat** - The file storing all simulation information for set 2 of the dump files, NetCDF file format if  ```OUT_TYPE``` is  ```NETCDF_FLOAT``` or  ```NETCDF_DOUBLE```, binary file format if ```OUT_TYPE``` is  ```REAL4``` or  ```REAL8```
+- **dump_bin1.nc** or **dump_bin1.dat** - The file storing all simulation information for set 1 of the dump files, NetCDF file format 
+- **dump_bin2.nc** or **dump_bin2.dat** - The file storing all simulation information for set 2 of the dump files, NetCDF file format 
 
 To run Swiftest from a dump file, simply type the following command into the terminal: 
 
@@ -242,15 +233,25 @@ To run Swiftest from a dump file, simply type the following command into the ter
 
 Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs```, ```helio```, or ```symba```, and ```DUMP_PARAM``` is either **dump_param1.in** or **dump_param2.in**. The option of specifying **dump_param1.in** or **dump_param2.in** is included for backwards compatibility. Swiftest will still automatically check which dump file has progressed further and select that dump file, regardless of your choice of dump parameter file. If you would like to force Swiftest to select one dump parameter file over the other, simply delete the set of dump files that you do not want. 
 
+While the dump files allow the user to restart only from the last recorded step, Swiftest also allows the user to restart a run from an earlier point. This can be useful if the user wishes to clone the number of test particles in a simulation at a certain time or isolate a particular event. To generate a new set of initial conditions from a set time in a preexisting run, use the Swiftest Python package to read in the **<span>out.nc</span>** output file (see the **Swiftest Python Package** section for more details). Next, use the ```initial_conditions_from_bin``` method, part of the ```swiftest.Simulation``` class. This method takes the frame number from which to generate a set of initial conditions as the sole argument. An example of this process is shown below:
+
+```
+import swiftest                                   # Import the Swiftest Python package.
+sim = swiftest.Simulation(param_file="param.in")  # Read in the output of a past simulation and store it in the sim object.
+sim.initial_conditions_from_bin(framenum=3)      # Generate a new set of initial conditions from frame 3 of the past simulation stored in sim.
+```
+
+To calculate the frame number that correlates to a particular time in a simulation, the simulation's output cadence (```ISTEP_OUT```) and timestep (```DT```) must be considered. New initial conditions can only be generated from old output frames, so if the desired time falls between output steps, it is necessary to generate initial conditions from the previous output step. For example, a simulation that ran from 0 to 100 years, where ```DT``` = 1 year and ```ISTEP_OUT``` = 10, will output every 10 timesteps, or every 10 years. If the user wishes to generate new initial conditions at 34 years, it is necessary to select frame number 3, which correlates to 30 years. The new simulation can then be run with shorter a output cadence and/or timestep if desired. 
+
 ---
 
 #### Updates to Swifter Included in Swiftest
 
 **Fraggle**
 
-When ```FRAGMENTATION``` in the **<span>param.in</span>** is set to ```YES```, the Fraggle algorithm takes affect. When resolving a close encounter that results in a collision, Fraggle determines the regime of the collision as well as the mass, number, position, velocity, and rotation of all resulting bodies. This is distinct from Swiftest SyMBA's predecessor, Swifter SyMBA, which assumes that all collisions result in perfect mergers. 
+To activate the Fraggle algorithm, set ```FRAGMENTATION``` in the **<span>param.in</span>** to ```YES```. When resolving a close encounter that results in a collision, Fraggle determines the regime of the collision as well as the mass, number, position, velocity, and rotation of all resulting bodies. This is distinct from Swiftest SyMBA's predecessor, Swifter SyMBA, which assumes that all collisions result in perfect mergers. 
 
-Fraggle distinguishes the following collisional regimes: (1) perfect merging, which includes the cratering, partial accretion, and graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption, which includes the partial erosion regime of Leinhardt & Stewart 2012, (3) super-catastrophic disruption, and (4) hit-and-run events which can be either ‘pure’ or ‘disruptive’. For more details on the collisional regimes used in Fraggle, please see our <span style="color:red">[published work]</span>. 
+Fraggle distinguishes the following collisional regimes: (1) perfect merging, which includes the cratering, partial accretion, and graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption, which includes the partial erosion regime of Leinhardt & Stewart 2012, (3) super-catastrophic disruption, and (4) hit-and-run events which can be either ‘pure’ or ‘disruptive’. For more details on the collisional regimes used in Fraggle, please see our <span style="color:red">[manuscript in preparation]</span>. 
 
 For every collision throughout the course of a simulation, Fraggle writes all details of the collision to the **fraggle.log** output file. An example of a collision, stored in the **fraggle.log** output file, is as follows:
 
@@ -413,7 +414,7 @@ symba_kick_getacch_int_pl: the fastest loop method tested is FLAT             ! 
 
 In addition to calculating the gravitational interactions between pairings of bodies, Swifter SyMBA also uses an upper triangular matrix to check if pairings of bodies are in a close encounter state. While similar to interaction calculations, encounter checking can be further simplified to exclude pairs of bodies which, based on their physical distance, are unlikely to be in an encounter state. To address this, Swiftest SyMBA offers an alternative to solving an upper triangular matrix through the sort and sweep method.
 
-The sort and sweep method of collision detection (see Ericson 2005 for more details), also known as the sweep and prune method, is a way of limiting the number of pairs of bodies that need to be checked for a collision in each time step. At the start of a new time step, the position of each body is calculated and the critical radius of each body is determined. The critical radius is based on the radius of a body's Hill sphere. The distance from a body's center to the extent of its critical radius defines the encounter sphere of the body. The position of the center of mass of the body and the extent of its encounter sphere are used to define the bounding box used in the sort and sweep algorithm. Based on the defined bounding box, the positions of the lower and upper bounds of all of the bodies in the simulation are compiled into sorted lists. Because each body is unlikely to move significantly between time steps, updating these sorted lists each time step is relatively straightforward. Only when the bounding boxes of two bodies overlap in all axes are the bodies flagged as an encountering pair. 
+The sort and sweep method of collision detection (see [Ericson 2005](https://www.sciencedirect.com/book/9781558607323/real-time-collision-detection) for more details), also known as the sweep and prune method, is a way of limiting the number of pairs of bodies that need to be checked for a collision in each time step. At the start of a new time step, the position of each body is calculated and the critical radius of each body is determined. The critical radius is based on the radius of a body's Hill sphere. The distance from a body's center to the extent of its critical radius defines the encounter sphere of the body. The position of the center of mass of the body and the extent of its encounter sphere are used to define the bounding box used in the sort and sweep algorithm. Based on the defined bounding box, the positions of the lower and upper bounds of all of the bodies in the simulation are compiled into sorted lists. Because each body is unlikely to move significantly between time steps, updating these sorted lists each time step is relatively straightforward. Only when the bounding boxes of two bodies overlap in all axes are the bodies flagged as an encountering pair. 
 
 The sort and sweep algorithm is computationally efficient because it limits the number of potential encountering pairs that must be checked for encounters. For example, by calculating the bounding boxes of two bodies on opposite sides of the solar system, the algorithm then sorts the upper and lower bounds of these two bounding boxes into opposite ends of a sorted list. Through this sorting, the algorithm recognizes that these two bodies are unlikely to encounter one another in the following time step and is able to quickly exclude them from more extensive encounter checking, saving time and computational resources.  
 In the same way that the user can allow Swiftest SyMBA to adapt when calculating the gravitational interactions between bodies, the user can also allow Swiftest SyMBA to determine the faster method of encounter checking. Just as Swiftest SyMBA periodically tests the interaction calculation methods, it also periodically tests the encounter checking methods. The quicker of the two methods is selected and implemented, allowing Swiftest SyMBA to adapt to changes in the distribution of bodies in the system as the simulation progresses.
@@ -437,13 +438,11 @@ Together, adaptive interaction calculations and encounter checking are idea for 
 
 The NetCDF (Network Common Data Form) file format is a cross-platform method of creating, accessing, and sharing data. Due to its self-describing nature, NetCDF is ideal for archiving multidimensional scientific data. NetCDF files are also appendable, allowing for data to be added to a file after creation, making the NetCDF file format well suited for handling simulation output. NetCDF is maintained by the University Corporation for Atmospheric Research (UCAR) and is a standard file format across much of the atmospheric modeling community. 
 
-In Swifter SyMBA, simulation outputs were stored in a flat binary file. These binary files could only be easily accessed through [SwiftVis](https://cs.trinity.edu/~mlewis/SwiftVis/), a data analysis and visualization software package designed to process Swifter data. While effective at accessing and plotting data from Swifter (and its predecessor [Swift](https://www.boulder.swri.edu/~hal/swift.html)), due to the addition of particles through fragmentation, SwiftVis is not capable of processing Swiftest output data. 
-
-In accordance with modern data management practices and industry standards, Swiftest incorporates a NetCDF output file format for all simulation types. NetCDF is compatible with many of today's most widely-used programming languages including Fortran, Python, Java, C++, and more. By writing simulation data to a NetCDF output file, Swiftest provides the user with the flexibility to analyze and visualize data in any language they choose. The NetCDF file format is also adaptable such that any future additions to Swiftest can be seamlessly incorporated into the output file. It should be noted that for backwards compatibility, Swiftest also allows the user to chose a flat binary output file format comparable to the Swifter output file format.  
+In Swifter SyMBA, simulation outputs were stored in a flat binary file. These binary files could only be easily accessed through [SwiftVis](https://cs.trinity.edu/~mlewis/SwiftVis/), a data analysis and visualization software package designed to process Swifter data. In accordance with modern data management practices and industry standards, Swiftest incorporates a NetCDF output file format for all simulation types. NetCDF is compatible with many of today's most widely-used programming languages including Fortran, Python, Java, C++, and more. By writing simulation data to a NetCDF output file, Swiftest provides the user with the flexibility to analyze and visualize data in any language they choose. The NetCDF file format is also adaptable such that any future additions to Swiftest can be seamlessly incorporated into the output file. 
 
 **Swiftest Python Package**
 
-Included with Swiftest, in the ```/swiftest/python/swiftest/``` directory, is a Python package designed to fascilitate seamless data processing and analysis. The Python package, also called Swiftest, can be used to generate input files and process output files in either the NetCDF file format or the binary file format. 
+Included with Swiftest, in the ```/swiftest/python/swiftest/``` directory, is a Python package designed to fascilitate seamless data processing and analysis. The Python package, also called Swiftest, can be used to generate input files and process output files in the NetCDF file format.
 
 To begin, Swiftest can be added to an existing conda environment, or a new conda environment may be created, so long as the required pacakges are installed. To create and activate a new conda environment with the prerequisite packages, open a terminal and navigate to the ```/swiftest/python/swiftest/``` directory. Type the following:
 
@@ -491,7 +490,7 @@ sim.addp(id, name, a, e, inc, capom, omega, capm, GMpl=GMpl, Rpl=Rpl, rhill=rhil
 Once all desired bodies and parameters are added to the simulation object, the information is saved to a set of initial condition files (**<span>param.in</span>**, **<span>cb.in</span>**, **<span>pl.in</span>**, **<span>tp.in</span>**) using the following line:
 
 ```
-sim.save('param.in')                                        # Saving the Swiftest input files. 
+sim.save('param.in')           # Saving the Swiftest input files. 
 ```
 
 The input files necessary to successfully run Swiftest should now be generated in the simulation directory.
@@ -504,70 +503,70 @@ import xarray as xr                                         # Importing Xarray
 ds = swiftest.Simulation(param_file="PATH/TO/param.in").ds  # Storing all simulation data to an Xarray dataset.
 ```
 
-All Swiftest data is now stored in the Xarray dataset ```ds``` and is easily processed, manipulated, and analyzed. Both the NetCDF and the binary output file formats store data in two dimensions: simulation time (```time```) and particle ID (```id```). The NetCDF output file contains a maximum of 60 data variables while the binary output file contains a maximum of 23 data variables. For the binary output file format, all additional particle information is store in the **particle.out** and all additional energy and angular momentum information is stored in the **energy.out**. Below is a list of all data variables, their associated dimension, and with which output type they are included.
+All Swiftest data is now stored in the Xarray dataset ```ds``` and is easily processed, manipulated, and analyzed. The NetCDF output file stores data in two dimensions: simulation time (```time```) and particle ID (```id```). The NetCDF output file contains a maximum of 60 data variables. Below is a list of all data variables and their associated dimension.
 
-| Data Variable Name     | Data Variable Description                                                                                                                                  | Data Variable Dimension | Output Type   |
-|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|---------------|
-| ```npl```              | Number of massive bodies                                                                                                                                   | time                    | NetCDF
-| ```ntp```              | Number of test particles                                                                                                                                   | time                    | NetCDF
-| ```name```             | Name of particle                                                                                                                                           | id                      | NetCDF
-| ```particle_type```    | Particle type (Central Body, Massive Body, or Test Particle)                                                                                               | id                      | NetCDF
-| ```status```           | Particle status (Active, collisional regime, discard fate etc.)                                                                                            | id                      | NetCDF
-| ```xhx```              | Heliocentric x-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                | NetCDF, binary
-| ```xhy```              | Heliocentric y-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                | NetCDF, binary
-| ```xhz```              | Heliocentric z-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                | NetCDF, binary
-| ```vhx```              | Heliocentric x-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                | NetCDF, binary
-| ```vhy```              | Heliocentric y-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                | NetCDF, binary
-| ```vhz```              | Heliocentric z-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                | NetCDF, binary
-| ```a```                | Semi-major axis in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                | time, id                | NetCDF, binary
-| ```e```                | Eccentricity, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                                     | time, id                | NetCDF, binary
-| ```inc```              | Inclination in degrees, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                           | time, id                | NetCDF, binary
-| ```capom```            | Longitude of ascending node, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                      | time, id                | NetCDF, binary
-| ```omega```            | Argument of pericenter, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                           | time, id                | NetCDF, binary
-| ```capm```             | Mean anomaly, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                                     | time, id                | NetCDF, binary
-| ```Gmass```            | G * mass in mass units                                                                                                                                     | time, id                | NetCDF, binary
-| ```rhill```            | Hill Radius in distance units                                                                                                                              | time, id                | NetCDF, binary
-| ```radius```           | Radius in distance units                                                                                                                                   | time, id                | NetCDF, binary
-| ```origin_time```      | Time of particle creation in simulation time in time units                                                                                                 | id                      | NetCDF
-| ```origin_type```      | Type of creation (Initial conditions, Hit and run fragment etc.)                                                                                           | id                      | NetCDF
-| ```origin_xhx```       | Heliocentric x-coordinate of origin position in distance units                                                                                             | id                      | NetCDF
-| ```origin_xhy```       | Heliocentric y-coordinate of origin position in distance units                                                                                             | id                      | NetCDF
-| ```origin_xhz```       | Heliocentric z-coordinate of origin position in distance units                                                                                             | id                      | NetCDF
-| ```origin_vhx```       | Heliocentric x-coordinate of origin velocity in distance units                                                                                             | id                      | NetCDF
-| ```origin_vhy```       | Heliocentric y-coordinate of origin velocity in distance units                                                                                             | id                      | NetCDF
-| ```origin_vhz```       | Heliocentric z-coordinate of origin velocity in distance units                                                                                             | id                      | NetCDF
-| ```collision_id```     | Collision number in which particle was formed                                                                                                              | id                      | NetCDF
-| ```discard_time```     | Time of particle discard in simulation time in time units                                                                                                  | id                      | NetCDF
-| ```discard_xhx```      | Heliocentric x-coordinate of discard position in distance units                                                                                            | id                      | NetCDF
-| ```discard_xhy```      | Heliocentric y-coordinate of discard position in distance units                                                                                            | id                      | NetCDF
-| ```discard_xhz```      | Heliocentric z-coordinate of discard position in distance units                                                                                            | id                      | NetCDF
-| ```discard_vhx```      | Heliocentric x-coordinate of discard velocity in distance units                                                                                            | id                      | NetCDF
-| ```discard_vhy```      | Heliocentric y-coordinate of discard velocity in distance units                                                                                            | id                      | NetCDF
-| ```discard_vhz```      | Heliocentric z-coordinate of discard velocity in distance units                                                                                            | id                      | NetCDF
-| ```discard_body_id```  | <span style="color:red">[id of the other body involved in the discard, 0 if no other body involved]</span>                                                 | id                      | NetCDF
-| ```Ip1```              | Principal moment of inertia axis 1, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | NetCDF, binary
-| ```Ip2```              | Principal moment of inertia axis 2, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | NetCDF, binary
-| ```Ip3```              | Principal moment of inertia axis 3, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | NetCDF, binary
-| ```rotx```             | X-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                | NetCDF, binary
-| ```roty```             | Y-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                | NetCDF, binary
-| ```rotz```             | Z-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                | NetCDF, binary
-| ```KE_orb```           | Orbital kinetic energy of the system                                                                                                                       | time                    | NetCDF
-| ```KE_spin```          | Rotational kinetic energy of the system                                                                                                                    | time                    | NetCDF
-| ```PE```               | Potential energy of the system                                                                                                                             | time                    | NetCDF
-| ```L_orbx```           | Heliocentric x-coordinate of orbital angular momentum of the system                                                                                        | time                    | NetCDF
-| ```L_orby```           | Heliocentric y-coordinate of orbital angular momentum of the system                                                                                        | time                    | NetCDF
-| ```L_orbz```           | Heliocentric z-coordinate of orbital angular momentum of the system                                                                                        | time                    | NetCDF
-| ```L_spinx```          | Heliocentric x-coordinate of rotational angular momentum of the system                                                                                     | time                    | NetCDF
-| ```L_spiny```          | Heliocentric y-coordinate of rotational angular momentum of the system                                                                                     | time                    | NetCDF
-| ```L_spinz```          | Heliocentric z-coordinate of rotational angular momentum of the system                                                                                     | time                    | NetCDF
-| ```L_escapex```        | Heliocentric x-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    | NetCDF
-| ```L_escapey```        | Heliocentric y-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    | NetCDF
-| ```L_escapez```        | Heliocentric z-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    | NetCDF
-| ```Ecollisions```      | Energy lost due to collisions                                                                                                                              | time                    | NetCDF
-| ```Euntracked```       | Energy of bodies that were discarded from the system due to being too far from the central body, untracked potential energy due to merging bodies          | time                    | NetCDF
-| ```GMescape```         | G * mass of particles that were discarded from the system due to being too far from the central body                                                       | time                    | NetCDF
-| ```j2rp2``` or ```J2```| <span style="color:red">[either the J2 / R^2 or the J2 * R^2 term of the central body]</span>                                                              | time                    | NetCDF, binary respectively
-| ```j4rp4``` or ```J4```| <span style="color:red">[either the J4 / R^2 or the J4 * R^2 term of the central body]</span>                                                              | time                    | NetCDF, binary respectively
+| Data Variable Name     | Data Variable Description                                                                                                                                  | Data Variable Dimension | 
+|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| ```npl```              | Number of massive bodies                                                                                                                                   | time                    | 
+| ```ntp```              | Number of test particles                                                                                                                                   | time                    | 
+| ```name```             | Name of particle                                                                                                                                           | id                      | 
+| ```particle_type```    | Particle type (Central Body, Massive Body, or Test Particle)                                                                                               | id                      | 
+| ```status```           | Particle status (Active, collisional regime, discard fate etc.)                                                                                            | id                      |
+| ```xhx```              | Heliocentric x-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                |
+| ```xhy```              | Heliocentric y-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                |
+| ```xhz```              | Heliocentric z-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                |
+| ```vhx```              | Heliocentric x-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                |
+| ```vhy```              | Heliocentric y-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                | 
+| ```vhz```              | Heliocentric z-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                |
+| ```a```                | Semi-major axis in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                | time, id                | 
+| ```e```                | Eccentricity, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                                     | time, id                |
+| ```inc```              | Inclination in degrees, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                           | time, id                | 
+| ```capom```            | Longitude of ascending node, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                      | time, id                | 
+| ```omega```            | Argument of pericenter, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                           | time, id                |
+| ```capm```             | Mean anomaly, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                                     | time, id                |
+| ```Gmass```            | G * mass in mass units                                                                                                                                     | time, id                |
+| ```rhill```            | Hill Radius in distance units                                                                                                                              | time, id                |
+| ```radius```           | Radius in distance units                                                                                                                                   | time, id                |
+| ```origin_time```      | Time of particle creation in simulation time in time units                                                                                                 | id                      |
+| ```origin_type```      | Type of creation (Initial conditions, Hit and run fragment etc.)                                                                                           | id                      |
+| ```origin_xhx```       | Heliocentric x-coordinate of origin position in distance units                                                                                             | id                      | 
+| ```origin_xhy```       | Heliocentric y-coordinate of origin position in distance units                                                                                             | id                      |
+| ```origin_xhz```       | Heliocentric z-coordinate of origin position in distance units                                                                                             | id                      |
+| ```origin_vhx```       | Heliocentric x-coordinate of origin velocity in distance units                                                                                             | id                      | 
+| ```origin_vhy```       | Heliocentric y-coordinate of origin velocity in distance units                                                                                             | id                      | 
+| ```origin_vhz```       | Heliocentric z-coordinate of origin velocity in distance units                                                                                             | id                      |
+| ```collision_id```     | Collision number in which particle was formed                                                                                                              | id                      | 
+| ```discard_time```     | Time of particle discard in simulation time in time units                                                                                                  | id                      |
+| ```discard_xhx```      | Heliocentric x-coordinate of discard position in distance units                                                                                            | id                      | 
+| ```discard_xhy```      | Heliocentric y-coordinate of discard position in distance units                                                                                            | id                      |
+| ```discard_xhz```      | Heliocentric z-coordinate of discard position in distance units                                                                                            | id                      | 
+| ```discard_vhx```      | Heliocentric x-coordinate of discard velocity in distance units                                                                                            | id                      | 
+| ```discard_vhy```      | Heliocentric y-coordinate of discard velocity in distance units                                                                                            | id                      |
+| ```discard_vhz```      | Heliocentric z-coordinate of discard velocity in distance units                                                                                            | id                      |
+| ```discard_body_id```  | <span style="color:red">[id of the other body involved in the discard, 0 if no other body involved]</span>                                                 | id                      | 
+| ```Ip1```              | Principal moment of inertia axis 1, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
+| ```Ip2```              | Principal moment of inertia axis 2, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
+| ```Ip3```              | Principal moment of inertia axis 3, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
+| ```rotx```             | X-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                |
+| ```roty```             | Y-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                |
+| ```rotz```             | Z-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                |
+| ```KE_orb```           | Orbital kinetic energy of the system                                                                                                                       | time                    | 
+| ```KE_spin```          | Rotational kinetic energy of the system                                                                                                                    | time                    |
+| ```PE```               | Potential energy of the system                                                                                                                             | time                    | 
+| ```L_orbx```           | Heliocentric x-coordinate of orbital angular momentum of the system                                                                                        | time                    | 
+| ```L_orby```           | Heliocentric y-coordinate of orbital angular momentum of the system                                                                                        | time                    |
+| ```L_orbz```           | Heliocentric z-coordinate of orbital angular momentum of the system                                                                                        | time                    |
+| ```L_spinx```          | Heliocentric x-coordinate of rotational angular momentum of the system                                                                                     | time                    | 
+| ```L_spiny```          | Heliocentric y-coordinate of rotational angular momentum of the system                                                                                     | time                    |
+| ```L_spinz```          | Heliocentric z-coordinate of rotational angular momentum of the system                                                                                     | time                    |
+| ```L_escapex```        | Heliocentric x-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    | 
+| ```L_escapey```        | Heliocentric y-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    | 
+| ```L_escapez```        | Heliocentric z-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    |
+| ```Ecollisions```      | Energy lost due to collisions                                                                                                                              | time                    | 
+| ```Euntracked```       | Energy of bodies that were discarded from the system due to being too far from the central body, untracked potential energy due to merging bodies          | time                    | 
+| ```GMescape```         | G * mass of particles that were discarded from the system due to being too far from the central body                                                       | time                    |
+| ```j2rp2```            | <span style="color:red">[either the J2 / R^2 or the J2 * R^2 term of the central body]</span>                                                              | time                    |
+| ```j4rp4```            | <span style="color:red">[either the J4 / R^2 or the J4 * R^2 term of the central body]</span>                                                              | time                    | 
 
 **Object-Oriented Programming**
 
@@ -600,7 +599,7 @@ This example highlights the functionality of the Fraggle algorithm. It can be fo
 - Supercatastrophic Disruptive Collision
 - Disruptive Hit and Run Collision
 
-For more details on the collisional regimes used in Fraggle, please see our <span style="color:red">[published work]</span>. 
+For more details on the collisional regimes used in Fraggle, please see our <span style="color:red">[manuscript in preparation]</span>. 
 
 **Comparison with Swifter SyMBA**
 
