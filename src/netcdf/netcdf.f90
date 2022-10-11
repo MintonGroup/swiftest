@@ -107,9 +107,9 @@ contains
          call check( nf90_get_var(param%nciu%ncid, param%nciu%L_spinz_varid, val, start=[1], count=[1]) )
          self%Lspin_orig(3) = val(1)
 
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapex_varid,   self%Lescape(1),  start=[1]) )
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapey_varid,   self%Lescape(2),  start=[1]) )
-         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapez_varid,   self%Lescape(3),  start=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapex_varid, self%Lescape(1),  start=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapey_varid, self%Lescape(2),  start=[1]) )
+         call check( nf90_get_var(param%nciu%ncid, param%nciu%L_escapez_varid, self%Lescape(3),  start=[1]) )
 
          self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:) + self%Lescape(:)
 
@@ -202,6 +202,7 @@ contains
       call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, self%id_dimid, self%id_varid) )
       call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid) )
       call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid) )
+      if (param%integrator == SYMBA) call check( nf90_def_var(self%ncid, NPLM_VARNAME, NF90_INT, self%time_dimid, self%nplm_varid) )
       call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%name_varid) )
       call check( nf90_def_var(self%ncid, PTYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%ptype_varid) )
       call check( nf90_def_var(self%ncid, STATUS_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%status_varid) )
@@ -358,6 +359,7 @@ contains
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid))
       call check( nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid))
       call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid))
+      if (param%integrator == SYMBA) call check( nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid))
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid))
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid))
       call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid))
@@ -476,7 +478,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: dim, i, j, tslot, idmax, npl_check, ntp_check, t_max, str_max
+      integer(I4B)                              :: dim, i, j, tslot, idmax, npl_check, ntp_check, nplm_check, t_max, str_max
       real(DP), dimension(:), allocatable       :: rtemp
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: validmask, tpmask, plmask
@@ -528,6 +530,18 @@ contains
             write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
             call util_exit(failure)
          end if
+
+         select type (pl)
+         class is (symba_pl)
+            select type (param)
+            class is (symba_parameters)
+               nplm_check = count(rtemp(:) > param%GMTINY .and. plmask(:))
+               if (nplm_check /= pl%nplm) then
+                  write(*,*) "Error reading in NetCDF file: The recorded value of nplm does not match the number of active fully interacting massive bodies"
+                  call util_exit(failure)
+               end if
+            end select
+         end select
 
          ! Now read in each variable and split the outputs by body type
          if ((param%in_form == XV) .or. (param%in_form == XVEL)) then
@@ -721,6 +735,10 @@ contains
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]) )
       call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]) )
+      select type(pl => self%pl)
+      class is (symba_pl)
+         call check( nf90_get_var(iu%ncid, iu%nplm_varid,  pl%nplm, start=[tslot]) )
+      end select
 
       if (param%lenergy) then
          call check( nf90_get_var(iu%ncid, iu%KE_orb_varid,      self%ke_orbit,    start=[tslot]) )
@@ -1185,6 +1203,10 @@ contains
       call check( nf90_put_var(iu%ncid, iu%time_varid, param%t, start=[tslot]) )
       call check( nf90_put_var(iu%ncid, iu%npl_varid, self%pl%nbody, start=[tslot]) )
       call check( nf90_put_var(iu%ncid, iu%ntp_varid, self%tp%nbody, start=[tslot]) )
+      select type(pl => self%pl)
+      class is (symba_pl)
+         call check( nf90_put_var(iu%ncid, iu%nplm_varid, pl%nplm, start=[tslot]) )
+      end select
 
       if (param%lenergy) then
          call check( nf90_put_var(iu%ncid, iu%KE_orb_varid, self%ke_orbit, start=[tslot]) )

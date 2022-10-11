@@ -145,7 +145,7 @@ module swiftest_globals
    character(*), parameter :: NAME_VARNAME            = "name"            !! NetCDF name of the particle name variable
    character(*), parameter :: NPL_VARNAME             = "npl"             !! NetCDF name of the number of active massive bodies variable
    character(*), parameter :: NTP_VARNAME             = "ntp"             !! NetCDF name of the number of active test particles variable
-   character(*), parameter :: NPLM_VARNAME            = "ntpm"            !! NetCDF name of the number of active fully interacting massive bodies variable (SyMBA)
+   character(*), parameter :: NPLM_VARNAME            = "nplm"            !! NetCDF name of the number of active fully interacting massive bodies variable (SyMBA)
    character(*), parameter :: A_VARNAME               = "a"               !! NetCDF name of the semimajor axis variable 
    character(*), parameter :: E_VARNAME               = "e"               !! NetCDF name of the eccentricity variable 
    character(*), parameter :: INC_VARNAME             = "inc"             !! NetCDF name of the inclination variable 
@@ -222,7 +222,7 @@ module swiftest_globals
       integer(I4B) :: ptype_varid           !! NetCDF ID for the particle type variable
       integer(I4B) :: npl_varid             !! NetCDF ID for the number of active massive bodies variable
       integer(I4B) :: ntp_varid             !! NetCDF ID for the number of active test particles variable
-      integer(I4B) :: nplm_varid            !! NetCDF ID for the number of massive bodies variable (SyMBA)
+      integer(I4B) :: nplm_varid            !! NetCDF ID for the number of active fully interacting massive bodies variable (SyMBA)
       integer(I4B) :: a_varid               !! NetCDF ID for the semimajor axis variable 
       integer(I4B) :: e_varid               !! NetCDF ID for the eccentricity variable 
       integer(I4B) :: inc_varid             !! NetCDF ID for the inclination variable 
