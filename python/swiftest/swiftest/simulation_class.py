@@ -80,7 +80,7 @@ class Simulation:
                  Date to use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to "today"
         Returns
         -------
-        self.ds : xarray dataset
+            self.ds : xarray dataset
         """
         self.ds = init_cond.solar_system_horizons(plname, idval, self.param, date, self.ds)
         return
@@ -93,21 +93,35 @@ class Simulation:
 
         Parameters
         ----------
-           idvals : Integer array of body index values.
-           t1     : xh for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
-           t2     : yh for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
-           t3     : zh for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
-           t4     : vhxh for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
-           t5     : vhyh for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
-           t6     : vhzh for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
-           Gmass  : Optional: Array of G*mass values if these are massive bodies
-           radius : Optional: Array radius values if these are massive bodies
-           rhill  : Optional: Array rhill values if these are massive bodies
-           Ip1,y,z : Optional: Principal axes moments of inertia
-           rotx,y,z: Optional: Rotation rate vector components
+            idvals : integer 
+                Array of body index values.
+            t1     : float
+                xh for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
+            t2     : float
+                yh for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
+            t3     : float
+                zh for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
+            t4     : float
+                vhxh for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
+            t5     : float
+                vhyh for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
+            t6     : float
+                vhzh for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
+            Gmass  : float
+                Optional: Array of G*mass values if these are massive bodies
+            radius : float
+                Optional: Array radius values if these are massive bodies
+            rhill  : float
+                Optional: Array rhill values if these are massive bodies
+            Ip1,y,z : float
+                Optional: Principal axes moments of inertia
+            rotx,y,z: float
+                Optional: Rotation rate vector components
+            t      :  float
+                Optional: Time at start of simulation
         Returns
         -------
-        self.ds : xarray dataset
+            self.ds : xarray dataset
         """
         if t is None:
             t = self.param['T0']
@@ -122,6 +136,19 @@ class Simulation:
     
     
     def read_param(self, param_file, codename="Swiftest", verbose=True):
+        """
+        Reads in a param.in file and determines whether it is a Swift/Swifter/Swiftest parameter file.
+        
+        Parameters
+        ----------
+           param_file : string
+                File name of the input parameter file
+           codename : string
+                 Type of parameter file, either "Swift", "Swifter", or "Swiftest"
+        Returns
+        -------
+            self.ds : xarray dataset
+        """
         if codename == "Swiftest":
             self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
             self.codename = "Swiftest"
@@ -138,6 +165,17 @@ class Simulation:
     
     
     def write_param(self, param_file, param=None):
+        """
+        Writes to a param.in file and determines whether the output format needs to be converted between Swift/Swifter/Swiftest.
+        
+        Parameters
+        ----------
+           param_file : string
+                File name of the input parameter file
+        Returns
+        -------
+            self.ds : xarray dataset
+        """
         if param is None:
             param = self.param
         # Check to see if the parameter type matches the output type. If not, we need to convert
@@ -153,7 +191,27 @@ class Simulation:
     
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in", cbname="cb.swiftest.in", conversion_questions={}):
         """
-        Converts simulation input files from one code type to another (Swift, Swifter, or Swiftest). Returns the old parameter configuration.
+        Converts simulation input files from one format to another (Swift, Swifter, or Swiftest). 
+
+        Parameters
+        ----------
+           param_file : string
+                File name of the input parameter file
+            newcodename : string
+                Name of the desired format (Swift/Swifter/Swiftest)
+            plname : string
+                File name of the massive body input file
+            tpname : string
+                File name of the test particle input file
+            cbname : string
+                File name of the central body input file
+            conversion_questions : dictronary
+                Dictionary of additional parameters required to convert between formats
+
+        Returns
+        -------
+            oldparam : xarray dataset
+                The old parameter configuration.
         """
         oldparam = self.param
         if self.codename == newcodename:
@@ -186,6 +244,16 @@ class Simulation:
     
     
     def bin2xr(self):
+        """
+        Converts simulation output files from a flat binary file to a xarray dataset. 
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+            self.ds : xarray dataset
+        """
         if self.codename == "Swiftest":
             self.ds = io.swiftest2xr(self.param, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .ds')
@@ -200,6 +268,18 @@ class Simulation:
     
     
     def follow(self, codestyle="Swifter"):
+        """
+        An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations. 
+
+        Parameters
+        ----------
+            codestyle : string
+                Name of the desired format (Swift/Swifter/Swiftest)
+
+        Returns
+        -------
+            fol : xarray dataset
+        """
         if self.ds is None:
             self.bin2xr()
         if codestyle == "Swift":
@@ -227,6 +307,23 @@ class Simulation:
     
     
     def save(self, param_file, framenum=-1, codename="Swiftest"):
+        """
+        Saves an xarray dataset to a set of input files.
+
+        Parameters
+        ----------
+            param_file : string
+                Name of the parameter input file
+            framenum : integer (default=-1)
+                Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+            codename : string
+                Name of the desired format (Swift/Swifter/Swiftest)
+
+        Returns
+        -------
+            self.ds : xarray dataset
+        """
+
         if codename == "Swiftest":
             io.swiftest_xr2infile(self.ds, self.param, framenum)
             self.write_param(param_file)
@@ -243,6 +340,30 @@ class Simulation:
         return
 
     def initial_conditions_from_bin(self, framenum=-1, new_param=None, new_param_file="param.new.in", new_initial_conditions_file="bin_in.nc",  restart=False, codename="Swiftest"):
+        """
+        Generates a set of input files from a old output file.
+
+        Parameters
+        ----------
+            framenum : integer (default=-1)
+                Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+            new_param : string
+                File to copy parameters from. Default is the old parameter file.
+            new_param_file : string
+                Name of the new parameter file.
+            new_initial_conditions_file : string
+                Name of the new NetCDF file containing the new initial conditions.
+            restart : True or False
+                If True, overwrite the old output file. If False, generate a new output file.
+            codename : string
+                Name of the desired format (Swift/Swifter/Swiftest)
+
+        Returns
+        -------
+            frame : NetCDF dataset 
+        """
+
+
         if codename != "Swiftest":
             self.save(new_param_file, framenum, codename)
             return
