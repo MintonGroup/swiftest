@@ -77,6 +77,9 @@ contains
 
 
    pure elemental subroutine helio_drift_linear_one(xhx, xhy, xhz, ptx, pty, ptz, dt)
+      !! author: David A. Minton
+      !!
+      !! Calculate the linear drift for a single body
       implicit none
       real(DP), intent(inout) :: xhx, xhy, xhz
       real(DP), intent(in) :: ptx, pty, ptz, dt
@@ -90,6 +93,9 @@ contains
 
 
    subroutine helio_drift_linear_all(xh, pt, dt, n, lmask)
+      !! author: David A. Minton
+      !!
+      !! Loop through all the bodies and calculate the linear drift
       implicit none
       ! Arguments
       real(DP), dimension(:,:), intent(inout) :: xh

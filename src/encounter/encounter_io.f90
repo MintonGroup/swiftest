@@ -33,6 +33,9 @@ contains
    end subroutine
 
    module subroutine encounter_io_write_list(self, pl, encbody, param)
+      !! author: David A. Minton
+      !!
+      !! Write the encounters to the output encounter binary files
       implicit none
       ! Arguments
       class(encounter_list),  intent(in) :: self    !! Swiftest encounter list object
