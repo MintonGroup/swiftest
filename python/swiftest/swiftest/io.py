@@ -823,11 +823,11 @@ def string_converter(da):
     -------
     da : xarray dataset with the strings cleaned up
     """
-   if da.dtype == np.dtype(object):
-      da = da.astype('<U32')
-   elif da.dtype != np.dtype('<U32'):
-      da = xstrip(da)
-   return da
+    if da.dtype == np.dtype(object):
+       da = da.astype('<U32')
+    elif da.dtype != np.dtype('<U32'):
+       da = xstrip(da)
+    return da
 
 def clean_string_values(ds):
     """
