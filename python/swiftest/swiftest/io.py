@@ -271,6 +271,20 @@ def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
 
 
 def write_swift_param(param, param_file_name):
+    """
+    Writes a Swift param.in file.
+
+    Parameters
+    ----------
+    param : dictionary
+        The entries in the user parameter file
+    param_file_name : string
+        File name of the input parameter file
+
+    Returns
+    -------
+    Prints a text file containing the parameter information.
+    """
     outfile = open(param_file_name, 'w')
     print(param['T0'], param['TSTOP'], param['DT'], file=outfile)
     print(param['DTOUT'], param['DTDUMP'], file=outfile)
@@ -283,6 +297,20 @@ def write_swift_param(param, param_file_name):
 
 
 def write_labeled_param(param, param_file_name):
+    """
+    Writes a Swifter/Swiftest param.in file.
+
+    Parameters
+    ----------
+    param : dictionary
+        The entries in the user parameter file
+    param_file_name : string
+        File name of the input parameter file
+
+    Returns
+    -------
+    Prints a text file containing the parameter information.
+    """
     outfile = open(param_file_name, 'w')
     keylist = ['! VERSION',
                'T0',
@@ -404,6 +432,29 @@ def swifter_stream(f, param):
 
 
 def make_swiftest_labels(param):
+    """
+    Creates the lables for the variables to be included in the output file.
+
+    Parameters
+    ----------
+    param : dictionary
+        The entries in the user parameter file
+
+    Returns
+    -------
+    clab : string list
+        Labels for the cvec data
+    plab : string list
+        Labels for the pvec data
+    tlab : string list
+        Labels for the tvec data
+    infolab_float : string list
+        Labels for floating point data
+    infolab_int : 
+        Labels for integer data
+    infolab_str :   
+        Labels for string data
+    """
     tlab = []
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
         tlab.append('xhx')
@@ -746,15 +797,37 @@ def swiftest2xr(param, verbose=True):
     return ds
 
 def xstrip(a):
+    """
+    Cleans up the string values in the DataSet to remove extra white space
+
+    Parameters
+    ----------
+    a    : xarray dataset
+ 
+    Returns
+    -------
+    da : xarray dataset with the strings cleaned up
+    """
     func = lambda x: np.char.strip(x)
     return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'),dask='parallelized')
 
 def string_converter(da):
-   if da.dtype == np.dtype(object):
-      da = da.astype('<U32')
-   elif da.dtype != np.dtype('<U32'):
-      da = xstrip(da)
-   return da
+    """
+    Converts a string to a unicode string 
+
+    Parameters
+    ----------
+    da    : xarray dataset
+ 
+    Returns
+    -------
+    da : xarray dataset with the strings cleaned up
+    """
+    if da.dtype == np.dtype(object):
+       da = da.astype('<U32')
+    elif da.dtype != np.dtype('<U32'):
+       da = xstrip(da)
+    return da
 
 def clean_string_values(ds):
     """
@@ -827,32 +900,43 @@ def swiftest_particle_stream(f):
 
 
 def swiftest_particle_2xr(param):
-   """Reads in the Swiftest SyMBA-generated PARTICLE_OUT  and converts it to an xarray Dataset"""
-   veclab = ['time_origin', 'xhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
-   id_list = []
-   origin_type_list = []
-   origin_vec_list = []
+    """
+    Reads in the Swiftest SyMBA-generated PARTICLE_OUT  and converts it to an xarray Dataset
 
-   try:
-      with FortranFile(param['PARTICLE_OUT'], 'r') as f:
-          for id, origin_type, origin_vec in swiftest_particle_stream(f):
-             id_list.append(id)
-             origin_type_list.append(origin_type)
-             origin_vec_list.append(origin_vec)
-   except IOError:
-       print(f"Error reading in {param['PARTICLE_OUT']} ")
+    Parameters
+    ----------
+    param : dict
+        Swiftest parameters
 
-   id_list =  np.asarray(id_list)[:,0]
-   origin_type_list = np.asarray(origin_type_list)
-   origin_vec_list = np.vstack(origin_vec_list)
+    Returns
+    -------
+    infoxr : xarray dataset
+    """
+    veclab = ['time_origin', 'xhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
+    id_list = []
+    origin_type_list = []
+    origin_vec_list = []
 
-   typeda = xr.DataArray(origin_type_list, dims=['id'], coords={'id' : id_list})
-   vecda = xr.DataArray(origin_vec_list, dims=['id', 'vec'], coords={'id' : id_list, 'vec' : veclab})
+    try:
+        with FortranFile(param['PARTICLE_OUT'], 'r') as f:
+            for id, origin_type, origin_vec in swiftest_particle_stream(f):
+                id_list.append(id)
+                origin_type_list.append(origin_type)
+                origin_vec_list.append(origin_vec)
+    except IOError:
+        print(f"Error reading in {param['PARTICLE_OUT']} ")
 
-   infoxr = vecda.to_dataset(dim='vec')
-   infoxr['origin_type'] = typeda
+    id_list =  np.asarray(id_list)[:,0]
+    origin_type_list = np.asarray(origin_type_list)
+    origin_vec_list = np.vstack(origin_vec_list)
 
-   return infoxr
+    typeda = xr.DataArray(origin_type_list, dims=['id'], coords={'id' : id_list})
+    vecda = xr.DataArray(origin_vec_list, dims=['id', 'vec'], coords={'id' : id_list, 'vec' : veclab})
+
+    infoxr = vecda.to_dataset(dim='vec')
+    infoxr['origin_type'] = typeda
+
+    return infoxr
 
 def select_active_from_frame(ds, param, framenum=-1):
     """
@@ -1148,6 +1232,25 @@ def swifter_xr2infile(ds, param, framenum=-1):
     return
 
 def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
+    """
+    Converts from a Swift run to a Swifter run
+
+    Parameters
+    ----------
+    swift_param : dictionary
+       Swift input parameters. 
+    plname : string
+        Name of massive body input file
+    tpname : string
+        Name of test particle input file
+    conversion_questions : dictronary
+        Dictionary of additional parameters required to convert between formats
+
+    Returns
+    -------
+    swifter_param : A set of input files for a new Swifter run
+    """
+
     swifter_param = {}
     intxt = conversion_questions.get('RHILL', None)
     if not intxt:
@@ -1349,6 +1452,27 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     return swifter_param
 
 def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_questions={}):
+    """
+    Converts from a Swifter run to a Swiftest run
+
+    Parameters
+    ----------
+    swifter_param : dictionary
+       Swifter input parameters. 
+    plname : string
+        Name of massive body input file
+    tpname : string
+        Name of test particle input file
+    cbname : string
+        Name of central body input file
+    conversion_questions : dictronary
+        Dictionary of additional parameters required to convert between formats
+
+    Returns
+    -------
+    swiftest_param : A set of input files for a new Swiftest run
+    """
+
     swiftest_param = swifter_param.copy()
     # Pull additional feature status from the conversion_questions dictionary
     
@@ -1580,6 +1704,26 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
     return swiftest_param
 
 def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_questions={}):
+    """
+    Converts from a Swift run to a Swiftest run
+
+    Parameters
+    ----------
+    swift_param : dictionary
+       Swift input parameters. 
+    plname : string
+        Name of massive body input file
+    tpname : string
+        Name of test particle input file
+    cbname : string
+        Name of the central body input file
+    conversion_questions : dictronary
+        Dictionary of additional parameters required to convert between formats
+
+    Returns
+    -------
+    swiftest_param : A set of input files for a new Swiftest run
+    """
     if plname == '':
         plname = input("PL_IN: Name of new planet input file: [pl.swiftest.in]> ")
         if plname == '':
@@ -1605,6 +1749,21 @@ def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_ques
     return swiftest_param
 
 def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
+    """
+    Converts from a Swiftest run to a Swifter run
+
+    Parameters
+    ----------
+    swiftest_param : dictionary
+        Swiftest input parameters. 
+    J2 : float
+        Central body oblateness term. Default spherical.
+    J4 : float
+        Central body oblateness term. Default spherical.
+    Returns
+    -------
+    swifter_param : A set of input files for a new Swifter run
+    """
     swifter_param = swiftest_param
     CBIN = swifter_param.pop("CB_IN", None)
     GMTINY = swifter_param.pop("GMTINY", None)
@@ -1639,6 +1798,21 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
 
 
 def swifter2swift_param(swifter_param, J2=0.0, J4=0.0):
+    """
+    Converts from a Swifter run to a Swift run
+
+    Parameters
+    ----------
+    swifter_param : dictionary
+        Swifter input parameters. 
+    J2 : float
+        Central body oblateness term. Default spherical.
+    J4 : float
+        Central body oblateness term. Default spherical.
+    Returns
+    -------
+    swift_param : A set of input files for a new Swift run
+    """
     swift_param = {
         '! VERSION': f"Swift parameter input file converted from Swifter",
         'T0': 0.0,

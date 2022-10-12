@@ -22,7 +22,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
 
     Returns
     -------
-    xarray dataset
+    ds : xarray dataset
     """
     # Planet ids
     planetid = {
@@ -255,7 +255,53 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     return ds
 
 def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=0.0):
-    
+    """
+    Converts and stores the variables of all bodies in an xarray dataset.
+
+    Parameters
+    ----------
+    param : dict
+        Swiftest paramuration parameters.
+    idvals : integer 
+        Array of body index values.
+    namevals :
+
+    v1 : array of floats
+        xh 
+    v2 : array of floats
+        yh
+    v3 : array of floats
+        zh
+    v4 : array of floats
+        vhxh
+    v5 : array of floats
+        vhyh
+    v6 : array of floats
+        vhzh
+    GMpl : array of floats
+        G*mass
+    Rpl : array of floats
+        radius
+    rhill : array of floats
+        Hill Radius
+    Ip1 : array of floats
+        Principal axes moments of inertia
+    Ip2 : array of floats
+        Principal axes moments of inertia
+    Ip3 : array of floats
+        Principal axes moments of inertia
+    rox : array of floats
+        Rotation rate vector
+    roty : array of floats
+        Rotation rate vector
+    rotz : array of floats
+        Rotation rate vector
+    t : array of floats
+        Time at start of simulation
+    Returns
+    -------
+    ds : xarray dataset
+    """
     if param['ROTATION'] == 'YES':
         if Ip1 is None:
             Ip1 = np.full_like(v1, 0.4)

@@ -158,6 +158,9 @@ contains
 
 
    module subroutine symba_io_write_discard(self, param)
+      !! author: David A. Minton
+      !!
+      !! Write the metadata of the discarded body to the output file 
       implicit none
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 

@@ -8,6 +8,18 @@ Functions that recreate the Swift/Swifter tool programs
 """
 
 def wrap_angle(angle):
+    """
+    Converts angles to be between 0 and 360 degrees.
+        
+    Parameters
+    ----------
+    angle : float
+        Angle to be converted
+    Returns
+    -------
+    angle : float
+        Converted angle
+    """
     while np.any(angle >= 360.0 ):
         angle[angle >= 360.0] -= 360.0
     while np.any(angle < 0.0):
