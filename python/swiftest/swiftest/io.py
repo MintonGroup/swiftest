@@ -910,33 +910,33 @@ def swiftest_particle_2xr(param):
 
     Returns
     -------
-    infoxr : xarray dataset 
+    infoxr : xarray dataset
     """
-   veclab = ['time_origin', 'xhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
-   id_list = []
-   origin_type_list = []
-   origin_vec_list = []
+    veclab = ['time_origin', 'xhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
+    id_list = []
+    origin_type_list = []
+    origin_vec_list = []
 
-   try:
-      with FortranFile(param['PARTICLE_OUT'], 'r') as f:
-          for id, origin_type, origin_vec in swiftest_particle_stream(f):
-             id_list.append(id)
-             origin_type_list.append(origin_type)
-             origin_vec_list.append(origin_vec)
-   except IOError:
-       print(f"Error reading in {param['PARTICLE_OUT']} ")
+    try:
+        with FortranFile(param['PARTICLE_OUT'], 'r') as f:
+            for id, origin_type, origin_vec in swiftest_particle_stream(f):
+                id_list.append(id)
+                origin_type_list.append(origin_type)
+                origin_vec_list.append(origin_vec)
+    except IOError:
+        print(f"Error reading in {param['PARTICLE_OUT']} ")
 
-   id_list =  np.asarray(id_list)[:,0]
-   origin_type_list = np.asarray(origin_type_list)
-   origin_vec_list = np.vstack(origin_vec_list)
+    id_list =  np.asarray(id_list)[:,0]
+    origin_type_list = np.asarray(origin_type_list)
+    origin_vec_list = np.vstack(origin_vec_list)
 
-   typeda = xr.DataArray(origin_type_list, dims=['id'], coords={'id' : id_list})
-   vecda = xr.DataArray(origin_vec_list, dims=['id', 'vec'], coords={'id' : id_list, 'vec' : veclab})
+    typeda = xr.DataArray(origin_type_list, dims=['id'], coords={'id' : id_list})
+    vecda = xr.DataArray(origin_vec_list, dims=['id', 'vec'], coords={'id' : id_list, 'vec' : veclab})
 
-   infoxr = vecda.to_dataset(dim='vec')
-   infoxr['origin_type'] = typeda
+    infoxr = vecda.to_dataset(dim='vec')
+    infoxr['origin_type'] = typeda
 
-   return infoxr
+    return infoxr
 
 def select_active_from_frame(ds, param, framenum=-1):
     """
