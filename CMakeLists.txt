@@ -47,7 +47,6 @@ SET(FOOEXE swiftest_driver)
 
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
-SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(DISCARD ${SRC}/discard)
 SET(DRIFT ${SRC}/drift)
 SET(ENCOUNTER ${SRC}/encounter)
