@@ -72,15 +72,13 @@ SET(USER ${SRC}/user)
 SET(UTIL ${SRC}/util)
 SET(WALLTIME ${SRC}/walltime)
 SET(WHM ${SRC}/whm)
+SET(EXE ${SRC})
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${LIB})
 
 # The source for the FOO binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${EXE} ${BIN})
-
-# The source for the EXE binary and have it placed in the bin folder
-ADD_SUBDIRECTORY(${FOOEXE} ${BIN})
 
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
