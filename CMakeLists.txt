@@ -5,7 +5,7 @@
 ##################################################
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5...3.20.1)
-PROJECT(Swiftest)
+PROJECT(Swiftest Fortran)
 
 # Set the Swiftest version
 SET(VERSION 1.0.0)
@@ -14,9 +14,9 @@ SET(VERSION 1.0.0)
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Uncomment if it is required that Fortran 90 is supported
-IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
-ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+#IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+#    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
+#ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 
 # Set some options the user may choose
 # Uncomment the below if you want the user to choose a parallelization library
