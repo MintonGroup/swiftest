@@ -3,107 +3,110 @@
 ########################################
 
 # Add the source files
-SET(FOO_src ${DISCARD}/discard.f90
-            ${DRIFT}/drift.f90
-            ${ENCOUNTER}/encounter_check.f90
-            ${ENCOUNTER}/encounter_io.f90
-            ${ENCOUNTER}/encounter_setup.f90
-            ${ENCOUNTER}/encounter_util.f90
-            ${FRAGGLE}/fraggle_generate.f90
-            ${FRAGGLE}/fraggle_io.f90
-            ${FRAGGLE}/fraggle_placeholder.f90
-            ${FRAGGLE}/fraggle_regime.f90
-            ${FRAGGLE}/fraggle_set.f90
-            ${FRAGGLE}/fraggle_setup.f90
-            ${FRAGGLE}/fraggle_util.f90
-            ${GR}/gr.f90
-            ${HELIO}/helio_drift.f90
-            ${HELIO}/helio_gr.f90
-            ${HELIO}/helio_kick.f90
-            ${HELIO}/helio_setup.f90
-            ${HELIO}/helio_step.f90
-            ${HELIO}/helio_util.f90
-            ${IO}/io.f90
-            ${KICK}/kick.f90
-            ${MAIN}/swiftest_driver.f90
-            ${MODULES}/encounter_classes.f90
-            ${MODULES}/fraggle_classes.f90
-            ${MODULES}/helio_classes.f90
-            ${MODULES}/lambda_function.f90
-            ${MODULES}/rmvs_classes.f90
-            ${MODULES}/swiftest_classes.f90
-            ${MODULES}/swiftest_globals.f90
-            ${MODULES}/swiftest_operators.f90
-            ${MODULES}/swiftest.f90
-            ${MODULES}/symba_classes.f90
-            ${MODULES}/walltime_classes.f90
-            ${MODULES}/whm_classes.f90
-            ${NETCDF}/netcdf.f90
-            ${OBL}/obl.f90
-            ${OPERATORS}/operator_cross.f90
-            ${OPERATORS}/operator_mag.f90
-            ${ORBEL}/orbel.f90
-            ${PYTHONBINDINGS}/orbel.f90
-            ${RMVS}/rmvs_discard.f90
-            ${RMVS}/rmvs_encounter_check.f90
-            ${RMVS}/rmvs_io.f90
-            ${RMVS}/rmvs_kick.f90
-            ${RMVS}/rmvs_setup.f90
-            ${RMVS}/rmvs_step.f90
-            ${RMVS}/rmvs_util.f90
-            ${SETUP}/setup.f90
-            ${SYMBA}/symba_collision.f90
-            ${SYMBA}/symba_discard.f90
-            ${SYMBA}/symba_drift.f90
-            ${SYMBA}/symba_encounter_check.f90
-            ${SYMBA}/symba_gr.f90
-            ${SYMBA}/symba_io.f90
-            ${SYMBA}/symba_kick.f90
-            ${SYMBA}/symba_setup.f90
-            ${SYMBA}/symba_step.f90
-            ${SYMBA}/symba_util.f90
-#            ${TIDES}/tides_getacch_pl.f90
-#            ${TIDES}/tides_spin_step.f90
-            ${USER}/user_getacch.f90
-            ${UTIL}/util_append.f90
-            ${UTIL}/util_coord.f90
-            ${UTIL}/util_copy.f90
-            ${UTIL}/util_dealloc.f90
-            ${UTIL}/util_exit.f90
-            ${UTIL}/util_fill.f90
-            ${UTIL}/util_flatten.f90
-            ${UTIL}/util_get_energy_momentum.f90
-            ${UTIL}/util_index_array.f90
-            ${UTIL}/util_minimize_bfgs.f90
-            ${UTIL}/util_peri.f90
-            ${UTIL}/util_rescale.f90
-            ${UTIL}/util_resize.f90
-            ${UTIL}/util_set.f90
-            ${UTIL}/util_solve.f90
-            ${UTIL}/util_sort.f90
-            ${UTIL}/util_spill.f90
-            ${UTIL}/util_valid.f90
-            ${UTIL}/util_version.f90
-            ${WALLTIME}/walltime.f90
-            ${WHM}/whm_coord.f90
-            ${WHM}/whm_drift.f90
-            ${WHM}/whm_gr.f90
-            ${WHM}/whm_kick.f90
-            ${WHM}/whm_setup.f90
-            ${WHM}/whm_step.f90
-            ${WHM}/whm_util.f90
+SET(OPT_src ${SRCOPT}/discard/discard.f90
+            ${SRCOPT}/drift/drift.f90
+            ${SRCOPT}/encounter/encounter_check.f90
+            ${SRCOPT}/encounter/encounter_io.f90
+            ${SRCOPT}/encounter/encounter_setup.f90
+            ${SRCOPT}/encounter/encounter_util.f90
+            ${SRCOPT}/fraggle/fraggle_generate.f90
+            ${SRCOPT}/fraggle/fraggle_io.f90
+            ${SRCOPT}/fraggle/fraggle_placeholder.f90
+            ${SRCOPT}/fraggle/fraggle_regime.f90
+            ${SRCOPT}/fraggle/fraggle_set.f90
+            ${SRCOPT}/fraggle/fraggle_setup.f90
+            ${SRCOPT}/fraggle/fraggle_util.f90
+            ${SRCOPT}/gr/gr.f90
+            ${SRCOPT}/helio/helio_drift.f90
+            ${SRCOPT}/helio/helio_gr.f90
+            ${SRCOPT}/helio/helio_kick.f90
+            ${SRCOPT}/helio/helio_setup.f90
+            ${SRCOPT}/helio/helio_step.f90
+            ${SRCOPT}/helio/helio_util.f90
+            ${SRCOPT}/io/io.f90
+            ${SRCOPT}/kick/kick.f90
+            ${SRCOPT}/main/swiftest_driver.f90
+            ${SRCOPT}/modules/encounter_classes.f90
+            ${SRCOPT}/modules/fraggle_classes.f90
+            ${SRCOPT}/modules/helio_classes.f90
+            ${SRCOPT}/modules/lambda_function.f90
+            ${SRCOPT}/modules/rmvs_classes.f90
+            ${SRCOPT}/modules/swiftest_classes.f90
+            ${SRCOPT}/modules/swiftest_globals.f90
+            ${SRCOPT}/modules/swiftest_operators.f90
+            ${SRCOPT}/modules/swiftest.f90
+            ${SRCOPT}/modules/symba_classes.f90
+            ${SRCOPT}/modules/walltime_classes.f90
+            ${SRCOPT}/modules/whm_classes.f90
+            ${SRCOPT}/netcdf/netcdf.f90
+            ${SRCOPT}/obl/obl.f90
+            ${SRCOPT}/operators/operator_cross.f90
+            ${SRCOPT}/operators/operator_mag.f90
+            ${SRCOPT}/orbel/orbel.f90
+#            ${SRCOPT}/python_bindings/orbel.f90
+            ${SRCOPT}/rmvs/rmvs_discard.f90
+            ${SRCOPT}/rmvs/rmvs_encounter_check.f90
+            ${SRCOPT}/rmvs/rmvs_io.f90
+            ${SRCOPT}/rmvs/rmvs_kick.f90
+            ${SRCOPT}/rmvs/rmvs_setup.f90
+            ${SRCOPT}/rmvs/rmvs_step.f90
+            ${SRCOPT}/rmvs/rmvs_util.f90
+            ${SRCOPT}/setup/setup.f90
+            ${SRCOPT}/symba/symba_collision.f90
+            ${SRCOPT}/symba/symba_discard.f90
+            ${SRCOPT}/symba/symba_drift.f90
+            ${SRCOPT}/symba/symba_encounter_check.f90
+            ${SRCOPT}/symba/symba_gr.f90
+            ${SRCOPT}/symba/symba_io.f90
+            ${SRCOPT}/symba/symba_kick.f90
+            ${SRCOPT}/symba/symba_setup.f90
+            ${SRCOPT}/symba/symba_step.f90
+            ${SRCOPT}/symba/symba_util.f90
+#            ${SRCOPT}/tides/tides_getacch_pl.f90
+#            ${SRCOPT}/tides/tides_spin_step.f90
+            ${SRCOPT}/user/user_getacch.f90
+            ${SRCOPT}/util/util_append.f90
+            ${SRCOPT}/util/util_coord.f90
+            ${SRCOPT}/util/util_copy.f90
+            ${SRCOPT}/util/util_dealloc.f90
+            ${SRCOPT}/util/util_exit.f90
+            ${SRCOPT}/util/util_fill.f90
+            ${SRCOPT}/util/util_flatten.f90
+            ${SRCOPT}/util/util_get_energy_momentum.f90
+            ${SRCOPT}/util/util_index_array.f90
+            ${SRCOPT}/util/util_minimize_bfgs.f90
+            ${SRCOPT}/util/util_peri.f90
+            ${SRCOPT}/util/util_rescale.f90
+            ${SRCOPT}/util/util_resize.f90
+            ${SRCOPT}/util/util_set.f90
+            ${SRCOPT}/util/util_solve.f90
+            ${SRCOPT}/util/util_sort.f90
+            ${SRCOPT}/util/util_spill.f90
+            ${SRCOPT}/util/util_valid.f90
+            ${SRCOPT}/util/util_version.f90
+            ${SRCOPT}/walltime/walltime.f90
+            ${SRCOPT}/whm/whm_coord.f90
+            ${SRCOPT}/whm/whm_drift.f90
+            ${SRCOPT}/whm/whm_gr.f90
+            ${SRCOPT}/whm/whm_kick.f90
+            ${SRCOPT}/whm/whm_setup.f90
+            ${SRCOPT}/whm/whm_step.f90
+            ${SRCOPT}/whm/whm_util.f90
 )
 
 # Define the executable in terms of the source files
-ADD_EXECUTABLE(${FOOEXE} ${FOO_src})
+FOREACH(SRCFILES ${OPT_src})
+   GET_FILENAME_COMPONENT(OPTEXE ${SRCFILES} NAME_WE)
+   ADD_EXECUTABLE(${OPTEXE} ${OPT_src} ${SRCFILES})
 
-#####################################
-# Tell how to install this executable
-#####################################
+   #####################################
+   # Tell how to install this executable
+   #####################################
 
-IF(WIN32)
-    SET(CMAKE_INSTALL_PREFIX "C:\\Program Files")
-ELSE()
-    SET(CMAKE_INSTALL_PREFIX /usr/local)
-ENDIF(WIN32)
-INSTALL(TARGETS ${FOOEXE} RUNTIME DESTINATION bin)
+   IF(WIN32)
+      SET(CMAKE_INSTALL_PREFIX "C:\\Program Files")
+   ELSE()
+      SET(CMAKE_INSTALL_PREFIX ~/.local/)
+   ENDIF(WIN32)
+   INSTALL(TARGETS ${OPTEXE} RUNTIME DESTINATION bin)
+ENDFOREACH(SRCFILES ${OPT_exe_src})
