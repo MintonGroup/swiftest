@@ -31,10 +31,6 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake)
 # taken care of here, such as the fact that the FindOpenMP routine doesn't know
 # about Fortran.
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
-# Setup the LAPACK libraries.  This also takes care of peculiarities, such as
-# the fact the searching for MKL requires a C compiler, and that the results
-# are not stored in the cache. 
-INCLUDE(${CMAKE_MODULE_PATH}/SetUpLAPACK.cmake)
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
 GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
