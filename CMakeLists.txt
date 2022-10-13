@@ -45,9 +45,6 @@ ENDIF(FCNAME STREQUAL "pgf90")
 # Define the executable name
 SET(FOOEXE swiftest_driver)
 
-# Define the library name
-SET(BARLIB libswiftest)
-
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
@@ -79,8 +76,8 @@ SET(WHM ${SRC}/whm)
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${LIB})
 
-# The source for the Swiftest library and have it placed in the lib folder
-ADD_SUBDIRECTORY(${BARLIB} ${LIB})
+# The source for the FOO binary and have it placed in the bin folder
+ADD_SUBDIRECTORY(${EXE} ${BIN})
 
 # The source for the EXE binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${FOOEXE} ${BIN})
