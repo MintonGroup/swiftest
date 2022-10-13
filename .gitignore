@@ -6,6 +6,8 @@
 # whitelist only the files that ever need to be tracked
 !*.f90
 !*.sh
+!CMakeLists.txt
+!*.cmake
 !CHANGELOG 
 !README.md
 !README.swifter 
