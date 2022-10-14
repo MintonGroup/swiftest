@@ -97,6 +97,14 @@ SET(FOO_src ${SRC}/discard/discard.f90
 # Define the executable in terms of the source files
 ADD_EXECUTABLE(${FOOEXE} ${FOO_src})
 
+#####################################################
+# Add the needed libraries and special compiler flags
+#####################################################
+
+# Uncomment if you need to link to BLAS and LAPACK
+TARGET_LINK_LIBRARIES(${FOOEXE} ${NETCDF_LIBRARIES}
+                                ${NETCDFFORTRAN_LIBRARIES})
+
 #####################################
 # Tell how to install this executable
 #####################################

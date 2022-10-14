@@ -32,6 +32,8 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake)
 # about Fortran.
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
 
+INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
+
 # There is an error in CMAKE with this flag for pgf90.  Unset it
 GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
 IF(FCNAME STREQUAL "pgf90")
