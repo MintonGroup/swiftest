@@ -49,13 +49,12 @@ SET(FOOEXE swiftest_driver)
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
-SET(SRCOPT ${SRC})
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${LIB})
 
 # The source for the FOO binary and have it placed in the bin folder
-ADD_SUBDIRECTORY(${SRCOPT} ${BIN})
+ADD_SUBDIRECTORY(${SRC} ${BIN})
 
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
