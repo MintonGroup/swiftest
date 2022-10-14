@@ -42,6 +42,9 @@ ENDIF(FCNAME STREQUAL "pgf90")
 # Define the actual files and folders that make up the build
 ############################################################
 
+# Define the executable name
+SET(FOOEXE swiftest_driver)
+
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
