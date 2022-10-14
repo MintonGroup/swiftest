@@ -3,7 +3,7 @@
 ########################################
 
 # Add the source files
-SET(OPT_src ${SRCOPT}/discard/discard.f90
+SET(FOO_src ${SRCOPT}/discard/discard.f90
             ${SRCOPT}/drift/drift.f90
             ${SRCOPT}/encounter/encounter_check.f90
             ${SRCOPT}/encounter/encounter_io.f90
@@ -95,18 +95,15 @@ SET(OPT_src ${SRCOPT}/discard/discard.f90
 )
 
 # Define the executable in terms of the source files
-FOREACH(SRCFILES ${OPT_src})
-   GET_FILENAME_COMPONENT(OPTEXE ${SRCFILES} NAME_WE)
-   ADD_EXECUTABLE(${OPTEXE} ${OPT_src} ${SRCFILES})
+ADD_EXECUTABLE(${FOOEXE} ${FOO_src})
 
-   #####################################
-   # Tell how to install this executable
-   #####################################
+#####################################
+# Tell how to install this executable
+#####################################
 
-   IF(WIN32)
-      SET(CMAKE_INSTALL_PREFIX "C:\\Program Files")
-   ELSE()
-      SET(CMAKE_INSTALL_PREFIX ~/.local/)
-   ENDIF(WIN32)
-   INSTALL(TARGETS ${OPTEXE} RUNTIME DESTINATION bin)
-ENDFOREACH(SRCFILES ${OPT_exe_src})
+IF(WIN32)
+    SET(CMAKE_INSTALL_PREFIX "C:\\Program Files")
+ELSE()
+    SET(CMAKE_INSTALL_PREFIX /usr/local)
+ENDIF(WIN32)
+INSTALL(TARGETS ${FOOEXE} RUNTIME DESTINATION bin)
