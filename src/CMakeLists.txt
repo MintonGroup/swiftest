@@ -43,7 +43,6 @@ SET(FOO_src ${SRC}/discard/discard.f90
             ${SRC}/operators/operator_cross.f90
             ${SRC}/operators/operator_mag.f90
             ${SRC}/orbel/orbel.f90
-#            ${SRC}/python_bindings/orbel.f90
             ${SRC}/rmvs/rmvs_discard.f90
             ${SRC}/rmvs/rmvs_encounter_check.f90
             ${SRC}/rmvs/rmvs_io.f90
@@ -62,8 +61,6 @@ SET(FOO_src ${SRC}/discard/discard.f90
             ${SRC}/symba/symba_setup.f90
             ${SRC}/symba/symba_step.f90
             ${SRC}/symba/symba_util.f90
-#            ${SRC}/tides/tides_getacch_pl.f90
-#            ${SRC}/tides/tides_spin_step.f90
             ${SRC}/user/user_getacch.f90
             ${SRC}/util/util_append.f90
             ${SRC}/util/util_coord.f90

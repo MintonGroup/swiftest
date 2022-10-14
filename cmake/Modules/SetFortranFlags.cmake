@@ -63,7 +63,7 @@ ELSE()
 ENDIF()
 # Optimize for the host's architecture
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                 Fortran "-xHost"        # Intel
+                 Fortran "-xhost"        # Intel
                          "/QxHost"       # Intel Windows
                          ${GNUNATIVE}    # GNU
                          "-ta=host"      # Portland Group
@@ -244,13 +244,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                          "/Qip" # Intel Windows
                 )
 
-# Vectorize code
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-vec-report0"  # Intel
-                         "/Qvec-report0" # Intel Windows
-                         "-Mvect"        # Portland Group
-                )
-
 # Allows for lines longer than 80 characters without truncation
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-no-wrap-margin"         # Intel
@@ -275,11 +268,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
 # Enforces vectorization of loops
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-simd" # Intel
-                )
-
-# Generate instructions for the highest instruction set available
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-xhost" # Intel
                 )
 
 # Aligns a variable to a specified boundary and offset
