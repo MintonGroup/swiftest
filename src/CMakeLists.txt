@@ -99,8 +99,8 @@ ADD_EXECUTABLE(${FOOEXE} ${FOO_src})
 #####################################################
 
 # Uncomment if you need to link to BLAS and LAPACK
-TARGET_LINK_LIBRARIES(${FOOEXE} ${NETCDF_LIBRARIES}
-                                ${NETCDFFORTRAN_LIBRARIES})
+TARGET_LINK_LIBRARIES(${FOOEXE} ${NETCDF_LIBRARIES})
+                                #${NETCDFFORTRAN_LIBRARIES})
 
 # Uncomment if you have parallization
 IF(USE_OPENMP)
