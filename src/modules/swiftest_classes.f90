@@ -509,7 +509,7 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine drift_body
 
-      module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
+      pure elemental module subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
          !$omp declare simd(drift_one)
          implicit none
          real(DP),     intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift

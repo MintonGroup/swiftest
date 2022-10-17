@@ -107,7 +107,7 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       end subroutine encounter_check_all_pltp
 
-      module elemental subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
+      elemental module subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
          !$omp declare simd(encounter_check_one)
          implicit none
          real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
