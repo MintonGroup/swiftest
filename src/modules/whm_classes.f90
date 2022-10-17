@@ -156,21 +156,21 @@ module whm_classes
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine whm_kick_vh_tp
 
-      module pure subroutine whm_gr_kick_getacch_pl(self, param)
+      pure module subroutine whm_gr_kick_getacch_pl(self, param)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_pl),              intent(inout) :: self  !! WHM massive body particle data structure
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine whm_gr_kick_getacch_pl
 
-      module pure subroutine whm_gr_kick_getacch_tp(self, param)
+      pure module subroutine whm_gr_kick_getacch_tp(self, param)
          use swiftest_classes, only : swiftest_cb, swiftest_parameters
          implicit none
          class(whm_tp),              intent(inout) :: self  !! WHM test particle data structure
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine whm_gr_kick_getacch_tp
 
-      module pure subroutine whm_gr_p4_pl(self, system, param, dt)
+      pure module subroutine whm_gr_p4_pl(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(whm_pl),                intent(inout) :: self  !! WHM massive body object
@@ -179,7 +179,7 @@ module whm_classes
          real(DP),                     intent(in)    :: dt    !! Step size
       end subroutine whm_gr_p4_pl
 
-      module pure subroutine whm_gr_p4_tp(self, system, param, dt)
+      pure module subroutine whm_gr_p4_tp(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(whm_tp),                intent(inout) :: self   !! WHM test particle object

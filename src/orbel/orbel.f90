@@ -128,7 +128,7 @@ contains
    end subroutine orbel_el2xv
 
 
-   module pure subroutine orbel_scget(angle, sx, cx)
+   pure module subroutine orbel_scget(angle, sx, cx)
       !! author: David A. Minton
       !!
       !! Efficiently compute the sine and cosine of an input angle
@@ -683,7 +683,7 @@ contains
    end function orbel_fhybrid
    
 
-   module pure subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+   pure module subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
@@ -748,7 +748,7 @@ contains
    end subroutine orbel_xv2aeq
 
 
-   module pure subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+   pure module subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, pericentric distance, mean anomaly, and time to nearest pericenter passage from
@@ -888,7 +888,7 @@ contains
    end subroutine orbel_xv2el_vec 
 
 
-   module pure subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
+   pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity

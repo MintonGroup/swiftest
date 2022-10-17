@@ -865,7 +865,7 @@ contains
    end subroutine encounter_check_remove_duplicates
 
 
-   module pure subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
+   pure module subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
       !! author: David A. Minton
       !!
       !! Sorts the bounding box extents along a single dimension prior to the sweep phase. 
