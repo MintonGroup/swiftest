@@ -477,7 +477,7 @@ def make_swiftest_labels(param):
        plab.append('radius')
     if param['RHILL_PRESENT'] == 'YES':
         plab.append('rhill')
-    clab = ['Gmass', 'radius', 'J_2', 'J_4']
+    clab = ['Gmass', 'radius', 'j2rp2', 'j4rp4']
     if param['ROTATION'] == 'YES':
         clab.append('Ip1')
         clab.append('Ip2')
@@ -1002,16 +1002,16 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     # All other file types need seperate files for each of the inputs
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'],errors="ignore")
-    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'],errors="ignore")
+    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j2rp2'],errors="ignore")
+    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'],errors="ignore")
     
     GMSun = np.double(cb['Gmass'])
     if param['CHK_CLOSE'] == 'YES':
        RSun = np.double(cb['radius'])
     else:
        RSun = param['CHK_RMIN']
-    J2 = np.double(cb['J_2'])
-    J4 = np.double(cb['J_4'])
+    J2 = np.double(cb['j2rp2'])
+    J4 = np.double(cb['j4rp4'])
     cbname = cb['name'].values[0]
     if param['ROTATION'] == 'YES':
         Ip1cb = np.double(cb['Ip1'])
@@ -1187,16 +1187,16 @@ def swifter_xr2infile(ds, param, framenum=-1):
 
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['J_2', 'J_4'])
-    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'J_2', 'J_4'])
+    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j4rp4'])
+    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'])
     
     GMSun = np.double(cb['Gmass'])
     if param['CHK_CLOSE'] == 'YES':
        RSun = np.double(cb['radius'])
     else:
        RSun = param['CHK_RMIN']
-    param['J2'] = np.double(cb['J_2'])
-    param['J4'] = np.double(cb['J_4'])
+    param['J2'] = np.double(cb['j2rp2'])
+    param['J4'] = np.double(cb['j4rp4'])
     
     if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
