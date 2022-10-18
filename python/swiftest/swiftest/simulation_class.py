@@ -19,11 +19,9 @@ class Simulation:
             'T0': "0.0",
             'TSTOP': "0.0",
             'DT': "0.0",
-            'PL_IN': "pl.in",
-            'TP_IN': "tp.in",
-            'CB_IN': "cb.in",
-            'IN_TYPE': "ASCII",
-            'IN_FORM': "EL",
+            'IN_FORM': "XV",
+            'IN_TYPE': "NETCDF_DOUBLE",
+            'NC_IN' : "init_cond.nc",
             'ISTEP_OUT': "1",
             'ISTEP_DUMP': "1",
             'BIN_OUT': "bin.nc",
@@ -51,8 +49,8 @@ class Simulation:
             'TIDES': "NO",
             'ENERGY': "NO",
             'GR': "YES",
-            'INTERACTION_LOOPS': "ADAPTIVE",
-            'ENCOUNTER_CHECK': "ADAPTIVE"
+            'INTERACTION_LOOPS': "TRIANGULAR",
+            'ENCOUNTER_CHECK': "TRIANGULAR"
         }
         self.codename = codename
         self.verbose = verbose
@@ -82,11 +80,12 @@ class Simulation:
         -------
             self.ds : xarray dataset
         """
-        self.ds = init_cond.solar_system_horizons(plname, idval, self.param, date, self.ds)
+        #self.ds = init_cond.solar_system_horizons(plname, idval, self.param, date, self.ds)
+        self.addp(*init_cond.solar_system_horizons(plname, idval, self.param, date, self.ds))
         return
     
     
-    def addp(self, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=None):
+    def addp(self, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, J2=None,J4=None,t=None):
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress
@@ -95,17 +94,17 @@ class Simulation:
         ----------
             idvals : integer 
                 Array of body index values.
-            t1     : float
+            v1     : float
                 xh for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
-            t2     : float
+            v2     : float
                 yh for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
-            t3     : float
+            v3     : float
                 zh for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
-            t4     : float
+            v4     : float
                 vhxh for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
-            t5     : float
+            v5     : float
                 vhyh for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
-            t6     : float
+            v6     : float
                 vhzh for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
             Gmass  : float
                 Optional: Array of G*mass values if these are massive bodies
@@ -126,7 +125,7 @@ class Simulation:
         if t is None:
             t = self.param['T0']
 
-        dsnew = init_cond.vec2xr(self.param, idvals, namevals, t1, t2, t3, t4, t5, t6, GMpl, Rpl, rhill, Ip1, Ip2, Ip3, rotx, roty, rotz, t)
+        dsnew = init_cond.vec2xr(self.param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl, Rpl, rhill, Ip1, Ip2, Ip3, rotx, roty, rotz, J2, J4, t)
         if dsnew is not None:
             self.ds = xr.combine_by_coords([self.ds, dsnew])
         self.ds['ntp'] = self.ds['id'].where(np.isnan(self.ds['Gmass'])).count(dim="id")
@@ -325,7 +324,7 @@ class Simulation:
         """
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(self.ds, self.param, framenum)
+            io.swiftest_xr2infile(ds=self.ds, param=self.param, framenum=framenum,infile_name=self.param['NC_IN'])
             self.write_param(param_file)
         elif codename == "Swifter":
             if self.codename == "Swiftest":

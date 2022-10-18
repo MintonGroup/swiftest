@@ -643,7 +643,7 @@ def swiftest_stream(f, param):
                t11 = f.read_reals(np.float64)
                t12 = f.read_reals(np.float64) 
         
-        clab, plab, tlab = make_swiftest_labels(param)
+        clab, plab, tlab, infolab_float, infolab_int, infolab_str = make_swiftest_labels(param)
 
         if npl > 0:
             pvec = np.vstack([p1, p2, p3, p4, p5, p6])
@@ -967,7 +967,7 @@ def select_active_from_frame(ds, param, framenum=-1):
         iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['xhx'])), drop=True).id
     else:
         iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True).id
-    frame = frame.isel(id=iactive.values)
+    frame = frame.sel(id=iactive.values)
 
     return frame
 
@@ -995,6 +995,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         # Note: xarray will call the character array dimension string32. The Fortran code
         # will rename this after reading
         frame = unclean_string_values(frame)
+        print(f"Writing initial conditions to file {infile_name}")
         frame.to_netcdf(path=infile_name)
         return frame
 
