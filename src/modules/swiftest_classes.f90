@@ -1595,40 +1595,6 @@ module swiftest_classes
       end function util_solve_rkf45
    end interface
 
-   interface
-      module recursive pure subroutine qsort_DP(arr, ind)
-         implicit none
-         ! Arguments
-         real(DP), dimension(:), intent(inout)           :: arr
-         integer(I4B),dimension(:),intent(out), optional :: ind
-      end subroutine qsort_DP
-
-      module recursive pure subroutine qsort_I4B(arr, ind)
-         implicit none
-         integer(I4B), dimension(:), intent(inout)          :: arr
-         integer(I4B), dimension(:), intent(out),  optional :: ind
-      end subroutine qsort_I4B
-
-      module recursive pure subroutine qsort_I4B_I8Bind(arr, ind)
-         implicit none
-         integer(I4B), dimension(:), intent(inout)          :: arr
-         integer(I8B), dimension(:), intent(out),  optional :: ind
-      end subroutine qsort_I4B_I8Bind
-
-      module recursive pure subroutine qsort_I8B_I8Bind(arr, ind)
-         implicit none
-         integer(I8B), dimension(:), intent(inout)          :: arr
-         integer(I8B), dimension(:), intent(out),  optional :: ind
-      end subroutine qsort_I8B_I8Bind
-
-      module recursive pure subroutine qsort_SP(arr, ind)
-         implicit none
-         real(SP), dimension(:), intent(inout)           :: arr
-         integer(I4B),dimension(:),intent(out), optional :: ind
-      end subroutine qsort_SP
-
-   end interface
-
    interface util_sort
       module pure subroutine util_sort_i4b(arr)
          implicit none
