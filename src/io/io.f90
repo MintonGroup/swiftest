@@ -1401,6 +1401,10 @@ contains
          allocate(tmp_param, source=param)
          tmp_param%outfile = param%in_netcdf
          tmp_param%out_form = param%in_form
+         if (.not. param%lrestart) then
+            ! Turn off energy computation so we don't have to feed it into the initial conditions
+            tmp_param%lenergy = .false.
+         end if
          ierr = self%read_frame(tmp_param%nciu, tmp_param)
          deallocate(tmp_param)
          if (ierr /=0) call util_exit(FAILURE)

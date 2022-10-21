@@ -196,10 +196,12 @@ contains
       !$omp firstprivate(npl) &
       !$omp reduction(+:pe) 
       do i = 1, npl
-         do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
-            pepl(j) = - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
-         end do
-         pe = pe + sum(pepl(i+1:npl), lmask(i))
+         if (lmask(i)) then
+            do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
+               pepl(j) = - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+            end do
+            pe = pe + sum(pepl(i+1:npl), lmask(i+1:npl))
+         end if
       end do
       !$omp end parallel do
       pe = pe + sum(pecb(1:npl), lmask(1:npl))
