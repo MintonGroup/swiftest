@@ -549,16 +549,16 @@ contains
          density(j) = colliders%mass(j) / volume(j)
          colliders%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
          if (param%lrotation) colliders%Ip(:, j) = colliders%Ip(:, j) / colliders%mass(j)
-
-         xcom(:) = (colliders%mass(1) * colliders%xb(:, 1) + colliders%mass(2) * colliders%xb(:, 2)) / sum(colliders%mass(:))
-         vcom(:) = (colliders%mass(1) * colliders%vb(:, 1) + colliders%mass(2) * colliders%vb(:, 2)) / sum(colliders%mass(:))
-         mxc(:, 1) = colliders%mass(1) * (colliders%xb(:, 1) - xcom(:))
-         mxc(:, 2) = colliders%mass(2) * (colliders%xb(:, 2) - xcom(:))
-         vcc(:, 1) = colliders%vb(:, 1) - vcom(:)
-         vcc(:, 2) = colliders%vb(:, 2) - vcom(:)
-         colliders%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
       end do
       lflag = .true.
+
+      xcom(:) = (colliders%mass(1) * colliders%xb(:, 1) + colliders%mass(2) * colliders%xb(:, 2)) / sum(colliders%mass(:))
+      vcom(:) = (colliders%mass(1) * colliders%vb(:, 1) + colliders%mass(2) * colliders%vb(:, 2)) / sum(colliders%mass(:))
+      mxc(:, 1) = colliders%mass(1) * (colliders%xb(:, 1) - xcom(:))
+      mxc(:, 2) = colliders%mass(2) * (colliders%xb(:, 2) - xcom(:))
+      vcc(:, 1) = colliders%vb(:, 1) - vcom(:)
+      vcc(:, 2) = colliders%vb(:, 2) - vcom(:)
+      colliders%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
 
       ! Destroy the kinship relationships for all members of this colliders%idx
       call pl%reset_kinship(colliders%idx(:))
