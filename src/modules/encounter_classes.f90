@@ -107,7 +107,7 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       end subroutine encounter_check_all_pltp
 
-      module elemental subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
+      elemental module subroutine encounter_check_one(xr, yr, zr, vxr, vyr, vzr, renc, dt, lencounter, lvdotr)
          !$omp declare simd(encounter_check_one)
          implicit none
          real(DP), intent(in)  :: xr, yr, zr    !! Relative distance vector components
@@ -128,7 +128,7 @@ module encounter_classes
          logical,              dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
       end subroutine encounter_check_collapse_ragged_list
 
-      module pure subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
+      pure module subroutine encounter_check_sort_aabb_1D(self, n, extent_arr)
          implicit none
          class(encounter_bounding_box_1D), intent(inout) :: self       !! Bounding box structure along a single dimension
          integer(I4B),                     intent(in)    :: n          !! Number of bodies with extents

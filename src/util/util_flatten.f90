@@ -2,7 +2,7 @@ submodule (swiftest_classes) s_util_index
    use swiftest
 contains
 
-   module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
+   pure module subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns i,j indices into k index for use in the Euclidean distance matrix for pl-pl interactions.
@@ -29,7 +29,7 @@ contains
    end subroutine util_flatten_eucl_ij_to_k
 
 
-   module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
+   pure module subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
       !! author: Jacob R. Elliott and David A. Minton
       !!
       !! Turns k index into i,j indices for use in the Euclidean distance matrix for pl-pl interactions.

@@ -57,7 +57,7 @@ contains
    end subroutine util_sort_body
 
 
-   module pure subroutine util_sort_dp(arr)
+   pure module subroutine util_sort_dp(arr)
       !! author: David A. Minton
       !!
       !! Sort input DP precision array in place into ascending numerical order using quicksort.
@@ -72,7 +72,7 @@ contains
    end subroutine util_sort_dp
 
 
-   module pure subroutine util_sort_index_dp(arr, ind)
+   pure module subroutine util_sort_index_dp(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input DP precision array by index in ascending numerical order using quick sort.
@@ -186,7 +186,7 @@ contains
    end subroutine partition_DP
  
 
-   module pure subroutine util_sort_i4b(arr)
+   pure module subroutine util_sort_i4b(arr)
       !! author: David A. Minton
       !!
       !! Sort input integer array in place into ascending numerical order using quick sort.
@@ -202,7 +202,7 @@ contains
    end subroutine util_sort_i4b
 
 
-   module pure subroutine util_sort_index_I4B(arr, ind)
+   pure module subroutine util_sort_index_I4B(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input integer array by index in ascending numerical order using quicksort.
@@ -230,7 +230,7 @@ contains
    end subroutine util_sort_index_I4B
 
 
-   module pure subroutine util_sort_index_I4B_I8Bind(arr, ind)
+   pure module subroutine util_sort_index_I4B_I8Bind(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input integer array by index in ascending numerical order using quicksort.
@@ -510,7 +510,7 @@ contains
    end subroutine partition_I8B_I8Bind
 
 
-   module pure subroutine util_sort_sp(arr)
+   pure module subroutine util_sort_sp(arr)
       !! author: David A. Minton
       !!
       !! Sort input DP precision array in place into ascending numerical order using quicksort.
@@ -525,7 +525,7 @@ contains
    end subroutine util_sort_sp
 
 
-   module pure subroutine util_sort_index_sp(arr, ind)
+   pure module subroutine util_sort_index_sp(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input DP precision array by index in ascending numerical order using quicksort.
@@ -774,7 +774,7 @@ contains
    end subroutine util_sort_rearrange_body
 
 
-   module pure subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+   pure module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of character string in-place from an index list.
@@ -795,7 +795,7 @@ contains
    end subroutine util_sort_rearrange_arr_char_string
 
 
-   module pure subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+   pure module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of DP type in-place from an index list.
@@ -816,7 +816,7 @@ contains
    end subroutine util_sort_rearrange_arr_DP
 
 
-   module pure subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+   pure module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of (NDIM,n) DP-type vectors in-place from an index list.
@@ -837,7 +837,7 @@ contains
    end subroutine util_sort_rearrange_arr_DPvec
 
 
-   module pure subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+   pure module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of integers in-place from an index list.
@@ -857,7 +857,7 @@ contains
       return
    end subroutine util_sort_rearrange_arr_I4B
 
-   module pure subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
+   pure module subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of integers in-place from an index list.
@@ -878,7 +878,7 @@ contains
    end subroutine util_sort_rearrange_arr_I4B_I8Bind
 
 
-   module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+   pure module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of logicals in-place from an index list.
@@ -899,7 +899,7 @@ contains
    end subroutine util_sort_rearrange_arr_logical
 
 
-   module pure subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
+   pure module subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
       !! author: David A. Minton
       !!
       !! Rearrange a single array of logicals in-place from an index list.

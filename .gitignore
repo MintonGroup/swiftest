@@ -6,6 +6,8 @@
 # whitelist only the files that ever need to be tracked
 !*.f90
 !*.sh
+!CMakeLists.txt
+!*.cmake
 !CHANGELOG 
 !README.md
 !README.swifter 
@@ -75,3 +77,5 @@ python/swiftest/tests/convert_code_type/swifter2swiftest/pl.swifter2swiftest.in
 python/swiftest/tests/convert_code_type/swifter2swiftest/tp.swifter2swiftest.in
 
 !python/swiftest/requirements.txt
+
+bin/

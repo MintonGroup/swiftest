@@ -92,7 +92,7 @@ contains
    end subroutine drift_all
 
 
-   module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
+   pure elemental module subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
