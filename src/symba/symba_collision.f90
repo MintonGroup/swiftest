@@ -83,7 +83,6 @@ contains
       integer(I4B)                            :: i, ibiggest, nfrag, jtarg, jproj
       logical                                 :: lpure 
       character(len=STRMAX) :: message
-      character(len=NAMELEN) :: idstr
 
       message = "Hit and run between"
       call symba_collision_collider_message(system%pl, colliders%idx, message)
@@ -156,10 +155,8 @@ contains
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
-      real(DP), dimension(2)                    :: volume, density
       real(DP)                                  :: pe
       real(DP), dimension(NDIM)                 :: L_spin_new
-      character(len=NAMELEN) :: idstr
       character(len=STRMAX) :: message
 
       message = "Merging"
@@ -715,7 +712,6 @@ contains
       class(symba_pl), allocatable           :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
       character(len=NAMELEN) :: newname
-      character(len=STRMAX) :: message
    
       select type(pl => system%pl)
       class is (symba_pl)
@@ -885,8 +881,6 @@ contains
       ! Internals
       ! Internals
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
-      real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
       type(fraggle_colliders)                     :: colliders !! Fraggle colliders object
@@ -937,8 +931,6 @@ contains
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       ! Internals
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      real(DP),     dimension(NDIM,2)             :: x, v, L_spin, Ip !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
-      real(DP),     dimension(2)                  :: mass, radius     !! Output values that represent a 2-body equivalent of a possibly 2+ body collision
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
       type(fraggle_colliders)                     :: colliders !! Fraggle colliders object

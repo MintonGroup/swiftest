@@ -79,3 +79,4 @@ python/swiftest/tests/convert_code_type/swifter2swiftest/tp.swifter2swiftest.in
 !python/swiftest/requirements.txt
 
 bin/
+build/*

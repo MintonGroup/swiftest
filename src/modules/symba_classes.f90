@@ -663,7 +663,6 @@ module symba_classes
          implicit none
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
          integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
-         integer(I4B) :: i, j
       end subroutine symba_util_reset_kinship
    end interface
 

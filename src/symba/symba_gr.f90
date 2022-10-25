@@ -44,8 +44,6 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
-      ! Internals
-      integer(I4B)                              :: i
 
       if (self%nbody == 0) return
 

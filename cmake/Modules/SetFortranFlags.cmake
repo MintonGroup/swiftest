@@ -137,11 +137,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-mp1" # Intel
                 )
 
-# Calls the Matrix Multiply library
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-                 Fortran "-qopt-matmul" # Intel
-                )
-
 # Strict model for floating-point calculations (precise and except)
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-fp-model strict" # Intel

@@ -14,7 +14,7 @@ contains
       integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
       ! Internals
-      integer(I4B) :: i,j
+      integer(I4B) :: i
 
       !> Call allocation method for parent class
       associate(pl => self)

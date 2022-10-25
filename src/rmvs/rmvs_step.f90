@@ -16,10 +16,8 @@ contains
       real(DP),                   intent(in)    :: t     !! Current simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsiz
       ! Internals
-      logical :: lencounter, lfirstpl, lfirsttp 
-      real(DP) :: rts
+      logical :: lencounter, lfirstpl
       real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
-      integer(I4B) :: i
 
       if (self%tp%nbody == 0) then
          call whm_step_system(self, param, t, dt)
@@ -164,8 +162,8 @@ contains
       real(DP),                   intent(in)    :: t      !! Current simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsiz
       ! Internals
-      integer(I4B)                              :: outer_index, j, k
-      real(DP)                                  :: dto, outer_time, rts
+      integer(I4B)                              :: outer_index, j
+      real(DP)                                  :: dto, outer_time
       logical                                   :: lencounter, lfirsttp
 
       associate(npl => pl%nbody, ntp => tp%nbody)
@@ -354,7 +352,7 @@ contains
       real(DP),                   intent(in)    :: dto        !! Outer step size
       ! Internals
       logical                                   :: lfirsttp
-      integer(I4B)                              :: i, j, ipleP
+      integer(I4B)                              :: i, j
       real(DP)                                  :: dti, inner_time
 
       associate(npl => pl%nbody)
