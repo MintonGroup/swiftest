@@ -41,16 +41,16 @@ contains
       real(DP),                     intent(in)    :: t     !! Simulation time
       real(DP),                     intent(in)    :: dt    !! Current stepsize
       ! Internals
-      real(DP), dimension(:), allocatable       :: rot0, rot1
-      real(DP)                                  :: subt
-      real(DP), parameter                       :: tol=1e-6_DP !! Just a guess at the moment
-      real(DP)                                  :: subdt 
+      !real(DP), dimension(:), allocatable       :: rot0 !, rot1
+      !real(DP)                                  :: subt
+      !real(DP), parameter                       :: tol=1e-6_DP !! Just a guess at the moment
+      !real(DP)                                  :: subdt 
 
       associate(pl => self%pl, npl => self%pl%nbody, cb => self%cb)
-         allocate(rot0(NDIM*(npl+1)))
-         rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
+         !allocate(rot0(NDIM*(npl+1)))
+         !rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
          ! Use this space call the ode_solver, passing tides_spin_derivs as the function:
-         subdt = dt / 20._DP
+         !subdt = dt / 20._DP
          !rot1(:) = util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%xbeg, pl%xend), rot0, dt, subdt tol)
          ! Recover with unpack
          !pl%rot(:,1:npl) = unpack(rot1...
@@ -74,23 +74,22 @@ contains
       real(DP), dimension(:,:),     intent(in) :: xend
       ! Internals
       real(DP), dimension(:,:), allocatable    :: drot
-      real(DP), dimension(:), allocatable      :: flatrot
-      real(DP), dimension(NDIM)                :: N_Tcb, N_Rcb, N_Tpl, N_Rpl, xinterp
-      real(DP)                                 :: C_cb, C_pl, r_dot_rot_cb, r_dot_rot_pl, rmag
-      integer(I4B)                             :: i, n
+      ! !real(DP), dimension(NDIM)                :: N_Tcb, N_Rcb, N_Tpl, N_Rpl, xinterp
+      ! !real(DP)                                 :: C_cb, C_pl, r_dot_rot_cb, r_dot_rot_pl, rmag
+      ! integer(I4B)                             :: i, n
 
 
-      n = size(rot_pl_cb,2)
       if (allocated(drot)) deallocate(drot) 
       allocate(drot, mold=rot_pl_cb)
       drot(:,:) = 0.0_DP
-      do i = 1,n-1
-         xinterp(:) = xbeg(:,i) + t / dt * (xend(:,i) - xbeg(:,i))
-         ! Calculate Ncb and Npl as a function of xinterp
-         !drot(:,i) = -Mcb / (Mcb + Mpl(i)) * (N_Tpl + N_Rpl)
-         !drot(:,n) = drot(:,n) - Mcb / (Mcb + Mpl(i) * (N_Tcb + N_Rcb)
-         !
-      end do
+      ! n = size(rot_pl_cb,2)
+      ! do i = 1,n-1
+      !    xinterp(:) = xbeg(:,i) + t / dt * (xend(:,i) - xbeg(:,i))
+      !    ! Calculate Ncb and Npl as a function of xinterp
+      !    !drot(:,i) = -Mcb / (Mcb + Mpl(i)) * (N_Tpl + N_Rpl)
+      !    !drot(:,n) = drot(:,n) - Mcb / (Mcb + Mpl(i) * (N_Tcb + N_Rcb)
+      !    !
+      ! end do
 
       return
    end function tides_spin_derivs

@@ -83,7 +83,7 @@ contains
             end do
 
             call frag%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
-            call frag%set_budgets(colliders)
+            call frag%set_budgets()
 
             call fraggle_generate_spins(frag, f_spin, lfailure)
             if (lfailure) then
@@ -300,10 +300,9 @@ contains
       real(DP), parameter                  :: TOL_INIT = 1e-14_DP
       real(DP), parameter                  :: VNOISE_MAG = 1e-3_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter              :: MAXLOOP = 10
-      real(DP)                             :: tol, ke_remainder
+      real(DP)                             :: tol
       real(DP), dimension(:), allocatable  :: v_t_initial
       real(DP), dimension(frag%nbody)      :: kefrag, vnoise
-      type(lambda_obj)                     :: spinfunc
       type(lambda_obj_err)                 :: objective_function
       real(DP), dimension(NDIM)            :: Li, L_remainder, L_frag_tot
       character(len=STRMAX)                :: message
@@ -479,7 +478,6 @@ contains
       real(DP)                              :: ke_radial, tol 
       integer(I4B)                          :: i
       real(DP), dimension(:), allocatable   :: v_r_initial
-      real(DP), dimension(:,:), allocatable :: v_r
       real(DP), dimension(frag%nbody)       :: vnoise
       type(lambda_obj)                      :: objective_function
       character(len=STRMAX)                 :: message

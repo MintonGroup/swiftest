@@ -12,7 +12,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      logical :: lany_discards, lpl_discards, ltp_discards, lpl_check, ltp_check
+      logical :: lpl_discards, ltp_discards, lpl_check, ltp_check
 
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
@@ -180,7 +180,6 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameterss
       ! Internals
-      logical, save             :: lfirst = .true.
       integer(I4B)              :: i, j, ih
       real(DP)                  :: r2
       real(DP), dimension(NDIM) :: dx

@@ -234,7 +234,6 @@ contains
       class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                   :: ierr    !! Error code
       integer(I4B)                   :: iu = LUN
       character(len=:), allocatable  :: dump_file_name
       character(STRMAX)              :: errmsg 
@@ -951,13 +950,6 @@ contains
       character(*),parameter :: Ifmt  = '(I0)'         !! Format label for integer values
       character(*),parameter :: Rfmt  = '(ES25.17)'    !! Format label for real values 
       character(*),parameter :: Lfmt  = '(L1)'         !! Format label for logical values 
-      character(len=NAMELEN) :: param_name
-      character(LEN=STRMAX)  :: param_value, v1, v2, v3
-      type character_array
-         character(25) :: value
-      end type character_array
-      type(character_array), dimension(:), allocatable :: param_array
-      integer(I4B) :: i
 
       associate(param => self)
          call io_param_writer_one("T0", param%t0, unit)
@@ -1244,8 +1236,6 @@ contains
       implicit none
       class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
 
       if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) return ! This method is not used in NetCDF mode, as reading is done for the whole system, not on individual particle types
 
@@ -1276,9 +1266,9 @@ contains
       integer(I4B)                  :: i, nbody
       logical                       :: is_ascii
       character(len=:), allocatable :: infile
-      real(DP)                      :: t
       character(STRMAX)             :: errmsg
-      integer(I4B)                  :: ierr
+      ! Internals
+      integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
 
       ! Select the appropriate polymorphic class (test particle or massive body)
 
@@ -1337,7 +1327,7 @@ contains
       ! Internals
       integer(I4B)            :: iu = LUN
       character(len=STRMAX)   :: errmsg
-      integer(I4B)            :: ierr, idold
+      integer(I4B)            :: ierr
       character(len=NAMELEN)  :: name
 
       if (param%in_type == 'ASCII') then
@@ -1843,7 +1833,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                  :: i, id, idx
+      integer(I4B)                  :: id, idx
       logical                       :: lmatch  
       character(STRMAX)             :: errmsg
       type(swiftest_particle_info), allocatable :: tmpinfo

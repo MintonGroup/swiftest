@@ -15,12 +15,11 @@ contains
       class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B) :: jtarg, jproj, regime
+      integer(I4B) :: jtarg, jproj
       real(DP), dimension(2) :: radius_si, mass_si, density_si
       real(DP) :: min_mfrag_si, Mcb_si
       real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si
-      real(DP) :: mlr, mslr, mtot, dentot, msys, msys_new, Qloss, impact_parameter
-      logical :: fileExists
+      real(DP) :: mlr, mslr, mtot, dentot
         
       associate(colliders => self)
          ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them to the regime determination subroutine

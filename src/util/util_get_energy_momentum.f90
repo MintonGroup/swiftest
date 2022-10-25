@@ -13,10 +13,10 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i, j
-      integer(I8B) :: k, nplpl
-      real(DP) :: oblpot, kecb, kespincb
-      real(DP), dimension(self%pl%nbody) :: irh, kepl, kespinpl
+      integer(I4B) :: i
+      integer(I8B) :: nplpl
+      real(DP) :: kecb, kespincb
+      real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
       real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
       real(DP), dimension(self%pl%nbody) :: Lplspinx, Lplspiny, Lplspinz
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin

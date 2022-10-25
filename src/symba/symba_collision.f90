@@ -448,7 +448,7 @@ contains
       integer(I4B), dimension(2)       :: nchild
       integer(I4B)                     :: i, j, ncolliders, idx_child
       real(DP), dimension(2)           :: volume, density
-      real(DP)                         :: mchild, mtot, volchild
+      real(DP)                         :: mchild, volchild
       real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv
       real(DP), dimension(NDIM,2)      :: mxc, vcc
 

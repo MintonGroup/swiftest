@@ -80,11 +80,11 @@ contains
          where(lmask(1:n)) dtp(1:n) = dt
       end if 
 
-      !$omp simd
+      !!$omp simd ! SIMD does not yet work
       do i = 1, n
          if (lmask(i)) call drift_one(mu(i), x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), dtp(i), iflag(i))
       end do
-      !$omp end simd
+      !!$omp end simd
 
       deallocate(dtp)
 
