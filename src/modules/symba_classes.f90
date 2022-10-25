@@ -485,7 +485,7 @@ module symba_classes
          integer(I4B),               intent(in)    :: ireci !! Input recursion level
       end subroutine symba_step_set_recur_levels_system
 
-      module recursive subroutine symba_step_recur_system(self, param, t, ireci)
+      recursive module subroutine symba_step_recur_system(self, param, t, ireci)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object

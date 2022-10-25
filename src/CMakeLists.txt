@@ -3,7 +3,20 @@
 ########################################
 
 # Add the source files
-SET(FOO_src ${SRC}/discard/discard.f90
+SET(FOO_src 
+            ${SRC}/modules/encounter_classes.f90
+            ${SRC}/modules/fraggle_classes.f90
+            ${SRC}/modules/helio_classes.f90
+            ${SRC}/modules/lambda_function.f90
+            ${SRC}/modules/rmvs_classes.f90
+            ${SRC}/modules/swiftest_classes.f90
+            ${SRC}/modules/swiftest_globals.f90
+            ${SRC}/modules/swiftest_operators.f90
+            ${SRC}/modules/swiftest.f90
+            ${SRC}/modules/symba_classes.f90
+            ${SRC}/modules/walltime_classes.f90
+            ${SRC}/modules/whm_classes.f90
+            ${SRC}/discard/discard.f90
             ${SRC}/drift/drift.f90
             ${SRC}/encounter/encounter_check.f90
             ${SRC}/encounter/encounter_io.f90
@@ -25,19 +38,6 @@ SET(FOO_src ${SRC}/discard/discard.f90
             ${SRC}/helio/helio_util.f90
             ${SRC}/io/io.f90
             ${SRC}/kick/kick.f90
-            ${SRC}/main/swiftest_driver.f90
-            ${SRC}/modules/encounter_classes.f90
-            ${SRC}/modules/fraggle_classes.f90
-            ${SRC}/modules/helio_classes.f90
-            ${SRC}/modules/lambda_function.f90
-            ${SRC}/modules/rmvs_classes.f90
-            ${SRC}/modules/swiftest_classes.f90
-            ${SRC}/modules/swiftest_globals.f90
-            ${SRC}/modules/swiftest_operators.f90
-            ${SRC}/modules/swiftest.f90
-            ${SRC}/modules/symba_classes.f90
-            ${SRC}/modules/walltime_classes.f90
-            ${SRC}/modules/whm_classes.f90
             ${SRC}/netcdf/netcdf.f90
             ${SRC}/obl/obl.f90
             ${SRC}/operators/operator_cross.f90
@@ -61,6 +61,8 @@ SET(FOO_src ${SRC}/discard/discard.f90
             ${SRC}/symba/symba_setup.f90
             ${SRC}/symba/symba_step.f90
             ${SRC}/symba/symba_util.f90
+            ${SRC}/tides/tides_getacch_pl.f90
+            ${SRC}/tides/tides_spin_step.f90
             ${SRC}/user/user_getacch.f90
             ${SRC}/util/util_append.f90
             ${SRC}/util/util_coord.f90
@@ -89,6 +91,7 @@ SET(FOO_src ${SRC}/discard/discard.f90
             ${SRC}/whm/whm_setup.f90
             ${SRC}/whm/whm_step.f90
             ${SRC}/whm/whm_util.f90
+            ${SRC}/main/swiftest_driver.f90
 )
 
 # Define the executable in terms of the source files
@@ -99,8 +102,7 @@ ADD_EXECUTABLE(${FOOEXE} ${FOO_src})
 #####################################################
 
 # Uncomment if you need to link to BLAS and LAPACK
-TARGET_LINK_LIBRARIES(${FOOEXE} ${NETCDF_LIBRARIES})
-                                #${NETCDFFORTRAN_LIBRARIES})
+TARGET_LINK_LIBRARIES(${FOOEXE} ${NETCDF_LIBRARIES} ${NETCDF_FORTRAN_LIBRARIES})
 
 # Uncomment if you have parallization
 IF(USE_OPENMP)

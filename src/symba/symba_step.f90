@@ -150,7 +150,7 @@ contains
    end subroutine symba_step_set_recur_levels_system
 
 
-   module recursive subroutine symba_step_recur_system(self, param, t, ireci)
+   recursive module subroutine symba_step_recur_system(self, param, t, ireci)
       !! author: David A. Minton
       !!
       !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current
