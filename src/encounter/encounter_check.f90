@@ -25,7 +25,6 @@ contains
       logical, save :: lfirst = .true.
       logical, save :: skipit = .false. ! This will be used to ensure that the sort & sweep subroutine gets called at least once before timing it so that the extent array is nearly sorted when it is timed
       integer(I8B) :: nplpl = 0_I8B
-      integer(I8B) :: k
 
       if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
          nplpl = (npl * (npl - 1) / 2) 
@@ -91,8 +90,7 @@ contains
       logical, save :: lfirst = .true.
       logical, save :: skipit = .false.
       integer(I8B) :: nplplm = 0_I8B
-      integer(I4B) :: npl, i
-      integer(I8B) :: k
+      integer(I4B) :: npl
       logical,      dimension(:), allocatable :: plmplt_lvdotr !! Logical flag indicating the sign of v .dot. x in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index1 !! List of indices for body 1 in each encounter in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index2 !! List of indices for body 2 in each encounter in the plm-lt group
@@ -254,10 +252,9 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      integer(I4B) :: i, dim, n
+      integer(I4B) :: dim, n
       integer(I4B), save :: npl_last = 0
       type(encounter_bounding_box), save :: boundingbox
-      logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(npl) :: vshift_min, vshift_max
 
       if (npl == 0) return
@@ -316,12 +313,10 @@ contains
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       type(encounter_bounding_box), save :: boundingbox
-      integer(I4B) :: i, dim, n, ntot
+      integer(I4B) :: dim, n, ntot
       integer(I4B), save :: ntot_last = 0
-      logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(nplm) :: vplmshift_min, vplmshift_max
       integer(I2B), dimension(nplt) :: vpltshift_min, vpltshift_max
-      logical, save :: lfirst=.true.
 
       ! If this is the first time through, build the index lists
       if ((nplm == 0) .or. (nplt == 0)) return
@@ -390,9 +385,8 @@ contains
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       type(encounter_bounding_box), save :: boundingbox
-      integer(I4B) :: i, dim, n, ntot
+      integer(I4B) :: dim, n, ntot
       integer(I4B), save :: ntot_last = 0
-      logical, dimension(:), allocatable :: lencounter
       integer(I2B), dimension(npl) :: vplshift_min, vplshift_max
       integer(I2B), dimension(ntp) :: vtpshift_min, vtpshift_max
       real(DP), dimension(ntp) :: renctp 
@@ -467,7 +461,6 @@ contains
       logical,      dimension(:), allocatable, intent(inout) :: lvdotr        !! v.dot.r direction array
       ! Internals
       integer(I4B) :: j
-      integer(I8B) :: k
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
       logical, dimension(n) :: lencounteri, lvdotri
 
@@ -515,7 +508,7 @@ contains
       type(encounter_list),               intent(out) :: lenci         !! Output encounter lists containing number of encounters, the v.dot.r direction array, and the index list of encountering bodies 
       ! Internals
       integer(I4B) :: j
-      integer(I8B) :: k, nenci
+      integer(I8B) :: nenci
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
       logical, dimension(n) :: lencounteri, lvdotri
 
@@ -559,9 +552,7 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out) :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      integer(I4B) :: i, j, k, nenci, j0, j1
-      real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
-      logical, dimension(npl) :: lencounteri, lvdotri
+      integer(I4B) :: i
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(npl) :: lenc
 
@@ -609,7 +600,6 @@ contains
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       integer(I4B) :: i
-      logical, dimension(nplt) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(nplm) :: lenc
 
@@ -656,7 +646,6 @@ contains
       logical,      dimension(:), allocatable, intent(out) :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
       integer(I4B) :: i
-      logical, dimension(ntp) :: lencounteri, lvdotri
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(encounter_list), dimension(npl) :: lenc
       real(DP), dimension(ntp) :: renct
@@ -914,15 +903,11 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for body 2 in each encounter candidate pair
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       ! Internals
-      integer(I4B) :: ii, i, j, ntot, nbox, dim
-      integer(I8B) :: k
+      integer(I4B) :: ii, i, ntot, nbox, dim
       logical, dimension(n1+n2) :: loverlap
       logical, dimension(SWEEPDIM,n1+n2) :: loverlap_by_dimension
-      integer(I4B), dimension(SWEEPDIM) :: noverlap
-      integer(I4B), dimension(SWEEPDIM,n1+n2) :: nbox_arr
       logical, dimension(SWEEPDIM,2*(n1+n2)) :: llist1
       integer(I4B), dimension(SWEEPDIM,2*(n1+n2)) :: ext_ind
-      integer(I4B), dimension(:), allocatable :: x_ind
       type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibeg, iend

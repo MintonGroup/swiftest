@@ -150,6 +150,7 @@ module lambda_function
    type, extends(lambda_obj) :: lambda_obj_tvar
       !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers
       procedure(lambda0tvar), pointer, nopass :: lambdaptr_tvar => null()
+      real(DP) :: t 
    contains
       generic   :: init => lambda_init_tvar
       procedure :: evalt => lambda_eval_tvar
@@ -211,6 +212,7 @@ module lambda_function
          procedure(lambda0tvar)             :: lambda
          real(DP), intent(in)               :: t
          lambda_init_tvar%lambdaptr_tvar => lambda
+         lambda_init_tvar%t = t
          return
       end function lambda_init_tvar
    

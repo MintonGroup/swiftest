@@ -170,7 +170,7 @@ contains
       integer(I4B)                           :: rkn              !! Runge-Kutta loop index
       real(DP)                               :: t, x1, dt, trem      !! Current time, step size and total time remaining
       real(DP)                               :: s, yerr, yscale  !!  Step size reduction factor, error in dependent variable, and error scale factor
-      integer(I4B)                           :: i, n     
+      integer(I4B)                           :: i
 
       allocate(y0, source=y0in)
       allocate(y1, mold=y0)

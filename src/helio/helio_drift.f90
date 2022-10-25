@@ -17,7 +17,6 @@ contains
       real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals
       integer(I4B) :: i !! Loop counter
-      real(DP) :: rmag, vmag2, energy
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
       real(DP), dimension(:), allocatable    :: mu
 
@@ -131,7 +130,6 @@ contains
       logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
       ! Internals
       real(DP), dimension(NDIM) :: pt     !! negative barycentric velocity of the central body
-      integer(I4B)              :: i    
 
       if (self%nbody == 0) return
 

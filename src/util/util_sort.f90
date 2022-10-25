@@ -931,8 +931,6 @@ contains
       integer(I4B),                                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       ! Internals
       type(swiftest_particle_info),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-      integer(I4B) :: i
-
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)

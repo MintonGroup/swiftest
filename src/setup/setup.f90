@@ -80,7 +80,6 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-      integer(I4B)                                :: ierr
 
       associate(system => self)
          if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
@@ -132,7 +131,6 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-      integer(I4B)                                :: ierr
 
       associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
 

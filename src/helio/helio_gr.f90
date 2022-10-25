@@ -13,11 +13,6 @@ contains
       ! Arguments
       class(helio_pl),            intent(inout) :: self   !! Helio massive body particle data structure
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)                                 :: i
-      real(DP), dimension(NDIM)                    :: suma
-      real(DP), dimension(:, :), allocatable       :: aj
-      real(DP)                                     :: beta, rjmag4
       
       if (self%nbody == 0) return
 
@@ -41,9 +36,6 @@ contains
       ! Arguments
       class(helio_tp),            intent(inout) :: self   !! Helio massive body particle data structure
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)                                 :: i
-      real(DP)                                     :: rjmag4, beta
       
       if (self%nbody == 0) return
 

@@ -164,10 +164,9 @@ module fraggle_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
       end subroutine fraggle_regime_colliders
 
-      module subroutine fraggle_set_budgets_fragments(self, colliders)
+      module subroutine fraggle_set_budgets_fragments(self)
          implicit none
          class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
-         class(fraggle_colliders), intent(inout) :: colliders !! Fraggle collider system object
       end subroutine  fraggle_set_budgets_fragments
 
       module subroutine fraggle_set_coordinate_system(self, colliders)

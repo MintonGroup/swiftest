@@ -148,8 +148,6 @@ contains
       class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
       class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      ! Internals
-      integer(I4B) :: i
 
       associate(keeps => self)
          select type(inserts)
@@ -463,8 +461,6 @@ contains
       class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: i
 
       associate(keeps => self)
          select type(discards)
@@ -496,8 +492,6 @@ contains
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
       logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: i
 
       associate(keeps => self)
          select type(discards)

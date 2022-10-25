@@ -217,7 +217,6 @@ contains
       real(DP) ::  a,b,sq,biga,bigb, capn
       real(DP) ::  x,x2
       real(DP) ::  f,fp,dx
-      real(DP) ::  diff
       real(DP) ::  a0,a1
       real(DP) ::  b1
       integer(I4B), parameter :: IMAX = 10

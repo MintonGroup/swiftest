@@ -117,7 +117,7 @@ contains
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       integer(I4B),               intent(in)    :: ireci !! Input recursion level 
       ! Internals
-      integer(I4B) :: k, irecp
+      integer(I4B) :: irecp
 
       associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, &
                 npl => self%pl%nbody, ntp => self%tp%nbody)
@@ -165,9 +165,8 @@ contains
       real(DP),                   intent(in)    :: t
       integer(I4B),               intent(in)    :: ireci !! input recursion level
       ! Internals
-      integer(I4B) :: i, j, irecp, nloops
+      integer(I4B) :: j, irecp, nloops
       real(DP) :: dtl, dth
-      real(DP), dimension(NDIM) :: xr, vr
       logical :: lencounter, lplpl_collision, lpltp_collision
 
       associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
