@@ -430,7 +430,7 @@ From its observation in the mid-1800s to the development of the theory of genera
 
 In this test case, we track the orbit of Mercury for 1000 years as it orbits around the Sun in the presence of the seven other massive planets. The precession rate of the longitude of periapsis of Mercury, as calculated by Swiftest SyMBA, differs by only $\sim 0.0286 \%$ from the precession rate calculated from the NASA JPL Horizons database.
 
-|![SyMBA General Relativity](symba_gr.png "SyMBA General Relativity")|
+|![SyMBA General Relativity](README_figs/symba_gr.png "SyMBA General Relativity")|
 |:--:|
 |**Figure 1** - The longitude of periapsis of Mercury over 1000 years, as calculated by Swifter SyMBA (dotted green), Swiftest SyMBA with general relativity turned off (long dashed yellow), and Swiftest SyMBA with general relativity turned on (short dashed blue). These results are compared to the periapsis of Mercury as calculated from the NASA JPL Horizons database (solid red). Swiftest SyMBA with general relativity turned off is in good agreement with Swifter SyMBA ($\sim 0.00053 \%$ difference), while Swiftest SyMBA with general relativity turned on is in good agreement with the NASA JPL Horizons database ($\sim 0.0286 \%$ difference).| 
 
@@ -651,7 +651,7 @@ This example demonstrates that Swiftest SyMBA produces results that are in good 
 
 After 1 My, there is good agreement between Swiftest SyMBA and Swifter SyMBA in both the structure of the final system and the general evolution of the system over time. The system run with Swifter SyMBA results in 92 massive bodies and 47 test particles in the terrestrial disk. The system run with Swiftest SyMBA results in 90 massive bodies and 44 test particles in the terrestrial disk. The total final terrestrial disk mass for the Swifter and Swiftest runs are $9.13 M_{\oplus}$ and $9.04 M_{\oplus}$, respectively. The average eccentricity of a terrestrial body in the Swifter SyMBA simulation is $0.21$ compared to $0.22$ in the Swiftest SyMBA simulation. Finally, the average inclination of a terrestrial body in the Swifter SyMBA simulation is $7.21^{\circ}$ compared to $6.69^{\circ}$ in the Swiftest SyMBA simulation. The evolution of both systems is also comparable, with both systems showing mass steadily accrete over the age of the system. The results of this example are included in **Figure 2**.
 
-|![SyMBA Swifter v. Swiftest](swifter_swiftest_comp.png "SyMBA Swifter v. Swiftest")|
+|![SyMBA Swifter v. Swiftest](README_figs/swifter_swiftest_comp.png "SyMBA Swifter v. Swiftest")|
 |:--:|
 |**Figure 2** - The number of bodies in the system over time. An identical set of initial conditions was run using Swifter SyMBA (red) and Swiftest SyMBA (navy). Solid lines represent the number of massive bodies in the system, while dotted lines represent the number of test particles in the system. Due to the stochastic nature of n-body integrations, it is unrealistic to expect these two codes to produce bit identical results. Instead, we track the general trend of solar system evolution in these two runs using the number of bodies remaining in the system as a metric for the development of the total system. Here we show that the general behavior of Swiftest SyMBA is in good agreement with the general behavior of Swifter SyMBA after 1 My. | 
 
@@ -685,7 +685,7 @@ While Swifest SyMBA is a powerful tool for modeling gravitational interactions b
 
 To get a sense of the scope of your desired simulation, it is recommended that you run your initial conditions and parameters for a just few steps. Make sure that you set ```ISTEP_OUT``` and ```ISTEP_DUMP``` to output only once the simulation is complete, not between steps. Because writing to the output files takes a significant amount of computational time compared to integrating the step, we want to avoid counting writing time in our diagnostic information. The terminal output contains information about the total wall time and the wall time per integration step. To get a sense of how long your run will take to complete your desired ```tmax```, simply scale up the wall time per integration step to the number of steps necessary for ```tmax``` to be reached. Remember that writing to the output files will take a considerable amount of time. Adjust your intitial conditions and parameters accordingly.
 
-|![Swiftest SyMBA Performance](performance.png "Swiftest SyMBA Performance")|
+|![Swiftest SyMBA Performance](README_figs/performance.png "Swiftest SyMBA Performance")|
 |:--:|
 |**Figure 3** - The wall time per integration step as a result of the number of CPUs used. The results for a system containing 10, 100, and 1000 fully-interacting massive bodies are shown in dark blue, medium blue, and teal, respectively. In red are the the optimum number of CPUs needed to achieve peek performance in each run. Parallelization in Swiftest SyMBA is still under development, so performance at higher numbers of CPUs is expected to improve.| 
 
