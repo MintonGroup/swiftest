@@ -45,28 +45,67 @@ Parallelization in Swiftest is done with OpenMP. Version 3.1.4 or higher is nece
 The easiest way to get Swiftest on your machine is to clone the GitHub repository. To do so, open a terminal window and type the following:
 
 ```
-git clone https://github.itap.purdue.edu/MintonGroup/swiftest.git
+$ git clone https://github.itap.purdue.edu/MintonGroup/swiftest.git
 ```
 
 If your cloned version is not already set to the master branch:
 
 ```
-git checkout master
+$ git checkout master
 ```
 
 To pull down any updates to Swiftest:
 
 ```
-git pull
+$ git pull
 ```
+
+You now have a Swiftest repository on your personal machine that you may compile, edit, and run as you see fit.
 
 **Compiling Swiftest**
 
 Swiftest is written in modern Fortran and must be compiled before it can be run. After compilation, an executable, called the Swiftest driver, will have been created in the ```/swiftest/bin/``` directory. 
 
-Swiftest is fully customizable using the ```Makefile.Defines``` file included in the topmost directory. 
+Swiftest is compiled through [CMake](https://cmake.org/). Compiling with CMake has a number of benefits that provide a streamlined experience for the Swiftest user and developer. At compilation, CMake will automatically select the set of flags that are compatible with the local compiler. CMake also allows a Swiftest developer to re-compile only the files that have been edited, instead of requiring the developer to re-compile the entire Swiftest program. Please visit the CMake website for more information on how to install CMake.
 
-<span style="color:red">[MORE INFO ON FLAGS ETC HERE, CMAKE?]</span>
+Once CMake is installed, navigate to the topmost directory in your Swiftest repository. It is best practice to create a ```build``` directory in your topmost directory from which you will compile Swiftest. This way, temporary CMake files will not clutter up the ```swiftest/src/``` sub-directories. To create a new directory and then navigate into that directory, type the following:
+
+```
+$ mkdir build
+$ cd build
+```
+
+As mentioned in the **System Requirements** section, Swiftest requires the NetCDF and NetCDF Fortran libraries to be installed prior to compilation. If the libraries are installed in the standard library location on your machine, CMake should be able to find the libraries without specifying the path. However, if CMake struggles to find the NetCDF libraries, there are two ways to set the path to these libraries.
+
+1. Create an environment variable called ```NETCDF_FORTRAN_HOME``` that contains the path to the location where the libraries are installed
+2.  Set the path at the time of compilation using ```-CMAKE_PREFIX_PATH=/path/to/netcdf/```
+
+CMake allows the user to specify a set of compiler flags to use during compilation. We define three sets of compiler flags: release, testing, and debug. To view and/or edit the flags included in each set, see ```swiftest/cmake/Modules/SetFortranFlags.cmake```.
+
+As a general rule, the release flags are fully optimized and best used when running Swiftest with the goal of generating results. This is the default set of flags. When making changes to the Swiftest source code, it is best to compile Swiftest using the debug set of flags. To create your own set of compiler flags, edit the testing flags. 
+
+To build Swiftest with the release flags (default), type the following:
+```
+$ cmake ..
+```
+To buid with the debug flags, type:
+```
+$ cmake .. -DCMAKE_BUILD_TYPE=DEBUG
+```
+Finally, to build with the testing flags, type:
+```
+$ cmake .. -DCMAKE_BUILD_TYPE=TESTING
+```
+
+Add ```-CMAKE_PREFIX_PATH=/path/to/netcdf/``` to these commands as needed.
+
+After building Swiftest, make the executable using: 
+
+```
+$ make
+```
+
+The Swiftest executable, called ```swiftest_driver```, should now be created in the ```/swiftest/bin/``` directory.
 
 ---
 
@@ -74,11 +113,15 @@ Swiftest is fully customizable using the ```Makefile.Defines``` file included in
 
 When creating a new Swiftest simulation, ensure that all required input files exist in a unique directory. A symbolic link to the Swiftest driver should also exist in the simulation directory. To create a symbolic link to the Swiftest driver from your current directory, type:
 
-```ln -s ~/PATH/TO/swiftest/bin/swiftest_driver .```
+```
+$ ln -s ~/PATH/TO/swiftest/bin/swiftest_driver .
+```
 
 To run Swiftest, simply type the following command into the terminal:
 
-```./swiftest_driver INTEGRATOR param.in```
+```
+$ ./swiftest_driver INTEGRATOR param.in
+```
 
 Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs```, ```helio```, or ```symba```.
 
@@ -228,7 +271,7 @@ The Dump Files:
 To run Swiftest from a dump file, simply type the following command into the terminal: 
 
 ```
-./swiftest_driver INTEGRATOR DUMP_PARAM
+$ ./swiftest_driver INTEGRATOR DUMP_PARAM
 ```
 
 Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs```, ```helio```, or ```symba```, and ```DUMP_PARAM``` is either **dump_param1.in** or **dump_param2.in**. The option of specifying **dump_param1.in** or **dump_param2.in** is included for backwards compatibility. Swiftest will still automatically check which dump file has progressed further and select that dump file, regardless of your choice of dump parameter file. If you would like to force Swiftest to select one dump parameter file over the other, simply delete the set of dump files that you do not want. 
@@ -251,7 +294,7 @@ To calculate the frame number that correlates to a particular time in a simulati
 
 To activate the Fraggle algorithm, set ```FRAGMENTATION``` in the **<span>param.in</span>** to ```YES```. When resolving a close encounter that results in a collision, Fraggle determines the regime of the collision as well as the mass, number, position, velocity, and rotation of all resulting bodies. This is distinct from Swiftest SyMBA's predecessor, Swifter SyMBA, which assumes that all collisions result in perfect mergers. 
 
-Fraggle distinguishes the following collisional regimes: (1) perfect merging, which includes the cratering, partial accretion, and graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption, which includes the partial erosion regime of Leinhardt & Stewart 2012, (3) super-catastrophic disruption, and (4) hit-and-run events which can be either ‘pure’ or ‘disruptive’. For more details on the collisional regimes used in Fraggle, please see our <span style="color:red">[manuscript in preparation]</span>. 
+Fraggle distinguishes the following collisional regimes: (1) perfect merging, which includes the cratering, partial accretion, and graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption, which includes the partial erosion regime of Leinhardt & Stewart 2012, (3) super-catastrophic disruption, and (4) hit-and-run events which can be either ‘pure’ or ‘disruptive’. For more details on the collisional regimes used in Fraggle, please see Wishard et al. 2023 (in preparation). 
 
 For every collision throughout the course of a simulation, Fraggle writes all details of the collision to the **fraggle.log** output file. An example of a collision, stored in the **fraggle.log** output file, is as follows:
 
@@ -395,7 +438,7 @@ In this test case, we track the orbit of Mercury for 1000 years as it orbits aro
 
 In Swifter SyMBA, gravitational interactions between bodies are calculated on a pair-by-pair basis by solving an upper triangular matrix. In practice, this is done through a double loop. While effective, solving a triangular matrix is computationally costly and it is considered best practice to avoid nested loops wherever possible. Swiftest SyMBA offers an alternative to this method, allowing the user to choose between calculating the gravitational interactions between bodies through a traditional triangular matrix or through a flattened Euclidean distance matrix.
 
-A Euclidean distance matrix is a two-dimensional array that stores the distance between each pairing of points in a set of elements. At the start of a new timestep, Swiftest calculates the gravitational influence between each unique pairing of bodies. This is necessary to properly adjust the position and velocity of all bodies in the system during the step. <span style="color:red">[Insert details about flattening the Euclidean distance matrix here. See Angeletti, Bonny, & Koko (2019) for more details.]</span>
+A Euclidean distance matrix is a two-dimensional array that stores the distance between each pairing of points in a set of elements. For more details on the algorithm implemented in Swiftest to flatten the Euclidean distance matrix, please see [Angeletti, Bonny, & Koko 2019](https://hal.archives-ouvertes.fr/hal-02047514).
 
 Along with allowing the user to choose whether the gravitational interactions are calculated through an upper triangular matrix or a flattened Euclidean distance matrix, Swiftest SyMBA allows the user to let the program determine the speedier solution. Through adaptive interaction calculations, Swiftest SyMBA periodically tracks the time it takes to complete an interaction calculation using both the triangular and flat methods. Whichever method proves to be quicker is implemented until the next time both methods are tested. Swiftest SyMBA periodically checks the performance of each method, possibly switching between the two methods multiple times over the course of a simulation. By selecting adaptive interaction calculations, the user allows Swiftest SyMBA to optimize its own performance and adapt to changes in the number of particle pairings as the simulation progresses.
 
@@ -447,21 +490,21 @@ Included with Swiftest, in the ```/swiftest/python/swiftest/``` directory, is a 
 To begin, Swiftest can be added to an existing conda environment, or a new conda environment may be created, so long as the required pacakges are installed. To create and activate a new conda environment with the prerequisite packages, open a terminal and navigate to the ```/swiftest/python/swiftest/``` directory. Type the following:
 
 ```
-conda create --name EnvName pip scipy numpy matplotlib pandas xarray jupyter astropy -y
-conda activate EnvName
+$ conda create --name EnvName pip scipy numpy matplotlib pandas xarray jupyter astropy -y
+$ conda activate EnvName
 ```
 
 Next, we will install further required pacakges. Using the ```-e``` flag imports all packages in ```/swiftest/python/swiftest/requirements.txt```, including Swiftest. If the Swiftest Python package is updated in the future, using the ```-e``` flag should ensure that the user does not have to reinstall the pacakge to use the updated verison.
 
 ```
-pip install pySLALIB
-pip install -e . 
+$ pip install pySLALIB
+$ pip install -e . 
 ```
 
 The Swiftest Python package should now be installed in the conda environment and is ready to use. If you would like to take the further step to add Swiftest to a Jupyter Notebook kernel, type the following:
 
 ```
-ipython kernel install --user --name EnvName --display-name "Swiftest Kernel" 
+$ ipython kernel install --user --name EnvName --display-name "Swiftest Kernel" 
 ```
 
 Now that Swiftest has been added to your Python environment, generating an initial conditions file is relatively straightforward. To begin, simply create a new Python script in the simulation directory. The initial conditions script must contain all information for the **<span>param.in</span>** and all initial condition information for the bodies added to the simulation. All of this information can be changed later by directly editing the input files. 
@@ -509,6 +552,7 @@ All Swiftest data is now stored in the Xarray dataset ```ds``` and is easily pro
 |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
 | ```npl```              | Number of massive bodies                                                                                                                                   | time                    | 
 | ```ntp```              | Number of test particles                                                                                                                                   | time                    | 
+| ```nplm```              | Number of massive bodies above the ```GMTINY``` cutoff value                                                                                                                                   | time                    | 
 | ```name```             | Name of particle                                                                                                                                           | id                      | 
 | ```particle_type```    | Particle type (Central Body, Massive Body, or Test Particle)                                                                                               | id                      | 
 | ```status```           | Particle status (Active, collisional regime, discard fate etc.)                                                                                            | id                      |
@@ -543,7 +587,7 @@ All Swiftest data is now stored in the Xarray dataset ```ds``` and is easily pro
 | ```discard_vhx```      | Heliocentric x-coordinate of discard velocity in distance units                                                                                            | id                      | 
 | ```discard_vhy```      | Heliocentric y-coordinate of discard velocity in distance units                                                                                            | id                      |
 | ```discard_vhz```      | Heliocentric z-coordinate of discard velocity in distance units                                                                                            | id                      |
-| ```discard_body_id```  | <span style="color:red">[id of the other body involved in the discard, 0 if no other body involved]</span>                                                 | id                      | 
+| ```discard_body_id```  | ID of the other body involved in the discard, 0 if no other body involved                                                | id                      | 
 | ```Ip1```              | Principal moment of inertia axis 1, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
 | ```Ip2```              | Principal moment of inertia axis 2, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
 | ```Ip3```              | Principal moment of inertia axis 3, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
@@ -565,8 +609,8 @@ All Swiftest data is now stored in the Xarray dataset ```ds``` and is easily pro
 | ```Ecollisions```      | Energy lost due to collisions                                                                                                                              | time                    | 
 | ```Euntracked```       | Energy of bodies that were discarded from the system due to being too far from the central body, untracked potential energy due to merging bodies          | time                    | 
 | ```GMescape```         | G * mass of particles that were discarded from the system due to being too far from the central body                                                       | time                    |
-| ```j2rp2```            | <span style="color:red">[either the J2 / R^2 or the J2 * R^2 term of the central body]</span>                                                              | time                    |
-| ```j4rp4```            | <span style="color:red">[either the J4 / R^2 or the J4 * R^2 term of the central body]</span>                                                              | time                    | 
+| ```j2rp2```            | The J2 / R^2 term of the central body                                                              | time                    |
+| ```j4rp4```            | The J4 / R^2 term of the central body                                                              | time                    | 
 
 **Object-Oriented Programming**
 
@@ -594,12 +638,12 @@ To generate the initial conditions, run the Python script titled **initial_condi
 **Fragmentation**
 
 This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Fragmentation``` directory. It is intended to be run using the SyMBA integrator. It contains three pre-built collisional test cases:
-<span style="color:red">[Having some issues replicating these]</span>
-- Disruptive Collision
-- Supercatastrophic Disruptive Collision
-- Disruptive Hit and Run Collision
 
-For more details on the collisional regimes used in Fraggle, please see our <span style="color:red">[manuscript in preparation]</span>. 
+- A Head-On Disruptive Collision
+- An Off-Axis Supercatastrophic Disruptive Collision
+- A Disruptive Hit and Run Collision
+
+For more details on the collisional regimes used in Fraggle, please see Wishard et al. 2023 (in preparation). 
 
 **Comparison with Swifter SyMBA**
 
@@ -629,7 +673,7 @@ Similar to your output cadence, your dump cadence is also dependent on your simu
 
 **What mass threshold should I set to differentiate fully-interactive and semi-interactive bodies (**```GMTINY```**)?**
 
-Semi-interacting bodies are useful because the integrator is not required to calculate interactions between pairs of semi-interacting particles, speeding up the run. This is especially useful for systems that require hundreds of massive bodies. If your system only has a few tens of massive bodies, semi-interacting bodies may not be necessary. If you would like to differentiate between these two classes of bodies, simply set the mass threshold to be some value between the mass of the smallest fully-interacting body and the mass of the largest semi-interacting body that you choose. Semi-interacting bodies can collide with each other and grow to become fully interacting bodies once they pass the mass threshold.
+Semi-interacting bodies are useful because the integrator is not required to calculate gravitational interactions between pairs of semi-interacting particles. This can result in significant performance improvements, especially for systems that require hundreds or thousands of massive bodies. If your system only has a few tens of massive bodies, semi-interacting bodies may not be necessary. If you would like to differentiate between these two classes of bodies, simply set the mass threshold to be some value between the mass of the smallest fully-interacting body and the mass of the largest semi-interacting body that you choose. Semi-interacting bodies can collide with each other and grow to become fully interacting bodies once they pass the mass threshold.
 
 **What should minimum fragment mass should I use (**```MIN_GMFRAG```**)?**
 
@@ -637,9 +681,9 @@ This mass threshold is necessary to ensure that Swiftest SyMBA does not generate
 
 **What are the limits of Swiftest SyMBA?**
 
-While Swifest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. While Swiftest SyMBA is capable of modeling systems containing thousands of massive bodies, the code does slow down significantly. For this reason, Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few thousand to a few hundred million years. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. To get a sense of the performance capabilities of Swiftest SyMBA, see **Figure 3**. 
+While Swifest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. While Swiftest SyMBA is capable of modeling systems containing thousands of massive bodies, the code does slow down significantly. For this reason, Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few hundred million years or less. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. An overview of the performance capabilities of Swiftest SyMBA is included in **Figure 3**. 
 
-To get a sense of the scope of your desired simulation, it is recommended that you run your initial conditions and parameters for a just few steps. Make sure that you set ```ISTEP_OUT``` and ```ISTEP_DUMP``` to output only once the simulation is complete, not between steps. Because writing to the output files takes a significant amount of computational time compared to integrating the step, we want to avoid counting writing time in our diagnostic information. The terminal output contains information about the total wall time and the wall time per integration step. To get a sense of how long your run will take to complete your desired ```tmax```, simply scale up the wall time per integration step to the number of steps necessary for ```tmax``` to be reached. Adjust your intitial conditions and parameters accordingly.
+To get a sense of the scope of your desired simulation, it is recommended that you run your initial conditions and parameters for a just few steps. Make sure that you set ```ISTEP_OUT``` and ```ISTEP_DUMP``` to output only once the simulation is complete, not between steps. Because writing to the output files takes a significant amount of computational time compared to integrating the step, we want to avoid counting writing time in our diagnostic information. The terminal output contains information about the total wall time and the wall time per integration step. To get a sense of how long your run will take to complete your desired ```tmax```, simply scale up the wall time per integration step to the number of steps necessary for ```tmax``` to be reached. Remember that writing to the output files will take a considerable amount of time. Adjust your intitial conditions and parameters accordingly.
 
 |![Swiftest SyMBA Performance](performance.png "Swiftest SyMBA Performance")|
 |:--:|
@@ -655,12 +699,14 @@ To get a sense of the scope of your desired simulation, it is recommended that y
 - Leinhardt, Z. M. and Stewart, S. T. (2012). Collisions between Gravity-dominated Bodies. I. Outcome Regimes and Scaling Laws. **The Astrophysical Journal**, 745, 79. [doi:10.1088/0004-637X/745/1/79](https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79)
 - Levison, H. F. and Duncan, M. J. (1994). The Long-Term Behavior of Short-Period Comets. **Icarus**, 108, 18. [doi: 10.1006/icar.1994.1039](https://www.sciencedirect.com/science/article/pii/S0019103584710396?via%3Dihub)
 - Wisdom, J. and Holman, M. (1991). Symplectic maps for the N-body problem. **The Astronomical Journal**, 102. [doi: 0.1086/115978](https://ui.adsabs.harvard.edu/abs/1991AJ....102.1528W/abstract)
+- Wishard et al. (2023) - In preparation
 
 ---
 
 #### Licensing Agreement
 
-If you use Swiftest in a scientific work that leads to a publication in a peer reviewed journal or a presentation at a scientific conference, please cite the following two articles:
+Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-- <span style="color:red">[Wishard et al 2022 (The Technical Paper)]</span>
-- <span style="color:red">[Wishard et al 2022 (The User Manual)]</span>
+Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with Swiftest. If not, see <https://www.gnu.org/licenses/>. 
