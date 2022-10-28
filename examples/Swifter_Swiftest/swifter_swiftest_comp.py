@@ -1,15 +1,41 @@
-import swiftest
-import numpy as np
-import matplotlib.pyplot as plt
-import xarray as xr
+"""
+ Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+ This file is part of Swiftest.
+ Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+ as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ You should have received a copy of the GNU General Public License along with Swiftest. 
+ If not, see: https://www.gnu.org/licenses. 
+"""
+#!/usr/bin/env python3
 """
 Reads and processes a Swiftest output file and a Swifter output file.
+
+Inputs
+_______
+param.swifter.in : ASCII text file
+    Swifter parameter input file.
+
+param.swiftest.in : ASCII text file
+    Swiftest parameter input file.
+
+bin.dat : Binary file.
+    Swifter output file.
+
+out.nc : NetCDF file
+    Swiftest output file.
 
 Returns
 -------
 swifter_swiftest_comp.eps : Encapsulated PostScript file.
     A figure containing the number of massive bodies and test particles for a Swifter and Swiftest run over time.
 """
+
+import swiftest
+import numpy as np
+import matplotlib.pyplot as plt
+import xarray as xr
 
 # Pull in the Swifter Data
 swifter_sim = swiftest.Simulation(param_file="param.swifter.in", codename="Swifter").ds
