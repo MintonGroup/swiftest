@@ -54,7 +54,7 @@ collresolve/config.h
 !docs/*
 !docs/*/*
 !docs/*/*/*
-
+!README_figs/*
 
 python/swiftest/tests/convert_code_type/swift2swifter/pl.swift2swifter.in
 
