@@ -534,14 +534,14 @@ module swiftest_classes
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       end subroutine discard_tp
 
-      module pure subroutine drift_all(mu, x, v, n, param, dt, mask, iflag)
+      module subroutine drift_all(mu, x, v, n, param, dt, lmask, iflag)
          implicit none
          real(DP), dimension(:),     intent(in)    :: mu    !! Vector of gravitational constants
          real(DP), dimension(:,:),   intent(inout) :: x, v  !! Position and velocity vectors
          integer(I4B),               intent(in)    :: n     !! number of bodies
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
          real(DP),                   intent(in)    :: dt    !! Stepsize
-         logical, dimension(:),      intent(in)    :: mask  !! Logical mask of size self%nbody that determines which bodies to drift.
+         logical, dimension(:),      intent(in)    :: lmask !! Logical mask of size self%nbody that determines which bodies to drift.
          integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
       end subroutine drift_all
 
@@ -560,6 +560,23 @@ module swiftest_classes
          real(DP),     intent(in)       :: dt    !! Step size
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
+
+      module pure subroutine util_index_eucl_ij_to_k(n, i, j, k)
+         !$omp declare simd(util_index_eucl_ij_to_k)
+         implicit none
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I4B), intent(in)  :: i !! Index of the ith body
+         integer(I4B), intent(in)  :: j !! Index of the jth body
+         integer(I8B), intent(out) :: k !! Index of the flattened matrix
+      end subroutine util_index_eucl_ij_to_k
+
+      module pure subroutine util_index_eucl_k_to_ij(n, k, i, j)
+         implicit none
+         integer(I4B), intent(in)  :: n !! Number of bodies
+         integer(I8B), intent(in)  :: k !! Index of the flattened matrix
+         integer(I4B), intent(out) :: i !! Index of the ith body
+         integer(I4B), intent(out) :: j !! Index of the jth body
+      end subroutine util_index_eucl_k_to_ij
 
       module subroutine util_index_eucl_plpl(self, param)
          implicit none
@@ -581,7 +598,7 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine gr_kick_getaccb_ns_body
 
-      module subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
+      module pure subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
          implicit none
          real(DP), dimension(:),     intent(in)  :: mu     !! Gravitational constant
          real(DP), dimension(:,:),   intent(in)  :: x      !! Position vectors
@@ -823,6 +840,19 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
       end subroutine io_write_hdr_system
 
+      module subroutine kick_getacch_int_pl(self)
+         implicit none
+         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
+      end subroutine kick_getacch_int_pl
+
+      module subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
+         implicit none
+         class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle
+         real(DP), dimension(:),   intent(in)    :: GMpl !! Massive body masses
+         real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
+         integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
+      end subroutine kick_getacch_int_tp
+
       module subroutine kick_getacch_int_all_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
          implicit none
          integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
@@ -834,7 +864,19 @@ module swiftest_classes
          real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
       end subroutine kick_getacch_int_all_pl
 
+      module subroutine kick_getacch_int_all_tp(ntp, npl, xtp, xpl, GMpl, lmask, acc)
+         implicit none
+         integer(I4B),                 intent(in)    :: ntp    !! Number of test particles
+         integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
+         real(DP),     dimension(:,:), intent(in)    :: xtp    !! Test particle position vector array
+         real(DP),     dimension(:,:), intent(in)    :: xpl    !! Massive body particle position vector array
+         real(DP),     dimension(:),   intent(in)    :: GMpl   !! Array of massive body G*mass
+         logical,      dimension(:),   intent(in)    :: lmask  !! Logical mask indicating which test particles should be computed
+         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+      end subroutine kick_getacch_int_all_tp
+
       module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+         !$omp declare simd(kick_getacch_int_one_pl)
          implicit none
          real(DP), intent(in)  :: rji2            !! Square of distance between the two bodies
          real(DP), intent(in)  :: xr, yr, zr      !! Distances between the two bodies in x, y, and z directions
@@ -845,25 +887,13 @@ module swiftest_classes
       end subroutine kick_getacch_int_one_pl
 
       module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, Gmpl, ax, ay, az)
+         !$omp declare simd(kick_getacch_int_one_tp)
          implicit none
          real(DP), intent(in)  :: rji2         !! Square of distance between the test particle and massive body
          real(DP), intent(in)  :: xr, yr, zr   !! Distances between the two bodies in x, y, and z directions
          real(DP), intent(in)  :: Gmpl         !! G*mass of massive body
          real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
       end subroutine kick_getacch_int_one_tp
-
-      module subroutine kick_getacch_int_pl(self)
-         implicit none
-         class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      end subroutine kick_getacch_int_pl
-
-      module pure subroutine kick_getacch_int_tp(self, GMpl, xhp, npl)
-         implicit none
-         class(swiftest_tp),       intent(inout) :: self !! Swiftest test particle
-         real(DP), dimension(:),   intent(in)    :: GMpl !! Massive body masses
-         real(DP), dimension(:,:), intent(in)    :: xhp  !! Massive body position vectors
-         integer(I4B),             intent(in)    :: npl  !! Number of active massive bodies
-      end subroutine kick_getacch_int_tp
 
       module subroutine netcdf_close(self, param)
          implicit none

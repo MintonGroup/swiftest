@@ -2,7 +2,7 @@ submodule(whm_classes) s_whm_gr
    use swiftest
 contains
 
-   module subroutine whm_gr_kick_getacch_pl(self, param) 
+   module pure subroutine whm_gr_kick_getacch_pl(self, param) 
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
@@ -35,7 +35,7 @@ contains
    end subroutine whm_gr_kick_getacch_pl
 
 
-   module subroutine whm_gr_kick_getacch_tp(self, param)
+   module pure subroutine whm_gr_kick_getacch_tp(self, param)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of test particles
@@ -85,6 +85,7 @@ contains
  
      return
    end subroutine whm_gr_p4_pl
+
 
    module pure subroutine whm_gr_p4_tp(self, param, dt)
       !! author: David A. Minton

@@ -2,7 +2,7 @@ submodule(helio_classes) s_helio_gr
    use swiftest
 contains
 
-   module subroutine helio_gr_kick_getacch_pl(self, param) 
+   module pure subroutine helio_gr_kick_getacch_pl(self, param) 
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
@@ -30,7 +30,7 @@ contains
    end subroutine helio_gr_kick_getacch_pl
 
 
-   module subroutine helio_gr_kick_getacch_tp(self, param)
+   module pure subroutine helio_gr_kick_getacch_tp(self, param)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of test particles

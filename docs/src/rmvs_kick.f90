@@ -3,7 +3,6 @@ submodule(rmvs_classes) s_rmvs_kick
 contains  
 
    module subroutine rmvs_kick_getacch_tp(self, system, param, t, lbeg)
-
       !! author: David A. Minton
       !!
       !! Compute the oblateness acceleration in the inner encounter region with planets 
