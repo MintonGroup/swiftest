@@ -92,21 +92,21 @@ contains
             end do
 
             call frag%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
-            call frag%set_budgets(colliders)
+            call frag%set_budgets()
 
-            call fraggle_generate_spins(frag, colliders, f_spin, lfailure)
+            call fraggle_generate_spins(frag, f_spin, lfailure)
             if (lfailure) then
                call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find spins")
                cycle
             end if
 
-            call fraggle_generate_tan_vel(frag, colliders, lfailure)
+            call fraggle_generate_tan_vel(frag, lfailure)
             if (lfailure) then
                call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find tangential velocities")
                cycle
             end if
 
-            call fraggle_generate_rad_vel(frag, colliders, lfailure)
+            call fraggle_generate_rad_vel(frag, lfailure)
             if (lfailure) then
                call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find radial velocities")
                cycle
@@ -226,7 +226,7 @@ contains
    end subroutine fraggle_generate_pos_vec
 
 
-   subroutine fraggle_generate_spins(frag, colliders, f_spin, lfailure)
+   subroutine fraggle_generate_spins(frag, f_spin, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Calculates the spins of a collection of fragments such that they conserve angular momentum without blowing the fragment kinetic energy budget.
@@ -235,7 +235,6 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: frag      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(in)    :: colliders !! Fraggle collider system object
       real(DP),                 intent(in)    :: f_spin    !! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
@@ -287,7 +286,7 @@ contains
    end subroutine fraggle_generate_spins
 
 
-   subroutine fraggle_generate_tan_vel(frag, colliders, lfailure)
+   subroutine fraggle_generate_tan_vel(frag, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Adjusts the tangential velocities and spins of a collection of fragments such that they conserve angular momentum without blowing the fragment kinetic energy budget.
@@ -303,7 +302,6 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: frag      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(in)    :: colliders !! Fraggle collider system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds
       ! Internals
       integer(I4B) :: i
@@ -311,10 +309,9 @@ contains
       real(DP), parameter                  :: TOL_INIT = 1e-14_DP
       real(DP), parameter                  :: VNOISE_MAG = 1e-3_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter              :: MAXLOOP = 10
-      real(DP)                             :: tol, ke_remainder
+      real(DP)                             :: tol
       real(DP), dimension(:), allocatable  :: v_t_initial
       real(DP), dimension(frag%nbody)      :: kefrag, vnoise
-      type(lambda_obj)                     :: spinfunc
       type(lambda_obj_err)                 :: objective_function
       real(DP), dimension(NDIM)            :: Li, L_remainder, L_frag_tot
       character(len=STRMAX)                :: message
@@ -473,7 +470,7 @@ contains
    end subroutine fraggle_generate_tan_vel
 
 
-   subroutine fraggle_generate_rad_vel(frag, colliders, lfailure)
+   subroutine fraggle_generate_rad_vel(frag, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! 
@@ -481,7 +478,6 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: frag      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(in)    :: colliders !! Fraggle collider system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
       real(DP), parameter                   :: TOL_MIN = FRAGGLE_ETOL   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
@@ -489,9 +485,8 @@ contains
       real(DP), parameter                   :: VNOISE_MAG = 1e-10_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter               :: MAXLOOP = 100
       real(DP)                              :: ke_radial, tol 
-      integer(I4B)                          :: i, j
+      integer(I4B)                          :: i
       real(DP), dimension(:), allocatable   :: v_r_initial
-      real(DP), dimension(:,:), allocatable :: v_r
       real(DP), dimension(frag%nbody)       :: vnoise
       type(lambda_obj)                      :: objective_function
       character(len=STRMAX)                 :: message

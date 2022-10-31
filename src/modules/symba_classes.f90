@@ -315,7 +315,7 @@ module symba_classes
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
-      module pure subroutine symba_gr_p4_pl(self, system, param, dt)
+      pure module subroutine symba_gr_p4_pl(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
@@ -324,7 +324,7 @@ module symba_classes
          real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine symba_gr_p4_pl
    
-      module pure subroutine symba_gr_p4_tp(self, system, param, dt)
+      pure module subroutine symba_gr_p4_tp(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(symba_tp),              intent(inout) :: self   !! SyMBA test particle object
@@ -494,7 +494,7 @@ module symba_classes
          integer(I4B),               intent(in)    :: ireci !! Input recursion level
       end subroutine symba_step_set_recur_levels_system
 
-      module recursive subroutine symba_step_recur_system(self, param, t, ireci)
+      recursive module subroutine symba_step_recur_system(self, param, t, ireci)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
@@ -672,7 +672,6 @@ module symba_classes
          implicit none
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
          integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
-         integer(I4B) :: i, j
       end subroutine symba_util_reset_kinship
    end interface
 

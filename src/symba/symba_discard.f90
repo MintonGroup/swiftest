@@ -27,7 +27,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i, j
+      integer(I4B) :: i
       real(DP)     :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
       character(len=STRMAX) :: idstr, timestr, message
    

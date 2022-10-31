@@ -27,11 +27,8 @@ contains
       ! Result
       logical                                 :: lencounter  !! Returns true if there is at least one close encounter
       ! Internals
-      integer(I4B)                            :: i, j
+      integer(I4B)                            :: i
       integer(I8B)                            :: nenc
-      real(DP)                                :: xr, yr, zr, vxr, vyr, vzr
-      real(DP), dimension(system%pl%nbody)    :: rcrit
-      logical                                 :: lflag
       logical, dimension(:),      allocatable :: lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
 
@@ -51,8 +48,8 @@ contains
             lencounter = (nenc > 0_I8B)
             if (lencounter) then
                tp%plencP(index2(1_I8B:nenc)) = index1(1_I8B:nenc)
-               do j = 1, npl
-                  pl%nenc(j) = count(tp%plencP(1:ntp) == j)
+               do i = 1, npl
+                  pl%nenc(i) = count(tp%plencP(1:ntp) == i)
                end do
             end if
          end associate

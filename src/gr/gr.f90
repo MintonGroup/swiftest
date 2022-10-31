@@ -11,7 +11,7 @@ submodule(swiftest_classes) s_gr
    use swiftest
 contains
 
-   module pure subroutine gr_kick_getaccb_ns_body(self, system, param) 
+   pure module subroutine gr_kick_getaccb_ns_body(self, system, param) 
       !! author: David A. Minton
       !!
       !! Add relativistic correction acceleration for non-symplectic integrators.
@@ -54,7 +54,7 @@ contains
    end subroutine gr_kick_getaccb_ns_body
 
 
-   module pure subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
+   pure module subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
@@ -84,7 +84,7 @@ contains
    end subroutine gr_kick_getacch
 
 
-   module pure subroutine gr_p4_pos_kick(param, x, v, dt)
+   pure module subroutine gr_p4_pos_kick(param, x, v, dt)
       !! author: David A. Minton
       !!
       !! Position kick due to p**4 term in the post-Newtonian correction
@@ -113,7 +113,7 @@ contains
    end subroutine gr_p4_pos_kick
 
 
-   module pure subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
+   pure module subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
       !! author: David A. Minton
       !!
       !! Converts the relativistic pseudovelocity back into a veliocentric velocity
@@ -145,7 +145,7 @@ contains
    end subroutine gr_pseudovel2vel
 
 
-   module pure subroutine gr_pv2vh_body(self, param)
+   pure module subroutine gr_pv2vh_body(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from pseudovelocity to heliocentric velocity for swiftest bodies
@@ -170,7 +170,7 @@ contains
    end subroutine gr_pv2vh_body
 
 
-   module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
+   pure module subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
       !! author: David A. Minton
       !!
       !! Converts the heliocentric velocity into a pseudovelocity with relativistic corrections. 
@@ -247,7 +247,7 @@ contains
    end subroutine gr_vel2pseudovel
 
 
-   module pure subroutine gr_vh2pv_body(self, param)
+   pure module subroutine gr_vh2pv_body(self, param)
       !! author: David A. Minton
       !!
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for Swiftest bodies

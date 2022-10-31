@@ -117,21 +117,21 @@ module helio_classes
          logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
       end subroutine helio_drift_linear_tp
 
-      module pure subroutine helio_gr_kick_getacch_pl(self, param) 
+      pure module subroutine helio_gr_kick_getacch_pl(self, param) 
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(helio_pl),            intent(inout) :: self   !! Helio massive body particle data structure
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine helio_gr_kick_getacch_pl
    
-      module pure subroutine helio_gr_kick_getacch_tp(self, param)
+      pure module subroutine helio_gr_kick_getacch_tp(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(helio_tp),            intent(inout) :: self   !! Helio massive body particle data structure
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
       end subroutine helio_gr_kick_getacch_tp
       
-      module pure subroutine helio_gr_p4_pl(self, system, param, dt)
+      pure module subroutine helio_gr_p4_pl(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(helio_pl),              intent(inout) :: self   !! Swiftest particle object
@@ -140,7 +140,7 @@ module helio_classes
          real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine helio_gr_p4_pl
    
-      module pure subroutine helio_gr_p4_tp(self, system, param, dt)
+      pure module subroutine helio_gr_p4_tp(self, system, param, dt)
          use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system
          implicit none
          class(helio_tp),              intent(inout) :: self   !! Swiftest particle object

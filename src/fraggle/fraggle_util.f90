@@ -147,10 +147,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
       logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
       ! Internals
-      integer(I4B) :: i, nplm
       logical, dimension(:), allocatable :: lexclude
-      logical :: lk_plpl
-      logical, save :: ladd_frags
       class(swiftest_nbody_system), allocatable, save :: tmpsys
       class(swiftest_parameters), allocatable, save   :: tmpparam
       integer(I4B)  :: npl_before, npl_after
@@ -223,10 +220,7 @@ contains
       real(DP),                 intent(inout) :: f_spin      !! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt
       real(DP),                 intent(inout) :: r_max_start !! The maximum radial distance that the position calculation starts with. This increases after a failed attempt
       ! Internals
-      integer(I4B) :: i
       real(DP), save :: ke_tot_deficit, r_max_start_old, ke_avg_deficit_old
-      real(DP), dimension(:), allocatable  :: m_frag_new, rad_frag_new
-      real(DP), dimension(:,:), allocatable  :: xb_frag_new, vb_frag_new, Ip_frag_new, rot_frag_new
       real(DP) :: delta_r, delta_r_max, ke_avg_deficit
       real(DP), parameter :: ke_avg_deficit_target = 0.0_DP 
 

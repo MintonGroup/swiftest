@@ -11,7 +11,7 @@ submodule(symba_classes) s_symba_gr
    use swiftest
 contains
 
-   module pure subroutine symba_gr_p4_pl(self, system, param, dt)
+   pure module subroutine symba_gr_p4_pl(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -40,7 +40,7 @@ contains
    end subroutine symba_gr_p4_pl
 
 
-   module pure subroutine symba_gr_p4_tp(self, system, param, dt)
+   pure module subroutine symba_gr_p4_tp(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction
@@ -53,8 +53,6 @@ contains
       class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
-      ! Internals
-      integer(I4B)                              :: i
 
       if (self%nbody == 0) return
 

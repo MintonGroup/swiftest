@@ -150,8 +150,6 @@ contains
       class(swiftest_body),  intent(inout) :: self       !! Swiftest generic body object
       class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      ! internals
-      integer(I4B) :: i
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Fill all the common components
@@ -195,8 +193,6 @@ contains
       class(swiftest_pl),    intent(inout) :: self       !! Swiftest massive body object
       class(swiftest_body),  intent(in)    :: inserts    !! Swiftest body object to be inserted
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      ! Internals
-      integer(I4B) :: i
 
       associate(keeps => self)
 
