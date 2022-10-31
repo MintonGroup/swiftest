@@ -8,6 +8,8 @@
 !*.sh
 !CHANGELOG 
 !README.md
+!paper/paper.md
+!paper/paper.bib
 !README.swifter 
 !*.in
 dump*
