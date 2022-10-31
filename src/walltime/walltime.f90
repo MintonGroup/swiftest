@@ -89,8 +89,6 @@ contains
       ! Arguments
       class(walltimer),           intent(inout) :: self  !! Walltimer object
       ! Internals
-      integer(I8B) :: count_delta
-
 
       self%is_paused = .false.
       self%wall_step = 0.0_DP
@@ -156,7 +154,7 @@ contains
       integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
       class(swiftest_pl),         intent(inout), optional :: pl            !! Swiftest massive body object
       ! Internals
-      character(len=STRMAX) :: tstr, nstr, cstr, mstr
+      character(len=STRMAX) :: nstr, cstr, mstr
       character(len=11) :: lstyle, advancedstyle, standardstyle
       character(len=1) :: schar
       logical :: ladvanced_final
@@ -242,8 +240,6 @@ contains
       class(swiftest_parameters), intent(inout) :: param         !! Current run configuration parameters
       integer(I8B),               intent(in)    :: ninteractions !! Current number of interactions (used to normalize the timed loop and to determine if number of interactions has changed since the last timing
       logical                                   :: ltimeit !! Logical flag indicating whether this loop should be timed or not
-      ! Internals
-      character(len=STRMAX) :: tstring
 
       if (self%is_on) then ! Entering the second stage of the loop timing. Therefore we will swap the interaction style and time this loop
          self%stage = self%stage + 1

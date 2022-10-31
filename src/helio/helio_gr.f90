@@ -11,7 +11,7 @@ submodule(helio_classes) s_helio_gr
    use swiftest
 contains
 
-   module pure subroutine helio_gr_kick_getacch_pl(self, param) 
+   pure module subroutine helio_gr_kick_getacch_pl(self, param) 
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of massive bodies
@@ -22,11 +22,6 @@ contains
       ! Arguments
       class(helio_pl),            intent(inout) :: self   !! Helio massive body particle data structure
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)                                 :: i
-      real(DP), dimension(NDIM)                    :: suma
-      real(DP), dimension(:, :), allocatable       :: aj
-      real(DP)                                     :: beta, rjmag4
       
       if (self%nbody == 0) return
 
@@ -39,7 +34,7 @@ contains
    end subroutine helio_gr_kick_getacch_pl
 
 
-   module pure subroutine helio_gr_kick_getacch_tp(self, param)
+   pure module subroutine helio_gr_kick_getacch_tp(self, param)
       !! author: David A. Minton
       !!
       !! Compute relativisitic accelerations of test particles
@@ -50,9 +45,6 @@ contains
       ! Arguments
       class(helio_tp),            intent(inout) :: self   !! Helio massive body particle data structure
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)                                 :: i
-      real(DP)                                     :: rjmag4, beta
       
       if (self%nbody == 0) return
 
@@ -65,7 +57,7 @@ contains
    end subroutine helio_gr_kick_getacch_tp
    
 
-   module pure subroutine helio_gr_p4_pl(self, system, param, dt)
+   pure module subroutine helio_gr_p4_pl(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -93,7 +85,7 @@ contains
    end subroutine helio_gr_p4_pl
 
 
-   module pure subroutine helio_gr_p4_tp(self, system, param, dt)
+   pure module subroutine helio_gr_p4_tp(self, system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction

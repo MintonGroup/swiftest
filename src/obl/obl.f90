@@ -137,7 +137,7 @@ contains
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          if (.not. any(pl%lmask(1:npl))) return
          do concurrent (i = 1:npl, pl%lmask(i))
-            oblpot_arr(i) = obl_pot_one(npl, cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%xh(3,i), 1.0_DP / norm2(pl%xh(:,i)))
+            oblpot_arr(i) = obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%xh(3,i), 1.0_DP / norm2(pl%xh(:,i)))
          end do
          system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))
       end associate
@@ -146,7 +146,7 @@ contains
    end subroutine obl_pot_system
 
 
-   elemental function obl_pot_one(npl, GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
+   elemental function obl_pot_one(GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
       !! author: David A. Minton
       !!
       !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a single massive body
@@ -158,7 +158,6 @@ contains
       !! Adapted from Hal Levison's Swift routine obl_pot.f 
       implicit none
       ! Arguments
-      integer(I4B), intent(in)  :: npl    !! Number of massive bodies
       real(DP),     intent(in)  :: GMcb   !! G*mass of the central body
       real(DP),     intent(in)  :: GMpl   !! G*mass of the massive body
       real(DP),     intent(in)  :: j2rp2  !! J_2 / R**2 of the central body
@@ -169,8 +168,7 @@ contains
       real(DP)                  :: oblpot !! Gravitational potential
          
       ! Internals
-      integer(I4B)              :: i
-      real(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4, mu
+      real(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4
          
       rinv2 = irh**2
       t0 = GMcb * GMpl * rinv2 * irh

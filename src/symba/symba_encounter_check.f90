@@ -26,14 +26,10 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      integer(I8B) :: k, nplplm, kenc, nenc
+      integer(I8B) :: k, nenc
       integer(I4B) :: i, j, npl, nplm, nplt
-      logical, dimension(:), allocatable :: lencounter, loc_lvdotr, lvdotr
+      logical, dimension(:), allocatable :: lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
-      integer(I4B), dimension(:,:), allocatable :: k_plpl_enc 
-      type(interaction_timer), save :: itimer
-      logical, save :: lfirst = .true.
-      type(walltimer) :: timer 
  
       lany_encounter = .false.
       if (self%nbody == 0) return
@@ -207,11 +203,8 @@ contains
       ! Result
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       ! Internals
-      real(DP)                                  :: r2crit, vdotr, r2, v2, tmin, r2min, term2
-      integer(I4B)                              :: i, j, plind, tpind
+      integer(I4B)                              :: plind, tpind
       integer(I8B)                              :: k, nenc
-      real(DP),     dimension(NDIM)             :: xr, vr
-      real(DP)                                  :: rshell_irec
       logical,      dimension(:),   allocatable :: lvdotr
       integer(I4B), dimension(:),   allocatable :: index1, index2
  

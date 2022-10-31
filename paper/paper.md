@@ -10,18 +10,16 @@ tags:
 authors:
   - name: Carlisle Wishard
     equal-contrib: true 
+    corresponding: true 
     affiliation: 1
   - name: David Minton
     equal-contrib: true 
     affiliation: 1
   - name: Jennifer Pouplin
-    corresponding: true 
     affiliation: 2
   - name: Jake Elliott
-    corresponding: true 
     affiliation: 2
   - name: Dana Singh
-    corresponding: true 
     affiliation: 2
 affiliations:
  - name: Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA
@@ -35,8 +33,6 @@ bibliography: paper.bib
 # Summary
 
 The dynamical evolution of planetary systems is dominated by gravitational interactions between massive bodies. Determining the orbits of massive bodies over long time scales is the first step towards understanding the formation and evolution of planets, moons, asteroids, comets, and more. To model these systems, which often include hundreds or thousands of gravitationally interacting bodies, a numerical tool called an N-body integrator is often employed. 
-
-# Statement of need
 
 `Swiftest` is a software package designed to model gravitationally dominated systems. The main body of the program is written in Modern Fortran, taking advantage of the object-oriented capabilities included with Fortran 2003 and the parallel capabilities included with Fortran 2008 and Fortran 2018. `Swiftest` also includes a Python package that allows the user to quickly generate input and process output from the main integrator. `Swiftest` uses a NetCDF output file format which makes data analysis with the `Swiftest` Python package a streamlined and flexible process for the user. 
 

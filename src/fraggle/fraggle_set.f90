@@ -11,14 +11,13 @@ submodule(fraggle_classes) s_fraggle_set
    use swiftest
 contains
 
-   module subroutine fraggle_set_budgets_fragments(self, colliders)
+   module subroutine fraggle_set_budgets_fragments(self)
       !! author: David A. Minton
       !!
       !! Sets the energy and momentum budgets of the fragments based on the collider values and the before/after values of energy and momentum
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(inout) :: colliders !! Fraggle collider system object
       ! Internals
       real(DP) :: dEtot
       real(DP), dimension(NDIM) :: dL
@@ -171,7 +170,7 @@ contains
       class(fraggle_colliders), intent(inout) :: colliders !! Fraggle collider system object
       ! Internals
       integer(I4B) :: i
-      real(DP), dimension(NDIM) ::  x_cross_v, delta_r, delta_v, Ltot
+      real(DP), dimension(NDIM) ::  delta_r, delta_v, Ltot
       real(DP)   :: r_col_norm, v_col_norm, L_mag
       real(DP), dimension(NDIM, self%nbody) :: L_sigma
 

@@ -264,7 +264,7 @@ contains
    end subroutine kick_getacch_int_all_tp
 
 
-   module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+   pure module subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for a single pair of massive bodies
@@ -295,7 +295,7 @@ contains
    end subroutine kick_getacch_int_one_pl
 
 
-   module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl, ax, ay, az)
+   pure module subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl, ax, ay, az)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of a single test particle massive body pair.

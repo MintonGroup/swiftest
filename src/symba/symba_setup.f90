@@ -21,8 +21,6 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self    !! SyMBA system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      ! Internals
-      integer(I4B) :: i, j
 
       ! Call parent method
       associate(system => self)
@@ -47,8 +45,6 @@ contains
       class(symba_merger),        intent(inout) :: self  !! SyMBA merger list object
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
-      ! Internals
-      integer(I4B) :: i
 
       !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
       call symba_setup_pl(self, n, param) 

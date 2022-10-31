@@ -176,13 +176,11 @@ contains
       ! Internals
       integer(I4B)          :: iadd, isub, j, nsub, nadd
       logical, save :: lfirst = .true. 
-      real(DP), dimension(:,:), allocatable :: vh
       character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
       character(*), parameter :: NAMEFMT   = '(A, 2(1X, I8))'
       character(*), parameter :: VECFMT    = '(3(E23.16, 1X))'
       character(*), parameter :: NPLFMT    = '(I8)'
       character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
-      class(swiftest_body), allocatable :: pltemp
       character(STRMAX) :: errmsg, out_stat
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)

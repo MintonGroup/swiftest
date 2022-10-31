@@ -78,7 +78,7 @@ contains
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: val
       real(DP), dimension(NDIM)                 :: rot0, Ip0, Lnow
-      real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, Ltmp
+      real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig
 
       call param%nciu%open(param)
       call check( nf90_inquire_dimension(param%nciu%ncid, param%nciu%time_dimid, len=itmax), "netcdf_get_old_t_final_system time_dimid" )
@@ -177,12 +177,12 @@ contains
       class(netcdf_parameters),   intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(in)    :: param           !! Current run configuration parameters 
       ! Internals
-      integer(I4B) :: old_mode, nvar, varid, vartype, old_unit
+      integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
       real(SP) :: sfill
       logical :: fileExists
       character(len=STRMAX) :: errmsg
-      integer(I4B) :: storage, ndims, i
+      integer(I4B) :: ndims
 
       dfill = ieee_value(dfill, IEEE_QUIET_NAN)
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
@@ -487,7 +487,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: dim, i, j, tslot, idmax, npl_check, ntp_check, nplm_check, t_max, str_max
+      integer(I4B)                              :: tslot, idmax, npl_check, ntp_check, nplm_check, t_max, str_max
       real(DP), dimension(:), allocatable       :: rtemp
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: validmask, tpmask, plmask
@@ -783,7 +783,7 @@ contains
       logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
       logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       ! Internals
-      integer(I4B)                              :: i, j, tslot, idslot, old_mode, idmax
+      integer(I4B)                              :: i, idmax
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable       :: rtemp_arr
       integer(I4B), dimension(:), allocatable   :: itemp
@@ -1100,7 +1100,7 @@ contains
       class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                              :: i, j, tslot, idslot, old_mode
+      integer(I4B)                              :: i, j, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=NAMELEN)                    :: charstring
 

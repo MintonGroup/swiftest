@@ -411,8 +411,7 @@ contains
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I8B) :: k, npl, nplm
-      integer(I4B) :: i, j, err
+      integer(I8B) :: npl, nplm
 
       associate(pl => self, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
@@ -609,7 +608,7 @@ contains
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, j, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
+      integer(I4B) :: i, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
       logical, dimension(:), allocatable :: lmask, ldump_mask
       class(symba_plplenc), allocatable :: plplenc_old
       logical :: lencounter
@@ -1053,8 +1052,6 @@ contains
       ! Arguments
       class(symba_pl),               intent(inout) :: self !! SyMBA massive body object
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
-      ! Internals
-      integer(I4B) :: i, j
 
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange(pl%lcollision, ind, npl)

@@ -518,7 +518,7 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine drift_body
 
-      module pure elemental subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
+      pure elemental module subroutine drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
          !$omp declare simd(drift_one)
          implicit none
          real(DP),     intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
@@ -527,14 +527,14 @@ module swiftest_classes
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine drift_one
 
-      module pure subroutine gr_kick_getaccb_ns_body(self, system, param)
+      pure module subroutine gr_kick_getaccb_ns_body(self, system, param)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       end subroutine gr_kick_getaccb_ns_body
 
-      module pure subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
+      pure module subroutine gr_kick_getacch(mu, x, lmask, n, inv_c2, agr) 
          implicit none
          real(DP), dimension(:),     intent(in)  :: mu     !! Gravitational constant
          real(DP), dimension(:,:),   intent(in)  :: x      !! Position vectors
@@ -544,7 +544,7 @@ module swiftest_classes
          real(DP), dimension(:,:),   intent(out) :: agr    !! Accelerations
       end subroutine gr_kick_getacch
 
-      module pure subroutine gr_p4_pos_kick(param, x, v, dt)
+      pure module subroutine gr_p4_pos_kick(param, x, v, dt)
          implicit none
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
          real(DP), dimension(:),     intent(inout) :: x     !! Position vector
@@ -552,7 +552,7 @@ module swiftest_classes
          real(DP),                   intent(in)    :: dt    !! Step size
       end subroutine gr_p4_pos_kick
 
-      module pure subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
+      pure module subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
@@ -561,13 +561,13 @@ module swiftest_classes
          real(DP), dimension(:),     intent(out) :: vh    !! Swiftestcentric velocity vector 
       end subroutine gr_pseudovel2vel
 
-      module pure subroutine gr_pv2vh_body(self, param)
+      pure module subroutine gr_pv2vh_body(self, param)
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine gr_pv2vh_body
 
-      module pure subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
+      pure module subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
@@ -576,7 +576,7 @@ module swiftest_classes
          real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       end subroutine gr_vel2pseudovel
 
-      module pure subroutine gr_vh2pv_body(self, param)
+      pure module subroutine gr_vh2pv_body(self, param)
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
@@ -878,7 +878,7 @@ module swiftest_classes
          real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
       end subroutine kick_getacch_int_all_tp
 
-      module pure subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
+      pure module subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
          !$omp declare simd(kick_getacch_int_one_pl)
          implicit none
          real(DP), intent(in)  :: rji2            !! Square of distance between the two bodies
@@ -889,7 +889,7 @@ module swiftest_classes
          real(DP), intent(inout) :: axj, ayj, azj !! Acceleration vector components of body j
       end subroutine kick_getacch_int_one_pl
 
-      module pure subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, Gmpl, ax, ay, az)
+      pure module subroutine kick_getacch_int_one_tp(rji2, xr, yr, zr, Gmpl, ax, ay, az)
          !$omp declare simd(kick_getacch_int_one_tp)
          implicit none
          real(DP), intent(in)  :: rji2         !! Square of distance between the test particle and massive body
@@ -1015,14 +1015,14 @@ module swiftest_classes
          class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body object
       end subroutine orbel_el2xv_vec
 
-      module pure subroutine orbel_scget(angle, sx, cx)
+      pure module subroutine orbel_scget(angle, sx, cx)
          !$omp declare simd(orbel_scget)
          implicit none
          real(DP), intent(in)  :: angle
          real(DP), intent(out) :: sx, cx
       end subroutine orbel_scget
 
-      module pure subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+      pure module subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
          !$omp declare simd(orbel_xv2aeq)
          implicit none
          real(DP), intent(in)  :: mu !! Gravitational constant
@@ -1033,7 +1033,7 @@ module swiftest_classes
          real(DP), intent(out) :: q  !! periapsis
       end subroutine orbel_xv2aeq
 
-      module pure subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+      pure module subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
          !$omp declare simd(orbel_xv2aqt)
          implicit none
          real(DP), intent(in)  :: mu    !! Gravitational constant
@@ -1045,7 +1045,7 @@ module swiftest_classes
          real(DP), intent(out) :: tperi !! time of pericenter passage
       end subroutine orbel_xv2aqt
 
-      module pure subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
+      pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
          implicit none
          real(DP), intent(in)  :: mu    !! Gravitational constant
          real(DP), intent(in)  :: px,py,pz    !! Position vector
@@ -1370,7 +1370,7 @@ module swiftest_classes
    end interface
 
    interface
-      module pure subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
+      pure module subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
          !$omp declare simd(util_flatten_eucl_ij_to_k)
          implicit none
          integer(I4B), intent(in)  :: n !! Number of bodies
@@ -1379,7 +1379,7 @@ module swiftest_classes
          integer(I8B), intent(out) :: k !! Index of the flattened matrix
       end subroutine util_flatten_eucl_ij_to_k
 
-      module pure subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
+      pure module subroutine util_flatten_eucl_k_to_ij(n, k, i, j)
          implicit none
          integer(I4B), intent(in)  :: n !! Number of bodies
          integer(I8B), intent(in)  :: k !! Index of the flattened matrix
@@ -1605,46 +1605,46 @@ module swiftest_classes
    end interface
 
    interface util_sort
-      module pure subroutine util_sort_i4b(arr)
+      pure module subroutine util_sort_i4b(arr)
          implicit none
          integer(I4B), dimension(:), intent(inout) :: arr
       end subroutine util_sort_i4b
 
-      module pure subroutine util_sort_index_i4b(arr,ind)
+      pure module subroutine util_sort_index_i4b(arr,ind)
          implicit none
          integer(I4B), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_i4b
 
-      module pure subroutine util_sort_index_I4B_I8Bind(arr,ind)
+      pure module subroutine util_sort_index_I4B_I8Bind(arr,ind)
          implicit none
          integer(I4B), dimension(:), intent(in)  :: arr
          integer(I8B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_I4b_I8Bind
 
-      module pure subroutine util_sort_index_I8B_I8Bind(arr,ind)
+      pure module subroutine util_sort_index_I8B_I8Bind(arr,ind)
          implicit none
          integer(I8B), dimension(:), intent(in)  :: arr
          integer(I8B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_I8B_I8Bind
 
-      module pure subroutine util_sort_sp(arr)
+      pure module subroutine util_sort_sp(arr)
          implicit none
          real(SP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_sp
 
-      module pure subroutine util_sort_index_sp(arr,ind)
+      pure module subroutine util_sort_index_sp(arr,ind)
          implicit none
          real(SP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine util_sort_index_sp
 
-      module pure subroutine util_sort_dp(arr)
+      pure module subroutine util_sort_dp(arr)
          implicit none
          real(DP), dimension(:), intent(inout) :: arr
       end subroutine util_sort_dp
 
-      module pure subroutine util_sort_index_dp(arr,ind)
+      pure module subroutine util_sort_index_dp(arr,ind)
          implicit none
          real(DP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
@@ -1652,35 +1652,35 @@ module swiftest_classes
    end interface util_sort
 
    interface util_sort_rearrange
-      module pure subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
+      pure module subroutine util_sort_rearrange_arr_char_string(arr, ind, n)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_char_string
 
-      module pure subroutine util_sort_rearrange_arr_DP(arr, ind, n)
+      pure module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
          implicit none
          real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DP
 
-      module pure subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
+      pure module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
          implicit none
          real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DPvec
 
-      module pure subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
+      pure module subroutine util_sort_rearrange_arr_I4B(arr, ind, n)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_I4B
 
-      module pure subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
+      pure module subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
@@ -1694,14 +1694,14 @@ module swiftest_classes
          integer(I4B),                                   intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_info
 
-      module pure subroutine util_sort_rearrange_arr_logical(arr, ind, n)
+      pure module subroutine util_sort_rearrange_arr_logical(arr, ind, n)
          implicit none
          logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_logical
 
-      module pure subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
+      pure module subroutine util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
          implicit none
          logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
