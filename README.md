@@ -703,6 +703,19 @@ To get a sense of the scope of your desired simulation, it is recommended that y
 
 ---
 
+#### Community Guidelines
+
+**Contributing to Swiftest**
+Swiftest is open source and can be freely accessed through our [GitHub page](https://github.itap.purdue.edu/MintonGroup/swiftest). If you wish to make a change and have that change incorporated into the published version of Swiftest, please issue a pull request. If you wish to edit Swiftest for your own personal use, no pull request is necessary.
+
+**Reporting an Issue**
+If you stumble upon a bug or issue with the functionality of Swiftest, we want to hear about it! If you have a fix for this bug, please issue a pull request. If you do not have a fix for the bug and would like to report it, please contact the Purdue Swiftest Team via email (cwishard@purdue.edu).
+
+**User Support**
+For help using Swiftest, please contact the Purdue Swiftest Team via email (cwishard@purdue.edu).
+
+---
+
 #### Licensing Agreement
 
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
