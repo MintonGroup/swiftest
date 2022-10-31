@@ -10,18 +10,16 @@ tags:
 authors:
   - name: Carlisle Wishard
     equal-contrib: true 
+    corresponding: true 
     affiliation: 1
   - name: David Minton
     equal-contrib: true 
     affiliation: 1
   - name: Jennifer Pouplin
-    corresponding: true 
     affiliation: 2
   - name: Jake Elliott
-    corresponding: true 
     affiliation: 2
   - name: Dana Singh
-    corresponding: true 
     affiliation: 2
 affiliations:
  - name: Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA
