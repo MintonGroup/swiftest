@@ -1,3 +1,14 @@
+"""
+ Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+ This file is part of Swiftest.
+ Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+ as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ You should have received a copy of the GNU General Public License along with Swiftest. 
+ If not, see: https://www.gnu.org/licenses. 
+"""
+
 import swiftest
 import numpy as np
 from astroquery.jplhorizons import Horizons
@@ -22,7 +33,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
 
     Returns
     -------
-    xarray dataset
+    ds : xarray dataset
     """
     # Planet ids
     planetid = {
@@ -40,6 +51,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     
     if plname in planetid:
         ispl = True
+        idval = planetid[plname]
     else:
         ispl = False
         print(f"\nMassive body {plname} not found or not yet supported")
@@ -117,144 +129,181 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     solarrot = planetrot['Sun'] * param['TU2S']
     rotcb = solarpole.cartesian * solarrot
     Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
-    
-    cbid = np.array([0])
-    cvec = np.vstack([GMcb, Rcb, J2RP2, J4RP4])
-    if param['ROTATION'] == 'YES':
-        cvec = np.vstack([cvec, Ipsun[0], Ipsun[1], Ipsun[2], rotcb.x, rotcb.y, rotcb.z])
-    
-    # Horizons date time internal variables
-    tstart = datetime.date.fromisoformat(ephemerides_start_date)
-    tstep = datetime.timedelta(days=1)
-    tend = tstart + tstep
-    ephemerides_end_date = tend.isoformat()
-    ephemerides_step = '1d'
-   
+
     param_tmp = param
     param_tmp['OUT_FORM'] = 'XVEL'
-    clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
 
-    dims = ['time', 'id', 'vec']
-    t = np.array([0.0])
-
-    key = plname
-    if ispl:
-        val = planetid[key]
-    else:
-        val = -1
-    if key == "Sun" : # Create central body
+    if plname == "Sun" : # Create central body
         print("Creating the Sun as a central body")
-        cbframe = np.expand_dims(cvec.T, axis=0)
-        cbxr = xr.DataArray(cbframe, dims=dims, coords={'time': t, 'id': cbid, 'vec': clab})
-        cbxr = cbxr.assign_coords(name=('id', [key]))
-        cbds = cbxr.to_dataset(dim='vec')
-        ds = xr.combine_by_coords([ds, cbds])
+        v1 = None
+        v2 = None
+        v3 = None
+        v4 = None
+        v5 = None
+        v6 = None
+        rhill = None
+        GMpl = GMcb
+        Rpl = Rcb
+        J2 = J2RP2
+        J4 = J4RP4
+        if param['ROTATION'] == 'YES':
+            Ip1 = [Ipsun[0]]
+            Ip2 = [Ipsun[1]]
+            Ip3 = [Ipsun[2]]
+            rotx = [rotcb.x]
+            roty = [rotcb.y]
+            rotz = [rotcb.z]
+        else:
+            Ip1 = None
+            Ip2 = None
+            Ip3 = None
+            rotx = None
+            roty = None
+            rotz = None
     else: # Fetch solar system ephemerides from Horizons
-        print(f"Fetching ephemerides data for {key} from JPL/Horizons")
+        print(f"Fetching ephemerides data for {plname} from JPL/Horizons")
 
-        p1 = []
-        p2 = []
-        p3 = []
-        p4 = []
-        p5 = []
-        p6 = []
-        p7 = []
-        p8 = []
-        p9 = []
-        p10 = []
-        p11 = []
-        p12 = []
-        rhill = []
-        Rpl = []
-        GMpl = []
-        Ip1 = []
-        Ip2 = []
-        Ip3 = []
-        rotx = []
-        roty = []
-        rotz = []
+        # Horizons date time internal variables
+        tstart = datetime.date.fromisoformat(ephemerides_start_date)
+        tstep = datetime.timedelta(days=1)
+        tend = tstart + tstep
+        ephemerides_end_date = tend.isoformat()
+        ephemerides_step = '1d'
+
+        v1 = []
+        v2 = []
+        v3 = []
+        v4 = []
+        v5 = []
+        v6 = []
+        J2 = None
+        J4 = None
 
         pldata = {}
-        if ispl:
-            pldata[key] = Horizons(id=val, id_type='majorbody', location='@sun',
-                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                           'step': ephemerides_step})
-        else:
-            pldata[key] = Horizons(id=key, id_type='smallbody', location='@sun',
-                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                           'step': ephemerides_step})
+        pldata[plname] = Horizons(id=idval, location='@sun',
+                               epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                       'step': ephemerides_step})
         
-        if (param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL'):
-            p1.append(pldata[key].vectors()['x'][0] * DCONV)
-            p2.append(pldata[key].vectors()['y'][0] * DCONV)
-            p3.append(pldata[key].vectors()['z'][0] * DCONV)
-            p4.append(pldata[key].vectors()['vx'][0] * VCONV)
-            p5.append(pldata[key].vectors()['vy'][0] * VCONV)
-            p6.append(pldata[key].vectors()['vz'][0] * VCONV)
-            p7.append(pldata[key].elements()['a'][0] * DCONV)
-            p8.append(pldata[key].elements()['e'][0])
-            p9.append(pldata[key].elements()['incl'][0])
-            p10.append(pldata[key].elements()['Omega'][0])
-            p11.append(pldata[key].elements()['w'][0])
-            p12.append(pldata[key].elements()['M'][0])
-        elif param['OUT_FORM'] == 'EL':
-            p1.append(pldata[key].elements()['a'][0] * DCONV)
-            p2.append(pldata[key].elements()['e'][0])
-            p3.append(pldata[key].elements()['incl'][0])
-            p4.append(pldata[key].elements()['Omega'][0])
-            p5.append(pldata[key].elements()['w'][0])
-            p6.append(pldata[key].elements()['M'][0])
-            p7.append(pldata[key].vectors()['x'][0] * DCONV)
-            p8.append(pldata[key].vectors()['y'][0] * DCONV)
-            p9.append(pldata[key].vectors()['z'][0] * DCONV)
-            p10.append(pldata[key].vectors()['vx'][0] * VCONV)
-            p11.append(pldata[key].vectors()['vy'][0] * VCONV)
-            p12.append(pldata[key].vectors()['vz'][0] * VCONV)
-        pvec = np.vstack([p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12])
+        if param['IN_FORM'] == 'XV':
+            v1.append(pldata[plname].vectors()['x'][0] * DCONV)
+            v2.append(pldata[plname].vectors()['y'][0] * DCONV)
+            v3.append(pldata[plname].vectors()['z'][0] * DCONV)
+            v4.append(pldata[plname].vectors()['vx'][0] * VCONV)
+            v5.append(pldata[plname].vectors()['vy'][0] * VCONV)
+            v6.append(pldata[plname].vectors()['vz'][0] * VCONV)
+        elif param['IN_FORM'] == 'EL':
+            v1.append(pldata[plname].elements()['a'][0] * DCONV)
+            v2.append(pldata[plname].elements()['e'][0])
+            v3.append(pldata[plname].elements()['incl'][0])
+            v4.append(pldata[plname].elements()['Omega'][0])
+            v5.append(pldata[plname].elements()['w'][0])
+            v6.append(pldata[plname].elements()['M'][0])
 
         if ispl:
-            Rpl.append(planetradius[key] * DCONV)
-            GMpl.append(GMcb[0] / MSun_over_Mpl[key])
-            pvec = np.vstack([pvec, GMpl, Rpl])
+            GMpl = []
+            GMpl.append(GMcb[0] / MSun_over_Mpl[plname])
+            if param['CHK_CLOSE'] == 'YES':
+                Rpl = []
+                Rpl.append(planetradius[plname] * DCONV)
+            else:
+                Rpl = None
 
             # Generate planet value vectors
             if (param['RHILL_PRESENT'] == 'YES'):
-                rhill.append(pldata[key].elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[key]) ** (-THIRDLONG))
-                pvec = np.vstack([pvec, rhill])
+                rhill = []
+                rhill.append(pldata[plname].elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[plname]) ** (-THIRDLONG))
+            else:
+                rhill = None
             if (param['ROTATION'] == 'YES'):
-                RA = pldata[key].ephemerides()['NPole_RA'][0]
-                DEC = pldata[key].ephemerides()['NPole_DEC'][0]
+                Ip1 = []
+                Ip2 = []
+                Ip3 = []
+                rotx = []
+                roty = []
+                rotz = []
+                RA = pldata[plname].ephemerides()['NPole_RA'][0]
+                DEC = pldata[plname].ephemerides()['NPole_DEC'][0]
 
                 rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree)
-                rotrate = planetrot[key] * param['TU2S']
+                rotrate = planetrot[plname] * param['TU2S']
                 rot = rotpole.cartesian * rotrate
-                Ip = np.array([0.0, 0.0, planetIpz[key]])
+                Ip = np.array([0.0, 0.0, planetIpz[plname]])
                 Ip1.append(Ip[0])
                 Ip2.append(Ip[1])
                 Ip3.append(Ip[2])
                 rotx.append(rot.x)
                 roty.append(rot.y)
                 rotz.append(rot.z)
-                pvec = np.vstack([pvec, Ip1, Ip2, Ip3, rotx, roty, rotz])
+            else:
+                Ip1 = None
+                Ip2 = None
+                Ip3 = None
+                rotx = None
+                roty = None
+                rotz = None
         else:
-            plab = tlab.copy()
+            GMpl = None
 
-        if idval is None:
-            plid = np.array([planetid[key]], dtype=int)
-        else:
-            plid = np.array([idval], dtype=int)
+    if idval is None:
+        plid = np.array([planetid[plname]], dtype=int)
+    else:
+        plid = np.array([idval], dtype=int)
 
-        # Prepare frames by adding an extra axis for the time coordinate
-        plframe = np.expand_dims(pvec.T, axis=0)
-        plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
-        plxr = plxr.assign_coords(name=('id', [plname]))
-        plds = plxr.to_dataset(dim='vec')
-        ds = xr.combine_by_coords([ds, plds])
+    return plid,[plname],v1,v2,v3,v4,v5,v6,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4
 
-    return ds
+def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, J2=None, J4=None,t=0.0):
+    """
+    Converts and stores the variables of all bodies in an xarray dataset.
 
-def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None, Ip3=None, rotx=None, roty=None, rotz=None, t=0.0):
-    
+    Parameters
+    ----------
+    param : dict
+        Swiftest paramuration parameters.
+    idvals : integer 
+        Array of body index values.
+    namevals :
+
+    v1 : array of floats
+        xh 
+    v2 : array of floats
+        yh
+    v3 : array of floats
+        zh
+    v4 : array of floats
+        vhxh
+    v5 : array of floats
+        vhyh
+    v6 : array of floats
+        vhzh
+    GMpl : array of floats
+        G*mass
+    Rpl : array of floats
+        radius
+    rhill : array of floats
+        Hill Radius
+    Ip1 : array of floats
+        Principal axes moments of inertia
+    Ip2 : array of floats
+        Principal axes moments of inertia
+    Ip3 : array of floats
+        Principal axes moments of inertia
+    rox : array of floats
+        Rotation rate vector
+    roty : array of floats
+        Rotation rate vector
+    rotz : array of floats
+        Rotation rate vector
+    t : array of floats
+        Time at start of simulation
+    Returns
+    -------
+    ds : xarray dataset
+    """
+    if v1 is None: # This is the central body
+        iscb = True
+    else:
+        iscb = False
+
     if param['ROTATION'] == 'YES':
         if Ip1 is None:
             Ip1 = np.full_like(v1, 0.4)
@@ -270,12 +319,13 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
             rotz = np.full_like(v1, 0.0)
     
     dims = ['time', 'id', 'vec']
-    if GMpl is not None:
+    infodims = ['id', 'vec']
+    if not iscb and GMpl is not None:
         ispl = True
     else:
         ispl = False
    
-    if ispl and Rpl is None:
+    if ispl and param['CHK_CLOSE'] == 'YES' and Rpl is None:
         print("Massive bodies need a radius value.")
         return None
     if ispl and rhill is None and param['RHILL_PRESENT'] == 'YES':
@@ -285,22 +335,86 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     # Be sure we use the correct input format
     old_out_form = param['OUT_FORM']
     param['OUT_FORM'] = param['IN_FORM']
-    clab, plab, tlab = swiftest.io.make_swiftest_labels(param)
+    clab, plab, tlab, infolab_float, infolab_int, infolab_str = swiftest.io.make_swiftest_labels(param)
     param['OUT_FORM'] = old_out_form
-    vec = np.vstack([v1, v2, v3, v4, v5, v6])
-    if ispl:
-        vec = np.vstack([vec, GMpl, Rpl])
-        if param['RHILL_PRESENT'] == 'YES':
-            vec = np.vstack([vec, rhill])
+    vec_str = np.vstack([namevals])
+    label_str = ["name"]
+    if iscb:
+        label_float = clab.copy()
+        vec_float = np.vstack([GMpl,Rpl,J2,J4])
         if param['ROTATION'] == 'YES':
-            vec = np.vstack([vec, Ip1, Ip2, Ip3, rotx, roty, rotz])
-    bodyframe = np.expand_dims(vec.T, axis=0)
-    if ispl:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': plab})
+            vec_float = np.vstack([vec_float, Ip1, Ip2, Ip3, rotx, roty, rotz])
+        particle_type = "Central Body"
     else:
-        bodyxr = xr.DataArray(bodyframe, dims=dims, coords={'time': [t], 'id': idvals, 'vec': tlab})
-      
-    bodyxr = bodyxr.assign_coords(name=('id', namevals))
+        vec_float = np.vstack([v1, v2, v3, v4, v5, v6])
+        if ispl:
+            label_float = plab.copy()
+            vec_float = np.vstack([vec_float, GMpl])
+            if param['CHK_CLOSE'] == 'YES':
+                vec_float = np.vstack([vec_float, Rpl])
+            if param['RHILL_PRESENT'] == 'YES':
+                vec_float = np.vstack([vec_float, rhill])
+            if param['ROTATION'] == 'YES':
+                vec_float = np.vstack([vec_float, Ip1, Ip2, Ip3, rotx, roty, rotz])
+            particle_type = np.repeat("Massive Body",idvals.size)
+        else:
+            label_float = tlab.copy()
+            particle_type = np.repeat("Test Particle",idvals.size)
+    origin_type = np.repeat("User Added Body",idvals.size)
+    origin_time = np.full_like(v1,t)
+    collision_id = np.full_like(idvals,0)
+    origin_xhx = v1
+    origin_xhy = v2
+    origin_xhz = v3
+    origin_vhx = v4
+    origin_vhy = v5
+    origin_vhz = v6
+    discard_time = np.full_like(v1,-1.0)
+    status = np.repeat("ACTIVE",idvals.size)
+    discard_xhx = np.zeros_like(v1)
+    discard_xhy = np.zeros_like(v1)
+    discard_xhz = np.zeros_like(v1)
+    discard_vhx = np.zeros_like(v1)
+    discard_vhy = np.zeros_like(v1)
+    discard_vhz = np.zeros_like(v1)
+    discard_body_id = np.full_like(idvals,-1)
+    info_vec_float = np.vstack([
+         origin_time,
+         origin_xhx,
+         origin_xhy,
+         origin_xhz,
+         origin_vhx,
+         origin_vhy,
+         origin_vhz,
+         discard_time,
+         discard_xhx,
+         discard_xhy,
+         discard_xhz,
+         discard_vhx,
+         discard_vhy,
+         discard_vhz])
+    info_vec_int = np.vstack([collision_id, discard_body_id])
+    info_vec_str = np.vstack([particle_type, origin_type, status])
+    frame_float = info_vec_float.T
+    frame_int = info_vec_int.T
+    frame_str = info_vec_str.T
+    if param['IN_TYPE'] == 'NETCDF_FLOAT':
+        ftype=np.float32
+    elif param['IN_TYPE'] == 'NETCDF_DOUBLE':
+        ftype=np.float64
+    da_float = xr.DataArray(frame_float, dims=infodims, coords={'id': idvals, 'vec': infolab_float}).astype(ftype)
+    da_int = xr.DataArray(frame_int, dims=infodims, coords={'id': idvals, 'vec': infolab_int})
+    da_str = xr.DataArray(frame_str, dims=infodims, coords={'id': idvals, 'vec': infolab_str})
+    ds_float = da_float.to_dataset(dim="vec")
+    ds_int = da_int.to_dataset(dim="vec")
+    ds_str = da_str.to_dataset(dim="vec")
+    info_ds = xr.combine_by_coords([ds_float, ds_int, ds_str])
 
-    ds = bodyxr.to_dataset(dim='vec')
+    frame_float = np.expand_dims(vec_float.T, axis=0)
+    frame_str = vec_str.T
+    da_float = xr.DataArray(frame_float, dims=dims, coords={'time': [t], 'id': idvals, 'vec': label_float}).astype(ftype)
+    da_str= xr.DataArray(frame_str, dims=infodims, coords={'id': idvals, 'vec': label_str})
+    ds_float = da_float.to_dataset(dim="vec")
+    ds_str = da_str.to_dataset(dim="vec")
+    ds = xr.combine_by_coords([ds_float, ds_str,info_ds])
     return ds

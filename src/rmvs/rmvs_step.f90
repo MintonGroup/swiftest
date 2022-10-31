@@ -1,3 +1,12 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
 submodule(rmvs_classes) s_rmvs_step
    use swiftest
 contains
@@ -21,45 +30,48 @@ contains
       real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
       integer(I4B) :: i
 
-      if (self%tp%nbody == 0) call whm_step_system(self, param, t, dt)
-
-      select type(cb => self%cb)
-      class is (rmvs_cb)
-         select type(pl => self%pl)
-         class is (rmvs_pl)
-            select type(tp => self%tp)
-            class is (rmvs_tp)
-               associate(system => self, ntp => tp%nbody, npl => pl%nbody)
-                  allocate(xbeg, source=pl%xh)
-                  allocate(vbeg, source=pl%vh)
-                  call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
-                  ! ****** Check for close encounters ***** !
-                  call pl%set_renc(RHSCALE)
-                  lencounter = tp%encounter_check(param, system, dt)
-                  if (lencounter) then
-                     lfirstpl = pl%lfirst
-                     pl%outer(0)%x(:, 1:npl) = xbeg(:, 1:npl)
-                     pl%outer(0)%v(:, 1:npl) = vbeg(:, 1:npl)
-                     call pl%step(system, param, t, dt) 
-                     pl%outer(NTENC)%x(:, 1:npl) = pl%xh(:, 1:npl)
-                     pl%outer(NTENC)%v(:, 1:npl) = pl%vh(:, 1:npl)
-                     call rmvs_interp_out(cb, pl, dt)
-                     call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
-                     tp%lmask(1:ntp) = .not. tp%lmask(1:ntp)
-                     call pl%set_beg_end(xbeg = xbeg, xend = xend)
-                     tp%lfirst = .true.
-                     call tp%step(system, param, t, dt)
-                     tp%lmask(1:ntp) = .true.
-                     pl%lfirst = lfirstpl
-                     tp%lfirst = .true.
-                     if (param%ltides) call system%step_spin(param, t, dt)
-                  else
-                     call whm_step_system(system, param, t, dt)
-                  end if
-               end associate
+      if (self%tp%nbody == 0) then
+         call whm_step_system(self, param, t, dt)
+      else
+         select type(cb => self%cb)
+         class is (rmvs_cb)
+            select type(pl => self%pl)
+            class is (rmvs_pl)
+               select type(tp => self%tp)
+               class is (rmvs_tp)
+                  associate(system => self, ntp => tp%nbody, npl => pl%nbody)
+                     allocate(xbeg, source=pl%xh)
+                     allocate(vbeg, source=pl%vh)
+                     call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
+                     ! ****** Check for close encounters ***** !
+                     call pl%set_renc(RHSCALE)
+                     lencounter = tp%encounter_check(param, system, dt)
+                     if (lencounter) then
+                        lfirstpl = pl%lfirst
+                        pl%outer(0)%x(:, 1:npl) = xbeg(:, 1:npl)
+                        pl%outer(0)%v(:, 1:npl) = vbeg(:, 1:npl)
+                        call pl%step(system, param, t, dt) 
+                        pl%outer(NTENC)%x(:, 1:npl) = pl%xh(:, 1:npl)
+                        pl%outer(NTENC)%v(:, 1:npl) = pl%vh(:, 1:npl)
+                        call rmvs_interp_out(cb, pl, dt)
+                        call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
+                        tp%lmask(1:ntp) = .not. tp%lmask(1:ntp)
+                        call pl%set_beg_end(xbeg = xbeg, xend = xend)
+                        tp%lfirst = .true.
+                        call tp%step(system, param, t, dt)
+                        tp%lmask(1:ntp) = .true.
+                        pl%lfirst = lfirstpl
+                        tp%lfirst = .true.
+                        if (param%ltides) call system%step_spin(param, t, dt)
+                     else
+                        call whm_step_system(system, param, t, dt)
+                     end if
+                  end associate
+               end select
             end select
          end select
-      end select
+      end if
+
       return
    end subroutine rmvs_step_system 
 

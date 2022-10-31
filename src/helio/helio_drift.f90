@@ -1,3 +1,12 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
 submodule (helio_classes) s_helio_drift
    use swiftest
 contains
@@ -77,6 +86,9 @@ contains
 
 
    pure elemental subroutine helio_drift_linear_one(xhx, xhy, xhz, ptx, pty, ptz, dt)
+      !! author: David A. Minton
+      !!
+      !! Calculate the linear drift for a single body
       implicit none
       real(DP), intent(inout) :: xhx, xhy, xhz
       real(DP), intent(in) :: ptx, pty, ptz, dt
@@ -90,6 +102,9 @@ contains
 
 
    subroutine helio_drift_linear_all(xh, pt, dt, n, lmask)
+      !! author: David A. Minton
+      !!
+      !! Loop through all the bodies and calculate the linear drift
       implicit none
       ! Arguments
       real(DP), dimension(:,:), intent(inout) :: xh

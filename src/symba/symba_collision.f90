@@ -1,3 +1,12 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
 submodule (symba_classes) s_symba_collision
    use swiftest
 
@@ -549,16 +558,16 @@ contains
          density(j) = colliders%mass(j) / volume(j)
          colliders%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
          if (param%lrotation) colliders%Ip(:, j) = colliders%Ip(:, j) / colliders%mass(j)
-
-         xcom(:) = (colliders%mass(1) * colliders%xb(:, 1) + colliders%mass(2) * colliders%xb(:, 2)) / sum(colliders%mass(:))
-         vcom(:) = (colliders%mass(1) * colliders%vb(:, 1) + colliders%mass(2) * colliders%vb(:, 2)) / sum(colliders%mass(:))
-         mxc(:, 1) = colliders%mass(1) * (colliders%xb(:, 1) - xcom(:))
-         mxc(:, 2) = colliders%mass(2) * (colliders%xb(:, 2) - xcom(:))
-         vcc(:, 1) = colliders%vb(:, 1) - vcom(:)
-         vcc(:, 2) = colliders%vb(:, 2) - vcom(:)
-         colliders%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
       end do
       lflag = .true.
+
+      xcom(:) = (colliders%mass(1) * colliders%xb(:, 1) + colliders%mass(2) * colliders%xb(:, 2)) / sum(colliders%mass(:))
+      vcom(:) = (colliders%mass(1) * colliders%vb(:, 1) + colliders%mass(2) * colliders%vb(:, 2)) / sum(colliders%mass(:))
+      mxc(:, 1) = colliders%mass(1) * (colliders%xb(:, 1) - xcom(:))
+      mxc(:, 2) = colliders%mass(2) * (colliders%xb(:, 2) - xcom(:))
+      vcc(:, 1) = colliders%vb(:, 1) - vcom(:)
+      vcc(:, 2) = colliders%vb(:, 2) - vcom(:)
+      colliders%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
 
       ! Destroy the kinship relationships for all members of this colliders%idx
       call pl%reset_kinship(colliders%idx(:))

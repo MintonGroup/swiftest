@@ -1,3 +1,12 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
 submodule(fraggle_classes) s_fraggle_set
    use swiftest
 contains
@@ -163,7 +172,7 @@ contains
       ! Internals
       integer(I4B) :: i
       real(DP), dimension(NDIM) ::  x_cross_v, delta_r, delta_v, Ltot
-      real(DP)   :: r_col_norm, v_col_norm
+      real(DP)   :: r_col_norm, v_col_norm, L_mag
       real(DP), dimension(NDIM, self%nbody) :: L_sigma
 
       associate(frag => self, nfrag => self%nbody)
@@ -176,7 +185,12 @@ contains
          ! and the y-axis aligned with the pre-impact distance vector.
          Ltot = colliders%L_orbit(:,1) + colliders%L_orbit(:,2) + colliders%L_spin(:,1) + colliders%L_spin(:,2)
          frag%y_coll_unit(:) = delta_r(:) / r_col_norm 
-         frag%z_coll_unit(:) = Ltot(:) / (.mag. Ltot(:))
+         L_mag = .mag.Ltot(:)
+         if (L_mag > tiny(L_mag)) then
+            frag%z_coll_unit(:) = Ltot(:) / L_mag
+         else
+            frag%z_coll_unit(:) = 0.0_DP
+         end if
          ! The cross product of the y- by z-axis will give us the x-axis
          frag%x_coll_unit(:) = frag%y_coll_unit(:) .cross. frag%z_coll_unit(:)
    
@@ -228,6 +242,7 @@ contains
          colliders%mass(:) = colliders%mass(:) / frag%mscale
          colliders%radius(:) = colliders%radius(:) / frag%dscale
          colliders%L_spin(:,:) = colliders%L_spin(:,:) / frag%Lscale
+         colliders%L_orbit(:,:) = colliders%L_orbit(:,:) / frag%Lscale
 
          do i = 1, 2
             colliders%rot(:,i) = colliders%L_spin(:,i) / (colliders%mass(i) * colliders%radius(i)**2 * colliders%Ip(3, i))

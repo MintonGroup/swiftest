@@ -1,3 +1,12 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
 submodule (symba_classes) s_symba_step
    use swiftest
 contains
@@ -265,8 +274,8 @@ contains
             class is (symba_tp)
                associate(npl => pl%nbody, ntp => tp%nbody)
                   nenc_old = system%plplenc_list%nenc
-                  call system%plplenc_list%setup(0)
-                  call system%plplcollision_list%setup(0)
+                  call system%plplenc_list%setup(0_I8B)
+                  call system%plplcollision_list%setup(0_I8B)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
                      call pl%reset_kinship([(i, i=1, npl)])
@@ -284,7 +293,7 @@ contains
                   end if
             
                   nenc_old = system%pltpenc_list%nenc
-                  call system%pltpenc_list%setup(0)
+                  call system%pltpenc_list%setup(0_I8B)
                   if (ntp > 0) then
                      tp%nplenc(1:ntp) = 0 
                      tp%levelg(1:ntp) = -1

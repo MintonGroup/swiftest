@@ -1,3 +1,12 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
 submodule (swiftest_classes) s_io
    use swiftest
 contains
@@ -1401,6 +1410,10 @@ contains
          allocate(tmp_param, source=param)
          tmp_param%outfile = param%in_netcdf
          tmp_param%out_form = param%in_form
+         if (.not. param%lrestart) then
+            ! Turn off energy computation so we don't have to feed it into the initial conditions
+            tmp_param%lenergy = .false.
+         end if
          ierr = self%read_frame(tmp_param%nciu, tmp_param)
          deallocate(tmp_param)
          if (ierr /=0) call util_exit(FAILURE)
@@ -2184,24 +2197,26 @@ contains
          end if
       end if
 
-      if (param%lgr) then
-         call pl%pv2v(param)
-         call tp%pv2v(param)
-      end if
-
-      if ((param%out_form == EL) .or. (param%out_form == XVEL)) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-         call pl%xv2el(cb)
-         call tp%xv2el(cb)
-      end if
-      
       ! Write out each data type frame
       if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
+         ! For these data types, do these conversion here before writing the output. 
+         if (param%lgr) then
+            call pl%pv2v(param)
+            call tp%pv2v(param)
+         end if
+   
+         if ((param%out_form == EL) .or. (param%out_form == XVEL)) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
+            call pl%xv2el(cb)
+            call tp%xv2el(cb)
+         end if
+
          call self%write_hdr(iu, param)
          call cb%write_frame(iu, param)
          call pl%write_frame(iu, param)
          call tp%write_frame(iu, param)
          close(iu, err = 667, iomsg = errmsg)
       else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         ! For NetCDF output, because we want to store the pseudovelocity separately from the true velocity, we need to do the orbital element conversion internally
          call self%write_hdr(param%nciu, param)
          call cb%write_frame(param%nciu, param)
          call pl%write_frame(param%nciu, param)

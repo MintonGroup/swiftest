@@ -1,3 +1,12 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
 program swiftest_driver
    !! author: David A. Minton
    !!
@@ -106,7 +115,7 @@ program swiftest_driver
                   write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
                end select
                if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-               call integration_timer%report(message="Integration steps:", nsubsteps=istep_dump)
+               call integration_timer%report(message="Integration steps:", nsubsteps=istep_out)
                call integration_timer%reset()
 
                iout = istep_out
