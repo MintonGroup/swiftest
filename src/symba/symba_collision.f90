@@ -825,11 +825,11 @@ contains
                   plnew%rot(:, 1:nfrag) = frag%rot(:, 1:nfrag)
                end if
    
-               if (param%ltides) then
-                  plnew%Q = pl%Q(ibiggest)
-                  plnew%k2 = pl%k2(ibiggest)
-                  plnew%tlag = pl%tlag(ibiggest)
-               end if
+               ! if (param%ltides) then
+               !    plnew%Q = pl%Q(ibiggest)
+               !    plnew%k2 = pl%k2(ibiggest)
+               !    plnew%tlag = pl%tlag(ibiggest)
+               ! end if
 
                !Copy over or set integration parameters for new bodies
                plnew%lcollision(1:nfrag) = .false.

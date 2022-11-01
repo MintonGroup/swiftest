@@ -29,7 +29,7 @@ contains
          tp%lfirst = pl%lfirst
          call pl%step(system, param, t, dt)
          call tp%step(system, param, t, dt)
-         if (param%ltides) call system%step_spin(param, t, dt)
+         ! if (param%ltides) call system%step_spin(param, t, dt)
       end associate
       return
    end subroutine whm_step_system 

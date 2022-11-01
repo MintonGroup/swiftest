@@ -285,10 +285,10 @@ contains
          call check( nf90_def_var(self%ncid, ROTZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%rotz_varid), "netcdf_initialize_output nf90_def_var rotz_varid"  )
       end if
 
-      if (param%ltides) then
-         call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%k2_varid), "netcdf_initialize_output nf90_def_var k2_varid"  )
-         call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Q_varid), "netcdf_initialize_output nf90_def_var Q_varid"  )
-      end if
+      ! if (param%ltides) then
+      !    call check( nf90_def_var(self%ncid, K2_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%k2_varid), "netcdf_initialize_output nf90_def_var k2_varid"  )
+      !    call check( nf90_def_var(self%ncid, Q_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%Q_varid), "netcdf_initialize_output nf90_def_var Q_varid"  )
+      ! end if
 
       if (param%lenergy) then
          call check( nf90_def_var(self%ncid, KE_ORB_VARNAME, self%out_type, self%time_dimid, self%KE_orb_varid), "netcdf_initialize_output nf90_def_var KE_orb_varid"  )
@@ -444,10 +444,10 @@ contains
          call check( nf90_inq_varid(self%ncid, ROTZ_VARNAME, self%rotz_varid), "netcdf_open nf90_inq_varid rotz_varid" )
       end if
 
-      if (param%ltides) then
-         call check( nf90_inq_varid(self%ncid, K2_VARNAME, self%k2_varid), "netcdf_open nf90_inq_varid k2_varid" )
-         call check( nf90_inq_varid(self%ncid, Q_VARNAME, self%Q_varid), "netcdf_open nf90_inq_varid Q_varid" )
-      end if
+      ! if (param%ltides) then
+      !    call check( nf90_inq_varid(self%ncid, K2_VARNAME, self%k2_varid), "netcdf_open nf90_inq_varid k2_varid" )
+      !    call check( nf90_inq_varid(self%ncid, Q_VARNAME, self%Q_varid), "netcdf_open nf90_inq_varid Q_varid" )
+      ! end if
 
       if (param%lenergy) then
          call check( nf90_inq_varid(self%ncid, KE_ORB_VARNAME, self%KE_orb_varid), "netcdf_open nf90_inq_varid KE_orb_varid"  )
@@ -689,15 +689,15 @@ contains
             end select
          end if
 
-         if (param%ltides) then
-            call check( nf90_get_var(iu%ncid, iu%k2_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar k2_varid"  )
-            cb%k2 = rtemp(1)
-            if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
+         ! if (param%ltides) then
+         !    call check( nf90_get_var(iu%ncid, iu%k2_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar k2_varid"  )
+         !    cb%k2 = rtemp(1)
+         !    if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
 
-            call check( nf90_get_var(iu%ncid, iu%Q_varid,  rtemp,  start=[1, tslot]), "netcdf_read_frame_system nf90_getvar Q_varid"  )
-            cb%Q = rtemp(1)
-            if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
-         end if
+         !    call check( nf90_get_var(iu%ncid, iu%Q_varid,  rtemp,  start=[1, tslot]), "netcdf_read_frame_system nf90_getvar Q_varid"  )
+         !    cb%Q = rtemp(1)
+         !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
+         ! end if
 
          call check( nf90_get_var(iu%ncid, iu%j2rp2_varid, cb%j2rp2, start=[tslot]), "netcdf_read_frame_system nf90_getvar j2rp2_varid"  )
          call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]), "netcdf_read_frame_system nf90_getvar j4rp4_varid"  )
@@ -1035,10 +1035,10 @@ contains
                      call check( nf90_put_var(iu%ncid, iu%roty_varid, self%rot(2, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var roty_varid"  )
                      call check( nf90_put_var(iu%ncid, iu%rotz_varid, self%rot(3, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var rotz_varid"  )
                   end if
-                  if (param%ltides) then
-                     call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var k2_varid"  )
-                     call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var Q_varid"  )
-                  end if
+                  ! if (param%ltides) then
+                  !    call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var k2_varid"  )
+                  !    call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var Q_varid"  )
+                  ! end if
 
                end select
             end do
@@ -1059,10 +1059,10 @@ contains
             call check( nf90_put_var(iu%ncid, iu%roty_varid, self%rot(2), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var cb roty_varid"  )
             call check( nf90_put_var(iu%ncid, iu%rotz_varid, self%rot(3), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var cb rotz_varid"  )
          end if
-         if (param%ltides) then
-            call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var cb k2_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var cb Q_varid"  )
-         end if
+         ! if (param%ltides) then
+         !    call check( nf90_put_var(iu%ncid, iu%k2_varid, self%k2, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var cb k2_varid"  )
+         !    call check( nf90_put_var(iu%ncid, iu%Q_varid, self%Q, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var cb Q_varid"  )
+         ! end if
 
       end select
       call check( nf90_set_fill(iu%ncid, old_mode, old_mode), "netcdf_write_frame_base nf90_set_fill old_mode"  )

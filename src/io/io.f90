@@ -1559,10 +1559,10 @@ contains
                   read(iu, err = 667, iomsg = errmsg) pl%rot(2, :)
                   read(iu, err = 667, iomsg = errmsg) pl%rot(3, :)
                end if
-               if (param%ltides) then
-                  read(iu, err = 667, iomsg = errmsg) pl%k2(:)
-                  read(iu, err = 667, iomsg = errmsg) pl%Q(:)
-               end if
+               ! if (param%ltides) then
+               !    read(iu, err = 667, iomsg = errmsg) pl%k2(:)
+               !    read(iu, err = 667, iomsg = errmsg) pl%Q(:)
+               ! end if
             end select
 
             param%maxid = max(param%maxid, maxval(self%id(1:n)))
@@ -1599,10 +1599,10 @@ contains
                      read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
                      read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
                   end if
-                  if (param%ltides) then
-                     read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
-                     read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
-                  end if
+                  ! if (param%ltides) then
+                  !    read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
+                  !    read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
+                  ! end if
                end select
                param%maxid = param%maxid + 1
                self%id(i) = param%maxid
@@ -1667,10 +1667,10 @@ contains
          read(iu, err = 667, iomsg = errmsg) self%rot(2)
          read(iu, err = 667, iomsg = errmsg) self%rot(3)
       end if
-      if (param%ltides) then
-         read(iu, err = 667, iomsg = errmsg) self%k2
-         read(iu, err = 667, iomsg = errmsg) self%Q
-      end if
+      ! if (param%ltides) then
+      !    read(iu, err = 667, iomsg = errmsg) self%k2
+      !    read(iu, err = 667, iomsg = errmsg) self%Q
+      ! end if
 
       ierr = 0
       return
@@ -2061,10 +2061,10 @@ contains
                write(iu, err = 667, iomsg = errmsg) pl%rot(2, 1:n)
                write(iu, err = 667, iomsg = errmsg) pl%rot(3, 1:n)
             end if
-            if (param%ltides) then
-               write(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
-               write(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
-            end if
+            ! if (param%ltides) then
+            !    write(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
+            !    write(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
+            ! end if
          end select
       end associate
 
@@ -2105,10 +2105,10 @@ contains
             write(iu, err = 667, iomsg = errmsg) cb%rot(2)
             write(iu, err = 667, iomsg = errmsg) cb%rot(3)
          end if
-         if (param%ltides) then
-            write(iu, err = 667, iomsg = errmsg) cb%k2
-            write(iu, err = 667, iomsg = errmsg) cb%Q
-         end if
+         ! if (param%ltides) then
+         !    write(iu, err = 667, iomsg = errmsg) cb%k2
+         !    write(iu, err = 667, iomsg = errmsg) cb%Q
+         ! end if
       end associate
 
       return

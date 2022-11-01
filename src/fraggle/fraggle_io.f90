@@ -128,20 +128,20 @@ contains
          end do
       end if
 
-      if (param%ltides) then
-         write(LUN, *) "Q"
-         do i = 1, pl%nbody
-            write(LUN, *) i, pl%Q(i)
-         end do
-         write(LUN, *) "k2"
-         do i = 1, pl%nbody
-            write(LUN, *) i, pl%k2(i)
-         end do
-         write(LUN, *) "tlag"
-         do i = 1, pl%nbody
-            write(LUN, *) i, pl%tlag(i)
-         end do
-      end if
+      ! if (param%ltides) then
+      !    write(LUN, *) "Q"
+      !    do i = 1, pl%nbody
+      !       write(LUN, *) i, pl%Q(i)
+      !    end do
+      !    write(LUN, *) "k2"
+      !    do i = 1, pl%nbody
+      !       write(LUN, *) i, pl%k2(i)
+      !    end do
+      !    write(LUN, *) "tlag"
+      !    do i = 1, pl%nbody
+      !       write(LUN, *) i, pl%tlag(i)
+      !    end do
+      ! end if
 
       close(LUN)
 

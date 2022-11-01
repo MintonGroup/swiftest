@@ -50,12 +50,12 @@ contains
                pl%inner(i)%v(:,:) = 0.0_DP
                pl%inner(i)%aobl(:,:) = 0.0_DP
             end do
-            if (param%ltides) then
-               do i = 0, NTPHENC
-                  allocate(pl%inner(i)%atide(NDIM, n))
-                  pl%inner(i)%atide(:,:) = 0.0_DP
-               end do
-            end if
+            ! if (param%ltides) then
+            !    do i = 0, NTPHENC
+            !       allocate(pl%inner(i)%atide(NDIM, n))
+            !       pl%inner(i)%atide(:,:) = 0.0_DP
+            !    end do
+            ! end if
          end if
       end associate
       return
