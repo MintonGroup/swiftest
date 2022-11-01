@@ -287,7 +287,7 @@ module swiftest_classes
       procedure :: accel_int    => kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl    => obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup        => setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
-      procedure :: accel_tides  => tides_kick_getacch_pl  !! Compute the accelerations of bodies due to tidal interactions with the central body
+      ! procedure :: accel_tides  => tides_kick_getacch_pl  !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure :: append       => util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b          => util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
@@ -401,7 +401,7 @@ module swiftest_classes
       procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
-      procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
+      ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
       procedure :: dealloc                 => util_dealloc_system                    !! Deallocates all allocatable components of the system
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
@@ -1109,19 +1109,20 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametersr
       end subroutine setup_tp
 
-      module subroutine tides_kick_getacch_pl(self, system)
-         implicit none
-         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      end subroutine tides_kick_getacch_pl
+      ! TODO: Implement the tides model
+      ! module subroutine tides_kick_getacch_pl(self, system)
+      !    implicit none
+      !    class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+      !    class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      ! end subroutine tides_kick_getacch_pl
 
-      module subroutine tides_step_spin_system(self, param, t, dt)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t     !! Simulation time
-         real(DP),                     intent(in)    :: dt    !! Current stepsize
-      end subroutine tides_step_spin_system
+      ! module subroutine tides_step_spin_system(self, param, t, dt)
+      !    implicit none
+      !    class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+      !    class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+      !    real(DP),                     intent(in)    :: t     !! Simulation time
+      !    real(DP),                     intent(in)    :: dt    !! Current stepsize
+      ! end subroutine tides_step_spin_system
 
       module subroutine user_kick_getacch_body(self, system, param, t, lbeg)
          implicit none
