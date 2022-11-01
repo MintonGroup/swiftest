@@ -10,6 +10,8 @@
 !*.cmake
 !CHANGELOG 
 !README.md
+!paper/paper.md
+!paper/paper.bib
 !README.swifter 
 !*.in
 dump*
@@ -56,7 +58,7 @@ collresolve/config.h
 !docs/*
 !docs/*/*
 !docs/*/*/*
-
+!README_figs/*
 
 python/swiftest/tests/convert_code_type/swift2swifter/pl.swift2swifter.in
 
