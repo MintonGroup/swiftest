@@ -37,14 +37,15 @@ contains
             else
                cb%aoblend = cb%aobl
             end if
-            if (param%ltides) then
-               call pl%accel_tides(system)
-               if (lbeg) then
-                  cb%atidebeg = cb%atide
-               else
-                  cb%atideend = cb%atide
-               end if
-            end if
+            ! TODO: Implement tides
+            ! if (param%ltides) then
+            !    call pl%accel_tides(system)
+            !    if (lbeg) then
+            !       cb%atidebeg = cb%atide
+            !    else
+            !       cb%atideend = cb%atide
+            !    end if
+            ! end if
          end if
          if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
          if (param%lgr) call pl%accel_gr(param)

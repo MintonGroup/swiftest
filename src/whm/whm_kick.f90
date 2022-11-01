@@ -50,11 +50,12 @@ contains
             else
                cb%aoblend = cb%aobl
             end if
-            if (param%ltides) then
-               cb%atidebeg = cb%aobl
-               call pl%accel_tides(system)
-               cb%atideend = cb%atide
-            end if
+            ! TODO: Implement tides
+            ! if (param%ltides) then
+            !    cb%atidebeg = cb%aobl
+            !    call pl%accel_tides(system)
+            !    cb%atideend = cb%atide
+            ! end if
          end if
 
          if (param%lgr) call pl%accel_gr(param) 

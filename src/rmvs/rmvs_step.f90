@@ -60,7 +60,7 @@ contains
                         tp%lmask(1:ntp) = .true.
                         pl%lfirst = lfirstpl
                         tp%lfirst = .true.
-                        if (param%ltides) call system%step_spin(param, t, dt)
+                        ! if (param%ltides) call system%step_spin(param, t, dt)
                      else
                         call whm_step_system(system, param, t, dt)
                      end if
@@ -266,10 +266,11 @@ contains
             call pl%accel_obl(system)
             pl%inner(0)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) ! Save the oblateness acceleration on the planet for this substep
          end if
-         if (param%ltides) then
-            call pl%accel_tides(system)
-            pl%inner(0)%atide(:, 1:npl) = pl%atide(:, 1:npl) ! Save the oblateness acceleration on the planet for this substep
-         end if
+         ! TODO: Implement tides
+         ! if (param%ltides) then
+         !    call pl%accel_tides(system)
+         !    pl%inner(0)%atide(:, 1:npl) = pl%atide(:, 1:npl) ! Save the oblateness acceleration on the planet for this substep
+         ! end if
 
          do inner_index = 1, NTPHENC - 1
             call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
@@ -320,10 +321,11 @@ contains
                call pl%accel_obl(system)
                pl%inner(inner_index)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
             end if
-            if (param%ltides) then 
-               call pl%accel_tides(system)
-               pl%inner(inner_index)%atide(:, 1:npl) = pl%atide(:, 1:npl)  
-            end if
+            ! TODO: Implement tides
+            ! if (param%ltides) then 
+            !    call pl%accel_tides(system)
+            !    pl%inner(inner_index)%atide(:, 1:npl) = pl%atide(:, 1:npl)  
+            ! end if
          end do
          if (param%loblatecb) then
             ! Calculate the final value of oblateness accelerations at the final inner substep
@@ -331,10 +333,11 @@ contains
             call pl%accel_obl(system)
             pl%inner(NTPHENC)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
          end if
-         if (param%ltides) then
-            call pl%accel_tides(system)
-            pl%inner(NTPHENC)%atide(:, 1:npl) = pl%atide(:, 1:npl) 
-         end if
+         ! TODO: Implement tides
+         ! if (param%ltides) then
+         !    call pl%accel_tides(system)
+         !    pl%inner(NTPHENC)%atide(:, 1:npl) = pl%atide(:, 1:npl) 
+         ! end if
          ! Put the planet positions and accelerations back into place 
          if (allocated(xh_original)) call move_alloc(xh_original, pl%xh)
          if (allocated(ah_original)) call move_alloc(ah_original, pl%ah)
