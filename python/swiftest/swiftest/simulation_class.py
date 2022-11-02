@@ -191,6 +191,12 @@ class Simulation:
         # Check to see if the parameter type matches the output type. If not, we need to convert
         codename = param['! VERSION'].split()[0]
         if codename == "Swifter" or codename == "Swiftest":
+            if param['IN_TYPE'] == "ASCII":
+                param.pop("NC_IN", None)
+            else:
+                param.pop("CB_IN",None)
+                param.pop("PL_IN",None)
+                param.pop("TP_IN",None)
             io.write_labeled_param(param, param_file)
         elif codename == "Swift":
             io.write_swift_param(param, param_file)
