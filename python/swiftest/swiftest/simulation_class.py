@@ -33,6 +33,9 @@ class Simulation:
             'IN_FORM': "XV",
             'IN_TYPE': "NETCDF_DOUBLE",
             'NC_IN' : "init_cond.nc",
+            'CB_IN' : "cb.in",
+            'PL_IN' : "pl.in",
+            'TP_IN' : "tp.in",
             'ISTEP_OUT': "1",
             'ISTEP_DUMP': "1",
             'BIN_OUT': "bin.nc",
@@ -191,6 +194,12 @@ class Simulation:
         # Check to see if the parameter type matches the output type. If not, we need to convert
         codename = param['! VERSION'].split()[0]
         if codename == "Swifter" or codename == "Swiftest":
+            if param['IN_TYPE'] == "ASCII":
+                param.pop("NC_IN", None)
+            else:
+                param.pop("CB_IN",None)
+                param.pop("PL_IN",None)
+                param.pop("TP_IN",None)
             io.write_labeled_param(param, param_file)
         elif codename == "Swift":
             io.write_swift_param(param, param_file)
@@ -335,7 +344,7 @@ class Simulation:
         """
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(ds=self.ds, param=self.param, framenum=framenum,infile_name=self.param['NC_IN'])
+            io.swiftest_xr2infile(ds=self.ds, param=self.param, in_type=self.param['IN_TYPE'], framenum=framenum,infile_name=self.param['NC_IN'])
             self.write_param(param_file)
         elif codename == "Swifter":
             if self.codename == "Swiftest":
