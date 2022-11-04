@@ -33,6 +33,9 @@ class Simulation:
             'IN_FORM': "XV",
             'IN_TYPE': "NETCDF_DOUBLE",
             'NC_IN' : "init_cond.nc",
+            'CB_IN' : "cb.in",
+            'PL_IN' : "pl.in",
+            'TP_IN' : "tp.in",
             'ISTEP_OUT': "1",
             'ISTEP_DUMP': "1",
             'BIN_OUT': "bin.nc",
@@ -341,7 +344,7 @@ class Simulation:
         """
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(ds=self.ds, param=self.param, framenum=framenum,infile_name=self.param['NC_IN'])
+            io.swiftest_xr2infile(ds=self.ds, param=self.param, in_type=self.param['IN_TYPE'], framenum=framenum,infile_name=self.param['NC_IN'])
             self.write_param(param_file)
         elif codename == "Swifter":
             if self.codename == "Swiftest":

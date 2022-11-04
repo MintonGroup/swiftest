@@ -400,7 +400,7 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     frame_str = info_vec_str.T
     if param['IN_TYPE'] == 'NETCDF_FLOAT':
         ftype=np.float32
-    elif param['IN_TYPE'] == 'NETCDF_DOUBLE':
+    elif param['IN_TYPE'] == 'NETCDF_DOUBLE' or param['IN_TYPE'] == 'ASCII':
         ftype=np.float64
     da_float = xr.DataArray(frame_float, dims=infodims, coords={'id': idvals, 'vec': infolab_float}).astype(ftype)
     da_int = xr.DataArray(frame_int, dims=infodims, coords={'id': idvals, 'vec': infolab_int})
