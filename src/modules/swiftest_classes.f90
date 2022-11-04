@@ -1110,19 +1110,19 @@ module swiftest_classes
       end subroutine setup_tp
 
       ! TODO: Implement the tides model
-      ! module subroutine tides_kick_getacch_pl(self, system)
-      !    implicit none
-      !    class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-      !    class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      ! end subroutine tides_kick_getacch_pl
+      module subroutine tides_kick_getacch_pl(self, system)
+         implicit none
+         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      end subroutine tides_kick_getacch_pl
 
-      ! module subroutine tides_step_spin_system(self, param, t, dt)
-      !    implicit none
-      !    class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-      !    class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
-      !    real(DP),                     intent(in)    :: t     !! Simulation time
-      !    real(DP),                     intent(in)    :: dt    !! Current stepsize
-      ! end subroutine tides_step_spin_system
+      module subroutine tides_step_spin_system(self, param, t, dt)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t     !! Simulation time
+         real(DP),                     intent(in)    :: dt    !! Current stepsize
+      end subroutine tides_step_spin_system
 
       module subroutine user_kick_getacch_body(self, system, param, t, lbeg)
          implicit none

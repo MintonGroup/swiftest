@@ -70,6 +70,8 @@ SET(FOO_src
             ${SRC}/symba/symba_setup.f90
             ${SRC}/symba/symba_step.f90
             ${SRC}/symba/symba_util.f90
+            ${SRC}/tides/tides_getacch_pl.f90
+            ${SRC}/tides/tides_spin_step.f90
             ${SRC}/user/user_getacch.f90
             ${SRC}/util/util_append.f90
             ${SRC}/util/util_coord.f90
