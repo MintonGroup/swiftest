@@ -1,4 +1,5 @@
 """
+                    self.param['BIN_OUT'] = binpath
  Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
  Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
@@ -66,16 +67,18 @@ class Simulation:
         self.codename = codename
         self.verbose = verbose
         self.set_unit_system()
-        if param_file != "" :
-            dir_path = os.path.dirname(os.path.realpath(param_file))
+
+        # If the parameter file is in a different location than the current working directory, we will need
+        # to use it to properly open bin files
+        self.sim_dir = os.path.dirname(os.path.realpath(param_file))
+        if os.path.exists(param_file):
             self.read_param(param_file, codename=codename, verbose=self.verbose)
-            if readbin:
-                binpath = os.path.join(dir_path,self.param['BIN_OUT'])
-                if os.path.exists(binpath):
-                    self.param['BIN_OUT'] = binpath
-                    self.bin2xr()
-                else:
-                    print(f"BIN_OUT file {self.param['BIN_OUT']} not found.")
+        if readbin:
+            binpath = os.path.join(self.sim_dir,self.param['BIN_OUT'])
+            if os.path.exists(binpath):
+                self.bin2xr()
+            else:
+                print(f"BIN_OUT file {binpath} not found.")
         return
 
 
@@ -396,11 +399,17 @@ class Simulation:
         -------
             self.ds : xarray dataset
         """
+
+        # Make a temporary copy of the parameter dictionary so we can supply the absolute path of the binary file
+        # This is done to handle cases where the method is called from a different working directory than the simulation
+        # results
+        param_tmp = self.param.copy()
+        param_tmp['BIN_OUT'] = os.path.join(self.dir_path,self.param['BIN_OUT'])
         if self.codename == "Swiftest":
-            self.ds = io.swiftest2xr(self.param, verbose=self.verbose)
+            self.ds = io.swiftest2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .ds')
         elif self.codename == "Swifter":
-            self.ds = io.swifter2xr(self.param, verbose=self.verbose)
+            self.ds = io.swifter2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swifter simulation data stored as xarray DataSet .ds')
         elif self.codename == "Swift":
             print("Reading Swift simulation data is not implemented yet")
