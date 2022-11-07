@@ -23,7 +23,7 @@ class Simulation:
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
-    def __init__(self, codename="Swiftest", param_file="param.in", readbin=True, verbose=True):
+    def __init__(self, codename="Swiftest", param_file="param.in", readbin=False, verbose=True):
         self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
