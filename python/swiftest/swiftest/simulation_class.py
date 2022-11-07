@@ -68,6 +68,7 @@ class Simulation:
         }
         self.codename = codename
         self.verbose = verbose
+        self.set_unit_system()
         if param_file != "" :
             dir_path = os.path.dirname(os.path.realpath(param_file))
             self.read_param(param_file, codename=codename, verbose=self.verbose)
@@ -78,6 +79,131 @@ class Simulation:
                     self.bin2xr()
                 else:
                     print(f"BIN_OUT file {self.param['BIN_OUT']} not found.")
+        return
+
+
+    def set_unit_system(self,MU="Msun",DU="AU",TU="YR",MU2KG=None,DU2M=None,TU2S=None):
+        """
+        Setter for setting the unit conversion between one of the standard sets.
+
+        The units can be set one of two ways:
+        1) The user can supply string values to the arguments MU, DU, and TU to select between common systems
+        2) The user can supply float values to the arguments MU2KG, DU2M, and TU2S to manually set the conversion
+           factor between the desired unit and the SI unit (kg-m-s).
+
+        The two sets of arguments are mutually exclusive. Any values passed to MU2KG, DU2M, or TU2S will override any
+        specified in MU, DU, or TU, respectively. The default system is Msun-AU-YR. MU, DU, and TU are case-insenstive
+
+        Parameters
+        ----------
+        MU : str, default "Msun"
+           The mass unit system to use. Case-insensitive valid options are:
+           "Msun"   : Solar mass
+           "Mearth" : Earth mass
+           "kg"     : kilograms
+           "g"      : grams
+
+        DU : str, default "AU"
+            The distance unit system to use. Case-insensitive valid options are:
+            "AU"     : Astronomical Unit
+            "Rearth" : Earth radius
+            "m"      : meter
+            "cm"     : centimeter
+
+        TU : str, default "YR"
+            The time unit system to use. Case-insensitive valid options are:
+            "YR"     : Year
+            "DAY"    : Julian day
+            "d"      : Julian day
+            "JD"     : Julian day
+            "s"      : second
+
+        MU2KG : float, default `None`
+            The conversion factor to multiply by the mass unit that would convert it to kilogram. Setting this overrides MU
+
+        DU2M  : float, default `None`
+            The conversion factor to multiply by the distance unit that would convert it to meter. Setting this overrides DU
+
+        TU2S  : float, default `None`
+            The conversion factor to multiply by the time unit that would convert it to seconds. Setting this overrides TU
+
+        Returns
+        ----------
+        Sets the values of MU2KG, DU2M, and TU2S in the param dictionary to the appropriate units. Also computes the gravitational constant, GU
+        """
+
+        if MU2KG is not None:
+            self.param['MU2KG'] = MU2KG
+            self.MU_name = None
+        else:
+            if MU.upper() == "MSUN":
+                self.param['MU2KG'] = constants.MSun
+                self.MU_name = "MSun"
+            elif MU.upper() == "MEARTH":
+                self.param['MU2KG'] = constants.MEarth
+                self.MU_name = "MEarth"
+            elif MU.upper() == "KG":
+                self.param['MU2KG'] = 1.0
+                self.MU_name = "kg"
+            elif MU.upper() == "G":
+                self.param['MU2KG'] = 1000.0
+                self.MU_name = "g"
+            else:
+                print(f"{MU} not a recognized unit system. Using MSun as a default.")
+                self.param['MU2KG'] = constants.MSun
+                self.MU_name = "MSun"
+
+        if DU2M is not None:
+            self.param['DU2M'] = DU2M
+            self.DU_name = None
+        else:
+            if DU.upper() == "AU":
+                self.param['DU2M'] = constants.AU2M
+                self.DU_name = "AU"
+            elif DU.upper() == "REARTH":
+                self.param['DU2M'] = constants.REarth
+                self.DU_name = "REarth"
+            elif DU.upper() == "M":
+                self.param['DU2M'] = 1.0
+                self.DU_name = "m"
+            elif DU.upper() == "CM":
+                self.param['DU2M'] = 100.0
+                self.DU_name = "cm"
+            else:
+                print(f"{DU} not a recognized unit system. Using AU as a default.")
+                self.param['DU2M'] = constants.AU2M
+                self.DU_name = "AU"
+
+        if TU2S is not None:
+            self.param['TU2S'] = TU2S
+            self.TU_name = None
+        else:
+            if TU.upper() == "YR":
+                self.param['TU2S'] = constants.YR2S
+                self.TU_name = "y"
+            elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD":
+                self.param['TU2S'] = constants.JD2S
+                self.TU_name = "Day"
+            elif TU.upper() == "S":
+                self.param['TU2S'] = 1.0
+                self.TU_name = "s"
+            else:
+                print(f"{TU} not a recognized unit system. Using YR as a default.")
+                self.param['TU2S'] = constants.YR2S
+                self.TU_name = "y"
+
+        self.VU_name = f"{self.DU_name}/{self.TU_name}"
+        self.GC = constants.GC * self.param['TU2S']**2 * self.param['MU2KG'] / self.param['DU2M']**3
+
+        if self.verbose:
+            if self.MU_name is None or self.DU_name is None or self.TU_name is None:
+                print(f"Custom units set.")
+                print(f"MU2KG: {self.param['MU2KG']}")
+                print(f"DU2M : {self.param['DU2M']}")
+                print(f"TU2S : {self.param['TU2S']}")
+            else:
+                print(f"Units set to {self.MU_name}-{self.DU_name}-{self.TU_name}")
+
         return
     
     def add(self, plname, date=date.today().isoformat(), idval=None):

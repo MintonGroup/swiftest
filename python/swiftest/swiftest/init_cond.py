@@ -120,7 +120,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
     THIRDLONG = np.longdouble(1.0) / np.longdouble(3.0)
     
     # Central body value vectors
-    GMcb = np.array([swiftest.GMSunSI * param['TU2S'] ** 2 / param['DU2M'] ** 3])
+    GMcb = np.array([swiftest.GMSun * param['TU2S'] ** 2 / param['DU2M'] ** 3])
     Rcb = np.array([swiftest.RSun / param['DU2M']])
     J2RP2 = np.array([swiftest.J2Sun * (swiftest.RSun / param['DU2M']) ** 2])
     J4RP4 = np.array([swiftest.J4Sun * (swiftest.RSun / param['DU2M']) ** 4])
