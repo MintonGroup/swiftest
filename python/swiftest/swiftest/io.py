@@ -105,6 +105,8 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         param['ENCOUNTER_CHECK'] = param['ENCOUNTER_CHECK'].upper()
         if 'GMTINY' in param:
             param['GMTINY'] = real2float(param['GMTINY'])
+        if 'MIN_GMFRAG' in param:
+            param['MIN_GMFRAG'] = real2float(param['MIN_GMFRAG'])
     except IOError:
         print(f"{param_file_name} not found.")
     return param
