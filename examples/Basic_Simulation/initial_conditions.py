@@ -32,12 +32,9 @@ from numpy.random import default_rng
 # Initialize the simulation object as a variable
 sim = swiftest.Simulation(init_cond_file_type="ASCII")
 
+sim.set_simulation_time(tstart=0.0, tstop=10.0, dt=0.005, tstep_out=1.0,verbose=True)
+
 # Add parameter attributes to the simulation object
-sim.param['T0']                 = 0.0
-sim.param['TSTOP']              = 10
-sim.param['DT']                 = 0.005
-sim.param['ISTEP_OUT']          = 200
-sim.param['ISTEP_DUMP']         = 200
 sim.param['GMTINY']             = 1e-6
 sim.param['MIN_GMFRAG']         = 1e-9
 

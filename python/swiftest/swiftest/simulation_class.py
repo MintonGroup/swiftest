@@ -58,6 +58,7 @@ class Simulation:
                  extra_force: bool = False,
                  big_discard: bool = False,
                  rhill_present: bool = False,
+                 restart: bool = False,
                  interaction_loops: Literal["TRIANGULAR","FLAT","ADAPTIVE"] = "TRIANGULAR",
                  encounter_check_loops: Literal["TRIANGULAR","SORTSWEEP","ADAPTIVE"] = "TRIANGULAR",
                  verbose: bool = True
@@ -164,6 +165,10 @@ class Simulation:
             Includes big bodies when performing a discard (Swifter only)
         rhill_present: bool, default False
             Include the Hill's radius with the input files.
+        restart : bool, default False
+            If true, will restart an old run. The file given by `output_file_name` must exist before the run can
+            execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
+            when the run is executed.
         interaction_loops : {"TRIANGULAR","FLAT","ADAPTIVE"}, default "TRIANGULAR"
             *Swiftest Experimental feature*
             Specifies which algorithm to use for the computation of body-body gravitational forces.
@@ -205,6 +210,7 @@ class Simulation:
         }
         self.codename = codename
         self.verbose = verbose
+        self.restart = restart
 
         self.set_distance_range(rmin=rmin, rmax=rmax)
 
@@ -221,14 +227,15 @@ class Simulation:
                               output_format=output_format)
 
         self.set_feature(close_encounter_check=close_encounter_check,
-                          general_relativity=general_relativity,
-                          fragmentation=fragmentation,
-                          rotation=rotation,
-                          compute_conservation_values=compute_conservation_values,
-                          extra_force=extra_force,
-                          big_discard=big_discard,
-                          rhill_present=rhill_present,
-                          verbose = False)
+                         general_relativity=general_relativity,
+                         fragmentation=fragmentation,
+                         rotation=rotation,
+                         compute_conservation_values=compute_conservation_values,
+                         extra_force=extra_force,
+                         big_discard=big_discard,
+                         rhill_present=rhill_present,
+                         restart=restart,
+                         verbose = False)
 
         # If the parameter file is in a different location than the current working directory, we will need
         # to use it to properly open bin files
@@ -247,18 +254,198 @@ class Simulation:
                 print(f"BIN_OUT file {binpath} not found.")
         return
 
+    def set_simulation_time(self,
+                            t0: float | None = None,
+                            tstart: float | None = None,
+                            tstop: float | None = None,
+                            dt: float | None = None,
+                            istep_out : int | None = None,
+                            tstep_out : float | None = None,
+                            istep_dump : int | None = None,
+                            verbose : bool | None = None,
+                            ):
+        """
+
+        Parameters
+        ----------
+        t0 : float, optional
+            The reference time for the start of the simulation. Defaults is 0.0
+        tstart : float, optional
+            The start time for a restarted simulation. For a new simulation, tstart will be set to t0 automatically.
+        tstop : float, optional
+            The stopping time for a simulation. `tstop` must be greater than `tstart`.
+        dt : float, optional
+            The step size of the simulation. `dt` must be less than or equal to `tstop-dstart`.
+        istep_out : int, optional
+            The number of time steps between outputs to file. *Note*: only `istep_out` or `toutput` can be set.
+        tstep_out : float, optional
+            The approximate time between when outputs are written to file. Passing this computes
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
+        istep_dump : int, optional
+            The anumber of time steps between outputs to dump file. If not set, this will be set to the value of
+            `istep_out` (or the equivalent value determined by `tstep_out`)
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+
+        Returns
+        -------
+        Sets the appropriate parameter variables in the parameter dictionary.
+
+        """
+
+        update_list = []
+
+
+        if t0 is None:
+            t0 = self.param.pop("T0", None)
+            if t0 is None:
+                t0 = 0.0
+        else:
+            update_list.append("t0")
+
+        if tstart is None:
+            tstart = self.param.pop("TSTART", None)
+            if tstart is None:
+                tstart = t0
+        else:
+            update_list.append("tstart")
+
+        self.param['T0'] = t0
+        self.param['TSTART'] = tstart
+
+        if tstop is None:
+            tstop = self.param.pop("TSTOP", None)
+            if tstop is None:
+                print("Error! tstop is not set!")
+                return
+        else:
+            update_list.append("tstop")
+
+        if tstop <= tstart:
+            print("Error! tstop must be greater than tstart.")
+            return
+
+        self.param['TSTOP'] = tstop
+
+        if dt is None:
+            dt = self.param.pop("DT", None)
+            if dt is None:
+                print("Error! dt is not set!")
+                return
+        else:
+            update_list.append("dt")
+
+        if dt > (tstop - tstart):
+            print("Error! dt must be smaller than tstop-tstart")
+            print(f"Setting dt = {tstop-tstart} instead of {dt}")
+            dt = tstop - tstart
+
+        self.param['DT'] = dt
+
+        if istep_out is None and tstep_out is None:
+            istep_out = self.param.pop("ISTEP_OUT", None)
+            if istep_out is None:
+                print("Error! istep_out is not set")
+                return
+
+        if istep_out is not None and tstep_out is not None:
+            print("Error! istep_out and tstep_out cannot both be set")
+            return
+
+        if tstep_out is not None:
+            istep_out = int(np.floor(tstep_out / dt))
+
+        self.param['ISTEP_OUT'] = istep_out
+
+        if istep_dump is None:
+            istep_dump = istep_out
+
+        self.param['ISTEP_DUMP'] = istep_dump
+
+        update_list.extend(["istep_out", "tstep_out", "istep_dump"])
+
+        if verbose is None:
+            verbose = self.verbose
+        if verbose:
+            if len(update_list) > 0:
+                time_dict = self.get_simulation_time(update_list)
+
+        return
+
+    def get_simulation_time(self, param_key: str | List[str] | None = None):
+        """
+
+        Returns a subset of the parameter dictionary containing the current simulation time parameters.
+        If the verbose option is set in the Simulation object, then it will also print the values.
+
+        Parameters
+        ----------
+        param_key : str | List[str], optional
+            A single string or list of strings containing the names of the simulation time parameters to extract.
+            Default is all of:
+            ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "istep_dump"]
+
+        Returns
+        -------
+        time_dict : dict
+           A dictionary containing the requested parameters
+
+        """
+
+        valid_var = {"t0": "T0",
+                     "tstart": "TSTART",
+                     "tstop": "TSTOP",
+                     "dt": "DT",
+                     "istep_out": "ISTEP_OUT",
+                     "istep_dump": "ISTEP_DUMP",
+                     }
+
+        units = {"T0" : self.TU_name,
+                 "TSTART" : self.TU_name,
+                 "TSTOP" : self.TU_name,
+                 "DT" : self.TU_name,
+                 "TSTEP_OUT" : self.TU_name,
+                 "ISTEP_OUT" : "",
+                 "ISTEP_DUMP" : ""}
+
+        if "tstep_out" in param_key:
+            istep_out = self.param['ISTEP_OUT']
+            dt = self.param['DT']
+            tstep_out = istep_out * dt
+        else:
+            tstep_out = None
+
+        if param_key is None:
+            param_list = valid_var.keys()
+        elif type(param_key) is str:
+            param_list = [param_key]
+        else:
+            param_list = [k for k in param_key if k in set(valid_var.keys())]
+
+        time_dict = {valid_var[k]: self.param[valid_var[k]] for k in param_list}
+
+        if self.verbose:
+            print("Simulation feature parameters:")
+            for key, val in time_dict.items():
+                print(f"{key:<16} {val} {units[key]}")
+            if tstep_out is not None:
+                print(f"{'TSTEP_OUT':<16} {tstep_out} {units['TSTEP_OUT']}")
+
+        return time_dict
+
     def set_feature(self,
-                     close_encounter_check: bool | None = None,
-                     general_relativity: bool | None = None,
-                     fragmentation: bool | None = None,
-                     rotation: bool | None = None,
-                     compute_conservation_values: bool | None=None,
-                     extra_force: bool | None = None,
-                     big_discard: bool | None = None,
-                     rhill_present: bool | None = None,
-                     tides: bool | None = None,
-                     verbose: bool | None = None,
-                     ):
+                    close_encounter_check: bool | None = None,
+                    general_relativity: bool | None = None,
+                    fragmentation: bool | None = None,
+                    rotation: bool | None = None,
+                    compute_conservation_values: bool | None=None,
+                    extra_force: bool | None = None,
+                    big_discard: bool | None = None,
+                    rhill_present: bool | None = None,
+                    restart: bool | None = None,
+                    tides: bool | None = None,
+                    verbose: bool | None = None,
+                   ):
         """
         Turns on or off various features of a simulation.
 
@@ -291,6 +478,10 @@ class Simulation:
             Turns on Yarkovsky model (IN DEVELOPMENT - IGNORED)
         YORP: bool, optional
             Turns on YORP model (IN DEVELOPMENT - IGNORED)
+        restart : bool, default False
+            If true, will restart an old run. The file given by `output_file_name` must exist before the run can
+            execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
+            when the run is executed.
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
 
@@ -336,6 +527,10 @@ class Simulation:
             self.param["RHILL_PRESENT"] = rhill_present
             update_list.append("rhill_present")
 
+        if restart is not None:
+            self.param["RESTART"] = restart
+            update_list.append("restart")
+
         if verbose is None:
             verbose = self.verbose
         if verbose:
@@ -370,7 +565,8 @@ class Simulation:
                           "compute_conservation_values": "ENERGY",
                           "extra_force": "EXTRA_FORCE",
                           "big_discard": "BIG_DISCARD",
-                          "rhill_present": "RHILL_PRESENT"
+                          "rhill_present": "RHILL_PRESENT",
+                          "restart" : "RESTART"
                          }
 
         if feature is None:

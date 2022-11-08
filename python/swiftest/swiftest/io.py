@@ -17,9 +17,38 @@ import sys
 import tempfile
 import re
 
-newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP", "IN_FORM", "SEED", "INTERACTION_LOOPS", "ENCOUNTER_CHECK")
+# This defines features that are new in Swiftest and not in Swifter (for conversion between param.in files)
+newfeaturelist = ("RESTART",
+                  "FRAGMENTATION",
+                  "ROTATION",
+                  "TIDES",
+                  "ENERGY",
+                  "GR",
+                  "YARKOVSKY",
+                  "YORP",
+                  "IN_FORM",
+                  "SEED",
+                  "INTERACTION_LOOPS",
+                  "ENCOUNTER_CHECK",
+                  "TSTART")
+
+# This list defines features that are booleans, so must be converted to/from string when writing/reading from file
+bool_param = ["RESTART",
+              "CHK_CLOSE",
+              "EXTRA_FORCE",
+              "RHILL_PRESENT",
+              "BIG_DISCARD",
+              "FRAGMENTATION",
+              "ROTATION",
+              "TIDES",
+              "ENERGY",
+              "GR",
+              "YARKOVSKY",
+              "YORP"]
+
+# This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
+# handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "status", "origin_type"]
-bool_param = ["CHK_CLOSE", "EXTRA_FORCE", "RHILL_PRESENT", "BIG_DISCARD", "FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP"]
 
 def bool2yesno(boolval):
     """
@@ -144,6 +173,7 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         param['IN_TYPE'] = param['IN_TYPE'].upper()
         param['IN_FORM'] = param['IN_FORM'].upper()
         param['T0'] = real2float(param['T0'])
+        param['TSTART'] = real2float(param['TSTART'])
         param['TSTOP'] = real2float(param['TSTOP'])
         param['DT'] = real2float(param['DT'])
         param['CHK_RMIN'] = real2float(param['CHK_RMIN'])
@@ -401,7 +431,8 @@ def write_labeled_param(param, param_file_name):
                'CHK_QMIN_RANGE',
                'MU2KG',
                'TU2S',
-               'DU2M' ]
+               'DU2M',
+               'RESTART']
     ptmp = param.copy()
     # Print the list of key/value pairs in the preferred order
     for key in keylist:
