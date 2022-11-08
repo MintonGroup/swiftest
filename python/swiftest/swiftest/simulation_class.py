@@ -28,27 +28,20 @@ class Simulation:
         self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
-            'T0': "0.0",
-            'TSTOP': "0.0",
-            'DT': "0.0",
+            'T0': 0.0,
+            'TSTART' : 0.0,
+            'TSTOP': 0.0,
+            'DT': 0.0,
             'IN_FORM': "XV",
             'IN_TYPE': "NETCDF_DOUBLE",
             'NC_IN' : "init_cond.nc",
-            'CB_IN' : "cb.in",
-            'PL_IN' : "pl.in",
-            'TP_IN' : "tp.in",
-            'ISTEP_OUT': "1",
-            'ISTEP_DUMP': "1",
+            'ISTEP_OUT': 1,
+            'ISTEP_DUMP': 1,
             'BIN_OUT': "bin.nc",
             'OUT_TYPE': 'NETCDF_DOUBLE',
             'OUT_FORM': "XVEL",
             'OUT_STAT': "REPLACE",
-            'CHK_RMAX': "-1.0",
-            'CHK_EJECT': "-1.0",
-            'CHK_RMIN': "-1.0",
-            'CHK_QMIN': "-1.0",
             'CHK_QMIN_COORD': "HELIO",
-            'CHK_QMIN_RANGE': "-1.0 -1.0",
             'ENC_OUT': "",
             'EXTRA_FORCE': "NO",
             'DISCARD_OUT': "",
@@ -66,6 +59,7 @@ class Simulation:
         }
         self.codename = codename
         self.verbose = verbose
+        self.set_simulation_range(rmin=constants.RSun, rmax=1000.0)
         self.set_unit_system()
 
         # If the parameter file is in a different location than the current working directory, we will need
@@ -132,6 +126,11 @@ class Simulation:
         Sets the values of MU2KG, DU2M, and TU2S in the param dictionary to the appropriate units. Also computes the gravitational constant, GU
         """
 
+        # Save the previously set values of the unit conversion factors so we can update parameters as needed
+        MU2KG_old = self.param.pop('MU2KG',None)
+        DU2M_old  = self.param.pop('DU2M',None)
+        TU2S_old  = self.param.pop('TU2S',None)
+
         if MU2KG is not None:
             self.param['MU2KG'] = MU2KG
             self.MU_name = None
@@ -178,13 +177,13 @@ class Simulation:
             self.param['TU2S'] = TU2S
             self.TU_name = None
         else:
-            if TU.upper() == "YR":
+            if TU.upper() == "YR" or TU.upper() == "Y" or TU.upper() == "YEAR" or TU.upper() == "YEARS":
                 self.param['TU2S'] = constants.YR2S
                 self.TU_name = "y"
-            elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD":
+            elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD" or TU.upper() == "DAYS":
                 self.param['TU2S'] = constants.JD2S
                 self.TU_name = "Day"
-            elif TU.upper() == "S":
+            elif TU.upper() == "S" or TU.upper() == "SECONDS" or TU.upper() == "SEC":
                 self.param['TU2S'] = 1.0
                 self.TU_name = "s"
             else:
@@ -194,6 +193,8 @@ class Simulation:
 
         self.VU_name = f"{self.DU_name}/{self.TU_name}"
         self.GC = constants.GC * self.param['TU2S']**2 * self.param['MU2KG'] / self.param['DU2M']**3
+
+        self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
         if self.verbose:
             if self.MU_name is None or self.DU_name is None or self.TU_name is None:
@@ -205,7 +206,87 @@ class Simulation:
                 print(f"Units set to {self.MU_name}-{self.DU_name}-{self.TU_name}")
 
         return
-    
+
+    def update_param_units(self,MU2KG_old,DU2M_old,TU2S_old):
+        """
+        Updates the values of parameters that have units when the units have changed.
+
+        Parameters
+        ----------
+        MU2KG_old : Old value of the mass unit conversion factor
+        DU2M_old :  Old value of the distance unit conversion factor
+        TU2S_old :  Old value of the time unit conversion factor
+
+        Returns
+        -------
+        Updates the set of param dictionary values for the new unit system
+
+        """
+
+        mass_keys = ['GMTINY', 'MIN_GMFRAG']
+        distance_keys = ['CHK_QMIN','CHK_RMIN','CHK_RMAX', 'CHK_EJECT']
+        time_keys = ['T0','TSTOP','DT']
+
+        if MU2KG_old is not None:
+            for k in mass_keys:
+                if k in self.param:
+                    print(f"param['{k}']: {self.param[k]}")
+                    self.param[k] *= self.param['MU2KG'] / MU2KG_old
+
+        if DU2M_old is not None:
+            for k in distance_keys:
+                if k in self.param:
+                    self.param[k] *= self.param['DU2M'] / DU2M_old
+
+            CHK_QMIN_RANGE = self.param.pop('CHK_QMIN_RANGE', None)
+            if CHK_QMIN_RANGE is not None:
+                CHK_QMIN_RANGE = CHK_QMIN_RANGE.split(" ")
+                for i, v in enumerate(CHK_QMIN_RANGE):
+                    CHK_QMIN_RANGE[i] = float(CHK_QMIN_RANGE[i]) * self.param['DU2M'] / DU2M_old
+                self.param['CHK_QMIN_RANGE'] = f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
+
+        if TU2S_old is not None:
+            for k in time_keys:
+                if k in self.param:
+                    self.param[k] *= self.param['TU2S'] / TU2S_old
+
+        return
+
+
+    def set_simulation_range(self,rmin=None,rmax=None):
+        """
+        Sets the minimum and maximum distances of the simulation.
+
+        Parameters
+        ----------
+        rmin : float
+            Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
+        rmax : float
+            Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+
+        Returns
+        -------
+        Sets the appropriate param dictionary values.
+
+        """
+        CHK_QMIN_RANGE = self.param.pop('CHK_QMIN_RANGE',None)
+        if CHK_QMIN_RANGE is None:
+            CHK_QMIN_RANGE = [-1, -1]
+        else:
+            CHK_QMIN_RANGE = CHK_QMIN_RANGE.split(" ")
+        if rmin is not None:
+            self.param['CHK_QMIN'] = rmin
+            self.param['CHK_RMIN'] = rmin
+            CHK_QMIN_RANGE[0] = rmin
+        if rmax is not None:
+            self.param['CHK_RMAX'] = rmax
+            self.param['CHK_EJECT'] = rmax
+            CHK_QMIN_RANGE[1] = rmax
+
+        self.param['CHK_QMIN_RANGE'] =f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
+
+        return
+
     def add(self, plname, date=date.today().isoformat(), idval=None):
         """
         Adds a solar system body to an existing simulation DataSet.
