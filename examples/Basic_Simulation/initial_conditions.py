@@ -30,7 +30,7 @@ import numpy as np
 from numpy.random import default_rng
 
 # Initialize the simulation object as a variable
-sim = swiftest.Simulation()
+sim = swiftest.Simulation(init_cond_file_type="ASCII")
 
 # Add parameter attributes to the simulation object
 sim.param['T0']                 = 0.0
@@ -38,39 +38,8 @@ sim.param['TSTOP']              = 10
 sim.param['DT']                 = 0.005
 sim.param['ISTEP_OUT']          = 200
 sim.param['ISTEP_DUMP']         = 200
-sim.param['OUT_FORM']           = 'XVEL'
-sim.param['OUT_TYPE']           = 'NETCDF_DOUBLE'
-sim.param['OUT_STAT']           = 'REPLACE'
-sim.param['IN_FORM']            = 'EL'
-sim.param['IN_TYPE']            = 'ASCII'
-sim.param['PL_IN']              = 'pl.in'
-sim.param['TP_IN']              = 'tp.in'
-sim.param['CB_IN']              = 'cb.in'
-sim.param['BIN_OUT']            = 'out.nc'
-sim.param['CHK_QMIN']           = swiftest.RSun / swiftest.AU2M
-sim.param['CHK_RMIN']           = swiftest.RSun / swiftest.AU2M
-sim.param['CHK_RMAX']           = 1000.0
-sim.param['CHK_EJECT']          = 1000.0
-sim.param['CHK_QMIN_COORD']     = 'HELIO'
-sim.param['CHK_QMIN_RANGE']     = f'{swiftest.RSun / swiftest.AU2M} 1000.0'
-sim.param['MU2KG']              = swiftest.MSun
-sim.param['TU2S']               = swiftest.YR2S
-sim.param['DU2M']               = swiftest.AU2M
-sim.param['EXTRA_FORCE']        = 'NO'
-sim.param['BIG_DISCARD']        = 'NO'
-sim.param['CHK_CLOSE']          = 'YES'
-sim.param['GR']                 = 'YES'
-sim.param['INTERACTION_LOOPS']  = 'ADAPTIVE'
-sim.param['ENCOUNTER_CHECK']    = 'ADAPTIVE'
-sim.param['RHILL_PRESENT']      = 'YES'
-sim.param['FRAGMENTATION']      = 'YES'
-sim.param['ROTATION']           = 'YES'
-sim.param['ENERGY']             = 'YES'
 sim.param['GMTINY']             = 1e-6
 sim.param['MIN_GMFRAG']         = 1e-9
-
-# Set gravitational units of the system
-GU = swiftest.GC / (sim.param['DU2M'] ** 3 / (sim.param['MU2KG'] * sim.param['TU2S'] ** 2))
 
 # Add the modern planets and the Sun using the JPL Horizons Database
 sim.add("Sun", idval=0, date="2022-08-08")
@@ -95,9 +64,9 @@ inc_pl      = default_rng().uniform(0.0, 90, npl)
 capom_pl    = default_rng().uniform(0.0, 360.0, npl)
 omega_pl    = default_rng().uniform(0.0, 360.0, npl)
 capm_pl     = default_rng().uniform(0.0, 360.0, npl)
-GM_pl       = (np.array([6e23, 8e23, 1e24, 3e24, 5e24]) / sim.param['MU2KG']) * GU
-R_pl        = np.full(npl, (3 * (GM_pl / GU) / (4 * np.pi * density_pl)) ** (1.0 / 3.0))
-Rh_pl       = a_pl * ((GM_pl) / (3 * GU)) ** (1.0 / 3.0)
+GM_pl       = (np.array([6e23, 8e23, 1e24, 3e24, 5e24]) / sim.param['MU2KG']) * sim.GU
+R_pl        = np.full(npl, (3 * (GM_pl / sim.GU) / (4 * np.pi * density_pl)) ** (1.0 / 3.0))
+Rh_pl       = a_pl * ((GM_pl) / (3 * sim.GU)) ** (1.0 / 3.0)
 Ip1_pl      = np.array([0.4, 0.4, 0.4, 0.4, 0.4])
 Ip2_pl      = np.array([0.4, 0.4, 0.4, 0.4, 0.4])
 Ip3_pl      = np.array([0.4, 0.4, 0.4, 0.4, 0.4])

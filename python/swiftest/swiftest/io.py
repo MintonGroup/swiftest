@@ -94,9 +94,6 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
         param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
         param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
-        if param['FRAGMENTATION'] == 'YES' and param['PARTICLE_OUT'] == '':
-            if param['OUT_TYPE'] == 'REAL8' or param['OUT_TYPE'] == 'REAL4':
-                param['PARTICLE_OUT'] = 'particle.dat'
         param['ROTATION'] = param['ROTATION'].upper()
         param['TIDES'] = param['TIDES'].upper()
         param['ENERGY'] = param['ENERGY'].upper()

@@ -9,6 +9,7 @@
  You should have received a copy of the GNU General Public License along with Swiftest. 
  If not, see: https://www.gnu.org/licenses. 
 """
+from __future__ import annotations
 
 from swiftest import io
 from swiftest import init_cond
@@ -19,12 +20,166 @@ import xarray as xr
 import numpy as np
 import os
 import shutil
+from typing import (
+    Literal,
+    Dict,
+)
+
 
 class Simulation:
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
-    def __init__(self, codename="Swiftest", param_file="param.in", readbin=False, verbose=True):
+    def __init__(self,
+                 codename: Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
+                 param_file: os.PathLike | str ="param.in",
+                 read_param: bool = False,
+                 init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"] = "NETCDF_DOUBLE",
+                 init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[str, os.PathLike] | None = None,
+                 init_cond_format: Literal["EL", "XV"] = "EL",
+                 output_file_type: Literal["NETCDF_DOUBLE","NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"] = "NETCDF_DOUBLE",
+                 output_file_name: os.PathLike | str | None = None,
+                 output_format: Literal["XV","XVEL"] = "XVEL",
+                 read_old_output_file: bool = False,
+                 MU: str = "MSUN",
+                 DU: str = "AU",
+                 TU: str = "Y",
+                 MU2KG: float | None = None,
+                 DU2M: float | None = None,
+                 TU2S: float | None = None,
+                 rmin: float = constants.RSun / constants.AU2M,
+                 rmax: float = 10000.0,
+                 close_encounter_check: bool =True,
+                 general_relativity: bool =True,
+                 fragmentation: bool =True,
+                 rotation: bool = True,
+                 compute_conservation_values: bool = False,
+                 interaction_loops: Literal["TRIANGULAR","FLAT","ADAPTIVE"] = "TRIANGULAR",
+                 encounter_check_loops: Literal["TRIANGULAR","SORTSWEEP","ADAPTIVE"] = "TRIANGULAR",
+                 verbose: bool = True
+                ):
+        """
+
+        Parameters
+        ----------
+        codename : {"Swiftest", "Swifter", "Swift"}, default "Swiftest"
+            Name of the n-body integrator that will be used.
+        param_file : str, path-like, or file-lke, default "param.in"
+            Name of the parameter input file that will be passed to the integrator.
+        read_param : bool, default False
+            If true, read in a pre-existing parameter input file given by the argument `param_file`. Otherwise, create
+            a new parameter file using the arguments passed to Simulation.
+            > *Note:* If set to true, the parameters defined in the input file will override any passed into the
+            > arguments of Simulation.
+        init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
+            The file type containing initial conditions for the simulation:
+            * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE
+            * NETCDF_FLOAT: A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT
+            * ASCII : Three initial conditions files in ASCII format. The individual files define the central body,
+            massive body, and test particle initial conditions.
+        init_cond_file_name : str, path-like, or dict, optional
+            Name of the input initial condition file or files. Whether to pass a single file name or a dictionary
+            depends on the argument passed to `init_cond_file_type`: If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
+            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where:
+            ```init_cond_file_name = {
+                                      "CB" : *path to central body initial conditions file* (Swiftest only),
+                                      "PL" : *path to massive body initial conditions file*,
+                                      "TP" : *path to test particle initial conditions file*
+                                      }```
+            If no file name is provided then the following default file names will be used.
+            * NETCDF_DOUBLE, NETCDF_FLOAT: `init_cond_file_name = "init_cond.nc"`
+            * ASCII: `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
+        init_cond_format : {"EL", "XV"}, default "EL"
+            Indicates whether the input initial conditions are given as orbital elements or cartesian position and
+            velocity vectors.
+            > *Note:* If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
+        output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, default "NETCDF_DOUBLE"
+            The file type for the outputs of the simulation. Compatible file types depend on the `codename` argument.
+            * Swiftest: Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
+            * Swifter: Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
+            * Swift: Only "REAL4" supported.
+        output_file_name : str or path-like, optional
+            Name of output file to generate. If not supplied, then one of the default file names are used, depending on
+            the value passed to `output_file_type`. If one of the NetCDF types are used, the default is "bin.nc".
+            Otherwise, the default is "bin.dat".
+        output_format : {"XV","XVEL"}, default "XVEL"
+            Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
+            vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
+        read_old_output_file : bool, default False
+            If true, read in a pre-existing binary input file given by the argument `output_file_name`.
+        MU : str, default "MSUN"
+           The mass unit system to use. Case-insensitive valid options are:
+           * "Msun"   : Solar mass
+           * "Mearth" : Earth mass
+           * "kg"     : kilograms
+           * "g"      : grams
+        DU : str, optional
+            The distance unit system to use. Case-insensitive valid options are:
+            * "AU"     : Astronomical Unit
+            * "Rearth" : Earth radius
+            * "m"      : meter
+            * "cm"     : centimeter
+        TU : str, optional
+            The time unit system to use. Case-insensitive valid options are:
+            * "YR"     : Year
+            * "DAY"    : Julian day
+            * "d"      : Julian day
+            * "JD"     : Julian day
+            * "s"      : second
+        MU2KG: float, optional
+            The conversion factor to multiply by the mass unit that would convert it to kilogram.
+            Setting this overrides MU
+        DU2M : float, optional
+            The conversion factor to multiply by the distance unit that would convert it to meter.
+            Setting this overrides DU
+        TU2S : float, optional
+            The conversion factor to multiply by the time unit that would convert it to seconds.
+            Setting this overrides TU
+        rmin : float, default value is the radius of the Sun in the unit system defined by the unit input arguments.
+            Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
+        rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
+            Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+        close_encounter_check : bool, default True
+            Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
+            in initial conditions.
+        general_relativity : bool, default True
+            Include the post-Newtonian correction in acceleration calculations.
+        fragmentation : bool, default True
+            If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
+            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        rotation : bool, default True
+            If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
+            must be included in the initial conditions.
+            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        compute_conservation_values : bool, default False
+            Turns on the computation of energy, angular momentum, and mass conservation and reports the values
+            every output step of a running simulation.
+        interaction_loops : {"TRIANGULAR","FLAT","ADAPTIVE"}, default "TRIANGULAR"
+            *Swiftest Experimental feature*
+            Specifies which algorithm to use for the computation of body-body gravitational forces.
+            * "TRIANGULAR" : Upper-triangular double-loops .
+            * "FLAT" : Body-body interation pairs are flattened into a 1-D array.
+            * "ADAPTIVE" : Periodically times the TRIANGULAR and FLAT methods and determines which one to use based on
+              the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
+              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
+              time calculation. The exact floating-point results of the interaction will be different between the two
+              algorithm types.
+        encounter_check_loops : {"TRIANGULAR","SORTSWEEP","ADAPTIVE"}, default "TRIANGULAR"
+            *Swiftest Experimental feature*
+            Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
+            * "TRIANGULAR" : Upper-triangular double-loops.
+            * "SORTSWEEP" : A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
+              This algorithm is still in development, and does not necessarily speed up the encounter checking.
+              Use with caution.
+            * "ADAPTIVE" : Periodically times the TRIANGULAR and SORTSWEEP methods and determines which one to use based
+              on the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
+              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
+              time calculation. The exact floating-point results of the interaction will be different between the two
+              algorithm types.
+        verbose : bool, default True
+            If set to True, then more information is printed by Simulation methods as they are executed. Setting to
+            False suppresses most messages other than errors.
+        """
         self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
@@ -32,42 +187,48 @@ class Simulation:
             'TSTART' : 0.0,
             'TSTOP': 0.0,
             'DT': 0.0,
-            'IN_FORM': "XV",
-            'IN_TYPE': "NETCDF_DOUBLE",
-            'NC_IN' : "init_cond.nc",
             'ISTEP_OUT': 1,
             'ISTEP_DUMP': 1,
-            'BIN_OUT': "bin.nc",
-            'OUT_TYPE': 'NETCDF_DOUBLE',
-            'OUT_FORM': "XVEL",
-            'OUT_STAT': "REPLACE",
             'CHK_QMIN_COORD': "HELIO",
-            'ENC_OUT': "",
             'EXTRA_FORCE': "NO",
-            'DISCARD_OUT': "",
-            'PARTICLE_OUT' : "",
             'BIG_DISCARD': "NO",
             'CHK_CLOSE': "YES",
             'RHILL_PRESENT': "YES",
-            'FRAGMENTATION': "NO",
-            'ROTATION': "NO",
+            'FRAGMENTATION': "YES",
+            'ROTATION': "YES",
             'TIDES': "NO",
-            'ENERGY': "NO",
+            'ENERGY': "YES",
             'GR': "YES",
-            'INTERACTION_LOOPS': "TRIANGULAR",
-            'ENCOUNTER_CHECK': "TRIANGULAR"
+            'INTERACTION_LOOPS': interaction_loops,
+            'ENCOUNTER_CHECK': encounter_check_loops
         }
         self.codename = codename
         self.verbose = verbose
-        self.set_simulation_range(rmin=constants.RSun, rmax=1000.0)
-        self.set_unit_system()
+
+        self.set_distance_range(rmin=rmin, rmax=rmax)
+
+        self.set_unit_system(MU=MU, DU=DU, TU=TU,
+                             MU2KG=MU2KG, DU2M=DU2M, TU2S=TU2S,
+                             recompute_values=True)
+
+        self.set_init_cond_files(init_cond_file_type=init_cond_file_type,
+                                 init_cond_file_name=init_cond_file_name,
+                                 init_cond_format=init_cond_format)
+
+        self.set_output_files(output_file_type=output_file_type,
+                              output_file_name=output_file_name,
+                              output_format=output_format )
 
         # If the parameter file is in a different location than the current working directory, we will need
         # to use it to properly open bin files
         self.sim_dir = os.path.dirname(os.path.realpath(param_file))
-        if os.path.exists(param_file):
-            self.read_param(param_file, codename=codename, verbose=self.verbose)
-        if readbin:
+        if read_param:
+            if os.path.exists(param_file):
+                self.read_param(param_file, codename=codename, verbose=self.verbose)
+            else:
+                print(f"{param_file} not found.")
+
+        if read_old_output_file:
             binpath = os.path.join(self.sim_dir,self.param['BIN_OUT'])
             if os.path.exists(binpath):
                 self.bin2xr()
@@ -76,7 +237,163 @@ class Simulation:
         return
 
 
-    def set_unit_system(self,MU="Msun",DU="AU",TU="YR",MU2KG=None,DU2M=None,TU2S=None):
+    def set_init_cond_files(self,
+        init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"],
+        init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[str, os.PathLike] | None,
+        init_cond_format: Literal["EL", "XV"]):
+        """
+        Sets the initial condition file parameters in the parameters dictionary.
+
+        Parameters
+        ----------
+        init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}
+            The file type containing initial conditions for the simulation:
+            * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE
+            * NETCDF_FLOAT: A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT
+            * ASCII : Three initial conditions files in ASCII format. The individual files define the central body,
+            massive body, and test particle initial conditions.
+        init_cond_file_name : str, path-like, or dict, optional
+            Name of the input initial condition file or files. Whether to pass a single file name or a dictionary
+            depends on the argument passed to `init_cond_file_type`: If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
+            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where:
+            ```init_cond_file_name = {
+                                      "CB" : *path to central body initial conditions file* (Swiftest only),
+                                      "PL" : *path to massive body initial conditions file*,
+                                      "TP" : *path to test particle initial conditions file*
+                                      }```
+            If no file name is provided then the following default file names will be used.
+            * NETCDF_DOUBLE, NETCDF_FLOAT: `init_cond_file_name = "init_cond.nc"`
+            * ASCII: `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
+        init_cond_format : {"EL", "XV"}
+            Indicates whether the input initial conditions are given as orbital elements or cartesian position and
+            velocity vectors.
+            > *Note:* If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
+
+        Returns
+        -------
+        Sets the appropriate initial conditions file parameters inside the self.param dictionary.
+
+        """
+
+        def ascii_file_input_error_msg(codename):
+            print(f"Error in set_init_cond_files: init_cond_file_name must be a dictionary of the form: ")
+            print('{')
+            if codename == "Swiftest":
+                print('"CB" : *path to central body initial conditions file*,')
+            print('"PL" : *path to massive body initial conditions file*,')
+            print('"TP" : *path to test particle initial conditions file*')
+            print('}')
+            return
+
+        if self.codename == "Swiftest":
+            init_cond_keys = ["CB", "PL", "TP"]
+        else:
+            init_cond_keys = ["PL", "TP"]
+            if init_cond_file_type != "ASCII":
+                print(f"{init_cond_file_type} is not supported by {self.codename}. Using ASCII instead")
+                init_cond_file_type="ASCII"
+            if init_cond_format != "XV":
+                print(f"{init_cond_format} is not supported by {self.codename}. Using XV instead")
+                init_cond_format = "XV"
+
+        self.param["IN_TYPE"] = init_cond_file_type
+        self.param["IN_FORM"] = init_cond_format
+
+        if init_cond_file_type == "ASCII":
+            if init_cond_file_name is None:
+                # No file names passed, so we will just use the defaults.
+                for key in init_cond_keys:
+                    self.param[f"{key}_IN"] = f"{key.lower()}.in"
+            elif type(init_cond_file_name) is not dict:
+                # Oops, accidentally passed a single string or path-like instead of the expected dictionary for ASCII
+                # input type.
+                ascii_file_input_error_msg(self.codename)
+            elif not all(key in init_cond_file_name for key in init_cond_keys):
+                # This is the case where the dictionary doesn't have all the keys we expect. Print an error message.
+                ascii_file_input_error_msg(self.codename)
+            else:
+                # A valid initial conditions file dictionary was passed.
+                for key in init_cond_keys:
+                    self.param[f"{key}_IN"] = init_cond_file_name[key]
+        else:
+            if init_cond_file_name is None:
+                # No file names passed, so we will just use the default.
+                self.param["NC_IN"] = "init_cond.nc"
+            elif type(init_cond_file_name) is dict:
+                # Oops, accidentally passed a dictionary instead of the expected single string or path-like for NetCDF
+                # input type.
+                print(f"Only a single input file is used for NetCDF files")
+            else:
+                self.param["NC_IN"] = init_cond_file_name
+
+        return
+
+    def set_output_files(self,
+                         output_file_type: Literal[ "NETCDF_DOUBLE", "NETCDF_FLOAT", "REAL4", "REAL8", "XDR4", "XDR8"],
+                         output_file_name: os.PathLike | str | None,
+                         output_format: Literal["XV", "XVEL"]
+                         ):
+        """
+        Sets the output file parameters in the parameters dictionary.
+
+        Parameters
+        ----------
+        output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, default "NETCDF_DOUBLE"
+            The file type for the outputs of the simulation. Compatible file types depend on the `codename` argument.
+            * Swiftest: Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
+            * Swifter: Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
+            * Swift: Only "REAL4" supported.
+        output_file_name : str or path-like, optional
+            Name of output file to generate. If not supplied, then one of the default file names are used, depending on
+            the value passed to `output_file_type`. If one of the NetCDF types are used, the default is "bin.nc".
+            Otherwise, the default is "bin.dat".
+        output_format : {"XV","XVEL"}, default "XVEL"
+            Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
+            vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
+
+        Returns
+        -------
+        Sets the appropriate initial conditions file parameters inside the self.param dictionary.
+
+        """
+
+        if self.codename == "Swiftest":
+            if output_file_type not in ["NETCDF_DOUBLE", "NETCDF_FLOAT"]:
+                print(f"{output_file_type} is not compatible with Swiftest. Setting to NETCDF_DOUBLE")
+                output_file_type = "NETCDF_DOUBLE"
+        elif self.codename == "Swifter":
+            if output_file_type not in ["REAL4","REAL8","XDR4","XDR8"]:
+                print(f"{output_file_type} is not compatible with Swifter. Setting to REAL8")
+                output_file_type = "REAL8"
+        elif self.codename == "Swift":
+            if output_file_type not in ["REAL4"]:
+                print(f"{output_file_type} is not compatible with Swift. Setting to REAL4")
+                output_file_type = "REAL4"
+
+        self.param['OUT_TYPE'] = output_file_type
+        if output_file_name is None:
+            if output_file_type in ["NETCDF_DOUBLE", "NETCDF_FLOAT"]:
+                self.param['BIN_OUT'] = "bin.nc"
+            else:
+                self.param['BIN_OUT'] = "bin.dat"
+        else:
+            self.param['BIN_OUT'] = output_file_name
+
+        if output_format != "XV" and self.codename != "Swiftest":
+            print(f"{output_format} is not compatible with {self.codename}. Setting to XV")
+            output_format = "XV"
+        self.param['OUT_FORM'] = output_format
+
+        return
+
+    def set_unit_system(self,
+                        MU: str | None = None,
+                        DU: str | None = None,
+                        TU: str | None = None,
+                        MU2KG: float | None = None,
+                        DU2M: float | None = None,
+                        TU2S: float | None = None,
+                        recompute_values: bool = False):
         """
         Setter for setting the unit conversion between one of the standard sets.
 
@@ -90,111 +407,121 @@ class Simulation:
 
         Parameters
         ----------
-        MU : str, default "Msun"
+        MU : str, optional
            The mass unit system to use. Case-insensitive valid options are:
            "Msun"   : Solar mass
            "Mearth" : Earth mass
            "kg"     : kilograms
            "g"      : grams
-
-        DU : str, default "AU"
+        DU : str, optional
             The distance unit system to use. Case-insensitive valid options are:
             "AU"     : Astronomical Unit
             "Rearth" : Earth radius
             "m"      : meter
             "cm"     : centimeter
-
-        TU : str, default "YR"
+        TU : str, optional
             The time unit system to use. Case-insensitive valid options are:
             "YR"     : Year
             "DAY"    : Julian day
             "d"      : Julian day
             "JD"     : Julian day
             "s"      : second
-
-        MU2KG : float, default `None`
-            The conversion factor to multiply by the mass unit that would convert it to kilogram. Setting this overrides MU
-
-        DU2M  : float, default `None`
-            The conversion factor to multiply by the distance unit that would convert it to meter. Setting this overrides DU
-
-        TU2S  : float, default `None`
-            The conversion factor to multiply by the time unit that would convert it to seconds. Setting this overrides TU
+        MU2KG : float, optional
+            The conversion factor to multiply by the mass unit that would convert it to kilogram.
+            Setting this overrides MU
+        DU2M  : float, optional
+            The conversion factor to multiply by the distance unit that would convert it to meter.
+            Setting this overrides DU
+        TU2S  : float, optional
+            The conversion factor to multiply by the time unit that would convert it to seconds.
+            Setting this overrides TU
+        recompute_values : bool, default False
+            Recompute all values into the new unit system.
+            >*Note:* This is a destructive operation, however if not executed then the values contained in the parameter
+            > file and input/output data files computed previously may not be consistent with the new unit conversion
+            > factors.
 
         Returns
         ----------
-        Sets the values of MU2KG, DU2M, and TU2S in the param dictionary to the appropriate units. Also computes the gravitational constant, GU
+        Sets the values of MU2KG, DU2M, and TU2S in the param dictionary to the appropriate units. Also computes the
+        gravitational constant, self.GU and recomput
         """
 
-        # Save the previously set values of the unit conversion factors so we can update parameters as needed
-        MU2KG_old = self.param.pop('MU2KG',None)
-        DU2M_old  = self.param.pop('DU2M',None)
-        TU2S_old  = self.param.pop('TU2S',None)
+        MU2KG_old = None
+        DU2M_old = None
+        TU2S_old = None
 
-        if MU2KG is not None:
-            self.param['MU2KG'] = MU2KG
-            self.MU_name = None
-        else:
-            if MU.upper() == "MSUN":
-                self.param['MU2KG'] = constants.MSun
-                self.MU_name = "MSun"
-            elif MU.upper() == "MEARTH":
-                self.param['MU2KG'] = constants.MEarth
-                self.MU_name = "MEarth"
-            elif MU.upper() == "KG":
-                self.param['MU2KG'] = 1.0
-                self.MU_name = "kg"
-            elif MU.upper() == "G":
-                self.param['MU2KG'] = 1000.0
-                self.MU_name = "g"
+        if MU2KG is not None or MU is not None:
+            MU2KG_old = self.param.pop('MU2KG',None)
+            if MU2KG is not None:
+                self.param['MU2KG'] = MU2KG
+                self.MU_name = None
             else:
-                print(f"{MU} not a recognized unit system. Using MSun as a default.")
-                self.param['MU2KG'] = constants.MSun
-                self.MU_name = "MSun"
+                if MU.upper() == "MSUN":
+                    self.param['MU2KG'] = constants.MSun
+                    self.MU_name = "MSun"
+                elif MU.upper() == "MEARTH":
+                    self.param['MU2KG'] = constants.MEarth
+                    self.MU_name = "MEarth"
+                elif MU.upper() == "KG":
+                    self.param['MU2KG'] = 1.0
+                    self.MU_name = "kg"
+                elif MU.upper() == "G":
+                    self.param['MU2KG'] = 1000.0
+                    self.MU_name = "g"
+                else:
+                    print(f"{MU} not a recognized unit system. Using MSun as a default.")
+                    self.param['MU2KG'] = constants.MSun
+                    self.MU_name = "MSun"
 
-        if DU2M is not None:
-            self.param['DU2M'] = DU2M
-            self.DU_name = None
-        else:
-            if DU.upper() == "AU":
-                self.param['DU2M'] = constants.AU2M
-                self.DU_name = "AU"
-            elif DU.upper() == "REARTH":
-                self.param['DU2M'] = constants.REarth
-                self.DU_name = "REarth"
-            elif DU.upper() == "M":
-                self.param['DU2M'] = 1.0
-                self.DU_name = "m"
-            elif DU.upper() == "CM":
-                self.param['DU2M'] = 100.0
-                self.DU_name = "cm"
+        if DU2M is not None or DU is not None:
+            DU2M_old  = self.param.pop('DU2M',None)
+            if DU2M is not None:
+                self.param['DU2M'] = DU2M
+                self.DU_name = None
             else:
-                print(f"{DU} not a recognized unit system. Using AU as a default.")
-                self.param['DU2M'] = constants.AU2M
-                self.DU_name = "AU"
+                if DU.upper() == "AU":
+                    self.param['DU2M'] = constants.AU2M
+                    self.DU_name = "AU"
+                elif DU.upper() == "REARTH":
+                    self.param['DU2M'] = constants.REarth
+                    self.DU_name = "REarth"
+                elif DU.upper() == "M":
+                    self.param['DU2M'] = 1.0
+                    self.DU_name = "m"
+                elif DU.upper() == "CM":
+                    self.param['DU2M'] = 100.0
+                    self.DU_name = "cm"
+                else:
+                    print(f"{DU} not a recognized unit system. Using AU as a default.")
+                    self.param['DU2M'] = constants.AU2M
+                    self.DU_name = "AU"
 
-        if TU2S is not None:
-            self.param['TU2S'] = TU2S
-            self.TU_name = None
-        else:
-            if TU.upper() == "YR" or TU.upper() == "Y" or TU.upper() == "YEAR" or TU.upper() == "YEARS":
-                self.param['TU2S'] = constants.YR2S
-                self.TU_name = "y"
-            elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD" or TU.upper() == "DAYS":
-                self.param['TU2S'] = constants.JD2S
-                self.TU_name = "Day"
-            elif TU.upper() == "S" or TU.upper() == "SECONDS" or TU.upper() == "SEC":
-                self.param['TU2S'] = 1.0
-                self.TU_name = "s"
+        if TU2S is not None or TU is not None:
+            TU2S_old  = self.param.pop('TU2S',None)
+            if TU2S is not None:
+                self.param['TU2S'] = TU2S
+                self.TU_name = None
             else:
-                print(f"{TU} not a recognized unit system. Using YR as a default.")
-                self.param['TU2S'] = constants.YR2S
-                self.TU_name = "y"
+                if TU.upper() == "YR" or TU.upper() == "Y" or TU.upper() == "YEAR" or TU.upper() == "YEARS":
+                    self.param['TU2S'] = constants.YR2S
+                    self.TU_name = "y"
+                elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD" or TU.upper() == "DAYS":
+                    self.param['TU2S'] = constants.JD2S
+                    self.TU_name = "Day"
+                elif TU.upper() == "S" or TU.upper() == "SECONDS" or TU.upper() == "SEC":
+                    self.param['TU2S'] = 1.0
+                    self.TU_name = "s"
+                else:
+                    print(f"{TU} not a recognized unit system. Using YR as a default.")
+                    self.param['TU2S'] = constants.YR2S
+                    self.TU_name = "y"
 
         self.VU_name = f"{self.DU_name}/{self.TU_name}"
-        self.GC = constants.GC * self.param['TU2S']**2 * self.param['MU2KG'] / self.param['DU2M']**3
+        self.GU = constants.GC * self.param['TU2S']**2 * self.param['MU2KG'] / self.param['DU2M']**3
 
-        self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
+        if recompute_values:
+            self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
         if self.verbose:
             if self.MU_name is None or self.DU_name is None or self.TU_name is None:
@@ -253,7 +580,7 @@ class Simulation:
         return
 
 
-    def set_simulation_range(self,rmin=None,rmax=None):
+    def set_distance_range(self,rmin=None,rmax=None):
         """
         Sets the minimum and maximum distances of the simulation.
 
@@ -286,6 +613,8 @@ class Simulation:
         self.param['CHK_QMIN_RANGE'] =f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
 
         return
+
+
 
     def add(self, plname, date=date.today().isoformat(), idval=None):
         """
