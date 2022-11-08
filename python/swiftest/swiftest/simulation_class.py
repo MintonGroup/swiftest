@@ -531,6 +531,8 @@ class Simulation:
             self.param["RESTART"] = restart
             update_list.append("restart")
 
+        self.param["TIDES"] = False
+
         if verbose is None:
             verbose = self.verbose
         if verbose:
