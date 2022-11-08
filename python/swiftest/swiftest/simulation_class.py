@@ -23,6 +23,7 @@ import shutil
 from typing import (
     Literal,
     Dict,
+    List
 )
 
 
@@ -49,11 +50,14 @@ class Simulation:
                  TU2S: float | None = None,
                  rmin: float = constants.RSun / constants.AU2M,
                  rmax: float = 10000.0,
-                 close_encounter_check: bool =True,
-                 general_relativity: bool =True,
-                 fragmentation: bool =True,
+                 close_encounter_check: bool = True,
+                 general_relativity: bool = True,
+                 fragmentation: bool = True,
                  rotation: bool = True,
                  compute_conservation_values: bool = False,
+                 extra_force: bool = False,
+                 big_discard: bool = False,
+                 rhill_present: bool = False,
                  interaction_loops: Literal["TRIANGULAR","FLAT","ADAPTIVE"] = "TRIANGULAR",
                  encounter_check_loops: Literal["TRIANGULAR","SORTSWEEP","ADAPTIVE"] = "TRIANGULAR",
                  verbose: bool = True
@@ -154,6 +158,12 @@ class Simulation:
         compute_conservation_values : bool, default False
             Turns on the computation of energy, angular momentum, and mass conservation and reports the values
             every output step of a running simulation.
+        extra_force: bool, default False
+            Turns on user-defined force function.
+        big_discard: bool, default False
+            Includes big bodies when performing a discard (Swifter only)
+        rhill_present: bool, default False
+            Include the Hill's radius with the input files.
         interaction_loops : {"TRIANGULAR","FLAT","ADAPTIVE"}, default "TRIANGULAR"
             *Swiftest Experimental feature*
             Specifies which algorithm to use for the computation of body-body gravitational forces.
@@ -190,15 +200,6 @@ class Simulation:
             'ISTEP_OUT': 1,
             'ISTEP_DUMP': 1,
             'CHK_QMIN_COORD': "HELIO",
-            'EXTRA_FORCE': "NO",
-            'BIG_DISCARD': "NO",
-            'CHK_CLOSE': "YES",
-            'RHILL_PRESENT': "YES",
-            'FRAGMENTATION': "YES",
-            'ROTATION': "YES",
-            'TIDES': "NO",
-            'ENERGY': "YES",
-            'GR': "YES",
             'INTERACTION_LOOPS': interaction_loops,
             'ENCOUNTER_CHECK': encounter_check_loops
         }
@@ -217,7 +218,17 @@ class Simulation:
 
         self.set_output_files(output_file_type=output_file_type,
                               output_file_name=output_file_name,
-                              output_format=output_format )
+                              output_format=output_format)
+
+        self.set_features(close_encounter_check=close_encounter_check,
+                          general_relativity=general_relativity,
+                          fragmentation=fragmentation,
+                          rotation=rotation,
+                          compute_conservation_values=compute_conservation_values,
+                          extra_force=extra_force,
+                          big_discard=big_discard,
+                          rhill_present=rhill_present,
+                          verbose = False)
 
         # If the parameter file is in a different location than the current working directory, we will need
         # to use it to properly open bin files
@@ -236,6 +247,149 @@ class Simulation:
                 print(f"BIN_OUT file {binpath} not found.")
         return
 
+    def set_features(self,
+                     close_encounter_check: bool | None = None,
+                     general_relativity: bool | None = None,
+                     fragmentation: bool | None = None,
+                     rotation: bool | None = None,
+                     compute_conservation_values: bool | None=None,
+                     extra_force: bool | None = None,
+                     big_discard: bool | None = None,
+                     rhill_present: bool | None = None,
+                     tides: bool | None = None,
+                     verbose: bool | None = None,
+                     ):
+        """
+        Turns on or off various features of a simulation.
+
+        Parameters
+        ----------
+        close_encounter_check : bool, optional
+            Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
+            in initial conditions.
+        general_relativity : bool, optional
+            Include the post-Newtonian correction in acceleration calculations.
+        fragmentation : bool, optional
+            If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
+            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        rotation : bool, optional
+            If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
+            must be included in the initial conditions.
+            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        compute_conservation_values : bool, optional
+            Turns on the computation of energy, angular momentum, and mass conservation and reports the values
+            every output step of a running simulation.
+        extra_force: bool, optional
+            Turns on user-defined force function.
+        big_discard: bool, optional
+            Includes big bodies when performing a discard (Swifter only)
+        rhill_present: bool, optional
+            Include the Hill's radius with the input files.
+        tides: bool, optional
+            Turns on tidal model (IN DEVELOPMENT - IGNORED)
+        Yarkovsky: bool, optional
+            Turns on Yarkovsky model (IN DEVELOPMENT - IGNORED)
+        YORP: bool, optional
+            Turns on YORP model (IN DEVELOPMENT - IGNORED)
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+
+        Returns
+        -------
+        Sets the appropriate parameters in the self.param dictionary
+
+        """
+
+        update_list = []
+        if close_encounter_check is not None:
+            self.param["CHK_CLOSE"] = close_encounter_check
+            update_list.append("close_encounter_check")
+
+        if general_relativity is not None:
+            self.param["GR"] = general_relativity
+            update_list.append("general_relativity")
+
+        if fragmentation is not None:
+            self.param['FRAGMENTATION'] = fragmentation
+            update_list.append("fragmentation")
+
+        if rotation is not None:
+            self.param['ROTATION'] = rotation
+            update_list.append("rotation")
+
+        if compute_conservation_values is not None:
+            self.param["ENERGY"] = compute_conservation_values
+            update_list.append("compute_conservation_values")
+
+        if extra_force is not None:
+            self.param["EXTRA_FORCE"] = extra_force
+            update_list.append("extra_force")
+
+        if big_discard is not None:
+            if self.codename != "Swifter":
+                self.param["BIG_DISCARD"] = False
+            else:
+                self.param["BIG_DISCARD"] = big_discard
+                update_list.append("big_discard")
+
+        if rhill_present is not None:
+            self.param["RHILL_PRESENT"] = rhill_present
+            update_list.append("rhill_present")
+
+        if verbose is None:
+            verbose = self.verbose
+        if verbose:
+            if len(update_list) > 0:
+                feature_dict = self.get_features(update_list)
+        return
+
+
+    def get_features(self,feature: str | List[str] | None = None):
+        """
+
+        Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
+        If the verbose option is set in the Simulation object, then it will also print the values.
+
+        Parameters
+        ----------
+        feature : str | List[str], optional
+            A single string or list of strings containing the names of the features to extract. Default is all of:
+            ["close_encounter_check", "general_relativity", "fragmentation", "rotation", "compute_conservation_values"]
+
+        Returns
+        -------
+        feature_dict : dict
+           A dictionary containing the requested features.
+
+        """
+
+        valid_features = {"close_encounter_check": "CHK_CLOSE",
+                          "general_relativity": "GR",
+                          "fragmentation": "FRAGMENTATION",
+                          "rotation": "ROTATION",
+                          "compute_conservation_values": "ENERGY",
+                          "extra_force": "EXTRA_FORCE",
+                          "big_discard": "BIG_DISCARD",
+                          "rhill_present": "RHILL_PRESENT"
+                         }
+
+        if feature is None:
+            feature_list = valid_features.keys()
+        elif type(feature) is str:
+            feature_list = [feature]
+        else:
+            # Only allow features to be checked if they are valid. Otherwise ignore.
+            feature_list = [feat for feat in feature if feat in set(valid_features.keys())]
+
+        # Extract the feature dictionary
+        feature_dict = {valid_features[feat]:self.param[valid_features[feat]] for feat in feature_list}
+
+        if self.verbose:
+            print("Simulation feature parameters:")
+            for key,val in feature_dict.items():
+                print(f"{key:<16} {val}")
+
+        return feature_dict
 
     def set_init_cond_files(self,
         init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"],

@@ -17,8 +17,72 @@ import sys
 import tempfile
 import re
 
-newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP", "IN_FORM")
+newfeaturelist = ("FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP", "IN_FORM", "SEED", "INTERACTION_LOOPS", "ENCOUNTER_CHECK")
 string_varnames = ["name", "particle_type", "status", "origin_type"]
+bool_param = ["CHK_CLOSE", "EXTRA_FORCE", "RHILL_PRESENT", "BIG_DISCARD", "FRAGMENTATION", "ROTATION", "TIDES", "ENERGY", "GR", "YARKOVSKY", "YORP"]
+
+def bool2yesno(boolval):
+    """
+    Converts a boolean into a string of either "YES" or "NO".
+
+    Parameters
+    ----------
+    boolval : bool
+        Input value
+
+    Returns
+    -------
+    {"YES","NO"}
+
+    """
+    if boolval:
+        return "YES"
+    else:
+        return "NO"
+
+def bool2tf(boolval):
+    """
+    Converts a boolean into a string of either "T" or "F".
+
+    Parameters
+    ----------
+    boolval : bool
+        Input value
+
+    Returns
+    -------
+    {"T","F"}
+
+    """
+    if boolval:
+        return "T"
+    else:
+        return "F"
+
+def str2bool(input_str):
+    """
+    Converts a string into an equivalent boolean.
+
+    Parameters
+    ----------
+    input_str : {"YES", "Y", "T", "TRUE", ".TRUE.", "NO", "N", "F", "FALSE", ".FALSE."}
+        Input string. Input is case-insensitive.
+
+    Returns
+    -------
+    {True, False}
+
+    """
+    valid_true = ["YES", "Y", "T", "TRUE", ".TRUE."]
+    valid_false = ["NO", "N", "F", "FALSE", ".FALSE."]
+    if input_str.upper() in valid_true:
+        return True
+    elif input_str.lower() in valid_false:
+        return False
+    else:
+        raise ValueError(f"{input_str} cannot is not recognized as boolean")
+
+
 
 def real2float(realstr):
     """
@@ -27,7 +91,7 @@ def real2float(realstr):
     
     Parameters
     ----------
-    realstr : string
+    realstr : str
         Fortran-generated ASCII string of a real value.
 
     Returns
@@ -89,21 +153,15 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         param['DU2M'] = real2float(param['DU2M'])
         param['MU2KG'] = real2float(param['MU2KG'])
         param['TU2S'] = real2float(param['TU2S'])
-        param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
-        param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
-        param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
-        param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
-        param['FRAGMENTATION'] = param['FRAGMENTATION'].upper()
-        param['ROTATION'] = param['ROTATION'].upper()
-        param['TIDES'] = param['TIDES'].upper()
-        param['ENERGY'] = param['ENERGY'].upper()
-        param['GR'] = param['GR'].upper()
         param['INTERACTION_LOOPS'] = param['INTERACTION_LOOPS'].upper()
         param['ENCOUNTER_CHECK'] = param['ENCOUNTER_CHECK'].upper()
         if 'GMTINY' in param:
             param['GMTINY'] = real2float(param['GMTINY'])
         if 'MIN_GMFRAG' in param:
             param['MIN_GMFRAG'] = real2float(param['MIN_GMFRAG'])
+        for b in bool_param:
+            if b in param:
+                param[b] = str2bool(param[b])
     except IOError:
         print(f"{param_file_name} not found.")
     return param
@@ -139,7 +197,7 @@ def read_swifter_param(param_file_name, verbose=True):
         'OUT_STAT': "NEW",
         'J2': "0.0",
         'J4': "0.0",
-        'CHK_CLOSE': 'NO',
+        'CHK_CLOSE': False,
         'CHK_RMIN': "-1.0",
         'CHK_RMAX': "-1.0",
         'CHK_EJECT': "-1.0",
@@ -147,9 +205,9 @@ def read_swifter_param(param_file_name, verbose=True):
         'CHK_QMIN_COORD': "HELIO",
         'CHK_QMIN_RANGE': "",
         'ENC_OUT': "",
-        'EXTRA_FORCE': 'NO',
-        'BIG_DISCARD': 'NO',
-        'RHILL_PRESENT': 'NO',
+        'EXTRA_FORCE': False,
+        'BIG_DISCARD': False,
+        'RHILL_PRESENT': False,
         'C': "-1.0",
     }
     
@@ -179,10 +237,9 @@ def read_swifter_param(param_file_name, verbose=True):
         param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
         param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
         param['CHK_QMIN'] = real2float(param['CHK_QMIN'])
-        param['EXTRA_FORCE'] = param['EXTRA_FORCE'].upper()
-        param['BIG_DISCARD'] = param['BIG_DISCARD'].upper()
-        param['CHK_CLOSE'] = param['CHK_CLOSE'].upper()
-        param['RHILL_PRESENT'] = param['RHILL_PRESENT'].upper()
+        for b in bool_param:
+            if b in param:
+                param[b] = str2bool(param[b])
         if param['C'] != '-1.0':
             param['C'] = real2float(param['C'])
         else:
@@ -349,10 +406,18 @@ def write_labeled_param(param, param_file_name):
     # Print the list of key/value pairs in the preferred order
     for key in keylist:
         val = ptmp.pop(key, None)
-        if val is not None: print(f"{key:<16} {val}", file=outfile)
+        if val is not None:
+            if type(val) is bool:
+                print(f"{key:<16} {bool2yesno(val)}", file=outfile)
+            else:
+                print(f"{key:<16} {val}", file=outfile)
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
-        if val != "": print(f"{key:<16} {val}", file=outfile)
+        if val != "":
+            if type(val) is bool:
+                print(f"{key:<16} {bool2yesno(val)}", file=outfile)
+            else:
+                print(f"{key:<16} {val}", file=outfile)
     outfile.close()
     return
 
@@ -483,12 +548,12 @@ def make_swiftest_labels(param):
         tlab.append('capm')
     plab = tlab.copy()
     plab.append('Gmass')
-    if param['CHK_CLOSE'] == 'YES':
+    if param['CHK_CLOSE']:
        plab.append('radius')
-    if param['RHILL_PRESENT'] == 'YES':
+    if param['RHILL_PRESENT']:
         plab.append('rhill')
     clab = ['Gmass', 'radius', 'j2rp2', 'j4rp4']
-    if param['ROTATION'] == 'YES':
+    if param['ROTATION']:
         clab.append('Ip1')
         clab.append('Ip2')
         clab.append('Ip3')
@@ -501,7 +566,7 @@ def make_swiftest_labels(param):
         plab.append('rotx')
         plab.append('roty')
         plab.append('rotz')
-    if param['TIDES'] == 'YES':
+    if param['TIDES']:
         clab.append('k2')
         clab.append('Q')
         plab.append('k2')
@@ -588,14 +653,14 @@ def swiftest_stream(f, param):
         Rcb = f.read_reals(np.float64)
         J2cb = f.read_reals(np.float64)
         J4cb = f.read_reals(np.float64)
-        if param['ROTATION'] == 'YES':
+        if param['ROTATION']:
             Ipcbx = f.read_reals(np.float64)
             Ipcby = f.read_reals(np.float64)
             Ipcbz = f.read_reals(np.float64)
             rotcbx = f.read_reals(np.float64)
             rotcby = f.read_reals(np.float64)
             rotcbz = f.read_reals(np.float64)
-        if param['TIDES'] == 'YES':
+        if param['TIDES']:
             k2cb = f.read_reals(np.float64)
             Qcb = f.read_reals(np.float64)
         if npl[0] > 0:
@@ -619,17 +684,17 @@ def swiftest_stream(f, param):
                p11 = f.read_reals(np.float64)
                p12 = f.read_reals(np.float64) 
             GMpl = f.read_reals(np.float64)
-            if param['RHILL_PRESENT'] == 'YES':
+            if param['RHILL_PRESENT']:
                 rhill = f.read_reals(np.float64)
             Rpl = f.read_reals(np.float64)
-            if param['ROTATION'] == 'YES':
+            if param['ROTATION']:
                 Ipplx = f.read_reals(np.float64)
                 Ipply = f.read_reals(np.float64)
                 Ipplz = f.read_reals(np.float64)
                 rotplx = f.read_reals(np.float64)
                 rotply = f.read_reals(np.float64)
                 rotplz = f.read_reals(np.float64)
-            if param['TIDES'] == 'YES':
+            if param['TIDES']:
                 k2pl = f.read_reals(np.float64)
                 Qpl = f.read_reals(np.float64)
         if ntp[0] > 0:
@@ -679,14 +744,14 @@ def swiftest_stream(f, param):
             tpid = np.empty(0)
             tpnames = np.empty(0)
         cvec = np.array([Mcb, Rcb, J2cb, J4cb])
-        if param['RHILL_PRESENT'] == 'YES':
+        if param['RHILL_PRESENT']:
            if npl > 0:
               pvec = np.vstack([pvec, rhill])
-        if param['ROTATION'] == 'YES':
+        if param['ROTATION']:
             cvec = np.vstack([cvec, Ipcbx, Ipcby, Ipcbz, rotcbx, rotcby, rotcbz])
             if npl > 0:
                 pvec = np.vstack([pvec, Ipplx, Ipply, Ipplz, rotplx, rotply, rotplz])
-        if param['TIDES'] == 'YES':
+        if param['TIDES']:
             cvec = np.vstack([cvec, k2cb, Qcb])
             if npl > 0:
                 pvec = np.vstack([pvec, k2pl, Qpl])
@@ -1018,14 +1083,14 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'],errors="ignore")
     
     GMSun = np.double(cb['Gmass'])
-    if param['CHK_CLOSE'] == 'YES':
+    if param['CHK_CLOSE']:
        RSun = np.double(cb['radius'])
     else:
        RSun = param['CHK_RMIN']
     J2 = np.double(cb['j2rp2'])
     J4 = np.double(cb['j4rp4'])
     cbname = cb['name'].values[0]
-    if param['ROTATION'] == 'YES':
+    if param['ROTATION']:
         Ip1cb = np.double(cb['Ip1'])
         Ip2cb = np.double(cb['Ip2'])
         Ip3cb = np.double(cb['Ip3'])
@@ -1042,7 +1107,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         print(RSun, file=cbfile)
         print(J2, file=cbfile)
         print(J4, file=cbfile)
-        if param['ROTATION'] == 'YES':
+        if param['ROTATION']:
             print(Ip1cb, Ip2cb, Ip3cb, file=cbfile)
             print(rotxcb, rotycb, rotzcb, file=cbfile)
         cbfile.close()
@@ -1051,11 +1116,11 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         print(pl.id.count().values, file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
-            if param['RHILL_PRESENT'] == 'YES':
+            if param['RHILL_PRESENT']:
                print(pli['name'].values[0], pli['Gmass'].values[0], pli['rhill'].values[0], file=plfile)
             else:
                print(pli['name'].values[0], pli['Gmass'].values[0], file=plfile)
-            if param['CHK_CLOSE'] == 'YES':
+            if param['CHK_CLOSE']:
                print(pli['radius'].values[0], file=plfile)
             if param['IN_FORM'] == 'XV':
                 print(pli['xhx'].values[0], pli['xhy'].values[0], pli['xhz'].values[0], file=plfile)
@@ -1065,7 +1130,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
                 print(pli['capom'].values[0], pli['omega'].values[0], pli['capm'].values[0], file=plfile)
             else:
                 print(f"{param['IN_FORM']} is not a valid input format type.")
-            if param['ROTATION'] == 'YES':
+            if param['ROTATION']:
                 print(pli['Ip1'].values[0], pli['Ip2'].values[0], pli['Ip3'].values[0], file=plfile)
                 print(pli['rotx'].values[0], pli['roty'].values[0], pli['rotz'].values[0], file=plfile)
         plfile.close()
@@ -1114,7 +1179,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'])
     
     GMSun = np.double(cb['Gmass'])
-    if param['CHK_CLOSE'] == 'YES':
+    if param['CHK_CLOSE']:
        RSun = np.double(cb['radius'])
     else:
        RSun = param['CHK_RMIN']
@@ -1130,11 +1195,11 @@ def swifter_xr2infile(ds, param, framenum=-1):
         print('0.0 0.0 0.0', file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
-            if param['RHILL_PRESENT'] == "YES":
+            if param['RHILL_PRESENT']:
                 print(i.values, pli['Gmass'].values, pli['rhill'].values, file=plfile)
             else:
                 print(i.values, pli['Gmass'].values, file=plfile)
-            if param['CHK_CLOSE'] == "YES":
+            if param['CHK_CLOSE']:
                 print(pli['radius'].values, file=plfile)
             print(pli['xhx'].values, pli['xhy'].values, pli['xhz'].values, file=plfile)
             print(pli['vhx'].values, pli['vhy'].values, pli['vhz'].values, file=plfile)
@@ -1181,10 +1246,10 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
         intxt = input("Is this a SyMBA input file with RHILL values in pl.in? (y/N)> ")
     if intxt.upper() == 'Y':
         isSyMBA = True
-        swifter_param['RHILL_PRESENT'] = 'YES'
+        swifter_param['RHILL_PRESENT'] = True
     else:
         isSyMBA = False
-        swifter_param['RHILL_PRESENT'] = 'NO'
+        swifter_param['RHILL_PRESENT'] = False
         
     isDouble = conversion_questions.get('DOUBLE', None)
     if not isDouble:
@@ -1212,9 +1277,9 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
         swifter_param['OUT_FORM'] = 'XV'
     
     if swift_param['LCLOSE'] == "T":
-        swifter_param['CHK_CLOSE'] = "YES"
+        swifter_param['CHK_CLOSE'] = True
     else:
-        swifter_param['CHK_CLOSE'] = "NO"
+        swifter_param['CHK_CLOSE'] = False
         
     swifter_param['CHK_RMIN'] = swift_param['RMIN']
     swifter_param['CHK_RMAX'] = swift_param['RMAX']
@@ -1253,17 +1318,17 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     if not intxt:
         intxt = input("EXTRA_FORCE: Use additional user-specified force routines? (y/N)> ")
     if intxt.upper() == 'Y':
-        swifter_param['EXTRA_FORCE'] = 'YES'
+        swifter_param['EXTRA_FORCE'] = True
     else:
-        swifter_param['EXTRA_FORCE'] = 'NO'
+        swifter_param['EXTRA_FORCE'] = False
 
     intxt = conversion_questions.get('BIG_DISCARD', None)
     if not intxt:
         intxt = input("BIG_DISCARD: include data for all bodies > GMTINY for each discard record? (y/N)> ")
     if intxt.upper() == 'Y':
-        swifter_param['BIG_DISCARD'] = 'YES'
+        swifter_param['BIG_DISCARD'] = True
     else:
-        swifter_param['BIG_DISCARD'] = 'NO'
+        swifter_param['BIG_DISCARD'] = False
     
     # Convert the PL file
     if plname == '':
@@ -1309,11 +1374,11 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                 else:
                     if swift_param['LCLOSE'] == "T":
                         plrad = real2float(i_list[1])
-                if swifter_param['RHILL_PRESENT'] == 'YES':
+                if swifter_param['RHILL_PRESENT']:
                     print(n + 1, GMpl, rhill, file=plnew)
                 else:
                     print(n + 1, GMpl, file=plnew)
-                if swifter_param['CHK_CLOSE'] == 'YES':
+                if swifter_param['CHK_CLOSE']:
                     print(plrad, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
@@ -1433,12 +1498,12 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 idnum = int(i_list[0])
                 GMpl = real2float(i_list[1])
-                if swifter_param['RHILL_PRESENT'] == 'YES':
+                if swifter_param['RHILL_PRESENT']:
                    rhill = real2float(i_list[2])
                    print(idnum, GMpl, rhill, file=plnew)
                 else:
                    print(idnum, GMpl, file=plnew)
-                if swifter_param['CHK_CLOSE'] == 'YES':
+                if swifter_param['CHK_CLOSE']:
                     line = plold.readline()
                     i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                     plrad = real2float(i_list[0])
@@ -1608,7 +1673,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         
     # Remove the unneeded parameters
     if 'C' in swiftest_param:
-        swiftest_param['GR'] = 'YES'
+        swiftest_param['GR'] = True
         swiftest_param.pop('C', None)
     swiftest_param.pop('J2', None)
     swiftest_param.pop('J4', None)
@@ -1697,7 +1762,7 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     TU2S = swifter_param.pop("TU2S", 1.0)
     GR = swifter_param.pop("GR", None)
     if GR is not None:
-        if GR == 'YES':
+        if GR:
            swifter_param['C'] =  swiftest.einsteinC * np.longdouble(TU2S) / np.longdouble(DU2M)
     for key in newfeaturelist:
        tmp = swifter_param.pop(key, None)
@@ -1769,7 +1834,7 @@ def swifter2swift_param(swifter_param, J2=0.0, J4=0.0):
     swift_param['BINARY_OUTPUTFILE'] = swifter_param['BIN_OUT']
     swift_param['STATUS_FLAG_FOR_OPEN_STATEMENTS'] = swifter_param['OUT_STAT']
 
-    if swifter_param['CHK_CLOSE'] == "YES":
+    if swifter_param['CHK_CLOSE']:
         swift_param['LCLOSE'] = "T"
     else:
         swift_param['LCLOSE'] = "F"
