@@ -220,7 +220,7 @@ class Simulation:
                               output_file_name=output_file_name,
                               output_format=output_format)
 
-        self.set_features(close_encounter_check=close_encounter_check,
+        self.set_feature(close_encounter_check=close_encounter_check,
                           general_relativity=general_relativity,
                           fragmentation=fragmentation,
                           rotation=rotation,
@@ -247,7 +247,7 @@ class Simulation:
                 print(f"BIN_OUT file {binpath} not found.")
         return
 
-    def set_features(self,
+    def set_feature(self,
                      close_encounter_check: bool | None = None,
                      general_relativity: bool | None = None,
                      fragmentation: bool | None = None,
@@ -340,11 +340,11 @@ class Simulation:
             verbose = self.verbose
         if verbose:
             if len(update_list) > 0:
-                feature_dict = self.get_features(update_list)
+                feature_dict = self.get_feature(update_list)
         return
 
 
-    def get_features(self,feature: str | List[str] | None = None):
+    def get_feature(self,feature: str | List[str] | None = None):
         """
 
         Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
