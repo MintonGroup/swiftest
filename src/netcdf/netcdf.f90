@@ -366,12 +366,10 @@ contains
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid), "netcdf_open nf90_inq_varid time_varid" )
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid), "netcdf_open nf90_inq_varid id_varid" )
-      call check( nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid), "netcdf_open nf90_inq_varid npl_varid" )
-      call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid), "netcdf_open nf90_inq_varid ntp_varid" )
-      if (param%integrator == SYMBA) call check( nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid), "netcdf_open nf90_inq_varid nplm_varid" )
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid), "netcdf_open nf90_inq_varid name_varid" )
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
       call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid), "netcdf_open nf90_inq_varid status_varid" )
+      call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
@@ -409,7 +407,6 @@ contains
          call check( nf90_inq_varid(self%ncid, OMEGA_VARNAME, self%omega_varid), "netcdf_open nf90_inq_varid omega_varid" )
          call check( nf90_inq_varid(self%ncid, CAPM_VARNAME, self%capm_varid), "netcdf_open nf90_inq_varid capm_varid" )
       end if
-      call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
       if (param%lrhill_present) call check( nf90_inq_varid(self%ncid, RHILL_VARNAME, self%rhill_varid), "netcdf_open nf90_inq_varid rhill_varid" )
 
