@@ -351,6 +351,9 @@ contains
       ! Internals
       integer(I4B) :: mode, status
       character(len=NF90_MAX_NAME) :: str_dim_name
+      integer(I4B)                              :: idmax
+      real(DP), dimension(:), allocatable       :: gmtemp
+      logical, dimension(:), allocatable        :: tpmask, plmask, plmmask
 
       mode = NF90_WRITE
       !if (present(readonly)) then
@@ -370,6 +373,45 @@ contains
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
       call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid), "netcdf_open nf90_inq_varid status_varid" )
       call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
+
+      if ((nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid) /= nf90_noerr) .or. & 
+         (nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid) /= nf90_noerr) .or. &
+         ((nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid) /= nf90_noerr) .and. (param%integrator == SYMBA))) then
+         call check( nf90_inquire_dimension(self%ncid, self%id_dimid, len=idmax), "netcdf_open nf90_inquire_dimension id_dimid"  )
+         allocate(gmtemp(idmax))
+         call check( nf90_get_var(self%ncid, self%Gmass_varid, gmtemp, start=[1,1]), "netcdf_open nf90_getvar Gmass_varid"  )
+         allocate(tpmask(idmax))
+         allocate(plmask(idmax))
+         allocate(plmmask(idmax))
+         plmask(:) = gmtemp(:) == gmtemp(:)
+         tpmask(:) = .not. plmask(:)
+         plmask(1) = .false. ! This is the central body
+         select type (param)
+         class is (symba_parameters)
+            plmmask(:) = gmtemp(:) > param%GMTINY .and. plmask(:)
+         end select
+         if ((nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid) /= nf90_noerr)) then
+            call check( nf90_redef(self%ncid), "netcdf_open nf90_redef npl_varid")
+            call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid), "netcdf_open nf90_def_var npl_varid"  )
+            call check( nf90_enddef(self%ncid), "netcdf_open nf90_enddef npl_varid")
+            call check( nf90_put_var(self%ncid, self%npl_varid, count(plmask(:)), start=[1]), "netcdf_open nf90_put_var npl_varid"  )
+            call check( nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid), "netcdf_open nf90_inq_varid npl_varid" )
+         end if
+         if (nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid) /= nf90_noerr) then
+            call check( nf90_redef(self%ncid), "netcdf_open nf90_redef ntp_varid")
+            call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid), "netcdf_open nf90_def_var ntp_varid"  )
+            call check( nf90_enddef(self%ncid), "netcdf_open nf90_enddef ntp_varid")
+            call check( nf90_put_var(self%ncid, self%ntp_varid, count(tpmask(:)), start=[1]), "netcdf_open nf90_put_var ntp_varid"  )
+            call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid), "netcdf_open nf90_inq_varid ntp_varid" )
+         end if
+         if ((nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid) /= nf90_noerr) .and. (param%integrator == SYMBA)) then
+            call check( nf90_redef(self%ncid), "netcdf_open nf90_redef nplm_varid")
+            call check( nf90_def_var(self%ncid, NPLM_VARNAME, NF90_INT, self%time_dimid, self%nplm_varid), "netcdf_open nf90_def_var nplm_varid"  )
+            call check( nf90_enddef(self%ncid), "netcdf_open nf90_enddef nplm_varid")
+            call check( nf90_put_var(self%ncid, self%nplm_varid, count(plmmask(:)), start=[1]), "netcdf_open nf90_put_var nplm_varid"  )
+            call check( nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid), "netcdf_open nf90_inq_varid nplm_varid" )
+         end if 
+      end if
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
