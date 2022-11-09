@@ -1,5 +1,4 @@
 """
-                    self.param['BIN_OUT'] = binpath
  Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
  Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
@@ -36,6 +35,13 @@ class Simulation:
                  codename: Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
                  param_file: os.PathLike | str ="param.in",
                  read_param: bool = False,
+                 t0: float = 0.0,
+                 tstart: float = 0.0,
+                 tstop: float = 1.0,
+                 dt: float = 0.002,
+                 istep_out: int = 50,
+                 tstep_out: float | None = None,
+                 istep_dump: int = 50,
                  init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"] = "NETCDF_DOUBLE",
                  init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[str, os.PathLike] | None = None,
                  init_cond_format: Literal["EL", "XV"] = "EL",
@@ -247,6 +253,16 @@ class Simulation:
                          rhill_present=rhill_present,
                          restart=restart,
                          verbose = False)
+
+        self.set_simulation_time(t0=t0,
+                                 tstart=tstart,
+                                 tstop=tstop,
+                                 dt=dt,
+                                 tstep_out=tstep_out,
+                                 istep_out=istep_out,
+                                 istep_dump=istep_dump,
+                                 verbose = False
+                                 )
 
         # If the parameter file is in a different location than the current working directory, we will need
         # to use it to properly open bin files
@@ -1190,12 +1206,12 @@ class Simulation:
             for k in mass_keys:
                 if k in self.param:
                     print(f"param['{k}']: {self.param[k]}")
-                    self.param[k] *= self.param['MU2KG'] / MU2KG_old
+                    self.param[k] *= MU2KG_old / self.param['MU2KG']
 
         if DU2M_old is not None:
             for k in distance_keys:
                 if k in self.param:
-                    self.param[k] *= self.param['DU2M'] / DU2M_old
+                    self.param[k] *= DU2M_old / self.param['DU2M']
 
             CHK_QMIN_RANGE = self.param.pop('CHK_QMIN_RANGE', None)
             if CHK_QMIN_RANGE is not None:
@@ -1207,7 +1223,7 @@ class Simulation:
         if TU2S_old is not None:
             for k in time_keys:
                 if k in self.param:
-                    self.param[k] *= self.param['TU2S'] / TU2S_old
+                    self.param[k] *=  TU2S_old / self.param['TU2S']
 
         return
 
