@@ -1464,6 +1464,11 @@ class Simulation:
         self.ds['ntp'] = self.ds['id'].where(np.isnan(self.ds['Gmass'])).count(dim="id")
         self.ds['npl'] = self.ds['id'].where(np.invert(np.isnan(self.ds['Gmass']))).count(dim="id") - 1
 
+        if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
+            self.ds = io.fix_types(self.ds,ftype=np.float64)
+        elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
+            self.ds = io.fix_types(self.ds,ftype=np.float32)
+
         return
     
     
