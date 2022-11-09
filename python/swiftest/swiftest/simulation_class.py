@@ -26,7 +26,6 @@ from typing import (
     Any
 )
 
-
 class Simulation:
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
@@ -37,11 +36,11 @@ class Simulation:
                  read_param: bool = False,
                  t0: float = 0.0,
                  tstart: float = 0.0,
-                 tstop: float = 1.0,
-                 dt: float = 0.002,
-                 istep_out: int = 50,
+                 tstop: float | None = None,
+                 dt: float | None = None,
+                 istep_out: int | None = None,
                  tstep_out: float | None = None,
-                 istep_dump: int = 50,
+                 istep_dump: int | None = None,
                  init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"] = "NETCDF_DOUBLE",
                  init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[str, os.PathLike] | None = None,
                  init_cond_format: Literal["EL", "XV"] = "EL",
@@ -86,6 +85,22 @@ class Simulation:
             a new parameter file using the arguments passed to Simulation.
             > *Note:* If set to true, the parameters defined in the input file will override any passed into the
             > arguments of Simulation.
+        t0 : float, default 0.0
+            The reference time for the start of the simulation. Defaults is 0.0
+        tstart : float, default 0.0
+            The start time for a restarted simulation. For a new simulation, tstart will be set to t0 automatically.
+        tstop : float, optional
+            The stopping time for a simulation. `tstop` must be greater than `tstart`.
+        dt : float, optional
+            The step size of the simulation. `dt` must be less than or equal to `tstop-dstart`.
+        istep_out : int, optional
+            The number of time steps between outputs to file. *Note*: only `istep_out` or `toutput` can be set.
+        tstep_out : float, optional
+            The approximate time between when outputs are written to file. Passing this computes
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
+        istep_dump : int, optional
+            The anumber of time steps between outputs to dump file. If not set, this will be set to the value of
+            `istep_out` (or the equivalent value determined by `tstep_out`)
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
             The file type containing initial conditions for the simulation:
             * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE
@@ -346,54 +361,54 @@ class Simulation:
 
         if tstop is None:
             tstop = self.param.pop("TSTOP", None)
-            if tstop is None:
-                print("Error! tstop is not set!")
-                return
         else:
             update_list.append("tstop")
 
-        if tstop <= tstart:
-            print("Error! tstop must be greater than tstart.")
-            return
+        if tstop is not None:
+            if tstop <= tstart:
+                print("Error! tstop must be greater than tstart.")
+                return
 
-        self.param['TSTOP'] = tstop
+        if tstop is not None:
+            self.param['TSTOP'] = tstop
 
         if dt is None:
             dt = self.param.pop("DT", None)
-            if dt is None:
-                print("Error! dt is not set!")
-                return
         else:
             update_list.append("dt")
 
-        if dt > (tstop - tstart):
-            print("Error! dt must be smaller than tstop-tstart")
-            print(f"Setting dt = {tstop-tstart} instead of {dt}")
-            dt = tstop - tstart
+        if dt is not None and tstop is not None:
+            if dt > (tstop - tstart):
+                print("Error! dt must be smaller than tstop-tstart")
+                print(f"Setting dt = {tstop-tstart} instead of {dt}")
+                dt = tstop - tstart
 
-        self.param['DT'] = dt
+        if dt is not None:
+            self.param['DT'] = dt
 
         if istep_out is None and tstep_out is None:
             istep_out = self.param.pop("ISTEP_OUT", None)
-            if istep_out is None:
-                print("Error! istep_out is not set")
-                return
 
         if istep_out is not None and tstep_out is not None:
             print("Error! istep_out and tstep_out cannot both be set")
             return
 
-        if tstep_out is not None:
+        if tstep_out is not None and dt is not None:
             istep_out = int(np.floor(tstep_out / dt))
 
-        self.param['ISTEP_OUT'] = istep_out
+        if istep_out is not None:
+            self.param['ISTEP_OUT'] = istep_out
+            update_list.append("istep_out")
 
         if istep_dump is None:
-            istep_dump = istep_out
+            istep_dump = self.param.pop("ISTEP_DUMP",None)
+            if istep_dump is None:
+                istep_dump = istep_out
 
-        self.param['ISTEP_DUMP'] = istep_dump
+        if istep_dump is not None:
+            self.param['ISTEP_DUMP'] = istep_dump
+            update_list.append("istep_dump")
 
-        update_list.extend(["istep_out", "tstep_out", "istep_dump"])
 
         if verbose is None:
             verbose = self.verbose
@@ -439,19 +454,22 @@ class Simulation:
                  "istep_out" : "",
                  "istep_dump" : ""}
 
+        tstep_out = None
         if arg_list is None or "tstep_out" in arg_list or "istep_out" in arg_list:
-            istep_out = self.param['ISTEP_OUT']
-            dt = self.param['DT']
-            tstep_out = istep_out * dt
-        else:
-            tstep_out = None
+            if "ISTEP_OUT" in self.param and "DT" in self.param:
+                istep_out = self.param['ISTEP_OUT']
+                dt = self.param['DT']
+                tstep_out = istep_out * dt
 
         valid_arg, time_dict = self._get_valid_arg_list(arg_list, valid_var)
 
         if self.verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
-                print(f"{arg:<32} {time_dict[key]} {units[arg]}")
+                if key in time_dict:
+                    print(f"{arg:<32} {time_dict[key]} {units[arg]}")
+                else:
+                    print(f"{arg:<32} NOT SET")
             if tstep_out is not None:
                 print(f"{'tstep_out':<32} {tstep_out} {units['tstep_out']}")
 
@@ -1292,7 +1310,6 @@ class Simulation:
 
         """
 
-
         if arg_list is None:
             valid_arg = None
         else:
@@ -1307,7 +1324,7 @@ class Simulation:
             valid_arg = [k for k in arg_list if k in list(valid_var.keys())]
 
         # Extract the arg_list dictionary
-        param = {valid_var[feat]:self.param[valid_var[feat]] for feat in valid_arg}
+        param = {valid_var[arg]:self.param[valid_var[arg]] for arg in valid_arg if valid_var[arg] in self.param}
 
         return valid_arg, param
 
