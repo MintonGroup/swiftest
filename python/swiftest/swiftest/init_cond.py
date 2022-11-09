@@ -146,7 +146,7 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         Rpl = Rcb
         J2 = J2RP2
         J4 = J4RP4
-        if param['ROTATION'] == 'YES':
+        if param['ROTATION']:
             Ip1 = [Ipsun[0]]
             Ip2 = [Ipsun[1]]
             Ip3 = [Ipsun[2]]
@@ -202,19 +202,19 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         if ispl:
             GMpl = []
             GMpl.append(GMcb[0] / MSun_over_Mpl[plname])
-            if param['CHK_CLOSE'] == 'YES':
+            if param['CHK_CLOSE']:
                 Rpl = []
                 Rpl.append(planetradius[plname] * DCONV)
             else:
                 Rpl = None
 
             # Generate planet value vectors
-            if (param['RHILL_PRESENT'] == 'YES'):
+            if (param['RHILL_PRESENT']):
                 rhill = []
                 rhill.append(pldata[plname].elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[plname]) ** (-THIRDLONG))
             else:
                 rhill = None
-            if (param['ROTATION'] == 'YES'):
+            if (param['ROTATION']):
                 Ip1 = []
                 Ip2 = []
                 Ip3 = []
@@ -304,7 +304,7 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     else:
         iscb = False
 
-    if param['ROTATION'] == 'YES':
+    if param['ROTATION']:
         if Ip1 is None:
             Ip1 = np.full_like(v1, 0.4)
         if Ip2 is None:
@@ -325,10 +325,10 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     else:
         ispl = False
    
-    if ispl and param['CHK_CLOSE'] == 'YES' and Rpl is None:
+    if ispl and param['CHK_CLOSE'] and Rpl is None:
         print("Massive bodies need a radius value.")
         return None
-    if ispl and rhill is None and param['RHILL_PRESENT'] == 'YES':
+    if ispl and rhill is None and param['RHILL_PRESENT']:
         print("rhill is required.")
         return None
    
@@ -342,7 +342,7 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     if iscb:
         label_float = clab.copy()
         vec_float = np.vstack([GMpl,Rpl,J2,J4])
-        if param['ROTATION'] == 'YES':
+        if param['ROTATION']:
             vec_float = np.vstack([vec_float, Ip1, Ip2, Ip3, rotx, roty, rotz])
         particle_type = "Central Body"
     else:
@@ -350,11 +350,11 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
         if ispl:
             label_float = plab.copy()
             vec_float = np.vstack([vec_float, GMpl])
-            if param['CHK_CLOSE'] == 'YES':
+            if param['CHK_CLOSE']:
                 vec_float = np.vstack([vec_float, Rpl])
-            if param['RHILL_PRESENT'] == 'YES':
+            if param['RHILL_PRESENT']:
                 vec_float = np.vstack([vec_float, rhill])
-            if param['ROTATION'] == 'YES':
+            if param['ROTATION']:
                 vec_float = np.vstack([vec_float, Ip1, Ip2, Ip3, rotx, roty, rotz])
             particle_type = np.repeat("Massive Body",idvals.size)
         else:
