@@ -423,7 +423,7 @@ class Simulation:
                  "istep_out" : "",
                  "istep_dump" : ""}
 
-        if arg_list is not None and "tstep_out" in arg_list:
+        if arg_list is None or "tstep_out" in arg_list or "istep_out" in arg_list:
             istep_out = self.param['ISTEP_OUT']
             dt = self.param['DT']
             tstep_out = istep_out * dt
