@@ -46,6 +46,12 @@ bool_param = ["RESTART",
               "YARKOVSKY",
               "YORP"]
 
+int_param = ["ISTEP_OUT", "ISTEP_DUMP"]
+float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
+               "TU2S", "MIN_GMFRAG", "GMTINY"]
+
+upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM"]
+
 # This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "status", "origin_type"]
@@ -107,10 +113,10 @@ def str2bool(input_str):
     valid_false = ["NO", "N", "F", "FALSE", ".FALSE."]
     if input_str.upper() in valid_true:
         return True
-    elif input_str.lower() in valid_false:
+    elif input_str.upper() in valid_false:
         return False
     else:
-        raise ValueError(f"{input_str} cannot is not recognized as boolean")
+        raise ValueError(f"{input_str} is not recognized as boolean")
 
 
 
@@ -147,7 +153,8 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         A dictionary containing the entries in the user parameter file
     """
     param['! VERSION'] = f"Swiftest parameter input from file {param_file_name}"
-    
+
+
     # Read param.in file
     if verbose: print(f'Reading Swiftest file {param_file_name}')
     try:
@@ -158,38 +165,23 @@ def read_swiftest_param(param_file_name, param, verbose=True):
                     if fields[0][0] != '!':
                         key = fields[0].upper()
                         param[key] = fields[1]
-                    #for key in param:
-                    #    if (key == fields[0].upper()): param[key] = fields[1]
                     # Special case of CHK_QMIN_RANGE requires a second input
                     if fields[0].upper() == 'CHK_QMIN_RANGE':
                         alo = real2float(fields[1])
                         ahi = real2float(fields[2])
                         param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
-        
-        param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
-        param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-        param['OUT_TYPE'] = param['OUT_TYPE'].upper()
-        param['OUT_FORM'] = param['OUT_FORM'].upper()
-        param['OUT_STAT'] = param['OUT_STAT'].upper()
-        param['IN_TYPE'] = param['IN_TYPE'].upper()
-        param['IN_FORM'] = param['IN_FORM'].upper()
-        param['T0'] = real2float(param['T0'])
-        param['TSTART'] = real2float(param['TSTART'])
-        param['TSTOP'] = real2float(param['TSTOP'])
-        param['DT'] = real2float(param['DT'])
-        param['CHK_RMIN'] = real2float(param['CHK_RMIN'])
-        param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
-        param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
-        param['CHK_QMIN'] = real2float(param['CHK_QMIN'])
-        param['DU2M'] = real2float(param['DU2M'])
-        param['MU2KG'] = real2float(param['MU2KG'])
-        param['TU2S'] = real2float(param['TU2S'])
-        param['INTERACTION_LOOPS'] = param['INTERACTION_LOOPS'].upper()
-        param['ENCOUNTER_CHECK'] = param['ENCOUNTER_CHECK'].upper()
-        if 'GMTINY' in param:
-            param['GMTINY'] = real2float(param['GMTINY'])
-        if 'MIN_GMFRAG' in param:
-            param['MIN_GMFRAG'] = real2float(param['MIN_GMFRAG'])
+
+        for uc in upper_str_param:
+            if uc in param:
+                param[uc] = param[uc].upper()
+
+        for i in int_param:
+            if i in param and type(i) != int:
+                param[i] = int(param[i])
+
+        for f in float_param:
+            if f in param and type(f) is str:
+                param[f] = real2float(param[f])
         for b in bool_param:
             if b in param:
                 param[b] = str2bool(param[b])

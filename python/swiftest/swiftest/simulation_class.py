@@ -240,6 +240,15 @@ class Simulation:
         self.verbose = verbose
         self.restart = restart
 
+        # If the parameter file is in a different location than the current working directory, we will need
+        # to use it to properly open bin files
+        self.sim_dir = os.path.dirname(os.path.realpath(param_file))
+        if read_param:
+            if os.path.exists(param_file):
+                self.read_param(param_file, codename=codename, verbose=self.verbose)
+            else:
+                print(f"{param_file} not found.")
+
         self.set_distance_range(rmin=rmin, rmax=rmax, verbose = False)
 
         self.set_unit_system(MU=MU, DU=DU, TU=TU,
@@ -279,14 +288,7 @@ class Simulation:
                                  verbose = False
                                  )
 
-        # If the parameter file is in a different location than the current working directory, we will need
-        # to use it to properly open bin files
-        self.sim_dir = os.path.dirname(os.path.realpath(param_file))
-        if read_param:
-            if os.path.exists(param_file):
-                self.read_param(param_file, codename=codename, verbose=self.verbose)
-            else:
-                print(f"{param_file} not found.")
+
 
         if read_old_output_file:
             binpath = os.path.join(self.sim_dir,self.param['BIN_OUT'])
@@ -1487,7 +1489,8 @@ class Simulation:
             self.ds : xarray dataset
         """
         if codename == "Swiftest":
-            self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
+            param_old = self.param.copy()
+            self.param = io.read_swiftest_param(param_file, param_old, verbose=verbose)
             self.codename = "Swiftest"
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
