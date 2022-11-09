@@ -475,6 +475,26 @@ class Simulation:
 
         return time_dict
 
+    def set_parameters(self, **kwargs):
+        """
+        Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
+        Parameters
+        ----------
+        **kwargs : [TODO: write this documentation]
+
+        Returns
+        -------
+        param : A dictionary of all Simulation parameters that changed
+
+        """
+        self.set_unit_system(**kwargs)
+        self.set_distance_range(**kwargs)
+        self.set_feature(**kwargs)
+        self.set_init_cond_files(**kwargs)
+        self.set_output_files(**kwargs)
+        self.set_simulation_time(**kwargs)
+
+
     def set_feature(self,
                     close_encounter_check: bool | None = None,
                     general_relativity: bool | None = None,
@@ -800,16 +820,10 @@ class Simulation:
 
         # We have to figure out which initial conditions file model we are using (1 vs. 3 files)
         if arg_list is None:
-            valid_arg = None
-        else:
-            valid_arg = arg_list.copy()
-
-        if valid_arg is None:
             valid_arg = list(valid_var.keys())
         elif type(arg_list) is str:
             valid_arg = [arg_list]
         else:
-            # Only allow arg_lists to be checked if they are valid. Otherwise ignore.
             valid_arg = [k for k in arg_list if k in list(valid_var.keys())]
 
         # Figure out which input file model we need to use
@@ -1364,26 +1378,23 @@ class Simulation:
                  "qminR" : self.DU_name,
                  }
 
-        if "rmin" in arg_list:
-            arg_list.append("qmin")
-        if "rmax" in arg_list or "rmin" in arg_list:
-            arg_list.append("qminR")
+        if type(arg_list) is str:
+            arg_list = [arg_list]
+        if arg_list is not None:
+            if "rmin" in arg_list:
+                arg_list.append("qmin")
+            if "rmax" in arg_list or "rmin" in arg_list:
+                arg_list.append("qminR")
 
         valid_arg, range_dict = self._get_valid_arg_list(arg_list, valid_var)
 
         if self.verbose:
             if "rmin" in valid_arg:
-                key = valid_arg["rmin"]
+                key = valid_var["rmin"]
                 print(f"{'rmin':<32} {range_dict[key]} {units['rmin']}")
-                key = valid_arg["qmin"]
-                print(f"{'':<32} {range_dict[key]} {units['qmin']}")
             if "rmax" in valid_arg:
-                key = valid_arg["rmax"]
+                key = valid_var["rmax"]
                 print(f"{'rmax':<32} {range_dict[key]} {units['rmax']}")
-            if "rmax" in valid_arg or "rmin" in valid_arg:
-                key = valid_arg["qminR"]
-                print(f"{'':<32} {range_dict[key]} {units['qminR']}")
-
 
         return range_dict
 
