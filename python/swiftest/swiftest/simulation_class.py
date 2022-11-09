@@ -23,7 +23,8 @@ import shutil
 from typing import (
     Literal,
     Dict,
-    List
+    List,
+    Any
 )
 
 
@@ -48,6 +49,9 @@ class Simulation:
                  MU2KG: float | None = None,
                  DU2M: float | None = None,
                  TU2S: float | None = None,
+                 MU_name: str | None = None,
+                 DU_name: str | None = None,
+                 TU_name: str | None = None,
                  rmin: float = constants.RSun / constants.AU2M,
                  rmax: float = 10000.0,
                  close_encounter_check: bool = True,
@@ -140,6 +144,15 @@ class Simulation:
         TU2S : float, optional
             The conversion factor to multiply by the time unit that would convert it to seconds.
             Setting this overrides TU
+        MU_name : str, optional
+            The name of the mass unit. When setting one of the standard units via `MU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+        DU_name : str, optional
+            The name of the distance unit. When setting one of the standard units via `DU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+        TU_name : str, optional
+            The name of the time unit. When setting one of the standard units via `TU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
         rmin : float, default value is the radius of the Sun in the unit system defined by the unit input arguments.
             Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
         rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
@@ -212,15 +225,18 @@ class Simulation:
         self.verbose = verbose
         self.restart = restart
 
-        self.set_distance_range(rmin=rmin, rmax=rmax)
+        self.set_distance_range(rmin=rmin, rmax=rmax, verbose = False)
 
         self.set_unit_system(MU=MU, DU=DU, TU=TU,
                              MU2KG=MU2KG, DU2M=DU2M, TU2S=TU2S,
-                             recompute_values=True)
+                             MU_name=MU_name, DU_name=DU_name, TU_name=TU_name,
+                             recompute_values=True,
+                             verbose = False)
 
         self.set_init_cond_files(init_cond_file_type=init_cond_file_type,
                                  init_cond_file_name=init_cond_file_name,
-                                 init_cond_format=init_cond_format)
+                                 init_cond_format=init_cond_format,
+                                 verbose = False)
 
         self.set_output_files(output_file_type=output_file_type,
                               output_file_name=output_file_name,
@@ -264,6 +280,7 @@ class Simulation:
                             tstep_out : float | None = None,
                             istep_dump : int | None = None,
                             verbose : bool | None = None,
+                            **kwargs: Any
                             ):
         """
 
@@ -287,6 +304,9 @@ class Simulation:
             `istep_out` (or the equivalent value determined by `tstep_out`)
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -447,6 +467,7 @@ class Simulation:
                     restart: bool | None = None,
                     tides: bool | None = None,
                     verbose: bool | None = None,
+                    **kwargs: Any
                    ):
         """
         Turns on or off various features of a simulation.
@@ -486,6 +507,9 @@ class Simulation:
             when the run is executed.
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -596,7 +620,8 @@ class Simulation:
                             init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"] | None = None,
                             init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[str, os.PathLike] | None = None,
                             init_cond_format: Literal["EL", "XV"] | None = None,
-                            verbose: bool | None = None
+                            verbose: bool | None = None,
+                            **kwargs: Any
                             ):
         """
         Sets the initial condition file parameters in the parameters dictionary.
@@ -627,6 +652,9 @@ class Simulation:
             > *Note:* If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -771,7 +799,8 @@ class Simulation:
                          output_file_type: Literal[ "NETCDF_DOUBLE", "NETCDF_FLOAT", "REAL4", "REAL8", "XDR4", "XDR8"] | None = None,
                          output_file_name: os.PathLike | str | None = None,
                          output_format: Literal["XV", "XVEL"] | None = None,
-                         verbose: bool | None = None
+                         verbose: bool | None = None,
+                         **kwargs: Any
                          ):
         """
         Sets the output file parameters in the parameters dictionary.
@@ -792,6 +821,9 @@ class Simulation:
             vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -909,7 +941,12 @@ class Simulation:
                         MU2KG: float | None = None,
                         DU2M: float | None = None,
                         TU2S: float | None = None,
-                        recompute_values: bool = False):
+                        MU_name: str | None = None,
+                        DU_name: str | None = None,
+                        TU_name: str | None = None,
+                        recompute_values: bool = True,
+                        verbose: bool | None = None,
+                        **kwargs: Any):
         """
         Setter for setting the unit conversion between one of the standard sets.
 
@@ -951,11 +988,25 @@ class Simulation:
         TU2S  : float, optional
             The conversion factor to multiply by the time unit that would convert it to seconds.
             Setting this overrides TU
-        recompute_values : bool, default False
+        MU_name : str, optional
+            The name of the mass unit. When setting one of the standard units via `MU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+        DU_name : str, optional
+            The name of the distance unit. When setting one of the standard units via `DU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+        TU_name : str, optional
+            The name of the time unit. When setting one of the standard units via `TU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+        recompute_values : bool, default True
             Recompute all values into the new unit system.
             >*Note:* This is a destructive operation, however if not executed then the values contained in the parameter
             > file and input/output data files computed previously may not be consistent with the new unit conversion
             > factors.
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         ----------
@@ -966,6 +1017,14 @@ class Simulation:
         MU2KG_old = None
         DU2M_old = None
         TU2S_old = None
+
+        update_list = []
+        if MU is not None or MU2KG is not None:
+            update_list.append("MU")
+        if DU is not None or DU2M is not None:
+            update_list.append("DU")
+        if TU is not None or TU2S is not None:
+            update_list.append("TU")
 
         if MU2KG is not None or MU is not None:
             MU2KG_old = self.param.pop('MU2KG',None)
@@ -1033,22 +1092,89 @@ class Simulation:
                     self.param['TU2S'] = constants.YR2S
                     self.TU_name = "y"
 
+
+        if MU_name is not None:
+            self.MU_name = MU_name
+        if DU_name is not None:
+            self.DU_name = DU_name
+        if TU_name is not None:
+            self.TU_name = TU_name
+
         self.VU_name = f"{self.DU_name}/{self.TU_name}"
         self.GU = constants.GC * self.param['TU2S']**2 * self.param['MU2KG'] / self.param['DU2M']**3
 
         if recompute_values:
             self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
-        if self.verbose:
-            if self.MU_name is None or self.DU_name is None or self.TU_name is None:
-                print(f"Custom units set.")
-                print(f"MU2KG: {self.param['MU2KG']}")
-                print(f"DU2M : {self.param['DU2M']}")
-                print(f"TU2S : {self.param['TU2S']}")
-            else:
-                print(f"Units set to {self.MU_name}-{self.DU_name}-{self.TU_name}")
+        if verbose is None:
+            verbose = self.verbose
+
+        if verbose:
+            unit_dict = self.get_unit_system(update_list)
 
         return
+
+    def get_unit_system(self, arg_list: str | List[str] | None = None):
+        """
+
+        Returns a subset of the parameter dictionary containing the current simulation unit system.
+        If the verbose option is set in the Simulation object, then it will also print the values.
+
+        Parameters
+        ----------
+        arg_list : str | List[str], optional
+            A single string or list of strings containing the names of the simulation unit system
+            Default is all of:
+            ["MU", "DU", "TU"]
+
+        Returns
+        -------
+        time_dict : dict
+           A dictionary containing the requested parameters
+
+        """
+
+        valid_var = {
+                     "MU": "MU2KG",
+                     "DU": "DU2M",
+                     "TU": "TU2S",
+                     }
+
+        if self.MU_name is None:
+            MU_name = "mass unit"
+        else:
+            MU_name = self.MU_name
+        if self.DU_name is None:
+            DU_name = "distance unit"
+        else:
+            DU_name = self.DU_name
+        if self.TU_name is None:
+            TU_name = "time unit"
+        else:
+            TU_name = self.TU_name
+
+        units = {
+                 "MU" : f"kg / {MU_name}",
+                 "DU" : f"m / {DU_name}",
+                 "TU" : f"s / {TU_name}"
+                 }
+
+
+        if arg_list is None:
+            arg_list = valid_var.keys()
+        elif type(arg_list) is str:
+            arg_list = [arg_list]
+        else:
+            arg_list = [k for k in arg_list if k in set(valid_var.keys())]
+
+        unit_dict = {valid_var[k]: self.param[valid_var[k]] for k in arg_list}
+
+        if self.verbose:
+            for arg in arg_list:
+                key = valid_var[arg]
+                print(f"{arg:<32} {unit_dict[key]} {units[arg]}")
+
+        return unit_dict
 
     def update_param_units(self,MU2KG_old,DU2M_old,TU2S_old):
         """
@@ -1096,7 +1222,10 @@ class Simulation:
         return
 
 
-    def set_distance_range(self,rmin=None,rmax=None):
+    def set_distance_range(self,
+                           rmin: float | None = None,
+                           rmax: float | None = None,
+                           **kwargs: Any):
         """
         Sets the minimum and maximum distances of the simulation.
 
@@ -1106,6 +1235,9 @@ class Simulation:
             Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
         rmax : float
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
