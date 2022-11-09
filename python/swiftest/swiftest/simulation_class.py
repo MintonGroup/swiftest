@@ -224,7 +224,8 @@ class Simulation:
 
         self.set_output_files(output_file_type=output_file_type,
                               output_file_name=output_file_name,
-                              output_format=output_format)
+                              output_format=output_format,
+                              verbose = False)
 
         self.set_feature(close_encounter_check=close_encounter_check,
                          general_relativity=general_relativity,
@@ -372,7 +373,7 @@ class Simulation:
 
         return
 
-    def get_simulation_time(self, param_key: str | List[str] | None = None):
+    def get_simulation_time(self, arg_list: str | List[str] | None = None):
         """
 
         Returns a subset of the parameter dictionary containing the current simulation time parameters.
@@ -380,7 +381,7 @@ class Simulation:
 
         Parameters
         ----------
-        param_key : str | List[str], optional
+        arg_list : str | List[str], optional
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "istep_dump"]
@@ -400,36 +401,37 @@ class Simulation:
                      "istep_dump": "ISTEP_DUMP",
                      }
 
-        units = {"T0" : self.TU_name,
-                 "TSTART" : self.TU_name,
-                 "TSTOP" : self.TU_name,
-                 "DT" : self.TU_name,
-                 "TSTEP_OUT" : self.TU_name,
-                 "ISTEP_OUT" : "",
-                 "ISTEP_DUMP" : ""}
+        units = {"t0" : self.TU_name,
+                 "tstart" : self.TU_name,
+                 "tstop" : self.TU_name,
+                 "dt" : self.TU_name,
+                 "tstep_out" : self.TU_name,
+                 "istep_out" : "",
+                 "istep_dump" : ""}
 
-        if "tstep_out" in param_key:
+        if arg_list is not None and "tstep_out" in arg_list:
             istep_out = self.param['ISTEP_OUT']
             dt = self.param['DT']
             tstep_out = istep_out * dt
         else:
             tstep_out = None
 
-        if param_key is None:
-            param_list = valid_var.keys()
-        elif type(param_key) is str:
-            param_list = [param_key]
+        if arg_list is None:
+            arg_list = valid_var.keys()
+        elif type(arg_list) is str:
+            arg_list = [arg_list]
         else:
-            param_list = [k for k in param_key if k in set(valid_var.keys())]
+            arg_list = [k for k in arg_list if k in set(valid_var.keys())]
 
-        time_dict = {valid_var[k]: self.param[valid_var[k]] for k in param_list}
+        time_dict = {valid_var[k]: self.param[valid_var[k]] for k in arg_list}
 
         if self.verbose:
-            print("Simulation feature parameters:")
-            for key, val in time_dict.items():
-                print(f"{key:<16} {val} {units[key]}")
+            print("\nSimulation time parameters:")
+            for arg in arg_list:
+                key = valid_var[arg]
+                print(f"{arg:<32} {time_dict[key]} {units[arg]}")
             if tstep_out is not None:
-                print(f"{'TSTEP_OUT':<16} {tstep_out} {units['TSTEP_OUT']}")
+                print(f"{'tstep_out':<32} {tstep_out} {units['tstep_out']}")
 
         return time_dict
 
@@ -541,7 +543,7 @@ class Simulation:
         return
 
 
-    def get_feature(self,feature: str | List[str] | None = None):
+    def get_feature(self, arg_list: str | List[str] | None = None):
         """
 
         Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
@@ -549,7 +551,7 @@ class Simulation:
 
         Parameters
         ----------
-        feature : str | List[str], optional
+        arg_list: str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["close_encounter_check", "general_relativity", "fragmentation", "rotation", "compute_conservation_values"]
 
@@ -560,45 +562,48 @@ class Simulation:
 
         """
 
-        valid_features = {"close_encounter_check": "CHK_CLOSE",
-                          "general_relativity": "GR",
-                          "fragmentation": "FRAGMENTATION",
-                          "rotation": "ROTATION",
-                          "compute_conservation_values": "ENERGY",
-                          "extra_force": "EXTRA_FORCE",
-                          "big_discard": "BIG_DISCARD",
-                          "rhill_present": "RHILL_PRESENT",
-                          "restart" : "RESTART"
-                         }
+        valid_var = {"close_encounter_check": "CHK_CLOSE",
+                     "general_relativity": "GR",
+                     "fragmentation": "FRAGMENTATION",
+                     "rotation": "ROTATION",
+                     "compute_conservation_values": "ENERGY",
+                     "extra_force": "EXTRA_FORCE",
+                     "big_discard": "BIG_DISCARD",
+                     "rhill_present": "RHILL_PRESENT",
+                     "restart" : "RESTART"
+                     }
 
-        if feature is None:
-            feature_list = valid_features.keys()
-        elif type(feature) is str:
-            feature_list = [feature]
+        if arg_list is None:
+            arg_list = valid_var.keys()
+        elif type(arg_list) is str:
+            arg_list = [arg_list]
         else:
-            # Only allow features to be checked if they are valid. Otherwise ignore.
-            feature_list = [feat for feat in feature if feat in set(valid_features.keys())]
+            # Only allow arg_lists to be checked if they are valid. Otherwise ignore.
+            arg_list = [k for k in arg_list if k in set(valid_var.keys())]
 
-        # Extract the feature dictionary
-        feature_dict = {valid_features[feat]:self.param[valid_features[feat]] for feat in feature_list}
+        # Extract the arg_list dictionary
+        feature_dict = {valid_var[feat]:self.param[valid_var[feat]] for feat in arg_list}
 
         if self.verbose:
-            print("Simulation feature parameters:")
-            for key,val in feature_dict.items():
-                print(f"{key:<16} {val}")
+            print("\nSimulation feature parameters:")
+            for arg in arg_list:
+                key = valid_var[arg]
+                print(f"{arg:<32} {feature_dict[key]}")
 
         return feature_dict
 
     def set_init_cond_files(self,
-        init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"],
-        init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[str, os.PathLike] | None,
-        init_cond_format: Literal["EL", "XV"]):
+                            init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"] | None = None,
+                            init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[str, os.PathLike] | None = None,
+                            init_cond_format: Literal["EL", "XV"] | None = None,
+                            verbose: bool | None = None
+                            ):
         """
         Sets the initial condition file parameters in the parameters dictionary.
 
         Parameters
         ----------
-        init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}
+        init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, optional
             The file type containing initial conditions for the simulation:
             * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE
             * NETCDF_FLOAT: A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT
@@ -620,12 +625,20 @@ class Simulation:
             Indicates whether the input initial conditions are given as orbital elements or cartesian position and
             velocity vectors.
             > *Note:* If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
 
         Returns
         -------
         Sets the appropriate initial conditions file parameters inside the self.param dictionary.
 
         """
+
+        update_list = ["init_cond_file_name"]
+        if init_cond_file_type is not None:
+            update_list.append("init_cond_file_type")
+        if init_cond_format is not None:
+            update_list.append("init_cond_format")
 
         def ascii_file_input_error_msg(codename):
             print(f"Error in set_init_cond_files: init_cond_file_name must be a dictionary of the form: ")
@@ -678,19 +691,94 @@ class Simulation:
             else:
                 self.param["NC_IN"] = init_cond_file_name
 
+
+        if verbose is None:
+            verbose = self.verbose
+        if verbose:
+            if len(update_list) > 0:
+                init_cond_file_dict = self.get_init_cond_files(update_list)
+
         return
 
+
+    def get_init_cond_files(self, arg_list: str | List[str] | None = None):
+        """
+
+        Returns a subset of the parameter dictionary containing the current initial condition file parameters
+        If the verbose option is set in the Simulation object, then it will also print the values.
+
+        Parameters
+        ----------
+        arg_list : str | List[str], optional
+            A single string or list of strings containing the names of the simulation time parameters to extract.
+            Default is all of:
+            ["init_cond_file_type", "init_cond_file_name", "init_cond_format"]
+
+        Returns
+        -------
+        init_cond_file_dict : dict
+           A dictionary containing the requested parameters
+
+        """
+
+        valid_var = {"init_cond_file_type": "IN_TYPE",
+                     "init_cond_format": "IN_FORM",
+                     "init_cond_file_name" : "NC_IN",
+                     "init_cond_file_name (cb)" : "CB_IN",
+                     "init_cond_file_name (pl)" : "PL_IN",
+                     "init_cond_file_name (tp)" : "TP_IN",
+                     }
+
+
+        if arg_list is None:
+            arg_list = list(valid_var.keys())
+        elif type(arg_list) is str:
+            arg_list = [arg_list]
+        else:
+            arg_list = [k for k in arg_list if k in set(valid_var.keys())]
+
+        if "init_cond_file_name" in arg_list:
+            if self.param["IN_TYPE"] == "ASCII":
+                arg_list.remove("init_cond_file_name")
+                if "init_cond_file_name (cb)" not in arg_list:
+                    arg_list.append("init_cond_file_name (cb)")
+                if "init_cond_file_name (pl)" not in arg_list:
+                    arg_list.append("init_cond_file_name (pl)")
+                if "init_cond_file_name (tp)" not in arg_list:
+                    arg_list.append("init_cond_file_name (tp)")
+            else:
+                if "init_cond_file_name (cb)" in arg_list:
+                    arg_list.remove("init_cond_file_name (cb)")
+                if "init_cond_file_name (pl)" in arg_list:
+                    arg_list.remove("init_cond_file_name (pl)")
+                if "init_cond_file_name (tp)" in arg_list:
+                    arg_list.remove("init_cond_file_name (tp)")
+
+        init_cond_file_dict = {valid_var[k]: self.param[valid_var[k]] for k in arg_list}
+
+        if self.verbose:
+            print("\nInitial condition file parameters:")
+            for arg in arg_list:
+                key = valid_var[arg]
+                print(f"{arg:<32} {init_cond_file_dict[key]}")
+
+        return init_cond_file_dict
+
+
+
+
     def set_output_files(self,
-                         output_file_type: Literal[ "NETCDF_DOUBLE", "NETCDF_FLOAT", "REAL4", "REAL8", "XDR4", "XDR8"],
-                         output_file_name: os.PathLike | str | None,
-                         output_format: Literal["XV", "XVEL"]
+                         output_file_type: Literal[ "NETCDF_DOUBLE", "NETCDF_FLOAT", "REAL4", "REAL8", "XDR4", "XDR8"] | None = None,
+                         output_file_name: os.PathLike | str | None = None,
+                         output_format: Literal["XV", "XVEL"] | None = None,
+                         verbose: bool | None = None
                          ):
         """
         Sets the output file parameters in the parameters dictionary.
 
         Parameters
         ----------
-        output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, default "NETCDF_DOUBLE"
+        output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, optional
             The file type for the outputs of the simulation. Compatible file types depend on the `codename` argument.
             * Swiftest: Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
             * Swifter: Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
@@ -699,25 +787,46 @@ class Simulation:
             Name of output file to generate. If not supplied, then one of the default file names are used, depending on
             the value passed to `output_file_type`. If one of the NetCDF types are used, the default is "bin.nc".
             Otherwise, the default is "bin.dat".
-        output_format : {"XV","XVEL"}, default "XVEL"
+        output_format : {"XV","XVEL"}, optional
             Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
             vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
 
         Returns
         -------
         Sets the appropriate initial conditions file parameters inside the self.param dictionary.
 
         """
+        update_list = []
+        if output_file_type is not None:
+            update_list.append("output_file_type")
+        if output_file_name is not None:
+            update_list.append("output_file_name")
+        if output_format is not None:
+            update_list.append("output_format")
 
         if self.codename == "Swiftest":
-            if output_file_type not in ["NETCDF_DOUBLE", "NETCDF_FLOAT"]:
+            if output_file_type is None:
+                output_file_type = self.param.pop("OUT_TYPE", None)
+                if output_file_type is None:
+                    output_file_type = "NETCDF_DOUBLE"
+            elif output_file_type not in ["NETCDF_DOUBLE", "NETCDF_FLOAT"]:
                 print(f"{output_file_type} is not compatible with Swiftest. Setting to NETCDF_DOUBLE")
                 output_file_type = "NETCDF_DOUBLE"
         elif self.codename == "Swifter":
-            if output_file_type not in ["REAL4","REAL8","XDR4","XDR8"]:
+            if output_file_type is None:
+                output_file_type = self.param.pop("OUT_TYPE", None)
+                if output_file_type is None:
+                    output_file_type = "REAL8"
+            elif output_file_type not in ["REAL4","REAL8","XDR4","XDR8"]:
                 print(f"{output_file_type} is not compatible with Swifter. Setting to REAL8")
                 output_file_type = "REAL8"
         elif self.codename == "Swift":
+            if output_file_type is None:
+                output_file_type = self.param.pop("OUT_TYPE", None)
+                if output_file_type is None:
+                    output_file_type = "REAL4"
             if output_file_type not in ["REAL4"]:
                 print(f"{output_file_type} is not compatible with Swift. Setting to REAL4")
                 output_file_type = "REAL4"
@@ -734,9 +843,64 @@ class Simulation:
         if output_format != "XV" and self.codename != "Swiftest":
             print(f"{output_format} is not compatible with {self.codename}. Setting to XV")
             output_format = "XV"
-        self.param['OUT_FORM'] = output_format
+        self.param["OUT_FORM"] = output_format
+
+        if self.restart:
+            self.param["OUT_STAT"] = "APPEND"
+        else:
+            self.param["OUT_STAT"] = "REPLACE"
+
+        if verbose is None:
+            verbose = self.verbose
+        if verbose:
+            if len(update_list) > 0:
+                output_file_dict = self.get_output_files(update_list)
 
         return
+
+
+    def get_output_files(self, arg_list: str | List[str] | None = None):
+        """
+
+        Returns a subset of the parameter dictionary containing the current output file parameters
+        If the verbose option is set in the Simulation object, then it will also print the values.
+
+        Parameters
+        ----------
+        arg_list : str | List[str], optional
+            A single string or list of strings containing the names of the simulation time parameters to extract.
+            Default is all of:
+            ["output_file_type", "output_file_name", "output_format"]
+
+        Returns
+        -------
+        output_file_dict : dict
+           A dictionary containing the requested parameters
+
+        """
+
+        valid_var = {"output_file_type": "OUT_TYPE",
+                     "output_file_name": "BIN_OUT",
+                     "output_format": "OUT_FORM",
+                     }
+
+        if arg_list is None:
+            arg_list = valid_var.keys()
+        elif type(arg_list) is str:
+            arg_list = [arg_list]
+        else:
+            arg_list = [k for k in arg_list if k in set(valid_var.keys())]
+
+        output_file_dict = {valid_var[k]: self.param[valid_var[k]] for k in arg_list}
+
+        if self.verbose:
+            print("\nOutput file parameters:")
+            for arg in arg_list:
+                key = valid_var[arg]
+                print(f"{arg:<32} {output_file_dict[key]}")
+
+        return output_file_dict
+
 
     def set_unit_system(self,
                         MU: str | None = None,
@@ -1238,7 +1402,7 @@ class Simulation:
         """
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(ds=self.ds, param=self.param, in_type=self.param['IN_TYPE'], framenum=framenum,infile_name=self.param['NC_IN'])
+            io.swiftest_xr2infile(ds=self.ds, param=self.param, in_type=self.param['IN_TYPE'], framenum=framenum)
             self.write_param(param_file)
         elif codename == "Swifter":
             if self.codename == "Swiftest":
@@ -1280,25 +1444,29 @@ class Simulation:
         if codename != "Swiftest":
             self.save(new_param_file, framenum, codename)
             return
+
         if new_param is None:
             new_param = self.param.copy()
 
         if codename == "Swiftest":
             if restart:
                 new_param['T0'] = self.ds.time.values[framenum]
-            if self.param['OUT_TYPE'] == 'NETCDF_DOUBLE' or self.param['OUT_TYPE'] == 'REAL8':
+            if self.param['OUT_TYPE'] == 'NETCDF_DOUBLE':
                 new_param['IN_TYPE'] = 'NETCDF_DOUBLE'
-            elif self.param['OUT_TYPE'] == 'NETCDF_FLOAT' or self.param['OUT_TYPE'] == 'REAL4':
+            elif self.param['OUT_TYPE'] == 'NETCDF_FLOAT':
                 new_param['IN_TYPE'] = 'NETCDF_FLOAT'
             else:
                 print(f"{self.param['OUT_TYPE']} is an invalid OUT_TYPE file")
                 return
+
             if self.param['BIN_OUT'] != new_param['BIN_OUT'] and restart:
-               print(f"Restart run with new output file. Copying {self.param['BIN_OUT']} to {new_param['BIN_OUT']}")
-               shutil.copy2(self.param['BIN_OUT'],new_param['BIN_OUT'])
+                print(f"Restart run with new output file. Copying {self.param['BIN_OUT']} to {new_param['BIN_OUT']}")
+                shutil.copy2(self.param['BIN_OUT'],new_param['BIN_OUT'])
+
             new_param['IN_FORM'] = 'XV'
             if restart:
                 new_param['OUT_STAT'] = 'APPEND'
+
             new_param['FIRSTKICK'] = 'T'
             new_param['NC_IN'] = new_initial_conditions_file
             new_param.pop('PL_IN', None)
