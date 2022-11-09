@@ -1115,7 +1115,7 @@ class Simulation:
                     self.TU_name = "y"
                 elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD" or TU.upper() == "DAYS":
                     self.param['TU2S'] = constants.JD2S
-                    self.TU_name = "Day"
+                    self.TU_name = "d"
                 elif TU.upper() == "S" or TU.upper() == "SECONDS" or TU.upper() == "SEC":
                     self.param['TU2S'] = 1.0
                     self.TU_name = "s"
@@ -1185,7 +1185,12 @@ class Simulation:
         else:
             TU_name = self.TU_name
 
-        units = {
+        units1 = {
+                 "MU" : MU_name,
+                 "DU" : DU_name,
+                 "TU" : TU_name
+                 }
+        units2 = {
                  "MU" : f"kg / {MU_name}",
                  "DU" : f"m / {DU_name}",
                  "TU" : f"s / {TU_name}"
@@ -1196,7 +1201,7 @@ class Simulation:
         if self.verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
-                print(f"{arg:<32} {unit_dict[key]} {units[arg]}")
+                print(f"{arg}: {units1[arg]:<28} {unit_dict[key]} {units2[arg]}")
 
         return unit_dict
 
