@@ -353,9 +353,9 @@ contains
       character(len=NF90_MAX_NAME) :: str_dim_name
 
       mode = NF90_WRITE
-      !if (present(readonly)) then
-      !   if (readonly) mode = NF90_NOWRITE
-      !end if
+      if (present(readonly)) then
+         if (readonly) mode = NF90_NOWRITE
+      end if
 
       call check( nf90_open(param%outfile, mode, self%ncid), "netcdf_open nf90_open" )
 
