@@ -14,10 +14,11 @@ from swiftest import io
 from swiftest import init_cond
 from swiftest import tool
 from swiftest import constants
+import os
 import datetime
 import xarray as xr
 import numpy as np
-import os
+import numpy.typing as npt
 import shutil
 from typing import (
     Literal,
@@ -1506,38 +1507,57 @@ class Simulation:
         return range_dict
 
     def add_solar_system_body(self,
-                              name: str | List[str] | None = None,
-                              id: int | List[int] | None = None,
+                              name: str | List[str],
+                              ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
-                              origin_type: str = "initial_conditions",
                               source: str = "HORIZONS"):
         """
         Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service.
-        
+
+        The following are name/ephemeris_id pairs that are currently known to Swiftest, and therefore have
+        physical properties that can be used to make massive bodies.
+
+        Sun     : 0
+        Mercury : 1
+        Venus   : 2
+        Earth   : 3
+        Mars    : 4
+        Jupiter : 5
+        Saturn  : 6
+        Uranus  : 7
+        Neptune : 8
+        Pluto   : 9
+
         Parameters
         ----------
-            name : str | List[str], optional
-                Add solar system body by name.
-                Currently bodies from the following list will result in fully-massive bodies (they include mass, radius,
-                and rotation parameters). "Sun" (added as a central body), "Mercury", "Venus", "Earth", "Mars",
-                "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"
-
-                Bodies not on this list will be added as test particles, but additional properties can be added later if
-                desired.
-            id : int | List[int], optional
-                Add solar system body by id number.
-            date : str, optional
-                ISO-formatted date sto use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to value
-                set by `set_ephemeris_date`.
-            origin_type : str, default "initial_conditions"
-                The string that will be added to the `origin_type` variable for all bodies added to the list
-            source : str, default "Horizons"
-                The source of the ephemerides.
-                >*Note.* Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+        name : str | List[str]
+            Add solar system body by name.
+            Bodies not on this list will be added as test particles, but additional properties can be added later if
+            desired.
+        ephemeris_id : int | List[int], optional but must be the same length as `name` if passed.
+            Use id if the body you wish to add is recognized by Swiftest. In that case, the id is passed to the
+            ephemeris service and the name is used. The body specified by `id` supercedes that given by `name`.
+        date : str, optional
+            ISO-formatted date sto use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to value
+            set by `set_ephemeris_date`.
+        source : str, default "Horizons"
+            The source of the ephemerides.
+            >*Note.* Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
         Returns
         -------
             ds : Xarray dataset with body or bodies added.
         """
+
+        if type(name) is str:
+            name = [name]
+        if ephemeris_id is not None:
+            if type(ephemeris_id) is int:
+                ephemeris_id = [ephemeris_id]
+            if len(ephemeris_id) != len(name):
+                print(f"Error! The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})")
+                return None
+        else:
+            ephemeris_id = [None] * len(name)
 
         if self.ephemeris_date is None:
             self.set_ephemeris_date()
@@ -1553,32 +1573,59 @@ class Simulation:
         if source.upper() != "HORIZONS":
             print("Currently only the JPL Horizons ephemeris service is supported")
 
-        if id is not None and name is not None:
-            print("Warning! Requesting both id and name could lead to duplicate bodies.")
-        dsnew = []
-        if name is not None:
-            if type(name) is str:
-                name = [name]
+        body_list = []
+        for i,n in enumerate(name):
+            body_list.append(init_cond.solar_system_horizons(n, self.param, date, idval=ephemeris_id[i]))
 
-            if origin_type is None:
-                origin_type = ['initial_conditions'] * len(name)
+        #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
+        name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.squeeze(np.hsplit(np.array(body_list),19)))
 
-            for n in name:
-                dsnew.append(self.addp(*init_cond.solar_system_horizons(n, self.param, date)))
+        v1 = v1.astype(np.float64)
+        v2 = v2.astype(np.float64)
+        v3 = v3.astype(np.float64)
+        v4 = v4.astype(np.float64)
+        v5 = v5.astype(np.float64)
+        v6 = v6.astype(np.float64)
+        ephemeris_id = ephemeris_id.astype(int)
+        GMpl = GMpl.astype(np.float64)
+        Rpl = Rpl.astype(np.float64)
+        rhill = rhill.astype(np.float64)
+        Ip1 = Ip1.astype(np.float64)
+        Ip2 = Ip2.astype(np.float64)
+        Ip3 = Ip3.astype(np.float64)
+        rotx = rotx.astype(np.float64)
+        roty = roty.astype(np.float64)
+        rotz = rotz.astype(np.float64)
+        J2 = J2.astype(np.float64)
+        J4 = J4.astype(np.float64)
+
+        if all(np.isnan(GMpl)):
+            GMpl = None
+        if all(np.isnan(Rpl)):
+            Rpl = None
+        if all(np.isnan(rhill)):
+            rhill = None
+        if all(np.isnan(Ip1)):
+            Ip1 = None
+        if all(np.isnan(Ip2)):
+            Ip2 = None
+        if all(np.isnan(Ip3)):
+            Ip3 = None
+        if all(np.isnan(rotx)):
+            rotx = None
+        if all(np.isnan(roty)):
+            roty = None
+        if all(np.isnan(rotz)):
+            rotz = None
+        if all(np.isnan(J2)):
+            J2 = None
+        if all(np.isnan(J4)):
+            J4 = None
 
 
-        if id is not None:
-            if type(id) is str:
-                id = [id]
+        dsnew = init_cond.vec2xr(self.param,name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4)
 
-            if origin_type is None:
-                origin_type = ['initial_conditions'] * len(id)
-
-            for i in id:
-                dsnew.append(self.addp(*init_cond.solar_system_horizons(i, self.param, date)))
-
-
-        return
+        return body_list
 
 
     def set_ephemeris_date(self,
@@ -1662,48 +1709,131 @@ class Simulation:
 
         return self.ephemeris_date
 
-    def add_body(self, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None, rhill=None, Ip1=None, Ip2=None,
-                 Ip3=None, rotx=None, roty=None, rotz=None, J2=None, J4=None, t=None):
+    def add_body(self,
+                 name: str | List[str] | npt.NDArray[np.str_],
+                 v1: float | List[float] | npt.NDArray[np.float_],
+                 v2: float | List[float] | npt.NDArray[np.float_],
+                 v3: float | List[float] | npt.NDArray[np.float_],
+                 v4: float | List[float] | npt.NDArray[np.float_],
+                 v5: float | List[float] | npt.NDArray[np.float_],
+                 v6: float | List[float] | npt.NDArray[np.float_],
+                 idvals: int | list[int] | npt.NDArray[np.int_] | None=None,
+                 GMpl: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 Rpl: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 Ip1: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 Ip2: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 Ip3: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 rotx: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 roty: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 rotz: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 J2: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 J4: float | List[float] | npt.NDArray[np.float_] | None=None):
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
-        or cartesian state vectors, depending on the value of self.param). Input all angles in degress
+        or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
+
+        This method will update self.ds with the new body or bodies added to the existing Dataset.
 
         Parameters
         ----------
-        v1     : float
-            xh for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
-        v2     : float
-            yh for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
-        v3     : float
-            zh for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
-        v4     : float
-            vhxh for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
-        v5     : float
-            vhyh for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
-        v6     : float
-            vhzh for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
-        Gmass  : float
-            Optional: Array of G*mass values if these are massive bodies
-        radius : float
-            Optional: Array radius values if these are massive bodies
-        rhill  : float
-            Optional: Array rhill values if these are massive bodies
-        Ip1,y,z : float
-            Optional: Principal axes moments of inertia
-        rotx,y,z: float
-            Optional: Rotation rate vector components
-        t      :  float
-            Optional: Time at start of simulation
+        name : str or array-like of str
+            Name or names of
+        v1 : float or array-like of float
+            xhx for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
+        v2 : float or array-like of float
+            xhy for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
+        v3 : float or array-like of float
+            xhz for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
+        v4 : float or array-like of float
+            vhx for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
+        v5 : float or array-like of float
+            vhy for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
+        v6 : float or array-like of float
+            vhz for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
+        idvals : int or array-like of int, optional
+            Unique id values. If not passed, this will be computed based on the pre-existing Dataset ids.
+        Gmass : float or array-like of float, optional
+            G*mass values if these are massive bodies
+        radius : float or array-like of float, optional
+            Radius values if these are massive bodies
+        rhill : float, optional
+            Hill's radius values if these are massive bodies
+        Ip1,y,z : float, optional
+            Principal axes moments of inertia these are massive bodies with rotation enabled
+        rotx,y,z: float, optional
+            Rotation rate vector components if these are massive bodies with rotation enabled
 
         Returns
         -------
-            self.ds : xarray dataset
-        """
-        if t is None:
-            t = self.param['T0']
+        ds : Xarray Dataset
+            Dasaset containing the body or bodies that were added
 
-        dsnew = init_cond.vec2xr(self.param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl, Rpl, rhill, Ip1, Ip2, Ip3,
-                                 rotx, roty, rotz, J2, J4, t)
+        """
+
+        #convert all inputs to numpy arrays
+        def input_to_array(val,t,n=None):
+            if t == "f":
+                t = np.float64
+            elif t == "i":
+                t = np.int64
+            elif t == "s":
+                t = np.str
+            if val is None:
+                return None
+            elif np.isscalar(val):
+                val = np.array([val],dtype=t)
+            elif type(val) is list:
+                val = np.array(val,dtype=t)
+
+            if n is None:
+                return val, len(val)
+            else:
+                if n != len(val):
+                    raise ValueError(f"Error! Mismatched array lengths in add_body. Got {len(val)} when expecting {n}")
+                return val
+
+
+        name,nbodies = input_to_array(name,"s")
+        v1 = input_to_array(v1,"f",nbodies)
+        v2 = input_to_array(v2,"f",nbodies)
+        v3 = input_to_array(v3,"f",nbodies)
+        v4 = input_to_array(v4,"f",nbodies)
+        v5 = input_to_array(v5,"f",nbodies)
+        v6 = input_to_array(v6,"f",nbodies)
+        idvals = input_to_array(idvals,"i",nbodies)
+        GMpl = input_to_array(GMpl,"f",nbodies)
+        rhill = input_to_array(rhill,"f",nbodies)
+        Rpl = input_to_array(Rpl,"f",nbodies)
+        Ip1 = input_to_array(Ip1,"f",nbodies)
+        Ip2 = input_to_array(Ip2,"f",nbodies)
+        Ip3 = input_to_array(Ip3,"f",nbodies)
+        rotx = input_to_array(rotx,"f",nbodies)
+        roty = input_to_array(roty,"f",nbodies)
+        rotz = input_to_array(rotz,"f",nbodies)
+        J2 = input_to_array(J2,"f",nbodies)
+        J4 = input_to_array(J4,"f",nbodies)
+
+        if len(self.ds) == 0:
+            maxid = -1
+        else:
+            maxid = self.ds.id.max().values[()]
+
+        if idvals is None:
+            idvals = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
+
+        if len(self.ds) > 0:
+            dup_id = np.in1d(idvals,self.ds.id)
+            if any(dup_id):
+                raise ValueError(f"Duplicate ids detected: ", *idvals[dup_id])
+
+        t = self.param['TSTART']
+
+        dsnew = init_cond.vec2xr(self.param, idvals, name, v1, v2, v3, v4, v5, v6,
+                                 GMpl=GMpl, Rpl=Rpl, rhill=rhill,
+                                 Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
+                                 rotx=rotx, roty=roty, rotz=rotz,
+                                 J2=J2, J4=J4, t=t)
         if dsnew is not None:
             self.ds = xr.combine_by_coords([self.ds, dsnew])
         self.ds['ntp'] = self.ds['id'].where(np.isnan(self.ds['Gmass'])).count(dim="id")
@@ -1714,7 +1844,7 @@ class Simulation:
         elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
             self.ds = io.fix_types(self.ds, ftype=np.float32)
 
-        return
+        return dsnew
 
     def read_param(self, param_file, codename="Swiftest", verbose=True):
         """
