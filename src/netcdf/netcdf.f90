@@ -754,7 +754,10 @@ contains
       class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: tslot
+      integer(I4B) :: tslot, status, idmax
+      real(DP), dimension(:), allocatable       :: gmtemp
+      logical, dimension(:), allocatable        :: plmask, tpmask, plmmask
+
 
       tslot = int(param%ioutput, kind=I4B) + 1
       call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
