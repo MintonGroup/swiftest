@@ -351,9 +351,6 @@ contains
       ! Internals
       integer(I4B) :: mode, status
       character(len=NF90_MAX_NAME) :: str_dim_name
-      integer(I4B)                              :: idmax
-      real(DP), dimension(:), allocatable       :: gmtemp
-      logical, dimension(:), allocatable        :: tpmask, plmask, plmmask
 
       mode = NF90_WRITE
       !if (present(readonly)) then
