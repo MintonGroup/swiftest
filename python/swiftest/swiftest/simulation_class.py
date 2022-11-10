@@ -249,7 +249,7 @@ class Simulation:
             else:
                 print(f"{param_file} not found.")
 
-        self.set_parameters(t0=t0,
+        self.set_parameter(t0=t0,
                             tstart=tstart,
                             tstop=tstop,
                             dt=dt,
@@ -364,7 +364,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -463,7 +463,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            get_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
 
         Returns
@@ -513,7 +513,7 @@ class Simulation:
 
         return time_dict
 
-    def set_parameters(self, **kwargs):
+    def set_parameter(self, **kwargs):
         """
         Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
         Parameters
@@ -532,7 +532,9 @@ class Simulation:
         param_dict.update(self.set_output_files(**kwargs))
         param_dict.update(self.set_simulation_time(**kwargs))
 
-    def get_parameters(self, **kwargs):
+        return param_dict
+
+    def get_parameter(self, **kwargs):
         """
         Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
         Parameters
@@ -631,7 +633,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -719,7 +721,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            get_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -791,7 +793,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -903,7 +905,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            get_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
 
         Returns
@@ -990,7 +992,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -1071,7 +1073,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            get_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
 
         Returns
@@ -1171,7 +1173,7 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         ----------
@@ -1289,7 +1291,7 @@ class Simulation:
             ["MU", "DU", "TU"]
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            get_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -1402,7 +1404,7 @@ class Simulation:
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -1448,7 +1450,7 @@ class Simulation:
             ["rmin", "rmax"]
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            get_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
