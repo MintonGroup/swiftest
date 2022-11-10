@@ -417,4 +417,5 @@ def vec2xr(param, idvals, namevals, v1, v2, v3, v4, v5, v6, GMpl=None, Rpl=None,
     ds_float = da_float.to_dataset(dim="vec")
     ds_str = da_str.to_dataset(dim="vec")
     ds = xr.combine_by_coords([ds_float, ds_str,info_ds])
+
     return ds

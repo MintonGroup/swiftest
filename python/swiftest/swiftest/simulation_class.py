@@ -1560,6 +1560,11 @@ class Simulation:
         self.ds['ntp'] = self.ds['id'].where(np.isnan(self.ds['Gmass'])).count(dim="id")
         self.ds['npl'] = self.ds['id'].where(np.invert(np.isnan(self.ds['Gmass']))).count(dim="id") - 1
 
+        if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
+            self.ds = io.fix_types(self.ds,ftype=np.float64)
+        elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
+            self.ds = io.fix_types(self.ds,ftype=np.float32)
+
         return
     
     
@@ -1578,7 +1583,8 @@ class Simulation:
             self.ds : xarray dataset
         """
         if codename == "Swiftest":
-            self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
+            param_old = self.param.copy()
+            self.param = io.read_swiftest_param(param_file, param_old, verbose=verbose)
             self.codename = "Swiftest"
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
