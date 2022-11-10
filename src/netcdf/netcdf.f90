@@ -757,14 +757,46 @@ contains
       integer(I4B) :: tslot
 
       tslot = int(param%ioutput, kind=I4B) + 1
-
+      call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
-      call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar npl_varid"  )
-      call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar ntp_varid"  )
-      select type(pl => self%pl)
-      class is (symba_pl)
-         call check( nf90_get_var(iu%ncid, iu%nplm_varid,  pl%nplm, start=[tslot]), "netcdf_read_hdr_system nf90_getvar nplm_varid"  )
+      call check( nf90_get_var(iu%ncid, iu%Gmass_varid, gmtemp, start=[1,1]), "netcdf_read_frame_system nf90_getvar Gmass_varid"  )
+      allocate(gmtemp(idmax))
+      allocate(tpmask(idmax))
+      allocate(plmask(idmax))
+      allocate(plmmask(idmax))
+      plmask(:) = gmtemp(:) == gmtemp(:)
+      tpmask(:) = .not. plmask(:)
+      plmask(1) = .false. ! This is the central body
+      select type (param)
+      class is (symba_parameters)
+         plmmask(:) = gmtemp(:) > param%GMTINY .and. plmask(:)
       end select
+
+      status = nf90_inq_varid(iu%ncid, NPL_VARNAME, iu%npl_varid)
+      if (status == nf90_noerr) then
+         call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar npl_varid"  )
+      else
+         self%pl%nbody = count(plmask(:))
+      end if
+
+      status = nf90_inq_varid(iu%ncid, NTP_VARNAME, iu%ntp_varid)
+      if (status == nf90_noerr) then
+         call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar ntp_varid"  )
+      else
+         self%tp%nbody = count(tpmask(:))
+      end if
+
+      if (param%integrator == SYMBA) then
+         status = nf90_inq_varid(iu%ncid, NPLM_VARNAME, iu%nplm_varid)
+         select type(pl => self%pl)
+         class is (symba_pl)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%nplm_varid,  pl%nplm, start=[tslot]), "netcdf_read_hdr_system nf90_getvar nplm_varid"  )
+            else
+               pl%nplm = count(plmmask(:))
+            end if
+         end select
+      end if
 
       if (param%lenergy) then
          status = nf90_inq_varid(iu%ncid, KE_ORB_VARNAME, iu%KE_orb_varid)
