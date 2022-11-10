@@ -444,11 +444,6 @@ contains
       if (param%integrator == SYMBA) then
          status = nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid)
          if (status /= nf90_noerr) write(*,*) "Warning! NPLM variable not set in input file. Calculating."
-         call check( nf90_inq_varid(self%ncid, L_ESCAPEY_VARNAME, self%L_escapey_varid), "netcdf_open nf90_inq_varid L_escapey_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ESCAPEZ_VARNAME, self%L_escapez_varid), "netcdf_open nf90_inq_varid L_escapez_varid"  )
-         call check( nf90_inq_varid(self%ncid, ECOLLISIONS_VARNAME, self%Ecollisions_varid), "netcdf_open nf90_inq_varid Ecollisions_varid"  )
-         call check( nf90_inq_varid(self%ncid, EUNTRACKED_VARNAME, self%Euntracked_varid), "netcdf_open nf90_inq_varid Euntracked_varid"  )
-         call check( nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid), "netcdf_open nf90_inq_varid GMescape_varid"  )
       end if
 
       if (param%lrhill_present) then
@@ -456,6 +451,45 @@ contains
          if (status /= nf90_noerr) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
       end if
 
+      ! Variables The User Doesn't Need to Know About
+
+      if (param%lclose) then
+         status = nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_VHX_VARNAME, self%origin_vhx_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_VHY_VARNAME, self%origin_vhy_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_VHZ_VARNAME, self%origin_vhz_varid)
+         status = nf90_inq_varid(self%ncid, COLLISION_ID_VARNAME, self%collision_id_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_TIME_VARNAME, self%discard_time_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_XHX_VARNAME, self%discard_xhx_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_XHY_VARNAME, self%discard_xhy_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_XHZ_VARNAME, self%discard_xhz_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_VHX_VARNAME, self%discard_vhx_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_VHY_VARNAME, self%discard_vhy_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_VHZ_VARNAME, self%discard_vhz_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_BODY_ID_VARNAME, self%discard_body_id_varid)
+      end if
+
+      if (param%lenergy) then
+         status = nf90_inq_varid(self%ncid, KE_ORB_VARNAME, self%KE_orb_varid)
+         status = nf90_inq_varid(self%ncid, KE_SPIN_VARNAME, self%KE_spin_varid)
+         status = nf90_inq_varid(self%ncid, PE_VARNAME, self%PE_varid)
+         status = nf90_inq_varid(self%ncid, L_ORBX_VARNAME, self%L_orbx_varid)
+         status = nf90_inq_varid(self%ncid, L_ORBY_VARNAME, self%L_orby_varid)
+         status = nf90_inq_varid(self%ncid, L_ORBZ_VARNAME, self%L_orbz_varid)
+         status = nf90_inq_varid(self%ncid, L_SPINX_VARNAME, self%L_spinx_varid)
+         status = nf90_inq_varid(self%ncid, L_SPINY_VARNAME, self%L_spiny_varid)
+         status = nf90_inq_varid(self%ncid, L_SPINZ_VARNAME, self%L_spinz_varid)
+         status = nf90_inq_varid(self%ncid, L_ESCAPEX_VARNAME, self%L_escapex_varid)
+         status = nf90_inq_varid(self%ncid, L_ESCAPEY_VARNAME, self%L_escapey_varid)
+         status = nf90_inq_varid(self%ncid, L_ESCAPEZ_VARNAME, self%L_escapez_varid)
+         status = nf90_inq_varid(self%ncid, ECOLLISIONS_VARNAME, self%Ecollisions_varid)
+         status = nf90_inq_varid(self%ncid, EUNTRACKED_VARNAME, self%Euntracked_varid)
+         status = nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid)
+      end if
 
       return
    end subroutine netcdf_open
