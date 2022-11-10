@@ -367,51 +367,16 @@ contains
       call check( nf90_inquire_dimension(self%ncid, max(self%time_dimid,self%id_dimid)+1, name=str_dim_name), "netcdf_open nf90_inquire_dimension str_dim_name"  )
       call check( nf90_inq_dimid(self%ncid, str_dim_name, self%str_dimid), "netcdf_open nf90_inq_dimid str_dimid"  )
 
+      ! Required Variables
+
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid), "netcdf_open nf90_inq_varid time_varid" )
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid), "netcdf_open nf90_inq_varid id_varid" )
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid), "netcdf_open nf90_inq_varid name_varid" )
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
       call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid), "netcdf_open nf90_inq_varid status_varid" )
       call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
-
-      if ((nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid) /= nf90_noerr) .or. & 
-         (nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid) /= nf90_noerr) .or. &
-         ((nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid) /= nf90_noerr) .and. (param%integrator == SYMBA))) then
-         call check( nf90_inquire_dimension(self%ncid, self%id_dimid, len=idmax), "netcdf_open nf90_inquire_dimension id_dimid"  )
-         allocate(gmtemp(idmax))
-         call check( nf90_get_var(self%ncid, self%Gmass_varid, gmtemp, start=[1,1]), "netcdf_open nf90_getvar Gmass_varid"  )
-         allocate(tpmask(idmax))
-         allocate(plmask(idmax))
-         allocate(plmmask(idmax))
-         plmask(:) = gmtemp(:) == gmtemp(:)
-         tpmask(:) = .not. plmask(:)
-         plmask(1) = .false. ! This is the central body
-         select type (param)
-         class is (symba_parameters)
-            plmmask(:) = gmtemp(:) > param%GMTINY .and. plmask(:)
-         end select
-         if ((nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid) /= nf90_noerr)) then
-            call check( nf90_redef(self%ncid), "netcdf_open nf90_redef npl_varid")
-            call check( nf90_def_var(self%ncid, NPL_VARNAME, NF90_INT, self%time_dimid, self%npl_varid), "netcdf_open nf90_def_var npl_varid"  )
-            call check( nf90_enddef(self%ncid), "netcdf_open nf90_enddef npl_varid")
-            call check( nf90_put_var(self%ncid, self%npl_varid, count(plmask(:)), start=[1]), "netcdf_open nf90_put_var npl_varid"  )
-            call check( nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid), "netcdf_open nf90_inq_varid npl_varid" )
-         end if
-         if (nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid) /= nf90_noerr) then
-            call check( nf90_redef(self%ncid), "netcdf_open nf90_redef ntp_varid")
-            call check( nf90_def_var(self%ncid, NTP_VARNAME, NF90_INT, self%time_dimid, self%ntp_varid), "netcdf_open nf90_def_var ntp_varid"  )
-            call check( nf90_enddef(self%ncid), "netcdf_open nf90_enddef ntp_varid")
-            call check( nf90_put_var(self%ncid, self%ntp_varid, count(tpmask(:)), start=[1]), "netcdf_open nf90_put_var ntp_varid"  )
-            call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid), "netcdf_open nf90_inq_varid ntp_varid" )
-         end if
-         if ((nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid) /= nf90_noerr) .and. (param%integrator == SYMBA)) then
-            call check( nf90_redef(self%ncid), "netcdf_open nf90_redef nplm_varid")
-            call check( nf90_def_var(self%ncid, NPLM_VARNAME, NF90_INT, self%time_dimid, self%nplm_varid), "netcdf_open nf90_def_var nplm_varid"  )
-            call check( nf90_enddef(self%ncid), "netcdf_open nf90_enddef nplm_varid")
-            call check( nf90_put_var(self%ncid, self%nplm_varid, count(plmmask(:)), start=[1]), "netcdf_open nf90_put_var nplm_varid"  )
-            call check( nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid), "netcdf_open nf90_inq_varid nplm_varid" )
-         end if 
-      end if
+      call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid), "netcdf_open nf90_inq_varid j2rp2_varid"  )
+      call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid), "netcdf_open nf90_inq_varid j4rp4_varid"  )
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
@@ -450,29 +415,9 @@ contains
          call check( nf90_inq_varid(self%ncid, CAPM_VARNAME, self%capm_varid), "netcdf_open nf90_inq_varid capm_varid" )
       end if
 
-      if (param%lrhill_present) call check( nf90_inq_varid(self%ncid, RHILL_VARNAME, self%rhill_varid), "netcdf_open nf90_inq_varid rhill_varid" )
-
       if (param%lclose) then
          call check( nf90_inq_varid(self%ncid, RADIUS_VARNAME, self%radius_varid), "netcdf_open nf90_inq_varid radius_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid), "netcdf_open nf90_inq_varid origin_type_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid), "netcdf_open nf90_inq_varid origin_time_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid), "netcdf_open nf90_inq_varid origin_xhx_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid), "netcdf_open nf90_inq_varid origin_xhy_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid), "netcdf_open nf90_inq_varid origin_xhz_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_VHX_VARNAME, self%origin_vhx_varid), "netcdf_open nf90_inq_varid origin_vhx_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_VHY_VARNAME, self%origin_vhy_varid), "netcdf_open nf90_inq_varid origin_vhy_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_VHZ_VARNAME, self%origin_vhz_varid), "netcdf_open nf90_inq_varid origin_vhz_varid" )
-
-         call check( nf90_inq_varid(self%ncid, COLLISION_ID_VARNAME, self%collision_id_varid), "netcdf_open nf90_inq_varid collision_id_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_TIME_VARNAME, self%discard_time_varid), "netcdf_open nf90_inq_varid discard_time_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_XHX_VARNAME, self%discard_xhx_varid), "netcdf_open nf90_inq_varid discard_xhx_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_XHY_VARNAME, self%discard_xhy_varid), "netcdf_open nf90_inq_varid discard_xhy_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_XHZ_VARNAME, self%discard_xhz_varid), "netcdf_open nf90_inq_varid discard_xhz_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_VHX_VARNAME, self%discard_vhx_varid), "netcdf_open nf90_inq_varid discard_vhx_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_VHY_VARNAME, self%discard_vhy_varid), "netcdf_open nf90_inq_varid discard_vhy_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_VHZ_VARNAME, self%discard_vhz_varid), "netcdf_open nf90_inq_varid discard_vhz_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_BODY_ID_VARNAME, self%discard_body_id_varid), "netcdf_open nf90_inq_varid discard_body_id_varid" )
-      end if
+      end if 
 
       if (param%lrotation) then
          call check( nf90_inq_varid(self%ncid, IP1_VARNAME, self%Ip1_varid), "netcdf_open nf90_inq_varid Ip1_varid" )
