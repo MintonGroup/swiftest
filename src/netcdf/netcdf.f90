@@ -433,17 +433,17 @@ contains
       !    call check( nf90_inq_varid(self%ncid, Q_VARNAME, self%Q_varid), "netcdf_open nf90_inq_varid Q_varid" )
       ! end if
 
-      if (param%lenergy) then
-         call check( nf90_inq_varid(self%ncid, KE_ORB_VARNAME, self%KE_orb_varid), "netcdf_open nf90_inq_varid KE_orb_varid"  )
-         call check( nf90_inq_varid(self%ncid, KE_SPIN_VARNAME, self%KE_spin_varid), "netcdf_open nf90_inq_varid KE_spin_varid"  )
-         call check( nf90_inq_varid(self%ncid, PE_VARNAME, self%PE_varid), "netcdf_open nf90_inq_varid PE_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ORBX_VARNAME, self%L_orbx_varid), "netcdf_open nf90_inq_varid L_orbx_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ORBY_VARNAME, self%L_orby_varid), "netcdf_open nf90_inq_varid L_orby_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ORBZ_VARNAME, self%L_orbz_varid), "netcdf_open nf90_inq_varid L_orbz_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_SPINX_VARNAME, self%L_spinx_varid), "netcdf_open nf90_inq_varid L_spinx_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_SPINY_VARNAME, self%L_spiny_varid), "netcdf_open nf90_inq_varid L_spiny_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_SPINZ_VARNAME, self%L_spinz_varid), "netcdf_open nf90_inq_varid L_spinz_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ESCAPEX_VARNAME, self%L_escapex_varid), "netcdf_open nf90_inq_varid L_escapex_varid"  )
+      ! Optional Variables
+
+      status = nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid)
+      if (status /= nf90_noerr) write(*,*) "Warning! NPL variable not set in input file. Calculating."
+
+      status = nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid)
+      if (status /= nf90_noerr) write(*,*) "Warning! NTP variable not set in input file. Calculating."
+
+      if (param%integrator == SYMBA) then
+         status = nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid)
+         if (status /= nf90_noerr) write(*,*) "Warning! NPLM variable not set in input file. Calculating."
          call check( nf90_inq_varid(self%ncid, L_ESCAPEY_VARNAME, self%L_escapey_varid), "netcdf_open nf90_inq_varid L_escapey_varid"  )
          call check( nf90_inq_varid(self%ncid, L_ESCAPEZ_VARNAME, self%L_escapez_varid), "netcdf_open nf90_inq_varid L_escapez_varid"  )
          call check( nf90_inq_varid(self%ncid, ECOLLISIONS_VARNAME, self%Ecollisions_varid), "netcdf_open nf90_inq_varid Ecollisions_varid"  )
@@ -451,8 +451,10 @@ contains
          call check( nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid), "netcdf_open nf90_inq_varid GMescape_varid"  )
       end if
 
-      call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid), "netcdf_open nf90_inq_varid j2rp2_varid"  )
-      call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid), "netcdf_open nf90_inq_varid j4rp4_varid"  )
+      if (param%lrhill_present) then
+         status = nf90_inq_varid(self%ncid, RHILL_VARNAME, self%rhill_varid)
+         if (status /= nf90_noerr) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
+      end if
 
 
       return
