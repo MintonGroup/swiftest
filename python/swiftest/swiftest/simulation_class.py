@@ -249,45 +249,34 @@ class Simulation:
             else:
                 print(f"{param_file} not found.")
 
-        self.set_distance_range(rmin=rmin, rmax=rmax, verbose = False)
-
-        self.set_unit_system(MU=MU, DU=DU, TU=TU,
-                             MU2KG=MU2KG, DU2M=DU2M, TU2S=TU2S,
-                             MU_name=MU_name, DU_name=DU_name, TU_name=TU_name,
-                             recompute_values=True,
-                             verbose = False)
-
-        self.set_init_cond_files(init_cond_file_type=init_cond_file_type,
-                                 init_cond_file_name=init_cond_file_name,
-                                 init_cond_format=init_cond_format,
-                                 verbose = False)
-
-        self.set_output_files(output_file_type=output_file_type,
-                              output_file_name=output_file_name,
-                              output_format=output_format,
-                              verbose = False)
-
-        self.set_feature(close_encounter_check=close_encounter_check,
-                         general_relativity=general_relativity,
-                         fragmentation=fragmentation,
-                         rotation=rotation,
-                         compute_conservation_values=compute_conservation_values,
-                         extra_force=extra_force,
-                         big_discard=big_discard,
-                         rhill_present=rhill_present,
-                         restart=restart,
-                         verbose = False)
-
-        self.set_simulation_time(t0=t0,
-                                 tstart=tstart,
-                                 tstop=tstop,
-                                 dt=dt,
-                                 tstep_out=tstep_out,
-                                 istep_out=istep_out,
-                                 istep_dump=istep_dump,
-                                 verbose = False
-                                 )
-
+        self.set_parameter(t0=t0,
+                            tstart=tstart,
+                            tstop=tstop,
+                            dt=dt,
+                            tstep_out=tstep_out,
+                            istep_out=istep_out,
+                            istep_dump=istep_dump,
+                            rmin=rmin, rmax=rmax,
+                            MU=MU, DU=DU, TU=TU,
+                            MU2KG=MU2KG, DU2M=DU2M, TU2S=TU2S,
+                            MU_name=MU_name, DU_name=DU_name, TU_name=TU_name,
+                            recompute_unit_values=False,
+                            init_cond_file_type=init_cond_file_type,
+                            init_cond_file_name=init_cond_file_name,
+                            init_cond_format=init_cond_format,
+                            output_file_type=output_file_type,
+                            output_file_name=output_file_name,
+                            output_format=output_format,
+                            close_encounter_check=close_encounter_check,
+                            general_relativity=general_relativity,
+                            fragmentation=fragmentation,
+                            rotation=rotation,
+                            compute_conservation_values=compute_conservation_values,
+                            extra_force=extra_force,
+                            big_discard=big_discard,
+                            rhill_present=rhill_present,
+                            restart=restart,
+                            verbose = False)
 
 
         if read_old_output_file:
@@ -297,6 +286,48 @@ class Simulation:
             else:
                 print(f"BIN_OUT file {binpath} not found.")
         return
+
+    def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
+        """
+        Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
+        argument/parameter variable pairs.
+
+        Parameters
+        ----------
+        arg_list : str | List[str], optional
+            A single string or list of strings containing the Simulation argument. If none are supplied,
+            then it will create the arg_list out of all keys in the valid_var dictionary.
+        valid_var : valid_var: Dict
+            A dictionary where the key is the argument name and the value is the equivalent key in the Simulation
+            parameter dictionary (i.e. the left-hand column of a param.in file)
+
+        Returns
+        -------
+        valid_arg : [str]
+            The list of valid arguments that match the keys in valid_var
+        param : dict
+            A dictionary that is the subset of the Simulation parameter dictionary corresponding to the arguments listed
+            in arg_list.
+
+        """
+
+        if arg_list is None:
+            valid_arg = None
+        else:
+            valid_arg = arg_list.copy()
+
+        if valid_arg is None:
+            valid_arg = list(valid_var.keys())
+        elif type(arg_list) is str:
+            valid_arg = [arg_list]
+        else:
+            # Only allow arg_lists to be checked if they are valid. Otherwise ignore.
+            valid_arg = [k for k in arg_list if k in list(valid_var.keys())]
+
+        # Extract the arg_list dictionary
+        param = {valid_var[arg]: self.param[valid_var[arg]] for arg in valid_arg if valid_var[arg] in self.param}
+
+        return valid_arg, param
 
     def set_simulation_time(self,
                             t0: float | None = None,
@@ -333,11 +364,12 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Sets the appropriate parameter variables in the parameter dictionary.
+        time_dict : dict
+           A dictionary containing the requested parameters
 
         """
 
@@ -411,16 +443,11 @@ class Simulation:
             self.param['ISTEP_DUMP'] = istep_dump
             update_list.append("istep_dump")
 
+        time_dict = self.get_simulation_time(update_list,verbose=verbose)
 
-        if verbose is None:
-            verbose = self.verbose
-        if verbose:
-            if len(update_list) > 0:
-                time_dict = self.get_simulation_time(update_list)
+        return time_dict
 
-        return
-
-    def get_simulation_time(self, arg_list: str | List[str] | None = None):
+    def get_simulation_time(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
         """
 
         Returns a subset of the parameter dictionary containing the current simulation time parameters.
@@ -432,6 +459,12 @@ class Simulation:
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "istep_dump"]
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+
 
         Returns
         -------
@@ -465,7 +498,10 @@ class Simulation:
 
         valid_arg, time_dict = self._get_valid_arg_list(arg_list, valid_var)
 
-        if self.verbose:
+        if verbose is None:
+            verbose = self.verbose
+
+        if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
                 if key in time_dict:
@@ -477,7 +513,7 @@ class Simulation:
 
         return time_dict
 
-    def set_parameters(self, **kwargs):
+    def set_parameter(self, **kwargs):
         """
         Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
         Parameters
@@ -489,13 +525,35 @@ class Simulation:
         param : A dictionary of all Simulation parameters that changed
 
         """
-        self.set_unit_system(**kwargs)
-        self.set_distance_range(**kwargs)
-        self.set_feature(**kwargs)
-        self.set_init_cond_files(**kwargs)
-        self.set_output_files(**kwargs)
-        self.set_simulation_time(**kwargs)
+        param_dict = self.set_unit_system(**kwargs)
+        param_dict.update(self.set_distance_range(**kwargs))
+        param_dict.update(self.set_feature(**kwargs))
+        param_dict.update(self.set_init_cond_files(**kwargs))
+        param_dict.update(self.set_output_files(**kwargs))
+        param_dict.update(self.set_simulation_time(**kwargs))
 
+        return param_dict
+
+    def get_parameter(self, **kwargs):
+        """
+        Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
+        Parameters
+        ----------
+        **kwargs : [TODO: write this documentation]
+
+        Returns
+        -------
+        param : A dictionary of all Simulation parameters requested
+
+        """
+        param_dict = self.get_simulation_time(**kwargs)
+        param_dict.update(self.get_init_cond_files(**kwargs))
+        param_dict.update(self.get_output_files(**kwargs))
+        param_dict.update(self.get_distance_range(**kwargs))
+        param_dict.update(self.get_unit_system(**kwargs))
+        param_dict.update(self.get_feature(**kwargs))
+
+        return param_dict
 
     def set_feature(self,
                     close_encounter_check: bool | None = None,
@@ -508,6 +566,8 @@ class Simulation:
                     rhill_present: bool | None = None,
                     restart: bool | None = None,
                     tides: bool | None = None,
+                    interaction_loops: Literal["TRIANGULAR", "FLAT", "ADAPTIVE"] | None = None,
+                    encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
                     verbose: bool | None = None,
                     **kwargs: Any
                    ):
@@ -537,6 +597,28 @@ class Simulation:
             Includes big bodies when performing a discard (Swifter only)
         rhill_present: bool, optional
             Include the Hill's radius with the input files.
+        interaction_loops : {"TRIANGULAR","FLAT","ADAPTIVE"}, default "TRIANGULAR"
+            *Swiftest Experimental feature*
+            Specifies which algorithm to use for the computation of body-body gravitational forces.
+            * "TRIANGULAR" : Upper-triangular double-loops .
+            * "FLAT" : Body-body interation pairs are flattened into a 1-D array.
+            * "ADAPTIVE" : Periodically times the TRIANGULAR and FLAT methods and determines which one to use based on
+              the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
+              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
+              time calculation. The exact floating-point results of the interaction will be different between the two
+              algorithm types.
+        encounter_check_loops : {"TRIANGULAR","SORTSWEEP","ADAPTIVE"}, default "TRIANGULAR"
+            *Swiftest Experimental feature*
+            Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
+            * "TRIANGULAR" : Upper-triangular double-loops.
+            * "SORTSWEEP" : A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
+              This algorithm is still in development, and does not necessarily speed up the encounter checking.
+              Use with caution.
+            * "ADAPTIVE" : Periodically times the TRIANGULAR and SORTSWEEP methods and determines which one to use based
+              on the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
+              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
+              time calculation. The exact floating-point results of the interaction will be different between the two
+              algorithm types.
         tides: bool, optional
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
         Yarkovsky: bool, optional
@@ -551,11 +633,12 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Sets the appropriate parameters in the self.param dictionary
+        feature_dict : dict
+            A dictionary containing the requested features.
 
         """
 
@@ -599,17 +682,31 @@ class Simulation:
             self.param["RESTART"] = restart
             update_list.append("restart")
 
+        if interaction_loops is not None:
+            valid_vals = ["TRIANGULAR","FLAT","ADAPTIVE"]
+            if interaction_loops not in valid_vals:
+                print(f"{interaction_loops} is not a valid option for interaction loops.")
+                print(f"Must be one of {valid_vals}")
+                self.param["INTERACTION_LOOPS"] = interaction_loops
+            else:
+                update_list.append("interaction_loops")
+
+        if encounter_check_loops is not None:
+            valid_vals = ["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"]
+            if encounter_check_loops not in valid_vals:
+                print(f"{encounter_check_loops} is not a valid option for interaction loops.")
+                print(f"Must be one of {valid_vals}")
+            else:
+                self.param["ENCOUNTER_CHECK"] = encounter_check_loops
+                update_list.append("encounter_check_loops")
+
         self.param["TIDES"] = False
 
-        if verbose is None:
-            verbose = self.verbose
-        if verbose:
-            if len(update_list) > 0:
-                feature_dict = self.get_feature(update_list)
-        return
+        feature_dict = self.get_feature(update_list, verbose)
+        return feature_dict
 
 
-    def get_feature(self, arg_list: str | List[str] | None = None):
+    def get_feature(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
         """
 
         Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
@@ -620,6 +717,11 @@ class Simulation:
         arg_list: str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["close_encounter_check", "general_relativity", "fragmentation", "rotation", "compute_conservation_values"]
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -636,12 +738,17 @@ class Simulation:
                      "extra_force": "EXTRA_FORCE",
                      "big_discard": "BIG_DISCARD",
                      "rhill_present": "RHILL_PRESENT",
-                     "restart" : "RESTART"
+                     "restart" : "RESTART",
+                     "interaction_loops" : "INTERACTION_LOOPS",
+                     "encounter_check_loops" : "ENCOUNTER_CHECK"
                      }
 
         valid_arg, feature_dict = self._get_valid_arg_list(arg_list, valid_var)
 
-        if self.verbose:
+        if verbose is None:
+            verbose = self.verbose
+
+        if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
                 print(f"{arg:<32} {feature_dict[key]}")
@@ -686,11 +793,12 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Sets the appropriate initial conditions file parameters inside the self.param dictionary.
+        init_cond_file_dict : dict
+           A dictionary containing the requested parameters
 
         """
 
@@ -776,16 +884,12 @@ class Simulation:
                 self.param["NC_IN"] = init_cond_file_name
 
 
-        if verbose is None:
-            verbose = self.verbose
-        if verbose:
-            if len(update_list) > 0:
-                init_cond_file_dict = self.get_init_cond_files(update_list)
+        init_cond_file_dict = self.get_init_cond_files(update_list,verbose)
 
-        return
+        return init_cond_file_dict
 
 
-    def get_init_cond_files(self, arg_list: str | List[str] | None = None):
+    def get_init_cond_files(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
         """
 
         Returns a subset of the parameter dictionary containing the current initial condition file parameters
@@ -797,6 +901,12 @@ class Simulation:
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["init_cond_file_type", "init_cond_file_name", "init_cond_format"]
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+
 
         Returns
         -------
@@ -842,7 +952,10 @@ class Simulation:
 
         valid_arg, init_cond_file_dict = self._get_valid_arg_list(valid_arg, valid_var)
 
-        if self.verbose:
+        if verbose is None:
+            verbose = self.verbose
+
+        if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
                 print(f"{arg:<32} {init_cond_file_dict[key]}")
@@ -859,7 +972,7 @@ class Simulation:
                          **kwargs: Any
                          ):
         """
-        Sets the output file parameters in the parameters dictionary.
+        Sets the output file parameters in the parameter dictionary.
 
         Parameters
         ----------
@@ -879,11 +992,12 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Sets the appropriate initial conditions file parameters inside the self.param dictionary.
+        output_file_dict : dict
+           A dictionary containing the requested parameters
 
         """
         update_list = []
@@ -938,16 +1052,12 @@ class Simulation:
         else:
             self.param["OUT_STAT"] = "REPLACE"
 
-        if verbose is None:
-            verbose = self.verbose
-        if verbose:
-            if len(update_list) > 0:
-                output_file_dict = self.get_output_files(update_list)
+        output_file_dict = self.get_output_files(update_list, verbose=verbose)
 
-        return
+        return output_file_dict
 
 
-    def get_output_files(self, arg_list: str | List[str] | None = None):
+    def get_output_files(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
         """
 
         Returns a subset of the parameter dictionary containing the current output file parameters
@@ -959,6 +1069,12 @@ class Simulation:
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["output_file_type", "output_file_name", "output_format"]
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+
 
         Returns
         -------
@@ -974,7 +1090,10 @@ class Simulation:
 
         valid_arg, output_file_dict = self._get_valid_arg_list(arg_list, valid_var)
 
-        if self.verbose:
+        if verbose is None:
+            verbose = self.verbose
+
+        if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
                 print(f"{arg:<32} {output_file_dict[key]}")
@@ -992,7 +1111,7 @@ class Simulation:
                         MU_name: str | None = None,
                         DU_name: str | None = None,
                         TU_name: str | None = None,
-                        recompute_values: bool = True,
+                        recompute_unit_values: bool = True,
                         verbose: bool | None = None,
                         **kwargs: Any):
         """
@@ -1045,7 +1164,7 @@ class Simulation:
         TU_name : str, optional
             The name of the time unit. When setting one of the standard units via `TU` a name will be
             automatically set for the unit, so this argument will override the automatic name.
-        recompute_values : bool, default True
+        recompute_unit_values : bool, default True
             Recompute all values into the new unit system.
             >*Note:* This is a destructive operation, however if not executed then the values contained in the parameter
             > file and input/output data files computed previously may not be consistent with the new unit conversion
@@ -1054,12 +1173,12 @@ class Simulation:
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         ----------
-        Sets the values of MU2KG, DU2M, and TU2S in the param dictionary to the appropriate units. Also computes the
-        gravitational constant, self.GU and recomput
+        unit_dict : dict
+           A dictionary containing the requested unit conversion parameters
         """
 
         MU2KG_old = None
@@ -1151,18 +1270,14 @@ class Simulation:
         self.VU_name = f"{self.DU_name}/{self.TU_name}"
         self.GU = constants.GC * self.param['TU2S']**2 * self.param['MU2KG'] / self.param['DU2M']**3
 
-        if recompute_values:
+        if recompute_unit_values:
             self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
-        if verbose is None:
-            verbose = self.verbose
+        unit_dict = self.get_unit_system(update_list, verbose)
 
-        if verbose:
-            unit_dict = self.get_unit_system(update_list)
+        return unit_dict
 
-        return
-
-    def get_unit_system(self, arg_list: str | List[str] | None = None):
+    def get_unit_system(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
         """
 
         Returns a subset of the parameter dictionary containing the current simulation unit system.
@@ -1174,11 +1289,14 @@ class Simulation:
             A single string or list of strings containing the names of the simulation unit system
             Default is all of:
             ["MU", "DU", "TU"]
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        time_dict : dict
-           A dictionary containing the requested parameters
+        unit_dict : dict
+           A dictionary containing the requested unit conversion parameters
 
         """
 
@@ -1214,7 +1332,10 @@ class Simulation:
 
         valid_arg, unit_dict = self._get_valid_arg_list(arg_list, valid_var)
 
-        if self.verbose:
+        if verbose is None:
+            verbose = self.verbose
+
+        if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
                 print(f"{arg}: {units1[arg]:<28} {unit_dict[key]} {units2[arg]}")
@@ -1270,6 +1391,7 @@ class Simulation:
     def set_distance_range(self,
                            rmin: float | None = None,
                            rmax: float | None = None,
+                           verbose: bool | None = None,
                            **kwargs: Any):
         """
         Sets the minimum and maximum distances of the simulation.
@@ -1282,13 +1404,16 @@ class Simulation:
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameters method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Sets the appropriate param dictionary values.
+        range_dict : dict
+           A dictionary containing the requested parameters.
 
         """
+
+        update_list = []
         CHK_QMIN_RANGE = self.param.pop('CHK_QMIN_RANGE',None)
         if CHK_QMIN_RANGE is None:
             CHK_QMIN_RANGE = [-1, -1]
@@ -1298,58 +1423,21 @@ class Simulation:
             self.param['CHK_QMIN'] = rmin
             self.param['CHK_RMIN'] = rmin
             CHK_QMIN_RANGE[0] = rmin
+            update_list.append("rmin")
         if rmax is not None:
             self.param['CHK_RMAX'] = rmax
             self.param['CHK_EJECT'] = rmax
             CHK_QMIN_RANGE[1] = rmax
+            update_list.append("rmax")
 
         self.param['CHK_QMIN_RANGE'] =f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
 
-        return
+        range_dict = self.get_distance_range(update_list,verbose=verbose)
 
-    def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
-        """
-        Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
-        argument/parameter variable pairs.
+        return range_dict
 
-        Parameters
-        ----------
-        arg_list : str | List[str], optional
-            A single string or list of strings containing the Simulation argument. If none are supplied,
-            then it will create the arg_list out of all keys in the valid_var dictionary.
-        valid_var : valid_var: Dict
-            A dictionary where the key is the argument name and the value is the equivalent key in the Simulation
-            parameter dictionary (i.e. the left-hand column of a param.in file)
 
-        Returns
-        -------
-        valid_arg : [str]
-            The list of valid arguments that match the keys in valid_var
-        param : dict
-            A dictionary that is the subset of the Simulation parameter dictionary corresponding to the arguments listed
-            in arg_list.
-
-        """
-
-        if arg_list is None:
-            valid_arg = None
-        else:
-            valid_arg = arg_list.copy()
-
-        if valid_arg is None:
-            valid_arg = list(valid_var.keys())
-        elif type(arg_list) is str:
-            valid_arg = [arg_list]
-        else:
-            # Only allow arg_lists to be checked if they are valid. Otherwise ignore.
-            valid_arg = [k for k in arg_list if k in list(valid_var.keys())]
-
-        # Extract the arg_list dictionary
-        param = {valid_var[arg]:self.param[valid_var[arg]] for arg in valid_arg if valid_var[arg] in self.param}
-
-        return valid_arg, param
-
-    def get_distance_range(self, arg_list: str | List[str] | None = None):
+    def get_distance_range(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
         """
 
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
@@ -1360,6 +1448,9 @@ class Simulation:
         arg_list: str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["rmin", "rmax"]
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -1390,7 +1481,10 @@ class Simulation:
 
         valid_arg, range_dict = self._get_valid_arg_list(arg_list, valid_var)
 
-        if self.verbose:
+        if verbose is None:
+            verbose = self.verbose
+
+        if verbose:
             if "rmin" in valid_arg:
                 key = valid_var["rmin"]
                 print(f"{'rmin':<32} {range_dict[key]} {units['rmin']}")
