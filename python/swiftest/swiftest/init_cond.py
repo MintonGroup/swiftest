@@ -18,7 +18,7 @@ import datetime
 from datetime import date
 import xarray as xr
 
-def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
+def solar_system_horizons(plname, idval, param, ephemerides_start_date):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
 
@@ -28,8 +28,6 @@ def solar_system_horizons(plname, idval, param, ephemerides_start_date, ds):
         Swiftest paramuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the param file
     ephemerides_start_date : string
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
-    ds : xarray Dataset
-        Dataset to append
 
     Returns
     -------
