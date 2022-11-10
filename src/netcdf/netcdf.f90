@@ -850,12 +850,12 @@ contains
       logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
       logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       ! Internals
-      integer(I4B)                              :: i, idmax
-      real(DP), dimension(:), allocatable       :: rtemp
+      integer(I4B)                                :: i, idmax, status
+      real(DP), dimension(:), allocatable         :: rtemp
       real(DP), dimension(:,:), allocatable       :: rtemp_arr
-      integer(I4B), dimension(:), allocatable   :: itemp
+      integer(I4B), dimension(:), allocatable     :: itemp
       character(len=NAMELEN), dimension(:), allocatable :: ctemp
-      integer(I4B), dimension(:), allocatable :: plind, tpind
+      integer(I4B), dimension(:), allocatable     :: plind, tpind
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       idmax = size(plmask)
@@ -918,7 +918,14 @@ contains
          end do
 
          if (param%lclose) then
-            call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar origin_type_varid"  )
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_TYPE_VARNAME, iu%origin_type_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar origin_type_varid"  )
+            else
+               ctemp = "Initial Conditions"
+            end if
+
             call cb%info%set_value(origin_type=ctemp(1))
             do i = 1, npl
                call pl%info(i)%set_value(origin_type=ctemp(plind(i)))
@@ -927,7 +934,13 @@ contains
                call tp%info(i)%set_value(origin_type=ctemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar origin_time_varid"  )
+            status = nf90_inq_varid(iu%ncid, ORIGIN_TIME_VARNAME, iu%origin_time_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar origin_time_varid"  )
+            else
+               rtemp = 0.0_DP
+            end if
+
             call cb%info%set_value(origin_time=rtemp(1))
             do i = 1, npl
                call pl%info(i)%set_value(origin_time=rtemp(plind(i)))
@@ -936,9 +949,28 @@ contains
                call tp%info(i)%set_value(origin_time=rtemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhz_varid"  )
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_XHX_VARNAME, iu%origin_xhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhx_varid"  )
+            else
+               call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_XHY_VARNAME, iu%origin_xhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhy_varid"  )
+            else
+               call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar xhy_varid"  )
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_XHZ_VARNAME, iu%origin_xhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhz_varid"  )
+            else
+               call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar xhz_varid"  )
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(origin_xh=rtemp_arr(:,plind(i)))
             end do
@@ -946,9 +978,27 @@ contains
                call tp%info(i)%set_value(origin_xh=rtemp_arr(:,tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhz_varid"  )
+            status = nf90_inq_varid(iu%ncid, ORIGIN_VHX_VARNAME, iu%origin_vhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhx_varid"  )
+            else
+               call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar vhx_varid"  )
+            end if 
+            
+            status = nf90_inq_varid(iu%ncid, ORIGIN_VHY_VARNAME, iu%origin_vhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhy_varid"  )
+            else
+               call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar vhy_varid"  )
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_VHZ_VARNAME, iu%origin_vhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhz_varid"  )
+            else
+               call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar vhz_varid"  )
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(origin_vh=rtemp_arr(:,plind(i)))
             end do
@@ -956,7 +1006,13 @@ contains
                call tp%info(i)%set_value(origin_vh=rtemp_arr(:,tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp), "netcdf_read_particle_info_system nf90_getvar collision_id_varid"  )
+            status = nf90_inq_varid(iu%ncid, COLLISION_ID_VARNAME, iu%collision_id_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp), "netcdf_read_particle_info_system nf90_getvar collision_id_varid"  )
+            else
+               itemp = 0.0_DP
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(collision_id=itemp(plind(i)))
             end do
@@ -964,7 +1020,13 @@ contains
                call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%discard_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar discard_time_varid"  )
+            status = nf90_inq_varid(iu%ncid, DISCARD_TIME_VARNAME, iu%discard_time_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar discard_time_varid"  )
+            else
+               rtemp = 0.0_DP
+            end if 
+
             call cb%info%set_value(discard_time=rtemp(1))
             do i = 1, npl
                call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
@@ -973,9 +1035,27 @@ contains
                call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhz_varid"  )
+            status = nf90_inq_varid(iu%ncid, DISCARD_XHX_VARNAME, iu%discard_xhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhx_varid"  )
+            else
+               rtemp_arr(1,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_XHY_VARNAME, iu%discard_xhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhy_varid"  )
+            else
+               rtemp_arr(2,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_XHZ_VARNAME, iu%discard_xhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhz_varid"  )
+            else
+               rtemp_arr(3,:) = 0.0_DP
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(discard_xh=rtemp_arr(:,plind(i)))
             end do
@@ -983,9 +1063,27 @@ contains
                call tp%info(i)%set_value(discard_xh=rtemp_arr(:,tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhz_varid"  )
+            status = nf90_inq_varid(iu%ncid, DISCARD_VHX_VARNAME, iu%discard_vhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhx_varid"  )
+            else
+               rtemp_arr(1,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_VHY_VARNAME, iu%discard_vhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhy_varid"  )
+            else
+               rtemp_arr(2,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_VHZ_VARNAME, iu%discard_vhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhz_varid"  )
+            else
+               rtemp_arr(3,:) = 0.0_DP
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(discard_vh=rtemp_arr(:,plind(i)))
             end do
