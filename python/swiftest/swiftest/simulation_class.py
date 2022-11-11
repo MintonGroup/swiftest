@@ -1622,10 +1622,15 @@ class Simulation:
         if all(np.isnan(J4)):
             J4 = None
 
+        t = self.param['TSTART']
 
-        dsnew = init_cond.vec2xr(self.param,name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4)
+        dsnew = init_cond.vec2xr(self.param,name,v1,v2,v3,v4,v5,v6,ephemeris_id,
+                                 GMpl=GMpl, Rpl=Rpl, rhill=rhill,
+                                 Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
+                                 rotx=rotx, roty=roty, rotz=rotz,
+                                 J2=J2, J4=J4, t=t)
 
-        self.ds = xr.combine_by_coords([self.ds,dsnew])
+        dsnew = self._combine_and_fix_dsnew(dsnew)
 
         return dsnew
 
@@ -1831,19 +1836,50 @@ class Simulation:
 
         t = self.param['TSTART']
 
-        dsnew = init_cond.vec2xr(self.param, idvals, name, v1, v2, v3, v4, v5, v6,
+        dsnew = init_cond.vec2xr(self.param, name, v1, v2, v3, v4, v5, v6, idvals,
                                  GMpl=GMpl, Rpl=Rpl, rhill=rhill,
                                  Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
                                  rotx=rotx, roty=roty, rotz=rotz,
-                                 J2=J2, J4=J4, t=t)
-        if dsnew is not None:
-            self.ds = xr.combine_by_coords([self.ds, dsnew])
-        self.ds['ntp'] = self.ds['id'].where(np.isnan(self.ds['Gmass'])).count(dim="id")
-        self.ds['npl'] = self.ds['id'].where(np.invert(np.isnan(self.ds['Gmass']))).count(dim="id") - 1
+                                 J2=J2, J4=J4,t=t)
+
+        dsnew = self._combine_and_fix_dsnew(dsnew)
+
+        return dsnew
+
+    def _combine_and_fix_dsnew(self,dsnew):
+        """
+        Combines the new Dataset with the old one. Also computes the values of ntp and npl and sets the proper types.
+        Parameters
+        ----------
+        dsnew : xarray Dataset
+            Dataset with new bodies
+
+        Returns
+        -------
+        dsnew : xarray Dataset
+            Updated Dataset with ntp, npl values and types fixed.
+
+        """
+
+        self.ds = xr.combine_by_coords([self.ds, dsnew])
+
+        def get_nvals(ds):
+            if "Gmass" in dsnew:
+                ds['ntp'] = ds['id'].where(np.isnan(ds['Gmass'])).count(dim="id")
+                ds['npl'] = ds['id'].where(np.invert(np.isnan(ds['Gmass']))).count(dim="id") - 1
+            else:
+                ds['ntp'] = ds['id'].count(dim="id")
+                ds['npl'] = xr.full_like(ds['ntp'],0)
+            return ds
+
+        dsnew = get_nvals(dsnew)
+        self.ds = get_nvals(self.ds)
 
         if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
+            dsnew = io.fix_types(dsnew, ftype=np.float64)
             self.ds = io.fix_types(self.ds, ftype=np.float64)
         elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
+            dsnew = io.fix_types(dsnew, ftype=np.float32)
             self.ds = io.fix_types(self.ds, ftype=np.float32)
 
         return dsnew

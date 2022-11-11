@@ -369,7 +369,7 @@ def vec2xr(param: Dict,
         vec_cb = np.expand_dims(vec_cb.T,axis=0) # Make way for the time dimension!
         ds_cb = xr.DataArray(vec_cb, dims=dims, coords={'time': [t], 'id': idvals[icb], 'vec': lab_cb}).to_dataset(dim='vec')
     else:
-        ds_cb =  xr.Dataset()
+        ds_cb =  None
     if ispl:
         lab_pl = plab.copy()
         vec_pl = np.vstack([vec[:,ipl], GMpl[ipl]])
@@ -383,16 +383,21 @@ def vec2xr(param: Dict,
         vec_pl = np.expand_dims(vec_pl.T,axis=0) # Make way for the time dimension!
         ds_pl = xr.DataArray(vec_pl, dims=dims, coords={'time': [t], 'id': idvals[ipl], 'vec': lab_pl}).to_dataset(dim='vec')
     else:
-        ds_pl =  xr.Dataset()
+        ds_pl =  None
     if istp:
         lab_tp = tlab.copy()
         vec_tp = np.expand_dims(vec[:,itp].T,axis=0) # Make way for the time dimension!
         ds_tp = xr.DataArray(vec_tp, dims=dims, coords={'time': [t], 'id': idvals[itp], 'vec': lab_tp}).to_dataset(dim='vec')
         particle_type[itp] = np.repeat("Test Particle",idvals[itp].size)
     else:
-        ds_tp =  xr.Dataset()
+        ds_tp =  None
 
     ds_info = xr.DataArray(np.vstack([namevals,particle_type]).T, dims=infodims, coords={'id': idvals, 'vec' : ["name", "particle_type"]}).to_dataset(dim='vec')
-    ds = xr.combine_by_coords([ds_cb, ds_pl, ds_tp, ds_info])
+    ds = [d for d in [ds_cb, ds_pl, ds_tp] if d is not None]
+    if len(ds) > 1:
+        ds = xr.combine_by_coords(ds)
+    else:
+        ds = ds[0]
+    ds = xr.merge([ds_info,ds])
 
     return ds
