@@ -63,6 +63,7 @@ class Simulation:
                  TU_name: str | None = None,
                  rmin: float = constants.RSun / constants.AU2M,
                  rmax: float = 10000.0,
+                 qmin_coord: Literal["HELIO","BARY"] = "HELIO",
                  close_encounter_check: bool = True,
                  general_relativity: bool = True,
                  fragmentation: bool = True,
@@ -183,6 +184,8 @@ class Simulation:
             Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
         rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+        qmin_coord : str, {"HELIO", "BARY"}, default "HELIO"
+            coordinate frame to use for CHK_QMIN
         close_encounter_check : bool, default True
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
@@ -238,9 +241,6 @@ class Simulation:
         self.ds = xr.Dataset()
         self.param = {
             '! VERSION': f"Swiftest parameter input",
-            'CHK_QMIN_COORD': "HELIO",
-            'INTERACTION_LOOPS': interaction_loops,
-            'ENCOUNTER_CHECK': encounter_check_loops
         }
         self.codename = codename
         self.verbose = verbose
@@ -1402,6 +1402,7 @@ class Simulation:
     def set_distance_range(self,
                            rmin: float | None = None,
                            rmax: float | None = None,
+                           qmin_coord: Literal["HELIO","BARY"] | None = None,
                            verbose: bool | None = None,
                            **kwargs: Any):
         """
@@ -1413,6 +1414,8 @@ class Simulation:
             Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
         rmax : float
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+        qmin_coord : str, {"HELIO", "BARY"}
+            coordinate frame to use for CHK_QMIN
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -1440,6 +1443,14 @@ class Simulation:
             self.param['CHK_EJECT'] = rmax
             CHK_QMIN_RANGE[1] = rmax
             update_list.append("rmax")
+        if qmin_coord is not None:
+            valid_qmin_coord = ["HELIO","BARY"]
+            if qmin_coord.upper() not in valid_qmin_coord:
+                print(f"qmin_coord = {qmin_coord} is not a valid option.  Must be one of",','.join(valid_qmin_coord))
+                self.param['CHK_QMIN_COORD'] = valid_qmin_coord[0]
+            else:
+                self.param['CHK_QMIN_COORD'] = qmin_coord.upper()
+            update_list.append("qmin_coord")
 
         self.param['CHK_QMIN_RANGE'] = f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
 
@@ -1473,6 +1484,7 @@ class Simulation:
 
         valid_var = {"rmin": "CHK_RMIN",
                      "rmax": "CHK_RMAX",
+                     "qmin_coord": "CHK_QMIN_COORD",
                      "qmin": "CHK_QMIN",
                      "qminR": "CHK_QMIN_RANGE"
                      }
@@ -1503,6 +1515,9 @@ class Simulation:
             if "rmax" in valid_arg:
                 key = valid_var["rmax"]
                 print(f"{'rmax':<{self._getter_column_width}} {range_dict[key]} {units['rmax']}")
+            if "qmin_coord" in valid_arg:
+                key = valid_var["qmin_coord"]
+                print(f"{'qmin_coord':<{self._getter_column_width}} {range_dict[key]}")
 
         return range_dict
 
