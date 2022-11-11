@@ -35,6 +35,7 @@ class Simulation:
 
     def __init__(self,
                  codename: Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
+                 integrator: Literal["symba","rmvs","whm","helio"] = "symba",
                  param_file: os.PathLike | str = "param.in",
                  read_param: bool = False,
                  t0: float = 0.0,
@@ -63,6 +64,11 @@ class Simulation:
                  TU_name: str | None = None,
                  rmin: float = constants.RSun / constants.AU2M,
                  rmax: float = 10000.0,
+                 gmtiny: float | None = None,
+                 mtiny: float | None = None,
+                 min_fragment_mass: float | None = None,
+                 min_fragment_gmass: float | None = None,
+                 qmin_coord: Literal["HELIO","BARY"] = "HELIO",
                  close_encounter_check: bool = True,
                  general_relativity: bool = True,
                  fragmentation: bool = True,
@@ -82,7 +88,9 @@ class Simulation:
         Parameters
         ----------
         codename : {"Swiftest", "Swifter", "Swift"}, default "Swiftest"
-            Name of the n-body integrator that will be used.
+            Name of the n-body code that will be used.
+        integrator : {"symba","rmvs","whm","helio"}, default "symba"
+            Name of the n-body integrator that will be used when executing a run.
         param_file : str, path-like, or file-lke, default "param.in"
             Name of the parameter input file that will be passed to the integrator.
         read_param : bool, default False
@@ -91,7 +99,7 @@ class Simulation:
             > *Note:* If set to true, the parameters defined in the input file will override any passed into the
             > arguments of Simulation.
         t0 : float, default 0.0
-            The reference time for the start of the simulation. Defaults is 0.0
+            The reference time for the start of the simulation. Defaults is 0.0.
         tstart : float, default 0.0
             The start time for a restarted simulation. For a new simulation, tstart will be set to t0 automatically.
         tstop : float, optional
@@ -105,11 +113,11 @@ class Simulation:
             `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
         istep_dump : int, optional
             The anumber of time steps between outputs to dump file. If not set, this will be set to the value of
-            `istep_out` (or the equivalent value determined by `tstep_out`)
+            `istep_out` (or the equivalent value determined by `tstep_out`).
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
             The file type containing initial conditions for the simulation:
-            * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE
-            * NETCDF_FLOAT: A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT
+            * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
+            * NETCDF_FLOAT: A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT.
             * ASCII : Three initial conditions files in ASCII format. The individual files define the central body,
             massive body, and test particle initial conditions.
         init_cond_file_name : str, path-like, or dict, optional
@@ -183,6 +191,8 @@ class Simulation:
             Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
         rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+        qmin_coord : str, {"HELIO", "BARY"}, default "HELIO"
+            coordinate frame to use for CHK_QMIN
         close_encounter_check : bool, default True
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
@@ -234,14 +244,8 @@ class Simulation:
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
         """
-
+        self.param = {}
         self.ds = xr.Dataset()
-        self.param = {
-            '! VERSION': f"Swiftest parameter input",
-            'CHK_QMIN_COORD': "HELIO",
-            'INTERACTION_LOOPS': interaction_loops,
-            'ENCOUNTER_CHECK': encounter_check_loops
-        }
         self.codename = codename
         self.verbose = verbose
         self.restart = restart
@@ -257,7 +261,9 @@ class Simulation:
             else:
                 print(f"{param_file} not found.")
 
-        self.set_parameter(t0=t0,
+        self.set_parameter(codename=codename,
+                           integrator=integrator,
+                           t0=t0,
                            tstart=tstart,
                            tstop=tstop,
                            dt=dt,
@@ -265,6 +271,7 @@ class Simulation:
                            istep_out=istep_out,
                            istep_dump=istep_dump,
                            rmin=rmin, rmax=rmax,
+                           qmin_coord=qmin_coord,
                            MU=MU, DU=DU, TU=TU,
                            MU2KG=MU2KG, DU2M=DU2M, TU2S=TU2S,
                            MU_name=MU_name, DU_name=DU_name, TU_name=TU_name,
@@ -284,6 +291,8 @@ class Simulation:
                            big_discard=big_discard,
                            rhill_present=rhill_present,
                            restart=restart,
+                           interaction_loops=interaction_loops,
+                           encounter_check_loops=encounter_check_loops,
                            ephemeris_date=ephemeris_date,
                            verbose=False)
 
@@ -543,6 +552,7 @@ class Simulation:
 
         # Non-returning setters
         self.set_ephemeris_date(**kwargs)
+        self.set_integrator(**kwargs)
 
         return param_dict
 
@@ -559,6 +569,8 @@ class Simulation:
 
         """
 
+        self.get_integrator(**kwargs)
+
         # Getters returning parameter dictionary values
         param_dict = self.get_simulation_time(**kwargs)
         param_dict.update(self.get_init_cond_files(**kwargs))
@@ -567,11 +579,108 @@ class Simulation:
         param_dict.update(self.get_unit_system(**kwargs))
         param_dict.update(self.get_feature(**kwargs))
 
-        # Non-returning getters
-        if not bool(kwargs) or "ephemeris_date" in kwargs:
-            self.get_ephemeris_date(**kwargs)
+        self.get_ephemeris_date(**kwargs)
 
         return param_dict
+
+    def set_integrator(self,
+                       codename: Literal["swiftest", "swifter", "swift"] | None = None,
+                       integrator: Literal["symba","rmvs","whm","helio"] | None = None,
+                       verbose: bool | None = None,
+                       **kwargs: Any
+                       ):
+        """
+
+        Parameters
+        ----------
+        codename : {"swiftest", "swifter", "swift"}, optional
+        integrator : {"symba","rmvs","whm","helio"}, optional
+            Name of the n-body integrator that will be used when executing a run.
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+
+        Returns
+        -------
+        None
+
+        """
+
+        if integrator is None and codename is None:
+            return
+
+        if codename is not None:
+            valid_codename = ["swiftest", "swifter", "swift"]
+            if codename.lower() not in valid_codename:
+                print(f"{codename} is not a valid codename. Valid options are ",",".join(valid_codename))
+                try:
+                    self.codename
+                except:
+                    self.codename = valid_codename[0]
+            else:
+                self.codename = codename.lower()
+
+            self.param['! VERSION'] = f"{self.codename.title()} parameter input"
+
+        if integrator is not None:
+            valid_integrator = ["symba","rmvs","whm","helio"]
+            if integrator.lower() not in valid_integrator:
+                print(f"{integrator} is not a valid integrator. Valid options are ",",".join(valid_integrator))
+                try:
+                    self.integrator
+                except:
+                    self.integrator = valid_integrator[0]
+            else:
+                self.integrator = integrator.lower()
+
+            self.get_integrator("integrator", verbose)
+
+        return
+
+    def get_integrator(self,arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+        """
+
+        Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
+        If the verbose option is set in the Simulation object, then it will also print the values.
+
+        Parameters
+        ----------
+        arg_list: str | List[str], optional
+            A single string or list of strings containing the names of the features to extract. Default is all of:
+            ["integrator"]
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+
+        Returns
+        -------
+        integrator: str,
+            The integrator name.
+        """
+
+        try:
+            self.integrator
+        except:
+            print(f"integrator is not set")
+            return
+
+        try:
+            self.codename
+        except:
+            print(f"codename is not set")
+            return
+
+        valid_arg = {"integrator": self.integrator,
+                     "codename": self.codename}
+
+        if not bool(kwargs) and arg_list is None:
+            arg_list = list(valid_arg.keys())
+        ephemeris_date = self._get_instance_var(arg_list, valid_arg, verbose, **kwargs)
+        return
 
     def set_feature(self,
                     close_encounter_check: bool | None = None,
@@ -705,8 +814,10 @@ class Simulation:
             if interaction_loops not in valid_vals:
                 print(f"{interaction_loops} is not a valid option for interaction loops.")
                 print(f"Must be one of {valid_vals}")
-                self.param["INTERACTION_LOOPS"] = interaction_loops
+                if "INTERACTION_LOOPS" not in self.param:
+                    self.param["INTERACTION_LOOPS"] = valid_vals[0]
             else:
+                self.param["INTERACTION_LOOPS"] = interaction_loops
                 update_list.append("interaction_loops")
 
         if encounter_check_loops is not None:
@@ -714,6 +825,8 @@ class Simulation:
             if encounter_check_loops not in valid_vals:
                 print(f"{encounter_check_loops} is not a valid option for interaction loops.")
                 print(f"Must be one of {valid_vals}")
+                if "ENCOUNTER_CHECK" not in self.param:
+                    self.param["ENCOUNTER_CHECK"] = valid_vals[0]
             else:
                 self.param["ENCOUNTER_CHECK"] = encounter_check_loops
                 update_list.append("encounter_check_loops")
@@ -1402,6 +1515,7 @@ class Simulation:
     def set_distance_range(self,
                            rmin: float | None = None,
                            rmax: float | None = None,
+                           qmin_coord: Literal["HELIO","BARY"] | None = None,
                            verbose: bool | None = None,
                            **kwargs: Any):
         """
@@ -1413,6 +1527,8 @@ class Simulation:
             Minimum distance of the simulation (CHK_QMIN, CHK_RMIN, CHK_QMIN_RANGE[0])
         rmax : float
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+        qmin_coord : str, {"HELIO", "BARY"}
+            coordinate frame to use for CHK_QMIN
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -1440,6 +1556,14 @@ class Simulation:
             self.param['CHK_EJECT'] = rmax
             CHK_QMIN_RANGE[1] = rmax
             update_list.append("rmax")
+        if qmin_coord is not None:
+            valid_qmin_coord = ["HELIO","BARY"]
+            if qmin_coord.upper() not in valid_qmin_coord:
+                print(f"qmin_coord = {qmin_coord} is not a valid option.  Must be one of",','.join(valid_qmin_coord))
+                self.param['CHK_QMIN_COORD'] = valid_qmin_coord[0]
+            else:
+                self.param['CHK_QMIN_COORD'] = qmin_coord.upper()
+            update_list.append("qmin_coord")
 
         self.param['CHK_QMIN_RANGE'] = f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
 
@@ -1473,6 +1597,7 @@ class Simulation:
 
         valid_var = {"rmin": "CHK_RMIN",
                      "rmax": "CHK_RMAX",
+                     "qmin_coord": "CHK_QMIN_COORD",
                      "qmin": "CHK_QMIN",
                      "qminR": "CHK_QMIN_RANGE"
                      }
@@ -1503,6 +1628,9 @@ class Simulation:
             if "rmax" in valid_arg:
                 key = valid_var["rmax"]
                 print(f"{'rmax':<{self._getter_column_width}} {range_dict[key]} {units['rmax']}")
+            if "qmin_coord" in valid_arg:
+                key = valid_var["qmin_coord"]
+                print(f"{'qmin_coord':<{self._getter_column_width}} {range_dict[key]}")
 
         return range_dict
 
@@ -1686,13 +1814,16 @@ class Simulation:
 
         return ephemeris_date
 
-    def get_ephemeris_date(self, verbose: bool | None = None, **kwargs: Any):
+    def get_ephemeris_date(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
         """
 
         Prints the current value of the ephemeris date
 
         Parameters
         ----------
+        arg_list: str | List[str], optional
+            A single string or list of strings containing the names of the features to extract. Default is all of:
+            ["integrator"]
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
@@ -1705,16 +1836,54 @@ class Simulation:
             The ISO-formatted date string for the ephemeris computation
 
         """
-        if self.ephemeris_date is None:
+
+        try:
+            self.ephemeris_date
+        except:
             print(f"ephemeris_date is not set")
             return
 
+        valid_arg = {"ephemeris_date": self.ephemeris_date}
+
+        ephemeris_date = self._get_instance_var(arg_list, valid_arg,verbose, **kwargs)
+
+        return ephemeris_date
+
+    def _get_instance_var(self, arg_list: str | List[str], valid_arg: Dict, verbose: bool | None = None, **kwargs: Any):
+        """
+
+        Prints the current value of an instance variable.
+
+        Parameters
+        ----------
+        arg_list: str | List[str]
+            A single string or list of strings containing the names of the the instance variable to get.
+        valid_arg: dict
+            A dictionary where the key is the parameter argument and the value is the equivalent instance variable value.
+        verbose: bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+
+        Returns
+        -------
+        Tuple of instance variable values given by the arg_list
+
+        """
+
+        arg_vals = []
         if verbose is None:
             verbose = self.verbose
         if verbose:
-            print(f"{'ephemeris_date':<{self._getter_column_width}} {self.ephemeris_date}")
+            if arg_list is None:
+                arg_list = list(valid_arg.keys())
+            for arg in arg_list:
+                if arg in valid_arg:
+                    print(f"{arg:<{self._getter_column_width}} {valid_arg[arg]}")
+                    arg_vals.append(valid_arg[arg])
 
-        return self.ephemeris_date
+        return tuple(arg_vals)
 
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_],
