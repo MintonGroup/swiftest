@@ -14,6 +14,7 @@ from swiftest import io
 from swiftest import init_cond
 from swiftest import tool
 from swiftest import constants
+from swiftest import __file__ as _pyfile
 import os
 import datetime
 import xarray as xr
@@ -605,9 +606,11 @@ class Simulation:
 
         Returns
         -------
-        None
+        integrator_dict: dict
+            A dictionary containing the subset of the parameter dictonary that was updated by this setter
 
         """
+        # TODO: Improve how it finds the executable binary
 
         if integrator is None and codename is None:
             return
@@ -627,6 +630,13 @@ class Simulation:
 
             self.param['! VERSION'] = f"{self.codename} parameter input"
             update_list.append("codename")
+            if self.codename == "Swiftest":
+                self.binary_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(_pyfile)),os.pardir,os.pardir,os.pardir,"build"))
+                self.driver_executable = os.path.join(self.binary_path,"swiftest_driver")
+            else:
+                self.binary_path = "NOT SET"
+                self.driver_executable = "NOT SET"
+            update_list.append("driver_executable")
 
         if integrator is not None:
             valid_integrator = ["symba","rmvs","whm","helio"]
@@ -670,7 +680,8 @@ class Simulation:
         valid_var = {"codename": "! VERSION"}
 
         valid_instance_vars = {"integrator": self.integrator,
-                               "codename": self.codename}
+                               "codename": self.codename,
+                               "driver_executable": self.driver_executable}
 
         try:
             self.integrator
@@ -684,23 +695,17 @@ class Simulation:
             print(f"codename is not set")
             return {}
 
+        if verbose is None:
+            verbose = self.verbose
 
         if not bool(kwargs) and arg_list is None:
             arg_list = list(valid_instance_vars.keys())
+            
         integrator = self._get_instance_var(arg_list, valid_instance_vars, verbose, **kwargs)
 
         valid_arg, integrator_dict = self._get_valid_arg_list(arg_list, valid_var)
 
-        if verbose is None:
-            verbose = self.verbose
 
-        if verbose:
-            for arg in arg_list:
-                if arg in valid_arg:
-                    key = valid_var[arg]
-                    print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]}")
-                elif arg in valid_instance_vars:
-                    print(f"{arg:<{self._getter_column_width}} {valid_instance_vars[arg]}")
         return integrator_dict
 
     def set_feature(self,
