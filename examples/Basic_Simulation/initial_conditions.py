@@ -65,7 +65,7 @@ sim.add_body(name_pl, a_pl, e_pl, inc_pl, capom_pl, omega_pl, capm_pl, GMpl=GM_p
 # Add 10 user-defined test particles
 ntp = 10
 
-name_tp     = np.array(["TestParticle_01", "TestParticle_02", "TestParticle_03", "TestParticle_04", "TestParticle_05", "TestParticle_06", "TestParticle_07", "TestParticle_08", "TestParticle_09", "TestParticle_10"])
+name_tp     = ["TestParticle_01", "TestParticle_02", "TestParticle_03", "TestParticle_04", "TestParticle_05", "TestParticle_06", "TestParticle_07", "TestParticle_08", "TestParticle_09", "TestParticle_10"]
 a_tp        = default_rng().uniform(0.3, 1.5, ntp)
 e_tp        = default_rng().uniform(0.0, 0.3, ntp)
 inc_tp      = default_rng().uniform(0.0, 90, ntp)
