@@ -329,15 +329,21 @@ def vec2xr(param: Dict,
     infodims = ['id', 'vec']
 
     # The central body is always given id 0
-    icb = idvals == 0
-    iscb =  any(icb)
 
     if GMpl is not None:
-        ispl = True
-        ipl = ~np.isnan(GMpl)
-        itp = np.isnan(GMpl)
+        icb = (~np.isnan(GMpl)) & (idvals == 0)
+        ipl = (~np.isnan(GMpl)) & (idvals != 0)
+        itp = (np.isnan(GMpl)) & (idvals != 0)
+        iscb = any(icb)
+        ispl = any(ipl)
+        istp = any(itp)
     else:
+        icb = np.full_like(idvals,False)
+        ipl = np.full_like(idvals,False)
+        itp = idvals != 0
+        iscb = False
         ispl = False
+        istp = any(itp)
 
     if ispl and param['CHK_CLOSE'] and Rpl is None:
         print("Massive bodies need a radius value.")
@@ -351,35 +357,42 @@ def vec2xr(param: Dict,
     param['OUT_FORM'] = param['IN_FORM']
     clab, plab, tlab, infolab_float, infolab_int, infolab_str = swiftest.io.make_swiftest_labels(param)
     param['OUT_FORM'] = old_out_form
-    vec_str = np.vstack([namevals])
-    label_str = ["name"]
     particle_type = np.empty_like(namevals)
+    vec = np.vstack([v1,v2,v3,v4,v5,v6])
+
     if iscb:
-        label_float = clab.copy()
-        vec_float = np.vstack([GMpl[icb],Rpl[icb],J2[icb],J4[icb]])
+        lab_cb = clab.copy()
+        vec_cb = np.vstack([GMpl[icb],Rpl[icb],J2[icb],J4[icb]])
         if param['ROTATION']:
-            vec_float = np.vstack([vec_float, Ip1[icb], Ip2[icb], Ip3[icb], rotx[icb], roty[icb], rotz[icb]])
+            vec_cb = np.vstack([vec_cb, Ip1[icb], Ip2[icb], Ip3[icb], rotx[icb], roty[icb], rotz[icb]])
         particle_type[icb] = "Central Body"
-  #      vec_float = np.vstack([v1, v2, v3, v4, v5, v6])
-    if ispl:
-        label_float = plab.copy()
-        vec_float = np.vstack([vec_float, GMpl])
-        if param['CHK_CLOSE']:
-            vec_float = np.vstack([vec_float, Rpl])
-        if param['RHILL_PRESENT']:
-            vec_float = np.vstack([vec_float, rhill])
-        if param['ROTATION']:
-            vec_float = np.vstack([vec_float, Ip1, Ip2, Ip3, rotx, roty, rotz])
-        particle_type[ipl] = np.repeat("Massive Body",idvals.size)
+        vec_cb = np.expand_dims(vec_cb.T,axis=0) # Make way for the time dimension!
+        ds_cb = xr.DataArray(vec_cb, dims=dims, coords={'time': [t], 'id': idvals[icb], 'vec': lab_cb}).to_dataset(dim='vec')
     else:
-        label_float = tlab.copy()
-        particle_type[itp] = np.repeat("Test Particle",idvals.size)
-    frame_float = np.expand_dims(vec_float.T, axis=0)
-    frame_str = vec_str.T
-    da_float = xr.DataArray(frame_float, dims=dims, coords={'time': [t], 'id': idvals, 'vec': label_float})
-    da_str= xr.DataArray(frame_str, dims=infodims, coords={'id': idvals, 'vec': label_str})
-    ds_float = da_float.to_dataset(dim="vec")
-    ds_str = da_str.to_dataset(dim="vec")
-    ds = xr.combine_by_coords([ds_float, ds_str])
+        ds_cb =  xr.Dataset()
+    if ispl:
+        lab_pl = plab.copy()
+        vec_pl = np.vstack([vec[:,ipl], GMpl[ipl]])
+        if param['CHK_CLOSE']:
+            vec_pl = np.vstack([vec_pl, Rpl[ipl]])
+        if param['RHILL_PRESENT']:
+            vec_pl = np.vstack([vec_pl, rhill[ipl]])
+        if param['ROTATION']:
+            vec_pl = np.vstack([vec_pl, Ip1[ipl], Ip2[ipl], Ip3[ipl], rotx[ipl], roty[ipl], rotz[ipl]])
+        particle_type[ipl] = np.repeat("Massive Body",idvals[ipl].size)
+        vec_pl = np.expand_dims(vec_pl.T,axis=0) # Make way for the time dimension!
+        ds_pl = xr.DataArray(vec_pl, dims=dims, coords={'time': [t], 'id': idvals[ipl], 'vec': lab_pl}).to_dataset(dim='vec')
+    else:
+        ds_pl =  xr.Dataset()
+    if istp:
+        lab_tp = tlab.copy()
+        vec_tp = np.expand_dims(vec[:,itp].T,axis=0) # Make way for the time dimension!
+        ds_tp = xr.DataArray(vec_tp, dims=dims, coords={'time': [t], 'id': idvals[itp], 'vec': lab_tp}).to_dataset(dim='vec')
+        particle_type[itp] = np.repeat("Test Particle",idvals[itp].size)
+    else:
+        ds_tp =  xr.Dataset()
+
+    ds_info = xr.DataArray(np.vstack([namevals,particle_type]).T, dims=infodims, coords={'id': idvals, 'vec' : ["name", "particle_type"]}).to_dataset(dim='vec')
+    ds = xr.combine_by_coords([ds_cb, ds_pl, ds_tp, ds_info])
 
     return ds

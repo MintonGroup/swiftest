@@ -1625,7 +1625,9 @@ class Simulation:
 
         dsnew = init_cond.vec2xr(self.param,name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4)
 
-        return body_list
+        self.ds = xr.combine_by_coords([self.ds,dsnew])
+
+        return dsnew
 
 
     def set_ephemeris_date(self,
