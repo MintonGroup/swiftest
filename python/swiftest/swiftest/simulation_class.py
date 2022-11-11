@@ -1864,9 +1864,9 @@ class Simulation:
         self.ds = xr.combine_by_coords([self.ds, dsnew])
 
         def get_nvals(ds):
-            if "Gmass" in dsnew:
+            if "Gmass" in ds:
                 ds['ntp'] = ds['id'].where(np.isnan(ds['Gmass'])).count(dim="id")
-                ds['npl'] = ds['id'].where(np.invert(np.isnan(ds['Gmass']))).count(dim="id") - 1
+                ds['npl'] = ds['id'].where(~(np.isnan(ds['Gmass']))).count(dim="id") - 1
             else:
                 ds['ntp'] = ds['id'].count(dim="id")
                 ds['npl'] = xr.full_like(ds['ntp'],0)
