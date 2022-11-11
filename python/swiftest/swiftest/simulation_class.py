@@ -14,6 +14,7 @@ from swiftest import io
 from swiftest import init_cond
 from swiftest import tool
 from swiftest import constants
+from swiftest import __file__ as _pyfile
 import os
 import datetime
 import xarray as xr
@@ -66,12 +67,12 @@ class Simulation:
                  rmax: float = 10000.0,
                  gmtiny: float | None = None,
                  mtiny: float | None = None,
-                 min_fragment_mass: float | None = None,
-                 min_fragment_gmass: float | None = None,
                  qmin_coord: Literal["HELIO","BARY"] = "HELIO",
                  close_encounter_check: bool = True,
                  general_relativity: bool = True,
-                 fragmentation: bool = True,
+                 fragmentation: bool = False,
+                 minimum_fragment_mass: float | None = None,
+                 minimum_fragment_gmass: float | None = None,
                  rotation: bool = True,
                  compute_conservation_values: bool = False,
                  extra_force: bool = False,
@@ -201,6 +202,12 @@ class Simulation:
         fragmentation : bool, default True
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        minimum_fragment_gmass : float, optional
+            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
+            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
+        minimum_fragment_mass : float, optional
+            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated.
+            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
         rotation : bool, default True
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -284,6 +291,8 @@ class Simulation:
                            close_encounter_check=close_encounter_check,
                            general_relativity=general_relativity,
                            fragmentation=fragmentation,
+                           minimum_fragment_gmass=minimum_fragment_gmass,
+                           minimum_fragment_mass=minimum_fragment_mass,
                            rotation=rotation,
                            compute_conservation_values=compute_conservation_values,
                            extra_force=extra_force,
@@ -605,9 +614,11 @@ class Simulation:
 
         Returns
         -------
-        None
+        integrator_dict: dict
+            A dictionary containing the subset of the parameter dictonary that was updated by this setter
 
         """
+        # TODO: Improve how it finds the executable binary
 
         if integrator is None and codename is None:
             return
@@ -627,6 +638,13 @@ class Simulation:
 
             self.param['! VERSION'] = f"{self.codename} parameter input"
             update_list.append("codename")
+            if self.codename == "Swiftest":
+                self.binary_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(_pyfile)),os.pardir,os.pardir,os.pardir,"build"))
+                self.driver_executable = os.path.join(self.binary_path,"swiftest_driver")
+            else:
+                self.binary_path = "NOT SET"
+                self.driver_executable = "NOT SET"
+            update_list.append("driver_executable")
 
         if integrator is not None:
             valid_integrator = ["symba","rmvs","whm","helio"]
@@ -670,7 +688,8 @@ class Simulation:
         valid_var = {"codename": "! VERSION"}
 
         valid_instance_vars = {"integrator": self.integrator,
-                               "codename": self.codename}
+                               "codename": self.codename,
+                               "driver_executable": self.driver_executable}
 
         try:
             self.integrator
@@ -684,29 +703,25 @@ class Simulation:
             print(f"codename is not set")
             return {}
 
+        if verbose is None:
+            verbose = self.verbose
 
         if not bool(kwargs) and arg_list is None:
             arg_list = list(valid_instance_vars.keys())
+            
         integrator = self._get_instance_var(arg_list, valid_instance_vars, verbose, **kwargs)
 
         valid_arg, integrator_dict = self._get_valid_arg_list(arg_list, valid_var)
 
-        if verbose is None:
-            verbose = self.verbose
 
-        if verbose:
-            for arg in arg_list:
-                if arg in valid_arg:
-                    key = valid_var[arg]
-                    print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]}")
-                elif arg in valid_instance_vars:
-                    print(f"{arg:<{self._getter_column_width}} {valid_instance_vars[arg]}")
         return integrator_dict
 
     def set_feature(self,
                     close_encounter_check: bool | None = None,
                     general_relativity: bool | None = None,
                     fragmentation: bool | None = None,
+                    minimum_fragment_gmass: float | None = None,
+                    minimum_fragment_mass: float | None = None,
                     rotation: bool | None = None,
                     compute_conservation_values: bool | None = None,
                     extra_force: bool | None = None,
@@ -732,6 +747,12 @@ class Simulation:
         fragmentation : bool, optional
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        minimum_fragment_gmass : float, optional
+            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
+            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
+        minimum_fragment_mass : float, optional
+            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated.
+            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
         rotation : bool, optional
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -800,8 +821,27 @@ class Simulation:
             update_list.append("general_relativity")
 
         if fragmentation is not None:
-            self.param['FRAGMENTATION'] = fragmentation
-            update_list.append("fragmentation")
+            if self.codename != "Swiftest" and self.integrator != "symba" and fragmentation:
+                print("Fragmentation is only available on Swiftest SyMBA.")
+                self.param['FRAGMENTATION'] = False
+            else:
+                self.param['FRAGMENTATION'] = fragmentation
+                update_list.append("fragmentation")
+                if fragmentation:
+                    if "MIN_GMFRAG" not in self.param and minimum_fragment_mass is None and minimum_fragment_gmass is None:
+                        print("Minimum fragment mass is not set. Set it using minimum_fragment_gmass or minimum_fragment_mass")
+                    else:
+                        update_list.append("minimum_fragment_gmass")
+                        update_list.append("minimum_fragment_mass")
+        if minimum_fragment_gmass is not None and minimum_fragment_mass is not None:
+            print("Warning! Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!")
+
+        if minimum_fragment_gmass is not None:
+            self.param["MIN_GMFRAG"] = minimum_fragment_gmass
+            update_list.append("minimum_fragment_gmass")
+        elif minimum_fragment_mass is not None:
+            self.param["MIN_GMFRAG"] = minimum_fragment_mass * self.GU
+            update_list.append("minimum_fragment_gmass")
 
         if rotation is not None:
             self.param['ROTATION'] = rotation
@@ -891,7 +931,8 @@ class Simulation:
                      "rhill_present": "RHILL_PRESENT",
                      "restart": "RESTART",
                      "interaction_loops": "INTERACTION_LOOPS",
-                     "encounter_check_loops": "ENCOUNTER_CHECK"
+                     "encounter_check_loops": "ENCOUNTER_CHECK",
+                     "minimum_fragment_gmass" : "MIN_GMFRAG"
                      }
 
         valid_arg, feature_dict = self._get_valid_arg_list(arg_list, valid_var)
@@ -902,7 +943,16 @@ class Simulation:
         if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
-                print(f"{arg:<{self._getter_column_width}} {feature_dict[key]}")
+                if key in feature_dict:
+                    if arg == "minimum_fragment_gmass":
+                        if self.param['FRAGMENTATION']:
+                           print(f"{arg:<{self._getter_column_width}} {feature_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
+                           print(f"{'minimum_fragment_mass':<{self._getter_column_width}} {feature_dict[key] / self.GU} {self.MU_name}")
+                    else:
+                        print(f"{arg:<{self._getter_column_width}} {feature_dict[key]}")
+                else:
+                    print(f"{arg:<{self._getter_column_width}} NOT SET")
+
 
         return feature_dict
 
