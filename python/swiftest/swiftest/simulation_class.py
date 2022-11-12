@@ -65,9 +65,9 @@ class Simulation:
                  TU_name: str | None = None,
                  rmin: float = constants.RSun / constants.AU2M,
                  rmax: float = 10000.0,
+                 qmin_coord: Literal["HELIO","BARY"] = "HELIO",
                  gmtiny: float | None = None,
                  mtiny: float | None = None,
-                 qmin_coord: Literal["HELIO","BARY"] = "HELIO",
                  close_encounter_check: bool = True,
                  general_relativity: bool = True,
                  fragmentation: bool = False,
@@ -194,6 +194,12 @@ class Simulation:
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
         qmin_coord : str, {"HELIO", "BARY"}, default "HELIO"
             coordinate frame to use for CHK_QMIN
+        mtiny : float, optional
+            The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
+            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
+        gmtiny : float, optional
+            The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
+            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
         close_encounter_check : bool, default True
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
@@ -278,6 +284,8 @@ class Simulation:
                            istep_dump=istep_dump,
                            rmin=rmin, rmax=rmax,
                            qmin_coord=qmin_coord,
+                           gmtiny=gmtiny,
+                           mtiny=mtiny,
                            MU=MU, DU=DU, TU=TU,
                            MU2KG=MU2KG, DU2M=DU2M, TU2S=TU2S,
                            MU_name=MU_name, DU_name=DU_name, TU_name=TU_name,
@@ -552,8 +560,8 @@ class Simulation:
 
         # Setters returning parameter dictionary values
         param_dict = {}
-        param_dict.update(self.set_integrator(**kwargs))
         param_dict.update(self.set_unit_system(**kwargs))
+        param_dict.update(self.set_integrator(**kwargs))
         param_dict.update(self.set_distance_range(**kwargs))
         param_dict.update(self.set_feature(**kwargs))
         param_dict.update(self.set_init_cond_files(**kwargs))
@@ -596,6 +604,8 @@ class Simulation:
     def set_integrator(self,
                        codename: Literal["swiftest", "swifter", "swift"] | None = None,
                        integrator: Literal["symba","rmvs","whm","helio"] | None = None,
+                       mtiny: float | None = None,
+                       gmtiny: float | None = None,
                        verbose: bool | None = None,
                        **kwargs: Any
                        ):
@@ -606,6 +616,12 @@ class Simulation:
         codename : {"swiftest", "swifter", "swift"}, optional
         integrator : {"symba","rmvs","whm","helio"}, optional
             Name of the n-body integrator that will be used when executing a run.
+        mtiny : float, optional
+            The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
+            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
+        gmtiny : float, optional
+            The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
+            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
@@ -658,6 +674,18 @@ class Simulation:
                 self.integrator = integrator.lower()
             update_list.append("integrator")
 
+        if mtiny is not None or gmtiny is not None:
+            if self.integrator != "symba":
+                print("mtiny and gmtiny are only used by SyMBA.")
+            if mtiny is not None and gmtiny is not None:
+                print("Only set mtiny or gmtiny, not both!")
+            elif gmtiny is not None:
+                self.param['GMTINY'] = gmtiny
+                update_list.append("gmtiny")
+            elif mtiny is not None:
+                self.param['GMTINY'] = self.GU * mtiny
+                update_list.append("gmtiny")
+
         integrator_dict = self.get_integrator(update_list, verbose)
 
         return integrator_dict
@@ -685,7 +713,8 @@ class Simulation:
             The subset of the dictionary containing the code name if codename is selected
         """
 
-        valid_var = {"codename": "! VERSION"}
+        valid_var = {"codename": "! VERSION",
+                     "gmtiny"  : "GMTINY"}
 
         valid_instance_vars = {"integrator": self.integrator,
                                "codename": self.codename,
@@ -708,10 +737,24 @@ class Simulation:
 
         if not bool(kwargs) and arg_list is None:
             arg_list = list(valid_instance_vars.keys())
-            
+            arg_list.append(*[a for a in valid_var.keys() if a not in valid_instance_vars])
+
         integrator = self._get_instance_var(arg_list, valid_instance_vars, verbose, **kwargs)
 
         valid_arg, integrator_dict = self._get_valid_arg_list(arg_list, valid_var)
+
+        if verbose:
+            for arg in valid_arg:
+                key = valid_var[arg]
+                if key in integrator_dict:
+                    if arg == "gmtiny":
+                        if self.integrator == "symba":
+                           print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
+                           print(f"{'mtiny':<{self._getter_column_width}} {integrator_dict[key] / self.GU} {self.MU_name}")
+                    else:
+                        print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]}")
+                else:
+                    print(f"{arg:<{self._getter_column_width}} NOT SET")
 
 
         return integrator_dict
