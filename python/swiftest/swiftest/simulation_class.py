@@ -338,13 +338,19 @@ class Simulation:
 
         self.set_parameter(**kwargs)
         self.save(**kwargs)
+
         if self.codename != "Swiftest":
             print(f"Running an integration is not yet supported for {self.codename}")
             return
 
+        if self.driver_executable is None:
+            print("Path to swiftest_driver has not been set!")
+            return
+
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
-        subprocess.run([self.driver_executable, self.integrator, self.param_file], capture_output=True)
+        term = subprocess.run([self.driver_executable, self.integrator, self.param_file], capture_output=True)
+        return
 
     def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
         """
@@ -691,11 +697,14 @@ class Simulation:
             self.param['! VERSION'] = f"{self.codename} parameter input"
             update_list.append("codename")
             if self.codename == "Swiftest":
-                self.binary_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(_pyfile)),os.pardir,os.pardir,os.pardir,"build"))
+                self.binary_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(_pyfile)),os.pardir,os.pardir,os.pardir,"bin"))
                 self.driver_executable = os.path.join(self.binary_path,"swiftest_driver")
+                if not os.path.exists(self.driver_executable):
+                    print(f"Cannot find the Swiftest driver in {self.binary_path}")
+                    self.driver_executable = None
             else:
                 self.binary_path = "NOT SET"
-                self.driver_executable = "NOT SET"
+                self.driver_executable = None
             update_list.append("driver_executable")
 
         if integrator is not None:
