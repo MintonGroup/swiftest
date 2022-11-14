@@ -756,10 +756,9 @@ class Simulation:
         valid_var = {"codename": "! VERSION",
                      "gmtiny"  : "GMTINY"}
 
-        valid_instance_vars = {"param_file": self.param_file,
-                               "sim_dir" : self.sim_dir,
+        valid_instance_vars = {"codename": self.codename,
                                "integrator": self.integrator,
-                               "codename": self.codename,
+                               "param_file": self.param_file,
                                "driver_executable": self.driver_executable}
 
         try:
@@ -781,14 +780,14 @@ class Simulation:
             arg_list = list(valid_instance_vars.keys())
             arg_list.append(*[a for a in valid_var.keys() if a not in valid_instance_vars])
 
-        integrator = self._get_instance_var(arg_list, valid_instance_vars, verbose, **kwargs)
+        inst_var = self._get_instance_var(arg_list, valid_instance_vars, verbose, **kwargs)
 
         valid_arg, integrator_dict = self._get_valid_arg_list(arg_list, valid_var)
 
         if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
-                if key in integrator_dict:
+                if key in integrator_dict and key not in inst_var:
                     if arg == "gmtiny":
                         if self.integrator == "symba":
                            print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
