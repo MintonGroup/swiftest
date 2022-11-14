@@ -328,7 +328,7 @@ class Simulation:
 
         Parameters
         ----------
-        kwargs : Any valid keyword arguments accepted by `set_parameter`.
+        **kwargs : Any valid keyword arguments accepted by `set_parameter` or `save'
 
         Returns
         -------
@@ -337,12 +337,14 @@ class Simulation:
         """
 
         self.set_parameter(**kwargs)
+        self.save(**kwargs)
         if self.codename != "Swiftest":
             print(f"Running an integration is not yet supported for {self.codename}")
             return
 
+        print(f"Running a simulation from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
-        term_output = subprocess.run([self.driver_executable, self.integrator, self.param_file], capture_output=True)
+        #term_output = subprocess.run([self.driver_executable, self.integrator, self.param_file], capture_output=True)
 
         #         print(parameters['ncount'], '  Calling FORTRAN routine')
         #         with subprocess.Popen([parameters['workingdir']+'CTEM'], stdout=subprocess.PIPE, bufsize=1,universal_newlines=True) as p:
@@ -645,7 +647,7 @@ class Simulation:
         codename : {"swiftest", "swifter", "swift"}, optional
         integrator : {"symba","rmvs","whm","helio"}, optional
             Name of the n-body integrator that will be used when executing a run.
-        param_file: PathLike | str | None = None,
+        param_file: str or path-like, optional
             Name of the input parameter file to use to read in parameter values.
         mtiny : float, optional
             The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
@@ -2256,22 +2258,39 @@ class Simulation:
             self.codename = "Unknown"
         return
 
-    def write_param(self, param_file, param=None):
+    def write_param(self,
+                    codename: Literal["Swiftest", "Swifter", "Swift"]  | None = None,
+                    param_file: str | PathLike | None = None,
+                    param: Dict | None = None,
+                    **kwargs: Any):
         """
         Writes to a param.in file and determines whether the output format needs to be converted between Swift/Swifter/Swiftest.
         
         Parameters
         ----------
-           param_file : string
-                File name of the input parameter file
+        codename : {"Swiftest", "Swifter", "Swift"}, optional
+            Alternative name of the n-body code that the parameter file will be formatted for. Defaults to current instance
+            variable self.codename
+        param_file : str or path-like, optional
+            Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
+        param: Dict, optional
+            An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
+        **kwargs
+            A dictionary of additional keyword argument. These are ignored.
+
         Returns
         -------
-            self.ds : xarray dataset
+        None
         """
+
+        if codename is None:
+            codename = self.codename
+        if param_file is None:
+            param_file = self.param_file
         if param is None:
             param = self.param
+
         # Check to see if the parameter type matches the output type. If not, we need to convert
-        codename = param['! VERSION'].split()[0]
         if codename == "Swifter" or codename == "Swiftest":
             if param['IN_TYPE'] == "ASCII":
                 param.pop("NC_IN", None)
@@ -2409,32 +2428,48 @@ class Simulation:
         if self.verbose: print('follow.out written')
         return fol
 
-    def save(self, param_file, framenum=-1, codename="Swiftest"):
+    def save(self,
+             codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
+             param_file: str | PathLike | None = None,
+             param: Dict | None = None,
+             framenum: int = -1,
+             **kwargs: Any):
         """
         Saves an xarray dataset to a set of input files.
 
         Parameters
         ----------
-            param_file : string
-                Name of the parameter input file
-            framenum : integer (default=-1)
-                Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-            codename : string
-                Name of the desired format (Swift/Swifter/Swiftest)
+        codename : {"Swiftest", "Swifter", "Swift"}, optional
+            Alternative name of the n-body code that the parameter file will be formatted for. Defaults to current instance
+            variable self.codename
+        param_file : str or path-like, optional
+            Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
+        param: Dict, optional
+            An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
+        framenum : int Default=-1
+            Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+        **kwargs
+            A dictionary of additional keyword argument. These are ignored.
 
         Returns
         -------
-            self.ds : xarray dataset
+        None
         """
+        if codename is None:
+            codename = self.codename
+        if param_file is None:
+            param_file = self.param_file
+        if param is None:
+            param = self.param
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(ds=self.ds, param=self.param, in_type=self.param['IN_TYPE'], framenum=framenum)
-            self.write_param(param_file)
+            io.swiftest_xr2infile(ds=self.ds, param=param, in_type=self.param['IN_TYPE'], framenum=framenum)
+            self.write_param(param_file=param_file)
         elif codename == "Swifter":
-            if self.codename == "Swiftest":
-                swifter_param = io.swiftest2swifter_param(self.param)
+            if codename == "Swiftest":
+                swifter_param = io.swiftest2swifter_param(param)
             else:
-                swifter_param = self.param
+                swifter_param = param
             io.swifter_xr2infile(self.ds, swifter_param, framenum)
             self.write_param(param_file, param=swifter_param)
         else:
