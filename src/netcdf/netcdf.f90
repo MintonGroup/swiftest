@@ -372,8 +372,6 @@ contains
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
       call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid), "netcdf_open nf90_inq_varid status_varid" )
       call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
-      call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid), "netcdf_open nf90_inq_varid j2rp2_varid"  )
-      call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid), "netcdf_open nf90_inq_varid j4rp4_varid"  )
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
@@ -449,6 +447,9 @@ contains
       end if
 
       ! Variables The User Doesn't Need to Know About
+
+      status = nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid)
+      status = nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid)
 
       if (param%lclose) then
          status = nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid)
