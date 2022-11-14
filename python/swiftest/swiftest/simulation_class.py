@@ -342,7 +342,7 @@ class Simulation:
             print(f"Running an integration is not yet supported for {self.codename}")
             return
 
-        print(f"Running a simulation from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
+        print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
         #term_output = subprocess.run([self.driver_executable, self.integrator, self.param_file], capture_output=True)
 
@@ -436,6 +436,9 @@ class Simulation:
            A dictionary containing the requested parameters
 
         """
+        if t0 is None and tstart is None and dt is None and istep_out is None and \
+                tstep_out is None and istep_dump is None:
+            return {}
 
         update_list = []
 
@@ -2289,6 +2292,7 @@ class Simulation:
             param_file = self.param_file
         if param is None:
             param = self.param
+        print(f"Writing parameter inputs to file {param_file}")
 
         # Check to see if the parameter type matches the output type. If not, we need to convert
         if codename == "Swifter" or codename == "Swiftest":
@@ -2302,8 +2306,7 @@ class Simulation:
         elif codename == "Swift":
             io.write_swift_param(param, param_file)
         else:
-            print(
-                'Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
+            print( 'Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
 
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
