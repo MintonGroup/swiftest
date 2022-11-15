@@ -152,8 +152,7 @@ def read_swiftest_param(param_file_name, param, verbose=True):
     param : dict
         A dictionary containing the entries in the user parameter file
     """
-    param['! VERSION'] = f"Swiftest parameter input from file {param_file_name}"
-
+    param['! VERSION'] = f"Swiftest parameter input file"
 
     # Read param.in file
     if verbose: print(f'Reading Swiftest file {param_file_name}')
