@@ -295,7 +295,6 @@ def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
         'DTOUT': 0.0,
         'DTDUMP': 0.0,
         'L1': "F",
-        'L1': "F",
         'L2': "F",
         'L3': "F",
         'L4': "F",
