@@ -30,7 +30,6 @@ contains
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
                            self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
       end do
-      deallocate(self%a, self%e, self%inc, self%capom, self%omega, self%capm)
       return
    end subroutine orbel_el2xv_vec
 
