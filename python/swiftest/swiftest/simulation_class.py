@@ -21,6 +21,7 @@ import xarray as xr
 import numpy as np
 import numpy.typing as npt
 import shutil
+import subprocess
 from typing import (
     Literal,
     Dict,
@@ -38,7 +39,7 @@ class Simulation:
                  codename: Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
                  integrator: Literal["symba","rmvs","whm","helio"] = "symba",
                  param_file: os.PathLike | str = "param.in",
-                 read_param: bool = False,
+                 read_param: bool = True,
                  t0: float = 0.0,
                  tstart: float = 0.0,
                  tstop: float | None = None,
@@ -266,12 +267,12 @@ class Simulation:
         self._getter_column_width = '32'
         # If the parameter file is in a different location than the current working directory, we will need
         # to use it to properly open bin files
-        self.sim_dir = os.path.dirname(os.path.realpath(param_file))
+        self.set_parameter(param_file=param_file)
         if read_param:
-            if os.path.exists(param_file):
-                self.read_param(param_file, codename=codename.title(), verbose=self.verbose)
+            if os.path.exists(self.param_file):
+                self.read_param(self.param_file, codename=codename.title(), verbose=self.verbose)
             else:
-                print(f"{param_file} not found.")
+                print(f"{self.param_file} not found.")
 
         self.set_parameter(codename=codename,
                            integrator=integrator,
@@ -318,6 +319,39 @@ class Simulation:
                 self.bin2xr()
             else:
                 print(f"BIN_OUT file {binpath} not found.")
+        return
+
+    def run(self,**kwargs):
+        """
+        Runs a Swiftest integration. Uses the parameters set by the `param` dictionary unless overridden by keyword
+        arguments. Accepts any keyword arguments that can be passed to `set_parameter`.
+
+        Parameters
+        ----------
+        **kwargs : Any valid keyword arguments accepted by `set_parameter` or `save'
+
+        Returns
+        -------
+        None
+
+        """
+
+        self.set_parameter(**kwargs)
+        self.save(**kwargs)
+
+        if self.codename != "Swiftest":
+            print(f"Running an integration is not yet supported for {self.codename}")
+            return
+
+        if self.driver_executable is None:
+            print("Path to swiftest_driver has not been set!")
+            return
+
+        print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
+
+        with subprocess.Popen([self.driver_executable, self.integrator, self.param_file], stdout=subprocess.PIPE, bufsize=1,universal_newlines=True) as p:
+            for line in p.stdout:
+                print(line, end='')
         return
 
     def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
@@ -405,6 +439,9 @@ class Simulation:
            A dictionary containing the requested parameters
 
         """
+        if t0 is None and tstart is None and dt is None and istep_out is None and \
+                tstep_out is None and istep_dump is None:
+            return {}
 
         update_list = []
 
@@ -433,7 +470,7 @@ class Simulation:
         if tstop is not None:
             if tstop <= tstart:
                 print("Error! tstop must be greater than tstart.")
-                return
+                return {}
 
         if tstop is not None:
             self.param['TSTOP'] = tstop
@@ -457,7 +494,7 @@ class Simulation:
 
         if istep_out is not None and tstep_out is not None:
             print("Error! istep_out and tstep_out cannot both be set")
-            return
+            return {}
 
         if tstep_out is not None and dt is not None:
             istep_out = int(np.floor(tstep_out / dt))
@@ -586,7 +623,6 @@ class Simulation:
 
         """
 
-
         # Getters returning parameter dictionary values
         param_dict = {}
         param_dict.update(self.get_integrator(**kwargs))
@@ -604,6 +640,7 @@ class Simulation:
     def set_integrator(self,
                        codename: Literal["swiftest", "swifter", "swift"] | None = None,
                        integrator: Literal["symba","rmvs","whm","helio"] | None = None,
+                       param_file: PathLike | str | None = None,
                        mtiny: float | None = None,
                        gmtiny: float | None = None,
                        verbose: bool | None = None,
@@ -616,6 +653,8 @@ class Simulation:
         codename : {"swiftest", "swifter", "swift"}, optional
         integrator : {"symba","rmvs","whm","helio"}, optional
             Name of the n-body integrator that will be used when executing a run.
+        param_file: str or path-like, optional
+            Name of the input parameter file to use to read in parameter values.
         mtiny : float, optional
             The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
             but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
@@ -636,10 +675,15 @@ class Simulation:
         """
         # TODO: Improve how it finds the executable binary
 
-        if integrator is None and codename is None:
-            return
-
         update_list = []
+
+        # Set defaults
+        if "codename" not in dir(self):
+            self.codename = "Swiftest"
+        if "integerator" not in dir(self):
+            self.integrator = "symba"
+        if "driver_executable" not in dir(self):
+            self.driver_executable = None
 
         if codename is not None:
             valid_codename = ["Swiftest", "Swifter", "Swift"]
@@ -655,11 +699,14 @@ class Simulation:
             self.param['! VERSION'] = f"{self.codename} parameter input"
             update_list.append("codename")
             if self.codename == "Swiftest":
-                self.binary_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(_pyfile)),os.pardir,os.pardir,os.pardir,"build"))
+                self.binary_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(_pyfile)),os.pardir,os.pardir,os.pardir,"bin"))
                 self.driver_executable = os.path.join(self.binary_path,"swiftest_driver")
+                if not os.path.exists(self.driver_executable):
+                    print(f"Cannot find the Swiftest driver in {self.binary_path}")
+                    self.driver_executable = None
             else:
                 self.binary_path = "NOT SET"
-                self.driver_executable = "NOT SET"
+                self.driver_executable = None
             update_list.append("driver_executable")
 
         if integrator is not None:
@@ -673,6 +720,10 @@ class Simulation:
             else:
                 self.integrator = integrator.lower()
             update_list.append("integrator")
+
+        if param_file is not None:
+            self.param_file = os.path.realpath(param_file)
+            self.sim_dir = os.path.dirname(self.param_file)
 
         if mtiny is not None or gmtiny is not None:
             if self.integrator != "symba":
@@ -716,8 +767,9 @@ class Simulation:
         valid_var = {"codename": "! VERSION",
                      "gmtiny"  : "GMTINY"}
 
-        valid_instance_vars = {"integrator": self.integrator,
-                               "codename": self.codename,
+        valid_instance_vars = {"codename": self.codename,
+                               "integrator": self.integrator,
+                               "param_file": self.param_file,
                                "driver_executable": self.driver_executable}
 
         try:
@@ -739,14 +791,14 @@ class Simulation:
             arg_list = list(valid_instance_vars.keys())
             arg_list.append(*[a for a in valid_var.keys() if a not in valid_instance_vars])
 
-        integrator = self._get_instance_var(arg_list, valid_instance_vars, verbose, **kwargs)
+        inst_var = self._get_instance_var(arg_list, valid_instance_vars, verbose, **kwargs)
 
         valid_arg, integrator_dict = self._get_valid_arg_list(arg_list, valid_var)
 
         if verbose:
             for arg in valid_arg:
                 key = valid_var[arg]
-                if key in integrator_dict:
+                if key in integrator_dict and key not in inst_var:
                     if arg == "gmtiny":
                         if self.integrator == "symba":
                            print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
@@ -1001,8 +1053,8 @@ class Simulation:
 
     def set_init_cond_files(self,
                             init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"] | None = None,
-                            init_cond_file_name: str | os.PathLike | Dict[str, str] | Dict[
-                                str, os.PathLike] | None = None,
+                            init_cond_file_name: str | os.PathLike | Dict[str, str] |
+                                                 Dict[ str, os.PathLike] | None = None,
                             init_cond_format: Literal["EL", "XV"] | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
@@ -1055,6 +1107,9 @@ class Simulation:
         if init_cond_format is not None:
             update_list.append("init_cond_format")
 
+        if len(update_list) == 0:
+            return {}
+
         def ascii_file_input_error_msg(codename):
             print(f"Error in set_init_cond_files: init_cond_file_name must be a dictionary of the form: ")
             print('{')
@@ -1063,7 +1118,7 @@ class Simulation:
             print('"PL" : *path to massive body initial conditions file*,')
             print('"TP" : *path to test particle initial conditions file*')
             print('}')
-            return
+            return {}
 
         if init_cond_format is None:
             if "IN_FORM" in self.param:
@@ -1249,6 +1304,8 @@ class Simulation:
             update_list.append("output_file_name")
         if output_format is not None:
             update_list.append("output_format")
+        if len(update_list) == 0:
+            return {}
 
         if self.codename == "Swiftest":
             if output_file_type is None:
@@ -1425,6 +1482,13 @@ class Simulation:
         DU2M_old = None
         TU2S_old = None
 
+        if "MU_name" not in dir(self):
+            self.MU_name = None
+        if "DU_name" not in dir(self):
+            self.DU_name = None
+        if "TU_name" not in dir(self):
+            self.TU_name = None
+
         update_list = []
         if MU is not None or MU2KG is not None:
             update_list.append("MU")
@@ -1506,8 +1570,10 @@ class Simulation:
         if TU_name is not None:
             self.TU_name = TU_name
 
-        self.VU_name = f"{self.DU_name}/{self.TU_name}"
-        self.GU = constants.GC * self.param['TU2S'] ** 2 * self.param['MU2KG'] / self.param['DU2M'] ** 3
+        if "DU_name" in dir(self) and "TU_name" in dir(self):
+            self.VU_name = f"{self.DU_name}/{self.TU_name}"
+        if all(key in self.param for key in ["MU2KG","DU2M","TU2S"]):
+            self.GU = constants.GC * self.param["TU2S"] ** 2 * self.param["MU2KG"] / self.param["DU2M"] ** 3
 
         if recompute_unit_values:
             self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
@@ -1539,21 +1605,23 @@ class Simulation:
 
         """
 
+
+
         valid_var = {
             "MU": "MU2KG",
             "DU": "DU2M",
             "TU": "TU2S",
         }
 
-        if self.MU_name is None:
+        if "MU_name" not in dir(self) or self.MU_name is None:
             MU_name = "mass unit"
         else:
             MU_name = self.MU_name
-        if self.DU_name is None:
+        if "DU_name" not in dir(self) or self.DU_name is None:
             DU_name = "distance unit"
         else:
             DU_name = self.DU_name
-        if self.TU_name is None:
+        if "TU_name" not in dir(self) or self.TU_name is None:
             TU_name = "time unit"
         else:
             TU_name = self.TU_name
@@ -1654,6 +1722,8 @@ class Simulation:
            A dictionary containing the requested parameters.
 
         """
+        if rmax is None and rmin is None and qmin_coord is None:
+            return {}
 
         update_list = []
         CHK_QMIN_RANGE = self.param.pop('CHK_QMIN_RANGE', None)
@@ -1903,7 +1973,6 @@ class Simulation:
 
         if ephemeris_date is None:
             return
-
 
         # The default value is Prof. Minton's Brimley/Cocoon line crossing date (aka MBCL)
         minton_bday = datetime.date.fromisoformat('1976-08-05')
@@ -2197,22 +2266,40 @@ class Simulation:
             self.codename = "Unknown"
         return
 
-    def write_param(self, param_file, param=None):
+    def write_param(self,
+                    codename: Literal["Swiftest", "Swifter", "Swift"]  | None = None,
+                    param_file: str | PathLike | None = None,
+                    param: Dict | None = None,
+                    **kwargs: Any):
         """
         Writes to a param.in file and determines whether the output format needs to be converted between Swift/Swifter/Swiftest.
         
         Parameters
         ----------
-           param_file : string
-                File name of the input parameter file
+        codename : {"Swiftest", "Swifter", "Swift"}, optional
+            Alternative name of the n-body code that the parameter file will be formatted for. Defaults to current instance
+            variable self.codename
+        param_file : str or path-like, optional
+            Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
+        param: Dict, optional
+            An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
+        **kwargs
+            A dictionary of additional keyword argument. These are ignored.
+
         Returns
         -------
-            self.ds : xarray dataset
+        None
         """
+
+        if codename is None:
+            codename = self.codename
+        if param_file is None:
+            param_file = self.param_file
         if param is None:
             param = self.param
+        print(f"Writing parameter inputs to file {param_file}")
+
         # Check to see if the parameter type matches the output type. If not, we need to convert
-        codename = param['! VERSION'].split()[0]
         if codename == "Swifter" or codename == "Swiftest":
             if param['IN_TYPE'] == "ASCII":
                 param.pop("NC_IN", None)
@@ -2224,8 +2311,7 @@ class Simulation:
         elif codename == "Swift":
             io.write_swift_param(param, param_file)
         else:
-            print(
-                'Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
+            print( 'Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
         return
 
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
@@ -2350,32 +2436,48 @@ class Simulation:
         if self.verbose: print('follow.out written')
         return fol
 
-    def save(self, param_file, framenum=-1, codename="Swiftest"):
+    def save(self,
+             codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
+             param_file: str | PathLike | None = None,
+             param: Dict | None = None,
+             framenum: int = -1,
+             **kwargs: Any):
         """
         Saves an xarray dataset to a set of input files.
 
         Parameters
         ----------
-            param_file : string
-                Name of the parameter input file
-            framenum : integer (default=-1)
-                Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-            codename : string
-                Name of the desired format (Swift/Swifter/Swiftest)
+        codename : {"Swiftest", "Swifter", "Swift"}, optional
+            Alternative name of the n-body code that the parameter file will be formatted for. Defaults to current instance
+            variable self.codename
+        param_file : str or path-like, optional
+            Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
+        param: Dict, optional
+            An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
+        framenum : int Default=-1
+            Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+        **kwargs
+            A dictionary of additional keyword argument. These are ignored.
 
         Returns
         -------
-            self.ds : xarray dataset
+        None
         """
+        if codename is None:
+            codename = self.codename
+        if param_file is None:
+            param_file = self.param_file
+        if param is None:
+            param = self.param
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(ds=self.ds, param=self.param, in_type=self.param['IN_TYPE'], framenum=framenum)
-            self.write_param(param_file)
+            io.swiftest_xr2infile(ds=self.ds, param=param, in_type=self.param['IN_TYPE'], framenum=framenum)
+            self.write_param(param_file=param_file)
         elif codename == "Swifter":
-            if self.codename == "Swiftest":
-                swifter_param = io.swiftest2swifter_param(self.param)
+            if codename == "Swiftest":
+                swifter_param = io.swiftest2swifter_param(param)
             else:
-                swifter_param = self.param
+                swifter_param = param
             io.swifter_xr2infile(self.ds, swifter_param, framenum)
             self.write_param(param_file, param=swifter_param)
         else:
