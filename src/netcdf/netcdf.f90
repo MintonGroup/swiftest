@@ -372,8 +372,6 @@ contains
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
       call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid), "netcdf_open nf90_inq_varid status_varid" )
       call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
-      call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid), "netcdf_open nf90_inq_varid j2rp2_varid"  )
-      call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid), "netcdf_open nf90_inq_varid j4rp4_varid"  )
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
@@ -450,6 +448,9 @@ contains
 
       ! Variables The User Doesn't Need to Know About
 
+      status = nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid)
+      status = nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid)
+
       if (param%lclose) then
          status = nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid)
          status = nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid)
@@ -504,7 +505,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: tslot, idmax, npl_check, ntp_check, nplm_check, t_max, str_max
+      integer(I4B)                              :: tslot, idmax, npl_check, ntp_check, nplm_check, t_max, str_max, status
       real(DP), dimension(:), allocatable       :: rtemp
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: validmask, tpmask, plmask
@@ -716,8 +717,19 @@ contains
          !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
          ! end if
 
-         call check( nf90_get_var(iu%ncid, iu%j2rp2_varid, cb%j2rp2, start=[tslot]), "netcdf_read_frame_system nf90_getvar j2rp2_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]), "netcdf_read_frame_system nf90_getvar j4rp4_varid"  )
+         status = nf90_inq_varid(iu%ncid, J2RP2_VARNAME, iu%j2rp2_varid)
+         if (status == nf90_noerr) then
+            call check( nf90_get_var(iu%ncid, iu%j2rp2_varid, cb%j2rp2, start=[tslot]), "netcdf_read_frame_system nf90_getvar j2rp2_varid"  )
+         else 
+            cb%j2rp2 = 0.0_DP
+         end if
+
+         status = nf90_inq_varid(iu%ncid, J4RP4_VARNAME, iu%j4rp4_varid)   
+         if (status == nf90_noerr) then      
+            call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]), "netcdf_read_frame_system nf90_getvar j4rp4_varid"  )
+         else 
+            cb%j4rp4 = 0.0_DP
+         end if
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
 
