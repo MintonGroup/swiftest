@@ -349,7 +349,9 @@ class Simulation:
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
-        term = subprocess.run([self.driver_executable, self.integrator, self.param_file], capture_output=True)
+        with subprocess.Popen([self.driver_executable, self.integrator, self.param_file], stdout=subprocess.PIPE, bufsize=1,universal_newlines=True) as p:
+            for line in p.stdout:
+                print(line, end='')
         return
 
     def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
