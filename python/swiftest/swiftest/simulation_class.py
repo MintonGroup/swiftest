@@ -1017,17 +1017,17 @@ class Simulation:
         """
 
         valid_var = {"close_encounter_check": "CHK_CLOSE",
-                     "general_relativity": "GR",
                      "fragmentation": "FRAGMENTATION",
+                     "minimum_fragment_gmass": "MIN_GMFRAG",
                      "rotation": "ROTATION",
+                     "general_relativity": "GR",
                      "compute_conservation_values": "ENERGY",
+                     "rhill_present": "RHILL_PRESENT",
                      "extra_force": "EXTRA_FORCE",
                      "big_discard": "BIG_DISCARD",
-                     "rhill_present": "RHILL_PRESENT",
-                     "restart": "RESTART",
                      "interaction_loops": "INTERACTION_LOOPS",
                      "encounter_check_loops": "ENCOUNTER_CHECK",
-                     "minimum_fragment_gmass" : "MIN_GMFRAG"
+                     "restart": "RESTART"
                      }
 
         valid_arg, feature_dict = self._get_valid_arg_list(arg_list, valid_var)
