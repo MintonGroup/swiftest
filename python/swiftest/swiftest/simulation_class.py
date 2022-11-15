@@ -22,6 +22,7 @@ import numpy as np
 import numpy.typing as npt
 import shutil
 import subprocess
+import shlex
 from typing import (
     Literal,
     Dict,
@@ -302,6 +303,9 @@ class Simulation:
             if os.path.exists(self.param_file):
                 self.read_param(self.param_file, codename=self.codename, verbose=self.verbose)
                 param_file_found = True
+                # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
+                # overriding everything with defaults when there are no arguments passed to Simulation()
+                kwargs['param_file'] = self.param_file
             else:
                 param_file_found = False
 
@@ -358,10 +362,25 @@ class Simulation:
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
-        with subprocess.Popen([self.driver_executable, self.integrator, self.param_file], stdout=subprocess.PIPE, bufsize=1,universal_newlines=True) as p:
+        # Get current environment variables
+        env = os.environ.copy()
+
+        try:
+            cmd = f"{self.driver_executable} {self.integrator} {self.param_file}"
+            p = subprocess.Popen(shlex.split(cmd),
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 env=env,
+                                 universal_newlines=True)
             for line in p.stdout:
                 print(line, end='')
-
+            res = p.communicate()
+            if p.returncode != 0:
+                for line in res[1]:
+                    print(line, end='')
+                raise Exception ("Failure in swiftest_driver")
+        except:
+            print(f"Error executing main swiftest_driver program")
 
         return
 
@@ -2308,17 +2327,17 @@ class Simulation:
 
     def read_param(self, param_file, codename="Swiftest", verbose=True):
         """
-        Reads in a param.in file and determines whether it is a Swift/Swifter/Swiftest parameter file.
+        Reads in an input parameter file and stores the values in the param dictionary.
         
         Parameters
         ----------
-           param_file : string
-                File name of the input parameter file
-           codename : string
-                 Type of parameter file, either "Swift", "Swifter", or "Swiftest"
+        param_file : string
+           File name of the input parameter file
+        codename : string
+           Type of parameter file, either "Swift", "Swifter", or "Swiftest"
         Returns
         -------
-            self.ds : xarray dataset
+
         """
         if codename == "Swiftest":
             param_old = self.param.copy()
@@ -2347,7 +2366,7 @@ class Simulation:
         ----------
         codename : {"Swiftest", "Swifter", "Swift"}, optional
             Alternative name of the n-body code that the parameter file will be formatted for. Defaults to current instance
-            variable self.codename
+            variable codename
         param_file : str or path-like, optional
             Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
         param: Dict, optional
