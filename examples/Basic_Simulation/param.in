@@ -1,4 +1,4 @@
-! VERSION        Swiftest parameter input
+! VERSION        Swiftest input file
 T0               0.0
 TSTART           0.0
 TSTOP            10.0
@@ -24,7 +24,6 @@ DU2M             149597870700.0
 GMTINY           9.869231602224408e-07
 MIN_GMFRAG       9.869231602224408e-10
 RESTART          NO
-TIDES            NO
 CHK_CLOSE        YES
 GR               YES
 FRAGMENTATION    YES
@@ -35,3 +34,4 @@ BIG_DISCARD      NO
 RHILL_PRESENT    NO
 INTERACTION_LOOPS TRIANGULAR
 ENCOUNTER_CHECK  TRIANGULAR
+TIDES            NO
