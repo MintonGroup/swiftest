@@ -74,5 +74,3 @@ sim.add_body(name_tp, a_tp, e_tp, inc_tp, capom_tp, omega_tp, capm_tp)
 
 # Save everything to a set of initial conditions files
 sim.run()
-
-print("All done!")
