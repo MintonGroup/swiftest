@@ -427,6 +427,7 @@ def write_labeled_param(param, param_file_name):
                'TU2S',
                'DU2M',
                'GMTINY',
+               'FRAGMENTATION'
                'MIN_GMFRAG',
                'RESTART']
     ptmp = param.copy()

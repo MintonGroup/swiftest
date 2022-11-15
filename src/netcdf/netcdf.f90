@@ -198,8 +198,8 @@ contains
 
       ! Define the NetCDF dimensions with particle name as the record dimension
       call check( nf90_def_dim(self%ncid, ID_DIMNAME, NF90_UNLIMITED, self%id_dimid), "netcdf_initialize_output nf90_def_dim id_dimid" )     ! 'x' dimension
-      call check( nf90_def_dim(self%ncid, TIME_DIMNAME, NF90_UNLIMITED, self%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
       call check( nf90_def_dim(self%ncid, STR_DIMNAME, NAMELEN, self%str_dimid), "netcdf_initialize_output nf90_def_dim str_dimid"  ) ! Dimension for string variables (aka character arrays)
+      call check( nf90_def_dim(self%ncid, TIME_DIMNAME, NF90_UNLIMITED, self%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
 
       select case (param%out_type)
       case(NETCDF_FLOAT_TYPE)
@@ -361,7 +361,14 @@ contains
 
       call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
       call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )
-      call check( nf90_inquire_dimension(self%ncid, max(self%time_dimid,self%id_dimid)+1, name=str_dim_name), "netcdf_open nf90_inquire_dimension str_dim_name"  )
+      if (max(self%time_dimid,self%id_dimid) == 2) then
+         self%str_dimid = 3
+      else if (min(self%time_dimid,self%id_dimid) == 0) then
+         self%str_dimid = 1
+      else
+         self%str_dimid = 2
+      end if 
+      call check( nf90_inquire_dimension(self%ncid, self%str_dimid, name=str_dim_name), "netcdf_open nf90_inquire_dimension str_dim_name"  )
       call check( nf90_inq_dimid(self%ncid, str_dim_name, self%str_dimid), "netcdf_open nf90_inq_dimid str_dimid"  )
 
       ! Required Variables
@@ -370,7 +377,6 @@ contains
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid), "netcdf_open nf90_inq_varid id_varid" )
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid), "netcdf_open nf90_inq_varid name_varid" )
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
-      call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid), "netcdf_open nf90_inq_varid status_varid" )
       call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
@@ -448,6 +454,7 @@ contains
 
       ! Variables The User Doesn't Need to Know About
 
+      status = nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid)
       status = nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid)
       status = nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid)
 
@@ -562,7 +569,7 @@ contains
          class is (symba_pl)
             select type (param)
             class is (symba_parameters)
-               nplm_check = count(rtemp(:) > param%GMTINY .and. plmask(:))
+               nplm_check = count(pack(rtemp,plmask) > param%GMTINY )
                if (nplm_check /= pl%nplm) then
                   write(*,*) "Error reading in NetCDF file: The recorded value of nplm does not match the number of active fully interacting massive bodies"
                   call util_exit(failure)
@@ -774,17 +781,23 @@ contains
       tslot = int(param%ioutput, kind=I4B) + 1
       call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
-      call check( nf90_get_var(iu%ncid, iu%Gmass_varid, gmtemp, start=[1,1]), "netcdf_read_frame_system nf90_getvar Gmass_varid"  )
+
       allocate(gmtemp(idmax))
       allocate(tpmask(idmax))
       allocate(plmask(idmax))
       allocate(plmmask(idmax))
+
+      call check( nf90_get_var(iu%ncid, iu%Gmass_varid, gmtemp, start=[1,1]), "netcdf_read_frame_system nf90_getvar Gmass_varid"  )
+
       plmask(:) = gmtemp(:) == gmtemp(:)
       tpmask(:) = .not. plmask(:)
       plmask(1) = .false. ! This is the central body
       select type (param)
       class is (symba_parameters)
-         plmmask(:) = gmtemp(:) > param%GMTINY .and. plmask(:)
+         plmmask(:) = plmask(:)
+         where(plmask(:))
+            plmmask(:) = gmtemp(:) > param%GMTINY
+         endwhere
       end select
 
       status = nf90_inq_varid(iu%ncid, NPL_VARNAME, iu%npl_varid)
@@ -920,8 +933,13 @@ contains
             call tp%info(i)%set_value(particle_type=ctemp(tpind(i)))
          end do
 
-         call check( nf90_get_var(iu%ncid, iu%status_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar status_varid"  )
-         call cb%info%set_value(status=ctemp(1))
+         status = nf90_inq_varid(iu%ncid, STATUS_VARNAME, iu%status_varid) 
+         if (status == nf90_noerr) then
+            call check( nf90_get_var(iu%ncid, iu%status_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar status_varid")
+            call cb%info%set_value(status=ctemp(1))
+         else
+            call cb%info%set_value(status="ACTIVE")
+         end if
          do i = 1, npl
             call pl%info(i)%set_value(status=ctemp(plind(i)))
          end do
