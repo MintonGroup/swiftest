@@ -361,6 +361,8 @@ class Simulation:
         with subprocess.Popen([self.driver_executable, self.integrator, self.param_file], stdout=subprocess.PIPE, bufsize=1,universal_newlines=True) as p:
             for line in p.stdout:
                 print(line, end='')
+
+
         return
 
     def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
@@ -2335,7 +2337,7 @@ class Simulation:
 
     def write_param(self,
                     codename: Literal["Swiftest", "Swifter", "Swift"]  | None = None,
-                    param_file: str | PathLike | None = None,
+                    param_file: str | os.PathLike | None = None,
                     param: Dict | None = None,
                     **kwargs: Any):
         """
@@ -2506,7 +2508,7 @@ class Simulation:
 
     def save(self,
              codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
-             param_file: str | PathLike | None = None,
+             param_file: str | os.PathLike | None = None,
              param: Dict | None = None,
              framenum: int = -1,
              **kwargs: Any):
