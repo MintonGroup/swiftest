@@ -619,28 +619,39 @@ contains
          end if
 
          if ((param%in_form == EL)  .or. (param%in_form == XVEL)) then
-
             call check( nf90_get_var(iu%ncid, iu%a_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar a_varid"  )
+            if (.not.allocated(pl%a)) allocate(pl%a(npl))
+            if (.not.allocated(tp%a)) allocate(tp%a(ntp))
             if (npl > 0) pl%a(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%a(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%e_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar e_varid"  )
+            if (.not.allocated(pl%e)) allocate(pl%e(npl))
+            if (.not.allocated(tp%e)) allocate(tp%e(ntp))
             if (npl > 0) pl%e(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%e(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%inc_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar inc_varid"  )
+            if (.not.allocated(pl%inc)) allocate(pl%inc(npl))
+            if (.not.allocated(tp%inc)) allocate(tp%inc(ntp))
             if (npl > 0) pl%inc(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%inc(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capom_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar capom_varid"  )
+            if (.not.allocated(pl%capom)) allocate(pl%capom(npl))
+            if (.not.allocated(tp%capom)) allocate(tp%capom(ntp))
             if (npl > 0) pl%capom(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%capom(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%omega_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar omega_varid"  )
+            if (.not.allocated(pl%omega)) allocate(pl%omega(npl))
+            if (.not.allocated(tp%omega)) allocate(tp%omega(ntp))
             if (npl > 0) pl%omega(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%omega(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capm_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar capm_varid"  )
+            if (.not.allocated(pl%capm)) allocate(pl%capm(npl))
+            if (.not.allocated(tp%capm)) allocate(tp%capm(ntp))
             if (npl > 0) pl%capm(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%capm(:) = pack(rtemp, tpmask)
 
@@ -740,6 +751,10 @@ contains
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
 
+         if (param%in_form == "EL") then
+            call pl%el2xv(cb)
+            call tp%el2xv(cb)
+         end if
          ! if this is a GR-enabled run, check to see if we got the pseudovelocities in. Otherwise, we'll need to generate them.
          if (param%lgr .and. .not.(iu%lpseudo_vel_exists)) then
             call pl%set_mu(cb)
@@ -984,21 +999,24 @@ contains
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhx_varid"  )
             else
-               call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
             end if 
 
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHY_VARNAME, iu%origin_xhy_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhy_varid"  )
             else
-               call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar xhy_varid"  )
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar xhy_varid"  )
             end if 
 
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHZ_VARNAME, iu%origin_xhz_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhz_varid"  )
             else
-               call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar xhz_varid"  )
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar xhz_varid"  )
             end if 
 
             do i = 1, npl
@@ -1012,21 +1030,24 @@ contains
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhx_varid"  )
             else
-               call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar vhx_varid"  )
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar vhx_varid"  )
             end if 
             
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHY_VARNAME, iu%origin_vhy_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhy_varid"  )
             else
-               call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar vhy_varid"  )
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar vhy_varid"  )
             end if 
 
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHZ_VARNAME, iu%origin_vhz_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhz_varid"  )
             else
-               call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar vhz_varid"  )
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar vhz_varid"  )
             end if 
 
             do i = 1, npl
