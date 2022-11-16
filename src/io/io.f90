@@ -566,6 +566,7 @@ contains
       character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
       logical                        :: t0_set = .false.                  !! Is the initial time set in the input file?
+      logical                        :: tstart_set = .false.               !! Is the final time set in the input file?
       logical                        :: tstop_set = .false.               !! Is the final time set in the input file?
       logical                        :: dt_set = .false.                  !! Is the step size set in the input file?
       integer(I4B)                   :: ilength, ifirst, ilast, i         !! Variables used to parse input file
@@ -593,6 +594,9 @@ contains
                case ("T0")
                   read(param_value, *, err = 667, iomsg = iomsg) param%t0
                   t0_set = .true.
+               case ("TSTART")
+                  read(param_value, *, err = 667, iomsg = iomsg) param%t0
+                  tstart_set = .true.                  
                case ("TSTOP")
                   read(param_value, *, err = 667, iomsg = iomsg) param%tstop
                   tstop_set = .true.
@@ -743,6 +747,12 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid_collision
                case ("PARTICLE_OUT")
                   param%particle_out = param_value
+               case ("RESTART")
+                  if (param_value == "NO" .or. param_value == 'F') then
+                     param%lrestart = .false. 
+                  else if (param_value == "YES" .or. param_value == 'T') then
+                     param%lrestart = .true.
+                  end if 
                case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
                case default
                   write(*,*) "Ignoring unknown parameter -> ",param_name
