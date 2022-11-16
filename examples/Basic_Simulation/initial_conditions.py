@@ -15,14 +15,7 @@ Generates a set of Swiftest input files from initial conditions.
 
 Returns
 -------
-param.in : ASCII text file
-    Swiftest parameter input file.
-pl.in    : ASCII text file
-    Swiftest massive body input file.
-tp.in    : ASCII text file
-    Swiftest test particle input file.
-cb.in    : ASCII text file
-    Swiftest central body input file.
+Updates sim.data with the simulation data
 """
 
 import swiftest
@@ -72,5 +65,5 @@ capm_tp     = default_rng().uniform(0.0, 360.0, ntp)
 
 sim.add_body(name_tp, a_tp, e_tp, inc_tp, capom_tp, omega_tp, capm_tp)
 
-# Save everything to a set of initial conditions files
+# Run the simulation
 sim.run()
