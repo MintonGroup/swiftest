@@ -351,13 +351,15 @@ contains
       ! Internals
       integer(I4B) :: mode, status
       character(len=NF90_MAX_NAME) :: str_dim_name
+      character(len=STRMAX) :: errmsg
 
       mode = NF90_WRITE
       if (present(readonly)) then
          if (readonly) mode = NF90_NOWRITE
       end if
 
-      call check( nf90_open(param%outfile, mode, self%ncid), "netcdf_open nf90_open" )
+      write(errmsg,*) "netcdf_open nf90_open ",trim(adjustl(param%outfile))
+      call check( nf90_open(param%outfile, mode, self%ncid), errmsg)
 
       call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
       call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )

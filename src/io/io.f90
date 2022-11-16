@@ -929,7 +929,7 @@ contains
          iostat = 0
          
          ! Print the contents of the parameter file to standard output
-         call param%writer(unit = OUTPUT_UNIT, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
+         ! call param%writer(unit = OUTPUT_UNIT, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
 
       end associate
 
