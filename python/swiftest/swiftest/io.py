@@ -852,6 +852,10 @@ def swiftest2xr(param, verbose=True):
             ds = fix_types(ds,ftype=np.float64)
         elif param['OUT_TYPE'] == "NETCDF_FLOAT":
             ds = fix_types(ds,ftype=np.float32)
+        # Check if the name variable contains unique values. If so, make name the dimension instead of id
+        if len(np.unique(ds['name'])) == len(ds['name']):
+           ds = ds.swap_dims({"id" : "name"})
+           sim.ds.reset_coords("id")
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
