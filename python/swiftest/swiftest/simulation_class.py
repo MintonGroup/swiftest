@@ -364,15 +364,25 @@ class Simulation:
 
         # Get current environment variables
         env = os.environ.copy()
+        driver_script = os.path.join(self.binary_path,"swiftest_driver.sh")
+        shell = os.path.basename(env['SHELL'])
+        with open(driver_script,'w') as f:
+            f.write(f"#{env['SHELL']} -l {os.linesep}")
+            f.write(f"source ~/.{shell}rc {os.linesep}")
+            f.write(f"cd {self.sim_dir} {os.linesep}")
+            f.write(f"pwd {os.linesep}")
+            f.write(f"{self.driver_executable} {self.integrator} {self.param_file}")
 
         try:
-            cmd = f"{self.driver_executable} {self.integrator} {self.param_file}"
+            cmd = f"{env['SHELL']} -l {driver_script}"
             p = subprocess.Popen(shlex.split(cmd),
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  env=env,
                                  universal_newlines=True)
             for line in p.stdout:
+                print(line, end='')
+            for line in p.stderr:
                 print(line, end='')
             res = p.communicate()
             if p.returncode != 0:
@@ -2032,6 +2042,7 @@ class Simulation:
                                  J2=J2, J4=J4, t=t)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
+        self.save()
 
         return dsnew
 
@@ -2284,6 +2295,7 @@ class Simulation:
                                  J2=J2, J4=J4,t=t)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
+        self.save()
 
         return dsnew
 
