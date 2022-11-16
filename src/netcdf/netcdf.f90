@@ -198,8 +198,8 @@ contains
 
       ! Define the NetCDF dimensions with particle name as the record dimension
       call check( nf90_def_dim(self%ncid, ID_DIMNAME, NF90_UNLIMITED, self%id_dimid), "netcdf_initialize_output nf90_def_dim id_dimid" )     ! 'x' dimension
-      call check( nf90_def_dim(self%ncid, TIME_DIMNAME, NF90_UNLIMITED, self%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
       call check( nf90_def_dim(self%ncid, STR_DIMNAME, NAMELEN, self%str_dimid), "netcdf_initialize_output nf90_def_dim str_dimid"  ) ! Dimension for string variables (aka character arrays)
+      call check( nf90_def_dim(self%ncid, TIME_DIMNAME, NF90_UNLIMITED, self%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
 
       select case (param%out_type)
       case(NETCDF_FLOAT_TYPE)
@@ -351,27 +351,35 @@ contains
       ! Internals
       integer(I4B) :: mode, status
       character(len=NF90_MAX_NAME) :: str_dim_name
+      character(len=STRMAX) :: errmsg
 
       mode = NF90_WRITE
       if (present(readonly)) then
          if (readonly) mode = NF90_NOWRITE
       end if
 
-      call check( nf90_open(param%outfile, mode, self%ncid), "netcdf_open nf90_open" )
+      write(errmsg,*) "netcdf_open nf90_open ",trim(adjustl(param%outfile))
+      call check( nf90_open(param%outfile, mode, self%ncid), errmsg)
 
       call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
       call check( nf90_inq_dimid(self%ncid, ID_DIMNAME, self%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )
-      call check( nf90_inquire_dimension(self%ncid, max(self%time_dimid,self%id_dimid)+1, name=str_dim_name), "netcdf_open nf90_inquire_dimension str_dim_name"  )
+      if (max(self%time_dimid,self%id_dimid) == 2) then
+         self%str_dimid = 3
+      else if (min(self%time_dimid,self%id_dimid) == 0) then
+         self%str_dimid = 1
+      else
+         self%str_dimid = 2
+      end if 
+      call check( nf90_inquire_dimension(self%ncid, self%str_dimid, name=str_dim_name), "netcdf_open nf90_inquire_dimension str_dim_name"  )
       call check( nf90_inq_dimid(self%ncid, str_dim_name, self%str_dimid), "netcdf_open nf90_inq_dimid str_dimid"  )
+
+      ! Required Variables
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid), "netcdf_open nf90_inq_varid time_varid" )
       call check( nf90_inq_varid(self%ncid, ID_DIMNAME, self%id_varid), "netcdf_open nf90_inq_varid id_varid" )
-      call check( nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid), "netcdf_open nf90_inq_varid npl_varid" )
-      call check( nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid), "netcdf_open nf90_inq_varid ntp_varid" )
-      if (param%integrator == SYMBA) call check( nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid), "netcdf_open nf90_inq_varid nplm_varid" )
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid), "netcdf_open nf90_inq_varid name_varid" )
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
-      call check( nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid), "netcdf_open nf90_inq_varid status_varid" )
+      call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
       if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
@@ -409,31 +417,10 @@ contains
          call check( nf90_inq_varid(self%ncid, OMEGA_VARNAME, self%omega_varid), "netcdf_open nf90_inq_varid omega_varid" )
          call check( nf90_inq_varid(self%ncid, CAPM_VARNAME, self%capm_varid), "netcdf_open nf90_inq_varid capm_varid" )
       end if
-      call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
-
-      if (param%lrhill_present) call check( nf90_inq_varid(self%ncid, RHILL_VARNAME, self%rhill_varid), "netcdf_open nf90_inq_varid rhill_varid" )
 
       if (param%lclose) then
          call check( nf90_inq_varid(self%ncid, RADIUS_VARNAME, self%radius_varid), "netcdf_open nf90_inq_varid radius_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid), "netcdf_open nf90_inq_varid origin_type_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid), "netcdf_open nf90_inq_varid origin_time_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid), "netcdf_open nf90_inq_varid origin_xhx_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid), "netcdf_open nf90_inq_varid origin_xhy_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid), "netcdf_open nf90_inq_varid origin_xhz_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_VHX_VARNAME, self%origin_vhx_varid), "netcdf_open nf90_inq_varid origin_vhx_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_VHY_VARNAME, self%origin_vhy_varid), "netcdf_open nf90_inq_varid origin_vhy_varid" )
-         call check( nf90_inq_varid(self%ncid, ORIGIN_VHZ_VARNAME, self%origin_vhz_varid), "netcdf_open nf90_inq_varid origin_vhz_varid" )
-
-         call check( nf90_inq_varid(self%ncid, COLLISION_ID_VARNAME, self%collision_id_varid), "netcdf_open nf90_inq_varid collision_id_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_TIME_VARNAME, self%discard_time_varid), "netcdf_open nf90_inq_varid discard_time_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_XHX_VARNAME, self%discard_xhx_varid), "netcdf_open nf90_inq_varid discard_xhx_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_XHY_VARNAME, self%discard_xhy_varid), "netcdf_open nf90_inq_varid discard_xhy_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_XHZ_VARNAME, self%discard_xhz_varid), "netcdf_open nf90_inq_varid discard_xhz_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_VHX_VARNAME, self%discard_vhx_varid), "netcdf_open nf90_inq_varid discard_vhx_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_VHY_VARNAME, self%discard_vhy_varid), "netcdf_open nf90_inq_varid discard_vhy_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_VHZ_VARNAME, self%discard_vhz_varid), "netcdf_open nf90_inq_varid discard_vhz_varid" )
-         call check( nf90_inq_varid(self%ncid, DISCARD_BODY_ID_VARNAME, self%discard_body_id_varid), "netcdf_open nf90_inq_varid discard_body_id_varid" )
-      end if
+      end if 
 
       if (param%lrotation) then
          call check( nf90_inq_varid(self%ncid, IP1_VARNAME, self%Ip1_varid), "netcdf_open nf90_inq_varid Ip1_varid" )
@@ -449,27 +436,67 @@ contains
       !    call check( nf90_inq_varid(self%ncid, Q_VARNAME, self%Q_varid), "netcdf_open nf90_inq_varid Q_varid" )
       ! end if
 
-      if (param%lenergy) then
-         call check( nf90_inq_varid(self%ncid, KE_ORB_VARNAME, self%KE_orb_varid), "netcdf_open nf90_inq_varid KE_orb_varid"  )
-         call check( nf90_inq_varid(self%ncid, KE_SPIN_VARNAME, self%KE_spin_varid), "netcdf_open nf90_inq_varid KE_spin_varid"  )
-         call check( nf90_inq_varid(self%ncid, PE_VARNAME, self%PE_varid), "netcdf_open nf90_inq_varid PE_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ORBX_VARNAME, self%L_orbx_varid), "netcdf_open nf90_inq_varid L_orbx_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ORBY_VARNAME, self%L_orby_varid), "netcdf_open nf90_inq_varid L_orby_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ORBZ_VARNAME, self%L_orbz_varid), "netcdf_open nf90_inq_varid L_orbz_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_SPINX_VARNAME, self%L_spinx_varid), "netcdf_open nf90_inq_varid L_spinx_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_SPINY_VARNAME, self%L_spiny_varid), "netcdf_open nf90_inq_varid L_spiny_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_SPINZ_VARNAME, self%L_spinz_varid), "netcdf_open nf90_inq_varid L_spinz_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ESCAPEX_VARNAME, self%L_escapex_varid), "netcdf_open nf90_inq_varid L_escapex_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ESCAPEY_VARNAME, self%L_escapey_varid), "netcdf_open nf90_inq_varid L_escapey_varid"  )
-         call check( nf90_inq_varid(self%ncid, L_ESCAPEZ_VARNAME, self%L_escapez_varid), "netcdf_open nf90_inq_varid L_escapez_varid"  )
-         call check( nf90_inq_varid(self%ncid, ECOLLISIONS_VARNAME, self%Ecollisions_varid), "netcdf_open nf90_inq_varid Ecollisions_varid"  )
-         call check( nf90_inq_varid(self%ncid, EUNTRACKED_VARNAME, self%Euntracked_varid), "netcdf_open nf90_inq_varid Euntracked_varid"  )
-         call check( nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid), "netcdf_open nf90_inq_varid GMescape_varid"  )
+      ! Optional Variables
+
+      status = nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid)
+      if (status /= nf90_noerr) write(*,*) "Warning! NPL variable not set in input file. Calculating."
+
+      status = nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid)
+      if (status /= nf90_noerr) write(*,*) "Warning! NTP variable not set in input file. Calculating."
+
+      if (param%integrator == SYMBA) then
+         status = nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid)
+         if (status /= nf90_noerr) write(*,*) "Warning! NPLM variable not set in input file. Calculating."
       end if
 
-      call check( nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid), "netcdf_open nf90_inq_varid j2rp2_varid"  )
-      call check( nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid), "netcdf_open nf90_inq_varid j4rp4_varid"  )
+      if (param%lrhill_present) then
+         status = nf90_inq_varid(self%ncid, RHILL_VARNAME, self%rhill_varid)
+         if (status /= nf90_noerr) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
+      end if
 
+      ! Variables The User Doesn't Need to Know About
+
+      status = nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid)
+      status = nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid)
+      status = nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid)
+
+      if (param%lclose) then
+         status = nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_TIME_VARNAME, self%origin_time_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_XHX_VARNAME, self%origin_xhx_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_XHY_VARNAME, self%origin_xhy_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_XHZ_VARNAME, self%origin_xhz_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_VHX_VARNAME, self%origin_vhx_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_VHY_VARNAME, self%origin_vhy_varid)
+         status = nf90_inq_varid(self%ncid, ORIGIN_VHZ_VARNAME, self%origin_vhz_varid)
+         status = nf90_inq_varid(self%ncid, COLLISION_ID_VARNAME, self%collision_id_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_TIME_VARNAME, self%discard_time_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_XHX_VARNAME, self%discard_xhx_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_XHY_VARNAME, self%discard_xhy_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_XHZ_VARNAME, self%discard_xhz_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_VHX_VARNAME, self%discard_vhx_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_VHY_VARNAME, self%discard_vhy_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_VHZ_VARNAME, self%discard_vhz_varid)
+         status = nf90_inq_varid(self%ncid, DISCARD_BODY_ID_VARNAME, self%discard_body_id_varid)
+      end if
+
+      if (param%lenergy) then
+         status = nf90_inq_varid(self%ncid, KE_ORB_VARNAME, self%KE_orb_varid)
+         status = nf90_inq_varid(self%ncid, KE_SPIN_VARNAME, self%KE_spin_varid)
+         status = nf90_inq_varid(self%ncid, PE_VARNAME, self%PE_varid)
+         status = nf90_inq_varid(self%ncid, L_ORBX_VARNAME, self%L_orbx_varid)
+         status = nf90_inq_varid(self%ncid, L_ORBY_VARNAME, self%L_orby_varid)
+         status = nf90_inq_varid(self%ncid, L_ORBZ_VARNAME, self%L_orbz_varid)
+         status = nf90_inq_varid(self%ncid, L_SPINX_VARNAME, self%L_spinx_varid)
+         status = nf90_inq_varid(self%ncid, L_SPINY_VARNAME, self%L_spiny_varid)
+         status = nf90_inq_varid(self%ncid, L_SPINZ_VARNAME, self%L_spinz_varid)
+         status = nf90_inq_varid(self%ncid, L_ESCAPEX_VARNAME, self%L_escapex_varid)
+         status = nf90_inq_varid(self%ncid, L_ESCAPEY_VARNAME, self%L_escapey_varid)
+         status = nf90_inq_varid(self%ncid, L_ESCAPEZ_VARNAME, self%L_escapez_varid)
+         status = nf90_inq_varid(self%ncid, ECOLLISIONS_VARNAME, self%Ecollisions_varid)
+         status = nf90_inq_varid(self%ncid, EUNTRACKED_VARNAME, self%Euntracked_varid)
+         status = nf90_inq_varid(self%ncid, GMESCAPE_VARNAME, self%GMescape_varid)
+      end if
 
       return
    end subroutine netcdf_open
@@ -487,7 +514,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: tslot, idmax, npl_check, ntp_check, nplm_check, t_max, str_max
+      integer(I4B)                              :: tslot, idmax, npl_check, ntp_check, nplm_check, t_max, str_max, status
       real(DP), dimension(:), allocatable       :: rtemp
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: validmask, tpmask, plmask
@@ -544,7 +571,7 @@ contains
          class is (symba_pl)
             select type (param)
             class is (symba_parameters)
-               nplm_check = count(rtemp(:) > param%GMTINY .and. plmask(:))
+               nplm_check = count(pack(rtemp,plmask) > param%GMTINY )
                if (nplm_check /= pl%nplm) then
                   write(*,*) "Error reading in NetCDF file: The recorded value of nplm does not match the number of active fully interacting massive bodies"
                   call util_exit(failure)
@@ -594,28 +621,39 @@ contains
          end if
 
          if ((param%in_form == EL)  .or. (param%in_form == XVEL)) then
-
             call check( nf90_get_var(iu%ncid, iu%a_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar a_varid"  )
+            if (.not.allocated(pl%a)) allocate(pl%a(npl))
+            if (.not.allocated(tp%a)) allocate(tp%a(ntp))
             if (npl > 0) pl%a(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%a(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%e_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar e_varid"  )
+            if (.not.allocated(pl%e)) allocate(pl%e(npl))
+            if (.not.allocated(tp%e)) allocate(tp%e(ntp))
             if (npl > 0) pl%e(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%e(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%inc_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar inc_varid"  )
+            if (.not.allocated(pl%inc)) allocate(pl%inc(npl))
+            if (.not.allocated(tp%inc)) allocate(tp%inc(ntp))
             if (npl > 0) pl%inc(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%inc(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capom_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar capom_varid"  )
+            if (.not.allocated(pl%capom)) allocate(pl%capom(npl))
+            if (.not.allocated(tp%capom)) allocate(tp%capom(ntp))
             if (npl > 0) pl%capom(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%capom(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%omega_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar omega_varid"  )
+            if (.not.allocated(pl%omega)) allocate(pl%omega(npl))
+            if (.not.allocated(tp%omega)) allocate(tp%omega(ntp))
             if (npl > 0) pl%omega(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%omega(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capm_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar capm_varid"  )
+            if (.not.allocated(pl%capm)) allocate(pl%capm(npl))
+            if (.not.allocated(tp%capm)) allocate(tp%capm(ntp))
             if (npl > 0) pl%capm(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%capm(:) = pack(rtemp, tpmask)
 
@@ -699,11 +737,26 @@ contains
          !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
          ! end if
 
-         call check( nf90_get_var(iu%ncid, iu%j2rp2_varid, cb%j2rp2, start=[tslot]), "netcdf_read_frame_system nf90_getvar j2rp2_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]), "netcdf_read_frame_system nf90_getvar j4rp4_varid"  )
+         status = nf90_inq_varid(iu%ncid, J2RP2_VARNAME, iu%j2rp2_varid)
+         if (status == nf90_noerr) then
+            call check( nf90_get_var(iu%ncid, iu%j2rp2_varid, cb%j2rp2, start=[tslot]), "netcdf_read_frame_system nf90_getvar j2rp2_varid"  )
+         else 
+            cb%j2rp2 = 0.0_DP
+         end if
+
+         status = nf90_inq_varid(iu%ncid, J4RP4_VARNAME, iu%j4rp4_varid)   
+         if (status == nf90_noerr) then      
+            call check( nf90_get_var(iu%ncid, iu%j4rp4_varid, cb%j4rp4, start=[tslot]), "netcdf_read_frame_system nf90_getvar j4rp4_varid"  )
+         else 
+            cb%j4rp4 = 0.0_DP
+         end if
 
          call self%read_particle_info(iu, param, plmask, tpmask) 
 
+         if (param%in_form == "EL") then
+            call pl%el2xv(cb)
+            call tp%el2xv(cb)
+         end if
          ! if this is a GR-enabled run, check to see if we got the pseudovelocities in. Otherwise, we'll need to generate them.
          if (param%lgr .and. .not.(iu%lpseudo_vel_exists)) then
             call pl%set_mu(cb)
@@ -737,34 +790,90 @@ contains
       class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: tslot
+      integer(I4B) :: tslot, status, idmax
+      real(DP), dimension(:), allocatable       :: gmtemp
+      logical, dimension(:), allocatable        :: plmask, tpmask, plmmask
+
 
       tslot = int(param%ioutput, kind=I4B) + 1
-
+      call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
       call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
-      call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar npl_varid"  )
-      call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar ntp_varid"  )
-      select type(pl => self%pl)
-      class is (symba_pl)
-         call check( nf90_get_var(iu%ncid, iu%nplm_varid,  pl%nplm, start=[tslot]), "netcdf_read_hdr_system nf90_getvar nplm_varid"  )
+
+      allocate(gmtemp(idmax))
+      allocate(tpmask(idmax))
+      allocate(plmask(idmax))
+      allocate(plmmask(idmax))
+
+      call check( nf90_get_var(iu%ncid, iu%Gmass_varid, gmtemp, start=[1,1]), "netcdf_read_frame_system nf90_getvar Gmass_varid"  )
+
+      plmask(:) = gmtemp(:) == gmtemp(:)
+      tpmask(:) = .not. plmask(:)
+      plmask(1) = .false. ! This is the central body
+      select type (param)
+      class is (symba_parameters)
+         plmmask(:) = plmask(:)
+         where(plmask(:))
+            plmmask(:) = gmtemp(:) > param%GMTINY
+         endwhere
       end select
 
+      status = nf90_inq_varid(iu%ncid, NPL_VARNAME, iu%npl_varid)
+      if (status == nf90_noerr) then
+         call check( nf90_get_var(iu%ncid, iu%npl_varid,  self%pl%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar npl_varid"  )
+      else
+         self%pl%nbody = count(plmask(:))
+      end if
+
+      status = nf90_inq_varid(iu%ncid, NTP_VARNAME, iu%ntp_varid)
+      if (status == nf90_noerr) then
+         call check( nf90_get_var(iu%ncid, iu%ntp_varid,  self%tp%nbody, start=[tslot]), "netcdf_read_hdr_system nf90_getvar ntp_varid"  )
+      else
+         self%tp%nbody = count(tpmask(:))
+      end if
+
+      if (param%integrator == SYMBA) then
+         status = nf90_inq_varid(iu%ncid, NPLM_VARNAME, iu%nplm_varid)
+         select type(pl => self%pl)
+         class is (symba_pl)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%nplm_varid,  pl%nplm, start=[tslot]), "netcdf_read_hdr_system nf90_getvar nplm_varid"  )
+            else
+               pl%nplm = count(plmmask(:))
+            end if
+         end select
+      end if
+
       if (param%lenergy) then
-         call check( nf90_get_var(iu%ncid, iu%KE_orb_varid,      self%ke_orbit,    start=[tslot]), "netcdf_read_hdr_system nf90_getvar KE_orb_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%KE_spin_varid,     self%ke_spin,     start=[tslot]), "netcdf_read_hdr_system nf90_getvar KE_spin_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%PE_varid,          self%pe,          start=[tslot]), "netcdf_read_hdr_system nf90_getvar PE_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_orbx_varid,      self%Lorbit(1),   start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_orbx_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_orby_varid,      self%Lorbit(2),   start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_orby_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_orbz_varid,      self%Lorbit(3),   start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_orbz_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_spinx_varid,     self%Lspin(1),    start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_spinx_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_spiny_varid,     self%Lspin(2),    start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_spiny_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_spinz_varid,     self%Lspin(3),    start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_spinz_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_escapex_varid,   self%Lescape(1),  start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_escapex_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_escapey_varid,   self%Lescape(2),  start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_escapey_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%L_escapez_varid,   self%Lescape(3),  start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_escapez_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%Ecollisions_varid, self%Ecollisions, start=[tslot]), "netcdf_read_hdr_system nf90_getvar Ecollisions_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%Euntracked_varid,  self%Euntracked,  start=[tslot]), "netcdf_read_hdr_system nf90_getvar Euntracked_varid"  )
-         call check( nf90_get_var(iu%ncid, iu%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_read_hdr_system nf90_getvar GMescape_varid"  )
+         status = nf90_inq_varid(iu%ncid, KE_ORB_VARNAME, iu%KE_orb_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%KE_orb_varid,      self%ke_orbit,    start=[tslot]), "netcdf_read_hdr_system nf90_getvar KE_orb_varid"  )
+         status = nf90_inq_varid(iu%ncid, KE_SPIN_VARNAME, iu%KE_spin_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%KE_spin_varid,     self%ke_spin,     start=[tslot]), "netcdf_read_hdr_system nf90_getvar KE_spin_varid"  )
+         status = nf90_inq_varid(iu%ncid, PE_VARNAME, iu%PE_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%PE_varid,          self%pe,          start=[tslot]), "netcdf_read_hdr_system nf90_getvar PE_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_ORBX_VARNAME, iu%L_orbx_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_orbx_varid,      self%Lorbit(1),   start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_orbx_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_ORBY_VARNAME, iu%L_orby_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_orby_varid,      self%Lorbit(2),   start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_orby_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_ORBZ_VARNAME, iu%L_orbz_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_orbz_varid,      self%Lorbit(3),   start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_orbz_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_SPINX_VARNAME, iu%L_spinx_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_spinx_varid,     self%Lspin(1),    start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_spinx_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_SPINY_VARNAME, iu%L_spiny_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_spiny_varid,     self%Lspin(2),    start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_spiny_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_SPINZ_VARNAME, iu%L_spinz_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_spinz_varid,     self%Lspin(3),    start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_spinz_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_ESCAPEX_VARNAME, iu%L_escapex_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_escapex_varid,   self%Lescape(1),  start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_escapex_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_ESCAPEY_VARNAME, iu%L_escapey_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_escapey_varid,   self%Lescape(2),  start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_escapey_varid"  )
+         status = nf90_inq_varid(iu%ncid, L_ESCAPEZ_VARNAME, iu%L_escapez_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%L_escapez_varid,   self%Lescape(3),  start=[tslot]), "netcdf_read_hdr_system nf90_getvar L_escapez_varid"  )
+         status = nf90_inq_varid(iu%ncid, ECOLLISIONS_VARNAME, iu%Ecollisions_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%Ecollisions_varid, self%Ecollisions, start=[tslot]), "netcdf_read_hdr_system nf90_getvar Ecollisions_varid"  )
+         status = nf90_inq_varid(iu%ncid, EUNTRACKED_VARNAME, iu%Euntracked_varid)
+         if (status == nf90_noerr) call check( nf90_get_var(iu%ncid, iu%Euntracked_varid,  self%Euntracked,  start=[tslot]), "netcdf_read_hdr_system nf90_getvar Euntracked_varid"  )
+         status = nf90_inq_varid(iu%ncid, GMESCAPE_VARNAME, iu%GMescape_varid)
+         if (status == nf90_noerr)  call check( nf90_get_var(iu%ncid, iu%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_read_hdr_system nf90_getvar GMescape_varid"  )
       end if
 
       return
@@ -783,12 +892,12 @@ contains
       logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
       logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       ! Internals
-      integer(I4B)                              :: i, idmax
-      real(DP), dimension(:), allocatable       :: rtemp
+      integer(I4B)                                :: i, idmax, status
+      real(DP), dimension(:), allocatable         :: rtemp
       real(DP), dimension(:,:), allocatable       :: rtemp_arr
-      integer(I4B), dimension(:), allocatable   :: itemp
+      integer(I4B), dimension(:), allocatable     :: itemp
       character(len=NAMELEN), dimension(:), allocatable :: ctemp
-      integer(I4B), dimension(:), allocatable :: plind, tpind
+      integer(I4B), dimension(:), allocatable     :: plind, tpind
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       idmax = size(plmask)
@@ -841,8 +950,13 @@ contains
             call tp%info(i)%set_value(particle_type=ctemp(tpind(i)))
          end do
 
-         call check( nf90_get_var(iu%ncid, iu%status_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar status_varid"  )
-         call cb%info%set_value(status=ctemp(1))
+         status = nf90_inq_varid(iu%ncid, STATUS_VARNAME, iu%status_varid) 
+         if (status == nf90_noerr) then
+            call check( nf90_get_var(iu%ncid, iu%status_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar status_varid")
+            call cb%info%set_value(status=ctemp(1))
+         else
+            call cb%info%set_value(status="ACTIVE")
+         end if
          do i = 1, npl
             call pl%info(i)%set_value(status=ctemp(plind(i)))
          end do
@@ -851,7 +965,14 @@ contains
          end do
 
          if (param%lclose) then
-            call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar origin_type_varid"  )
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_TYPE_VARNAME, iu%origin_type_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_type_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar origin_type_varid"  )
+            else
+               ctemp = "Initial Conditions"
+            end if
+
             call cb%info%set_value(origin_type=ctemp(1))
             do i = 1, npl
                call pl%info(i)%set_value(origin_type=ctemp(plind(i)))
@@ -860,7 +981,13 @@ contains
                call tp%info(i)%set_value(origin_type=ctemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar origin_time_varid"  )
+            status = nf90_inq_varid(iu%ncid, ORIGIN_TIME_VARNAME, iu%origin_time_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar origin_time_varid"  )
+            else
+               rtemp = 0.0_DP
+            end if
+
             call cb%info%set_value(origin_time=rtemp(1))
             do i = 1, npl
                call pl%info(i)%set_value(origin_time=rtemp(plind(i)))
@@ -869,9 +996,31 @@ contains
                call tp%info(i)%set_value(origin_time=rtemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhz_varid"  )
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_XHX_VARNAME, iu%origin_xhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhx_varid"  )
+            else
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_XHY_VARNAME, iu%origin_xhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhy_varid"  )
+            else
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar xhy_varid"  )
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_XHZ_VARNAME, iu%origin_xhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhz_varid"  )
+            else
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar xhz_varid"  )
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(origin_xh=rtemp_arr(:,plind(i)))
             end do
@@ -879,9 +1028,30 @@ contains
                call tp%info(i)%set_value(origin_xh=rtemp_arr(:,tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhz_varid"  )
+            status = nf90_inq_varid(iu%ncid, ORIGIN_VHX_VARNAME, iu%origin_vhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhx_varid"  )
+            else
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar vhx_varid"  )
+            end if 
+            
+            status = nf90_inq_varid(iu%ncid, ORIGIN_VHY_VARNAME, iu%origin_vhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhy_varid"  )
+            else
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar vhy_varid"  )
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, ORIGIN_VHZ_VARNAME, iu%origin_vhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhz_varid"  )
+            else
+               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
+               ! call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar vhz_varid"  )
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(origin_vh=rtemp_arr(:,plind(i)))
             end do
@@ -889,7 +1059,13 @@ contains
                call tp%info(i)%set_value(origin_vh=rtemp_arr(:,tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp), "netcdf_read_particle_info_system nf90_getvar collision_id_varid"  )
+            status = nf90_inq_varid(iu%ncid, COLLISION_ID_VARNAME, iu%collision_id_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%collision_id_varid, itemp), "netcdf_read_particle_info_system nf90_getvar collision_id_varid"  )
+            else
+               itemp = 0.0_DP
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(collision_id=itemp(plind(i)))
             end do
@@ -897,7 +1073,13 @@ contains
                call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%discard_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar discard_time_varid"  )
+            status = nf90_inq_varid(iu%ncid, DISCARD_TIME_VARNAME, iu%discard_time_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar discard_time_varid"  )
+            else
+               rtemp = 0.0_DP
+            end if 
+
             call cb%info%set_value(discard_time=rtemp(1))
             do i = 1, npl
                call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
@@ -906,9 +1088,27 @@ contains
                call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhz_varid"  )
+            status = nf90_inq_varid(iu%ncid, DISCARD_XHX_VARNAME, iu%discard_xhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhx_varid"  )
+            else
+               rtemp_arr(1,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_XHY_VARNAME, iu%discard_xhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhy_varid"  )
+            else
+               rtemp_arr(2,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_XHZ_VARNAME, iu%discard_xhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_xhz_varid"  )
+            else
+               rtemp_arr(3,:) = 0.0_DP
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(discard_xh=rtemp_arr(:,plind(i)))
             end do
@@ -916,9 +1116,27 @@ contains
                call tp%info(i)%set_value(discard_xh=rtemp_arr(:,tpind(i)))
             end do
 
-            call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhx_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhy_varid"  )
-            call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhz_varid"  )
+            status = nf90_inq_varid(iu%ncid, DISCARD_VHX_VARNAME, iu%discard_vhx_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhx_varid"  )
+            else
+               rtemp_arr(1,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_VHY_VARNAME, iu%discard_vhy_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhy_varid"  )
+            else
+               rtemp_arr(2,:) = 0.0_DP
+            end if 
+
+            status = nf90_inq_varid(iu%ncid, DISCARD_VHZ_VARNAME, iu%discard_vhz_varid)
+            if (status == nf90_noerr) then
+               call check( nf90_get_var(iu%ncid, iu%discard_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar discard_vhz_varid"  )
+            else
+               rtemp_arr(3,:) = 0.0_DP
+            end if 
+
             do i = 1, npl
                call pl%info(i)%set_value(discard_vh=rtemp_arr(:,plind(i)))
             end do

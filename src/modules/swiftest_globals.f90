@@ -149,7 +149,7 @@ module swiftest_globals
    character(*), parameter :: NETCDF_OUTFILE          = 'bin.nc'          !! Default output file name
    character(*), parameter :: TIME_DIMNAME            = "time"            !! NetCDF name of the time dimension 
    character(*), parameter :: ID_DIMNAME              = "id"              !! NetCDF name of the particle id dimension
-   character(*), parameter :: STR_DIMNAME             = "str"             !! NetCDF name of the particle id dimension
+   character(*), parameter :: STR_DIMNAME             = "string32"        !! NetCDF name of the character string dimension
    character(*), parameter :: PTYPE_VARNAME           = "particle_type"   !! NetCDF name of the particle type variable
    character(*), parameter :: NAME_VARNAME            = "name"            !! NetCDF name of the particle name variable
    character(*), parameter :: NPL_VARNAME             = "npl"             !! NetCDF name of the number of active massive bodies variable
