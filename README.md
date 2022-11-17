@@ -88,9 +88,13 @@ To build Swiftest with the release flags (default), type the following:
 ```
 $ cmake ..
 ```
-To buid with the debug flags, type:
+To build with the debug flags, type:
 ```
 $ cmake .. -DCMAKE_BUILD_TYPE=DEBUG
+```
+To build with profiling flags, type:
+```
+$ cmake .. -DCMAKE_BUILD_TYPE=PROFILE
 ```
 Finally, to build with the testing flags, type:
 ```

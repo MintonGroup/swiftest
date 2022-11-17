@@ -7,7 +7,7 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# CMake project file for FOO
+# CMake project file for SWIFTEST
 
 ##################################################
 # Define the project and the depencies that it has
@@ -63,7 +63,7 @@ SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${LIB})
 
-# The source for the FOO binary and have it placed in the bin folder
+# The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
 
 # Add a distclean target to the Makefile
