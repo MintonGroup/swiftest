@@ -114,11 +114,9 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      !$omp parallel do simd default(shared) schedule(static)
       do i = 1, n
          if (lmask(i)) call helio_drift_linear_one(xh(1,i), xh(2,i), xh(3,i), pt(1), pt(2), pt(3), dt) 
       end do
-      !$omp end parallel do simd
 
       return
    end subroutine helio_drift_linear_all
