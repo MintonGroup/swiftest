@@ -23,12 +23,12 @@
 #                   "-Wall"     # GNU
 #                   "-warn all" # Intel
 #                  )
-# The optin "-Wall" will be checked first, and if it works, will be
+# The option "-Wall" will be checked first, and if it works, will be
 # appended to the CMAKE_C_FLAGS variable.  If it doesn't work, then
 # "-warn all" will be tried.  If this doesn't work then checking will
 # terminate because REQUIRED was given.  
 #
-# The reasong that the variable must be given twice (first as the name then
+# The reasoning that the variable must be given twice (first as the name then
 # as the value in quotes) is because of the way CMAKE handles the passing
 # of variables in functions; it is difficult to extract a variable's
 # contents and assign new values to it from within a function.

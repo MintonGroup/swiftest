@@ -12,7 +12,7 @@
 ########################################
 
 # Add the source files
-SET(FOO_src 
+SET(FAST_MATH_FILES
             ${SRC}/modules/encounter_classes.f90
             ${SRC}/modules/fraggle_classes.f90
             ${SRC}/modules/helio_classes.f90
@@ -41,12 +41,10 @@ SET(FOO_src
             ${SRC}/gr/gr.f90
             ${SRC}/helio/helio_drift.f90
             ${SRC}/helio/helio_gr.f90
-            ${SRC}/helio/helio_kick.f90
             ${SRC}/helio/helio_setup.f90
             ${SRC}/helio/helio_step.f90
             ${SRC}/helio/helio_util.f90
             ${SRC}/io/io.f90
-            ${SRC}/kick/kick.f90
             ${SRC}/netcdf/netcdf.f90
             ${SRC}/obl/obl.f90
             ${SRC}/operators/operator_cross.f90
@@ -55,7 +53,6 @@ SET(FOO_src
             ${SRC}/rmvs/rmvs_discard.f90
             ${SRC}/rmvs/rmvs_encounter_check.f90
             ${SRC}/rmvs/rmvs_io.f90
-            ${SRC}/rmvs/rmvs_kick.f90
             ${SRC}/rmvs/rmvs_setup.f90
             ${SRC}/rmvs/rmvs_step.f90
             ${SRC}/rmvs/rmvs_util.f90
@@ -66,7 +63,6 @@ SET(FOO_src
             ${SRC}/symba/symba_encounter_check.f90
             ${SRC}/symba/symba_gr.f90
             ${SRC}/symba/symba_io.f90
-            ${SRC}/symba/symba_kick.f90
             ${SRC}/symba/symba_setup.f90
             ${SRC}/symba/symba_step.f90
             ${SRC}/symba/symba_util.f90
@@ -96,24 +92,31 @@ SET(FOO_src
             ${SRC}/whm/whm_coord.f90
             ${SRC}/whm/whm_drift.f90
             ${SRC}/whm/whm_gr.f90
-            ${SRC}/whm/whm_kick.f90
             ${SRC}/whm/whm_setup.f90
             ${SRC}/whm/whm_step.f90
             ${SRC}/whm/whm_util.f90
             ${SRC}/main/swiftest_driver.f90
 )
+SET(STRICT_MATH_FILES
+            ${SRC}/kick/kick.f90 
+            ${SRC}/helio/helio_kick.f90
+            ${SRC}/rmvs/rmvs_kick.f90
+            ${SRC}/symba/symba_kick.f90
+            ${SRC}/whm/whm_kick.f90
+)
+
+set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
 
 # Define the executable in terms of the source files
-ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${FOO_src})
+ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${SWIFTEST_src})
 
 #####################################################
 # Add the needed libraries and special compiler flags
 #####################################################
 
-# Uncomment if you need to link to BLAS and LAPACK
+# # Uncomment if you need to link to BLAS and LAPACK
 TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} ${NETCDF_LIBRARIES} ${NETCDF_FORTRAN_LIBRARIES})
 
-# Uncomment if you have parallization
 IF(USE_OPENMP)
     SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
                           COMPILE_FLAGS "${OpenMP_Fortran_FLAGS}"
@@ -127,7 +130,6 @@ ELSEIF(USE_MPI)
 ENDIF(USE_OPENMP)
 
 
-
 #####################################
 # Tell how to install this executable
 #####################################
@@ -138,3 +140,12 @@ ELSE()
     SET(CMAKE_INSTALL_PREFIX /usr/local)
 ENDIF(WIN32)
 INSTALL(TARGETS ${SWIFTEST_DRIVER} RUNTIME DESTINATION bin)
+
+
+#Set strict vs fast math flags
+STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
+IF(BT STREQUAL "RELEASE" OR BT STREQUAL "PROFILE")
+   SET_PROPERTY(SOURCE ${STRICT_MATH_FILES} APPEND_STRING PROPERTY COMPILE_FLAGS "${STRICTMATH_FLAGS}")
+   SET_PROPERTY(SOURCE ${FAST_MATH_FILES} APPEND_STRING PROPERTY COMPILE_FLAGS "${FASTMATH_FLAGS}")
+ENDIF()
+
