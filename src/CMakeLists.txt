@@ -104,26 +104,26 @@ SET(FOO_src
 )
 
 # Define the executable in terms of the source files
-ADD_EXECUTABLE(${FOOEXE} ${FOO_src})
+ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${FOO_src})
 
 #####################################################
 # Add the needed libraries and special compiler flags
 #####################################################
 
 # Uncomment if you need to link to BLAS and LAPACK
-TARGET_LINK_LIBRARIES(${FOOEXE} ${NETCDF_LIBRARIES} ${NETCDF_FORTRAN_LIBRARIES})
+TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} ${NETCDF_LIBRARIES} ${NETCDF_FORTRAN_LIBRARIES})
 
 # Uncomment if you have parallization
 IF(USE_OPENMP)
-    SET_TARGET_PROPERTIES(${FOOEXE} PROPERTIES
+    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
                           COMPILE_FLAGS "${OpenMP_Fortran_FLAGS}"
                           LINK_FLAGS "${OpenMP_Fortran_FLAGS}")
 ELSEIF(USE_MPI)
-    SET_TARGET_PROPERTIES(${FOOEXE} PROPERTIES
+    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
                           COMPILE_FLAGS "${MPI_Fortran_COMPILE_FLAGS}"
                           LINK_FLAGS "${MPI_Fortran_LINK_FLAGS}")
     INCLUDE_DIRECTORIES(${MPI_Fortran_INCLUDE_PATH})
-    TARGET_LINK_LIBRARIES(${FOOEXE} ${MPI_Fortran_LIBRARIES})
+    TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} ${MPI_Fortran_LIBRARIES})
 ENDIF(USE_OPENMP)
 
 
@@ -137,4 +137,4 @@ IF(WIN32)
 ELSE()
     SET(CMAKE_INSTALL_PREFIX /usr/local)
 ENDIF(WIN32)
-INSTALL(TARGETS ${FOOEXE} RUNTIME DESTINATION bin)
+INSTALL(TARGETS ${SWIFTEST_DRIVER} RUNTIME DESTINATION bin)

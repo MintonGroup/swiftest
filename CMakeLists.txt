@@ -54,7 +54,7 @@ ENDIF(FCNAME STREQUAL "pgf90")
 ############################################################
 
 # Define the executable name
-SET(FOOEXE swiftest_driver)
+SET(SWIFTEST_DRIVER swiftest_driver)
 
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
