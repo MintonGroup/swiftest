@@ -406,7 +406,6 @@ contains
             end if
 
          end if
-
       end if
 
       if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
@@ -437,28 +436,21 @@ contains
       ! end if
 
       ! Optional Variables
-
-      status = nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid)
-      if (status /= nf90_noerr) write(*,*) "Warning! NPL variable not set in input file. Calculating."
-
-      status = nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid)
-      if (status /= nf90_noerr) write(*,*) "Warning! NTP variable not set in input file. Calculating."
-
-      if (param%integrator == SYMBA) then
-         status = nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid)
-         if (status /= nf90_noerr) write(*,*) "Warning! NPLM variable not set in input file. Calculating."
-      end if
-
       if (param%lrhill_present) then
          status = nf90_inq_varid(self%ncid, RHILL_VARNAME, self%rhill_varid)
          if (status /= nf90_noerr) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
       end if
 
-      ! Variables The User Doesn't Need to Know About
-
+      ! Optional variables The User Doesn't Need to Know About
+      status = nf90_inq_varid(self%ncid, NPL_VARNAME, self%npl_varid)
+      status = nf90_inq_varid(self%ncid, NTP_VARNAME, self%ntp_varid)
       status = nf90_inq_varid(self%ncid, STATUS_VARNAME, self%status_varid)
       status = nf90_inq_varid(self%ncid, J2RP2_VARNAME, self%j2rp2_varid)
       status = nf90_inq_varid(self%ncid, J4RP4_VARNAME, self%j4rp4_varid)
+
+      if (param%integrator == SYMBA) then
+         status = nf90_inq_varid(self%ncid, NPLM_VARNAME, self%nplm_varid)
+      end if
 
       if (param%lclose) then
          status = nf90_inq_varid(self%ncid, ORIGIN_TYPE_VARNAME, self%origin_type_varid)
@@ -985,7 +977,7 @@ contains
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar origin_time_varid"  )
             else
-               rtemp = 0.0_DP
+               rtemp = param%t0
             end if
 
             call cb%info%set_value(origin_time=rtemp(1))
@@ -996,29 +988,31 @@ contains
                call tp%info(i)%set_value(origin_time=rtemp(tpind(i)))
             end do
 
-
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHX_VARNAME, iu%origin_xhx_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhx_varid"  )
-            else
-               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
-               ! call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
+            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+               call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
+            else 
+               rtemp_arr(1,:) = 0._DP
             end if 
 
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHY_VARNAME, iu%origin_xhy_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhy_varid"  )
-            else
-               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
-               ! call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar xhy_varid"  )
+            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+               call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
+            else 
+               rtemp_arr(2,:) = 0._DP
             end if 
 
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHZ_VARNAME, iu%origin_xhz_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhz_varid"  )
+            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+               call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar xhz_varid"  )
             else
-               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
-               ! call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar xhz_varid"  )
+               rtemp_arr(3,:) = 0._DP
             end if 
 
             do i = 1, npl
@@ -1031,25 +1025,28 @@ contains
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHX_VARNAME, iu%origin_vhx_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhx_varid"  )
+            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+               call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar vhx_varid"  )
             else
-               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
-               ! call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar vhx_varid"  )
+               rtemp_arr(1,:) = 0._DP
             end if 
             
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHY_VARNAME, iu%origin_vhy_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhy_varid"  )
+            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+               call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar vhy_varid"  )
             else
-               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
-               ! call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar vhy_varid"  )
+               rtemp_arr(2,:) = 0._DP
             end if 
 
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHZ_VARNAME, iu%origin_vhz_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhz_varid"  )
+            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+               call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar vhz_varid" )
             else
-               ! [TODO]: This doesn't work when the input mode is EL. This needs to get filled in later after xv2el has been called
-               ! call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar vhz_varid"  )
+               rtemp_arr(3,:) = 0._DP
             end if 
 
             do i = 1, npl
