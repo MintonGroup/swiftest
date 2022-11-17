@@ -30,7 +30,7 @@ ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 # Set some options the user may choose
 # Uncomment the below if you want the user to choose a parallelization library
 OPTION(USE_MPI "Use the MPI library for parallelization" OFF)
-OPTION(USE_OPENMP "Use OpenMP for parallelization" OFF)
+OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 
 # This INCLUDE statement executes code that sets the compile flags for DEBUG,
 # RELEASE, and TESTING.  You should  review this file and make sure the flags 
@@ -40,7 +40,6 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake)
 # taken care of here, such as the fact that the FindOpenMP routine doesn't know
 # about Fortran.
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
-
 INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
