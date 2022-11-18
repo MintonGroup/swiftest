@@ -15,7 +15,9 @@ from swiftest import init_cond
 from swiftest import tool
 from swiftest import constants
 from swiftest import __file__ as _pyfile
+import json
 import os
+from pathlib import Path
 import datetime
 import xarray as xr
 import numpy as np
@@ -55,8 +57,8 @@ class Simulation:
             1. Arguments to Simulation()
             2. The parameter input file given by `param_file` under the following conditions:
                 - `read_param` is set to True (default behavior).
-                - The file given by `param_file` exists. The default file is `param.in` located in the current working
-                  directory, which can be changed by passing `param_file` as an argument.
+                - The file given by `param_file` exists. The default file is `param.in` located in the `.swiftest` directory
+                  inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
 
@@ -274,8 +276,27 @@ class Simulation:
             Parameter input file equivalent: None
         """
 
-        # Width of the column in the printed name of the parameter in parameter getters
-        self._getter_column_width = '32'
+        # Configuration parameters will be stored in a json file alongside the Python source scripts.
+        self._config_file = Path(_pyfile).parent / "swiftest_configuration.json"
+        config_exists = self._config_file.exists()
+        if config_exists:
+            try:
+                with open(self._config_file, 'r') as f:
+                   self._swiftest_configuration = json.load(f)
+            except:
+                config_exists = False
+        if not config_exists:
+            self._swiftest_configuration = {"shell" : str(Path(os.environ['SHELL']).name),
+                                            "shell_full" : str(Path(os.environ['SHELL'])),
+                                            "getter_column_width" : '32'}
+            self._swiftest_configuration['startup_script'] = str(Path.home() / f".{str(self._swiftest_configuration['shell'])}rc")
+            config_json = json.dumps(self._swiftest_configuration, indent=4)
+            with open(self._config_file, 'w') as f:
+                f.write(config_json)
+
+        self._getter_column_width = self._swiftest_configuration['getter_column_width']
+        self._shell = Path(self._swiftest_configuration['shell'])
+        self._shell_full = Path(self._swiftest_configuration['shell_full'])
 
         self.param = {}
         self.data = xr.Dataset()
@@ -318,7 +339,7 @@ class Simulation:
 
         # Let the user know that there was a problem reading an old parameter file and we're going to create a new one
         if read_param and not param_file_found:
-            warnings.warn(f"{self.param_file} not found. Creating a new file using default values for parameters not passed to Simulation().")
+            warnings.warn(f"{self.param_file} not found. Creating a new file using default values for parameters not passed to Simulation().",stacklevel=2)
             self.write_param()
 
         # Read in an old simulation file if requested
@@ -328,7 +349,7 @@ class Simulation:
             if os.path.exists(binpath):
                 self.bin2xr()
             else:
-                warnings.warn(f"BIN_OUT file {binpath} not found.")
+                warnings.warn(f"BIN_OUT file {binpath} not found.",stacklevel=2)
         return
 
 
@@ -354,12 +375,13 @@ class Simulation:
         self.write_param()
 
         if self.codename != "Swiftest":
-            warnings.warn(f"Running an integration is not yet supported for {self.codename}")
+            warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
             return
 
         if self.driver_executable is None:
-            warnings.warn("Path to swiftest_driver has not been set!")
-            warnings.warn(f"Make sure swiftest_driver is compiled and the executable is in {self.binary_path}")
+            msg = "Path to swiftest_driver has not been set!"
+            msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
+            warnings.warn(msg,stacklevel=2)
             return
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
@@ -367,12 +389,11 @@ class Simulation:
         # Get current environment variables
         env = os.environ.copy()
         driver_script = os.path.join(self.binary_path,"swiftest_driver.sh")
-        shell = os.path.basename(env['SHELL'])
         with open(driver_script,'w') as f:
-            f.write(f"#{env['SHELL']} -l {os.linesep}")
-            f.write(f"source ~/.{shell}rc {os.linesep}")
+            f.write(f"#{self._shell_full} -l {os.linesep}")
+            f.write(f"source ~/.{self._shell}rc {os.linesep}")
             f.write(f"cd {self.sim_dir} {os.linesep}")
-            f.write(f"{self.driver_executable} {self.integrator} {self.param_file}")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)}")
 
         try:
             cmd = f"{env['SHELL']} -l {driver_script}"
@@ -382,14 +403,14 @@ class Simulation:
                                  env=env,
                                  universal_newlines=True) as p:
                for line in p.stdout:
-                   print(line, end='')
+                   print(line.replace(']\n',']\r').replace("Normal termination","\nNormal termination"), end='')
                res = p.communicate()
                if p.returncode != 0:
                    for line in res[1]:
                        print(line, end='')
                    raise Exception ("Failure in swiftest_driver")
         except:
-            warnings.warn(f"Error executing main swiftest_driver program")
+            warnings.warn(f"Error executing main swiftest_driver program",stacklevel=2)
             return
 
         # Read in new data
@@ -512,7 +533,7 @@ class Simulation:
 
         if tstop is not None:
             if tstop <= tstart:
-                warnings.warn("tstop must be greater than tstart.")
+                warnings.warn("tstop must be greater than tstart.",stacklevel=2)
                 return {}
 
         if tstop is not None:
@@ -525,8 +546,9 @@ class Simulation:
 
         if dt is not None and tstop is not None:
             if dt > (tstop - tstart):
-                warnings.warn("dt must be smaller than tstop-tstart")
-                warnings.warn(f"Setting dt = {tstop - tstart} instead of {dt}")
+                msg = "dt must be smaller than tstop-tstart"
+                msg +=f"\nSetting dt = {tstop - tstart} instead of {dt}"
+                warnings.warn(msg,stacklevel=2)
                 dt = tstop - tstart
 
         if dt is not None:
@@ -535,7 +557,7 @@ class Simulation:
         if istep_out is None and tstep_out is None:
             istep_out = self.param.pop("ISTEP_OUT", None)
         elif istep_out is not None and tstep_out is not None:
-            warnings.warn("istep_out and tstep_out cannot both be set")
+            warnings.warn("istep_out and tstep_out cannot both be set",stacklevel=2)
             return {}
         else:
             update_list.append("istep_out")
@@ -643,7 +665,7 @@ class Simulation:
         default_arguments = {
             "codename" : "Swiftest",
             "integrator": "symba",
-            "param_file": "param.in",
+            "param_file": Path.cwd() / ".swiftest" / "param.in",
             "t0": 0.0,
             "tstart": 0.0,
             "tstop": None,
@@ -696,9 +718,17 @@ class Simulation:
 
         param_file = kwargs.pop("param_file",None)
 
+        # Extract the simulation directory and create it if it doesn't exist
         if param_file is not None:
-            self.param_file = os.path.realpath(param_file)
-            self.sim_dir = os.path.dirname(self.param_file)
+            self.param_file = Path.cwd() / param_file
+            self.sim_dir = self.param_file.parent
+            if self.sim_dir.exists():
+                if not self.sim_dir.is_dir():
+                    msg = f"Cannot create the {self.sim_dir} directory: File exists."
+                    msg += "\nDelete the file or change the location of param_file"
+                    warnings.warn(msg,stacklevel=2)
+            else:
+                self.sim_dir.mkdir(parents=True, exist_ok=False)
 
 
         # Setters returning parameter dictionary values
@@ -783,7 +813,7 @@ class Simulation:
         if codename is not None:
             valid_codename = ["Swiftest", "Swifter", "Swift"]
             if codename.title() not in valid_codename:
-                warnings.warn(f"{codename} is not a valid codename. Valid options are ",",".join(valid_codename))
+                warnings.warn(f"{codename} is not a valid codename. Valid options are ",",".join(valid_codename),stacklevel=2)
                 try:
                     self.codename
                 except:
@@ -794,10 +824,10 @@ class Simulation:
             self.param['! VERSION'] = f"{self.codename} input file"
             update_list.append("codename")
             if self.codename == "Swiftest":
-                self.binary_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(_pyfile)),os.pardir,os.pardir,os.pardir,"bin"))
-                self.driver_executable = os.path.join(self.binary_path,"swiftest_driver")
-                if not os.path.exists(self.driver_executable):
-                    warnings.warn(f"Cannot find the Swiftest driver in {self.binary_path}")
+                self.binary_path = Path(_pyfile).parent.parent.parent.parent / "bin"
+                self.driver_executable = self.binary_path / "swiftest_driver"
+                if not self.driver_executable.exists():
+                    warnings.warn(f"Cannot find the Swiftest driver in {str(self.binary_path)}",stacklevel=2)
                     self.driver_executable = None
             else:
                 self.binary_path = "NOT IMPLEMENTED FOR THIS CODE"
@@ -807,7 +837,7 @@ class Simulation:
         if integrator is not None:
             valid_integrator = ["symba","rmvs","whm","helio"]
             if integrator.lower() not in valid_integrator:
-                warnings.warn(f"{integrator} is not a valid integrator. Valid options are ",",".join(valid_integrator))
+                warnings.warn(f"{integrator} is not a valid integrator. Valid options are ",",".join(valid_integrator),stacklevel=2)
                 try:
                     self.integrator
                 except:
@@ -818,9 +848,9 @@ class Simulation:
 
         if mtiny is not None or gmtiny is not None:
             if self.integrator != "symba":
-                warnings.warn("mtiny and gmtiny are only used by SyMBA.")
+                warnings.warn("mtiny and gmtiny are only used by SyMBA.",stacklevel=2)
             if mtiny is not None and gmtiny is not None:
-                warnings.warn("Only set mtiny or gmtiny, not both!")
+                warnings.warn("Only set mtiny or gmtiny, not both.",stacklevel=2)
             elif gmtiny is not None:
                 self.param['GMTINY'] = gmtiny
                 update_list.append("gmtiny")
@@ -859,19 +889,19 @@ class Simulation:
 
         valid_instance_vars = {"codename": self.codename,
                                "integrator": self.integrator,
-                               "param_file": self.param_file,
-                               "driver_executable": self.driver_executable}
+                               "param_file": str(self.param_file),
+                               "driver_executable": str(self.driver_executable)}
 
         try:
             self.integrator
         except:
-            warnings.warn(f"integrator is not set")
+            warnings.warn(f"integrator is not set",stacklevel=2)
             return {}
 
         try:
             self.codename
         except:
-            warnings.warn(f"codename is not set")
+            warnings.warn(f"codename is not set",stacklevel=2)
             return {}
 
         if verbose is None:
@@ -1008,19 +1038,19 @@ class Simulation:
 
         if fragmentation is not None:
             if self.codename != "Swiftest" and self.integrator != "symba" and fragmentation:
-                warnings.warn("Fragmentation is only available on Swiftest SyMBA.")
+                warnings.warn("Fragmentation is only available on Swiftest SyMBA.",stacklevel=2)
                 self.param['FRAGMENTATION'] = False
             else:
                 self.param['FRAGMENTATION'] = fragmentation
                 update_list.append("fragmentation")
                 if fragmentation:
                     if "MIN_GMFRAG" not in self.param and minimum_fragment_mass is None and minimum_fragment_gmass is None:
-                        warnings.warn("Minimum fragment mass is not set. Set it using minimum_fragment_gmass or minimum_fragment_mass")
+                        warnings.warn("Minimum fragment mass is not set. Set it using minimum_fragment_gmass or minimum_fragment_mass",stacklevel=2)
                     else:
                         update_list.append("minimum_fragment_gmass")
 
         if minimum_fragment_gmass is not None and minimum_fragment_mass is not None:
-            warnings.warn("Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!")
+            warnings.warn("Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!",stacklevel=2)
 
         if minimum_fragment_gmass is not None:
             self.param["MIN_GMFRAG"] = minimum_fragment_gmass
@@ -1065,8 +1095,9 @@ class Simulation:
         if interaction_loops is not None:
             valid_vals = ["TRIANGULAR", "FLAT", "ADAPTIVE"]
             if interaction_loops not in valid_vals:
-                warnings.warn(f"{interaction_loops} is not a valid option for interaction loops.")
-                warnings.warn(f"Must be one of {valid_vals}")
+                msg = f"{interaction_loops} is not a valid option for interaction loops."
+                msg += f"\nMust be one of {valid_vals}"
+                warnings.warn(msg,stacklevel=2)
                 if "INTERACTION_LOOPS" not in self.param:
                     self.param["INTERACTION_LOOPS"] = valid_vals[0]
             else:
@@ -1076,8 +1107,9 @@ class Simulation:
         if encounter_check_loops is not None:
             valid_vals = ["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"]
             if encounter_check_loops not in valid_vals:
-                warnings.warn(f"{encounter_check_loops} is not a valid option for interaction loops.")
-                warnings.warn(f"Must be one of {valid_vals}")
+                msg = f"{encounter_check_loops} is not a valid option for interaction loops."
+                msg += f"\nMust be one of {valid_vals}"
+                warnings.warn(msg,stacklevel=2)
                 if "ENCOUNTER_CHECK" not in self.param:
                     self.param["ENCOUNTER_CHECK"] = valid_vals[0]
             else:
@@ -1208,13 +1240,14 @@ class Simulation:
             return {}
 
         def ascii_file_input_error_msg(codename):
-            warnings.warn(f"in set_init_cond_files: init_cond_file_name must be a dictionary of the form: ")
-            warnings.warn('{')
+            msg = f"in set_init_cond_files: init_cond_file_name must be a dictionary of the form: "
+            msg += "\n {"
             if codename == "Swiftest":
-                warnings.warn('"CB" : *path to central body initial conditions file*,')
-            warnings.warn('"PL" : *path to massive body initial conditions file*,')
-            warnings.warn('"TP" : *path to test particle initial conditions file*')
-            warnings.warn('}')
+                msg += '\n"CB" : *path to central body initial conditions file*,'
+            msg += '\n"PL" : *path to massive body initial conditions file*,'
+            msg += '\n"TP" : *path to test particle initial conditions file*'
+            msg += '\n}'
+            warnings.warn(msg,stacklevel=2)
             return {}
 
         if init_cond_format is None:
@@ -1234,21 +1267,21 @@ class Simulation:
         else:
             init_cond_keys = ["PL", "TP"]
             if init_cond_file_type != "ASCII":
-                warnings.warn(f"{init_cond_file_type} is not supported by {self.codename}. Using ASCII instead")
+                warnings.warn(f"{init_cond_file_type} is not supported by {self.codename}. Using ASCII instead",stacklevel=2)
                 init_cond_file_type = "ASCII"
             if init_cond_format != "XV":
-                warnings.warn(f"{init_cond_format} is not supported by {self.codename}. Using XV instead")
+                warnings.warn(f"{init_cond_format} is not supported by {self.codename}. Using XV instead",stacklevel=2)
                 init_cond_format = "XV"
 
         valid_formats = {"EL", "XV"}
         if init_cond_format not in valid_formats:
-            warnings.warn(f"{init_cond_format} is not a valid input format")
+            warnings.warn(f"{init_cond_format} is not a valid input format",stacklevel=2)
         else:
             self.param['IN_FORM'] = init_cond_format
 
         valid_types = {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}
         if init_cond_file_type not in valid_types:
-            warnings.warn(f"{init_cond_file_type} is not a valid input type")
+            warnings.warn(f"{init_cond_file_type} is not a valid input type",stackevel=2)
         else:
             self.param['IN_TYPE'] = init_cond_file_type
 
@@ -1275,7 +1308,7 @@ class Simulation:
             elif type(init_cond_file_name) is dict:
                 # Oops, accidentally passed a dictionary instead of the expected single string or path-like for NetCDF
                 # input type.
-                warnings.warn(f"Only a single input file is used for NetCDF files")
+                warnings.warn(f"Only a single input file is used for NetCDF files",stacklevel=2)
             else:
                 self.param["NC_IN"] = init_cond_file_name
 
@@ -1416,7 +1449,7 @@ class Simulation:
                 if output_file_type is None:
                     output_file_type = "NETCDF_DOUBLE"
             elif output_file_type not in ["NETCDF_DOUBLE", "NETCDF_FLOAT"]:
-                warnings.warn(f"{output_file_type} is not compatible with Swiftest. Setting to NETCDF_DOUBLE")
+                warnings.warn(f"{output_file_type} is not compatible with Swiftest. Setting to NETCDF_DOUBLE",stacklevel=2)
                 output_file_type = "NETCDF_DOUBLE"
         elif self.codename == "Swifter":
             if output_file_type is None:
@@ -1424,7 +1457,7 @@ class Simulation:
                 if output_file_type is None:
                     output_file_type = "REAL8"
             elif output_file_type not in ["REAL4", "REAL8", "XDR4", "XDR8"]:
-                warnings.warn(f"{output_file_type} is not compatible with Swifter. Setting to REAL8")
+                warnings.warn(f"{output_file_type} is not compatible with Swifter. Setting to REAL8",stacklevel=2)
                 output_file_type = "REAL8"
         elif self.codename == "Swift":
             if output_file_type is None:
@@ -1432,7 +1465,7 @@ class Simulation:
                 if output_file_type is None:
                     output_file_type = "REAL4"
             if output_file_type not in ["REAL4"]:
-                warnings.warn(f"{output_file_type} is not compatible with Swift. Setting to REAL4")
+                warnings.warn(f"{output_file_type} is not compatible with Swift. Setting to REAL4",stacklevel=2)
                 output_file_type = "REAL4"
 
         self.param['OUT_TYPE'] = output_file_type
@@ -1445,7 +1478,7 @@ class Simulation:
             self.param['BIN_OUT'] = output_file_name
 
         if output_format != "XV" and self.codename != "Swiftest":
-            warnings.warn(f"{output_format} is not compatible with {self.codename}. Setting to XV")
+            warnings.warn(f"{output_format} is not compatible with {self.codename}. Setting to XV",stacklevel=2)
             output_format = "XV"
         self.param["OUT_FORM"] = output_format
 
@@ -1620,7 +1653,7 @@ class Simulation:
                     self.param['MU2KG'] = 1000.0
                     self.MU_name = "g"
                 else:
-                    warnings.warn(f"{MU} not a recognized unit system. Using MSun as a default.")
+                    warnings.warn(f"{MU} not a recognized unit system. Using MSun as a default.",stacklevel=2)
                     self.param['MU2KG'] = constants.MSun
                     self.MU_name = "MSun"
 
@@ -1643,7 +1676,7 @@ class Simulation:
                     self.param['DU2M'] = 100.0
                     self.DU_name = "cm"
                 else:
-                    warnings.warn(f"{DU} not a recognized unit system. Using AU as a default.")
+                    warnings.warn(f"{DU} not a recognized unit system. Using AU as a default.",stacklevel=2)
                     self.param['DU2M'] = constants.AU2M
                     self.DU_name = "AU"
 
@@ -1663,7 +1696,7 @@ class Simulation:
                     self.param['TU2S'] = 1.0
                     self.TU_name = "s"
                 else:
-                    warnings.warn(f"{TU} not a recognized unit system. Using YR as a default.")
+                    warnings.warn(f"{TU} not a recognized unit system. Using YR as a default.",stacklevel=2)
                     self.param['TU2S'] = constants.YR2S
                     self.TU_name = "y"
 
@@ -1846,7 +1879,7 @@ class Simulation:
         if qmin_coord is not None:
             valid_qmin_coord = ["HELIO","BARY"]
             if qmin_coord.upper() not in valid_qmin_coord:
-                warnings.warn(f"qmin_coord = {qmin_coord} is not a valid option.  Must be one of",','.join(valid_qmin_coord))
+                warnings.warn(f"qmin_coord = {qmin_coord} is not a valid option.  Must be one of",','.join(valid_qmin_coord),stacklevel=2)
                 self.param['CHK_QMIN_COORD'] = valid_qmin_coord[0]
             else:
                 self.param['CHK_QMIN_COORD'] = qmin_coord.upper()
@@ -1969,7 +2002,7 @@ class Simulation:
             if type(ephemeris_id) is int:
                 ephemeris_id = [ephemeris_id]
             if len(ephemeris_id) != len(name):
-                warnings.warn(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})")
+                warnings.warn(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})",stacklevel=2)
                 return None
         else:
             ephemeris_id = [None] * len(name)
@@ -1982,11 +2015,11 @@ class Simulation:
         try:
             datetime.datetime.fromisoformat(date)
         except:
-            warnings.warn(f"{date} is not a valid date format. Must be 'YYYY-MM-DD'. Setting to {self.ephemeris_date}")
+            warnings.warn(f"{date} is not a valid date format. Must be 'YYYY-MM-DD'. Setting to {self.ephemeris_date}",stacklevel=2)
             date = self.ephemeris_date
 
         if source.upper() != "HORIZONS":
-            warnings.warn("Currently only the JPL Horizons ephemeris service is supported")
+            warnings.warn("Currently only the JPL Horizons ephemeris service is supported",stacklevel=2)
 
         body_list = []
         for i,n in enumerate(name):
@@ -2091,8 +2124,9 @@ class Simulation:
                 datetime.datetime.fromisoformat(ephemeris_date)
             except:
                 valid_date_args = ['"MBCL"', '"TODAY"', '"YYYY-MM-DD"']
-                warnings.warn(f"{ephemeris_date} is not a valid format. Valid options include:", ', '.join(valid_date_args))
-                warnings.warn("Using MBCL for date.")
+                msg = f"{ephemeris_date} is not a valid format. Valid options include:", ', '.join(valid_date_args)
+                msg += "\nUsing MBCL for date."
+                warnings.warn(msg,stacklevel=2)
                 ephemeris_date = minton_bcl
 
         self.ephemeris_date = ephemeris_date
@@ -2127,7 +2161,7 @@ class Simulation:
         try:
             self.ephemeris_date
         except:
-            warnings.warn(f"ephemeris_date is not set")
+            warnings.warn(f"ephemeris_date is not set",stacklevel=2)
             return
 
         valid_arg = {"ephemeris_date": self.ephemeris_date}
@@ -2322,8 +2356,9 @@ class Simulation:
                dsnew = dsnew.swap_dims({"id" : "name"})
                dsnew = dsnew.reset_coords("id")
             else:
-                warnings.warn("Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name.")
-                warnings.warn("Consider using unique names instead.")
+                msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
+                msg +="\nConsider using unique names instead."
+                print(msg)
 
         self.data = xr.combine_by_coords([self.data, dsnew])
 
@@ -2393,7 +2428,7 @@ class Simulation:
         elif codename == "Swift":
             self.param = io.read_swift_param(param_file, verbose=verbose)
         else:
-            warnings.warn(f'{codename} is not a recognized code name. Valid options are "Swiftest", "Swifter", or "Swift".')
+            warnings.warn(f'{codename} is not a recognized code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
             return False
 
         return True
@@ -2444,7 +2479,7 @@ class Simulation:
         elif codename == "Swift":
             io.write_swift_param(param, param_file)
         else:
-            warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
+            warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
@@ -2474,10 +2509,10 @@ class Simulation:
         """
         oldparam = self.param
         if self.codename == newcodename:
-            warnings.warn(f"This parameter configuration is already in {newcodename} format")
+            warnings.warn(f"This parameter configuration is already in {newcodename} format",stacklevel=2)
             return oldparam
         if newcodename != "Swift" and newcodename != "Swifter" and newcodename != "Swiftest":
-            warnings.warn(f'{newcodename} is an invalid code type. Valid options are "Swiftest", "Swifter", or "Swift".')
+            warnings.warn(f'{newcodename} is an invalid code type. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
             return oldparam
         goodconversion = True
         if self.codename == "Swifter":
@@ -2498,7 +2533,7 @@ class Simulation:
         if goodconversion:
             self.write_param(param_file)
         else:
-            warnings.warn(f"Conversion from {self.codename} to {newcodename} is not supported.")
+            warnings.warn(f"Conversion from {self.codename} to {newcodename} is not supported.",stacklevel=2)
         return oldparam
 
     def bin2xr(self):
@@ -2525,9 +2560,9 @@ class Simulation:
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swifter simulation data stored as xarray DataSet .data')
         elif self.codename == "Swift":
-            warnings.warn("Reading Swift simulation data is not implemented yet")
+            warnings.warn("Reading Swift simulation data is not implemented yet",stacklevel=2)
         else:
-            warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".')
+            warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
     def follow(self, codestyle="Swifter"):
@@ -2558,7 +2593,7 @@ class Simulation:
                     i_list = [i for i in line.split(" ") if i.strip()]
                     nskp = int(i_list[0])
             except IOError:
-                warnings.warn('No follow.in file found')
+                warnings.warn('No follow.in file found',stacklevel=2)
                 ifol = None
                 nskp = None
             fol = tool.follow_swift(self.data, ifol=ifol, nskp=nskp)
@@ -2603,7 +2638,8 @@ class Simulation:
             param = self.param
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], framenum=framenum)
+            infile_name = Path(self.sim_dir) / param['NC_IN']
+            io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum)
             self.write_param(param_file=param_file)
         elif codename == "Swifter":
             if codename == "Swiftest":
@@ -2613,7 +2649,7 @@ class Simulation:
             io.swifter_xr2infile(self.data, swifter_param, framenum)
             self.write_param(param_file, param=swifter_param)
         else:
-            warnings.warn(f'Saving to {codename} not supported')
+            warnings.warn(f'Saving to {codename} not supported',stacklevel=2)
 
         return
 
@@ -2658,7 +2694,7 @@ class Simulation:
             elif self.param['OUT_TYPE'] == 'NETCDF_FLOAT':
                 new_param['IN_TYPE'] = 'NETCDF_FLOAT'
             else:
-                warnings.warn(f"{self.param['OUT_TYPE']} is an invalid OUT_TYPE file")
+                warnings.warn(f"{self.param['OUT_TYPE']} is an invalid OUT_TYPE file",stacklevel=2)
                 return
 
             if self.param['BIN_OUT'] != new_param['BIN_OUT'] and restart:

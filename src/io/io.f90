@@ -9,7 +9,79 @@
 
 submodule (swiftest_classes) s_io
    use swiftest
+
 contains
+
+   module subroutine io_pbar_reset(self, nloops)
+      !! author: David A. Minton
+      !! 
+      !! Resets the progress bar to the beginning
+      implicit none
+      ! Arguments
+      class(progress_bar),intent(inout) :: self
+      integer(I8B),       intent(in)    :: nloops
+      ! Internals
+      character(len=2) :: numchar
+      character(len=5) :: barfmt
+
+      if (.not.allocated(self%barstr)) then
+         allocate(character(self%PBARSIZE+4) :: self%barstr)
+      end if
+      write(numchar,'(I2)') self%PBARSIZE
+      self%fmt  = '(A1,"[",A' // numchar // ',"]",$)'
+      barfmt = '(A' // numchar // ')'
+      write(self%barstr,barfmt) " "
+      self%nloops = nloops
+      self%spinner = 0
+
+      call self%update(0)
+
+      return
+   end subroutine io_pbar_reset
+
+   module subroutine io_pbar_update(self,i)
+      !! author: David A. Minton
+      !! 
+      !! Updates the progress bar with new values and causes the "spinner" to flip.
+      implicit none
+      ! Arguments
+      class(progress_bar), intent(inout) :: self
+      integer(I8B), intent(in) :: i
+      ! Internals
+      integer(I4B) :: k
+      real(DP)     :: frac
+      integer(I4B) :: pos           !! The current integer position of the progress bar
+
+      ! Compute the current position
+      frac = real(i,kind=DP) / real(self%nloops,kind=DP)
+      pos = 1 + min(int(ceiling(frac * self%PBARSIZE),kind=I4B),self%PBARSIZE)
+
+      ! Fill in the bar character up to the current position
+      do k = 1, pos
+         self%barstr(k:k) = self%barchar
+      end do
+
+      self%spinner = self%spinner + 1
+      if (self%spinner > 4) self%spinner = 1
+      select case(self%spinner) 
+      case(1)
+         self%barstr(pos:pos) = "/"
+      case(2)
+         self%barstr(pos:pos) = "-"
+      case(3)
+         self%barstr(pos:pos) = "\"
+      case(4)
+         self%barstr(pos:pos) = "|"
+      end select
+
+      write(*,fmt=self%fmt) char(13),self%barstr
+
+
+      return
+   end subroutine io_pbar_update
+
+
+
 
    module subroutine io_conservation_report(self, param, lterminal)
       !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
