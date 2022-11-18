@@ -391,7 +391,7 @@ class Simulation:
         driver_script = os.path.join(self.binary_path,"swiftest_driver.sh")
         with open(driver_script,'w') as f:
             f.write(f"#{self._shell_full} -l {os.linesep}")
-            f.write(f"source ~/.{self.shell}rc {os.linesep}")
+            f.write(f"source ~/.{self._shell}rc {os.linesep}")
             f.write(f"cd {self.sim_dir} {os.linesep}")
             f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)}")
 
@@ -403,7 +403,7 @@ class Simulation:
                                  env=env,
                                  universal_newlines=True) as p:
                for line in p.stdout:
-                   print(line, end='')
+                   print(line.replace(']\n',']\r').replace("Normal termination","\nNormal termination"), end='')
                res = p.communicate()
                if p.returncode != 0:
                    for line in res[1]:
@@ -2638,7 +2638,8 @@ class Simulation:
             param = self.param
 
         if codename == "Swiftest":
-            io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], framenum=framenum)
+            infile_name = Path(self.sim_dir) / param['NC_IN']
+            io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum)
             self.write_param(param_file=param_file)
         elif codename == "Swifter":
             if codename == "Swiftest":

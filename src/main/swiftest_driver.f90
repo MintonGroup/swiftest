@@ -31,6 +31,7 @@ program swiftest_driver
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
+   type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
    character(*), parameter                    :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                                                 '"; Number of active pl, tp = ", I5, ", ", I5)'
    character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
@@ -88,6 +89,7 @@ program swiftest_driver
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       write(*, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+      call pbar%reset(nloops)
       do iloop = 1, nloops
          !> Step the system forward in time
          call integration_timer%start()
@@ -100,6 +102,7 @@ program swiftest_driver
          call nbody_system%discard(param)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
+         call pbar%update(iloop)
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
@@ -108,15 +111,15 @@ program swiftest_driver
 
                tfrac = (param%t - param%t0) / (param%tstop - param%t0)
 
-               select type(pl => nbody_system%pl)
-               class is (symba_pl)
-                  write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
-               class default
-                  write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
-               end select
+               ! select type(pl => nbody_system%pl)
+               ! class is (symba_pl)
+               !    write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
+               ! class default
+               !    write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
+               ! end select
                if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-               call integration_timer%report(message="Integration steps:", nsubsteps=istep_out)
-               call integration_timer%reset()
+               !call integration_timer%report(message="Integration steps:", nsubsteps=istep_out)
+               !call integration_timer%reset()
 
                iout = istep_out
             end if
