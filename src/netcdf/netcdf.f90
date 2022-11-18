@@ -626,24 +626,28 @@ contains
             if (ntp > 0) tp%e(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%inc_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar inc_varid"  )
+            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%inc)) allocate(pl%inc(npl))
             if (.not.allocated(tp%inc)) allocate(tp%inc(ntp))
             if (npl > 0) pl%inc(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%inc(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capom_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar capom_varid"  )
+            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%capom)) allocate(pl%capom(npl))
             if (.not.allocated(tp%capom)) allocate(tp%capom(ntp))
             if (npl > 0) pl%capom(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%capom(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%omega_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar omega_varid"  )
+            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%omega)) allocate(pl%omega(npl))
             if (.not.allocated(tp%omega)) allocate(tp%omega(ntp))
             if (npl > 0) pl%omega(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%omega(:) = pack(rtemp, tpmask)
 
             call check( nf90_get_var(iu%ncid, iu%capm_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar capm_varid"  )
+            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%capm)) allocate(pl%capm(npl))
             if (.not.allocated(tp%capm)) allocate(tp%capm(ntp))
             if (npl > 0) pl%capm(:) = pack(rtemp, plmask)
