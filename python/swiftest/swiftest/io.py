@@ -1048,13 +1048,22 @@ def select_active_from_frame(ds, param, framenum=-1):
     frame = ds.isel(time=[framenum])
     iframe = frame.isel(time=0)
 
+    if "name" in ds.dims:
+        count_dim = "name"
+    elif "id" in ds.dims:
+        count_dim = "id"
+
     # Select only the active particles at this time step
     # Remove the inactive particles
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['xhx'])), drop=True).id
+        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['xhx'])), drop=True)[count_dim]
     else:
-        iactive = iframe['id'].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True).id
-    frame = frame.sel(id=iactive.values)
+        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True)[count_dim]
+    if count_dim == "id":
+        frame = frame.sel(id=iactive.values)
+    elif count_dim == "name":
+        frame = frame.sel(name=iactive.values)
+
 
     return frame
 
@@ -1078,6 +1087,10 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     param_tmp = param.copy()
     param_tmp['OUT_FORM'] = param['IN_FORM']
     frame = select_active_from_frame(ds, param_tmp, framenum)
+
+    if "name" in frame.dims:
+        frame = frame.swap_dims({"name" : "id"})
+        frame = frame.reset_coords("name")
 
     if in_type == "NETCDF_DOUBLE" or in_type == "NETCDF_FLOAT":
         # Convert strings back to byte form and save the NetCDF file
@@ -1186,7 +1199,12 @@ def swifter_xr2infile(ds, param, framenum=-1):
     -------
     A set of input files for a Swifter run
     """
+
     frame = ds.isel(time=framenum)
+
+    if "name" in frame.dims:
+        frame = frame.swap_dims({"name" : "id"})
+        frame = frame.reset_coords("name")
 
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)

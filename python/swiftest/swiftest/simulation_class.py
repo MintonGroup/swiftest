@@ -68,6 +68,8 @@ class Simulation:
         integrator : {"symba","rmvs","whm","helio"}, default "symba"
             Name of the n-body integrator that will be used when executing a run.
             Parameter input file equivalent: None
+        read_param : bool, default False
+            Read the parameter file given by `param_file`.
         param_file : str, path-like, or file-lke, default "param.in"
             Name of the parameter input file that will be passed to the integrator.
             Parameter input file equivalent: None
@@ -291,7 +293,7 @@ class Simulation:
 
         # Set the location of the parameter input file
         param_file = kwargs.pop("param_file",self.param_file)
-        read_param = kwargs.pop("read_param",True)
+        read_param = kwargs.pop("read_param",False)
         self.set_parameter(verbose=False,param_file=param_file)
 
         #-----------------------------------------------------------------
@@ -301,9 +303,8 @@ class Simulation:
         # If the user asks to read in an old parameter file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
         if read_param:
-            if os.path.exists(self.param_file):
-                self.read_param(self.param_file, codename=self.codename, verbose=self.verbose)
-                param_file_found = True
+            #good_param is self.read_param()
+            if self.read_param():
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
@@ -743,7 +744,7 @@ class Simulation:
         return param_dict
 
     def set_integrator(self,
-                       codename: Literal["swiftest", "swifter", "swift"] | None = None,
+                       codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
                        integrator: Literal["symba","rmvs","whm","helio"] | None = None,
                        mtiny: float | None = None,
                        gmtiny: float | None = None,
@@ -2316,58 +2317,82 @@ class Simulation:
             Updated Dataset with ntp, npl values and types fixed.
 
         """
+        if "id" not in self.data.dims:
+            if len(np.unique(dsnew['name'])) == len(dsnew['name']):
+               dsnew = dsnew.swap_dims({"id" : "name"})
+               dsnew = dsnew.reset_coords("id")
+            else:
+                warnings.warn("Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name.")
+                warnings.warn("Consider using unique names instead.")
+
+        if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
+            dsnew = io.fix_types(dsnew, ftype=np.float64)
+        elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
+            dsnew = io.fix_types(dsnew, ftype=np.float32)
 
         self.data = xr.combine_by_coords([self.data, dsnew])
 
         def get_nvals(ds):
+            if "name" in ds.dims:
+                count_dim = "name"
+            elif "id" in ds.dims:
+                count_dim = "id"
             if "Gmass" in ds:
-                ds['ntp'] = ds['id'].where(np.isnan(ds['Gmass'])).count(dim="id")
-                ds['npl'] = ds['id'].where(~(np.isnan(ds['Gmass']))).count(dim="id") - 1
+                ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass'])).count(dim=count_dim)
+                ds['npl'] = ds[count_dim].where(~(np.isnan(ds['Gmass']))).count(dim=count_dim) - 1
             else:
-                ds['ntp'] = ds['id'].count(dim="id")
+                ds['ntp'] = ds[count_dim].count(dim=count_dim)
                 ds['npl'] = xr.full_like(ds['ntp'],0)
             return ds
 
         dsnew = get_nvals(dsnew)
         self.data = get_nvals(self.data)
 
-        if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
-            dsnew = io.fix_types(dsnew, ftype=np.float64)
-            self.data = io.fix_types(self.data, ftype=np.float64)
-        elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
-            dsnew = io.fix_types(dsnew, ftype=np.float32)
-            self.data = io.fix_types(self.data, ftype=np.float32)
-
         return dsnew
 
-    def read_param(self, param_file, codename="Swiftest", verbose=True):
+    def read_param(self,
+                   param_file : os.PathLike | str | None = None,
+                   codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
+                   verbose: bool | None = None):
         """
         Reads in an input parameter file and stores the values in the param dictionary.
         
         Parameters
         ----------
-        param_file : string
+        param_file : str or path-like, default is the value of the Simulation object's internal `param_file`.
            File name of the input parameter file
-        codename : string
+        codename : {"Swiftest", "Swifter", "Swift"}, default is the value of the Simulation object's internal`codename`
            Type of parameter file, either "Swift", "Swifter", or "Swiftest"
+        verbose : bool, default is the value of the Simulation object's internal `verbose`
+            If set to True, then more information is printed by Simulation methods as they are executed. Setting to
+            False suppresses most messages other than errors.
         Returns
         -------
-
+        True if the parameter file exists and is read correctly. False otherwise.
         """
+        if param_file is None:
+            param_file = self.param_file
+
+        if coename is None:
+            codename = self.codename
+
+        if verbose is None:
+            verbose = self.verbose
+
+        if not os.path.exists(param_file):
+            return False
+
         if codename == "Swiftest":
-            param_old = self.param.copy()
-            self.param = io.read_swiftest_param(param_file, param_old, verbose=verbose)
-            self.codename = "Swiftest"
+            self.param = io.read_swiftest_param(param_file, param, verbose=verbose)
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
-            self.codename = "Swifter"
         elif codename == "Swift":
             self.param = io.read_swift_param(param_file, verbose=verbose)
-            self.codename = "Swift"
         else:
             warnings.warn(f'{codename} is not a recognized code name. Valid options are "Swiftest", "Swifter", or "Swift".')
-            self.codename = "Unknown"
-        return
+            return False
+
+        return True
 
     def write_param(self,
                     codename: Literal["Swiftest", "Swifter", "Swift"]  | None = None,
