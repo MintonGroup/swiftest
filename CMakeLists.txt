@@ -7,7 +7,7 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# CMake project file for FOO
+# CMake project file for SWIFTEST
 
 ##################################################
 # Define the project and the depencies that it has
@@ -30,7 +30,7 @@ ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 # Set some options the user may choose
 # Uncomment the below if you want the user to choose a parallelization library
 OPTION(USE_MPI "Use the MPI library for parallelization" OFF)
-OPTION(USE_OPENMP "Use OpenMP for parallelization" OFF)
+OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 
 # This INCLUDE statement executes code that sets the compile flags for DEBUG,
 # RELEASE, and TESTING.  You should  review this file and make sure the flags 
@@ -40,7 +40,6 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake)
 # taken care of here, such as the fact that the FindOpenMP routine doesn't know
 # about Fortran.
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
-
 INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
@@ -54,7 +53,7 @@ ENDIF(FCNAME STREQUAL "pgf90")
 ############################################################
 
 # Define the executable name
-SET(FOOEXE swiftest_driver)
+SET(SWIFTEST_DRIVER swiftest_driver)
 
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
@@ -64,7 +63,7 @@ SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${LIB})
 
-# The source for the FOO binary and have it placed in the bin folder
+# The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
 
 # Add a distclean target to the Makefile
