@@ -2360,12 +2360,14 @@ class Simulation:
                 msg +="\nConsider using unique names instead."
                 print(msg)
 
+        self.data = xr.combine_by_coords([self.data, dsnew])
+
         if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
             dsnew = io.fix_types(dsnew, ftype=np.float64)
+            self.data = io.fix_types(self.data, ftype=np.float64)
         elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
             dsnew = io.fix_types(dsnew, ftype=np.float32)
-
-        self.data = xr.combine_by_coords([self.data, dsnew])
+            self.data = io.fix_types(self.data, ftype=np.float32)
 
         def get_nvals(ds):
             if "name" in ds.dims:
@@ -2382,6 +2384,8 @@ class Simulation:
 
         dsnew = get_nvals(dsnew)
         self.data = get_nvals(self.data)
+
+        self.data = self.data.sortby("id")
 
         return dsnew
 
