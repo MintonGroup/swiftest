@@ -57,7 +57,7 @@ class Simulation:
             1. Arguments to Simulation()
             2. The parameter input file given by `param_file` under the following conditions:
                 - `read_param` is set to True (default behavior).
-                - The file given by `param_file` exists. The default file is `param.in` located in the `.swiftest` directory
+                - The file given by `param_file` exists. The default file is `param.in` located in the `simdata` directory
                   inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
@@ -314,7 +314,6 @@ class Simulation:
 
         # Set the location of the parameter input file
         param_file = kwargs.pop("param_file",self.param_file)
-        read_param = kwargs.pop("read_param",False)
         self.set_parameter(verbose=False,param_file=param_file)
 
         #-----------------------------------------------------------------
@@ -329,6 +328,7 @@ class Simulation:
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
+                param_file_found = True
             else:
                 param_file_found = False
 
@@ -665,7 +665,7 @@ class Simulation:
         default_arguments = {
             "codename" : "Swiftest",
             "integrator": "symba",
-            "param_file": Path.cwd() / ".swiftest" / "param.in",
+            "param_file": Path.cwd() / "simdata" / "param.in",
             "t0": 0.0,
             "tstart": 0.0,
             "tstop": None,
@@ -2412,7 +2412,7 @@ class Simulation:
         if param_file is None:
             param_file = self.param_file
 
-        if coename is None:
+        if codename is None:
             codename = self.codename
 
         if verbose is None:
@@ -2422,7 +2422,7 @@ class Simulation:
             return False
 
         if codename == "Swiftest":
-            self.param = io.read_swiftest_param(param_file, param, verbose=verbose)
+            self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
         elif codename == "Swift":
