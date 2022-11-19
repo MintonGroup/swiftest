@@ -1,3 +1,3 @@
 import swiftest
-sim = swiftest.Simulation()
-sim.run(tstop=20.0)
+sim = swiftest.Simulation(read_param=True)
+sim.run()

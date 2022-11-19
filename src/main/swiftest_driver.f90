@@ -90,6 +90,7 @@ program swiftest_driver
       write(*, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
       call pbar%reset(nloops)
+      call pbar%update(1)
       do iloop = 1, nloops
          !> Step the system forward in time
          call integration_timer%start()
@@ -102,7 +103,6 @@ program swiftest_driver
          call nbody_system%discard(param)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
-         call pbar%update(iloop)
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
@@ -122,6 +122,7 @@ program swiftest_driver
                !call integration_timer%reset()
 
                iout = istep_out
+               call pbar%update(iloop)
             end if
          end if
 

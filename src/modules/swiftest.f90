@@ -23,6 +23,7 @@ module swiftest
    use lambda_function
    use walltime_classes
    use encounter_classes
+   use io_progress_bar
    !use advisor_annotate
    !$ use omp_lib
    implicit none

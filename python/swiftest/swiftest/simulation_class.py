@@ -393,7 +393,7 @@ class Simulation:
             f.write(f"#{self._shell_full} -l {os.linesep}")
             f.write(f"source ~/.{self._shell}rc {os.linesep}")
             f.write(f"cd {self.sim_dir} {os.linesep}")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)}")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} {os.linesep}")
 
         try:
             cmd = f"{env['SHELL']} -l {driver_script}"
@@ -402,13 +402,18 @@ class Simulation:
                                  stderr=subprocess.PIPE,
                                  env=env,
                                  universal_newlines=True) as p:
-               for line in p.stdout:
-                   print(line.replace(']\n',']\r').replace("Normal termination","\n\nNormal termination"), end='')
-               res = p.communicate()
-               if p.returncode != 0:
-                   for line in res[1]:
-                       print(line, end='')
-                   raise Exception ("Failure in swiftest_driver")
+                for line in p.stdout:
+                    if '[' in line:
+                        print(line.replace('\n','\r'))
+                    elif "Normal termination" in line:
+                        print(line.replace("Normal termination","\n\nNormal termination"))
+                    else:
+                        print(line)
+                res = p.communicate()
+                if p.returncode != 0:
+                    for line in res[1]:
+                        print(line, end='')
+                    raise Exception ("Failure in swiftest_driver")
         except:
             warnings.warn(f"Error executing main swiftest_driver program",stacklevel=2)
             return
