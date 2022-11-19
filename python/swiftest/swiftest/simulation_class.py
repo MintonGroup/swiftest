@@ -403,7 +403,7 @@ class Simulation:
                                  env=env,
                                  universal_newlines=True) as p:
                for line in p.stdout:
-                   print(line.replace(']\n',']\r').replace("Normal termination","\nNormal termination"), end='')
+                   print(line.replace(']\n',']\r').replace("Normal termination","\n\nNormal termination"), end='')
                res = p.communicate()
                if p.returncode != 0:
                    for line in res[1]:
