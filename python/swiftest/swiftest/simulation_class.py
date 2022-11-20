@@ -18,6 +18,7 @@ from swiftest import __file__ as _pyfile
 import json
 import os
 from pathlib import Path
+import sys
 import datetime
 import xarray as xr
 import numpy as np
@@ -57,7 +58,7 @@ class Simulation:
             1. Arguments to Simulation()
             2. The parameter input file given by `param_file` under the following conditions:
                 - `read_param` is set to True (default behavior).
-                - The file given by `param_file` exists. The default file is `param.in` located in the `.swiftest` directory
+                - The file given by `param_file` exists. The default file is `param.in` located in the `simdata` directory
                   inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
@@ -314,7 +315,6 @@ class Simulation:
 
         # Set the location of the parameter input file
         param_file = kwargs.pop("param_file",self.param_file)
-        read_param = kwargs.pop("read_param",False)
         self.set_parameter(verbose=False,param_file=param_file)
 
         #-----------------------------------------------------------------
@@ -329,6 +329,7 @@ class Simulation:
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
+                param_file_found = True
             else:
                 param_file_found = False
 
@@ -393,25 +394,30 @@ class Simulation:
             f.write(f"#{self._shell_full} -l {os.linesep}")
             f.write(f"source ~/.{self._shell}rc {os.linesep}")
             f.write(f"cd {self.sim_dir} {os.linesep}")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)}")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} {os.linesep}")
 
-        try:
-            cmd = f"{env['SHELL']} -l {driver_script}"
-            with subprocess.Popen(shlex.split(cmd),
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 env=env,
-                                 universal_newlines=True) as p:
-               for line in p.stdout:
-                   print(line.replace(']\n',']\r').replace("Normal termination","\n\nNormal termination"), end='')
-               res = p.communicate()
-               if p.returncode != 0:
-                   for line in res[1]:
-                       print(line, end='')
+        cmd = f"{env['SHELL']} -l {driver_script}"
+        oldline = None
+        with subprocess.Popen(shlex.split(cmd),
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              env=env,
+                              universal_newlines=True) as p:
+            for line in p.stdout:
+                if '[' in line:
+                    print(line.replace('\n','\r'), end='')
+                elif "Normal termination" in line:
+                    print(line.replace("Normal termination","\n\nNormal termination"),end='')
+                else:
+                    print(line, end='')
+            res = p.communicate()
+            if p.returncode != 0:
+                for line in res[1]:
+                   print(line, end='')
                    raise Exception ("Failure in swiftest_driver")
-        except:
-            warnings.warn(f"Error executing main swiftest_driver program",stacklevel=2)
-            return
+        #except:
+        #    warnings.warn(f"Error executing main swiftest_driver program",stacklevel=2)
+        #    return
 
         # Read in new data
         self.bin2xr()
@@ -665,7 +671,7 @@ class Simulation:
         default_arguments = {
             "codename" : "Swiftest",
             "integrator": "symba",
-            "param_file": Path.cwd() / ".swiftest" / "param.in",
+            "param_file": Path.cwd() / "simdata" / "param.in",
             "t0": 0.0,
             "tstart": 0.0,
             "tstop": None,
@@ -2412,7 +2418,7 @@ class Simulation:
         if param_file is None:
             param_file = self.param_file
 
-        if coename is None:
+        if codename is None:
             codename = self.codename
 
         if verbose is None:
@@ -2422,7 +2428,7 @@ class Simulation:
             return False
 
         if codename == "Swiftest":
-            self.param = io.read_swiftest_param(param_file, param, verbose=verbose)
+            self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
         elif codename == "Swift":

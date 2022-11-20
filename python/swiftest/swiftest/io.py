@@ -181,6 +181,7 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         for f in float_param:
             if f in param and type(f) is str:
                 param[f] = real2float(param[f])
+
         for b in bool_param:
             if b in param:
                 param[b] = str2bool(param[b])
@@ -427,7 +428,7 @@ def write_labeled_param(param, param_file_name):
                'TU2S',
                'DU2M',
                'GMTINY',
-               'FRAGMENTATION'
+               'FRAGMENTATION',
                'MIN_GMFRAG',
                'RESTART']
     ptmp = param.copy()

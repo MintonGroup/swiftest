@@ -414,20 +414,6 @@ module swiftest_classes
       generic   :: read_particle_info      => read_particle_info_bin, read_particle_info_netcdf !! Genereric method call for reading in the particle information metadata
    end type swiftest_nbody_system
 
-   type :: progress_bar
-      !! author: David A. Minton
-      !! 
-      !! Implements a class for a simple progress bar that can print on the screen.
-      integer(I4B)                  :: PBARSIZE = 80 !! Number of characters acros for a whole progress bar
-      integer(I8B)                  :: nloops        !! The total number of loops that the progrees bar is executing
-      character(len=:), allocatable :: barstr        !! The string that prints out as the progress bar
-      integer(I4B)                  :: spinner       !! Position of the "spinner" that indicates that progress is being made
-      character(len=1)              :: barchar = "=" !! The progress bar character
-      character(len=32)             :: fmt           !! The format string that is used to define the progress bar itself
-   contains
-      procedure :: reset => io_pbar_reset   !! Resets the progress bar to the beginning
-      procedure :: update => io_pbar_update !! Updates the progress bar with new values and causes the "spinner" to flip.
-   end type progress_bar
 
    abstract interface
 
@@ -596,18 +582,6 @@ module swiftest_classes
          class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine gr_vh2pv_body
-
-      module subroutine io_pbar_reset(self, nloops)
-         implicit none
-         class(progress_bar),intent(inout) :: self
-         integer(I8B),       intent(in)    :: nloops
-      end subroutine io_pbar_reset
-
-      module subroutine io_pbar_update(self,i)
-         implicit none
-         class(progress_bar), intent(inout) :: self
-         integer(I8B), intent(in) :: i
-      end subroutine io_pbar_update
 
       module subroutine io_conservation_report(self, param, lterminal)
          implicit none
