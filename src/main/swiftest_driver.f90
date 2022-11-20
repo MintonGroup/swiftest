@@ -36,6 +36,8 @@ program swiftest_driver
                                                                 '"; Number of active pl, tp = ", I5, ", ", I5)'
    character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                                    '"; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
+   character(*), parameter                    :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
+   character(len=64)                          :: pbarmessage
 
    ierr = io_get_args(integrator, param_file_name)
    if (ierr /= 0) then
@@ -87,10 +89,11 @@ program swiftest_driver
       !$ write(*,'(a)')   ' OpenMP parameters:'
       !$ write(*,'(a)')   ' ------------------'
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-      write(*, *) " *************** Main Loop *************** "
+      !write(*, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-      call pbar%reset(nloops)
-      call pbar%update(1)
+      call pbar%reset(nloops, spinner_cycle_length=istep_out)
+      write(pbarmessage,fmt=pbarfmt) t0, tstop
+      call pbar%update(1,message=pbarmessage)
       do iloop = 1, nloops
          !> Step the system forward in time
          call integration_timer%start()
@@ -101,6 +104,7 @@ program swiftest_driver
 
          !> Evaluate any discards or collisional outcomes
          call nbody_system%discard(param)
+         call pbar%update(iloop)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
@@ -122,7 +126,8 @@ program swiftest_driver
                !call integration_timer%reset()
 
                iout = istep_out
-               call pbar%update(iloop)
+               write(pbarmessage,fmt=pbarfmt) t, tstop
+               call pbar%update(1,message=pbarmessage)
             end if
          end if
 

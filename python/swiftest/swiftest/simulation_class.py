@@ -18,6 +18,7 @@ from swiftest import __file__ as _pyfile
 import json
 import os
 from pathlib import Path
+import sys
 import datetime
 import xarray as xr
 import numpy as np
@@ -395,28 +396,28 @@ class Simulation:
             f.write(f"cd {self.sim_dir} {os.linesep}")
             f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} {os.linesep}")
 
-        try:
-            cmd = f"{env['SHELL']} -l {driver_script}"
-            with subprocess.Popen(shlex.split(cmd),
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 env=env,
-                                 universal_newlines=True) as p:
-                for line in p.stdout:
-                    if '[' in line:
-                        print(line.replace('\n','\r'))
-                    elif "Normal termination" in line:
-                        print(line.replace("Normal termination","\n\nNormal termination"))
-                    else:
-                        print(line)
-                res = p.communicate()
-                if p.returncode != 0:
-                    for line in res[1]:
-                        print(line, end='')
-                    raise Exception ("Failure in swiftest_driver")
-        except:
-            warnings.warn(f"Error executing main swiftest_driver program",stacklevel=2)
-            return
+        cmd = f"{env['SHELL']} -l {driver_script}"
+        oldline = None
+        with subprocess.Popen(shlex.split(cmd),
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              env=env,
+                              universal_newlines=True) as p:
+            for line in p.stdout:
+                if '[' in line:
+                    print(line.replace('\n','\r'), end='')
+                elif "Normal termination" in line:
+                    print(line.replace("Normal termination","\n\nNormal termination"))
+                else:
+                    print(line)
+            res = p.communicate()
+            if p.returncode != 0:
+                for line in res[1]:
+                   print(line, end='')
+                   raise Exception ("Failure in swiftest_driver")
+        #except:
+        #    warnings.warn(f"Error executing main swiftest_driver program",stacklevel=2)
+        #    return
 
         # Read in new data
         self.bin2xr()
