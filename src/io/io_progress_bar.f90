@@ -7,8 +7,8 @@ module io_progress_bar
    implicit none
    public
 
-   character(len=1), dimension(4), parameter, private :: spinstr = ["/","-","\","|"] !! The progress spinner sequency
-   character(len=1),parameter, private                :: barchar = "=" !! The progress bar character
+   character(len=1), dimension(4), parameter, private :: spinstr = ["\","-","|","/"] !! The progress spinner sequency
+   character(len=1),parameter, private                :: barchar = "#" !! The progress bar character
 
    type :: progress_bar
       !! author: David A. Minton
