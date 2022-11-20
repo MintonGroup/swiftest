@@ -35,9 +35,7 @@ contains
       class(progress_bar),intent(inout) :: self
       integer(I8B),       intent(in)    :: nloops
       ! Internals
-      character(len=2) :: numchar,numchar2
-      character(len=32) :: startfmt
-      character(len=self%PBARSIZE) :: empty
+      character(len=2) :: numchar
       integer(I4B) :: k
 
       if (.not.allocated(self%barstr)) then
@@ -53,7 +51,7 @@ contains
       self%pos = 0
       self%message = ""
 
-      write(*,fmt=self%fmt) char(13),empty
+      write(*,fmt=self%fmt) char(13),self%barstr
 
       return
    end subroutine io_pbar_reset
@@ -71,29 +69,25 @@ contains
       ! Internals
       real(DP)     :: frac
       integer(I4B) :: pos           !! The current integer position of the progress bar
+      character(len=1), dimension(4), parameter :: spinstr = ["/","-","\","|"]
+
+
 
       ! Compute the current position
       frac = real(i,kind=DP) / real(self%nloops,kind=DP)
       pos = min(int(ceiling(frac * self%PBARSIZE),kind=I4B),self%PBARSIZE)
+
       if (pos /= self%pos) then
          self%pos = pos
-
          ! Fill in the bar character up to the current position
          self%barstr(pos:pos) = self%barchar
       end if
 
+      ! Compute the current value of the spinner and set the spinner character
       self%spinner = self%spinner + 1
-      if (self%spinner > 4) self%spinner = 1
-      select case(self%spinner) 
-      case(1)
-         self%barstr(pos+1:pos+1) = "/"
-      case(2)
-         self%barstr(pos+1:pos+1) = "-"
-      case(3)
-         self%barstr(pos+1:pos+1) = "\"
-      case(4)
-         self%barstr(pos+1:pos+1) = "|"
-      end select
+      if (self%spinner > size(spinstr)) self%spinner = 1
+
+      self%barstr(pos+1:pos+1) = spinstr(self%spinner)
 
       write(*,fmt=self%fmt) char(13),self%barstr
 
