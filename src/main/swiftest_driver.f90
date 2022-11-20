@@ -91,7 +91,7 @@ program swiftest_driver
       !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
       !write(*, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-      call pbar%reset(nloops, spinner_cycle_length=istep_out)
+      call pbar%reset(nloops)
       write(pbarmessage,fmt=pbarfmt) t0, tstop
       call pbar%update(1,message=pbarmessage)
       do iloop = 1, nloops
