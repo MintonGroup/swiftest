@@ -407,9 +407,9 @@ class Simulation:
                 if '[' in line:
                     print(line.replace('\n','\r'), end='')
                 elif "Normal termination" in line:
-                    print(line.replace("Normal termination","\n\nNormal termination"))
+                    print(line.replace("Normal termination","\n\nNormal termination"),end='')
                 else:
-                    print(line)
+                    print(line, end='')
             res = p.communicate()
             if p.returncode != 0:
                 for line in res[1]:
