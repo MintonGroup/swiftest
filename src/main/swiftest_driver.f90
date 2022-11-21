@@ -37,7 +37,7 @@ program swiftest_driver
                                                                 '"; Number of active pl, tp = ", I5, ", ", I5)'
    character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                                    '"; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
-   character(*), parameter                    :: pbarfmt = '("Time = ", G9.2," of ",G9.2)'
+   character(*), parameter                    :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
    character(len=64)                          :: pbarmessage
 
 
