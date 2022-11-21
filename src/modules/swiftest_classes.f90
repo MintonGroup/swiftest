@@ -105,9 +105,9 @@ module swiftest_classes
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
       logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
 
-      character(len=:), allocatable :: display_style             !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
-      integer(I4B)                  :: display_unit              !! File unit number for display (either to stdout or to a log file)
-      logical                       :: compact_display = .false. !! Turns on the compact display
+      character(len=:), allocatable :: display_style         !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      integer(I4B)                  :: display_unit          !! File unit number for display (either to stdout or to a log file)
+      logical                       :: log_output  = .false. !! Logs the output to file instead of displaying it on the terminal
 
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
