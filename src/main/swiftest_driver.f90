@@ -24,7 +24,6 @@ program swiftest_driver
    character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
    character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
    integer(I4B)                               :: ierr             !! I/O error code 
-   integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
    integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
@@ -33,12 +32,14 @@ program swiftest_driver
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
    type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
-   character(*), parameter                    :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
-                                                                '"; Number of active pl, tp = ", I5, ", ", I5)'
-   character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
-                                                                   '"; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
+   character(*), parameter                    :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
+                                                             '"; Number of active pl, tp = ", I6, ", ", I6)'
+   character(*), parameter                    :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+                                                                '"; Number of active plm, pl, tp = ", I6, ", ", I6, ", ", I6)'
    character(*), parameter                    :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
    character(len=64)                          :: pbarmessage
+
+   character(*), parameter                    :: symbacompactfmt = '(";NPLM",ES22.15,$)'
 
 
    call io_get_args(integrator, param_file_name, display_style)
@@ -68,6 +69,7 @@ program swiftest_driver
              t0              => param%t0, &
              dt              => param%dt, &
              tstop           => param%tstop, &
+             iloop           => param%iloop, &
              istep_out       => param%istep_out, &
              istep_dump      => param%istep_dump, &
              ioutput         => param%ioutput, &
@@ -93,13 +95,14 @@ program swiftest_driver
          if (istep_out > 0) call nbody_system%write_frame(param)
       end if
 
-
       write(display_unit, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
       if (display_style == "PROGRESS") then
          call pbar%reset(nloops)
          write(pbarmessage,fmt=pbarfmt) t0, tstop
          call pbar%update(1,message=pbarmessage)
+      else if (display_style == "COMPACT") then
+         call nbody_system%compact_output(param,integration_timer)
       end if
       do iloop = 1, nloops
          !> Step the system forward in time
@@ -136,6 +139,8 @@ program swiftest_driver
                if (display_style == "PROGRESS") then
                   write(pbarmessage,fmt=pbarfmt) t, tstop
                   call pbar%update(1,message=pbarmessage)
+               else if (display_style == "COMPACT") then
+                  call nbody_system%compact_output(param,integration_timer)
                end if
             end if
          end if

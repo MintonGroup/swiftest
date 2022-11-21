@@ -35,11 +35,12 @@ module swiftest_classes
       integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
       character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
       integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
-      integer(I4B)         :: maxid_collision = 0                !! The current maximum collision id number
+      integer(I4B)         :: maxid_collision = 0                 !! The current maximum collision id number
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
       real(DP)             :: dt             = -1.0_DP            !! Time step
+      integer(I8B)         :: iloop          = 0_I8B              !! Main loop counter
       integer(I8B)         :: ioutput        = 0_I8B              !! Output counter
       character(STRMAX)    :: incbfile       = CB_INFILE          !! Name of input file for the central body
       character(STRMAX)    :: inplfile       = PL_INFILE          !! Name of input file for massive bodies
@@ -370,6 +371,9 @@ module swiftest_classes
       real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
       real(DP), dimension(NDIM)       :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)       :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP)                        :: ke_orbit_orig = 0.0_DP!! Initial orbital kinetic energy
+      real(DP)                        :: ke_spin_orig = 0.0_DP!! Initial spin kinetic energy
+      real(DP)                        :: pe_orig = 0.0_DP     !! Initial potential energy
       real(DP)                        :: Eorbit_orig = 0.0_DP !! Initial orbital energy
       real(DP)                        :: GMtot_orig = 0.0_DP  !! Initial system mass
       real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP   !! Initial total angular momentum vector
@@ -379,6 +383,22 @@ module swiftest_classes
       real(DP)                        :: GMescape = 0.0_DP    !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                        :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
       real(DP)                        :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+
+      ! Energy, momentum, and mass errors (used in error reporting)
+      real(DP)                        :: ke_orbit_error   = 0.0_DP
+      real(DP)                        :: ke_spin_error    = 0.0_DP
+      real(DP)                        :: pe_error         = 0.0_DP
+      real(DP)                        :: Eorbit_error     = 0.0_DP
+      real(DP)                        :: Ecoll_error      = 0.0_DP
+      real(DP)                        :: Euntracked_error = 0.0_DP
+      real(DP)                        :: Etot_error       = 0.0_DP
+      real(DP)                        :: Lorbit_error     = 0.0_DP
+      real(DP)                        :: Lspin_error      = 0.0_DP
+      real(DP)                        :: Lescape_error    = 0.0_DP
+      real(DP)                        :: Ltot_error       = 0.0_DP
+      real(DP)                        :: Mtot_error       = 0.0_DP
+      real(DP)                        :: Mescape_error    = 0.0_DP
+
       logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                               !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                               !!    the test particles
@@ -388,6 +408,7 @@ module swiftest_classes
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure :: discard                 => discard_system                         !! Perform a discard step on the system
+      procedure :: compact_output          => io_compact_output                      !! Prints out out terminal output when display_style is set to COMPACT
       procedure :: conservation_report     => io_conservation_report                 !! Compute energy and momentum and print out the change with time
       procedure :: dump                    => io_dump_system                         !! Dump the state of the system to a file
       procedure :: get_old_t_final_bin     => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
@@ -588,6 +609,13 @@ module swiftest_classes
          class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine gr_vh2pv_body
+
+      module subroutine io_compact_output(self, param, timer)
+         implicit none
+         class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
+         class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
+         class(*),                      intent(in) :: timer !! Object used for computing elapsed wall time
+      end subroutine io_compact_output
 
       module subroutine io_conservation_report(self, param, lterminal)
          implicit none
