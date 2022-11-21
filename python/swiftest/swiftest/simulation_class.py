@@ -391,10 +391,10 @@ class Simulation:
         env = os.environ.copy()
         driver_script = os.path.join(self.binary_path,"swiftest_driver.sh")
         with open(driver_script,'w') as f:
-            f.write(f"#{self._shell_full} -l {os.linesep}")
-            f.write(f"source ~/.{self._shell}rc {os.linesep}")
-            f.write(f"cd {self.sim_dir} {os.linesep}")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} {os.linesep}")
+            f.write(f"#{self._shell_full} -l\n")
+            f.write(f"source ~/.{self._shell}rc\n")
+            f.write(f"cd {self.sim_dir}\n")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
 
         cmd = f"{env['SHELL']} -l {driver_script}"
         oldline = None

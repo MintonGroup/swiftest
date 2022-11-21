@@ -36,17 +36,7 @@ contains
                                                          "; D(Eorbit+Ecollisions)/|E0| = ", ES12.5, &
                                                          "; DM/M0 = ", ES12.5)'
 
-      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody)
-         if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
-            if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
-               open(unit=EGYIU, file=param%energy_out, form="formatted", status="replace", action="write", err=667, iomsg=errmsg)
-               write(EGYIU,EGYHEADER, err=667, iomsg=errmsg)
-            else
-               open(unit=EGYIU, file=param%energy_out, form="formatted", status="old", action="write", &
-                    position="append", err=667, iomsg=errmsg)
-            end if
-         end if
-
+      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
          call pl%vb2vh(cb)
          call pl%xh2xb(cb)
 
@@ -69,34 +59,22 @@ contains
             param%lfirstenergy = .false.
          end if
 
-         if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
-            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, system%Ecollisions, Ltot_now, GMtot_now
-            close(EGYIU, err = 667, iomsg = errmsg)
-         end if
-
          if (.not.param%lfirstenergy) then 
             Lerror = norm2(Ltot_now(:) - system%Ltot_orig(:)) / norm2(system%Ltot_orig(:))
             Eorbit_error = (Eorbit_now - system%Eorbit_orig) / abs(system%Eorbit_orig)
             Ecoll_error = system%Ecollisions / abs(system%Eorbit_orig)
             Etotal_error = (Eorbit_now - system%Ecollisions - system%Eorbit_orig - system%Euntracked) / abs(system%Eorbit_orig)
             Merror = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
-            if (lterminal) write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
+            if (lterminal) write(display_unit, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
-               if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-                  write(*,*) "Merror = ", Merror
-                  write(*,*) "GMtot_now : ",GMtot_now
-                  write(*,*) "GMtot_orig: ",system%GMtot_orig
-                  write(*,*) "Difference: ",GMtot_now - system%GMtot_orig
-               else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-                  ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
-                  param%ioutput = param%ioutput + 1_I8B
-                  call pl%xv2el(cb)
-                  call self%write_hdr(param%nciu, param)
-                  call cb%write_frame(param%nciu, param)
-                  call pl%write_frame(param%nciu, param)
-                  call param%nciu%close()
-               end if
+               ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
+               param%ioutput = param%ioutput + 1_I8B
+               call pl%xv2el(cb)
+               call self%write_hdr(param%nciu, param)
+               call cb%write_frame(param%nciu, param)
+               call pl%write_frame(param%nciu, param)
+               call param%nciu%close()
                call util_exit(FAILURE)
             end if
          end if
@@ -346,7 +324,7 @@ contains
    end subroutine io_dump_system
 
 
-   module function io_get_args(integrator, param_file_name) result(ierr)
+   module subroutine io_get_args(integrator, param_file_name, display_style)
       !! author: David A. Minton
       !!
       !! Reads in the name of the parameter file from command line arguments. 
@@ -354,59 +332,70 @@ contains
       ! Arguments
       integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-      ! Result
-      integer(I4B)                  :: ierr             !! I/O error code
+      character(len=:), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
       ! Internals
-      character(len=STRMAX) :: arg1, arg2
-      integer :: narg,ierr_arg1, ierr_arg2
+      character(len=STRMAX), dimension(:), allocatable :: arg
+      integer(I4B), dimension(:), allocatable :: ierr
+      integer :: i,narg
       character(len=*),parameter    :: linefmt = '(A)'
 
-      ierr = -1 ! Default is to fail
-      narg = command_argument_count() !
-      if (narg == 2) then
-         call get_command_argument(1, arg1, status = ierr_arg1)
-         call get_command_argument(2, arg2, status = ierr_arg2)
-         if ((ierr_arg1 == 0) .and. (ierr_arg2 == 0)) then
-            ierr = 0
-            call io_toupper(arg1)
-            select case(arg1)
-            case('BS')
-               integrator = BS
-            case('HELIO')
-               integrator = HELIO
-            case('RA15')
-               integrator = RA15
-            case('TU4')
-               integrator = TU4
-            case('WHM')
-               integrator = WHM
-            case('RMVS')
-               integrator = RMVS
-            case('SYMBA')
-               integrator = SYMBA
-            case('RINGMOONS')
-               integrator = RINGMOONS
-            case default
-               integrator = UNKNOWN_INTEGRATOR
-               write(*,*) trim(adjustl(arg1)) // ' is not a valid integrator.'
-               ierr = -1
-            end select
-            param_file_name = trim(adjustl(arg2))
-         end if
-      else 
-         call get_command_argument(1, arg1, status = ierr_arg1)
-         if (ierr_arg1 == 0) then
-            if (arg1 == '-v' .or. arg1 == '--version') then
-               call util_version() 
-            else if (arg1 == '-h' .or. arg1 == '--help') then
-               call util_exit(HELP)
-            end if
-         end if
+      narg = command_argument_count() 
+      if (narg > 0) then
+         allocate(arg(narg),ierr(narg))
+         do i = 1,narg
+            call get_command_argument(i, arg(i), status = ierr(i))
+         end do
+         if (any(ierr /= 0)) call util_exit(USAGE)
+      else
+         call util_exit(USAGE)
       end if
-      if (ierr /= 0) call util_exit(USAGE) 
+   
+      if (narg == 1) then
+         if (arg(1) == '-v' .or. arg(1) == '--version') then
+            call util_version() 
+         else if (arg(1) == '-h' .or. arg(1) == '--help') then
+            call util_exit(HELP)
+         else
+            call util_exit(USAGE)
+         end if
+      else if (narg >= 2) then
+         call io_toupper(arg(1))
+         select case(arg(1))
+         case('BS')
+            integrator = BS
+         case('HELIO')
+            integrator = HELIO
+         case('RA15')
+            integrator = RA15
+         case('TU4')
+            integrator = TU4
+         case('WHM')
+            integrator = WHM
+         case('RMVS')
+            integrator = RMVS
+         case('SYMBA')
+            integrator = SYMBA
+         case('RINGMOONS')
+            integrator = RINGMOONS
+         case default
+            integrator = UNKNOWN_INTEGRATOR
+            write(*,*) trim(adjustl(arg(1))) // ' is not a valid integrator.'
+            call util_exit(USAGE)
+         end select
+         param_file_name = trim(adjustl(arg(2)))
+      end if
+
+      if (narg == 2) then
+         display_style = "STANDARD"
+      else if (narg == 3) then
+         call io_toupper(arg(3))
+         display_style = trim(adjustl(arg(3)))
+      else
+         call util_exit(USAGE)
+      end if
 
       return
-   end function io_get_args
+   end subroutine io_get_args
 
 
    module function io_get_old_t_final_system(self, param) result(old_t_final)
@@ -555,7 +544,6 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
       !! Adapted from Martin Duncan's Swift routine io_init_param.f
-      use, intrinsic :: iso_fortran_env
       implicit none
       ! Arguments
       class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
@@ -940,7 +928,7 @@ contains
          iostat = 0
          
          ! Print the contents of the parameter file to standard output
-         ! call param%writer(unit = OUTPUT_UNIT, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
+         call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
 
       end associate
 
@@ -1801,7 +1789,6 @@ contains
 
       ! Read in name of parameter file
       write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
-      write(*, *) ' '
       self%param_file_name = param_file_name
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
@@ -1913,6 +1900,41 @@ contains
    end subroutine io_read_particle_info_system
 
 
+   module subroutine io_set_display_param(self, display_style)
+      !! author: David A. Minton
+      !!
+      !! Sets the display style parameters. If display is "STANDARD" then output goes to stdout. If display is "COMPACT" 
+      !! then it is redirected to a log file and a progress-bar is used for stdout
+      implicit none
+      ! Arguments
+      class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
+      character(*),               intent(in)    :: display_style   !! Style of the output display 
+      ! Internals
+      character(STRMAX)             :: errmsg
+
+      select case(display_style)
+      case ('STANDARD')
+         self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
+         self%compact_display = .false.
+      case ('COMPACT')
+         open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status='replace', err = 667, iomsg = errmsg)
+         self%display_unit = SWIFTEST_LOG_OUT 
+         self%compact_display = .true.
+      case default
+         write(*,*) display_style, " is an unknown display style"
+         call util_exit(USAGE)
+      end select
+
+      self%display_style = display_style
+
+      return
+
+      667 continue
+      write(*,*) "Error opening swiftest log file: " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine io_set_display_param
+
+
    module subroutine io_toupper(string)
       !! author: David A. Minton
       !!
@@ -1980,9 +2002,9 @@ contains
          case('APPEND')
             open(unit=LUN, file=param%discard_out, status='OLD', position='APPEND', form='FORMATTED', err=667, iomsg=errmsg)
          case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit=LUN, file=param%discard_out, status=param%out_stat, form='FORMATTED', err=667, iomsg=errmsg)
+            open(unit=LUN, file=param%discard_out, status=out_stat, form='FORMATTED', err=667, iomsg=errmsg)
          case default
-            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(out_stat))
             call util_exit(FAILURE)
          end select
          lfirst = .false.

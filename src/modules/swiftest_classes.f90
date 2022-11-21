@@ -72,6 +72,7 @@ module swiftest_classes
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
       character(NAMELEN)   :: encounter_check_plpl = "ADAPTIVE"   !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
       character(NAMELEN)   :: encounter_check_pltp = "ADAPTIVE"   !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
       logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on (choose between TRIANGULAR and FLAT based on periodic timing tests)
@@ -104,6 +105,10 @@ module swiftest_classes
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
       logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
 
+      character(len=:), allocatable :: display_style             !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      integer(I4B)                  :: display_unit              !! File unit number for display (either to stdout or to a log file)
+      logical                       :: compact_display = .false. !! Turns on the compact display
+
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
@@ -111,10 +116,11 @@ module swiftest_classes
 
       type(netcdf_parameters) :: nciu !! Object containing NetCDF parameters
    contains
-      procedure :: reader  => io_param_reader
-      procedure :: writer  => io_param_writer
-      procedure :: dump    => io_dump_param
-      procedure :: read_in => io_read_in_param
+      procedure :: reader      => io_param_reader
+      procedure :: writer      => io_param_writer
+      procedure :: dump        => io_dump_param
+      procedure :: read_in     => io_read_in_param
+      procedure :: set_display => io_set_display_param
    end type swiftest_parameters
 
 
@@ -621,12 +627,12 @@ module swiftest_classes
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
 
-      module function io_get_args(integrator, param_file_name) result(ierr)
+      module subroutine io_get_args(integrator, param_file_name, display_style) 
          implicit none
          integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-         integer(I4B)                  :: ierr             !! I/O error code 
-      end function io_get_args
+         character(len=:), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      end subroutine io_get_args
 
       module function io_get_old_t_final_system(self, param) result(old_t_final)
          implicit none
@@ -794,16 +800,22 @@ module swiftest_classes
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine io_read_particle_info_system
 
-      module subroutine io_write_discard(self, param)
+      module subroutine io_set_display_param(self, display_style)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      end subroutine io_write_discard
+         class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
+         character(*),               intent(in)    :: display_style   !! Style of the output display 
+      end subroutine io_set_display_param
 
       module subroutine io_toupper(string)
          implicit none
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine io_toupper
+
+      module subroutine io_write_discard(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      end subroutine io_write_discard
 
       module subroutine io_write_frame_body(self, iu, param)
          implicit none
