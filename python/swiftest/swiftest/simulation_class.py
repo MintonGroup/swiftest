@@ -365,7 +365,7 @@ class Simulation:
             f.write(f"#{self._shell_full} -l\n")
             f.write(f"source ~/.{self._shell}rc\n")
             f.write(f"cd {self.sim_dir}\n")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} progress\n")
 
         cmd = f"{env['SHELL']} -l {driver_script}"
 
