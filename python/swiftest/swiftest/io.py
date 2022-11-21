@@ -1068,7 +1068,7 @@ def select_active_from_frame(ds, param, framenum=-1):
 
     return frame
 
-def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1):
+def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1,verbose=True):
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
 
@@ -1101,7 +1101,8 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         if infile_name is None:
             infile_name = param['NC_IN']
         frame = unclean_string_values(frame)
-        print(f"Writing initial conditions to file {infile_name}")
+        if verbose:
+            print(f"Writing initial conditions to file {infile_name}")
         frame.to_netcdf(path=infile_name)
         return frame
 

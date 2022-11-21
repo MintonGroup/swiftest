@@ -2098,7 +2098,7 @@ class Simulation:
                                  J2=J2, J4=J4, t=t)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
-        self.save()
+        self.save(verbose=False)
 
         return dsnew
 
@@ -2352,7 +2352,7 @@ class Simulation:
                                  J2=J2, J4=J4,t=t)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
-        self.save()
+        self.save(verbose=False)
 
         return dsnew
 
@@ -2483,7 +2483,14 @@ class Simulation:
             param_file = self.param_file
         if param is None:
             param = self.param
-        print(f"Writing parameter inputs to file {param_file}")
+
+        if "verbose" in kwargs:
+            verbose = kwargs['verbose']
+        else:
+            verbose = self.verbose
+
+        if verbose:
+            print(f"Writing parameter inputs to file {param_file}")
         param['! VERSION'] = f"{codename} input file"
 
         # Check to see if the parameter type matches the output type. If not, we need to convert
@@ -2649,6 +2656,12 @@ class Simulation:
         -------
         None
         """
+
+        if "verbose" in kwargs:
+            verbose = kwargs['verbose']
+        else:
+            verbose = self%verbose
+
         if codename is None:
             codename = self.codename
         if param_file is None:
@@ -2658,15 +2671,15 @@ class Simulation:
 
         if codename == "Swiftest":
             infile_name = Path(self.sim_dir) / param['NC_IN']
-            io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum)
-            self.write_param(param_file=param_file)
+            io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)
+            self.write_param(param_file=param_file,**kwargs)
         elif codename == "Swifter":
             if codename == "Swiftest":
                 swifter_param = io.swiftest2swifter_param(param)
             else:
                 swifter_param = param
             io.swifter_xr2infile(self.data, swifter_param, framenum)
-            self.write_param(param_file, param=swifter_param)
+            self.write_param(param_file, param=swifter_param,**kwargs)
         else:
             warnings.warn(f'Saving to {codename} not supported',stacklevel=2)
 
