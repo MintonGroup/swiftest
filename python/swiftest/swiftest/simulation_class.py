@@ -727,6 +727,11 @@ class Simulation:
         if len(kwargs) == 0:
             kwargs = default_arguments
 
+        unrecognized = [k for k,v in kwargs.items() if k not in default_arguments]
+        if len(unrecognized) > 0:
+            for k in unrecognized:
+                warnings.warn(f'Unrecognized argument "{k}"',stacklevel=2)
+
         # Add the verbose flag to the kwargs for passing down to the individual setters
         kwargs["verbose"] = verbose
 

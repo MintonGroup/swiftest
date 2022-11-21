@@ -12,6 +12,44 @@ submodule (swiftest_classes) s_io
 
 contains
 
+   module subroutine io_compact_output(self, param, timer)
+      !! author: David Minton
+      !!
+      !! Generates the terminal output displayed when display_style is set to COMPACT. This is used by the Python driver to 
+      !! make nice-looking progress reports.
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
+      class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
+      class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires swiftest_classes)
+      ! Internals
+      character(*), parameter :: COMPACTFMT = '("ILOOP",I,";T",ES23.16,";WT",ES23.16,";IWT",ES23.16,";WTPS",ES23.16,";NPL",I,";NTP",I,";"$)'
+      character(*), parameter :: SYMBAFMT = '(";NPLM",I,$)'
+      character(*), parameter :: EGYFMT = '("LTOTERR",ES24.16,";ETOTERR",ES24.16,";MTOTERR",ES24.16,";KEOERR",ES24.16,";KESERR",ES24.16,";PEERR",ES24.16' & 
+                                          // '";EORBERR",ES24.16,";ECOLERR",ES24.16,";EUNTRERR",ES24.16,";LSPINERR",ES24.16,";LESCERR",ES24.16' &
+                                          // '";MESCERR",ES24.16,$)'
+      select type(timer)
+      class is (walltimer)
+         if (.not. timer%main_is_started) then ! This is the start of a new run
+            write(*,*) "START"
+            write(*,COMPACTFMT) 0,param%t,0.0,0.0,0.0,self%pl%nbody, self%tp%nbody
+         else
+            write(*,COMPACTFMT) param%iloop,param%t, timer%wall_main, timer%wall_step, timer%wall_per_substep,self%pl%nbody, self%tp%nbody
+         end if
+         select type(pl => self%pl)
+         class is (symba_pl)
+            write(*,SYMBAFMT) pl%nplm
+         end select
+         if (param%lenergy) then
+            write(*,EGYFMT) self%Ltot_error, self%Etot_error, self%Mtot_error, self%ke_orbit_error, self%ke_spin_error, self%pe_error, &
+                            self%Eorbit_error, self%Ecoll_error, self%Euntracked_error, self%Lspin_error, self%Lescape_error, self%Mescape_error
+         end if
+         write(*,*)
+      end select
+      return
+   end subroutine io_compact_output
+
+
    module subroutine io_conservation_report(self, param, lterminal)
       !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -24,19 +62,18 @@ contains
       ! Internals
       real(DP), dimension(NDIM)       :: Ltot_now,  Lorbit_now,  Lspin_now
       real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  Eorbit_now
-      real(DP)                        :: Eorbit_error, Etotal_error, Ecoll_error
+      real(DP)                        :: Eorbit_error, Etot_error, Ecoll_error
       real(DP)                        :: GMtot_now
       real(DP)                        :: Lerror, Merror
       character(len=STRMAX)           :: errmsg
-      character(len=*), parameter     :: EGYFMT = '(ES23.16,10(",",ES23.16,:))' ! Format code for all simulation output
-      character(len=*), parameter     :: EGYHEADER = '("t,Eorbit,Ecollisions,Lx,Ly,Lz,Mtot")'
       integer(I4B), parameter         :: EGYIU = 72
-      character(len=*), parameter     :: EGYTERMFMT = '("  DL/L0 = ", ES12.5 &
+      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5 &
                                                          "; DEcollisions/|E0| = ", ES12.5, &
                                                          "; D(Eorbit+Ecollisions)/|E0| = ", ES12.5, &
                                                          "; DM/M0 = ", ES12.5)'
 
       associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
+
          call pl%vb2vh(cb)
          call pl%xh2xb(cb)
 
@@ -51,6 +88,9 @@ contains
          GMtot_now = system%GMtot + system%GMescape 
 
          if (param%lfirstenergy) then
+            system%ke_orbit_orig = ke_orbit_now
+            system%ke_spin_orig = ke_spin_now
+            system%pe_orig = pe_now
             system%Eorbit_orig = Eorbit_now
             system%GMtot_orig = GMtot_now
             system%Lorbit_orig(:) = Lorbit_now(:)
@@ -60,12 +100,21 @@ contains
          end if
 
          if (.not.param%lfirstenergy) then 
-            Lerror = norm2(Ltot_now(:) - system%Ltot_orig(:)) / norm2(system%Ltot_orig(:))
-            Eorbit_error = (Eorbit_now - system%Eorbit_orig) / abs(system%Eorbit_orig)
-            Ecoll_error = system%Ecollisions / abs(system%Eorbit_orig)
-            Etotal_error = (Eorbit_now - system%Ecollisions - system%Eorbit_orig - system%Euntracked) / abs(system%Eorbit_orig)
-            Merror = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
-            if (lterminal) write(display_unit, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
+            system%ke_orbit_error = (ke_orbit_now - system%ke_orbit_orig) / abs(system%Eorbit_orig)
+            system%ke_spin_error = (ke_spin_now - system%ke_spin_orig) / abs(system%Eorbit_orig)
+            system%pe_error = (pe_now - system%pe_orig) / abs(system%Eorbit_orig)
+            system%Eorbit_error = (Eorbit_now - system%Eorbit_orig) / abs(system%Eorbit_orig)
+            system%Ecoll_error = system%Ecollisions / abs(system%Eorbit_orig)
+            system%Euntracked_error = system%Euntracked / abs(system%Eorbit_orig)
+            system%Etot_error = (Eorbit_now - system%Ecollisions - system%Eorbit_orig - system%Euntracked) / abs(system%Eorbit_orig)
+
+            system%Lorbit_error = norm2(Lorbit_now(:) - system%Lorbit_orig(:)) / norm2(system%Ltot_orig(:))
+            system%Lspin_error = norm2(Lspin_now(:) - system%Lspin_orig(:)) / norm2(system%Ltot_orig(:))
+            system%Lescape_error = norm2(system%Lescape(:)) / norm2(system%Ltot_orig(:))
+            system%Ltot_error = norm2(Ltot_now(:) - system%Ltot_orig(:)) / norm2(system%Ltot_orig(:))
+            system%Mescape_error = system%GMescape / system%GMtot_orig
+            system%Mtot_error = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
+            if (lterminal) write(display_unit, EGYTERMFMT) system%Ltot_error, system%Ecoll_error, system%Etot_error,system%Mtot_error
             if (abs(Merror) > 100 * epsilon(Merror)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
