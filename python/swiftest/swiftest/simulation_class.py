@@ -18,7 +18,6 @@ from swiftest import __file__ as _pyfile
 import json
 import os
 from pathlib import Path
-import curses
 import datetime
 import xarray as xr
 import numpy as np
@@ -426,7 +425,7 @@ class Simulation:
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
-        curses.wrapper(self._run_swiftest_driver())
+        self._run_swiftest_driver()
 
         # Read in new data
         self.bin2xr()
