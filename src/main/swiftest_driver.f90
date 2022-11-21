@@ -22,7 +22,7 @@ program swiftest_driver
    class(swiftest_parameters),   allocatable  :: param            !! Run configuration parameters
    integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
-   character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+   character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
    integer(I4B)                               :: ierr             !! I/O error code 
    integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
@@ -37,7 +37,7 @@ program swiftest_driver
                                                                 '"; Number of active pl, tp = ", I5, ", ", I5)'
    character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                                    '"; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
-   character(*), parameter                    :: pbarfmt = '("Time = ", G9.2," of ",G9.2)'
+   character(*), parameter                    :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
    character(len=64)                          :: pbarmessage
 
 
@@ -59,7 +59,7 @@ program swiftest_driver
    !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
    !$ write(param%display_unit,'(a)')   ' ------------------'
    !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-   !$ if (param%compact_display) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+   !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 
    call setup_construct_system(nbody_system, param)
    call param%read_in(param_file_name)
@@ -71,8 +71,8 @@ program swiftest_driver
              istep_out       => param%istep_out, &
              istep_dump      => param%istep_dump, &
              ioutput         => param%ioutput, &
-             display_unit    => param%display_unit, &
-             compact_display => param%compact_display)  
+             display_style   => param%display_style, &
+             display_unit    => param%display_unit)
 
       call nbody_system%initialize(param)
       t = t0
@@ -96,7 +96,7 @@ program swiftest_driver
 
       write(display_unit, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-      if (compact_display) then
+      if (display_style == "PROGRESS") then
          call pbar%reset(nloops)
          write(pbarmessage,fmt=pbarfmt) t0, tstop
          call pbar%update(1,message=pbarmessage)
@@ -111,7 +111,7 @@ program swiftest_driver
 
          !> Evaluate any discards or collisional outcomes
          call nbody_system%discard(param)
-         if (compact_display) call pbar%update(iloop)
+         if (display_style == "PROGRESS") call pbar%update(iloop)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
@@ -133,7 +133,7 @@ program swiftest_driver
                call integration_timer%reset()
 
                iout = istep_out
-               if (compact_display) then
+               if (display_style == "PROGRESS") then
                   write(pbarmessage,fmt=pbarfmt) t, tstop
                   call pbar%update(1,message=pbarmessage)
                end if

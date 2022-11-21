@@ -332,7 +332,7 @@ contains
       ! Arguments
       integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-      character(len=:), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      character(len=:), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
       ! Internals
       character(len=STRMAX), dimension(:), allocatable :: arg
       integer(I4B), dimension(:), allocatable :: ierr
@@ -1788,7 +1788,7 @@ contains
       character(STRMAX) :: errmsg   !! Error message in UDIO procedure
 
       ! Read in name of parameter file
-      write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
+      write(self%display_unit, *) 'Parameter input file is ', trim(adjustl(param_file_name))
       self%param_file_name = param_file_name
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
@@ -1799,7 +1799,7 @@ contains
       if (ierr == 0) return
 
       667 continue
-      write(*,*) "Error reading parameter file: " // trim(adjustl(errmsg))
+      write(self%display_unit,*) "Error reading parameter file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_read_in_param
 
@@ -1915,11 +1915,11 @@ contains
       select case(display_style)
       case ('STANDARD')
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
-         self%compact_display = .false.
-      case ('COMPACT')
+         self%log_output = .false.
+      case ('COMPACT', 'PROGRESS')
          open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status='replace', err = 667, iomsg = errmsg)
          self%display_unit = SWIFTEST_LOG_OUT 
-         self%compact_display = .true.
+         self%log_output = .true.
       case default
          write(*,*) display_style, " is an unknown display style"
          call util_exit(USAGE)
