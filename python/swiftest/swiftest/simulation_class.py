@@ -26,6 +26,7 @@ import shutil
 import subprocess
 import shlex
 import warnings
+from tqdm import tqdm
 from typing import (
     Literal,
     Dict,
@@ -376,7 +377,8 @@ class Simulation:
                                   env=env,
                                   universal_newlines=True) as p:
                 process_output = False
-                for line in p.stdout:
+                noutput = int((self.param['TSTOP'] - self.param['T0']) / (self.param['DT'] * self.param['ISTEP_OUT']))
+                for line in tqdm(p.stdout,total=noutput):
                     if "SWIFTEST STOP" in line:
                         process_output = False
 
