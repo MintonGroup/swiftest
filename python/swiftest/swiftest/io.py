@@ -175,11 +175,11 @@ def read_swiftest_param(param_file_name, param, verbose=True):
                 param[uc] = param[uc].upper()
 
         for i in int_param:
-            if i in param and type(i) != int:
-                param[i] = int(param[i])
+            if i in param and type(param[i]) != int:
+                param[i] = int(float(param[i]))
 
         for f in float_param:
-            if f in param and type(f) is str:
+            if f in param and type(param[f]) is str:
                 param[f] = real2float(param[f])
 
         for b in bool_param:
