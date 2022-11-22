@@ -375,7 +375,7 @@ module symba_classes
          integer,                 intent(in)    :: unit       !! File unit number
          character(len=*),        intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                               !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer,                 intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
+         character(len=*),        intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
          integer,                 intent(out)   :: iostat     !! IO status code
          character(len=*),        intent(inout) :: iomsg      !! Message to pass if iostat /= 0
       end subroutine symba_io_param_reader
