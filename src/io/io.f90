@@ -31,11 +31,6 @@ contains
       class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
       class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires swiftest_classes)
       ! Internals
-      !character(*), parameter :: COMPACTFMT = '("ILOOP",I,";T",ES23.16,";WT",ES23.16,";IWT",ES23.16,";WTPS",ES23.16,";NPL",I,";NTP",I,";"$)'
-      !character(*), parameter :: SYMBAFMT = '(";NPLM",I,$)'
-      !character(*), parameter :: EGYFMT = '("LTOTERR",ES24.16,";ETOTERR",ES24.16,";MTOTERR",ES24.16,";KEOERR",ES24.16,";KESERR",ES24.16,";PEERR",ES24.16' & 
-      !                                    // '";EORBERR",ES24.16,";ECOLERR",ES24.16,";EUNTRERR",ES24.16,";LSPINERR",ES24.16,";LESCERR",ES24.16' &
-      !                                    // '";MESCERR",ES24.16,$)'
       character(len=:), allocatable :: formatted_output
 
       select type(timer)

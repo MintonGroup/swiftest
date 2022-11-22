@@ -365,7 +365,7 @@ class Simulation:
             f.write(f"#{self._shell_full} -l\n")
             f.write(f"source ~/.{self._shell}rc\n")
             f.write(f"cd {self.sim_dir}\n")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} progress\n")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
 
         cmd = f"{env['SHELL']} -l {driver_script}"
 
@@ -375,13 +375,18 @@ class Simulation:
                                   stderr=subprocess.PIPE,
                                   env=env,
                                   universal_newlines=True) as p:
+                process_output = False
                 for line in p.stdout:
-                    if '[' in line:
-                        print(line.replace('\n', '\r'), end='')
-                    elif "Normal termination" in line:
-                        print(line.replace("Normal termination", "\n\nNormal termination"), end='')
-                    else:
-                        print(line, end='')
+                    if "SWIFTEST STOP" in line:
+                        process_output = False
+
+                    if process_output:
+                        kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
+                        output_data = {kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]}
+
+                    if "SWIFTEST START" in line:
+                        process_output = True
+
                 res = p.communicate()
                 if p.returncode != 0:
                     for line in res[1]:
