@@ -377,14 +377,16 @@ class Simulation:
                                   env=env,
                                   universal_newlines=True) as p:
                 process_output = False
-                noutput = int((self.param['TSTOP'] - self.param['T0']) / (self.param['DT'] * self.param['ISTEP_OUT']))
-                for line in tqdm(p.stdout,total=noutput):
+                noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
+                pbar = tqdm(total=noutput)
+                for line in p.stdout:
                     if "SWIFTEST STOP" in line:
                         process_output = False
 
                     if process_output:
                         kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
                         output_data = {kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]}
+                        pbar.update(self.param['ISTEP_OUT'])
 
                     if "SWIFTEST START" in line:
                         process_output = True
@@ -397,6 +399,7 @@ class Simulation:
         except:
             warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
 
+        pbar.close()
         return
 
     def run(self,**kwargs):
