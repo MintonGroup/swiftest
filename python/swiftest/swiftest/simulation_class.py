@@ -2045,26 +2045,31 @@ class Simulation:
             body_list.append(init_cond.solar_system_horizons(n, self.param, date, idval=ephemeris_id[i]))
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
-        name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.squeeze(np.hsplit(np.array(body_list),19)))
+        if len(body_list) == 1:
+            name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.hsplit(np.array(body_list[0]),19))
+        else:
+            name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.squeeze(np.hsplit(np.array(body_list),19)))
 
+        ephemeris_id = ephemeris_id.astype(int)
         v1 = v1.astype(np.float64)
         v2 = v2.astype(np.float64)
         v3 = v3.astype(np.float64)
         v4 = v4.astype(np.float64)
         v5 = v5.astype(np.float64)
         v6 = v6.astype(np.float64)
-        ephemeris_id = ephemeris_id.astype(int)
+        rhill = rhill.astype(np.float64)
+        J2 = J2.astype(np.float64)
+        J4 = J4.astype(np.float64)
+
         GMpl = GMpl.astype(np.float64)
         Rpl = Rpl.astype(np.float64)
-        rhill = rhill.astype(np.float64)
         Ip1 = Ip1.astype(np.float64)
         Ip2 = Ip2.astype(np.float64)
         Ip3 = Ip3.astype(np.float64)
         rotx = rotx.astype(np.float64)
         roty = roty.astype(np.float64)
         rotz = rotz.astype(np.float64)
-        J2 = J2.astype(np.float64)
-        J4 = J4.astype(np.float64)
+
 
         if all(np.isnan(GMpl)):
             GMpl = None
@@ -2098,7 +2103,8 @@ class Simulation:
                                  J2=J2, J4=J4, t=t)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
-        self.save(verbose=False)
+        if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
+           self.save(verbose=False)
 
         return dsnew
 

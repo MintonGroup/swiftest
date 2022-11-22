@@ -329,7 +329,6 @@ def vec2xr(param: Dict,
     infodims = ['id', 'vec']
 
     # The central body is always given id 0
-
     if GMpl is not None:
         icb = (~np.isnan(GMpl)) & (idvals == 0)
         ipl = (~np.isnan(GMpl)) & (idvals != 0)
