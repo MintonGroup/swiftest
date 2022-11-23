@@ -32,7 +32,7 @@ module swiftest_classes
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
-      integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
+      character(STRMAX)    :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
       character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
       integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
       integer(I4B)         :: maxid_collision = 0                 !! The current maximum collision id number
@@ -657,9 +657,9 @@ module swiftest_classes
 
       module subroutine io_get_args(integrator, param_file_name, display_style) 
          implicit none
-         integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
-         character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-         character(len=:), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+         character(len=:), allocatable, intent(inout) :: integrator      !! Symbolic code of the requested integrator  
+         character(len=:), allocatable, intent(inout) :: param_file_name !! Name of the input parameters file
+         character(len=:), allocatable, intent(inout) :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
       end subroutine io_get_args
 
       module function io_get_old_t_final_system(self, param) result(old_t_final)
@@ -697,7 +697,7 @@ module swiftest_classes
          integer(I4B),               intent(in)    :: unit       !! File unit number
          character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                  !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer(I4B),               intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
+         character(len=*),           intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
          integer(I4B),               intent(out)   :: iostat     !! IO status code
          character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
       end subroutine io_param_reader

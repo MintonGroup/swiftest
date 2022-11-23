@@ -59,9 +59,10 @@ SET(SWIFTEST_DRIVER swiftest_driver)
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
+SET(MOD ${CMAKE_SOURCE_DIR}/include)
 
 # Have the .mod files placed in the lib folder
-SET(CMAKE_Fortran_MODULE_DIRECTORY ${LIB})
+SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})

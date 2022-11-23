@@ -26,6 +26,7 @@ import shutil
 import subprocess
 import shlex
 import warnings
+from tqdm.auto import tqdm
 from typing import (
     Literal,
     Dict,
@@ -365,9 +366,18 @@ class Simulation:
             f.write(f"#{self._shell_full} -l\n")
             f.write(f"source ~/.{self._shell}rc\n")
             f.write(f"cd {self.sim_dir}\n")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} progress\n")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
 
         cmd = f"{env['SHELL']} -l {driver_script}"
+
+        def _type_scrub(output_data):
+            int_vars = ["ILOOP","NPL","NTP","NPLM"]
+            for k,v in output_data.items():
+                if k in int_vars:
+                    output_data[k] = int(v)
+                else:
+                    output_data[k] = float(v)
+            return output_data
 
         try:
             with subprocess.Popen(shlex.split(cmd),
@@ -375,13 +385,31 @@ class Simulation:
                                   stderr=subprocess.PIPE,
                                   env=env,
                                   universal_newlines=True) as p:
+                process_output = False
+                noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
+                iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
+                pbar = tqdm(total=noutput)
                 for line in p.stdout:
-                    if '[' in line:
-                        print(line.replace('\n', '\r'), end='')
-                    elif "Normal termination" in line:
-                        print(line.replace("Normal termination", "\n\nNormal termination"), end='')
-                    else:
-                        print(line, end='')
+                    if "SWIFTEST STOP" in line:
+                        process_output = False
+
+                    if process_output:
+                        kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
+                        output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
+                        pre_message = f"Time: {output_data['T']} / {self.param['TSTOP']} {self.TU_name}"
+                        post_message = f"npl: {output_data['NPL']} ntp: {output_data['NTP']}"
+                        if "NPLM" in output_data:
+                            post_message = post_message + f" nplm: {output_data['NPLM']}"
+                        pbar.set_description_str(pre_message)
+                        pbar.set_postfix_str(post_message)
+                        interval = output_data['ILOOP'] - iloop
+                        if interval > 0:
+                           pbar.update(interval)
+                        iloop = output_data['ILOOP']
+
+                    if "SWIFTEST START" in line:
+                        process_output = True
+
                 res = p.communicate()
                 if p.returncode != 0:
                     for line in res[1]:
@@ -390,6 +418,7 @@ class Simulation:
         except:
             warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
 
+        pbar.close()
         return
 
     def run(self,**kwargs):

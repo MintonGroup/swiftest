@@ -20,7 +20,7 @@ program swiftest_driver
 
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
    class(swiftest_parameters),   allocatable  :: param            !! Run configuration parameters
-   integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
+   character(len=:), allocatable              :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
    character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
    integer(I4B)                               :: ierr             !! I/O error code 
@@ -102,6 +102,7 @@ program swiftest_driver
          write(pbarmessage,fmt=pbarfmt) t0, tstop
          call pbar%update(1,message=pbarmessage)
       else if (display_style == "COMPACT") then
+         write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
          call nbody_system%compact_output(param,integration_timer)
       end if
       do iloop = 1, nloops
@@ -121,7 +122,7 @@ program swiftest_driver
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
-               if (t > old_t_final) call nbody_system%write_frame(param)
+               call nbody_system%write_frame(param)
 
                tfrac = (param%t - param%t0) / (param%tstop - param%t0)
 
@@ -133,15 +134,17 @@ program swiftest_driver
                end select
                if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
                call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
-               call integration_timer%reset()
 
-               iout = istep_out
                if (display_style == "PROGRESS") then
                   write(pbarmessage,fmt=pbarfmt) t, tstop
                   call pbar%update(1,message=pbarmessage)
                else if (display_style == "COMPACT") then
                   call nbody_system%compact_output(param,integration_timer)
                end if
+
+               call integration_timer%reset()
+
+               iout = istep_out
             end if
          end if
 
@@ -154,6 +157,7 @@ program swiftest_driver
             end if
          end if
       end do
+      if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
    end associate
 
    call nbody_system%dealloc()

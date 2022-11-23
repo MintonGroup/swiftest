@@ -18,35 +18,95 @@ contains
       !! Generates the terminal output displayed when display_style is set to COMPACT. This is used by the Python driver to 
       !! make nice-looking progress reports.
       implicit none
+
+      interface fmt
+         !! author: David Minton
+         !!
+         !! Formats a pair of variables and corresponding values for the compact display output. Generic interface for different variable types to format.
+         procedure :: fmt_I4B, fmt_I8B, fmt_DP
+      end interface
+
       ! Arguments
       class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
       class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
       class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires swiftest_classes)
       ! Internals
-      character(*), parameter :: COMPACTFMT = '("ILOOP",I,";T",ES23.16,";WT",ES23.16,";IWT",ES23.16,";WTPS",ES23.16,";NPL",I,";NTP",I,";"$)'
-      character(*), parameter :: SYMBAFMT = '(";NPLM",I,$)'
-      character(*), parameter :: EGYFMT = '("LTOTERR",ES24.16,";ETOTERR",ES24.16,";MTOTERR",ES24.16,";KEOERR",ES24.16,";KESERR",ES24.16,";PEERR",ES24.16' & 
-                                          // '";EORBERR",ES24.16,";ECOLERR",ES24.16,";EUNTRERR",ES24.16,";LSPINERR",ES24.16,";LESCERR",ES24.16' &
-                                          // '";MESCERR",ES24.16,$)'
+      character(len=:), allocatable :: formatted_output
+
       select type(timer)
       class is (walltimer)
-         if (.not. timer%main_is_started) then ! This is the start of a new run
-            write(*,*) "START"
-            write(*,COMPACTFMT) 0,param%t,0.0,0.0,0.0,self%pl%nbody, self%tp%nbody
-         else
-            write(*,COMPACTFMT) param%iloop,param%t, timer%wall_main, timer%wall_step, timer%wall_per_substep,self%pl%nbody, self%tp%nbody
-         end if
+         formatted_output = fmt("ILOOP",param%iloop) // fmt("T",param%t) // fmt("NPL",self%pl%nbody) // fmt("NTP",self%tp%nbody) 
          select type(pl => self%pl)
          class is (symba_pl)
-            write(*,SYMBAFMT) pl%nplm
+            formatted_output = formatted_output // fmt("NPLM",pl%nplm)
          end select
          if (param%lenergy) then
-            write(*,EGYFMT) self%Ltot_error, self%Etot_error, self%Mtot_error, self%ke_orbit_error, self%ke_spin_error, self%pe_error, &
-                            self%Eorbit_error, self%Ecoll_error, self%Euntracked_error, self%Lspin_error, self%Lescape_error, self%Mescape_error
+            formatted_output = formatted_output // fmt("LTOTERR",self%Ltot_error) // fmt("ETOTERR",self%Mtot_error) // fmt("MTOTERR",self%Mtot_error) &
+                             // fmt("KEOERR",self%ke_orbit_error) // fmt("PEERR",self%pe_error) // fmt("EORBERR",self%Eorbit_error) &
+                             // fmt("EUNTRERR",self%Euntracked_error) // fmt("LESCERR",self%Lescape_error) // fmt("MESCERR",self%Mescape_error)
+            if (param%lclose) formatted_output = formatted_output // fmt("ECOLLERR",self%Ecoll_error)
+            if (param%lrotation) formatted_output = formatted_output // fmt("KESPINERR",self%ke_spin_error) // fmt("LSPINERR",self%Lspin_error) 
          end if
-         write(*,*)
+
+         if (.not. timer%main_is_started) then ! This is the start of a new run
+            formatted_output =  formatted_output // fmt("WT",0.0_DP) // fmt("IWT",0.0_DP) // fmt("WTPS",0.0_DP) 
+         else
+            formatted_output = formatted_output // fmt("WT",timer%wall_main) // fmt("IWT",timer%wall_step) // fmt("WTPS",timer%wall_per_substep)
+         end if
+         write(*,*) formatted_output
       end select
       return
+
+      contains
+
+         function fmt_I4B(varname,val) result(pair_string)
+            implicit none
+            ! Arguments
+            character(*), intent(in) :: varname !! The variable name of the pair
+            integer(I4B), intent(in) :: val !! A 4-byte integer value
+            ! Result
+            character(len=:), allocatable :: pair_string
+            ! Internals
+            character(len=24) :: str_value
+      
+            write(str_value,*) val
+            pair_string = trim(adjustl(varname)) // " " // trim(adjustl(str_value)) // ";"
+
+            return 
+         end function fmt_I4B
+
+         function fmt_I8B(varname, val) result(pair_string)
+            implicit none
+            ! Arguments
+            character(*), intent(in) :: varname !! The variable name of the pair
+            integer(I8B), intent(in) :: val     !! An 8-byte integer value
+            ! Result
+            character(len=:), allocatable :: pair_string
+            ! Internals
+            character(len=24) :: str_value
+      
+            write(str_value,*) val
+            pair_string = trim(adjustl(varname)) // " " // trim(adjustl(str_value)) // ";"
+
+            return 
+         end function fmt_I8B
+
+         function fmt_DP(varname, val) result(pair_string)
+            implicit none
+            ! Arguments
+            character(*), intent(in) :: varname !! The variable name of the pair
+            real(DP),     intent(in) :: val     !! A double precision floating point value
+            ! Result
+            character(len=:), allocatable :: pair_string
+            ! Internals
+            character(len=24) :: str_value
+      
+            write(str_value,'(ES24.16)') val
+            pair_string = trim(adjustl(varname)) // " " // trim(adjustl(str_value)) // ";"
+
+            return 
+         end function fmt_DP
+
    end subroutine io_compact_output
 
 
@@ -115,7 +175,7 @@ contains
             system%Mescape_error = system%GMescape / system%GMtot_orig
             system%Mtot_error = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
             if (lterminal) write(display_unit, EGYTERMFMT) system%Ltot_error, system%Ecoll_error, system%Etot_error,system%Mtot_error
-            if (abs(Merror) > 100 * epsilon(Merror)) then
+            if (abs(system%Mtot_error) > 100 * epsilon(system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
                param%ioutput = param%ioutput + 1_I8B
@@ -379,9 +439,9 @@ contains
       !! Reads in the name of the parameter file from command line arguments. 
       implicit none
       ! Arguments
-      integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
-      character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-      character(len=:), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+      character(len=:), intent(inout), allocatable :: integrator      !! Symbolic code of the requested integrator  
+      character(len=:), intent(inout), allocatable :: param_file_name !! Name of the input parameters file
+      character(len=:), intent(inout), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
       ! Internals
       character(len=STRMAX), dimension(:), allocatable :: arg
       integer(I4B), dimension(:), allocatable :: ierr
@@ -599,7 +659,7 @@ contains
       integer, intent(in)                       :: unit       !! File unit number
       character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                               !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-      integer, intent(in)                       :: v_list(:)  !! The first element passes the integrator code to the reader
+      character(len=*), intent(in)              :: v_list(:)  !! The first element passes the integrator code to the reader
       integer, intent(out)                      :: iostat     !! IO status code
       character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
