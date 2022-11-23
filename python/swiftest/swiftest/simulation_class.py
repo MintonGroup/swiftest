@@ -370,6 +370,15 @@ class Simulation:
 
         cmd = f"{env['SHELL']} -l {driver_script}"
 
+        def _type_scrub(output_data):
+            int_vars = ["ILOOP","NPL","NTP","NPLM"]
+            for k,v in output_data.items():
+                if k in int_vars:
+                    output_data[k] = int(v)
+                else:
+                    output_data[k] = float(v)
+            return output_data
+
         try:
             with subprocess.Popen(shlex.split(cmd),
                                   stdout=subprocess.PIPE,
@@ -378,6 +387,7 @@ class Simulation:
                                   universal_newlines=True) as p:
                 process_output = False
                 noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
+                iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
                 pbar = tqdm(total=noutput)
                 for line in p.stdout:
                     if "SWIFTEST STOP" in line:
@@ -385,8 +395,13 @@ class Simulation:
 
                     if process_output:
                         kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
-                        output_data = {kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]}
-                        pbar.update(self.param['ISTEP_OUT'])
+                        output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
+                        message = f"Time: {output_data['T']} {self.TU_name}/{self.param['TSTOP']} {self.TU_name}"
+                        pbar.set_description_str(message)
+                        interval = output_data['ILOOP'] - iloop
+                        if interval > 0:
+                           pbar.update(interval)
+                        iloop = output_data['ILOOP']
 
                     if "SWIFTEST START" in line:
                         process_output = True
