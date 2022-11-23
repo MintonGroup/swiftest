@@ -40,7 +40,7 @@ class Simulation:
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = True, **kwargs: Any):
+    def __init__(self,read_param: bool = False, **kwargs: Any):
         """
 
         Parameters
@@ -330,6 +330,7 @@ class Simulation:
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
                 param_file_found = True
+
             else:
                 param_file_found = False
 
@@ -379,16 +380,21 @@ class Simulation:
                     output_data[k] = float(v)
             return output_data
 
+        process_output = False
+        noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
+        iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
+        post_message = f"Time: {self.param['TSTART']} / {self.param['TSTOP']} {self.TU_name}"
+        post_message += f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
+        if "nplm" in self.data:
+            post_message += f" nplm: {self.data['nplm'].values[0]}"
+        pbar = tqdm(total=noutput, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         try:
             with subprocess.Popen(shlex.split(cmd),
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE,
                                   env=env,
                                   universal_newlines=True) as p:
-                process_output = False
-                noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
-                iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
-                pbar = tqdm(total=noutput)
+
                 for line in p.stdout:
                     if "SWIFTEST STOP" in line:
                         process_output = False
@@ -396,11 +402,10 @@ class Simulation:
                     if process_output:
                         kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
                         output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
-                        pre_message = f"Time: {output_data['T']} / {self.param['TSTOP']} {self.TU_name}"
-                        post_message = f"npl: {output_data['NPL']} ntp: {output_data['NTP']}"
+                        post_message = f"Time: {output_data['T']} / {self.param['TSTOP']} {self.TU_name}"
+                        post_message += f"npl: {output_data['NPL']} ntp: {output_data['NTP']}"
                         if "NPLM" in output_data:
-                            post_message = post_message + f" nplm: {output_data['NPLM']}"
-                        pbar.set_description_str(pre_message)
+                            post_message += post_message + f" nplm: {output_data['NPLM']}"
                         pbar.set_postfix_str(post_message)
                         interval = output_data['ILOOP'] - iloop
                         if interval > 0:
@@ -2431,9 +2436,13 @@ class Simulation:
             if "Gmass" in ds:
                 ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass'])).count(dim=count_dim)
                 ds['npl'] = ds[count_dim].where(~(np.isnan(ds['Gmass']))).count(dim=count_dim) - 1
+                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                    ds['nplm'] = ds[count_dim].where(ds['Gmass'] > self.param['GMTINY']).count(dim=count_dim) - 1
             else:
                 ds['ntp'] = ds[count_dim].count(dim=count_dim)
                 ds['npl'] = xr.full_like(ds['ntp'],0)
+                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                   ds['nplm'] = xr.full_like(ds['ntp'],0)
             return ds
 
         dsnew = get_nvals(dsnew)
@@ -2477,6 +2486,14 @@ class Simulation:
 
         if codename == "Swiftest":
             self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
+            if "NETCDF" in self.param['IN_TYPE']:
+               init_cond_file = self.sim_dir / self.param['NC_IN']
+               if os.path.exists(init_cond_file):
+                   param_tmp = self.param.copy()
+                   param_tmp['BIN_OUT'] = init_cond_file
+                   self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
+               else:
+                   warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
         elif codename == "Swift":
