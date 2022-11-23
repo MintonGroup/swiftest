@@ -383,7 +383,7 @@ class Simulation:
         process_output = False
         noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
-        post_message = f"Time: {self.param['TSTART']} / {self.param['TSTOP']} {self.TU_name}"
+        post_message = f"Time: {self.param['TSTART']} / {self.param['TSTOP']} {self.TU_name} "
         post_message += f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
         if "nplm" in self.data:
             post_message += f" nplm: {self.data['nplm'].values[0]}"
@@ -403,13 +403,13 @@ class Simulation:
                         kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
                         output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
                         post_message = f"Time: {output_data['T']} / {self.param['TSTOP']} {self.TU_name}"
-                        post_message += f"npl: {output_data['NPL']} ntp: {output_data['NTP']}"
+                        post_message += f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
                         if "NPLM" in output_data:
-                            post_message += post_message + f" nplm: {output_data['NPLM']}"
-                        pbar.set_postfix_str(post_message)
+                            post_message += f" nplm: {output_data['NPLM']}"
                         interval = output_data['ILOOP'] - iloop
                         if interval > 0:
                            pbar.update(interval)
+                           pbar.set_postfix_str(post_message)
                         iloop = output_data['ILOOP']
 
                     if "SWIFTEST START" in line:
