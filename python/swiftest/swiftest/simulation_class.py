@@ -383,11 +383,12 @@ class Simulation:
         process_output = False
         noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
-        post_message = f"Time: {self.param['TSTART']} / {self.param['TSTOP']} {self.TU_name} "
-        post_message += f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
+        if self.param['TSTOP'] < 1e4:
+           pre_message = f"Time: {self.param['TSTART']:>5} / {self.param['TSTOP']:>5} {self.TU_name} "
+        post_message = f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
         if "nplm" in self.data:
             post_message += f" nplm: {self.data['nplm'].values[0]}"
-        pbar = tqdm(total=noutput, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
+        pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         try:
             with subprocess.Popen(shlex.split(cmd),
                                   stdout=subprocess.PIPE,
@@ -402,13 +403,15 @@ class Simulation:
                     if process_output:
                         kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
                         output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
-                        post_message = f"Time: {output_data['T']} / {self.param['TSTOP']} {self.TU_name}"
-                        post_message += f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
+                        if self.param['TSTOP'] < 1e4:
+                           pre_message = f"Time: {output_data['T']:>5} / {self.param['TSTOP']:>5} {self.TU_name}"
+                        post_message = f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
                         if "NPLM" in output_data:
                             post_message += f" nplm: {output_data['NPLM']}"
                         interval = output_data['ILOOP'] - iloop
                         if interval > 0:
                            pbar.update(interval)
+                           pbar.set_description_str(pre_message)
                            pbar.set_postfix_str(post_message)
                         iloop = output_data['ILOOP']
 
