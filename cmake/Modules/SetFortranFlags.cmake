@@ -222,9 +222,9 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_TESTING "${CMAKE_Fortran_FLAGS_TESTING}"
 
 # Unroll loops
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-funroll-loops" # GNU
-                         "-unroll"        # Intel
+                 Fortran "-unroll"        # Intel
                          "/unroll"        # Intel Windows
+                         "-funroll-loops" # GNU
                          "-Munroll"       # Portland Group
                 )
 
@@ -288,6 +288,12 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-fma" # Intel
                 )
 
+# Generate fused multiply-add instructions
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
+                 Fortran "-qmkl=cluster" # Intel
+                 Fortran "-qmkl" # Intel
+                 Fortran "-mkl" # Old Intel
+                ) 
 
 #####################
 ### MATH FLAGS ###
