@@ -228,97 +228,6 @@ contains
    end subroutine io_dump_param
 
 
-   module subroutine io_dump_particle_info(self, iu)
-      !! author: David A. Minton
-      !!
-      !! Reads in particle information object information from an open file unformatted file
-      implicit none
-      ! Arguments
-      class(swiftest_particle_info), intent(in) :: self !! Particle metadata information object
-      integer(I4B),                  intent(in) :: iu   !! Open file unit number
-      ! Internals
-      character(STRMAX)         :: errmsg
-
-      write(iu, err = 667, iomsg = errmsg) self%name
-      write(iu, err = 667, iomsg = errmsg) self%particle_type
-      write(iu, err = 667, iomsg = errmsg) self%origin_type
-      write(iu, err = 667, iomsg = errmsg) self%origin_time
-      write(iu, err = 667, iomsg = errmsg) self%collision_id
-      write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
-      write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
-
-      return
-
-      667 continue
-      write(*,*) "Error writing particle metadata information from file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_dump_particle_info
-
-
-   module subroutine io_dump_particle_info_base(self, param, idx)
-      !! author: David A. Minton
-      !!
-      !! Dumps the particle information data to a file. 
-      !! Pass a list of array indices for test particles (tpidx) and/or massive bodies (plidx) to append
-      implicit none
-      ! Arguments
-      class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
-      class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
-      integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
-
-      ! Internals
-      logical, save             :: lfirst = .true.
-      integer(I4B)              :: i
-      character(STRMAX)         :: errmsg
-
-      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-         if (lfirst) then
-            select case(param%out_stat)
-            case('APPEND')
-               open(unit=LUN, file=param%particle_out, status='OLD', position='APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-            case('NEW', 'UNKNOWN', 'REPLACE')
-               open(unit=LUN, file=param%particle_out, status=param%out_stat, form='UNFORMATTED', err=667, iomsg=errmsg)
-            case default
-               write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
-               call util_exit(FAILURE)
-            end select
-
-            lfirst = .false.
-         else
-            open(unit=LUN, file=param%particle_out, status='OLD', position= 'APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-         end if
-
-         select type(self)
-         class is (swiftest_cb)
-            write(LUN, err = 667, iomsg = errmsg) self%id
-            call self%info%dump(LUN)
-         class is (swiftest_body)
-            if (present(idx)) then
-               do i = 1, size(idx)
-                  write(LUN, err = 667, iomsg = errmsg) self%id(idx(i))
-                  call self%info(idx(i))%dump(LUN) 
-               end do
-            else
-               do i = 1, self%nbody
-                  write(LUN, err = 667, iomsg = errmsg) self%id(i)
-                  call self%info(i)%dump(LUN) 
-               end do
-            end if
-         end select
-
-         close(unit = LUN, err = 667, iomsg = errmsg)
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         call self%write_particle_info(param%nciu, param)
-      end if
-
-      return
-
-      667 continue
-      write(*,*) "Error writing particle information file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_dump_particle_info_base
-
-
    module subroutine io_dump_base(self, param)
       !! author: David A. Minton
       !!
@@ -749,12 +658,6 @@ contains
                   ifirst = ilast + 1
                   param_value = io_get_token(line, ifirst, ilast, iostat)
                   read(param_value, *, err = 667, iomsg = iomsg) param%qmin_ahi
-               case ("ENC_OUT")
-                  param%enc_out = param_value
-               case ("DISCARD_OUT")
-                  param%discard_out = param_value
-               case ("ENERGY_OUT")
-                  param%energy_out = param_value
                case ("EXTRA_FORCE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
@@ -843,8 +746,6 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
                case ("MAXID_COLLISION")
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid_collision
-               case ("PARTICLE_OUT")
-                  param%particle_out = param_value
                case ("RESTART")
                   if (param_value == "NO" .or. param_value == 'F') then
                      param%lrestart = .false. 
@@ -1090,12 +991,6 @@ contains
             call io_param_writer_one("OUT_FORM", param%out_form, unit)
             call io_param_writer_one("OUT_STAT", "APPEND", unit) 
          end if
-         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-            call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
-         end if
-         if (param%enc_out /= "") then
-            call io_param_writer_one("ENC_OUT", param%enc_out, unit)
-         end if
          call io_param_writer_one("CHK_RMIN", param%rmin, unit)
          call io_param_writer_one("CHK_RMAX", param%rmax, unit)
          call io_param_writer_one("CHK_EJECT", param%rmaxu, unit)
@@ -1109,17 +1004,8 @@ contains
          call io_param_writer_one("DU2M", param%DU2M, unit)
          call io_param_writer_one("RHILL_PRESENT", param%lrhill_present, unit)
          call io_param_writer_one("EXTRA_FORCE", param%lextra_force, unit)
-         if (param%discard_out /= "") then 
-            call io_param_writer_one("DISCARD_OUT", param%discard_out, unit)
-         end if
-         if (param%discard_out /= "") then
-            call io_param_writer_one("BIG_DISCARD", param%lbig_discard, unit)
-         end if
          call io_param_writer_one("CHK_CLOSE", param%lclose, unit)
          call io_param_writer_one("ENERGY", param%lenergy, unit)
-         if (param%lenergy .and. (param%energy_out /= "")) then 
-            call io_param_writer_one("ENERGY_OUT", param%energy_out, unit)
-         end if
          call io_param_writer_one("GR", param%lgr, unit)
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
@@ -1129,17 +1015,6 @@ contains
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
-            if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-               call io_param_writer_one("EORBIT_ORIG", param%Eorbit_orig, unit)
-               call io_param_writer_one("GMTOT_ORIG", param%GMtot_orig, unit)
-               call io_param_writer_one("LTOT_ORIG", param%Ltot_orig(:), unit)
-               call io_param_writer_one("LORBIT_ORIG", param%Lorbit_orig(:), unit)
-               call io_param_writer_one("LSPIN_ORIG", param%Lspin_orig(:), unit)
-               call io_param_writer_one("LESCAPE", param%Lescape(:), unit)
-               call io_param_writer_one("GMESCAPE",param%GMescape, unit)
-               call io_param_writer_one("ECOLLISIONS",param%Ecollisions, unit)
-               call io_param_writer_one("EUNTRACKED",param%Euntracked, unit)
-            end if
          end if
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
          call io_param_writer_one("MAXID",param%maxid, unit)
@@ -1938,75 +1813,6 @@ contains
       write(*,*) "Error reading particle metadata information from file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_read_in_particle_info
-
-
-   module subroutine io_read_particle_info_system(self, param)
-      !! author: David A. Minton
-      !!
-      !! Reads an old particle information file for a restartd run
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)                  :: id, idx
-      logical                       :: lmatch  
-      character(STRMAX)             :: errmsg
-      type(swiftest_particle_info), allocatable :: tmpinfo
-
-      if (.not.((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE))) return ! This subroutine is only necessary for classic binary input files
-
-      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-
-      allocate(tmpinfo, mold=self%cb%info)
-
-      select type(cb => self%cb)
-      class is (swiftest_cb)
-         select type(pl => self%pl)
-         class is (swiftest_pl)
-            select type(tp => self%tp)
-            class is (swiftest_tp)
-               associate(npl => pl%nbody, ntp => tp%nbody)
-                  do 
-                     lmatch = .false.
-                     read(LUN, err = 667, iomsg = errmsg, end = 333) id
-
-                     if (id == cb%id) then
-                        call cb%info%read_in(LUN) 
-                        lmatch = .true.
-                     else 
-                        if (npl > 0) then
-                           idx = findloc(pl%id(1:npl), id, dim=1)
-                           if (idx /= 0) then
-                              call pl%info(idx)%read_in(LUN) 
-                              lmatch = .true.
-                           end if
-                        end if
-                        if (.not.lmatch .and. ntp > 0) then
-                           idx = findloc(tp%id(1:ntp), id, dim=1)
-                           if (idx /= 0) then
-                              call tp%info(idx)%read_in(LUN) 
-                              lmatch = .true.
-                           end if
-                        end if
-                     end if
-                     if (.not.lmatch) then
-                        call tmpinfo%read_in(LUN) 
-                     end if
-                  end do
-               end associate
-               close(unit = LUN, err = 667, iomsg = errmsg)
-            end select
-         end select
-      end select
-
-      333 continue
-      return
-
-      667 continue
-      write(*,*) "Error reading particle information file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_read_particle_info_system
 
 
    module subroutine io_set_display_param(self, display_style)

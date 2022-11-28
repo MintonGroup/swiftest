@@ -17,7 +17,6 @@ OUT_TYPE       NETCDF_DOUBLE
 OUT_STAT       REPLACE
 IN_FORM        XV
 IN_TYPE        ASCII
-NC_IN          -1.0
 PL_IN          supercatastrophic_off_axis.in
 TP_IN          tp.in
 CB_IN          cb.in
@@ -32,7 +31,6 @@ MU2KG          1.98908e30
 TU2S           3.1556925e7
 DU2M           1.49598e11
 EXTRA_FORCE    no                
-PARTICLE_OUT   -1.0
 BIG_DISCARD    no                
 CHK_CLOSE      yes               
 GR             NO
@@ -42,8 +40,6 @@ RHILL_PRESENT  yes
 FRAGMENTATION  yes
 ROTATION       yes
 ENERGY         yes
-ENERGY_OUT     -1.0
-ENC_OUT        -1.0
 GMTINY         1.0e-11
 MIN_GMFRAG     1.0e-11
 TIDES          NO

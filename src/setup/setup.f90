@@ -157,9 +157,7 @@ contains
          pl%lfirst = param%lfirstkick
          tp%lfirst = param%lfirstkick
 
-         if (param%lrestart) then
-            call system%read_particle_info(param)
-         else
+         if (.not.param%lrestart) then
             call system%init_particle_info(param)
          end if
       end associate

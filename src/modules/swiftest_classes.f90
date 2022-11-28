@@ -53,7 +53,6 @@ module swiftest_classes
       character(STRMAX)    :: out_type       = NETCDF_DOUBLE_TYPE !! Binary format of output file
       character(STRMAX)    :: out_form       = XVEL               !! Data to write to output file
       character(STRMAX)    :: out_stat       = 'NEW'              !! Open status for output binary file
-      character(STRMAX)    :: particle_out   = PARTICLE_OUTFILE   !! Name of output particle information file
       integer(I4B)         :: istep_dump     = -1                 !! Number of time steps between dumps
       real(DP)             :: rmin           = -1.0_DP            !! Minimum heliocentric radius for test particle
       real(DP)             :: rmax           = -1.0_DP            !! Maximum heliocentric radius for test particle
@@ -144,7 +143,6 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
    contains
-      procedure :: dump      => io_dump_particle_info    !! Dumps contents of particle information to file
       procedure :: read_in   => io_read_in_particle_info !! Read in a particle information object from an open file
       procedure :: copy      => util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
       procedure :: set_value => util_set_particle_info   !! Sets one or more values of the particle information metadata object
@@ -158,12 +156,11 @@ module swiftest_classes
    contains
       !! The minimal methods that all systems must have
       procedure :: dump                       => io_dump_base                 !! Dump contents to file
-      procedure :: dump_particle_info         => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
       procedure :: read_in                    => io_read_in_base              !! Read in body initial conditions from a file
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
-      procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
+      procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base  !! Dump contents of particle information metadata to file
       generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
-      generic   :: write_particle_info        => write_particle_info_netcdf
+      generic   :: write_particle_info        => write_particle_info_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -421,7 +418,6 @@ module swiftest_classes
       procedure :: read_hdr_netcdf         => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
       procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
-      procedure :: read_particle_info_bin  => io_read_particle_info_system           !! Read in particle metadata from file
       procedure :: read_particle_info_netcdf  => netcdf_read_particle_info_system           !! Read in particle metadata from file
       procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
@@ -438,7 +434,7 @@ module swiftest_classes
       generic   :: read_hdr                => read_hdr_netcdf                        !! Generic method call for reading headers
       generic   :: read_frame              => read_frame_bin, read_frame_netcdf      !! Generic method call for reading a frame of output data
       generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for writing a frame of output data
-      generic   :: read_particle_info      => read_particle_info_bin, read_particle_info_netcdf !! Genereric method call for reading in the particle information metadata
+      generic   :: read_particle_info      => read_particle_info_netcdf !! Genereric method call for reading in the particle information metadata
    end type swiftest_nbody_system
 
 
@@ -630,19 +626,6 @@ module swiftest_classes
          character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_dump_param
 
-      module subroutine io_dump_particle_info_base(self, param, idx)
-         implicit none
-         class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
-         integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
-      end subroutine io_dump_particle_info_base
-
-      module subroutine io_dump_particle_info(self, iu)
-         implicit none
-         class(swiftest_particle_info), intent(in) :: self !! Swiftest particle info metadata object
-         integer(I4B),                  intent(in) :: iu   !! Open unformatted file unit number
-      end subroutine io_dump_particle_info
-
       module subroutine io_dump_base(self, param)
          implicit none
          class(swiftest_base),          intent(inout) :: self  !! Swiftest base object
@@ -821,12 +804,6 @@ module swiftest_classes
          class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                               :: ierr  !! Error code: returns 0 if the read is successful
       end function io_read_frame_system
-
-      module subroutine io_read_particle_info_system(self, param)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      end subroutine io_read_particle_info_system
 
       module subroutine io_set_display_param(self, display_style)
          implicit none
