@@ -27,11 +27,11 @@ INCLUDE (${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
 SET (OpenMP_Fortran_FLAG_CANDIDATES
      #Intel
-     "-qopenmp -coarray" 
+     "-qopenmp" 
      #Intel windows
-     "/Qopenmp /Qcoarray" 
+     "/Qopenmp" 
      #Gnu
-     "-fopenmp -fcoarray=lib"
+     "-fopenmp"
      #Portland Group
      "-mp"
      #Empty, if compiler automatically accepts openmp
