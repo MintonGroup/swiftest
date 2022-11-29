@@ -31,6 +31,7 @@ from typing import (
     Literal,
     Dict,
     List,
+    Tuple,
     Any
 )
 
@@ -387,7 +388,7 @@ class Simulation:
         if "nplm" in self.data:
             post_message += f" nplm: {self.data['nplm'].values[0]}"
         if self.param['ENERGY']:
-            post_message += f" dL/L0: {0.0:.5e} dE/|E0|: {0.0:.5e}"
+            post_message += f" dL/L0: {0.0:.5e} dE/|E0|: {0.0:+.5e}"
         pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         try:
             with subprocess.Popen(shlex.split(cmd),
@@ -410,7 +411,7 @@ class Simulation:
                         if "LTOTERR" in output_data:
                             post_message += f" dL/L0: {output_data['LTOTERR']:.5e}"
                         if "ETOTERR" in output_data:
-                            post_message += f" dE/|E0|: {output_data['ETOTERR']:.5e}"
+                            post_message += f" dE/|E0|: {output_data['ETOTERR']:+.5e}"
                         interval = output_data['ILOOP'] - iloop
                         if interval > 0:
                            pbar.update(interval)
@@ -2278,8 +2279,8 @@ class Simulation:
                  v4: float | List[float] | npt.NDArray[np.float_] | None = None,
                  v5: float | List[float] | npt.NDArray[np.float_] | None = None,
                  v6: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 xh: List[float] | npt.NDArray[np.float_] | None = None,
-                 vh: List[float] | npt.NDArray[np.float_] | None = None,
+                 xh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                 vh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  mass: float | List[float] | npt.NDArray[np.float_] | None=None,
                  Gmass: float | List[float] | npt.NDArray[np.float_] | None=None,
                  radius: float | List[float] | npt.NDArray[np.float_] | None=None,
@@ -2291,7 +2292,7 @@ class Simulation:
                  rotx: float | List[float] | npt.NDArray[np.float_] | None=None,
                  roty: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rotz: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 rot: List[float] | npt.NDArray[np.float_] | None=None,
+                 rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None):
         """

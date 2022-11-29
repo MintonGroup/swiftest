@@ -57,8 +57,12 @@ contains
          end if
          f_spin = F_SPIN_FIRST
 
-         lk_plpl = allocated(pl%k_plpl)
-         if (lk_plpl) deallocate(pl%k_plpl)
+         if (param%lflatten_interactions) then
+            lk_plpl = allocated(pl%k_plpl)
+            if (lk_plpl) deallocate(pl%k_plpl)
+         else 
+            lk_plpl = .false.
+         end if
 
          call frag%set_natural_scale(colliders)
 
@@ -250,19 +254,21 @@ contains
          frag%rot(:,:) = 0.0_DP
 
          frag%ke_spin = 0.0_DP
-         do i = 1, nfrag
-            ! Convert a fraction (f_spin) of either the remaining angular momentum or kinetic energy budget into spin, whichever gives the smaller rotation so as not to blow any budgets
-            rot_ke(:) = sqrt(2 * f_spin * frag%ke_budget / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))) &
-                        * L_remainder(:) / norm2(L_remainder(:))
-            rot_L(:) = f_spin * L_remainder(:) / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))
-            if (norm2(rot_ke) < norm2(rot_L)) then
-               frag%rot(:,i) = rot_ke(:)
-            else
-               frag%rot(:, i) = rot_L(:)
-            end if
-            frag%ke_spin = frag%ke_spin + frag%mass(i) * frag%Ip(3, i) * frag%radius(i)**2 &
-                                                       * dot_product(frag%rot(:, i), frag%rot(:, i))
-         end do
+         if (norm2(L_remainder(:)) > FRAGGLE_LTOL) then 
+            do i = 1, nfrag
+               ! Convert a fraction (f_spin) of either the remaining angular momentum or kinetic energy budget into spin, whichever gives the smaller rotation so as not to blow any budgets
+               rot_ke(:) = sqrt(2 * f_spin * frag%ke_budget / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))) &
+                           * L_remainder(:) / norm2(L_remainder(:))
+               rot_L(:) = f_spin * L_remainder(:) / (nfrag * frag%mass(i) * frag%radius(i)**2 * frag%Ip(3, i))
+               if (norm2(rot_ke) < norm2(rot_L)) then
+                  frag%rot(:,i) = rot_ke(:)
+               else
+                  frag%rot(:, i) = rot_L(:)
+               end if
+               frag%ke_spin = frag%ke_spin + frag%mass(i) * frag%Ip(3, i) * frag%radius(i)**2 &
+                                                         * dot_product(frag%rot(:, i), frag%rot(:, i))
+            end do
+         end if
          frag%ke_spin = 0.5_DP * frag%ke_spin
 
          lfailure = ((frag%ke_budget - frag%ke_spin - frag%ke_orbit) < 0.0_DP)

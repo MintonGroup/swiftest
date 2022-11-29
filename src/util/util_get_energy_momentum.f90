@@ -23,7 +23,6 @@ contains
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i
-      integer(I8B) :: nplpl
       real(DP) :: kecb, kespincb
       real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
       real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
@@ -32,7 +31,6 @@ contains
       real(DP) :: hx, hy, hz
 
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
-         nplpl = pl%nplpl
          system%Lorbit(:) = 0.0_DP
          system%Lspin(:) = 0.0_DP
          system%Ltot(:) = 0.0_DP
@@ -89,7 +87,7 @@ contains
          end if
   
          if (param%lflatten_interactions) then
-            call util_get_energy_potential_flat(npl, nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
+            call util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
          else
             call util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
          end if
