@@ -23,28 +23,66 @@ out.nc   : NetCDF file
 Returns
 -------
 fragmentation.mp4 : mp4 movie file
-    Movide of a fragmentation event.
+    Movie of a fragmentation event.
 """
 
 import swiftest
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib.animation import FuncAnimation 
+from pathlib import Path
 
-# Change this to be the parameter input file correlated with the run that you
-# wish to test. Swiftest will pull in the corresponding out.nc file automatically.
-param_file = "param.disruption_headon.in"
+print("Select a fragmentation movie to generate.")
+print("1. Head-on disruption")
+print("2. Off-axis supercatastrophic")
+print("3. Hit and run")
+print("4. All of the above")
+user_selection = int(input("? "))
 
-# Change this to an appropriate title and filename to appear on the movie.
-movie_title = "Head-on Disruption"
-movie_filename = "disruption_headon.mp4"
+available_movie_styles = ["disruption_headon", "supercatastrophic_off_axis", "hitandrun"]
+movie_title_list = ["Head-on Disrutption", "Off-axis Supercatastrophic", "Hit and Run"]
+movie_titles = dict(zip(available_movie_styles, movie_title_list))
 
-# Pull in the Swiftest output data from the parameter file and store it as a Xarray dataset.
-ds = swiftest.Simulation(read_param=True, param_file=param_file, read_old_output_file=True).data
+pos_vectors = {"disruption_headon"         : [np.array([1.0, -1.807993e-05, 0.0]),
+                                              np.array([1.0,  1.807993e-05 ,0.0])],
+               "supercatastrophic_off_axis": [np.array([1.0, -4.2e-05,      0.0]),
+                                              np.array([1.0,  4.2e-05,      0.0])],
+               "hitandrun"                 : [np.array([1.0, -4.2e-05,      0.0]),
+                                              np.array([1.0,  4.2e-05,      0.0])]
+               }
 
-# Calculate the number of frames in the dataset.
-nframes = int(ds['time'].size)
+vel_vectors = {"disruption_headon"         : [np.array([-2.562596e-04,  6.280005, 0.0]),
+                                              np.array([-2.562596e-04, -6.280005, 0.0])],
+               "supercatastrophic_off_axis": [np.array([0.0,            6.28,     0.0]),
+                                              np.array([1.0,           -6.28,     0.0])],
+               "hitandrun"                 : [np.array([0.0,            6.28,     0.0]),
+                                              np.array([-1.5,          -6.28,     0.0])]
+               }
+
+rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
+                                              np.array([0.0, 0.0, 0.0])],
+               "supercatastrophic_off_axis": [np.array([0.0, 0.0, -6.0e4]),
+                                              np.array([0.0, 0.0, 1.0e5])],
+               "hitandrun"                 : [np.array([0.0, 0.0, 6.0e4]),
+                                              np.array([0.0, 0.0, 1.0e5])]
+               }
+
+body_Gmass = {"disruption_headon"         : [1e-7, 7e-10],
+             "supercatastrophic_off_axis": [1e-7, 1e-8],
+             "hitandrun"                 : [1e-7, 7e-10]
+               }
+
+density = 3000 * swiftest.AU2M**3 / swiftest.MSun
+GU = swiftest.GMSun * swiftest.YR2S**2 / swiftest.AU2M**3
+body_radius = body_Gmass.copy()
+for k,v in body_Gmass.items():
+    body_radius[k] = [((Gmass/GU)/(4./3.*np.pi*density))**(1./3.) for Gmass in v]
+
+if user_selection > 0 and user_selection < 4:
+   movie_styles = [available_movie_styles[user_selection-1]]
+else:
+   print("Generating all movie styles")
+   movie_styles = available_movie_styles.copy()
 
 # Define a function to calculate the center of mass of the system.
 def center(xhx, xhy, xhz, Gmass):
@@ -53,24 +91,19 @@ def center(xhx, xhy, xhz, Gmass):
     z_com = np.sum(Gmass * xhz) / np.sum(Gmass)
     return x_com, y_com, z_com
 
-# Calculate the distance along the y-axis between the colliding bodies at the start of the simulation. 
-# This will be used to scale the axis limits on the movie.
-scale_frame = abs(ds['xhy'].isel(time=0, name=1).values) + abs(ds['xhy'].isel(time=0, name=2).values)
+def animate(i,ds,movie_title):
 
-# Set up the figure and the animation.
-fig, ax = plt.subplots(figsize=(4,4))
-def animate(i):
     # Calculate the position and mass of all bodies in the system at time i and store as a numpy array.
     xhx = ds['xhx'].isel(time=i).dropna(dim='name').values
     xhy = ds['xhy'].isel(time=i).dropna(dim='name').values
     xhz = ds['xhx'].isel(time=i).dropna(dim='name').values
-    Gmass = ds['Gmass'].isel(time=i).dropna(dim='name').values[1:] # Drop the Sun from the numpy array.
+    Gmass = ds['Gmass'].isel(time=i).dropna(dim='name').values[1:]  # Drop the Sun from the numpy array.
 
-    # Calculate the center of mass of the system at time i. While the center of mass relative to the 
+    # Calculate the center of mass of the system at time i. While the center of mass relative to the
     # colliding bodies does not change, the center of mass of the collision will move as the bodies
     # orbit the system center of mass.
     x_com, y_com, z_com = center(xhx, xhy, xhz, Gmass)
-    
+
     # Create the figure and plot the bodies as points.
     fig.clear()
     ax = fig.add_subplot(111)
@@ -82,11 +115,34 @@ def animate(i):
     ax.grid(False)
     ax.set_xticks([])
     ax.set_yticks([])
-    
-    ax.scatter(xhx, xhy, s = (5000000000 * Gmass))
-    
+
+    ax.scatter(xhx, xhy, s=(5000000000 * Gmass))
+
     plt.tight_layout()
 
-# Generate the movie.
-ani = animation.FuncAnimation(fig, animate, interval=1, frames=nframes, repeat=False)
-ani.save(movie_filename, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
+for style in movie_styles:
+    param_file = Path(style) / "param.in"
+
+    movie_filename = f"{style}.mp4"
+
+    # Pull in the Swiftest output data from the parameter file and store it as a Xarray dataset.
+    sim = swiftest.Simulation(param_file=param_file, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
+    sim.add_solar_system_body("Sun")
+    sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], xh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
+
+    # Set fragmentation parameters
+    sim.set_parameter(fragmentation = True, gmtiny=1e-11, minimum_fragment_gmass=1e-11)
+    sim.run(dt=1e-8, tstop=1e-5)
+
+    # Calculate the number of frames in the dataset.
+    nframes = int(sim.data['time'].size)
+
+    # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
+    # This will be used to scale the axis limits on the movie.
+    scale_frame = abs(sim.data['xhy'].isel(time=0, name=1).values) + abs(sim.data['xhy'].isel(time=0, name=2).values)
+
+    # Set up the figure and the animation.
+    fig, ax = plt.subplots(figsize=(4,4))
+    # Generate the movie.
+    ani = animation.FuncAnimation(fig, animate, interval=1, frames=nframes, repeat=False)
+    ani.save(movie_filename, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
