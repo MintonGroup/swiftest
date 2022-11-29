@@ -302,19 +302,17 @@ class Simulation:
         self.param = {}
         self.data = xr.Dataset()
 
+        # Set the location of the parameter input file, choosing the default if it isn't specified.
+        param_file = kwargs.pop("param_file",Path.cwd() / "simdata" / "param.in")
+        self.verbose = kwargs.pop("verbose",True)
+
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
 
         #--------------------------
         # Lowest Priority: Defaults
         #--------------------------
-
         # Quietly set all parameters to their defaults.
-        self.verbose = kwargs.pop("verbose",True)
-        self.set_parameter(verbose=False)
-
-        # Set the location of the parameter input file
-        param_file = kwargs.pop("param_file",self.param_file)
         self.set_parameter(verbose=False,param_file=param_file)
 
         #-----------------------------------------------------------------
@@ -383,8 +381,8 @@ class Simulation:
         process_output = False
         noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
-        if self.param['TSTOP'] < 1e4:
-           pre_message = f"Time: {self.param['TSTART']:>5} / {self.param['TSTOP']:>5} {self.TU_name} "
+        twidth = int(np.ceil(np.log10(self.param['TSTOP']/self.param['DT'])))
+        pre_message = f"Time: {self.param['TSTART']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name} "
         post_message = f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
         if "nplm" in self.data:
             post_message += f" nplm: {self.data['nplm'].values[0]}"
@@ -403,8 +401,7 @@ class Simulation:
                     if process_output:
                         kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
                         output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
-                        if self.param['TSTOP'] < 1e4:
-                           pre_message = f"Time: {output_data['T']:>5} / {self.param['TSTOP']:>5} {self.TU_name}"
+                        pre_message = f"Time: {output_data['T']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name}"
                         post_message = f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
                         if "NPLM" in output_data:
                             post_message += f" nplm: {output_data['NPLM']}"
@@ -716,7 +713,6 @@ class Simulation:
         default_arguments = {
             "codename" : "Swiftest",
             "integrator": "symba",
-            "param_file": Path.cwd() / "simdata" / "param.in",
             "t0": 0.0,
             "tstart": 0.0,
             "tstop": None,
@@ -743,7 +739,7 @@ class Simulation:
             "rmin": constants.RSun / constants.AU2M,
             "rmax": 10000.0,
             "qmin_coord": "HELIO",
-            "gmtiny": None,
+            "gmtiny": 0.0,
             "mtiny": None,
             "close_encounter_check": True,
             "general_relativity": True,
@@ -760,19 +756,6 @@ class Simulation:
             "ephemeris_date": "MBCL",
             "restart": False,
         }
-
-        # If no arguments (other than, possibly, verbose) are requested, use defaults
-        if len(kwargs) == 0:
-            kwargs = default_arguments
-
-        unrecognized = [k for k,v in kwargs.items() if k not in default_arguments]
-        if len(unrecognized) > 0:
-            for k in unrecognized:
-                warnings.warn(f'Unrecognized argument "{k}"',stacklevel=2)
-
-        # Add the verbose flag to the kwargs for passing down to the individual setters
-        kwargs["verbose"] = verbose
-
         param_file = kwargs.pop("param_file",None)
 
         # Extract the simulation directory and create it if it doesn't exist
@@ -786,6 +769,19 @@ class Simulation:
                     warnings.warn(msg,stacklevel=2)
             else:
                 self.sim_dir.mkdir(parents=True, exist_ok=False)
+
+        # If no arguments (other than, possibly, verbose) are requested, use defaults
+        if len(kwargs) == 0:
+            kwargs = default_arguments
+
+        unrecognized = [k for k,v in kwargs.items() if k not in default_arguments]
+        if len(unrecognized) > 0:
+            for k in unrecognized:
+                warnings.warn(f'Unrecognized argument "{k}"',stacklevel=2)
+
+        # Add the verbose flag to the kwargs for passing down to the individual setters
+        kwargs["verbose"] = verbose
+
 
 
         # Setters returning parameter dictionary values
@@ -2084,9 +2080,9 @@ class Simulation:
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
         if len(body_list) == 1:
-            name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.hsplit(np.array(body_list[0]),19))
+            name,v1,v2,v3,v4,v5,v6,ephemeris_id,Gmass,radius,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.hsplit(np.array(body_list[0]),19))
         else:
-            name,v1,v2,v3,v4,v5,v6,ephemeris_id,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.squeeze(np.hsplit(np.array(body_list),19)))
+            name,v1,v2,v3,v4,v5,v6,ephemeris_id,Gmass,radius,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.squeeze(np.hsplit(np.array(body_list),19)))
 
         ephemeris_id = ephemeris_id.astype(int)
         v1 = v1.astype(np.float64)
@@ -2099,8 +2095,8 @@ class Simulation:
         J2 = J2.astype(np.float64)
         J4 = J4.astype(np.float64)
 
-        GMpl = GMpl.astype(np.float64)
-        Rpl = Rpl.astype(np.float64)
+        Gmass = Gmass.astype(np.float64)
+        radius = radius.astype(np.float64)
         Ip1 = Ip1.astype(np.float64)
         Ip2 = Ip2.astype(np.float64)
         Ip3 = Ip3.astype(np.float64)
@@ -2109,10 +2105,10 @@ class Simulation:
         rotz = rotz.astype(np.float64)
 
 
-        if all(np.isnan(GMpl)):
-            GMpl = None
-        if all(np.isnan(Rpl)):
-            Rpl = None
+        if all(np.isnan(Gmass)):
+            Gmass = None
+        if all(np.isnan(radius)):
+            radius = None
         if all(np.isnan(rhill)):
             rhill = None
         if all(np.isnan(Ip1)):
@@ -2135,7 +2131,7 @@ class Simulation:
         t = self.param['TSTART']
 
         dsnew = init_cond.vec2xr(self.param,name,v1,v2,v3,v4,v5,v6,ephemeris_id,
-                                 GMpl=GMpl, Rpl=Rpl, rhill=rhill,
+                                 GMpl=Gmass, Rpl=radius, rhill=rhill,
                                  Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
                                  rotx=rotx, roty=roty, rotz=rotz,
                                  J2=J2, J4=J4, t=t)
@@ -2270,23 +2266,28 @@ class Simulation:
         return tuple(arg_vals)
 
     def add_body(self,
-                 name: str | List[str] | npt.NDArray[np.str_],
-                 v1: float | List[float] | npt.NDArray[np.float_],
-                 v2: float | List[float] | npt.NDArray[np.float_],
-                 v3: float | List[float] | npt.NDArray[np.float_],
-                 v4: float | List[float] | npt.NDArray[np.float_],
-                 v5: float | List[float] | npt.NDArray[np.float_],
-                 v6: float | List[float] | npt.NDArray[np.float_],
+                 name: str | List[str] | npt.NDArray[np.str_] | None=None,
                  idvals: int | list[int] | npt.NDArray[np.int_] | None=None,
-                 GMpl: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Rpl: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 v1: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 v2: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 v3: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 v4: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 v5: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 v6: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 xh: List[float] | npt.NDArray[np.float_] | None = None,
+                 vh: List[float] | npt.NDArray[np.float_] | None = None,
+                 mass: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 Gmass: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 radius: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
                  Ip1: float | List[float] | npt.NDArray[np.float_] | None=None,
                  Ip2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  Ip3: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  rotx: float | List[float] | npt.NDArray[np.float_] | None=None,
                  roty: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rotz: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 rot: List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None):
         """
@@ -2297,32 +2298,45 @@ class Simulation:
 
         Parameters
         ----------
-        name : str or array-like of str
-            Name or names of
-        v1 : float or array-like of float
-            xhx for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
-        v2 : float or array-like of float
-            xhy for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
-        v3 : float or array-like of float
-            xhz for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
-        v4 : float or array-like of float
-            vhx for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
-        v5 : float or array-like of float
-            vhy for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
-        v6 : float or array-like of float
-            vhz for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
+        name : str or array-like of str, optional
+            Name or names of Bodies. If none passed, name will be "Body<idval>"
         idvals : int or array-like of int, optional
-            Unique id values. If not passed, this will be computed based on the pre-existing Dataset ids.
+            Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
+            Dataset ids.
+        v1 : float or array-like of float, optional
+            xhx for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
+        v2 : float or array-like of float, optional
+            xhy for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
+        v3 : float or array-like of float, optional
+            xhz for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
+        v4 : float or array-like of float, optional
+            vhx for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
+        v5 : float or array-like of float, optional
+            vhy for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
+        v6 : float or array-like of float, optional
+            vhz for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
+        xh : (n,3) array-like of float, optional
+            Position vector array. This can be used instead of passing v1, v2, and v3 sepearately for "XV" input format
+        vh : (n,3) array-like of float, optional
+            Velocity vector array. This can be used instead of passing v4, v5, and v6 sepearately for "XV" input format
+        mass : float or array-like of float, optional
+            mass values if these are massive bodies (only one of mass or Gmass can be passed)
         Gmass : float or array-like of float, optional
-            G*mass values if these are massive bodies
+            G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
         radius : float or array-like of float, optional
             Radius values if these are massive bodies
-        rhill : float, optional
+        rhill : float or array-like of float, optional
             Hill's radius values if these are massive bodies
-        Ip1,y,z : float, optional
-            Principal axes moments of inertia these are massive bodies with rotation enabled
-        rotx,y,z: float, optional
+        Ip<1,2,3> : float or array-like of float, optional
+            Principal axes moments of inertia if these are massive bodies with rotation enabled
+        rot<x,y,z>: float or array-like of float, optional
             Rotation rate vector components if these are massive bodies with rotation enabled
+        rot: (3) or (n,3) array-like of float, optional
+            Rotation rate vectors if these are massive bodies with rotation enabled. This can be used instead of passing
+            rotx, roty, and rotz separately
+        Ip: (3) or (n,3) array-like of flaot, optional
+            Principal axes moments of inertia vectors if these are massive bodies with rotation enabled. This can be used
+            instead of passing Ip1, Ip2, and Ip3 separately
 
         Returns
         -------
@@ -2339,40 +2353,76 @@ class Simulation:
                 t = np.int64
             elif t == "s":
                 t = np.str
+
             if val is None:
-                return None
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
             elif np.isscalar(val):
                 val = np.array([val],dtype=t)
-            elif type(val) is list:
-                val = np.array(val,dtype=t)
+            else:
+                try:
+                    val = np.array(val,dtype=t)
+                except:
+                    raise ValueError(f"{val} cannot be converted to a numpy array")
 
             if n is None:
                 return val, len(val)
             else:
                 if n != len(val):
-                    raise ValueError(f"Error! Mismatched array lengths in add_body. Got {len(val)} when expecting {n}")
-                return val
+                    raise ValueError(f"Mismatched array lengths in add_body. Got {len(val)} when expecting {n}")
+                return val, n
 
+        def input_to_array_3d(val,n=None):
+            if val is None:
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
+            else:
+                try:
+                    val = np.array(val,dtype=np.float64)
+                except:
+                    raise ValueError(f"{val} cannot be converted to a numpy array")
+            if n is None:
+                if val.dim > 2 or val.dim == 0:
+                    raise ValueError(f"Argument must be an (n,3) array. This one is {val.shape}")
+                else:
+                    if val.shape[-1] != 3:
+                        raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
+                    if val.dim == 1:
+                        n = 1
+                    else:
+                        n = val.shape[0]
+            elif val.shape != (n,3):
+               raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)}. Got {val.shape} instead")
+            return val, n
 
-        name,nbodies = input_to_array(name,"s")
-        v1 = input_to_array(v1,"f",nbodies)
-        v2 = input_to_array(v2,"f",nbodies)
-        v3 = input_to_array(v3,"f",nbodies)
-        v4 = input_to_array(v4,"f",nbodies)
-        v5 = input_to_array(v5,"f",nbodies)
-        v6 = input_to_array(v6,"f",nbodies)
-        idvals = input_to_array(idvals,"i",nbodies)
-        GMpl = input_to_array(GMpl,"f",nbodies)
-        rhill = input_to_array(rhill,"f",nbodies)
-        Rpl = input_to_array(Rpl,"f",nbodies)
-        Ip1 = input_to_array(Ip1,"f",nbodies)
-        Ip2 = input_to_array(Ip2,"f",nbodies)
-        Ip3 = input_to_array(Ip3,"f",nbodies)
-        rotx = input_to_array(rotx,"f",nbodies)
-        roty = input_to_array(roty,"f",nbodies)
-        rotz = input_to_array(rotz,"f",nbodies)
-        J2 = input_to_array(J2,"f",nbodies)
-        J4 = input_to_array(J4,"f",nbodies)
+        nbodies = None
+        name,nbodies = input_to_array(name,"s",nbodies)
+        v1,nbodies = input_to_array(v1,"f",nbodies)
+        v2,nbodies = input_to_array(v2,"f",nbodies)
+        v3,nbodies = input_to_array(v3,"f",nbodies)
+        v4,nbodies = input_to_array(v4,"f",nbodies)
+        v5,nbodies = input_to_array(v5,"f",nbodies)
+        v6,nbodies = input_to_array(v6,"f",nbodies)
+        idvals,nbodies = input_to_array(idvals,"i",nbodies)
+        mass,nbodies = input_to_array(mass,"f",nbodies)
+        Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
+        rhill,nbodies = input_to_array(rhill,"f",nbodies)
+        radius,nbodies = input_to_array(radius,"f",nbodies)
+        Ip1,nbodies = input_to_array(Ip1,"f",nbodies)
+        Ip2,nbodies = input_to_array(Ip2,"f",nbodies)
+        Ip3,nbodies = input_to_array(Ip3,"f",nbodies)
+        rotx,nbodies = input_to_array(rotx,"f",nbodies)
+        roty,nbodies = input_to_array(roty,"f",nbodies)
+        rotz,nbodies = input_to_array(rotz,"f",nbodies)
+        J2,nbodies = input_to_array(J2,"f",nbodies)
+        J4,nbodies = input_to_array(J4,"f",nbodies)
+
+        xh,nbodies = input_to_array_3d(xh,nbodies)
+        vh,nbodies = input_to_array_3d(vh,nbodies)
+        rot,nbodies = input_to_array_3d(rot,nbodies)
+        Ip,nbodies = input_to_array_3d(Ip,nbodies)
 
         if len(self.data) == 0:
             maxid = -1
@@ -2382,6 +2432,9 @@ class Simulation:
         if idvals is None:
             idvals = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
 
+        if name is None:
+            name=np.char.mod(f"Body%d",idvals)
+
         if len(self.data) > 0:
             dup_id = np.in1d(idvals, self.data.id)
             if any(dup_id):
@@ -2389,8 +2442,46 @@ class Simulation:
 
         t = self.param['TSTART']
 
+        if xh is not None:
+            if v1 is not None or v2 is not None or v3 is not None:
+                raise ValueError("Cannot use xh and v1,v2,v3 inputs simultaneously!")
+            else:
+                v1 = xh.T[0]
+                v2 = xh.T[1]
+                v3 = xh.T[2]
+
+        if vh is not None:
+            if v4 is not None or v5 is not None or v6 is not None:
+                raise ValueError("Cannot use vh and v4,v5,v6 inputs simultaneously!")
+            else:
+                v4 = vh.T[0]
+                v5 = vh.T[1]
+                v6 = vh.T[2]
+
+        if rot is not None:
+            if rotx is not None or roty is not None or rotz is not None:
+                raise ValueError("Cannot use rot and rotx,roty,rotz inputs simultaneously!")
+            else:
+                rotx = rot.T[0]
+                roty = rot.T[1]
+                rotz = rot.T[2]
+
+        if Ip is not None:
+            if Ip1 is not None or Ip2 is not None or Ip3 is not None:
+                raise ValueError("Cannot use Ip and Ip1,Ip2,Ip3 inputs simultaneously!")
+            else:
+                Ip1 = Ip.T[0]
+                Ip2 = Ip.T[1]
+                Ip3 = Ip.T[2]
+
+        if mass is not None:
+            if Gmass is not None:
+                raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
+            else:
+                Gmass = self.param['GU'] * mass
+
         dsnew = init_cond.vec2xr(self.param, name, v1, v2, v3, v4, v5, v6, idvals,
-                                 GMpl=GMpl, Rpl=Rpl, rhill=rhill,
+                                 GMpl=Gmass, Rpl=radius, rhill=rhill,
                                  Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
                                  rotx=rotx, roty=roty, rotz=rotz,
                                  J2=J2, J4=J4,t=t)
