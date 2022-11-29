@@ -727,6 +727,7 @@ class Simulation:
             "init_cond_file_type": "NETCDF_DOUBLE",
             "init_cond_file_name": None,
             "init_cond_format": "EL",
+            "read_old_output_file": False,
             "output_file_type": "NETCDF_DOUBLE",
             "output_file_name": None,
             "output_format": "XVEL",

@@ -109,6 +109,8 @@ def str2bool(input_str):
     {True, False}
 
     """
+    if type(input_str) is bool:
+       return input_str
     valid_true = ["YES", "Y", "T", "TRUE", ".TRUE."]
     valid_false = ["NO", "N", "F", "FALSE", ".FALSE."]
     if input_str.upper() in valid_true:

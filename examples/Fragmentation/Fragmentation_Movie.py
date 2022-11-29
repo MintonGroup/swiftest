@@ -34,14 +34,14 @@ from matplotlib.animation import FuncAnimation
 
 # Change this to be the parameter input file correlated with the run that you
 # wish to test. Swiftest will pull in the corresponding out.nc file automatically.
-param_file = "param.hitandrun.in"
+param_file = "param.disruption_headon.in"
 
 # Change this to an appropriate title and filename to appear on the movie.
-movie_title = "Hit and Run"
-movie_filename = "hitandrun.mp4"
+movie_title = "Head-on Disruption"
+movie_filename = "disruption_headon.mp4"
 
 # Pull in the Swiftest output data from the parameter file and store it as a Xarray dataset.
-ds = swiftest.Simulation(param_file=param_file).ds
+ds = swiftest.Simulation(read_param=True, param_file=param_file, read_old_output_file=True).data
 
 # Calculate the number of frames in the dataset.
 nframes = int(ds['time'].size)
@@ -55,16 +55,16 @@ def center(xhx, xhy, xhz, Gmass):
 
 # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation. 
 # This will be used to scale the axis limits on the movie.
-scale_frame = abs(ds['xhy'].isel(time=0).isel(id=1).values) + abs(ds['xhy'].isel(time=0).isel(id=2).values)
+scale_frame = abs(ds['xhy'].isel(time=0, name=1).values) + abs(ds['xhy'].isel(time=0, name=2).values)
 
 # Set up the figure and the animation.
 fig, ax = plt.subplots(figsize=(4,4))
 def animate(i):
     # Calculate the position and mass of all bodies in the system at time i and store as a numpy array.
-    xhx = ds['xhx'].isel(time=i).dropna(dim='id').values
-    xhy = ds['xhy'].isel(time=i).dropna(dim='id').values
-    xhz = ds['xhx'].isel(time=i).dropna(dim='id').values
-    Gmass = ds['Gmass'].isel(time=i).dropna(dim='id').values[1:] # Drop the Sun from the numpy array.
+    xhx = ds['xhx'].isel(time=i).dropna(dim='name').values
+    xhy = ds['xhy'].isel(time=i).dropna(dim='name').values
+    xhz = ds['xhx'].isel(time=i).dropna(dim='name').values
+    Gmass = ds['Gmass'].isel(time=i).dropna(dim='name').values[1:] # Drop the Sun from the numpy array.
 
     # Calculate the center of mass of the system at time i. While the center of mass relative to the 
     # colliding bodies does not change, the center of mass of the collision will move as the bodies
