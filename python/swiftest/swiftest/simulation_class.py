@@ -386,6 +386,8 @@ class Simulation:
         post_message = f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
         if "nplm" in self.data:
             post_message += f" nplm: {self.data['nplm'].values[0]}"
+        if self.param['ENERGY']:
+            post_message += f" dL/L0: {0.0:.5e} dE/|E0|: {0.0:.5e}"
         pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         try:
             with subprocess.Popen(shlex.split(cmd),
@@ -405,6 +407,10 @@ class Simulation:
                         post_message = f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
                         if "NPLM" in output_data:
                             post_message += f" nplm: {output_data['NPLM']}"
+                        if "LTOTERR" in output_data:
+                            post_message += f" dL/L0: {output_data['LTOTERR']:.5e}"
+                        if "ETOTERR" in output_data:
+                            post_message += f" dE/|E0|: {output_data['ETOTERR']:.5e}"
                         interval = output_data['ILOOP'] - iloop
                         if interval > 0:
                            pbar.update(interval)
@@ -745,7 +751,7 @@ class Simulation:
             "general_relativity": True,
             "fragmentation": False,
             "minimum_fragment_mass": None,
-            "minimum_fragment_gmass": None,
+            "minimum_fragment_gmass": 0.0,
             "rotation": False,
             "compute_conservation_values": False,
             "extra_force": False,
@@ -781,8 +787,6 @@ class Simulation:
 
         # Add the verbose flag to the kwargs for passing down to the individual setters
         kwargs["verbose"] = verbose
-
-
 
         # Setters returning parameter dictionary values
         param_dict = {}
