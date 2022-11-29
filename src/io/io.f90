@@ -291,49 +291,25 @@ contains
       param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
       dump_param%in_form  = XV
       dump_param%out_stat = 'APPEND'
-      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-         dump_param%in_type = REAL8_TYPE
-         dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-         dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-         dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-
-         dump_param%Eorbit_orig = self%Eorbit_orig 
-         dump_param%GMtot_orig = self%GMtot_orig
-         dump_param%Ltot_orig(:) = self%Ltot_orig(:)
-         dump_param%Lorbit_orig(:) = self%Lorbit_orig(:)
-         dump_param%Lspin_orig(:) = self%Lspin_orig(:)
-         dump_param%GMescape = self%GMescape
-         dump_param%Ecollisions = self%Ecollisions
-         dump_param%Euntracked = self%Euntracked
-         dump_param%Lescape(:) = self%Lescape
-
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         dump_param%in_type = NETCDF_DOUBLE_TYPE
-         dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
-         dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
-         dump_param%nciu%time_chunk = 1
-      end if
+      dump_param%in_type = NETCDF_DOUBLE_TYPE
+      dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
+      dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
+      dump_param%nciu%time_chunk = 1
       dump_param%T0 = param%t
 
       call dump_param%dump(param_file_name)
 
       dump_param%out_form = XV
-      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-         call self%cb%dump(dump_param)
-         call self%pl%dump(dump_param)
-         call self%tp%dump(dump_param)
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
-         dump_param%ioutput = 0 
-         call dump_param%nciu%initialize(dump_param)
-         call self%write_hdr(dump_param%nciu, dump_param)
-         call self%cb%write_frame(dump_param%nciu, dump_param)
-         call self%pl%write_frame(dump_param%nciu, dump_param)
-         call self%tp%write_frame(dump_param%nciu, dump_param)
-         call dump_param%nciu%close()
-         ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
-         call param%nciu%flush(param)
-      end if
+      dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
+      dump_param%ioutput = 0 
+      call dump_param%nciu%initialize(dump_param)
+      call self%write_hdr(dump_param%nciu, dump_param)
+      call self%cb%write_frame(dump_param%nciu, dump_param)
+      call self%pl%write_frame(dump_param%nciu, dump_param)
+      call self%tp%write_frame(dump_param%nciu, dump_param)
+      call dump_param%nciu%close()
+      ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+      call param%nciu%flush(param)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
@@ -796,8 +772,7 @@ contains
          end if
          param%lrestart = (param%out_stat == "APPEND")
          if (param%outfile /= "") then
-            if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
-                  (param%out_type /= NETCDF_FLOAT_TYPE)  .and. (param%out_type /= NETCDF_DOUBLE_TYPE)) then
+            if ((param%out_type /= NETCDF_FLOAT_TYPE) .and. (param%out_type /= NETCDF_DOUBLE_TYPE)) then
                write(iomsg,*) 'Invalid out_type: ',trim(adjustl(param%out_type))
                iostat = -1
                return
@@ -2092,74 +2067,36 @@ contains
       allocate(tp, source = self%tp)
       iu = BINUNIT
       
-      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-         if (lfirst) then
-            select case(param%out_stat)
-            case('APPEND')
-               open(unit=iu, file=param%outfile, status='OLD', position='APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-            case('NEW', 'REPLACE', 'UNKNOWN')
-               open(unit=iu, file=param%outfile, status=param%out_stat, form='UNFORMATTED', err=667, iomsg=errmsg)
-            case default
-               write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
-               call util_exit(FAILURE)
-            end select
-   
-            lfirst = .false.
-         else
-            open(unit=iu, file=param%outfile, status='OLD', position= 'APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-         end if
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+      param%nciu%id_chunk = pl%nbody + tp%nbody
+      param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
+      if (lfirst) then
+         inquire(file=param%outfile, exist=fileExists)
+         
+         select case(param%out_stat)
+         case('APPEND')
+            if (.not.fileExists) then
+               errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
+               goto 667
+            end if
+         case('NEW')
+            if (fileExists) then
+               errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
+               goto 667
+            end if
+            call param%nciu%initialize(param)
+         case('REPLACE', 'UNKNOWN')
+            call param%nciu%initialize(param)
+         end select
 
-         param%nciu%id_chunk = pl%nbody + tp%nbody
-         param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
-         if (lfirst) then
-            inquire(file=param%outfile, exist=fileExists)
-          
-            select case(param%out_stat)
-            case('APPEND')
-               if (.not.fileExists) then
-                  errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
-                  goto 667
-               end if
-            case('NEW')
-               if (fileExists) then
-                  errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
-                  goto 667
-               end if
-               call param%nciu%initialize(param)
-            case('REPLACE', 'UNKNOWN')
-               call param%nciu%initialize(param)
-            end select
-
-            lfirst = .false.
-         end if
+         lfirst = .false.
       end if
 
       ! Write out each data type frame
-      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-         ! For these data types, do these conversion here before writing the output. 
-         if (param%lgr) then
-            call pl%pv2v(param)
-            call tp%pv2v(param)
-         end if
-   
-         if ((param%out_form == EL) .or. (param%out_form == XVEL)) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-            call pl%xv2el(cb)
-            call tp%xv2el(cb)
-         end if
-
-         call self%write_hdr(iu, param)
-         call cb%write_frame(iu, param)
-         call pl%write_frame(iu, param)
-         call tp%write_frame(iu, param)
-         close(iu, err = 667, iomsg = errmsg)
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         ! For NetCDF output, because we want to store the pseudovelocity separately from the true velocity, we need to do the orbital element conversion internally
-         call self%write_hdr(param%nciu, param)
-         call cb%write_frame(param%nciu, param)
-         call pl%write_frame(param%nciu, param)
-         call tp%write_frame(param%nciu, param)
-      end if
+      ! For NetCDF output, because we want to store the pseudovelocity separately from the true velocity, we need to do the orbital element conversion internally
+      call self%write_hdr(param%nciu, param)
+      call cb%write_frame(param%nciu, param)
+      call pl%write_frame(param%nciu, param)
+      call tp%write_frame(param%nciu, param)
 
       return
 
