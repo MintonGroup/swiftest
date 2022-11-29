@@ -49,7 +49,7 @@ pos_vectors = {"disruption_headon"         : [np.array([1.0, -1.807993e-05, 0.0]
                "supercatastrophic_off_axis": [np.array([1.0, -4.2e-05,      0.0]),
                                               np.array([1.0,  4.2e-05,      0.0])],
                "hitandrun"                 : [np.array([1.0, -4.2e-05,      0.0]),
-                                              np.array([1.0,  4.2e-05,      0.0])]
+                                              np.array([0.9999999,  4.2e-05,      0.0])]
                }
 
 vel_vectors = {"disruption_headon"         : [np.array([-2.562596e-04,  6.280005, 0.0]),
@@ -57,7 +57,7 @@ vel_vectors = {"disruption_headon"         : [np.array([-2.562596e-04,  6.280005
                "supercatastrophic_off_axis": [np.array([0.0,            6.28,     0.0]),
                                               np.array([1.0,           -6.28,     0.0])],
                "hitandrun"                 : [np.array([0.0,            6.28,     0.0]),
-                                              np.array([-1.5,          -6.28,     0.0])]
+                                              np.array([-0.1,          -6.28,     0.0])]
                }
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
@@ -92,6 +92,8 @@ def center(xhx, xhy, xhz, Gmass):
     z_com = np.sum(Gmass * xhz) / np.sum(Gmass)
     return x_com, y_com, z_com
 
+figsize = (4,4)
+
 def animate(i,ds,movie_title):
 
     # Calculate the position and mass of all bodies in the system at time i and store as a numpy array.
@@ -99,6 +101,7 @@ def animate(i,ds,movie_title):
     xhy = ds['xhy'].isel(time=i).dropna(dim='name').values
     xhz = ds['xhx'].isel(time=i).dropna(dim='name').values
     Gmass = ds['Gmass'].isel(time=i).dropna(dim='name').values[1:]  # Drop the Sun from the numpy array.
+    radius = ds['radius'].isel(time=i).dropna(dim='name').values[1:]  # Drop the Sun from the numpy array.
 
     # Calculate the center of mass of the system at time i. While the center of mass relative to the
     # colliding bodies does not change, the center of mass of the collision will move as the bodies
@@ -117,7 +120,9 @@ def animate(i,ds,movie_title):
     ax.set_xticks([])
     ax.set_yticks([])
 
-    ax.scatter(xhx, xhy, s=(5000000000 * Gmass))
+    ax_pt_size = figsize[0] * 72 / (2 * scale_frame)
+    point_rad = 2 * radius * ax_pt_size
+    ax.scatter(xhx, xhy, s=point_rad**2)
 
     plt.tight_layout()
 
@@ -135,7 +140,7 @@ for style in movie_styles:
     minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
     gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
     sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass)
-    sim.run(dt=1e-8, tstop=2.e-5)
+    sim.run(dt=1e-8, tstop=1.e-5)
 
     # Calculate the number of frames in the dataset.
     nframes = int(sim.data['time'].size)
@@ -145,8 +150,8 @@ for style in movie_styles:
     scale_frame = abs(sim.data['xhy'].isel(time=0, name=1).values) + abs(sim.data['xhy'].isel(time=0, name=2).values)
 
     # Set up the figure and the animation.
-    fig, ax = plt.subplots(figsize=(4,4))
+    fig, ax = plt.subplots(figsize=figsize)
     # Generate the movie.
-    nskip = 10
+    nskip = 1
     ani = animation.FuncAnimation(fig, animate, fargs=(sim.data, movie_titles[style]), interval=1, frames=range(0,nframes,nskip), repeat=False)
     ani.save(movie_filename, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
