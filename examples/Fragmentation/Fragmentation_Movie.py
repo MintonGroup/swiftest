@@ -135,7 +135,7 @@ for style in movie_styles:
     minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
     gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
     sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass)
-    sim.run(dt=1e-8, tstop=1.e-5)
+    sim.run(dt=1e-8, tstop=2.e-5)
 
     # Calculate the number of frames in the dataset.
     nframes = int(sim.data['time'].size)
@@ -147,5 +147,6 @@ for style in movie_styles:
     # Set up the figure and the animation.
     fig, ax = plt.subplots(figsize=(4,4))
     # Generate the movie.
-    ani = animation.FuncAnimation(fig, animate, fargs=(sim.data, movie_titles[style]), interval=1, frames=nframes, repeat=False)
+    nskip = 10
+    ani = animation.FuncAnimation(fig, animate, fargs=(sim.data, movie_titles[style]), interval=1, frames=range(0,nframes,nskip), repeat=False)
     ani.save(movie_filename, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
