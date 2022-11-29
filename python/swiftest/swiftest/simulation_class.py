@@ -320,9 +320,9 @@ class Simulation:
         # Higher Priority: Values from a file (if requested and it exists)
         #-----------------------------------------------------------------
 
-        # If the user asks to read in an old parameter file, override any default parameters with values from the file
+        # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
-        if read_param:
+        if read_param or read_old_output_file:
             #good_param is self.read_param()
             if self.read_param():
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
