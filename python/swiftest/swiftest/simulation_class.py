@@ -41,7 +41,7 @@ class Simulation:
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = False, **kwargs: Any):
+    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, **kwargs: Any):
         """
 
         Parameters
@@ -63,6 +63,10 @@ class Simulation:
                   inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
+
+        read_old_output_file : bool, default False
+            If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
+            Parameter input file equivalent: None
 
         **kwargs : See list of valid parameters and their defaults below
 
@@ -140,9 +144,6 @@ class Simulation:
             Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
             vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
             Parameter input file equivalent: `OUT_FORM`
-        read_old_output_file : bool, default False
-            If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
-            Parameter input file equivalent: None
         MU : str, default "MSUN"
             The mass unit system to use. Case-insensitive valid options are:
             * "Msun"   : Solar mass
@@ -344,7 +345,6 @@ class Simulation:
             self.write_param()
 
         # Read in an old simulation file if requested
-        read_old_output_file = kwargs.pop("read_old_output_file",False)
         if read_old_output_file:
             binpath = os.path.join(self.sim_dir, self.param['BIN_OUT'])
             if os.path.exists(binpath):
