@@ -389,6 +389,7 @@ class Simulation:
             post_message += f" nplm: {self.data['nplm'].values[0]}"
         if self.param['ENERGY']:
             post_message += f" dL/L0: {0.0:.5e} dE/|E0|: {0.0:+.5e}"
+        post_message += f" Wall time / step: {0.0:.5e} s"
         pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         try:
             with subprocess.Popen(shlex.split(cmd),
@@ -412,6 +413,7 @@ class Simulation:
                             post_message += f" dL/L0: {output_data['LTOTERR']:.5e}"
                         if "ETOTERR" in output_data:
                             post_message += f" dE/|E0|: {output_data['ETOTERR']:+.5e}"
+                        post_message += f" Wall time / step: {output_data['WTPS']:.5e} s"
                         interval = output_data['ILOOP'] - iloop
                         if interval > 0:
                            pbar.update(interval)
