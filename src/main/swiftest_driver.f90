@@ -20,10 +20,10 @@ program swiftest_driver
 
    class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
    class(swiftest_parameters),   allocatable  :: param            !! Run configuration parameters
-   integer(I4B)                               :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
+   character(len=:), allocatable              :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
+   character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
    integer(I4B)                               :: ierr             !! I/O error code 
-   integer(I8B)                               :: iloop            !! Loop counter
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
    integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
@@ -31,16 +31,19 @@ program swiftest_driver
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
-   character(*), parameter                    :: statusfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
-                                                                '"; Number of active pl, tp = ", I5, ", ", I5)'
-   character(*), parameter                    :: symbastatfmt   = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
-                                                                   '"; Number of active plm, pl, tp = ", I5, ", ", I5, ", ", I5)'
+   type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
+   character(*), parameter                    :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
+                                                             '"; Number of active pl, tp = ", I6, ", ", I6)'
+   character(*), parameter                    :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+                                                                '"; Number of active plm, pl, tp = ", I6, ", ", I6, ", ", I6)'
+   character(*), parameter                    :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
+   character(len=64)                          :: pbarmessage
 
-   ierr = io_get_args(integrator, param_file_name)
-   if (ierr /= 0) then
-      write(*,*) 'Error reading in arguments from the command line'
-      call util_exit(FAILURE)
-   end if
+   character(*), parameter                    :: symbacompactfmt = '(";NPLM",ES22.15,$)'
+
+
+   call io_get_args(integrator, param_file_name, display_style)
+
    !> Read in the user-defined parameters file and the initial conditions of the system
    select case(integrator)
    case(symba)
@@ -49,17 +52,29 @@ program swiftest_driver
       allocate(swiftest_parameters :: param)
    end select
    param%integrator = integrator
+   call param%set_display(display_style)
+
+   !> Define the maximum number of threads
+   nthreads = 1            ! In the *serial* case
+   !$ nthreads = omp_get_max_threads() ! In the *parallel* case
+   !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
+   !$ write(param%display_unit,'(a)')   ' ------------------'
+   !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
+   !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 
    call setup_construct_system(nbody_system, param)
    call param%read_in(param_file_name)
 
-   associate(t          => param%t, &
-             t0         => param%t0, &
-             dt         => param%dt, &
-             tstop      => param%tstop, &
-             istep_out  => param%istep_out, &
-             istep_dump => param%istep_dump, &
-             ioutput    => param%ioutput)  
+   associate(t               => param%t, &
+             t0              => param%t0, &
+             dt              => param%dt, &
+             tstop           => param%tstop, &
+             iloop           => param%iloop, &
+             istep_out       => param%istep_out, &
+             istep_dump      => param%istep_dump, &
+             ioutput         => param%ioutput, &
+             display_style   => param%display_style, &
+             display_unit    => param%display_unit)
 
       call nbody_system%initialize(param)
       t = t0
@@ -80,14 +95,16 @@ program swiftest_driver
          if (istep_out > 0) call nbody_system%write_frame(param)
       end if
 
-      !> Define the maximum number of threads
-      nthreads = 1            ! In the *serial* case
-      !$ nthreads = omp_get_max_threads() ! In the *parallel* case
-      !$ write(*,'(a)')   ' OpenMP parameters:'
-      !$ write(*,'(a)')   ' ------------------'
-      !$ write(*,'(a,i3,/)') ' Number of threads  = ', nthreads 
-      write(*, *) " *************** Main Loop *************** "
+      write(display_unit, *) " *************** Main Loop *************** "
       if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+      if (display_style == "PROGRESS") then
+         call pbar%reset(nloops)
+         write(pbarmessage,fmt=pbarfmt) t0, tstop
+         call pbar%update(1,message=pbarmessage)
+      else if (display_style == "COMPACT") then
+         write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
+         call nbody_system%compact_output(param,integration_timer)
+      end if
       do iloop = 1, nloops
          !> Step the system forward in time
          call integration_timer%start()
@@ -98,24 +115,33 @@ program swiftest_driver
 
          !> Evaluate any discards or collisional outcomes
          call nbody_system%discard(param)
+         if (display_style == "PROGRESS") call pbar%update(iloop)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
                ioutput = ioutput_t0 + iloop / istep_out
-               if (t > old_t_final) call nbody_system%write_frame(param)
+               call nbody_system%write_frame(param)
 
                tfrac = (param%t - param%t0) / (param%tstop - param%t0)
 
                select type(pl => nbody_system%pl)
                class is (symba_pl)
-                  write(*, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
+                  write(display_unit, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
                class default
-                  write(*, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
+                  write(display_unit, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
                end select
                if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-               call integration_timer%report(message="Integration steps:", nsubsteps=istep_out)
+               call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
+
+               if (display_style == "PROGRESS") then
+                  write(pbarmessage,fmt=pbarfmt) t, tstop
+                  call pbar%update(1,message=pbarmessage)
+               else if (display_style == "COMPACT") then
+                  call nbody_system%compact_output(param,integration_timer)
+               end if
+
                call integration_timer%reset()
 
                iout = istep_out
@@ -131,6 +157,7 @@ program swiftest_driver
             end if
          end if
       end do
+      if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
    end associate
 
    call nbody_system%dealloc()

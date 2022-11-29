@@ -29,18 +29,21 @@ ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 
 # Set some options the user may choose
 # Uncomment the below if you want the user to choose a parallelization library
-OPTION(USE_MPI "Use the MPI library for parallelization" OFF)
+OPTION(USE_MPI "Use the MPI library for parallelization" ON)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 
-# This INCLUDE statement executes code that sets the compile flags for DEBUG,
-# RELEASE, and TESTING.  You should  review this file and make sure the flags 
-# are to your liking.
-INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
+
 # Locate and set parallelization libraries.  There are some CMake peculiarities
 # taken care of here, such as the fact that the FindOpenMP routine doesn't know
 # about Fortran.
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
+INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
+
+# This INCLUDE statement executes code that sets the compile flags for DEBUG,
+# RELEASE, PROFILING, and TESTING.  
+INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
+
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
 GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
@@ -59,9 +62,10 @@ SET(SWIFTEST_DRIVER swiftest_driver)
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
+SET(MOD ${CMAKE_SOURCE_DIR}/include)
 
 # Have the .mod files placed in the lib folder
-SET(CMAKE_Fortran_MODULE_DIRECTORY ${LIB})
+SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})

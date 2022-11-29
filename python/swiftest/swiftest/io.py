@@ -109,6 +109,8 @@ def str2bool(input_str):
     {True, False}
 
     """
+    if type(input_str) is bool:
+       return input_str
     valid_true = ["YES", "Y", "T", "TRUE", ".TRUE."]
     valid_false = ["NO", "N", "F", "FALSE", ".FALSE."]
     if input_str.upper() in valid_true:
@@ -175,12 +177,13 @@ def read_swiftest_param(param_file_name, param, verbose=True):
                 param[uc] = param[uc].upper()
 
         for i in int_param:
-            if i in param and type(i) != int:
-                param[i] = int(param[i])
+            if i in param and type(param[i]) != int:
+                param[i] = int(float(param[i]))
 
         for f in float_param:
-            if f in param and type(f) is str:
+            if f in param and type(param[f]) is str:
                 param[f] = real2float(param[f])
+
         for b in bool_param:
             if b in param:
                 param[b] = str2bool(param[b])
@@ -427,7 +430,7 @@ def write_labeled_param(param, param_file_name):
                'TU2S',
                'DU2M',
                'GMTINY',
-               'FRAGMENTATION'
+               'FRAGMENTATION',
                'MIN_GMFRAG',
                'RESTART']
     ptmp = param.copy()
@@ -1067,7 +1070,7 @@ def select_active_from_frame(ds, param, framenum=-1):
 
     return frame
 
-def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1):
+def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1,verbose=True):
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
 
@@ -1100,7 +1103,8 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         if infile_name is None:
             infile_name = param['NC_IN']
         frame = unclean_string_values(frame)
-        print(f"Writing initial conditions to file {infile_name}")
+        if verbose:
+            print(f"Writing initial conditions to file {infile_name}")
         frame.to_netcdf(path=infile_name)
         return frame
 

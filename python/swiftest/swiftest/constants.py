@@ -13,7 +13,7 @@ import numpy as np
 import astropy.constants as const
 
 # Constants in SI units
-GC = const.G.value
+GC = const.G.value[()]
 AU2M = const.au.value
 GMSun = const.GM_sun.value
 MSun = const.M_sun.value

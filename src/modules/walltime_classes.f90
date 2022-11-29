@@ -29,6 +29,8 @@ module walltime_classes
       integer(I8B) :: count_stop_step            !! Value of the clock ticker at the end of a timed step
       integer(I8B) :: count_pause                !! Value of the clock ticker at the end of a timed step
       real(DP)     :: wall_step                  !! Value of the step elapsed time
+      real(DP)     :: wall_main                  !! Value of the main clock elapsed time
+      real(DP)     :: wall_per_substep           !! Value of time per substep 
       logical      :: main_is_started = .false. !! Logical flag indicating whether or not the main timer has been reset or not
       logical      :: is_paused = .false. !! Logical flag indicating whether or not the timer is paused
 
@@ -60,10 +62,11 @@ module walltime_classes
    end type interaction_timer
 
    interface
-      module subroutine walltime_report(self, message, nsubsteps)
+      module subroutine walltime_report(self, message, unit, nsubsteps)
          implicit none
          class(walltimer),           intent(inout) :: self      !! Walltimer object
          character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
+         integer(I4B),               intent(in)    :: unit      !! Output file unit for report text to be directed
          integer(I4B), optional,     intent(in)    :: nsubsteps !! Number of substeps used to compute the time per step 
       end subroutine walltime_report
 

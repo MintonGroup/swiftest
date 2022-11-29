@@ -44,15 +44,15 @@ module swiftest_globals
    real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! swiftest version
 
    !> Symbolic name for integrator types
-   integer(I4B), parameter :: UNKNOWN_INTEGRATOR = 1
-   integer(I4B), parameter :: BS                 = 2
-   integer(I4B), parameter :: HELIO              = 3
-   integer(I4B), parameter :: RA15               = 4
-   integer(I4B), parameter :: TU4                = 5
-   integer(I4B), parameter :: WHM                = 6
-   integer(I4B), parameter :: RMVS               = 7
-   integer(I4B), parameter :: SYMBA              = 8
-   integer(I4B), parameter :: RINGMOONS          = 9
+   character(*), parameter :: UNKNOWN_INTEGRATOR = "UKNOWN INTEGRATOR"
+   character(*), parameter :: BS                 = "Bulirsch-Stoer"
+   character(*), parameter :: HELIO              = "Democratic Heliocentric"
+   character(*), parameter :: RA15               = "Radau 15th order"
+   character(*), parameter :: TU4                = "T+U 4th order"
+   character(*), parameter :: WHM                = "Wisdom-Holman Method"
+   character(*), parameter :: RMVS               = "Regularized Mixed Variable Symplectic"
+   character(*), parameter :: SYMBA              = "SyMBA"
+   character(*), parameter :: RINGMOONS          = "SyMBA-RINGMOONS"
 
    integer(I4B), parameter :: STRMAX = 512 !! Maximum size of character strings
    integer(I4B), parameter :: NAMELEN = 32 !! Maximum size of name strings
@@ -80,11 +80,6 @@ module swiftest_globals
    integer(I4B), parameter :: FAILURE = -1 !! Symbolic name for function return/flag code for failure
    integer(I4B), parameter :: USAGE = -2 !! Symbolic name for function return/flag code for printing the usage message
    integer(I4B), parameter :: HELP  = -3 !! Symbolic name for function return/flag code for printing the usage message
-
-   character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
-   character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
-   character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <paramfile>")'
-   character(*), parameter :: HELP_MSG  = USAGE_MSG
 
    integer(I4B), parameter :: ELLIPSE   = -1 !! Symbolic names for orbit types - ellipse
    integer(I4B), parameter :: PARABOLA  =  0 !! Symbolic names for orbit types - parabola
@@ -123,11 +118,13 @@ module swiftest_globals
 
    !> Standard file names
    integer(I4B), parameter :: NDUMPFILES = 2
-   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'   ]
-   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'   ]
-   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'   ]
-   character(*), dimension(2), parameter :: DUMP_NC_FILE    = ['dump_bin1.nc',   'dump_bin2.nc'   ]
+   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'  ]
+   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'  ]
+   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'  ]
+   character(*), dimension(2), parameter :: DUMP_NC_FILE    = ['dump_bin1.nc',    'dump_bin2.nc'  ]
    character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.in',  'dump_param2.in']
+   character(*),               parameter :: SWIFTEST_LOG_FILE = "swiftest.log" !! Name of file to use to log output when using "COMPACT" display style
+   integer(I4B),               parameter :: SWIFTEST_LOG_OUT = 33 !! File unit for log file when using "COMPACT" display style 
 
    !> Default file names that can be changed by the user in the parameters file
    character(*), parameter :: CB_INFILE        = 'cb.in'
@@ -136,7 +133,6 @@ module swiftest_globals
    character(*), parameter :: NC_INFILE        = 'in.nc'
    character(*), parameter :: BIN_OUTFILE      = 'bin.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
-   character(*), parameter :: PARTICLE_OUTFILE = 'particle.dat'
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
    integer(I4B), parameter :: LUN              = 42 !! File unit number for files that are opened and closed within a single subroutine call, and therefore should not collide
 

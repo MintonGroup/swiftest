@@ -32,14 +32,15 @@ module swiftest_classes
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
-      integer(I4B)         :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
+      character(STRMAX)    :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
       character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
       integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
-      integer(I4B)         :: maxid_collision = 0                !! The current maximum collision id number
+      integer(I4B)         :: maxid_collision = 0                 !! The current maximum collision id number
       real(DP)             :: t0             = -1.0_DP            !! Integration start time
       real(DP)             :: t              = -1.0_DP            !! Integration current time
       real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
       real(DP)             :: dt             = -1.0_DP            !! Time step
+      integer(I8B)         :: iloop          = 0_I8B              !! Main loop counter
       integer(I8B)         :: ioutput        = 0_I8B              !! Output counter
       character(STRMAX)    :: incbfile       = CB_INFILE          !! Name of input file for the central body
       character(STRMAX)    :: inplfile       = PL_INFILE          !! Name of input file for massive bodies
@@ -52,7 +53,6 @@ module swiftest_classes
       character(STRMAX)    :: out_type       = NETCDF_DOUBLE_TYPE !! Binary format of output file
       character(STRMAX)    :: out_form       = XVEL               !! Data to write to output file
       character(STRMAX)    :: out_stat       = 'NEW'              !! Open status for output binary file
-      character(STRMAX)    :: particle_out   = PARTICLE_OUTFILE   !! Name of output particle information file
       integer(I4B)         :: istep_dump     = -1                 !! Number of time steps between dumps
       real(DP)             :: rmin           = -1.0_DP            !! Minimum heliocentric radius for test particle
       real(DP)             :: rmax           = -1.0_DP            !! Maximum heliocentric radius for test particle
@@ -72,6 +72,7 @@ module swiftest_classes
       character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
       character(NAMELEN)   :: encounter_check_plpl = "ADAPTIVE"   !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
       character(NAMELEN)   :: encounter_check_pltp = "ADAPTIVE"   !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
       logical :: ladaptive_interactions = .false. !! Adaptive interaction loop is turned on (choose between TRIANGULAR and FLAT based on periodic timing tests)
@@ -104,6 +105,10 @@ module swiftest_classes
       logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
       logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
 
+      character(len=:), allocatable :: display_style         !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      integer(I4B)                  :: display_unit          !! File unit number for display (either to stdout or to a log file)
+      logical                       :: log_output  = .false. !! Logs the output to file instead of displaying it on the terminal
+
       ! Future features not implemented or in development
       logical :: lgr = .false.               !! Turn on GR
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
@@ -111,10 +116,11 @@ module swiftest_classes
 
       type(netcdf_parameters) :: nciu !! Object containing NetCDF parameters
    contains
-      procedure :: reader  => io_param_reader
-      procedure :: writer  => io_param_writer
-      procedure :: dump    => io_dump_param
-      procedure :: read_in => io_read_in_param
+      procedure :: reader      => io_param_reader
+      procedure :: writer      => io_param_writer
+      procedure :: dump        => io_dump_param
+      procedure :: read_in     => io_read_in_param
+      procedure :: set_display => io_set_display_param
    end type swiftest_parameters
 
 
@@ -137,7 +143,6 @@ module swiftest_classes
       real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
    contains
-      procedure :: dump      => io_dump_particle_info    !! Dumps contents of particle information to file
       procedure :: read_in   => io_read_in_particle_info !! Read in a particle information object from an open file
       procedure :: copy      => util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
       procedure :: set_value => util_set_particle_info   !! Sets one or more values of the particle information metadata object
@@ -151,12 +156,11 @@ module swiftest_classes
    contains
       !! The minimal methods that all systems must have
       procedure :: dump                       => io_dump_base                 !! Dump contents to file
-      procedure :: dump_particle_info         => io_dump_particle_info_base   !! Dump contents of particle information metadata to file
       procedure :: read_in                    => io_read_in_base              !! Read in body initial conditions from a file
       procedure :: write_frame_netcdf         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
-      procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base !! Writes out the particle information metadata to NetCDF file
+      procedure :: write_particle_info_netcdf => netcdf_write_particle_info_base  !! Dump contents of particle information metadata to file
       generic   :: write_frame                => write_frame_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
-      generic   :: write_particle_info        => write_particle_info_netcdf
+      generic   :: write_particle_info        => write_particle_info_netcdf           !! Set up generic procedure that will switch between NetCDF or Fortran binary depending on arguments
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -364,6 +368,9 @@ module swiftest_classes
       real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
       real(DP), dimension(NDIM)       :: Lspin = 0.0_DP       !! System spin angular momentum vector
       real(DP), dimension(NDIM)       :: Ltot = 0.0_DP        !! System angular momentum vector
+      real(DP)                        :: ke_orbit_orig = 0.0_DP!! Initial orbital kinetic energy
+      real(DP)                        :: ke_spin_orig = 0.0_DP!! Initial spin kinetic energy
+      real(DP)                        :: pe_orig = 0.0_DP     !! Initial potential energy
       real(DP)                        :: Eorbit_orig = 0.0_DP !! Initial orbital energy
       real(DP)                        :: GMtot_orig = 0.0_DP  !! Initial system mass
       real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP   !! Initial total angular momentum vector
@@ -373,6 +380,22 @@ module swiftest_classes
       real(DP)                        :: GMescape = 0.0_DP    !! Mass of bodies that escaped the system (used for bookeeping)
       real(DP)                        :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
       real(DP)                        :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+
+      ! Energy, momentum, and mass errors (used in error reporting)
+      real(DP)                        :: ke_orbit_error   = 0.0_DP
+      real(DP)                        :: ke_spin_error    = 0.0_DP
+      real(DP)                        :: pe_error         = 0.0_DP
+      real(DP)                        :: Eorbit_error     = 0.0_DP
+      real(DP)                        :: Ecoll_error      = 0.0_DP
+      real(DP)                        :: Euntracked_error = 0.0_DP
+      real(DP)                        :: Etot_error       = 0.0_DP
+      real(DP)                        :: Lorbit_error     = 0.0_DP
+      real(DP)                        :: Lspin_error      = 0.0_DP
+      real(DP)                        :: Lescape_error    = 0.0_DP
+      real(DP)                        :: Ltot_error       = 0.0_DP
+      real(DP)                        :: Mtot_error       = 0.0_DP
+      real(DP)                        :: Mescape_error    = 0.0_DP
+
       logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                               !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                               !!    the test particles
@@ -382,6 +405,7 @@ module swiftest_classes
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure :: discard                 => discard_system                         !! Perform a discard step on the system
+      procedure :: compact_output          => io_compact_output                      !! Prints out out terminal output when display_style is set to COMPACT
       procedure :: conservation_report     => io_conservation_report                 !! Compute energy and momentum and print out the change with time
       procedure :: dump                    => io_dump_system                         !! Dump the state of the system to a file
       procedure :: get_old_t_final_bin     => io_get_old_t_final_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
@@ -394,7 +418,6 @@ module swiftest_classes
       procedure :: read_hdr_netcdf         => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr_netcdf        => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
       procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
-      procedure :: read_particle_info_bin  => io_read_particle_info_system           !! Read in particle metadata from file
       procedure :: read_particle_info_netcdf  => netcdf_read_particle_info_system           !! Read in particle metadata from file
       procedure :: write_discard           => io_write_discard                       !! Write out information about discarded test particles
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
@@ -411,8 +434,9 @@ module swiftest_classes
       generic   :: read_hdr                => read_hdr_netcdf                        !! Generic method call for reading headers
       generic   :: read_frame              => read_frame_bin, read_frame_netcdf      !! Generic method call for reading a frame of output data
       generic   :: write_frame             => write_frame_bin, write_frame_netcdf    !! Generic method call for writing a frame of output data
-      generic   :: read_particle_info      => read_particle_info_bin, read_particle_info_netcdf !! Genereric method call for reading in the particle information metadata
+      generic   :: read_particle_info      => read_particle_info_netcdf !! Genereric method call for reading in the particle information metadata
    end type swiftest_nbody_system
+
 
    abstract interface
 
@@ -582,6 +606,13 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine gr_vh2pv_body
 
+      module subroutine io_compact_output(self, param, timer)
+         implicit none
+         class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
+         class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
+         class(*),                      intent(in) :: timer !! Object used for computing elapsed wall time
+      end subroutine io_compact_output
+
       module subroutine io_conservation_report(self, param, lterminal)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self      !! Swiftest nbody system object
@@ -595,19 +626,6 @@ module swiftest_classes
          character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine io_dump_param
 
-      module subroutine io_dump_particle_info_base(self, param, idx)
-         implicit none
-         class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
-         integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
-      end subroutine io_dump_particle_info_base
-
-      module subroutine io_dump_particle_info(self, iu)
-         implicit none
-         class(swiftest_particle_info), intent(in) :: self !! Swiftest particle info metadata object
-         integer(I4B),                  intent(in) :: iu   !! Open unformatted file unit number
-      end subroutine io_dump_particle_info
-
       module subroutine io_dump_base(self, param)
          implicit none
          class(swiftest_base),          intent(inout) :: self  !! Swiftest base object
@@ -620,12 +638,12 @@ module swiftest_classes
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
 
-      module function io_get_args(integrator, param_file_name) result(ierr)
+      module subroutine io_get_args(integrator, param_file_name, display_style) 
          implicit none
-         integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
-         character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-         integer(I4B)                  :: ierr             !! I/O error code 
-      end function io_get_args
+         character(len=:), allocatable, intent(inout) :: integrator      !! Symbolic code of the requested integrator  
+         character(len=:), allocatable, intent(inout) :: param_file_name !! Name of the input parameters file
+         character(len=:), allocatable, intent(inout) :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      end subroutine io_get_args
 
       module function io_get_old_t_final_system(self, param) result(old_t_final)
          implicit none
@@ -662,7 +680,7 @@ module swiftest_classes
          integer(I4B),               intent(in)    :: unit       !! File unit number
          character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                                  !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer(I4B),               intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
+         character(len=*),           intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
          integer(I4B),               intent(out)   :: iostat     !! IO status code
          character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
       end subroutine io_param_reader
@@ -787,22 +805,22 @@ module swiftest_classes
          integer(I4B)                               :: ierr  !! Error code: returns 0 if the read is successful
       end function io_read_frame_system
 
-      module subroutine io_read_particle_info_system(self, param)
+      module subroutine io_set_display_param(self, display_style)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      end subroutine io_read_particle_info_system
+         class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
+         character(*),               intent(in)    :: display_style   !! Style of the output display 
+      end subroutine io_set_display_param
+
+      module subroutine io_toupper(string)
+         implicit none
+         character(*), intent(inout) :: string !! String to make upper case
+      end subroutine io_toupper
 
       module subroutine io_write_discard(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine io_write_discard
-
-      module subroutine io_toupper(string)
-         implicit none
-         character(*), intent(inout) :: string !! String to make upper case
-      end subroutine io_toupper
 
       module subroutine io_write_frame_body(self, iu, param)
          implicit none

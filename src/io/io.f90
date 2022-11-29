@@ -9,7 +9,106 @@
 
 submodule (swiftest_classes) s_io
    use swiftest
+
 contains
+
+   module subroutine io_compact_output(self, param, timer)
+      !! author: David Minton
+      !!
+      !! Generates the terminal output displayed when display_style is set to COMPACT. This is used by the Python driver to 
+      !! make nice-looking progress reports.
+      implicit none
+
+      interface fmt
+         !! author: David Minton
+         !!
+         !! Formats a pair of variables and corresponding values for the compact display output. Generic interface for different variable types to format.
+         procedure :: fmt_I4B, fmt_I8B, fmt_DP
+      end interface
+
+      ! Arguments
+      class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
+      class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
+      class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires swiftest_classes)
+      ! Internals
+      character(len=:), allocatable :: formatted_output
+
+      select type(timer)
+      class is (walltimer)
+         formatted_output = fmt("ILOOP",param%iloop) // fmt("T",param%t) // fmt("NPL",self%pl%nbody) // fmt("NTP",self%tp%nbody) 
+         select type(pl => self%pl)
+         class is (symba_pl)
+            formatted_output = formatted_output // fmt("NPLM",pl%nplm)
+         end select
+         if (param%lenergy) then
+            formatted_output = formatted_output // fmt("LTOTERR",self%Ltot_error) // fmt("ETOTERR",self%Etot_error) // fmt("MTOTERR",self%Mtot_error) &
+                             // fmt("KEOERR",self%ke_orbit_error) // fmt("PEERR",self%pe_error) // fmt("EORBERR",self%Eorbit_error) &
+                             // fmt("EUNTRERR",self%Euntracked_error) // fmt("LESCERR",self%Lescape_error) // fmt("MESCERR",self%Mescape_error)
+            if (param%lclose) formatted_output = formatted_output // fmt("ECOLLERR",self%Ecoll_error)
+            if (param%lrotation) formatted_output = formatted_output // fmt("KESPINERR",self%ke_spin_error) // fmt("LSPINERR",self%Lspin_error) 
+         end if
+
+         if (.not. timer%main_is_started) then ! This is the start of a new run
+            formatted_output =  formatted_output // fmt("WT",0.0_DP) // fmt("IWT",0.0_DP) // fmt("WTPS",0.0_DP) 
+         else
+            formatted_output = formatted_output // fmt("WT",timer%wall_main) // fmt("IWT",timer%wall_step) // fmt("WTPS",timer%wall_per_substep)
+         end if
+         write(*,*) formatted_output
+      end select
+      return
+
+      contains
+
+         function fmt_I4B(varname,val) result(pair_string)
+            implicit none
+            ! Arguments
+            character(*), intent(in) :: varname !! The variable name of the pair
+            integer(I4B), intent(in) :: val !! A 4-byte integer value
+            ! Result
+            character(len=:), allocatable :: pair_string
+            ! Internals
+            character(len=24) :: str_value
+      
+            write(str_value,*) val
+            pair_string = trim(adjustl(varname)) // " " // trim(adjustl(str_value)) // ";"
+
+            return 
+         end function fmt_I4B
+
+         function fmt_I8B(varname, val) result(pair_string)
+            implicit none
+            ! Arguments
+            character(*), intent(in) :: varname !! The variable name of the pair
+            integer(I8B), intent(in) :: val     !! An 8-byte integer value
+            ! Result
+            character(len=:), allocatable :: pair_string
+            ! Internals
+            character(len=24) :: str_value
+      
+            write(str_value,*) val
+            pair_string = trim(adjustl(varname)) // " " // trim(adjustl(str_value)) // ";"
+
+            return 
+         end function fmt_I8B
+
+         function fmt_DP(varname, val) result(pair_string)
+            implicit none
+            ! Arguments
+            character(*), intent(in) :: varname !! The variable name of the pair
+            real(DP),     intent(in) :: val     !! A double precision floating point value
+            ! Result
+            character(len=:), allocatable :: pair_string
+            ! Internals
+            character(len=24) :: str_value
+      
+            write(str_value,'(ES24.16)') val
+            pair_string = trim(adjustl(varname)) // " " // trim(adjustl(str_value)) // ";"
+
+            return 
+         end function fmt_DP
+
+   end subroutine io_compact_output
+
 
    module subroutine io_conservation_report(self, param, lterminal)
       !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -23,28 +122,17 @@ contains
       ! Internals
       real(DP), dimension(NDIM)       :: Ltot_now,  Lorbit_now,  Lspin_now
       real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  Eorbit_now
-      real(DP)                        :: Eorbit_error, Etotal_error, Ecoll_error
+      real(DP)                        :: Eorbit_error, Etot_error, Ecoll_error
       real(DP)                        :: GMtot_now
       real(DP)                        :: Lerror, Merror
       character(len=STRMAX)           :: errmsg
-      character(len=*), parameter     :: EGYFMT = '(ES23.16,10(",",ES23.16,:))' ! Format code for all simulation output
-      character(len=*), parameter     :: EGYHEADER = '("t,Eorbit,Ecollisions,Lx,Ly,Lz,Mtot")'
       integer(I4B), parameter         :: EGYIU = 72
-      character(len=*), parameter     :: EGYTERMFMT = '("  DL/L0 = ", ES12.5 &
+      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5 &
                                                          "; DEcollisions/|E0| = ", ES12.5, &
                                                          "; D(Eorbit+Ecollisions)/|E0| = ", ES12.5, &
                                                          "; DM/M0 = ", ES12.5)'
 
-      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody)
-         if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
-            if (param%lfirstenergy .and. (param%out_stat /= "OLD")) then
-               open(unit=EGYIU, file=param%energy_out, form="formatted", status="replace", action="write", err=667, iomsg=errmsg)
-               write(EGYIU,EGYHEADER, err=667, iomsg=errmsg)
-            else
-               open(unit=EGYIU, file=param%energy_out, form="formatted", status="old", action="write", &
-                    position="append", err=667, iomsg=errmsg)
-            end if
-         end if
+      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
 
          call pl%vb2vh(cb)
          call pl%xh2xb(cb)
@@ -60,6 +148,9 @@ contains
          GMtot_now = system%GMtot + system%GMescape 
 
          if (param%lfirstenergy) then
+            system%ke_orbit_orig = ke_orbit_now
+            system%ke_spin_orig = ke_spin_now
+            system%pe_orig = pe_now
             system%Eorbit_orig = Eorbit_now
             system%GMtot_orig = GMtot_now
             system%Lorbit_orig(:) = Lorbit_now(:)
@@ -68,34 +159,31 @@ contains
             param%lfirstenergy = .false.
          end if
 
-         if (((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) .and. (param%energy_out /= "")) then
-            write(EGYIU,EGYFMT, err = 667, iomsg = errmsg) param%t, Eorbit_now, system%Ecollisions, Ltot_now, GMtot_now
-            close(EGYIU, err = 667, iomsg = errmsg)
-         end if
-
          if (.not.param%lfirstenergy) then 
-            Lerror = norm2(Ltot_now(:) - system%Ltot_orig(:)) / norm2(system%Ltot_orig(:))
-            Eorbit_error = (Eorbit_now - system%Eorbit_orig) / abs(system%Eorbit_orig)
-            Ecoll_error = system%Ecollisions / abs(system%Eorbit_orig)
-            Etotal_error = (Eorbit_now - system%Ecollisions - system%Eorbit_orig - system%Euntracked) / abs(system%Eorbit_orig)
-            Merror = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
-            if (lterminal) write(*, EGYTERMFMT) Lerror, Ecoll_error, Etotal_error, Merror
-            if (abs(Merror) > 100 * epsilon(Merror)) then
+            system%ke_orbit_error = (ke_orbit_now - system%ke_orbit_orig) / abs(system%Eorbit_orig)
+            system%ke_spin_error = (ke_spin_now - system%ke_spin_orig) / abs(system%Eorbit_orig)
+            system%pe_error = (pe_now - system%pe_orig) / abs(system%Eorbit_orig)
+            system%Eorbit_error = (Eorbit_now - system%Eorbit_orig) / abs(system%Eorbit_orig)
+            system%Ecoll_error = system%Ecollisions / abs(system%Eorbit_orig)
+            system%Euntracked_error = system%Euntracked / abs(system%Eorbit_orig)
+            system%Etot_error = (Eorbit_now - system%Ecollisions - system%Eorbit_orig - system%Euntracked) / abs(system%Eorbit_orig)
+
+            system%Lorbit_error = norm2(Lorbit_now(:) - system%Lorbit_orig(:)) / norm2(system%Ltot_orig(:))
+            system%Lspin_error = norm2(Lspin_now(:) - system%Lspin_orig(:)) / norm2(system%Ltot_orig(:))
+            system%Lescape_error = norm2(system%Lescape(:)) / norm2(system%Ltot_orig(:))
+            system%Ltot_error = norm2(Ltot_now(:) - system%Ltot_orig(:)) / norm2(system%Ltot_orig(:))
+            system%Mescape_error = system%GMescape / system%GMtot_orig
+            system%Mtot_error = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
+            if (lterminal) write(display_unit, EGYTERMFMT) system%Ltot_error, system%Ecoll_error, system%Etot_error,system%Mtot_error
+            if (abs(system%Mtot_error) > 100 * epsilon(system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
-               if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-                  write(*,*) "Merror = ", Merror
-                  write(*,*) "GMtot_now : ",GMtot_now
-                  write(*,*) "GMtot_orig: ",system%GMtot_orig
-                  write(*,*) "Difference: ",GMtot_now - system%GMtot_orig
-               else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-                  ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
-                  param%ioutput = param%ioutput + 1_I8B
-                  call pl%xv2el(cb)
-                  call self%write_hdr(param%nciu, param)
-                  call cb%write_frame(param%nciu, param)
-                  call pl%write_frame(param%nciu, param)
-                  call param%nciu%close()
-               end if
+               ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
+               param%ioutput = param%ioutput + 1_I8B
+               call pl%xv2el(cb)
+               call self%write_hdr(param%nciu, param)
+               call cb%write_frame(param%nciu, param)
+               call pl%write_frame(param%nciu, param)
+               call param%nciu%close()
                call util_exit(FAILURE)
             end if
          end if
@@ -138,97 +226,6 @@ contains
       write(*,*) "Error opening parameter dump file " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_dump_param
-
-
-   module subroutine io_dump_particle_info(self, iu)
-      !! author: David A. Minton
-      !!
-      !! Reads in particle information object information from an open file unformatted file
-      implicit none
-      ! Arguments
-      class(swiftest_particle_info), intent(in) :: self !! Particle metadata information object
-      integer(I4B),                  intent(in) :: iu   !! Open file unit number
-      ! Internals
-      character(STRMAX)         :: errmsg
-
-      write(iu, err = 667, iomsg = errmsg) self%name
-      write(iu, err = 667, iomsg = errmsg) self%particle_type
-      write(iu, err = 667, iomsg = errmsg) self%origin_type
-      write(iu, err = 667, iomsg = errmsg) self%origin_time
-      write(iu, err = 667, iomsg = errmsg) self%collision_id
-      write(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
-      write(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
-
-      return
-
-      667 continue
-      write(*,*) "Error writing particle metadata information from file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_dump_particle_info
-
-
-   module subroutine io_dump_particle_info_base(self, param, idx)
-      !! author: David A. Minton
-      !!
-      !! Dumps the particle information data to a file. 
-      !! Pass a list of array indices for test particles (tpidx) and/or massive bodies (plidx) to append
-      implicit none
-      ! Arguments
-      class(swiftest_base),                 intent(inout) :: self  !! Swiftest base object (can be cb, pl, or tp)
-      class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
-      integer(I4B), dimension(:), optional, intent(in)    :: idx   !! Array of test particle indices to append to the particle file
-
-      ! Internals
-      logical, save             :: lfirst = .true.
-      integer(I4B)              :: i
-      character(STRMAX)         :: errmsg
-
-      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-         if (lfirst) then
-            select case(param%out_stat)
-            case('APPEND')
-               open(unit=LUN, file=param%particle_out, status='OLD', position='APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-            case('NEW', 'UNKNOWN', 'REPLACE')
-               open(unit=LUN, file=param%particle_out, status=param%out_stat, form='UNFORMATTED', err=667, iomsg=errmsg)
-            case default
-               write(*,*) 'Invalid status code',trim(adjustl(param%out_stat))
-               call util_exit(FAILURE)
-            end select
-
-            lfirst = .false.
-         else
-            open(unit=LUN, file=param%particle_out, status='OLD', position= 'APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-         end if
-
-         select type(self)
-         class is (swiftest_cb)
-            write(LUN, err = 667, iomsg = errmsg) self%id
-            call self%info%dump(LUN)
-         class is (swiftest_body)
-            if (present(idx)) then
-               do i = 1, size(idx)
-                  write(LUN, err = 667, iomsg = errmsg) self%id(idx(i))
-                  call self%info(idx(i))%dump(LUN) 
-               end do
-            else
-               do i = 1, self%nbody
-                  write(LUN, err = 667, iomsg = errmsg) self%id(i)
-                  call self%info(i)%dump(LUN) 
-               end do
-            end if
-         end select
-
-         close(unit = LUN, err = 667, iomsg = errmsg)
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         call self%write_particle_info(param%nciu, param)
-      end if
-
-      return
-
-      667 continue
-      write(*,*) "Error writing particle information file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_dump_particle_info_base
 
 
    module subroutine io_dump_base(self, param)
@@ -294,49 +291,25 @@ contains
       param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
       dump_param%in_form  = XV
       dump_param%out_stat = 'APPEND'
-      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-         dump_param%in_type = REAL8_TYPE
-         dump_param%incbfile = trim(adjustl(DUMP_CB_FILE(idx))) 
-         dump_param%inplfile = trim(adjustl(DUMP_PL_FILE(idx))) 
-         dump_param%intpfile = trim(adjustl(DUMP_TP_FILE(idx)))
-
-         dump_param%Eorbit_orig = self%Eorbit_orig 
-         dump_param%GMtot_orig = self%GMtot_orig
-         dump_param%Ltot_orig(:) = self%Ltot_orig(:)
-         dump_param%Lorbit_orig(:) = self%Lorbit_orig(:)
-         dump_param%Lspin_orig(:) = self%Lspin_orig(:)
-         dump_param%GMescape = self%GMescape
-         dump_param%Ecollisions = self%Ecollisions
-         dump_param%Euntracked = self%Euntracked
-         dump_param%Lescape(:) = self%Lescape
-
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         dump_param%in_type = NETCDF_DOUBLE_TYPE
-         dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
-         dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
-         dump_param%nciu%time_chunk = 1
-      end if
+      dump_param%in_type = NETCDF_DOUBLE_TYPE
+      dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
+      dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
+      dump_param%nciu%time_chunk = 1
       dump_param%T0 = param%t
 
       call dump_param%dump(param_file_name)
 
       dump_param%out_form = XV
-      if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-         call self%cb%dump(dump_param)
-         call self%pl%dump(dump_param)
-         call self%tp%dump(dump_param)
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
-         dump_param%ioutput = 0 
-         call dump_param%nciu%initialize(dump_param)
-         call self%write_hdr(dump_param%nciu, dump_param)
-         call self%cb%write_frame(dump_param%nciu, dump_param)
-         call self%pl%write_frame(dump_param%nciu, dump_param)
-         call self%tp%write_frame(dump_param%nciu, dump_param)
-         call dump_param%nciu%close()
-         ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
-         call param%nciu%flush(param)
-      end if
+      dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
+      dump_param%ioutput = 0 
+      call dump_param%nciu%initialize(dump_param)
+      call self%write_hdr(dump_param%nciu, dump_param)
+      call self%cb%write_frame(dump_param%nciu, dump_param)
+      call self%pl%write_frame(dump_param%nciu, dump_param)
+      call self%tp%write_frame(dump_param%nciu, dump_param)
+      call dump_param%nciu%close()
+      ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+      call param%nciu%flush(param)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
@@ -345,67 +318,78 @@ contains
    end subroutine io_dump_system
 
 
-   module function io_get_args(integrator, param_file_name) result(ierr)
+   module subroutine io_get_args(integrator, param_file_name, display_style)
       !! author: David A. Minton
       !!
       !! Reads in the name of the parameter file from command line arguments. 
       implicit none
       ! Arguments
-      integer(I4B)                  :: integrator      !! Symbolic code of the requested integrator  
-      character(len=:), allocatable :: param_file_name !! Name of the input parameters file
-      ! Result
-      integer(I4B)                  :: ierr             !! I/O error code
+      character(len=:), intent(inout), allocatable :: integrator      !! Symbolic code of the requested integrator  
+      character(len=:), intent(inout), allocatable :: param_file_name !! Name of the input parameters file
+      character(len=:), intent(inout), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
       ! Internals
-      character(len=STRMAX) :: arg1, arg2
-      integer :: narg,ierr_arg1, ierr_arg2
+      character(len=STRMAX), dimension(:), allocatable :: arg
+      integer(I4B), dimension(:), allocatable :: ierr
+      integer :: i,narg
       character(len=*),parameter    :: linefmt = '(A)'
 
-      ierr = -1 ! Default is to fail
-      narg = command_argument_count() !
-      if (narg == 2) then
-         call get_command_argument(1, arg1, status = ierr_arg1)
-         call get_command_argument(2, arg2, status = ierr_arg2)
-         if ((ierr_arg1 == 0) .and. (ierr_arg2 == 0)) then
-            ierr = 0
-            call io_toupper(arg1)
-            select case(arg1)
-            case('BS')
-               integrator = BS
-            case('HELIO')
-               integrator = HELIO
-            case('RA15')
-               integrator = RA15
-            case('TU4')
-               integrator = TU4
-            case('WHM')
-               integrator = WHM
-            case('RMVS')
-               integrator = RMVS
-            case('SYMBA')
-               integrator = SYMBA
-            case('RINGMOONS')
-               integrator = RINGMOONS
-            case default
-               integrator = UNKNOWN_INTEGRATOR
-               write(*,*) trim(adjustl(arg1)) // ' is not a valid integrator.'
-               ierr = -1
-            end select
-            param_file_name = trim(adjustl(arg2))
-         end if
-      else 
-         call get_command_argument(1, arg1, status = ierr_arg1)
-         if (ierr_arg1 == 0) then
-            if (arg1 == '-v' .or. arg1 == '--version') then
-               call util_version() 
-            else if (arg1 == '-h' .or. arg1 == '--help') then
-               call util_exit(HELP)
-            end if
-         end if
+      narg = command_argument_count() 
+      if (narg > 0) then
+         allocate(arg(narg),ierr(narg))
+         do i = 1,narg
+            call get_command_argument(i, arg(i), status = ierr(i))
+         end do
+         if (any(ierr /= 0)) call util_exit(USAGE)
+      else
+         call util_exit(USAGE)
       end if
-      if (ierr /= 0) call util_exit(USAGE) 
+   
+      if (narg == 1) then
+         if (arg(1) == '-v' .or. arg(1) == '--version') then
+            call util_version() 
+         else if (arg(1) == '-h' .or. arg(1) == '--help') then
+            call util_exit(HELP)
+         else
+            call util_exit(USAGE)
+         end if
+      else if (narg >= 2) then
+         call io_toupper(arg(1))
+         select case(arg(1))
+         case('BS')
+            integrator = BS
+         case('HELIO')
+            integrator = HELIO
+         case('RA15')
+            integrator = RA15
+         case('TU4')
+            integrator = TU4
+         case('WHM')
+            integrator = WHM
+         case('RMVS')
+            integrator = RMVS
+         case('SYMBA')
+            integrator = SYMBA
+         case('RINGMOONS')
+            integrator = RINGMOONS
+         case default
+            integrator = UNKNOWN_INTEGRATOR
+            write(*,*) trim(adjustl(arg(1))) // ' is not a valid integrator.'
+            call util_exit(USAGE)
+         end select
+         param_file_name = trim(adjustl(arg(2)))
+      end if
+
+      if (narg == 2) then
+         display_style = "STANDARD"
+      else if (narg == 3) then
+         call io_toupper(arg(3))
+         display_style = trim(adjustl(arg(3)))
+      else
+         call util_exit(USAGE)
+      end if
 
       return
-   end function io_get_args
+   end subroutine io_get_args
 
 
    module function io_get_old_t_final_system(self, param) result(old_t_final)
@@ -554,14 +538,13 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
       !! Adapted from Martin Duncan's Swift routine io_init_param.f
-      use, intrinsic :: iso_fortran_env
       implicit none
       ! Arguments
       class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
       integer, intent(in)                       :: unit       !! File unit number
       character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                               !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-      integer, intent(in)                       :: v_list(:)  !! The first element passes the integrator code to the reader
+      character(len=*), intent(in)              :: v_list(:)  !! The first element passes the integrator code to the reader
       integer, intent(out)                      :: iostat     !! IO status code
       character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
@@ -651,12 +634,6 @@ contains
                   ifirst = ilast + 1
                   param_value = io_get_token(line, ifirst, ilast, iostat)
                   read(param_value, *, err = 667, iomsg = iomsg) param%qmin_ahi
-               case ("ENC_OUT")
-                  param%enc_out = param_value
-               case ("DISCARD_OUT")
-                  param%discard_out = param_value
-               case ("ENERGY_OUT")
-                  param%energy_out = param_value
                case ("EXTRA_FORCE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
@@ -745,8 +722,6 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
                case ("MAXID_COLLISION")
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid_collision
-               case ("PARTICLE_OUT")
-                  param%particle_out = param_value
                case ("RESTART")
                   if (param_value == "NO" .or. param_value == 'F') then
                      param%lrestart = .false. 
@@ -797,8 +772,7 @@ contains
          end if
          param%lrestart = (param%out_stat == "APPEND")
          if (param%outfile /= "") then
-            if ((param%out_type /= REAL4_TYPE) .and. (param%out_type /= REAL8_TYPE) .and. &
-                  (param%out_type /= NETCDF_FLOAT_TYPE)  .and. (param%out_type /= NETCDF_DOUBLE_TYPE)) then
+            if ((param%out_type /= NETCDF_FLOAT_TYPE) .and. (param%out_type /= NETCDF_DOUBLE_TYPE)) then
                write(iomsg,*) 'Invalid out_type: ',trim(adjustl(param%out_type))
                iostat = -1
                return
@@ -939,7 +913,7 @@ contains
          iostat = 0
          
          ! Print the contents of the parameter file to standard output
-         ! call param%writer(unit = OUTPUT_UNIT, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
+         call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
 
       end associate
 
@@ -992,12 +966,6 @@ contains
             call io_param_writer_one("OUT_FORM", param%out_form, unit)
             call io_param_writer_one("OUT_STAT", "APPEND", unit) 
          end if
-         if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-            call io_param_writer_one("PARTICLE_OUT", param%particle_out, unit) 
-         end if
-         if (param%enc_out /= "") then
-            call io_param_writer_one("ENC_OUT", param%enc_out, unit)
-         end if
          call io_param_writer_one("CHK_RMIN", param%rmin, unit)
          call io_param_writer_one("CHK_RMAX", param%rmax, unit)
          call io_param_writer_one("CHK_EJECT", param%rmaxu, unit)
@@ -1011,17 +979,8 @@ contains
          call io_param_writer_one("DU2M", param%DU2M, unit)
          call io_param_writer_one("RHILL_PRESENT", param%lrhill_present, unit)
          call io_param_writer_one("EXTRA_FORCE", param%lextra_force, unit)
-         if (param%discard_out /= "") then 
-            call io_param_writer_one("DISCARD_OUT", param%discard_out, unit)
-         end if
-         if (param%discard_out /= "") then
-            call io_param_writer_one("BIG_DISCARD", param%lbig_discard, unit)
-         end if
          call io_param_writer_one("CHK_CLOSE", param%lclose, unit)
          call io_param_writer_one("ENERGY", param%lenergy, unit)
-         if (param%lenergy .and. (param%energy_out /= "")) then 
-            call io_param_writer_one("ENERGY_OUT", param%energy_out, unit)
-         end if
          call io_param_writer_one("GR", param%lgr, unit)
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
@@ -1031,17 +990,6 @@ contains
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
-            if ((param%out_type == REAL8_TYPE) .or. (param%out_type == REAL4_TYPE)) then
-               call io_param_writer_one("EORBIT_ORIG", param%Eorbit_orig, unit)
-               call io_param_writer_one("GMTOT_ORIG", param%GMtot_orig, unit)
-               call io_param_writer_one("LTOT_ORIG", param%Ltot_orig(:), unit)
-               call io_param_writer_one("LORBIT_ORIG", param%Lorbit_orig(:), unit)
-               call io_param_writer_one("LSPIN_ORIG", param%Lspin_orig(:), unit)
-               call io_param_writer_one("LESCAPE", param%Lescape(:), unit)
-               call io_param_writer_one("GMESCAPE",param%GMescape, unit)
-               call io_param_writer_one("ECOLLISIONS",param%Ecollisions, unit)
-               call io_param_writer_one("EUNTRACKED",param%Euntracked, unit)
-            end if
          end if
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
          call io_param_writer_one("MAXID",param%maxid, unit)
@@ -1799,8 +1747,7 @@ contains
       character(STRMAX) :: errmsg   !! Error message in UDIO procedure
 
       ! Read in name of parameter file
-      write(*, *) 'Parameter input file is ', trim(adjustl(param_file_name))
-      write(*, *) ' '
+      write(self%display_unit, *) 'Parameter input file is ', trim(adjustl(param_file_name))
       self%param_file_name = param_file_name
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
@@ -1811,7 +1758,7 @@ contains
       if (ierr == 0) return
 
       667 continue
-      write(*,*) "Error reading parameter file: " // trim(adjustl(errmsg))
+      write(self%display_unit,*) "Error reading parameter file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_read_in_param
 
@@ -1843,73 +1790,39 @@ contains
    end subroutine io_read_in_particle_info
 
 
-   module subroutine io_read_particle_info_system(self, param)
+   module subroutine io_set_display_param(self, display_style)
       !! author: David A. Minton
       !!
-      !! Reads an old particle information file for a restartd run
+      !! Sets the display style parameters. If display is "STANDARD" then output goes to stdout. If display is "COMPACT" 
+      !! then it is redirected to a log file and a progress-bar is used for stdout
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
+      character(*),               intent(in)    :: display_style   !! Style of the output display 
       ! Internals
-      integer(I4B)                  :: id, idx
-      logical                       :: lmatch  
       character(STRMAX)             :: errmsg
-      type(swiftest_particle_info), allocatable :: tmpinfo
 
-      if (.not.((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE))) return ! This subroutine is only necessary for classic binary input files
-
-      open(unit = LUN, file = param%particle_out, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-
-      allocate(tmpinfo, mold=self%cb%info)
-
-      select type(cb => self%cb)
-      class is (swiftest_cb)
-         select type(pl => self%pl)
-         class is (swiftest_pl)
-            select type(tp => self%tp)
-            class is (swiftest_tp)
-               associate(npl => pl%nbody, ntp => tp%nbody)
-                  do 
-                     lmatch = .false.
-                     read(LUN, err = 667, iomsg = errmsg, end = 333) id
-
-                     if (id == cb%id) then
-                        call cb%info%read_in(LUN) 
-                        lmatch = .true.
-                     else 
-                        if (npl > 0) then
-                           idx = findloc(pl%id(1:npl), id, dim=1)
-                           if (idx /= 0) then
-                              call pl%info(idx)%read_in(LUN) 
-                              lmatch = .true.
-                           end if
-                        end if
-                        if (.not.lmatch .and. ntp > 0) then
-                           idx = findloc(tp%id(1:ntp), id, dim=1)
-                           if (idx /= 0) then
-                              call tp%info(idx)%read_in(LUN) 
-                              lmatch = .true.
-                           end if
-                        end if
-                     end if
-                     if (.not.lmatch) then
-                        call tmpinfo%read_in(LUN) 
-                     end if
-                  end do
-               end associate
-               close(unit = LUN, err = 667, iomsg = errmsg)
-            end select
-         end select
+      select case(display_style)
+      case ('STANDARD')
+         self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
+         self%log_output = .false.
+      case ('COMPACT', 'PROGRESS')
+         open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status='replace', err = 667, iomsg = errmsg)
+         self%display_unit = SWIFTEST_LOG_OUT 
+         self%log_output = .true.
+      case default
+         write(*,*) display_style, " is an unknown display style"
+         call util_exit(USAGE)
       end select
 
-      333 continue
+      self%display_style = display_style
+
       return
 
       667 continue
-      write(*,*) "Error reading particle information file: " // trim(adjustl(errmsg))
+      write(*,*) "Error opening swiftest log file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
-   end subroutine io_read_particle_info_system
+   end subroutine io_set_display_param
 
 
    module subroutine io_toupper(string)
@@ -1979,9 +1892,9 @@ contains
          case('APPEND')
             open(unit=LUN, file=param%discard_out, status='OLD', position='APPEND', form='FORMATTED', err=667, iomsg=errmsg)
          case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit=LUN, file=param%discard_out, status=param%out_stat, form='FORMATTED', err=667, iomsg=errmsg)
+            open(unit=LUN, file=param%discard_out, status=out_stat, form='FORMATTED', err=667, iomsg=errmsg)
          case default
-            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
+            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(out_stat))
             call util_exit(FAILURE)
          end select
          lfirst = .false.
@@ -2154,74 +2067,36 @@ contains
       allocate(tp, source = self%tp)
       iu = BINUNIT
       
-      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-         if (lfirst) then
-            select case(param%out_stat)
-            case('APPEND')
-               open(unit=iu, file=param%outfile, status='OLD', position='APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-            case('NEW', 'REPLACE', 'UNKNOWN')
-               open(unit=iu, file=param%outfile, status=param%out_stat, form='UNFORMATTED', err=667, iomsg=errmsg)
-            case default
-               write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
-               call util_exit(FAILURE)
-            end select
-   
-            lfirst = .false.
-         else
-            open(unit=iu, file=param%outfile, status='OLD', position= 'APPEND', form='UNFORMATTED', err=667, iomsg=errmsg)
-         end if
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+      param%nciu%id_chunk = pl%nbody + tp%nbody
+      param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
+      if (lfirst) then
+         inquire(file=param%outfile, exist=fileExists)
+         
+         select case(param%out_stat)
+         case('APPEND')
+            if (.not.fileExists) then
+               errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
+               goto 667
+            end if
+         case('NEW')
+            if (fileExists) then
+               errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
+               goto 667
+            end if
+            call param%nciu%initialize(param)
+         case('REPLACE', 'UNKNOWN')
+            call param%nciu%initialize(param)
+         end select
 
-         param%nciu%id_chunk = pl%nbody + tp%nbody
-         param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
-         if (lfirst) then
-            inquire(file=param%outfile, exist=fileExists)
-          
-            select case(param%out_stat)
-            case('APPEND')
-               if (.not.fileExists) then
-                  errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
-                  goto 667
-               end if
-            case('NEW')
-               if (fileExists) then
-                  errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
-                  goto 667
-               end if
-               call param%nciu%initialize(param)
-            case('REPLACE', 'UNKNOWN')
-               call param%nciu%initialize(param)
-            end select
-
-            lfirst = .false.
-         end if
+         lfirst = .false.
       end if
 
       ! Write out each data type frame
-      if ((param%out_type == REAL4_TYPE) .or. (param%out_type == REAL8_TYPE)) then
-         ! For these data types, do these conversion here before writing the output. 
-         if (param%lgr) then
-            call pl%pv2v(param)
-            call tp%pv2v(param)
-         end if
-   
-         if ((param%out_form == EL) .or. (param%out_form == XVEL)) then ! Do an orbital element conversion prior to writing out the frame, as we have access to the central body here
-            call pl%xv2el(cb)
-            call tp%xv2el(cb)
-         end if
-
-         call self%write_hdr(iu, param)
-         call cb%write_frame(iu, param)
-         call pl%write_frame(iu, param)
-         call tp%write_frame(iu, param)
-         close(iu, err = 667, iomsg = errmsg)
-      else if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-         ! For NetCDF output, because we want to store the pseudovelocity separately from the true velocity, we need to do the orbital element conversion internally
-         call self%write_hdr(param%nciu, param)
-         call cb%write_frame(param%nciu, param)
-         call pl%write_frame(param%nciu, param)
-         call tp%write_frame(param%nciu, param)
-      end if
+      ! For NetCDF output, because we want to store the pseudovelocity separately from the true velocity, we need to do the orbital element conversion internally
+      call self%write_hdr(param%nciu, param)
+      call cb%write_frame(param%nciu, param)
+      call pl%write_frame(param%nciu, param)
+      call tp%write_frame(param%nciu, param)
 
       return
 

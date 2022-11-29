@@ -676,7 +676,7 @@ contains
             end where
          end select
 
-         call pl%dump_particle_info(param, idx=pack([(i, i=1, npl)], ldump_mask))
+         call pl%write_particle_info(param%nciu, param)
          deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 

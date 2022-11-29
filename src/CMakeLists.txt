@@ -45,6 +45,7 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_step.f90
             ${SRC}/helio/helio_util.f90
             ${SRC}/io/io.f90
+            ${SRC}/io/io_progress_bar.f90
             ${SRC}/netcdf/netcdf.f90
             ${SRC}/obl/obl.f90
             ${SRC}/operators/operator_cross.f90

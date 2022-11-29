@@ -87,7 +87,6 @@ contains
       !! Author: David A. Minton
       !!
       !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
-      !! and optionally including fragments.
       implicit none
       ! Arguments
       class(fraggle_fragments),                   intent(in)  :: frag     !! Fraggle fragment system object
@@ -147,7 +146,6 @@ contains
       class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
       logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
       ! Internals
-      logical, dimension(:), allocatable :: lexclude
       class(swiftest_nbody_system), allocatable, save :: tmpsys
       class(swiftest_parameters), allocatable, save   :: tmpparam
       integer(I4B)  :: npl_before, npl_after
@@ -162,24 +160,24 @@ contains
          npl_before = pl%nbody
          npl_after = npl_before + nfrag
 
-         ! Build the exluded body logical mask
-         allocate(lexclude(npl_after))
          if (lbefore) then
-            lexclude(1:npl_before) = .false.
-            lexclude(npl_before+1:npl_after) = .true.
             call fraggle_util_construct_temporary_system(frag, system, param, tmpsys, tmpparam)
+            ! Build the exluded body logical mask for the *before* case: Only the original bodies are used to compute energy and momentum
+            tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = ACTIVE
+            tmpsys%pl%status(npl_before+1:npl_after) = INACTIVE
          else
-            lexclude(1:npl_after) = .false.
-            lexclude(colliders%idx(1:colliders%ncoll)) = .true.
             if (.not.allocated(tmpsys)) then
                write(*,*) "Error in fraggle_util_get_energy_momentum. " // &
                          " This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
                call util_exit(FAILURE)
             end if
+            ! Build the exluded body logical mask for the *after* case: Only the new bodies are used to compute energy and momentum
             call fraggle_util_add_fragments_to_system(frag, colliders, tmpsys, tmpparam)
+            tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = INACTIVE
+            tmpsys%pl%status(npl_before+1:npl_after) = ACTIVE
          end if 
 
-         call tmpsys%pl%flatten(param)
+         if (param%lflatten_interactions) call tmpsys%pl%flatten(param)
 
          call tmpsys%get_energy_and_momentum(param) 
 
