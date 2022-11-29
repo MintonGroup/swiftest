@@ -41,7 +41,7 @@ contains
             formatted_output = formatted_output // fmt("NPLM",pl%nplm)
          end select
          if (param%lenergy) then
-            formatted_output = formatted_output // fmt("LTOTERR",self%Ltot_error) // fmt("ETOTERR",self%Mtot_error) // fmt("MTOTERR",self%Mtot_error) &
+            formatted_output = formatted_output // fmt("LTOTERR",self%Ltot_error) // fmt("ETOTERR",self%Etot_error) // fmt("MTOTERR",self%Mtot_error) &
                              // fmt("KEOERR",self%ke_orbit_error) // fmt("PEERR",self%pe_error) // fmt("EORBERR",self%Eorbit_error) &
                              // fmt("EUNTRERR",self%Euntracked_error) // fmt("LESCERR",self%Lescape_error) // fmt("MESCERR",self%Mescape_error)
             if (param%lclose) formatted_output = formatted_output // fmt("ECOLLERR",self%Ecoll_error)
