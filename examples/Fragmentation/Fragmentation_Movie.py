@@ -48,8 +48,8 @@ pos_vectors = {"disruption_headon"         : [np.array([1.0, -1.807993e-05, 0.0]
                                               np.array([1.0,  1.807993e-05 ,0.0])],
                "supercatastrophic_off_axis": [np.array([1.0, -4.2e-05,      0.0]),
                                               np.array([1.0,  4.2e-05,      0.0])],
-               "hitandrun"                 : [np.array([1.0, -4.2e-05,      0.0]),
-                                              np.array([0.9999999,  4.2e-05,      0.0])]
+               "hitandrun"                 : [np.array([1.0, -2.0e-05,      0.0]),
+                                              np.array([0.999999,  2.0e-05,      0.0])]
                }
 
 vel_vectors = {"disruption_headon"         : [np.array([-2.562596e-04,  6.280005, 0.0]),
@@ -85,46 +85,80 @@ else:
    print("Generating all movie styles")
    movie_styles = available_movie_styles.copy()
 
-# Define a function to calculate the center of mass of the system.
-def center(xhx, xhy, xhz, Gmass):
-    x_com = np.sum(Gmass * xhx) / np.sum(Gmass)
-    y_com = np.sum(Gmass * xhy) / np.sum(Gmass)
-    z_com = np.sum(Gmass * xhz) / np.sum(Gmass)
-    return x_com, y_com, z_com
-
 figsize = (4,4)
+class AnimatedScatter(object):
+    """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
-def animate(i,ds,movie_title):
+    def __init__(self, sim, animfile, title, nskip=1):
+        nframes = int(sim.data['time'].size)
+        self.sim = sim
+        self.title = title
+        self.body_color_list = {'Initial conditions': 'xkcd:windows blue',
+                      'Disruption': 'xkcd:baby poop',
+                      'Supercatastrophic': 'xkcd:shocking pink',
+                      'Hit and run fragment': 'xkcd:blue with a hint of purple',
+                      'Central body': 'xkcd:almost black'}
 
-    # Calculate the position and mass of all bodies in the system at time i and store as a numpy array.
-    xhx = ds['xhx'].isel(time=i).dropna(dim='name').values
-    xhy = ds['xhy'].isel(time=i).dropna(dim='name').values
-    xhz = ds['xhx'].isel(time=i).dropna(dim='name').values
-    Gmass = ds['Gmass'].isel(time=i).dropna(dim='name').values[1:]  # Drop the Sun from the numpy array.
-    radius = ds['radius'].isel(time=i).dropna(dim='name').values[1:]  # Drop the Sun from the numpy array.
+        # Set up the figure and axes...
+        self.fig, self.ax = self.setup_plot()
 
-    # Calculate the center of mass of the system at time i. While the center of mass relative to the
-    # colliding bodies does not change, the center of mass of the collision will move as the bodies
-    # orbit the system center of mass.
-    x_com, y_com, z_com = center(xhx, xhy, xhz, Gmass)
+        # Then setup FuncAnimation.
+        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=1, frames=range(0,nframes,nskip),
+                                           blit=True)
+        self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
+        print(f"Finished writing {animfile}")
 
-    # Create the figure and plot the bodies as points.
-    fig.clear()
-    ax = fig.add_subplot(111)
-    ax.set_title(movie_title)
-    ax.set_xlabel("xhx")
-    ax.set_ylabel("xhy")
-    ax.set_xlim(x_com - scale_frame, x_com + scale_frame)
-    ax.set_ylim(y_com - scale_frame, y_com + scale_frame)
-    ax.grid(False)
-    ax.set_xticks([])
-    ax.set_yticks([])
+    def setup_plot(self):
+        fig = plt.figure(figsize=figsize, dpi=300)
+        plt.tight_layout(pad=0)
 
-    ax_pt_size = figsize[0] * 72 / (2 * scale_frame)
-    point_rad = 2 * radius * ax_pt_size
-    ax.scatter(xhx, xhy, s=point_rad**2)
 
-    plt.tight_layout()
+        # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
+        # This will be used to scale the axis limits on the movie.
+        scale_frame =   abs(sim.data['xhy'].isel(time=0, name=1).values) \
+                      + abs( sim.data['xhy'].isel(time=0, name=2).values)
+        ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
+        self.ax_pt_size = figsize[0] * 0.8 *  72 / (2 * scale_frame)
+        ax.set_xlim(-scale_frame, scale_frame)
+        ax.set_ylim(-scale_frame, scale_frame)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel("xhx")
+        ax.set_ylabel("xhy")
+        ax.set_title(self.title)
+        fig.add_axes(ax)
+
+        self.scatter_artist = ax.scatter([], [], animated=True)
+        return fig, ax
+
+    def update_plot(self, frame):
+        # Define a function to calculate the center of mass of the system.
+        def center(frame):
+            ds = self.sim.data.isel(time=frame).where(self.sim.data['name'] != "Sun", drop=True)
+            Gmass = ds['Gmass'].values
+            xhx = ds['xhx'].values
+            xhy = ds['xhy'].values
+            x_com = np.sum(Gmass * xhx) / np.sum(Gmass)
+            y_com = np.sum(Gmass * xhy) / np.sum(Gmass)
+            return x_com, y_com
+
+        x, y, point_rad = next(self.data_stream(frame))
+        x_com, y_com = center(frame)
+        self.scatter_artist.set_offsets(np.c_[x - x_com, y - y_com])
+        self.scatter_artist.set_sizes(point_rad)
+        return self.scatter_artist,
+
+    def data_stream(self, frame=0):
+        while True:
+            ds = self.sim.data.isel(time=frame)
+            ds = ds.where(ds['name'] != "Sun", drop=True)
+            radius = ds['radius'].values
+            x = ds['xhx'].values
+            y = ds['xhy'].values
+            point_rad = 2 * radius * self.ax_pt_size
+            yield x, y, point_rad
+
+
 
 for style in movie_styles:
     param_file = Path(style) / "param.in"
@@ -140,18 +174,6 @@ for style in movie_styles:
     minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
     gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
     sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass)
-    sim.run(dt=1e-8, tstop=1.e-5)
+    sim.run(dt=1e-8, tstop=2.e-5)
 
-    # Calculate the number of frames in the dataset.
-    nframes = int(sim.data['time'].size)
-
-    # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
-    # This will be used to scale the axis limits on the movie.
-    scale_frame = abs(sim.data['xhy'].isel(time=0, name=1).values) + abs(sim.data['xhy'].isel(time=0, name=2).values)
-
-    # Set up the figure and the animation.
-    fig, ax = plt.subplots(figsize=figsize)
-    # Generate the movie.
-    nskip = 1
-    ani = animation.FuncAnimation(fig, animate, fargs=(sim.data, movie_titles[style]), interval=1, frames=range(0,nframes,nskip), repeat=False)
-    ani.save(movie_filename, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
+    anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=10)
