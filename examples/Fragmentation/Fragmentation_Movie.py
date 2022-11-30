@@ -117,8 +117,8 @@ class AnimatedScatter(object):
         ax.set_ylim(-scale_frame, scale_frame)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlabel("xhx")
-        ax.set_ylabel("xhy")
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
         ax.set_title(self.title)
         fig.add_axes(ax)
 
