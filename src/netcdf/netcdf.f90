@@ -202,9 +202,9 @@ contains
       call check( nf90_def_dim(self%ncid, TIME_DIMNAME, NF90_UNLIMITED, self%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
 
       select case (param%out_type)
-      case(NETCDF_FLOAT_TYPE)
+      case("NETCDF_FLOAT")
          self%out_type = NF90_FLOAT
-      case(NETCDF_DOUBLE_TYPE)
+      case("NETCDF_DOUBLE")
          self%out_type = NF90_DOUBLE
       end select
 
@@ -218,7 +218,7 @@ contains
       call check( nf90_def_var(self%ncid, PTYPE_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%ptype_varid), "netcdf_initialize_output nf90_def_var ptype_varid"  )
       call check( nf90_def_var(self%ncid, STATUS_VARNAME, NF90_CHAR, [self%str_dimid, self%id_dimid], self%status_varid), "netcdf_initialize_output nf90_def_var status_varid"  )
 
-      if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+      if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
          call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhx_varid), "netcdf_initialize_output nf90_def_var xhx_varid"  )
          call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhy_varid), "netcdf_initialize_output nf90_def_var xhy_varid"  )
          call check( nf90_def_var(self%ncid, XHZ_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%xhz_varid), "netcdf_initialize_output nf90_def_var xhz_varid"  )
@@ -237,7 +237,7 @@ contains
 
       end if
    
-      if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
+      if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
          call check( nf90_def_var(self%ncid, A_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%a_varid), "netcdf_initialize_output nf90_def_var a_varid"  )
          call check( nf90_def_var(self%ncid, E_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%e_varid), "netcdf_initialize_output nf90_def_var e_varid"  )
          call check( nf90_def_var(self%ncid, INC_VARNAME, self%out_type, [self%id_dimid, self%time_dimid], self%inc_varid), "netcdf_initialize_output nf90_def_var inc_varid"  )
@@ -381,7 +381,7 @@ contains
       call check( nf90_inq_varid(self%ncid, PTYPE_VARNAME, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
       call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
-      if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+      if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
          call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
          call check( nf90_inq_varid(self%ncid, XHY_VARNAME, self%xhy_varid), "netcdf_open nf90_inq_varid xhy_varid" )
          call check( nf90_inq_varid(self%ncid, XHZ_VARNAME, self%xhz_varid), "netcdf_open nf90_inq_varid xhz_varid" )
@@ -408,7 +408,7 @@ contains
          end if
       end if
 
-      if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
+      if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
          call check( nf90_inq_varid(self%ncid, A_VARNAME, self%a_varid), "netcdf_open nf90_inq_varid a_varid" )
          call check( nf90_inq_varid(self%ncid, E_VARNAME, self%e_varid), "netcdf_open nf90_inq_varid e_varid" )
          call check( nf90_inq_varid(self%ncid, INC_VARNAME, self%inc_varid), "netcdf_open nf90_inq_varid inc_varid" )
@@ -531,7 +531,7 @@ contains
          call check( nf90_inquire_dimension(iu%ncid, iu%str_dimid, len=str_max), "netcdf_read_frame_system nf90_inquire_dimension str_dimid"  )
 
          ! First filter out only the id slots that contain valid bodies
-         if (param%in_form == XV) then
+         if (param%in_form == "XV") then
             call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp(:), start=[1, tslot]), "netcdf_read_frame_system filter pass nf90_getvar xhx_varid"  )
          else
             call check( nf90_get_var(iu%ncid, iu%a_varid, rtemp(:), start=[1, tslot]), "netcdf_read_frame_system filter pass nf90_getvar a_varid"  )
@@ -572,7 +572,7 @@ contains
          end select
 
          ! Now read in each variable and split the outputs by body type
-         if ((param%in_form == XV) .or. (param%in_form == XVEL)) then
+         if ((param%in_form == "XV") .or. (param%in_form == "XVEL")) then
             call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar xhx_varid"  )
             if (npl > 0) pl%xh(1,:) = pack(rtemp, plmask)
             if (ntp > 0) tp%xh(1,:) = pack(rtemp, tpmask)
@@ -612,7 +612,7 @@ contains
             end if
          end if
 
-         if ((param%in_form == EL)  .or. (param%in_form == XVEL)) then
+         if ((param%in_form == "EL")  .or. (param%in_form == "XVEL")) then
             call check( nf90_get_var(iu%ncid, iu%a_varid, rtemp, start=[1, tslot]), "netcdf_read_frame_system nf90_getvar a_varid"  )
             if (.not.allocated(pl%a)) allocate(pl%a(npl))
             if (.not.allocated(tp%a)) allocate(tp%a(ntp))
@@ -995,7 +995,7 @@ contains
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHX_VARNAME, iu%origin_xhx_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhx_varid"  )
-            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+            else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call check( nf90_get_var(iu%ncid, iu%xhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
             else 
                rtemp_arr(1,:) = 0._DP
@@ -1004,7 +1004,7 @@ contains
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHY_VARNAME, iu%origin_xhy_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhy_varid"  )
-            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+            else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call check( nf90_get_var(iu%ncid, iu%xhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar xhx_varid"  )
             else 
                rtemp_arr(2,:) = 0._DP
@@ -1013,7 +1013,7 @@ contains
             status = nf90_inq_varid(iu%ncid, ORIGIN_XHZ_VARNAME, iu%origin_xhz_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_xhz_varid"  )
-            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+            else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call check( nf90_get_var(iu%ncid, iu%xhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar xhz_varid"  )
             else
                rtemp_arr(3,:) = 0._DP
@@ -1029,7 +1029,7 @@ contains
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHX_VARNAME, iu%origin_vhx_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhx_varid"  )
-            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+            else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call check( nf90_get_var(iu%ncid, iu%vhx_varid, rtemp_arr(1,:)), "netcdf_read_particle_info_system nf90_getvar vhx_varid"  )
             else
                rtemp_arr(1,:) = 0._DP
@@ -1038,7 +1038,7 @@ contains
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHY_VARNAME, iu%origin_vhy_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhy_varid"  )
-            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+            else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call check( nf90_get_var(iu%ncid, iu%vhy_varid, rtemp_arr(2,:)), "netcdf_read_particle_info_system nf90_getvar vhy_varid"  )
             else
                rtemp_arr(2,:) = 0._DP
@@ -1047,7 +1047,7 @@ contains
             status = nf90_inq_varid(iu%ncid, ORIGIN_VHZ_VARNAME, iu%origin_vhz_varid)
             if (status == nf90_noerr) then
                call check( nf90_get_var(iu%ncid, iu%origin_vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar origin_vhz_varid"  )
-            else if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+            else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call check( nf90_get_var(iu%ncid, iu%vhz_varid, rtemp_arr(3,:)), "netcdf_read_particle_info_system nf90_getvar vhz_varid" )
             else
                rtemp_arr(3,:) = 0._DP
@@ -1202,7 +1202,7 @@ contains
                !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity 
                if (param%lgr) call gr_pseudovel2vel(param, self%mu(j), self%xh(:, j), self%vh(:, j), vh(:))
 
-               if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
+               if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                   call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%xh(1, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var xhx_varid"  )
                   call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%xh(2, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var xhy_varid"  )
                   call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%xh(3, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var xhz_varid"  )
@@ -1221,7 +1221,7 @@ contains
                   end if
                end if
 
-               if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
+               if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
                   if (param%lgr) then !! For GR-enabled runs, use the true value of velocity computed above
                      call orbel_xv2el(self%mu(j), self%xh(1,j), self%xh(2,j), self%xh(3,j), &
                                        vh(1), vh(2), vh(3), &

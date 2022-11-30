@@ -179,10 +179,7 @@ contains
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
                param%ioutput = param%ioutput + 1_I8B
-               call pl%xv2el(cb)
-               call self%write_hdr(param%nciu, param)
-               call cb%write_frame(param%nciu, param)
-               call pl%write_frame(param%nciu, param)
+               call self%write_frame(param%nciu, param)
                call param%nciu%close()
                call util_exit(FAILURE)
             end if
@@ -228,48 +225,6 @@ contains
    end subroutine io_dump_param
 
 
-   module subroutine io_dump_base(self, param)
-      !! author: David A. Minton
-      !!
-      !! Dump massive body data to files
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: io_dump_pl.f90 and io_dump_tp.f90
-      !! Adapted from Hal Levison's Swift routine io_dump_pl.f and io_dump_tp.f
-      implicit none
-      ! Arguments
-      class(swiftest_base),       intent(inout) :: self   !! Swiftest base object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)                   :: iu = LUN
-      character(len=:), allocatable  :: dump_file_name
-      character(STRMAX)              :: errmsg 
-
-      select type(self)
-      class is(swiftest_cb)
-         dump_file_name = trim(adjustl(param%incbfile)) 
-      class is (swiftest_pl)
-         dump_file_name = trim(adjustl(param%inplfile)) 
-      class is (swiftest_tp)
-         dump_file_name = trim(adjustl(param%intpfile)) 
-      end select
-      open(unit = iu, file = dump_file_name, form = "UNFORMATTED", status = 'replace', err = 667, iomsg = errmsg)
-      select type(self)
-      class is (swiftest_body)
-         write(iu, err = 667, iomsg = errmsg) self%nbody
-         call io_write_frame_body(self,iu, param)
-      class is (swiftest_cb)
-         call io_write_frame_cb(self,iu, param)
-      end select
-      close(iu, err = 667, iomsg = errmsg)
-
-      return
-
-      667 continue
-      write(*,*) "Error dumping body data to file " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_dump_base
-
-
    module subroutine io_dump_system(self, param)
       !! author: David A. Minton
       !!
@@ -289,9 +244,9 @@ contains
    
       allocate(dump_param, source=param)
       param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
-      dump_param%in_form  = XV
+      dump_param%in_form  = "XV"
       dump_param%out_stat = 'APPEND'
-      dump_param%in_type = NETCDF_DOUBLE_TYPE
+      dump_param%in_type = "NETCDF_DOUBLE"
       dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
       dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
       dump_param%nciu%time_chunk = 1
@@ -299,14 +254,11 @@ contains
 
       call dump_param%dump(param_file_name)
 
-      dump_param%out_form = XV
+      dump_param%out_form = "XV"
       dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
       dump_param%ioutput = 0 
       call dump_param%nciu%initialize(dump_param)
-      call self%write_hdr(dump_param%nciu, dump_param)
-      call self%cb%write_frame(dump_param%nciu, dump_param)
-      call self%pl%write_frame(dump_param%nciu, dump_param)
-      call self%tp%write_frame(dump_param%nciu, dump_param)
+      call self%write_frame(dump_param%nciu, dump_param)
       call dump_param%nciu%close()
       ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
       call param%nciu%flush(param)
@@ -390,45 +342,6 @@ contains
 
       return
    end subroutine io_get_args
-
-
-   module function io_get_old_t_final_system(self, param) result(old_t_final)
-      !! author: David A. Minton
-      !!
-      !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the binary output.
-      !!
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(in) :: self
-      class(swiftest_parameters),   intent(in) :: param
-      ! Result
-      real(DP)                                 :: old_t_final
-      ! Internals
-      class(swiftest_nbody_system), allocatable :: tmpsys
-      class(swiftest_parameters),   allocatable :: tmpparam
-      integer(I4B) :: ierr, iu = LUN
-      character(len=STRMAX) :: errmsg
-
-      old_t_final = 0.0_DP
-      allocate(tmpsys, source=self)
-      allocate(tmpparam, source=param)
-
-      ierr = 0
-      open(unit = iu, file = param%outfile, status = 'OLD', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-      do 
-         ierr = tmpsys%read_frame(iu, tmpparam)
-         if (ierr /= 0) exit
-      end do
-      if (is_iostat_end(ierr)) then
-         old_t_final = tmpparam%t
-         close(iu)
-         return
-      end if
-
-      667 continue
-      write(*,*) "Error reading binary output file. " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end function io_get_old_t_final_system
 
 
    module function io_get_token(buffer, ifirst, ilast, ierr) result(token)
@@ -754,8 +667,7 @@ contains
             iostat = -1
             return
          end if
-         if ((param%in_type /= REAL8_TYPE) .and. (param%in_type /= "ASCII") &
-       .and. (param%in_type /= NETCDF_FLOAT_TYPE) .and. (param%in_type /= NETCDF_DOUBLE_TYPE))  then
+         if ((param%in_type /= "ASCII") .and. (param%in_type /= "NETCDF_FLOAT") .and. (param%in_type /= "NETCDF_DOUBLE"))  then
             write(iomsg,*) 'Invalid input file type:',trim(adjustl(param%in_type))
             iostat = -1
             return
@@ -772,7 +684,7 @@ contains
          end if
          param%lrestart = (param%out_stat == "APPEND")
          if (param%outfile /= "") then
-            if ((param%out_type /= NETCDF_FLOAT_TYPE) .and. (param%out_type /= NETCDF_DOUBLE_TYPE)) then
+            if ((param%out_type /= "NETCDF_FLOAT") .and. (param%out_type /= "NETCDF_DOUBLE")) then
                write(iomsg,*) 'Invalid out_type: ',trim(adjustl(param%out_type))
                iostat = -1
                return
@@ -949,11 +861,11 @@ contains
          call io_param_writer_one("TSTOP", param%tstop, unit)
          call io_param_writer_one("DT", param%dt, unit)
          call io_param_writer_one("IN_TYPE", param%in_type, unit)
-         if ((param%in_type == REAL4_TYPE) .or. (param%in_type == REAL8_TYPE)) then
+         if (param%in_type == "ASCII") then
             call io_param_writer_one("CB_IN", param%incbfile, unit)
             call io_param_writer_one("PL_IN", param%inplfile, unit)
             call io_param_writer_one("TP_IN", param%intpfile, unit)
-         else if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) then
+         else 
             call io_param_writer_one("NC_IN", param%in_netcdf, unit)
          end if
 
@@ -1204,7 +1116,7 @@ contains
       class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
 
-      if ((param%in_type == NETCDF_FLOAT_TYPE) .or. (param%in_type == NETCDF_DOUBLE_TYPE)) return ! This method is not used in NetCDF mode, as reading is done for the whole system, not on individual particle types
+      if (param%in_type /= "ASCII") return ! This method is not used in NetCDF mode, as reading is done for the whole system, not on individual particle types
 
       select type(self)
       class is (swiftest_body)
@@ -1231,13 +1143,13 @@ contains
       ! Internals
       integer(I4B)                  :: iu = LUN
       integer(I4B)                  :: i, nbody
-      logical                       :: is_ascii
       character(len=:), allocatable :: infile
       character(STRMAX)             :: errmsg
       ! Internals
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
 
       ! Select the appropriate polymorphic class (test particle or massive body)
+      if (param%in_type /= "ASCII") return ! Not for NetCDF
 
       select type(self)
       class is (swiftest_pl)
@@ -1246,18 +1158,8 @@ contains
          infile = param%intpfile
       end select
 
-      is_ascii = (param%in_type == 'ASCII') 
-      select case(param%in_type)
-      case(ASCII_TYPE)
-         open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         read(iu, *, err = 667, iomsg = errmsg) nbody
-      case (REAL4_TYPE, REAL8_TYPE)  
-         open(unit=iu, file=infile, status='old', form='UNFORMATTED', err = 667, iomsg = errmsg)
-         read(iu, err = 667, iomsg = errmsg) nbody
-      case default
-         write(errmsg,*) trim(adjustl(param%in_type)) // ' is an unrecognized file type'
-         goto 667
-      end select
+      open(unit = iu, file = infile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      read(iu, *, err = 667, iomsg = errmsg) nbody
 
       call self%setup(nbody, param)
       ierr = 0
@@ -1270,7 +1172,6 @@ contains
          end do
       end if
       close(iu, err = 667, iomsg = errmsg)
-
 
       if (ierr == 0) return
 
@@ -1297,26 +1198,23 @@ contains
       integer(I4B)            :: ierr
       character(len=NAMELEN)  :: name
 
-      if (param%in_type == 'ASCII') then
-         self%id = 0
-         param%maxid = 0
-         open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         read(iu, *, err = 667, iomsg = errmsg) name
-         call self%info%set_value(name=name)
-         read(iu, *, err = 667, iomsg = errmsg) self%Gmass
-         self%mass = real(self%Gmass / param%GU, kind=DP)
-         read(iu, *, err = 667, iomsg = errmsg) self%radius
-         read(iu, *, err = 667, iomsg = errmsg) self%j2rp2
-         read(iu, *, err = 667, iomsg = errmsg) self%j4rp4
-         if (param%lrotation) then
-            read(iu, *, err = 667, iomsg = errmsg) self%Ip(1), self%Ip(2), self%Ip(3)
-            read(iu, *, err = 667, iomsg = errmsg) self%rot(1), self%rot(2), self%rot(3)
-         end if
-         ierr = 0
-      else
-         open(unit = iu, file = param%incbfile, status = 'old', form = 'UNFORMATTED', err = 667, iomsg = errmsg)
-         ierr = self%read_frame(iu, param)
+      if (param%in_type /= "ASCII") return ! Not for NetCDF
+
+      self%id = 0
+      param%maxid = 0
+      open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      read(iu, *, err = 667, iomsg = errmsg) name
+      call self%info%set_value(name=name)
+      read(iu, *, err = 667, iomsg = errmsg) self%Gmass
+      self%mass = real(self%Gmass / param%GU, kind=DP)
+      read(iu, *, err = 667, iomsg = errmsg) self%radius
+      read(iu, *, err = 667, iomsg = errmsg) self%j2rp2
+      read(iu, *, err = 667, iomsg = errmsg) self%j4rp4
+      if (param%lrotation) then
+         read(iu, *, err = 667, iomsg = errmsg) self%Ip(1), self%Ip(2), self%Ip(3)
+         read(iu, *, err = 667, iomsg = errmsg) self%rot(1), self%rot(2), self%rot(3)
       end if
+      ierr = 0
       close(iu, err = 667, iomsg = errmsg)
 
       if (ierr == 0) then
@@ -1354,18 +1252,7 @@ contains
       integer(I4B) :: ierr
       class(swiftest_parameters), allocatable :: tmp_param
 
-      if ((param%in_type == NETCDF_DOUBLE_TYPE) .or. (param%in_type == NETCDF_FLOAT_TYPE)) then
-         allocate(tmp_param, source=param)
-         tmp_param%outfile = param%in_netcdf
-         tmp_param%out_form = param%in_form
-         if (.not. param%lrestart) then
-            ! Turn off energy computation so we don't have to feed it into the initial conditions
-            tmp_param%lenergy = .false.
-         end if
-         ierr = self%read_frame(tmp_param%nciu, tmp_param)
-         deallocate(tmp_param)
-         if (ierr /=0) call util_exit(FAILURE)
-      else
+      if (param%in_type == "ASCII") then
          call self%cb%read_in(param)
          call self%pl%read_in(param)
          call self%tp%read_in(param)
@@ -1378,6 +1265,17 @@ contains
          self%Lescape(:) = param%Lescape(:)
          self%Ecollisions = param%Ecollisions
          self%Euntracked = param%Euntracked
+      else
+         allocate(tmp_param, source=param)
+         tmp_param%outfile = param%in_netcdf
+         tmp_param%out_form = param%in_form
+         if (.not. param%lrestart) then
+            ! Turn off energy computation so we don't have to feed it into the initial conditions
+            tmp_param%lenergy = .false.
+         end if
+         ierr = self%read_frame(tmp_param%nciu, tmp_param)
+         deallocate(tmp_param)
+         if (ierr /=0) call util_exit(FAILURE)
       end if
 
       param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP))
@@ -1388,56 +1286,6 @@ contains
 
       return
    end subroutine io_read_in_system
-
-
-   function io_read_encounter(t, id1, id2, Gmass1, Gmass2, radius1, radius2, &
-      xh1, xh2, vh1, vh2, enc_out, out_type) result(ierr)
-      !! author: David A. Minton
-      !!
-      !! Read close encounter data from input binary files
-      !!     Other than time t, there is no direct file input from this function
-      !!     Function returns read error status (0 = OK, nonzero = ERROR)
-      !! Adapted from David E. Kaufmann's Swifter routine: io_read_encounter.f90
-      implicit none
-      ! Arguments
-      integer(I4B),           intent(out) :: id1, id2
-      real(DP),               intent(out) :: t, Gmass1, Gmass2, radius1, radius2
-      real(DP), dimension(:), intent(out) :: xh1, xh2, vh1, vh2
-      character(*),           intent(in)  :: enc_out, out_type
-      ! Result
-      integer(I4B)         :: ierr
-      ! Internals
-      logical , save    :: lfirst = .true.
-      integer(I4B), save    :: iu = lun
-
-      if (lfirst) then
-         open(unit = iu, file = enc_out, status = 'OLD', form = 'UNFORMATTED', iostat = ierr)
-         if (ierr /= 0) then
-            write(*, *) "Swiftest Error:"
-            write(*, *) "   unable to open binary encounter file"
-            call util_exit(FAILURE)
-         end if
-         lfirst = .false.
-      end if
-      read(iu, iostat = ierr) t
-      if (ierr /= 0) then
-         close(unit = iu, iostat = ierr)
-         return
-      end if
-
-      read(iu, iostat = ierr) id1, xh1(1), xh1(2), xh1(3), vh1(1), vh1(2), vh1(3), Gmass1, radius1
-      if (ierr /= 0) then
-         close(unit = iu, iostat = ierr)
-         return
-      end if
-      read(iu, iostat = ierr) id2, xh2(2), xh2(2), xh2(3), vh2(2), vh2(2), vh2(3), Gmass2, radius2
-      if (ierr /= 0) then
-         close(unit = iu, iostat = ierr)
-         return
-      end if
-
-      return
-   end function io_read_encounter
 
 
    module function io_read_frame_body(self, iu, param) result(ierr)
@@ -1462,14 +1310,14 @@ contains
 
       if (self%nbody == 0) return
 
-      if ((param%in_form /= EL) .and. (param%in_form /= XV)) then
+      if ((param%in_form /= "EL") .and. (param%in_form /= "XV")) then
          write(errmsg, *) trim(adjustl(param%in_form)) // " is not a recognized format code for input files."
          goto 667
       end if
 
       associate(n => self%nbody)
 
-         if (param%in_form == EL) then
+         if (param%in_form == "EL") then
             if (.not.allocated(self%a))     allocate(self%a(n))
             if (.not.allocated(self%e))     allocate(self%e(n))
             if (.not.allocated(self%inc))   allocate(self%inc(n))
@@ -1479,53 +1327,7 @@ contains
          end if
 
          select case(param%in_type)
-         case (REAL4_TYPE, REAL8_TYPE)
-            read(iu, err = 667, iomsg = errmsg) self%id(:)
-            read(iu, err = 667, iomsg = errmsg) name(:)
-            do i = 1, n
-               call self%info(i)%set_value(name=name(i))
-            end do
-
-            select case (param%in_form)
-            case (XV)
-               read(iu, err = 667, iomsg = errmsg) self%xh(1, :)
-               read(iu, err = 667, iomsg = errmsg) self%xh(2, :)
-               read(iu, err = 667, iomsg = errmsg) self%xh(3, :)
-               read(iu, err = 667, iomsg = errmsg) self%vh(1, :)
-               read(iu, err = 667, iomsg = errmsg) self%vh(2, :)
-               read(iu, err = 667, iomsg = errmsg) self%vh(3, :)
-            case (EL) 
-               read(iu, err = 667, iomsg = errmsg) self%a(:)
-               read(iu, err = 667, iomsg = errmsg) self%e(:)
-               read(iu, err = 667, iomsg = errmsg) self%inc(:)
-               read(iu, err = 667, iomsg = errmsg) self%capom(:)
-               read(iu, err = 667, iomsg = errmsg) self%omega(:)
-               read(iu, err = 667, iomsg = errmsg) self%capm(:)
-            end select
-
-            select type(pl => self)  
-            class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-               read(iu, err = 667, iomsg = errmsg) pl%Gmass(:)
-               pl%mass(:) = pl%Gmass(:) / param%GU 
-               if (param%lrhill_present) read(iu, err = 667, iomsg = errmsg) pl%rhill(:)
-               if (param%lclose) read(iu, err = 667, iomsg = errmsg) pl%radius(:)
-               if (param%lrotation) then
-                  read(iu, err = 667, iomsg = errmsg) pl%Ip(1, :)
-                  read(iu, err = 667, iomsg = errmsg) pl%Ip(2, :)
-                  read(iu, err = 667, iomsg = errmsg) pl%Ip(3, :)
-                  read(iu, err = 667, iomsg = errmsg) pl%rot(1, :)
-                  read(iu, err = 667, iomsg = errmsg) pl%rot(2, :)
-                  read(iu, err = 667, iomsg = errmsg) pl%rot(3, :)
-               end if
-               ! if (param%ltides) then
-               !    read(iu, err = 667, iomsg = errmsg) pl%k2(:)
-               !    read(iu, err = 667, iomsg = errmsg) pl%Q(:)
-               ! end if
-            end select
-
-            param%maxid = max(param%maxid, maxval(self%id(1:n)))
-
-         case (ASCII_TYPE)
+         case ("ASCII")
             do i = 1, n
                select type(self)
                class is (swiftest_pl)
@@ -1543,10 +1345,10 @@ contains
                call self%info(i)%set_value(name=name(i))
 
                select case(param%in_form)
-               case (XV)
+               case ("XV")
                   read(iu, *, err = 667, iomsg = errmsg) self%xh(1, i), self%xh(2, i), self%xh(3, i)
                   read(iu, *, err = 667, iomsg = errmsg) self%vh(1, i), self%vh(2, i), self%vh(3, i)
-               case (EL)
+               case ("EL")
                   read(iu, *, err = 667, iomsg = errmsg) self%a(i), self%e(i), self%inc(i)
                   read(iu, *, err = 667, iomsg = errmsg) self%capom(i), self%omega(i), self%capm(i)
                end select
@@ -1567,7 +1369,7 @@ contains
             end do
          end select
 
-         if (param%in_form == EL) then
+         if (param%in_form == "EL") then
             self%inc(1:n)   = self%inc(1:n) * DEG2RAD
             self%capom(1:n) = self%capom(1:n) * DEG2RAD
             self%omega(1:n) = self%omega(1:n) * DEG2RAD
@@ -1589,146 +1391,6 @@ contains
       end select
       call util_exit(FAILURE)
    end function io_read_frame_body
-
-
-   module function io_read_frame_cb(self, iu, param) result(ierr)
-      !! author: David A. Minton
-      !!
-      !! Reads a frame of output of central body data to the binary output file
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_read_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_read_frame.F
-      implicit none
-      ! Arguments
-      class(swiftest_cb),         intent(inout) :: self     !! Swiftest central body object
-      integer(I4B),               intent(inout) :: iu       !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(inout) :: param   !! Current run configuration parameters 
-      ! Result
-      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
-      ! Internals
-      character(len=STRMAX)  :: errmsg
-      character(len=NAMELEN) :: name
-
-      read(iu, err = 667, iomsg = errmsg) self%id
-      read(iu, err = 667, iomsg = errmsg) name
-      call self%info%set_value(name=name)
-      read(iu, err = 667, iomsg = errmsg) self%Gmass
-      self%mass = self%Gmass / param%GU
-      read(iu, err = 667, iomsg = errmsg) self%radius
-      read(iu, err = 667, iomsg = errmsg) self%j2rp2 
-      read(iu, err = 667, iomsg = errmsg) self%j4rp4 
-      if (param%lrotation) then
-         read(iu, err = 667, iomsg = errmsg) self%Ip(1)
-         read(iu, err = 667, iomsg = errmsg) self%Ip(2)
-         read(iu, err = 667, iomsg = errmsg) self%Ip(3)
-         read(iu, err = 667, iomsg = errmsg) self%rot(1)
-         read(iu, err = 667, iomsg = errmsg) self%rot(2)
-         read(iu, err = 667, iomsg = errmsg) self%rot(3)
-      end if
-      ! if (param%ltides) then
-      !    read(iu, err = 667, iomsg = errmsg) self%k2
-      !    read(iu, err = 667, iomsg = errmsg) self%Q
-      ! end if
-
-      ierr = 0
-      return
-
-      667 continue
-      write(*,*) "Error reading central body frame: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end function io_read_frame_cb
-
-
-   module function io_read_frame_system(self, iu, param) result(ierr)
-      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
-      !!
-      !! Read a frame (header plus records for each massive body and active test particle) from a output binary file
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-      integer(I4B),                 intent(inout) :: iu    !! Unit number for the output file to write frame to
-      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      ! Result
-      integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
-      ! Internals
-      character(len=STRMAX) :: errmsg
-      integer(I4B) :: npl, ntp
-
-      ierr = io_read_hdr(iu, param%t, npl, ntp, param%out_form, param%out_type)
-      if (is_iostat_end(ierr)) return ! Reached the end of the frames
-      call self%pl%setup(npl, param)
-      call self%tp%setup(ntp, param)
-
-      if (ierr /= 0) then
-         write(errmsg, *) "Cannot read frame header."
-         goto 667
-      end if
-      ierr = self%cb%read_frame(iu, param)
-      if (ierr /= 0) then
-         write(errmsg, *) "Cannot read central body frame."
-         goto 667
-      end if
-      ierr = self%pl%read_frame(iu, param)
-      if (ierr /= 0) then
-         write(errmsg, *) "Cannot read massive body frame."
-         goto 667
-      end if
-      ierr = self%tp%read_frame(iu, param)
-      if (ierr /= 0) then
-         write(errmsg, *) "Cannot read test particle frame."
-         goto 667
-      end if
-
-      return
-
-      667 continue
-      write(*,*) "Error reading system frame: " // trim(adjustl(errmsg))
-   end function io_read_frame_system
-
-
-   function io_read_hdr(iu, t, npl, ntp, out_form, out_type) result(ierr)
-      !! author: David A. Minton
-      !!
-      !! Read frame header from input binary files
-      !!     Function returns read error status (0 = OK, nonzero = ERROR)
-      !! Adapted from David E. Kaufmann's Swifter routine: io_read_hdr.f90
-      !! Adapted from Hal Levison's Swift routine io_read_hdr.f
-      implicit none
-      ! Arguments
-      integer(I4B), intent(in)   :: iu
-      integer(I4B), intent(out)  :: npl, ntp
-      character(*), intent(out)  :: out_form
-      real(DP),     intent(out)  :: t
-      character(*), intent(in)   :: out_type
-      ! Result
-      integer(I4B)      :: ierr
-      ! Internals
-      real(SP)              :: ttmp
-      character(len=STRMAX) :: errmsg
-
-      select case (out_type)
-      case (REAL4_TYPE)
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg, end = 333) ttmp
-         t = ttmp
-      case (REAL8_TYPE)
-         read(iu, iostat = ierr, err = 667, iomsg = errmsg, end = 333) t
-      case default
-         write(errmsg,*) trim(adjustl(out_type)) // ' is an unrecognized file type'
-         ierr = -1
-      end select
-      read(iu, iostat = ierr, err = 667, iomsg = errmsg) npl
-      read(iu, iostat = ierr, err = 667, iomsg = errmsg) ntp
-      read(iu, iostat = ierr, err = 667, iomsg = errmsg) out_form
-
-      return
-
-      667 continue
-      write(*,*) "Error reading header: " // trim(adjustl(errmsg))
-      333 continue
-      return
-
-      return
-   end function io_read_hdr
 
 
    module subroutine io_read_in_param(self, param_file_name) 
@@ -1761,33 +1423,6 @@ contains
       write(self%display_unit,*) "Error reading parameter file: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_read_in_param
-
-
-   module subroutine io_read_in_particle_info(self, iu)
-      !! author: David A. Minton
-      !!
-      !! Reads in particle information object information from an open file unformatted file
-      implicit none
-      ! Arguments
-      class(swiftest_particle_info), intent(inout) :: self !! Particle metadata information object
-      integer(I4B),                  intent(in)    :: iu   !! Open file unit number
-      ! Internals
-      character(STRMAX)             :: errmsg
-
-      read(iu, err = 667, iomsg = errmsg) self%name
-      read(iu, err = 667, iomsg = errmsg) self%particle_type
-      read(iu, err = 667, iomsg = errmsg) self%origin_type
-      read(iu, err = 667, iomsg = errmsg) self%origin_time
-      read(iu, err = 667, iomsg = errmsg) self%collision_id 
-      read(iu, err = 667, iomsg = errmsg) self%origin_xh(:)
-      read(iu, err = 667, iomsg = errmsg) self%origin_vh(:)
-
-      return
-
-      667 continue
-      write(*,*) "Error reading particle metadata information from file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_read_in_particle_info
 
 
    module subroutine io_set_display_param(self, display_style)
@@ -1850,197 +1485,6 @@ contains
    end subroutine io_toupper
 
 
-   module subroutine io_write_discard(self, param)
-      !! author: David A. Minton
-      !!
-      !! Write out information about discarded test particle
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_discard_write.f90
-      !! Adapted from Hal Levison's Swift routine io_discard_write.f
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest system object
-      class(swiftest_parameters),   intent(inout) :: param   !! Current run configuration parameters 
-      ! Internals
-      integer(I4B)          :: i
-      logical, save :: lfirst = .true. 
-      real(DP), dimension(:,:), allocatable :: vh
-      character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
-      character(*), parameter :: NAMEFMT   = '(A, 2(1X, I8))'
-      character(*), parameter :: VECFMT    = '(3(E23.16, 1X))'
-      character(*), parameter :: NPLFMT    = '(I8)'
-      character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
-      class(swiftest_body), allocatable :: pltemp
-      character(len=STRMAX)   :: errmsg, out_stat
-
-      associate(tp_discards => self%tp_discards, nsp => self%tp_discards%nbody, pl => self%pl, npl => self%pl%nbody)
-
-         ! Record the discarded body metadata information to file
-         if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-            call tp_discards%write_particle_info(param%nciu, param)
-         end if
-   
-         if (param%discard_out == "") return
-
-         if (nsp == 0) return
-         if (lfirst) then
-            out_stat = param%out_stat
-         else
-            out_stat = 'APPEND'
-         end if
-         select case(out_stat)
-         case('APPEND')
-            open(unit=LUN, file=param%discard_out, status='OLD', position='APPEND', form='FORMATTED', err=667, iomsg=errmsg)
-         case('NEW', 'REPLACE', 'UNKNOWN')
-            open(unit=LUN, file=param%discard_out, status=out_stat, form='FORMATTED', err=667, iomsg=errmsg)
-         case default
-            write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(out_stat))
-            call util_exit(FAILURE)
-         end select
-         lfirst = .false.
-         if (param%lgr) call tp_discards%pv2v(param) 
-
-         write(LUN, HDRFMT) param%t, nsp, param%lbig_discard
-         do i = 1, nsp
-            write(LUN, NAMEFMT, err = 667, iomsg = errmsg) SUB, tp_discards%id(i), tp_discards%status(i)
-            write(LUN, VECFMT, err = 667, iomsg = errmsg) tp_discards%xh(1, i), tp_discards%xh(2, i), tp_discards%xh(3, i)
-            write(LUN, VECFMT, err = 667, iomsg = errmsg) tp_discards%vh(1, i), tp_discards%vh(2, i), tp_discards%vh(3, i)
-         end do
-         if (param%lbig_discard) then
-            if (param%lgr) then
-               allocate(pltemp, source = pl)
-               call pltemp%pv2v(param)
-               allocate(vh, source = pltemp%vh)
-               deallocate(pltemp)
-            else
-               allocate(vh, source = pl%vh)
-            end if
-
-            write(LUN, NPLFMT) npl
-            do i = 1, npl
-               write(LUN, PLNAMEFMT, err = 667, iomsg = errmsg) pl%id(i), pl%Gmass(i), pl%radius(i)
-               write(LUN, VECFMT, err = 667, iomsg = errmsg) pl%xh(1, i), pl%xh(2, i), pl%xh(3, i)
-               write(LUN, VECFMT, err = 667, iomsg = errmsg) vh(1, i), vh(2, i), vh(3, i)
-            end do
-            deallocate(vh)
-         end if
-         close(LUN)
-      end associate
-
-      return
-
-      667 continue
-      write(*,*) "Error writing discard file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_write_discard
-
-
-   module subroutine io_write_frame_body(self, iu, param)
-      !! author: David A. Minton
-      !!
-      !! Write a frame of output of either test particle or massive body data to the binary output file
-      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_write_frame.F
-      implicit none
-      ! Arguments
-      class(swiftest_body),       intent(in)    :: self   !! Swiftest particle object
-      integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      ! Internals
-      character(len=STRMAX)   :: errmsg
-
-      associate(n => self%nbody)
-         if (n == 0) return
-         write(iu, err = 667, iomsg = errmsg) self%id(1:n)
-         write(iu, err = 667, iomsg = errmsg) self%info(1:n)%name
-         if ((param%out_form == XV) .or. (param%out_form == XVEL)) then
-            write(iu, err = 667, iomsg = errmsg) self%xh(1, 1:n)
-            write(iu, err = 667, iomsg = errmsg) self%xh(2, 1:n)
-            write(iu, err = 667, iomsg = errmsg) self%xh(3, 1:n)
-            write(iu, err = 667, iomsg = errmsg) self%vh(1, 1:n)
-            write(iu, err = 667, iomsg = errmsg) self%vh(2, 1:n)
-            write(iu, err = 667, iomsg = errmsg) self%vh(3, 1:n)
-         end if
-         if ((param%out_form == EL) .or. (param%out_form == XVEL)) then
-            write(iu, err = 667, iomsg = errmsg) self%a(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%e(1:n)
-            write(iu, err = 667, iomsg = errmsg) self%inc(1:n) * RAD2DEG
-            write(iu, err = 667, iomsg = errmsg) self%capom(1:n) * RAD2DEG
-            write(iu, err = 667, iomsg = errmsg) self%omega(1:n) * RAD2DEG
-            write(iu, err = 667, iomsg = errmsg) self%capm(1:n) * RAD2DEG
-         end if
-         select type(pl => self)  
-         class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-            write(iu, err = 667, iomsg = errmsg) pl%Gmass(1:n)
-            if (param%lrhill_present) write(iu, err = 667, iomsg = errmsg) pl%rhill(1:n)
-            if (param%lclose) write(iu, err = 667, iomsg = errmsg) pl%radius(1:n)
-            if (param%lrotation) then
-               write(iu, err = 667, iomsg = errmsg) pl%Ip(1, 1:n)
-               write(iu, err = 667, iomsg = errmsg) pl%Ip(2, 1:n)
-               write(iu, err = 667, iomsg = errmsg) pl%Ip(3, 1:n)
-               write(iu, err = 667, iomsg = errmsg) pl%rot(1, 1:n)
-               write(iu, err = 667, iomsg = errmsg) pl%rot(2, 1:n)
-               write(iu, err = 667, iomsg = errmsg) pl%rot(3, 1:n)
-            end if
-            ! if (param%ltides) then
-            !    write(iu, err = 667, iomsg = errmsg) pl%k2(1:n)
-            !    write(iu, err = 667, iomsg = errmsg) pl%Q(1:n)
-            ! end if
-         end select
-      end associate
-
-      return
-      667 continue
-      write(*,*) "Error writing body frame: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_write_frame_body
-
-
-   module subroutine io_write_frame_cb(self, iu, param)
-      !! author: David A. Minton
-      !!
-      !! Write a frame of output of central body data to the binary output file
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine  io_write_frame.f90
-      !! Adapted from Hal Levison's Swift routine io_write_frame.F
-      implicit none
-      ! Arguments
-      class(swiftest_cb),         intent(in)    :: self   !! Swiftest central body object 
-      integer(I4B),               intent(inout) :: iu     !! Unit number for the output file to write frame to
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      ! Internals
-      character(len=STRMAX)   :: errmsg
-
-      associate(cb => self)
-         write(iu, err = 667, iomsg = errmsg) cb%id
-         write(iu, err = 667, iomsg = errmsg) cb%info%name
-         write(iu, err = 667, iomsg = errmsg) cb%Gmass
-         write(iu, err = 667, iomsg = errmsg) cb%radius
-         write(iu, err = 667, iomsg = errmsg) cb%j2rp2 
-         write(iu, err = 667, iomsg = errmsg) cb%j4rp4 
-         if (param%lrotation) then
-            write(iu, err = 667, iomsg = errmsg) cb%Ip(1)
-            write(iu, err = 667, iomsg = errmsg) cb%Ip(2)
-            write(iu, err = 667, iomsg = errmsg) cb%Ip(3)
-            write(iu, err = 667, iomsg = errmsg) cb%rot(1)
-            write(iu, err = 667, iomsg = errmsg) cb%rot(2)
-            write(iu, err = 667, iomsg = errmsg) cb%rot(3)
-         end if
-         ! if (param%ltides) then
-         !    write(iu, err = 667, iomsg = errmsg) cb%k2
-         !    write(iu, err = 667, iomsg = errmsg) cb%Q
-         ! end if
-      end associate
-
-      return
-      667 continue
-      write(*,*) "Error writing central body frame: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_write_frame_cb
-
-
    module subroutine io_write_frame_system(self, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -2055,19 +1499,10 @@ contains
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
-      class(swiftest_cb), allocatable  :: cb         !! Temporary local version of pl structure used for non-destructive conversions
-      class(swiftest_pl), allocatable  :: pl         !! Temporary local version of pl structure used for non-destructive conversions
-      class(swiftest_tp), allocatable  :: tp          !! Temporary local version of pl structure used for non-destructive conversions
       character(len=STRMAX)            :: errmsg
-      integer(I4B)                     :: iu = BINUNIT   !! Unit number for the output file to write frame to
       logical                          :: fileExists
 
-      allocate(cb, source = self%cb)
-      allocate(pl, source = self%pl)
-      allocate(tp, source = self%tp)
-      iu = BINUNIT
-      
-      param%nciu%id_chunk = pl%nbody + tp%nbody
+      param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
       param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
       if (lfirst) then
          inquire(file=param%outfile, exist=fileExists)
@@ -2091,12 +1526,7 @@ contains
          lfirst = .false.
       end if
 
-      ! Write out each data type frame
-      ! For NetCDF output, because we want to store the pseudovelocity separately from the true velocity, we need to do the orbital element conversion internally
-      call self%write_hdr(param%nciu, param)
-      call cb%write_frame(param%nciu, param)
-      call pl%write_frame(param%nciu, param)
-      call tp%write_frame(param%nciu, param)
+      call self%write_frame(param%nciu, param)
 
       return
 
@@ -2104,38 +1534,5 @@ contains
       write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine io_write_frame_system
-
-
-   module subroutine io_write_hdr_system(self, iu, param) ! t, npl, ntp, out_form, out_type)
-      !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
-      !!
-      !! Write frame header to output binary file
-      !!
-      !! Adapted from David Adapted from David E. Kaufmann's Swifter routine io_write_hdr.f90
-      !! Adapted from Hal Levison's Swift routine io_write_hdr.F
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
-      integer(I4B),                 intent(inout) ::  iu    !! Output file unit number
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters
-      ! Internals
-      character(len=STRMAX) :: errmsg
-   
-      select case (param%out_type)
-      case (REAL4_TYPE)
-         write(iu, err = 667, iomsg = errmsg) real(param%t, kind=SP)
-      case (REAL8_TYPE)
-         write(iu, err = 667, iomsg = errmsg) param%t
-      end select
-      write(iu, err = 667, iomsg = errmsg) self%pl%nbody
-      write(iu, err = 667, iomsg = errmsg) self%tp%nbody
-      write(iu, err = 667, iomsg = errmsg) param%out_form
-   
-      return
-
-      667 continue
-      write(*,*) "Error writing header: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
-   end subroutine io_write_hdr_system
 
 end submodule s_io

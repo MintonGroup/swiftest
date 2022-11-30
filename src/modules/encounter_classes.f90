@@ -38,7 +38,6 @@ module encounter_classes
       procedure :: dealloc => encounter_util_dealloc_list !! Deallocates all allocatables
       procedure :: spill   => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: resize  => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      procedure :: write   => encounter_io_write_list     !! Write close encounter data to output binary file
       final     :: encounter_util_final_list            !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
 
@@ -184,15 +183,6 @@ module encounter_classes
          real(DP), dimension(:), intent(in) :: xh1, xh2         !! Swiftestcentric position vectors of the two encountering bodies 
          real(DP), dimension(:), intent(in) :: vh1, vh2         !! Swiftestcentric velocity vectors of the two encountering bodies 
       end subroutine encounter_io_write_frame
-
-      module subroutine encounter_io_write_list(self, pl, encbody, param)
-         use swiftest_classes, only : swiftest_pl, swiftest_body, swiftest_parameters
-         implicit none
-         class(encounter_list),      intent(in) :: self    !! Swiftest encounter list object
-         class(swiftest_pl),         intent(in) :: pl      !! Swiftest massive body object
-         class(swiftest_body),       intent(in) :: encbody !! Encountering body - Swiftest generic body object (pl or tp) 
-         class(swiftest_parameters), intent(in) :: param   !! Current run configuration parameters 
-      end subroutine encounter_io_write_list
 
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none

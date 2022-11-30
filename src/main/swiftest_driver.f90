@@ -85,10 +85,8 @@ program swiftest_driver
       ioutput_t0 = int(t0 / dt / istep_out, kind=I8B)
       ioutput = ioutput_t0
       ! Prevent duplicate frames from being written if this is a restarted run
-      if ((param%lrestart) .and. ((param%out_type == REAL8_TYPE) .or. param%out_type == REAL4_TYPE)) then
-         old_t_final = nbody_system%get_old_t_final_bin(param)
-      else if ((param%lrestart) .and. ((param%out_type == NETCDF_DOUBLE_TYPE) .or. param%out_type == NETCDF_FLOAT_TYPE)) then
-         old_t_final = nbody_system%get_old_t_final_netcdf(param)
+      if (param%lrestart) then
+         old_t_final = nbody_system%get_old_t_final(param)
       else
          old_t_final = t0
          if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum

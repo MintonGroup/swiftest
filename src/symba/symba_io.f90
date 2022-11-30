@@ -174,85 +174,20 @@ contains
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)          :: iadd, isub, j, nsub, nadd
-      logical, save :: lfirst = .true. 
-      character(*), parameter :: HDRFMT    = '(E23.16, 1X, I8, 1X, L1)'
-      character(*), parameter :: NAMEFMT   = '(A, 2(1X, I8))'
-      character(*), parameter :: VECFMT    = '(3(E23.16, 1X))'
-      character(*), parameter :: NPLFMT    = '(I8)'
-      character(*), parameter :: PLNAMEFMT = '(I8, 2(1X, E23.16))'
-      character(STRMAX) :: errmsg, out_stat
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
 
-         if (self%tp_discards%nbody > 0) call io_write_discard(self, param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_particle_info(param%nciu, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
 
-            ! Record the discarded body metadata information to file
-            if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
-               call pl_discards%write_particle_info(param%nciu, param)
-            end if
-
-            if (param%discard_out == "") return
-            if (lfirst) then
-               out_stat = param%out_stat
-            else
-               out_stat = 'APPEND'
-            end if
-            select case(out_stat)
-            case('APPEND')
-               open(unit=LUN, file=param%discard_out, status='OLD', position='APPEND', form='FORMATTED', err=667, iomsg=errmsg)
-            case('NEW', 'REPLACE', 'UNKNOWN')
-               open(unit=LUN, file=param%discard_out, status=param%out_stat, form='FORMATTED', err=667, iomsg=errmsg)
-            case default
-               write(*,*) 'Invalid status code for OUT_STAT: ',trim(adjustl(param%out_stat))
-               call util_exit(FAILURE)
-            end select
-            lfirst = .false.
-            if (param%lgr) then
-               call pl_discards%pv2v(param) 
-               call pl_adds%pv2v(param) 
-            end if
-
-            write(LUN, HDRFMT, err=667, iomsg=errmsg) param%t, pl_discards%nbody, param%lbig_discard
-            iadd = 1
-            isub = 1
-            do while (iadd <= pl_adds%nbody)
-               nadd = pl_adds%ncomp(iadd)
-               nsub = pl_discards%ncomp(isub)
-               do j = 1, nadd
-                  if (iadd <= pl_adds%nbody) then
-                     write(LUN, NAMEFMT, err=667, iomsg=errmsg) ADD, pl_adds%id(iadd), pl_adds%status(iadd)
-                     write(LUN, VECFMT, err=667, iomsg=errmsg) pl_adds%xh(1, iadd), pl_adds%xh(2, iadd), pl_adds%xh(3, iadd)
-                     write(LUN, VECFMT, err=667, iomsg=errmsg) pl_adds%vh(1, iadd), pl_adds%vh(2, iadd), pl_adds%vh(3, iadd)
-                  else 
-                     exit
-                  end if
-                  iadd = iadd + 1
-               end do
-               do j = 1, nsub
-                  if (isub <= pl_discards%nbody) then
-                     write(LUN,NAMEFMT,err=667,iomsg=errmsg) SUB, pl_discards%id(isub), pl_discards%status(isub)
-                     write(LUN,VECFMT,err=667,iomsg=errmsg) pl_discards%xh(1,isub), pl_discards%xh(2,isub), pl_discards%xh(3,isub)
-                     write(LUN,VECFMT,err=667,iomsg=errmsg) pl_discards%vh(1,isub), pl_discards%vh(2,isub), pl_discards%vh(3,isub)
-                  else
-                     exit
-                  end if
-                  isub = isub + 1
-               end do
-            end do
-
-            close(LUN)
+            call pl_discards%write_particle_info(param%nciu, param)
          end select
       end associate
 
       return
 
-      667 continue
-      write(*,*) "Error writing discard file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
    end subroutine symba_io_write_discard
 
 end submodule s_symba_io

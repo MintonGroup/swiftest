@@ -57,16 +57,6 @@ module swiftest_globals
    integer(I4B), parameter :: STRMAX = 512 !! Maximum size of character strings
    integer(I4B), parameter :: NAMELEN = 32 !! Maximum size of name strings
 
-   character(*), parameter :: ASCII_TYPE          = 'ASCII' !! Symbolic name for ASCII file type
-   character(*), parameter :: REAL4_TYPE          = 'REAL4' !! Symbolic name for binary file type REAL4
-   character(*), parameter :: REAL8_TYPE          = 'REAL8' !! Symbolic name for binary file type REAL8
-   character(*), parameter :: NETCDF_FLOAT_TYPE   = 'NETCDF_FLOAT' !! Symbolic name for binary file type REAL8
-   character(*), parameter :: NETCDF_DOUBLE_TYPE   = 'NETCDF_DOUBLE' !! Symbolic name for binary file type REAL8
-
-   character(*), parameter :: EL  = 'EL' !! Symbolic name for binary output file contents for orbital elements
-   character(*), parameter :: XV  = 'XV' !! Symbolic name for binary output file contents for cartesian position and velocity vectors
-   character(*), parameter :: XVEL  = 'XVEL' !! Symbolic name for binary output file contents for both cartesian position and velocity and orbital elements
-
    character(*), parameter :: CB_TYPE_NAME = "Central Body"
    character(*), parameter :: PL_TYPE_NAME = "Massive Body"
    character(*), parameter :: TP_TYPE_NAME = "Test Particle"
