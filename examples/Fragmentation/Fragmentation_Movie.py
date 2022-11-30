@@ -112,7 +112,7 @@ class AnimatedScatter(object):
         scale_frame =   abs(sim.data['xhy'].isel(time=0, name=1).values) \
                       + abs( sim.data['xhy'].isel(time=0, name=2).values)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
-        self.ax_pt_size = figsize[0] * 0.8 *  72 / (2 * scale_frame)
+        self.ax_pt_size = figsize[0] * 0.8 *  72 / scale_frame
         ax.set_xlim(-scale_frame, scale_frame)
         ax.set_ylim(-scale_frame, scale_frame)
         ax.set_xticks([])
