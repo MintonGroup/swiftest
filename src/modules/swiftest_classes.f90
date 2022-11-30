@@ -156,10 +156,30 @@ module swiftest_classes
       procedure :: write_particle_info => netcdf_write_particle_info_base  !! Dump contents of particle information metadata to file
    end type swiftest_base
 
+   type, abstract, extends(swiftest_base) :: swiftest_storage
+      !! An abstract superclass for a generic Swiftest object that is used to store simulation history data between file I/O
+   contains
+      procedure(abstract_store),         deferred :: store !! Stores the state of the simulation in memory
+      procedure(abstract_dump_storage),  deferred :: dump  !! Dumps contents of the variable to file
+   end type swiftest_storage
+
+   abstract interface
+      subroutine abstract_store(self)
+         import swiftest_storage
+         class(swiftest_storage), intent(inout) :: self
+      end subroutine abstract_store
+
+      subroutine abstract_dump_storage(self)
+         import swiftest_storage
+         class(swiftest_storage), intent(inout) :: self
+      end subroutine abstract_dump_storage
+   end interface
+         
+
    !********************************************************************************************************************************
    ! swiftest_cb class definitions and methods
    !********************************************************************************************************************************
-   !> A concrete lass for the central body in a Swiftest simulation
+   !> An abstract class for a generic central body in a Swiftest simulation
    type, abstract, extends(swiftest_base) :: swiftest_cb           
       type(swiftest_particle_info)               :: info              !! Particle metadata information
       integer(I4B)                               :: id       = 0      !! External identifier (unique)
