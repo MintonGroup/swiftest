@@ -91,7 +91,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
       associate(system => self)
-         if ((param%out_type == NETCDF_FLOAT_TYPE) .or. (param%out_type == NETCDF_DOUBLE_TYPE)) then
+         if ((param%out_type == "NETCDF_FLOAT") .or. (param%out_type == "NETCDF_DOUBLE")) then
             call param%nciu%close()
          end if
       end associate
@@ -148,7 +148,7 @@ contains
          call system%set_msys()
          call pl%set_mu(cb) 
          call tp%set_mu(cb) 
-         if (param%in_form == EL) then
+         if (param%in_form == "EL") then
             call pl%el2xv(cb)
             call tp%el2xv(cb)
          end if

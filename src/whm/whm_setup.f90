@@ -89,7 +89,7 @@ contains
       call self%tp_discards%setup(0, param)
       call self%pl%set_mu(self%cb)
       call self%tp%set_mu(self%cb)
-      if (param%lgr .and. ((param%in_type == REAL8_TYPE) .or. (param%in_type == REAL4_TYPE))) then !! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
+      if (param%lgr .and. param%in_type == "ASCII") then !! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
          call self%pl%v2pv(param)
          call self%tp%v2pv(param)
       end if

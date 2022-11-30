@@ -561,17 +561,7 @@ contains
                                           a, peri, capm, tperi)
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)
-                        if (param%enc_out /= "") then
-                           id1 = pl%id(ipleP)
-                           rpl = pl%radius(ipleP)
-                           xh1(:) = pl%inner(inner_index)%x(:, ipleP)
-                           vh1(:) = pl%inner(inner_index)%v(:, ipleP)
-                           id2 = tp%id(i)
-                           xh2(:) = xpc(:, i) + xh1(:)
-                           vh2(:) = xpc(:, i) + vh1(:)
-                           call rmvs_io_write_encounter(t, id1, id2, mu, 0.0_DP, rpl, 0.0_DP, &
-                                                        xh1(:), xh2(:), vh1(:), vh2(:), param%enc_out)
-                        end if
+                        ! TODO: write NetCDF encounter output writer
                         if (tp%lperi(i)) then
                            if (peri < tp%peri(i)) then
                               tp%peri(i) = peri

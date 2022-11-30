@@ -361,7 +361,7 @@ contains
             associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
                call pl%vb2vh(system%cb) 
                call pl%xh2xb(system%cb)
-               call plplenc_list%write(pl, pl, param)
+               !call plplenc_list%write(pl, pl, param) TODO: write the encounter list writer for NetCDF
 
                call symba_discard_nonplpl(self, system, param)
 

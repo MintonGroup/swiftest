@@ -38,8 +38,8 @@ contains
             call tp%discard(system, param)
             ltp_discards = (tp_discards%nbody > 0)
          end if
-
-         if (lpl_discards .or. ltp_discards) call system%write_discard(param)
+         if (ltp_discards) call tp_discards%write_particle_info(param%nciu, param)
+         if (lpl_discards) call pl_discards%write_particle_info(param%nciu, param)
          if (lpl_discards .and. param%lenergy) call self%conservation_report(param, lterminal=.false.)
          if (lpl_check) call pl_discards%setup(0,param) 
          if (ltp_check) call tp_discards%setup(0,param) 
