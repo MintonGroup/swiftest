@@ -1772,7 +1772,10 @@ class Simulation:
         if all(key in self.param for key in ["MU2KG","DU2M","TU2S"]):
             self.GU = constants.GC * self.param["TU2S"] ** 2 * self.param["MU2KG"] / self.param["DU2M"] ** 3
 
-        if recompute_unit_values:
+        if recompute_unit_values and \
+                MU2KG_old != self.param['MU2KG'] or \
+                DU2M_old != self.param['DU2M'] or \
+                TU2S_old != self.param['TU2S']:
             self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
         unit_dict = self.get_unit_system(update_list, verbose)
@@ -1868,7 +1871,6 @@ class Simulation:
         if MU2KG_old is not None:
             for k in mass_keys:
                 if k in self.param:
-                    print(f"param['{k}']: {self.param[k]}")
                     self.param[k] *= MU2KG_old / self.param['MU2KG']
 
         if DU2M_old is not None:
