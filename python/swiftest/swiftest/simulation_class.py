@@ -324,8 +324,8 @@ class Simulation:
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
         if read_param or read_old_output_file:
-            #good_param is self.read_param()
-            if self.read_param():
+
+            if self.read_param(read_init_cond = not read_old_output_file):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
@@ -2556,6 +2556,7 @@ class Simulation:
     def read_param(self,
                    param_file : os.PathLike | str | None = None,
                    codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
+                   read_init_cond : Bool | None = None,
                    verbose: bool | None = None):
         """
         Reads in an input parameter file and stores the values in the param dictionary.
@@ -2563,9 +2564,11 @@ class Simulation:
         Parameters
         ----------
         param_file : str or path-like, default is the value of the Simulation object's internal `param_file`.
-           File name of the input parameter file
+            File name of the input parameter file
         codename : {"Swiftest", "Swifter", "Swift"}, default is the value of the Simulation object's internal`codename`
-           Type of parameter file, either "Swift", "Swifter", or "Swiftest"
+            Type of parameter file, either "Swift", "Swifter", or "Swiftest"
+        read_init_cond : bool, optional
+            If true, will read in the initial conditions file into the data instance variable. Default True
         verbose : bool, default is the value of the Simulation object's internal `verbose`
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
@@ -2575,7 +2578,8 @@ class Simulation:
         """
         if param_file is None:
             param_file = self.param_file
-
+        if read_init_cond is None:
+            read_init_cond = True
         if codename is None:
             codename = self.codename
 
@@ -2587,14 +2591,17 @@ class Simulation:
 
         if codename == "Swiftest":
             self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
-            if "NETCDF" in self.param['IN_TYPE']:
-               init_cond_file = self.sim_dir / self.param['NC_IN']
-               if os.path.exists(init_cond_file):
-                   param_tmp = self.param.copy()
-                   param_tmp['BIN_OUT'] = init_cond_file
-                   self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
-               else:
-                   warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
+            if read_init_cond:
+                if "NETCDF" in self.param['IN_TYPE']:
+                   init_cond_file = self.sim_dir / self.param['NC_IN']
+                   if os.path.exists(init_cond_file):
+                       param_tmp = self.param.copy()
+                       param_tmp['BIN_OUT'] = init_cond_file
+                       self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                   else:
+                       warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
+                else:
+                    warnings.warn("Reading in ASCII initial conditions files in Python is not yet supported")
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
         elif codename == "Swift":
