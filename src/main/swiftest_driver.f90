@@ -66,7 +66,7 @@ program swiftest_driver
    call setup_construct_system(nbody_system, param)
    call param%read_in(param_file_name)
 
-   associate(t               => param%t, &
+   associate(t               => nbody_system%t, &
              t0              => param%t0, &
              tstart          => param%tstart, &
              dt              => param%dt, &
@@ -137,13 +137,13 @@ program swiftest_driver
                   idump = dump_cadence
                end if
 
-               tfrac = (param%t - param%t0) / (param%tstop - param%t0)
+               tfrac = (t - t0) / (tstop - t0)
 
                select type(pl => nbody_system%pl)
                class is (symba_pl)
-                  write(display_unit, symbastatfmt) param%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
+                  write(display_unit, symbastatfmt) t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
                class default
-                  write(display_unit, statusfmt) param%t, tfrac, pl%nbody, nbody_system%tp%nbody
+                  write(display_unit, statusfmt) t, tfrac, pl%nbody, nbody_system%tp%nbody
                end select
                if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
                call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)

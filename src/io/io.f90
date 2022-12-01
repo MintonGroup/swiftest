@@ -35,7 +35,7 @@ contains
 
       select type(timer)
       class is (walltimer)
-         formatted_output = fmt("ILOOP",param%iloop) // fmt("T",param%t) // fmt("NPL",self%pl%nbody) // fmt("NTP",self%tp%nbody) 
+         formatted_output = fmt("ILOOP",param%iloop) // fmt("T",self%t) // fmt("NPL",self%pl%nbody) // fmt("NTP",self%tp%nbody) 
          select type(pl => self%pl)
          class is (symba_pl)
             formatted_output = formatted_output // fmt("NPLM",pl%nplm)
@@ -250,7 +250,7 @@ contains
       dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
       dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
       dump_param%nciu%time_chunk = 1
-      dump_param%tstart = param%t
+      dump_param%tstart = self%t
 
       call dump_param%dump(param_file_name)
 

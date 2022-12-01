@@ -793,7 +793,7 @@ contains
 
       tslot = int(param%ioutput, kind=I4B) + 1
       call check( nf90_inquire_dimension(iu%ncid, iu%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
-      call check( nf90_get_var(iu%ncid, iu%time_varid, param%t,       start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
+      call check( nf90_get_var(iu%ncid, iu%time_varid, self%t, start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
 
       allocate(gmtemp(idmax))
       allocate(tpmask(idmax))
@@ -1428,7 +1428,7 @@ contains
 
       tslot = int(param%ioutput, kind=I4B) + 1
 
-      call check( nf90_put_var(iu%ncid, iu%time_varid, param%t, start=[tslot]), "netcdf_write_hdr_system nf90_put_var time_varid"  )
+      call check( nf90_put_var(iu%ncid, iu%time_varid, self%t, start=[tslot]), "netcdf_write_hdr_system nf90_put_var time_varid"  )
       call check( nf90_put_var(iu%ncid, iu%npl_varid, self%pl%nbody, start=[tslot]), "netcdf_write_hdr_system nf90_put_var npl_varid"  )
       call check( nf90_put_var(iu%ncid, iu%ntp_varid, self%tp%nbody, start=[tslot]), "netcdf_write_hdr_system nf90_put_var ntp_varid"  )
       select type(pl => self%pl)

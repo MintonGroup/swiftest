@@ -314,7 +314,6 @@ contains
       end select
 
       self%is_on = .true.
-      write(tstr,*) param%t
       select case(self%stage)
       case(1)
          self%stage1_ninteractions = ninteractions 

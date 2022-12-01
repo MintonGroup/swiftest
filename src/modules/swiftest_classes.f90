@@ -37,7 +37,6 @@ module swiftest_classes
       integer(I4B)       :: maxid                = -1                 !! The current maximum particle id number 
       integer(I4B)       :: maxid_collision      = 0                  !! The current maximum collision id number
       real(DP)           :: t0                   =  0.0_DP            !! Integration reference time
-      real(DP)           :: t                    = -1.0_DP            !! Integration current time
       real(DP)           :: tstart               = -1.0_DP            !! Integration start time
       real(DP)           :: tstop                = -1.0_DP            !! Integration stop time
       real(DP)           :: dt                   = -1.0_DP            !! Time step
@@ -347,6 +346,7 @@ module swiftest_classes
       class(swiftest_tp), allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp), allocatable :: tp_discards          !! Discarded test particle data structure
       class(swiftest_pl), allocatable :: pl_discards          !! Discarded massive body particle data structure
+      real(DP)                        :: t = -1.0_DP          !! Integration current time
       real(DP)                        :: GMtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
       real(DP)                        :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
       real(DP)                        :: ke_spin = 0.0_DP     !! System spin kinetic energy
