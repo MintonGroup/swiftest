@@ -527,7 +527,7 @@ contains
                   call io_toupper(param_value)
                   param%out_stat = param_value
                case ("DUMP_CADENCE")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%istep_dump
+                  read(param_value, *, err = 667, iomsg = iomsg) param%dump_cadence
                case ("CHK_CLOSE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lclose = .true.
@@ -672,8 +672,13 @@ contains
             iostat = -1
             return
          end if
-         if ((param%istep_out <= 0) .and. (param%istep_dump <= 0)) then
-            write(iomsg,*) 'Invalid istep'
+         if (param%istep_out <= 0) then
+            write(iomsg,*) 'Invalid ISTEP_OUT. Must be a positive integer'
+            iostat = -1
+            return
+         end if
+         if (param%dump_cadence < 0) then
+            write(iomsg,*) 'Invalid DUMP_CADENCE. Must be a positive integer or 0.'
             iostat = -1
             return
          end if
@@ -870,7 +875,7 @@ contains
          end if
 
          call io_param_writer_one("IN_FORM", param%in_form, unit)
-         if (param%istep_dump > 0) call io_param_writer_one("ISTEP_DUMP",param%istep_dump, unit)
+         if (param%dump_cadence > 0) call io_param_writer_one("DUMP_CADENCE",param%dump_cadence, unit)
          if (param%istep_out > 0) then
             call io_param_writer_one("ISTEP_OUT", param%istep_out, unit)
             call io_param_writer_one("BIN_OUT", param%outfile, unit)
@@ -1503,7 +1508,7 @@ contains
       logical                          :: fileExists
 
       param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
-      param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
+      param%nciu%time_chunk = max(param%dump_cadence / param%istep_out, 1)
       if (lfirst) then
          inquire(file=param%outfile, exist=fileExists)
          

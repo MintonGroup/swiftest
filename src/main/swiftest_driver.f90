@@ -72,7 +72,7 @@ program swiftest_driver
              tstop           => param%tstop, &
              iloop           => param%iloop, &
              istep_out       => param%istep_out, &
-             istep_dump      => param%istep_dump, &
+             dump_cadence    => param%dump_cadence, &
              ioutput         => param%ioutput, &
              display_style   => param%display_style, &
              display_unit    => param%display_unit)
@@ -81,7 +81,7 @@ program swiftest_driver
       t = t0
       iloop = 0
       iout = istep_out
-      idump = istep_dump
+      idump = dump_cadence
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       ioutput_t0 = int(t0 / dt / istep_out, kind=I8B)
       ioutput = ioutput_t0
@@ -123,6 +123,7 @@ program swiftest_driver
                ioutput = ioutput_t0 + iloop / istep_out
                call nbody_system%write_frame(param)
 
+
                tfrac = (param%t - param%t0) / (param%tstop - param%t0)
 
                select type(pl => nbody_system%pl)
@@ -148,11 +149,11 @@ program swiftest_driver
          end if
 
          !> If the loop counter is at the dump cadence value, dump the state of the system to a file in case it needs to be restarted
-         if (istep_dump > 0) then
+         if (dump_cadence > 0) then
             idump = idump - 1
             if (idump == 0) then
                call nbody_system%dump(param)
-               idump = istep_dump
+               idump = dump_cadence
             end if
          end if
       end do
