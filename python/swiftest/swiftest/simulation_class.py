@@ -382,7 +382,7 @@ class Simulation:
         process_output = False
         noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
-        twidth = int(np.ceil(np.log10(self.param['TSTOP']/self.param['DT'])))
+        twidth = int(np.ceil(np.log10(self.param['TSTOP']/(self.param['DT'] * self.param['ISTEP_OUT']))))
         pre_message = f"Time: {self.param['TSTART']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name} "
         post_message = f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
         if "nplm" in self.data:
