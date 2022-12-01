@@ -269,10 +269,14 @@ contains
       return
    end subroutine io_dump_system
 
+
    module subroutine io_dump_system_storage(self, param)
       !! author: David A. Minton
       !!
-      !! Dumps the time history of the simulation to file
+      !! Dumps the time history of the simulation to file. Each time it writes a frame to file, it deallocates the system
+      !! object from inside. It will only dump frames with systems that are allocated, so this can be called at the end of
+      !! a simulation for cases when the number of saved frames is not equal to the dump cadence (for instance, if the dump
+      !! cadence is not divisible by the total number of loops).
       implicit none
       ! Arguments
       class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
@@ -282,8 +286,8 @@ contains
 
       iloop_start = param%iloop - param%istep_out * param%dump_cadence + 1_I8B
       do i = 1_I8B, param%dump_cadence
-         param%ioutput = int(iloop_start / param%istep_out, kind=I8B) + i
          if (allocated(self%frame(i)%system)) then
+            param%ioutput = int(iloop_start / param%istep_out, kind=I8B) + i
             call self%frame(i)%system%write_frame(param)
             deallocate(self%frame(i)%system)
          end if
