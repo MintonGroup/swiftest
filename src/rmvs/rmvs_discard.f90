@@ -29,7 +29,7 @@ contains
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody, pl => system%pl, t => param%t)
+      associate(tp => self, ntp => self%nbody, pl => system%pl, t => system%t)
          do i = 1, ntp
             associate(iplperP => tp%plperP(i))
                if ((tp%status(i) == ACTIVE) .and. (tp%lperi(i))) then 

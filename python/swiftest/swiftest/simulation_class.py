@@ -63,7 +63,6 @@ class Simulation:
                   inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
-
         read_old_output_file : bool, default False
             If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
             Parameter input file equivalent: None
@@ -94,16 +93,16 @@ class Simulation:
             The step size of the simulation. `dt` must be less than or equal to `tstop-tstart`.
             Parameter input file equivalent: `DT`
         istep_out : int, optional
-            The number of time steps between outputs to file. *Note*: only `istep_out` or `toutput` can be set.
+            The number of time steps between output saves to file. *Note*: only `istep_out` or `toutput` can be set.
             Parameter input file equivalent: `ISTEP_OUT`
+        dump_cadence : int, optional
+            The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
+            is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
+            Parameter input file equivalent: `DUMP_CADENCE`
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
             `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
             Parameter input file equivalent: None
-        istep_dump : int, optional
-            The anumber of time steps between outputs to dump file. If not set, this will be set to the value of
-            `istep_out` (or the equivalent value determined by `tstep_out`).
-            Parameter input file equivalent: `ISTEP_DUMP`
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
             The file type containing initial conditions for the simulation:
             * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
@@ -324,8 +323,8 @@ class Simulation:
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
         if read_param or read_old_output_file:
-            #good_param is self.read_param()
-            if self.read_param():
+
+            if self.read_param(read_init_cond = not read_old_output_file):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
@@ -382,7 +381,7 @@ class Simulation:
         process_output = False
         noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
-        twidth = int(np.ceil(np.log10(self.param['TSTOP']/self.param['DT'])))
+        twidth = int(np.ceil(np.log10(self.param['TSTOP']/(self.param['DT'] * self.param['ISTEP_OUT']))))
         pre_message = f"Time: {self.param['TSTART']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name} "
         post_message = f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
         if "nplm" in self.data:
@@ -524,7 +523,7 @@ class Simulation:
                             dt: float | None = None,
                             istep_out: int | None = None,
                             tstep_out: float | None = None,
-                            istep_dump: int | None = None,
+                            dump_cadence: int | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
                             ):
@@ -545,9 +544,10 @@ class Simulation:
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
             `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
-        istep_dump : int, optional
-            The anumber of time steps between outputs to dump file. If not set, this will be set to the value of
-            `istep_out` (or the equivalent value determined by `tstep_out`)
+        dump_cadence : int, optional
+            The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
+            is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
+            Parameter input file equivalent: `DUMP_CADENCE`
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
@@ -561,7 +561,7 @@ class Simulation:
 
         """
         if t0 is None and tstart is None and tstop is None and dt is None and istep_out is None and \
-                tstep_out is None and istep_dump is None:
+                tstep_out is None and dump_cadence is None:
             return {}
 
         update_list = []
@@ -625,16 +625,12 @@ class Simulation:
         if istep_out is not None:
             self.param['ISTEP_OUT'] = istep_out
 
-        if istep_dump is None:
-            istep_dump = self.param.pop("ISTEP_DUMP", None)
-            if istep_dump is None:
-                istep_dump = istep_out
+        if dump_cadence is None:
+            dump_cadence = self.param.pop("DUMP_CADENCE", 1)
         else:
-            update_list.append("istep_dump")
-
-        if istep_dump is not None:
-            self.param['ISTEP_DUMP'] = istep_dump
-
+            update_list.append("dump_cadence")
+        self.param['DUMP_CADENCE'] = dump_cadence
+        
         time_dict = self.get_simulation_time(update_list, verbose=verbose)
 
         return time_dict
@@ -650,7 +646,7 @@ class Simulation:
         arg_list : str | List[str], optional
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
-            ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "istep_dump"]
+            ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "dump_cadence"]
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
@@ -670,7 +666,7 @@ class Simulation:
                      "tstop": "TSTOP",
                      "dt": "DT",
                      "istep_out": "ISTEP_OUT",
-                     "istep_dump": "ISTEP_DUMP",
+                     "dump_cadence": "DUMP_CADENCE",
                      }
 
         units = {"t0": self.TU_name,
@@ -679,7 +675,7 @@ class Simulation:
                  "dt": self.TU_name,
                  "tstep_out": self.TU_name,
                  "istep_out": "",
-                 "istep_dump": ""}
+                 "dump_cadence": ""}
 
         tstep_out = None
         if arg_list is None or "tstep_out" in arg_list or "istep_out" in arg_list:
@@ -728,7 +724,7 @@ class Simulation:
             "dt": None,
             "istep_out": 1,
             "tstep_out": None,
-            "istep_dump": 1,
+            "dump_cadence": 10,
             "init_cond_file_type": "NETCDF_DOUBLE",
             "init_cond_file_name": None,
             "init_cond_format": "EL",
@@ -2559,6 +2555,7 @@ class Simulation:
     def read_param(self,
                    param_file : os.PathLike | str | None = None,
                    codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
+                   read_init_cond : Bool | None = None,
                    verbose: bool | None = None):
         """
         Reads in an input parameter file and stores the values in the param dictionary.
@@ -2566,9 +2563,11 @@ class Simulation:
         Parameters
         ----------
         param_file : str or path-like, default is the value of the Simulation object's internal `param_file`.
-           File name of the input parameter file
+            File name of the input parameter file
         codename : {"Swiftest", "Swifter", "Swift"}, default is the value of the Simulation object's internal`codename`
-           Type of parameter file, either "Swift", "Swifter", or "Swiftest"
+            Type of parameter file, either "Swift", "Swifter", or "Swiftest"
+        read_init_cond : bool, optional
+            If true, will read in the initial conditions file into the data instance variable. Default True
         verbose : bool, default is the value of the Simulation object's internal `verbose`
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
@@ -2578,7 +2577,8 @@ class Simulation:
         """
         if param_file is None:
             param_file = self.param_file
-
+        if read_init_cond is None:
+            read_init_cond = True
         if codename is None:
             codename = self.codename
 
@@ -2590,14 +2590,17 @@ class Simulation:
 
         if codename == "Swiftest":
             self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
-            if "NETCDF" in self.param['IN_TYPE']:
-               init_cond_file = self.sim_dir / self.param['NC_IN']
-               if os.path.exists(init_cond_file):
-                   param_tmp = self.param.copy()
-                   param_tmp['BIN_OUT'] = init_cond_file
-                   self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
-               else:
-                   warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
+            if read_init_cond:
+                if "NETCDF" in self.param['IN_TYPE']:
+                   init_cond_file = self.sim_dir / self.param['NC_IN']
+                   if os.path.exists(init_cond_file):
+                       param_tmp = self.param.copy()
+                       param_tmp['BIN_OUT'] = init_cond_file
+                       self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                   else:
+                       warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
+                else:
+                    warnings.warn("Reading in ASCII initial conditions files in Python is not yet supported")
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
         elif codename == "Swift":

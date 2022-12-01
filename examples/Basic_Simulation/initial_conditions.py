@@ -23,7 +23,7 @@ import numpy as np
 from numpy.random import default_rng
 
 # Initialize the simulation object as a variable
-sim = swiftest.Simulation(tstart=0.0, tstop=1.0e3, dt=0.010, tstep_out=1.0e0, fragmentation=True, minimum_fragment_mass = 2.5e-11, mtiny=2.5e-8)
+sim = swiftest.Simulation(tstart=0.0, tstop=1.0e3, dt=0.01, tstep_out=1.0e0, dump_cadence=0, fragmentation=True, minimum_fragment_mass = 2.5e-11, mtiny=2.5e-8)
 
 # Add the modern planets and the Sun using the JPL Horizons Database
 sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])

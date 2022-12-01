@@ -35,7 +35,7 @@ contains
 
       select type(timer)
       class is (walltimer)
-         formatted_output = fmt("ILOOP",param%iloop) // fmt("T",param%t) // fmt("NPL",self%pl%nbody) // fmt("NTP",self%tp%nbody) 
+         formatted_output = fmt("ILOOP",param%iloop) // fmt("T",self%t) // fmt("NPL",self%pl%nbody) // fmt("NTP",self%tp%nbody) 
          select type(pl => self%pl)
          class is (symba_pl)
             formatted_output = formatted_output // fmt("NPLM",pl%nplm)
@@ -250,7 +250,7 @@ contains
       dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
       dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
       dump_param%nciu%time_chunk = 1
-      dump_param%T0 = param%t
+      dump_param%tstart = self%t
 
       call dump_param%dump(param_file_name)
 
@@ -268,6 +268,33 @@ contains
 
       return
    end subroutine io_dump_system
+
+
+   module subroutine io_dump_system_storage(self, param)
+      !! author: David A. Minton
+      !!
+      !! Dumps the time history of the simulation to file. Each time it writes a frame to file, it deallocates the system
+      !! object from inside. It will only dump frames with systems that are allocated, so this can be called at the end of
+      !! a simulation for cases when the number of saved frames is not equal to the dump cadence (for instance, if the dump
+      !! cadence is not divisible by the total number of loops).
+      implicit none
+      ! Arguments
+      class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      integer(I8B) :: i, iloop_start
+
+      iloop_start = param%iloop - param%istep_out * param%dump_cadence + 1_I8B
+      do i = 1_I8B, param%dump_cadence
+         if (allocated(self%frame(i)%system)) then
+            param%ioutput = int(iloop_start / param%istep_out, kind=I8B) + i
+            call self%frame(i)%system%write_frame(param)
+            deallocate(self%frame(i)%system)
+         end if
+      end do
+
+      return
+   end subroutine io_dump_system_storage
 
 
    module subroutine io_get_args(integrator, param_file_name, display_style)
@@ -461,7 +488,6 @@ contains
       integer, intent(out)                      :: iostat     !! IO status code
       character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
-      logical                        :: t0_set = .false.                  !! Is the initial time set in the input file?
       logical                        :: tstart_set = .false.               !! Is the final time set in the input file?
       logical                        :: tstop_set = .false.               !! Is the final time set in the input file?
       logical                        :: dt_set = .false.                  !! Is the step size set in the input file?
@@ -489,9 +515,8 @@ contains
                select case (param_name)
                case ("T0")
                   read(param_value, *, err = 667, iomsg = iomsg) param%t0
-                  t0_set = .true.
                case ("TSTART")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%t0
+                  read(param_value, *, err = 667, iomsg = iomsg) param%tstart
                   tstart_set = .true.                  
                case ("TSTOP")
                   read(param_value, *, err = 667, iomsg = iomsg) param%tstop
@@ -526,8 +551,8 @@ contains
                case ("OUT_STAT")
                   call io_toupper(param_value)
                   param%out_stat = param_value
-               case ("ISTEP_DUMP")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%istep_dump
+               case ("DUMP_CADENCE")
+                  read(param_value, *, err = 667, iomsg = iomsg) param%dump_cadence
                case ("CHK_CLOSE")
                   call io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lclose = .true.
@@ -652,7 +677,7 @@ contains
          iostat = 0
 
          ! Do basic sanity checks on the input values
-         if ((.not. t0_set) .or. (.not. tstop_set) .or. (.not. dt_set)) then
+         if ((.not. tstart_set) .or. (.not. tstop_set) .or. (.not. dt_set)) then
             write(iomsg,*) 'Valid simulation time not set'
             iostat = -1
             return
@@ -672,8 +697,13 @@ contains
             iostat = -1
             return
          end if
-         if ((param%istep_out <= 0) .and. (param%istep_dump <= 0)) then
-            write(iomsg,*) 'Invalid istep'
+         if (param%istep_out <= 0) then
+            write(iomsg,*) 'Invalid ISTEP_OUT. Must be a positive integer'
+            iostat = -1
+            return
+         end if
+         if (param%dump_cadence < 0) then
+            write(iomsg,*) 'Invalid DUMP_CADENCE. Must be a positive integer or 0.'
             iostat = -1
             return
          end if
@@ -858,6 +888,7 @@ contains
 
       associate(param => self)
          call io_param_writer_one("T0", param%t0, unit)
+         call io_param_writer_one("TSTART", param%tstart, unit)
          call io_param_writer_one("TSTOP", param%tstop, unit)
          call io_param_writer_one("DT", param%dt, unit)
          call io_param_writer_one("IN_TYPE", param%in_type, unit)
@@ -870,7 +901,7 @@ contains
          end if
 
          call io_param_writer_one("IN_FORM", param%in_form, unit)
-         if (param%istep_dump > 0) call io_param_writer_one("ISTEP_DUMP",param%istep_dump, unit)
+         if (param%dump_cadence > 0) call io_param_writer_one("DUMP_CADENCE",param%dump_cadence, unit)
          if (param%istep_out > 0) then
             call io_param_writer_one("ISTEP_OUT", param%istep_out, unit)
             call io_param_writer_one("BIN_OUT", param%outfile, unit)
@@ -1503,7 +1534,7 @@ contains
       logical                          :: fileExists
 
       param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
-      param%nciu%time_chunk = max(param%istep_dump / param%istep_out, 1)
+      param%nciu%time_chunk = max(param%dump_cadence / param%istep_out, 1)
       if (lfirst) then
          inquire(file=param%outfile, exist=fileExists)
          

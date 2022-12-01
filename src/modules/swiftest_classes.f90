@@ -32,43 +32,43 @@ module swiftest_classes
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
-      character(STRMAX)    :: integrator     = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
-      character(STRMAX)    :: param_file_name = "param.in"        !! The default name of the parameter input file
-      integer(I4B)         :: maxid          = -1                 !! The current maximum particle id number 
-      integer(I4B)         :: maxid_collision = 0                 !! The current maximum collision id number
-      real(DP)             :: t0             = -1.0_DP            !! Integration start time
-      real(DP)             :: t              = -1.0_DP            !! Integration current time
-      real(DP)             :: tstop          = -1.0_DP            !! Integration stop time
-      real(DP)             :: dt             = -1.0_DP            !! Time step
-      integer(I8B)         :: iloop          = 0_I8B              !! Main loop counter
-      integer(I8B)         :: ioutput        = 0_I8B              !! Output counter
-      character(STRMAX)    :: incbfile       = CB_INFILE          !! Name of input file for the central body
-      character(STRMAX)    :: inplfile       = PL_INFILE          !! Name of input file for massive bodies
-      character(STRMAX)    :: intpfile       = TP_INFILE          !! Name of input file for test particles
-      character(STRMAX)    :: in_netcdf      = NC_INFILE          !! Name of system input file for NetCDF input
-      character(STRMAX)    :: in_type        = "ASCII"         !! Data representation type of input data files
-      character(STRMAX)    :: in_form        = "XV"                 !! Format of input data files ("EL" or "XV")
-      integer(I4B)         :: istep_out      = -1                 !! Number of time steps between binary outputs
-      character(STRMAX)    :: outfile        = NETCDF_OUTFILE     !! Name of output binary file
-      character(STRMAX)    :: out_type       = "NETCDF_DOUBLE" !! Binary format of output file
-      character(STRMAX)    :: out_form       = "XVEL"               !! Data to write to output file
-      character(STRMAX)    :: out_stat       = 'NEW'              !! Open status for output binary file
-      integer(I4B)         :: istep_dump     = -1                 !! Number of time steps between dumps
-      real(DP)             :: rmin           = -1.0_DP            !! Minimum heliocentric radius for test particle
-      real(DP)             :: rmax           = -1.0_DP            !! Maximum heliocentric radius for test particle
-      real(DP)             :: rmaxu          = -1.0_DP            !! Maximum unbound heliocentric radius for test particle
-      real(DP)             :: qmin           = -1.0_DP            !! Minimum pericenter distance for test particle
-      character(STRMAX)    :: qmin_coord     = 'HELIO'            !! Coordinate frame to use for qmin
-      real(DP)             :: qmin_alo       = -1.0_DP            !! Minimum semimajor axis for qmin
-      real(DP)             :: qmin_ahi       = -1.0_DP            !! Maximum semimajor axis for qmin
-      real(QP)             :: MU2KG          = -1.0_QP            !! Converts mass units to grams
-      real(QP)             :: TU2S           = -1.0_QP            !! Converts time units to seconds
-      real(QP)             :: DU2M           = -1.0_QP            !! Converts distance unit to centimeters
-      real(DP)             :: GU             = -1.0_DP            !! Universal gravitational constant in the system units
-      real(DP)             :: inv_c2         = -1.0_DP            !! Inverse speed of light squared in the system units
-      character(NAMELEN)   :: interaction_loops = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
-      character(NAMELEN)   :: encounter_check_plpl = "ADAPTIVE"   !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
-      character(NAMELEN)   :: encounter_check_pltp = "ADAPTIVE"   !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      character(STRMAX)  :: integrator           = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
+      character(STRMAX)  :: param_file_name      = "param.in"         !! The default name of the parameter input file
+      integer(I4B)       :: maxid                = -1                 !! The current maximum particle id number 
+      integer(I4B)       :: maxid_collision      = 0                  !! The current maximum collision id number
+      real(DP)           :: t0                   =  0.0_DP            !! Integration reference time
+      real(DP)           :: tstart               = -1.0_DP            !! Integration start time
+      real(DP)           :: tstop                = -1.0_DP            !! Integration stop time
+      real(DP)           :: dt                   = -1.0_DP            !! Time step
+      integer(I8B)       :: iloop                = 0_I8B              !! Main loop counter
+      integer(I8B)       :: ioutput              = 0_I8B              !! Output counter
+      character(STRMAX)  :: incbfile             = CB_INFILE          !! Name of input file for the central body
+      character(STRMAX)  :: inplfile             = PL_INFILE          !! Name of input file for massive bodies
+      character(STRMAX)  :: intpfile             = TP_INFILE          !! Name of input file for test particles
+      character(STRMAX)  :: in_netcdf            = NC_INFILE          !! Name of system input file for NetCDF input
+      character(STRMAX)  :: in_type              = "ASCII"            !! Data representation type of input data files
+      character(STRMAX)  :: in_form              = "XV"               !! Format of input data files ("EL" or "XV")
+      integer(I4B)       :: istep_out            = -1                 !! Number of time steps between saved outputs
+      character(STRMAX)  :: outfile              = NETCDF_OUTFILE     !! Name of output binary file
+      character(STRMAX)  :: out_type             = "NETCDF_DOUBLE"    !! Binary format of output file
+      character(STRMAX)  :: out_form             = "XVEL"             !! Data to write to output file
+      character(STRMAX)  :: out_stat             = 'NEW'              !! Open status for output binary file
+      integer(I4B)       :: dump_cadence         =  10                !! Number of output steps between dumping simulation data to file
+      real(DP)           :: rmin                 = -1.0_DP            !! Minimum heliocentric radius for test particle
+      real(DP)           :: rmax                 = -1.0_DP            !! Maximum heliocentric radius for test particle
+      real(DP)           :: rmaxu                = -1.0_DP            !! Maximum unbound heliocentric radius for test particle
+      real(DP)           :: qmin                 = -1.0_DP            !! Minimum pericenter distance for test particle
+      character(STRMAX)  :: qmin_coord           = 'HELIO'            !! Coordinate frame to use for qmin
+      real(DP)           :: qmin_alo             = -1.0_DP            !! Minimum semimajor axis for qmin
+      real(DP)           :: qmin_ahi             = -1.0_DP            !! Maximum semimajor axis for qmin
+      real(QP)           :: MU2KG                = -1.0_QP            !! Converts mass units to grams
+      real(QP)           :: TU2S                 = -1.0_QP            !! Converts time units to seconds
+      real(QP)           :: DU2M                 = -1.0_QP            !! Converts distance unit to centimeters
+      real(DP)           :: GU                   = -1.0_DP            !! Universal gravitational constant in the system units
+      real(DP)           :: inv_c2               = -1.0_DP            !! Inverse speed of light squared in the system units
+      character(NAMELEN) :: interaction_loops    = "ADAPTIVE"         !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
+      character(NAMELEN) :: encounter_check_plpl = "ADAPTIVE"         !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      character(NAMELEN) :: encounter_check_pltp = "ADAPTIVE"         !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
@@ -89,18 +89,18 @@ module swiftest_classes
       logical :: ltides         = .false. !! Include tidal dissipation 
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
-      real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
-      real(DP)                  :: GMtot_orig = 0.0_DP    !! Initial system mass
-      real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
-      real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
-      real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: GMescape = 0.0_DP      !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
-      real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
+      real(DP)                  :: Eorbit_orig  = 0.0_DP  !! Initial orbital energy
+      real(DP)                  :: GMtot_orig   = 0.0_DP  !! Initial system mass
+      real(DP), dimension(NDIM) :: Ltot_orig    = 0.0_DP  !! Initial total angular momentum vector
+      real(DP), dimension(NDIM) :: Lorbit_orig  = 0.0_DP  !! Initial orbital angular momentum
+      real(DP), dimension(NDIM) :: Lspin_orig   = 0.0_DP  !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM) :: Lescape      = 0.0_DP  !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: GMescape     = 0.0_DP  !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Ecollisions  = 0.0_DP  !! Energy lost from system due to collisions
+      real(DP)                  :: Euntracked   = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
-      logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
-      logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
+      logical                   :: lfirstkick   = .true.  !! Initiate the first kick in a symplectic step
+      logical                   :: lrestart     = .false. !! Indicates whether or not this is a restarted run
 
       character(len=:), allocatable :: display_style         !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
       integer(I4B)                  :: display_unit          !! File unit number for display (either to stdout or to a log file)
@@ -159,7 +159,7 @@ module swiftest_classes
    !********************************************************************************************************************************
    ! swiftest_cb class definitions and methods
    !********************************************************************************************************************************
-   !> A concrete lass for the central body in a Swiftest simulation
+   !> An abstract class for a generic central body in a Swiftest simulation
    type, abstract, extends(swiftest_base) :: swiftest_cb           
       type(swiftest_particle_info)               :: info              !! Particle metadata information
       integer(I4B)                               :: id       = 0      !! External identifier (unique)
@@ -346,6 +346,7 @@ module swiftest_classes
       class(swiftest_tp), allocatable :: tp                   !! Test particle data structure
       class(swiftest_tp), allocatable :: tp_discards          !! Discarded test particle data structure
       class(swiftest_pl), allocatable :: pl_discards          !! Discarded massive body particle data structure
+      real(DP)                        :: t = -1.0_DP          !! Integration current time
       real(DP)                        :: GMtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
       real(DP)                        :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
       real(DP)                        :: ke_spin = 0.0_DP     !! System spin kinetic energy
@@ -413,12 +414,25 @@ module swiftest_classes
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
-      generic   :: write_frame             => write_frame_system, write_frame_netcdf      !! Generic method call for reading a frame of output data
+      generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
 
+   type storage_frame
+      class(swiftest_nbody_system), allocatable :: system
+   contains
+      procedure :: store         => util_copy_store_system !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      generic   :: assignment(=) => store
+   end type
+
+   type, extends(swiftest_base) :: swiftest_storage(nframes)
+      integer(I8B), len :: nframes
+      !! A class that that is used to store simulation history data between file output 
+      type(storage_frame), dimension(nframes) :: frame
+   contains
+      procedure :: dump => io_dump_system_storage
+   end type swiftest_storage
 
    abstract interface
-
       subroutine abstract_accel(self, system, param, t, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body data structure
@@ -610,6 +624,13 @@ module swiftest_classes
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
+
+
+      module subroutine io_dump_system_storage(self, param)
+         implicit none
+         class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine io_dump_system_storage
 
       module subroutine io_get_args(integrator, param_file_name, display_style) 
          implicit none
@@ -1221,6 +1242,12 @@ module swiftest_classes
          class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata information object
          integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source object
       end subroutine util_copy_particle_info_arr
+
+      module subroutine util_copy_store_system(self, system)
+         implicit none
+         class(storage_frame),         intent(inout) :: self   !! Swiftest storage frame object
+         class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
+      end subroutine util_copy_store_system
 
       module subroutine util_dealloc_body(self)
          implicit none
