@@ -274,7 +274,7 @@ module swiftest_classes
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure :: discard      => discard_pl             !! Placeholder method for discarding massive bodies 
-      procedure :: flatten      => util_flatten_eucl_plpl   !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
+      procedure :: flatten      => util_flatten_eucl_plpl !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: accel_int    => kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl    => obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup        => setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
@@ -341,33 +341,33 @@ module swiftest_classes
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract :: swiftest_nbody_system
       !!  This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
-      class(swiftest_cb), allocatable :: cb                   !! Central body data structure
-      class(swiftest_pl), allocatable :: pl                   !! Massive body data structure
-      class(swiftest_tp), allocatable :: tp                   !! Test particle data structure
-      class(swiftest_tp), allocatable :: tp_discards          !! Discarded test particle data structure
-      class(swiftest_pl), allocatable :: pl_discards          !! Discarded massive body particle data structure
-      real(DP)                        :: t = -1.0_DP          !! Integration current time
-      real(DP)                        :: GMtot = 0.0_DP       !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                        :: ke_orbit = 0.0_DP    !! System orbital kinetic energy
-      real(DP)                        :: ke_spin = 0.0_DP     !! System spin kinetic energy
-      real(DP)                        :: pe = 0.0_DP          !! System potential energy
-      real(DP)                        :: te = 0.0_DP          !! System total energy
-      real(DP)                        :: oblpot = 0.0_DP      !! System potential energy due to oblateness of the central body
-      real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP      !! System orbital angular momentum vector
-      real(DP), dimension(NDIM)       :: Lspin = 0.0_DP       !! System spin angular momentum vector
-      real(DP), dimension(NDIM)       :: Ltot = 0.0_DP        !! System angular momentum vector
-      real(DP)                        :: ke_orbit_orig = 0.0_DP!! Initial orbital kinetic energy
-      real(DP)                        :: ke_spin_orig = 0.0_DP!! Initial spin kinetic energy
-      real(DP)                        :: pe_orig = 0.0_DP     !! Initial potential energy
-      real(DP)                        :: Eorbit_orig = 0.0_DP !! Initial orbital energy
-      real(DP)                        :: GMtot_orig = 0.0_DP  !! Initial system mass
-      real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP   !! Initial total angular momentum vector
-      real(DP), dimension(NDIM)       :: Lorbit_orig = 0.0_DP !! Initial orbital angular momentum
-      real(DP), dimension(NDIM)       :: Lspin_orig = 0.0_DP  !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM)       :: Lescape = 0.0_DP     !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                        :: GMescape = 0.0_DP    !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                        :: Ecollisions = 0.0_DP !! Energy lost from system due to collisions
-      real(DP)                        :: Euntracked = 0.0_DP  !! Energy gained from system due to escaped bodies
+      class(swiftest_cb), allocatable :: cb                     !! Central body data structure
+      class(swiftest_pl), allocatable :: pl                     !! Massive body data structure
+      class(swiftest_tp), allocatable :: tp                     !! Test particle data structure
+      class(swiftest_tp), allocatable :: tp_discards            !! Discarded test particle data structure
+      class(swiftest_pl), allocatable :: pl_discards            !! Discarded massive body particle data structure
+      real(DP)                        :: t = -1.0_DP            !! Integration current time
+      real(DP)                        :: GMtot = 0.0_DP         !! Total system mass - used for barycentric coordinate conversion
+      real(DP)                        :: ke_orbit = 0.0_DP      !! System orbital kinetic energy
+      real(DP)                        :: ke_spin = 0.0_DP       !! System spin kinetic energy
+      real(DP)                        :: pe = 0.0_DP            !! System potential energy
+      real(DP)                        :: te = 0.0_DP            !! System total energy
+      real(DP)                        :: oblpot = 0.0_DP        !! System potential energy due to oblateness of the central body
+      real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP        !! System orbital angular momentum vector
+      real(DP), dimension(NDIM)       :: Lspin = 0.0_DP         !! System spin angular momentum vector
+      real(DP), dimension(NDIM)       :: Ltot = 0.0_DP          !! System angular momentum vector
+      real(DP)                        :: ke_orbit_orig = 0.0_DP !! Initial orbital kinetic energy
+      real(DP)                        :: ke_spin_orig = 0.0_DP  !! Initial spin kinetic energy
+      real(DP)                        :: pe_orig = 0.0_DP       !! Initial potential energy
+      real(DP)                        :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
+      real(DP)                        :: GMtot_orig = 0.0_DP    !! Initial system mass
+      real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
+      real(DP), dimension(NDIM)       :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
+      real(DP), dimension(NDIM)       :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM)       :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                        :: GMescape = 0.0_DP      !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                        :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
+      real(DP)                        :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
 
       ! Energy, momentum, and mass errors (used in error reporting)
       real(DP)                        :: ke_orbit_error   = 0.0_DP
@@ -399,16 +399,16 @@ module swiftest_classes
       procedure :: get_old_t_final         => netcdf_get_old_t_final_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
       procedure :: read_frame              => netcdf_read_frame_system               !! Read in a frame of input data from file
       procedure :: write_frame_netcdf      => netcdf_write_frame_system              !! Write a frame of input data from file
-      procedure :: write_frame_system      => io_write_frame_system              !! Write a frame of input data from file
+      procedure :: write_frame_system      => io_write_frame_system                  !! Write a frame of input data from file
       procedure :: read_hdr                => netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr               => netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
       procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
-      procedure :: read_particle_info      => netcdf_read_particle_info_system           !! Read in particle metadata from file
+      procedure :: read_particle_info      => netcdf_read_particle_info_system       !! Read in particle metadata from file
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
-      ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
+      ! procedure :: step_spin               => tides_step_spin_system               !! Steps the spins of the massive & central bodies due to tides.
       procedure :: dealloc                 => util_dealloc_system                    !! Deallocates all allocatable components of the system
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
@@ -603,7 +603,7 @@ module swiftest_classes
          implicit none
          class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
          class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
-         class(*),                      intent(in) :: timer !! Object used for computing elapsed wall time
+         class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time
       end subroutine io_compact_output
 
       module subroutine io_conservation_report(self, param, lterminal)
@@ -621,7 +621,7 @@ module swiftest_classes
 
       module subroutine io_dump_system(self, param)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
 
@@ -833,13 +833,13 @@ module swiftest_classes
 
       module subroutine kick_getacch_int_all_tp(ntp, npl, xtp, xpl, GMpl, lmask, acc)
          implicit none
-         integer(I4B),                 intent(in)    :: ntp    !! Number of test particles
-         integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
-         real(DP),     dimension(:,:), intent(in)    :: xtp    !! Test particle position vector array
-         real(DP),     dimension(:,:), intent(in)    :: xpl    !! Massive body particle position vector array
-         real(DP),     dimension(:),   intent(in)    :: GMpl   !! Array of massive body G*mass
-         logical,      dimension(:),   intent(in)    :: lmask  !! Logical mask indicating which test particles should be computed
-         real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+         integer(I4B),                 intent(in)    :: ntp   !! Number of test particles
+         integer(I4B),                 intent(in)    :: npl   !! Number of massive bodies
+         real(DP),     dimension(:,:), intent(in)    :: xtp   !! Test particle position vector array
+         real(DP),     dimension(:,:), intent(in)    :: xpl   !! Massive body particle position vector array
+         real(DP),     dimension(:),   intent(in)    :: GMpl  !! Array of massive body G*mass
+         logical,      dimension(:),   intent(in)    :: lmask !! Logical mask indicating which test particles should be computed
+         real(DP),     dimension(:,:), intent(inout) :: acc   !! Acceleration vector array 
       end subroutine kick_getacch_int_all_tp
 
       pure module subroutine kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
@@ -864,7 +864,7 @@ module swiftest_classes
 
       module subroutine netcdf_close(self)
          implicit none
-         class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_close
 
       module subroutine netcdf_flush(self, param)
@@ -888,8 +888,8 @@ module swiftest_classes
 
       module subroutine netcdf_open(self, param, readonly)
          implicit none
-         class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
+         class(netcdf_parameters),   intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
          logical, optional,          intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       end subroutine netcdf_open
 
@@ -945,8 +945,8 @@ module swiftest_classes
 
       module subroutine netcdf_write_particle_info_base(self, iu, param)
          implicit none
-         class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
-         class(netcdf_parameters),   intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_base),       intent(in)    :: self  !! Swiftest particle object
+         class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_particle_info_base
 
@@ -989,30 +989,30 @@ module swiftest_classes
       pure module subroutine orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
          !$omp declare simd(orbel_xv2aeq)
          implicit none
-         real(DP), intent(in)  :: mu !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz  !! Position vector
-         real(DP), intent(in)  :: vx,vy,vz  !! Velocity vector
-         real(DP), intent(out) :: a  !! semimajor axis
-         real(DP), intent(out) :: e  !! eccentricity
-         real(DP), intent(out) :: q  !! periapsis
+         real(DP), intent(in)  :: mu       !! Gravitational constant
+         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
+         real(DP), intent(out) :: a        !! semimajor axis
+         real(DP), intent(out) :: e        !! eccentricity
+         real(DP), intent(out) :: q        !! periapsis
       end subroutine orbel_xv2aeq
 
       pure module subroutine orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
          !$omp declare simd(orbel_xv2aqt)
          implicit none
-         real(DP), intent(in)  :: mu    !! Gravitational constant
+         real(DP), intent(in)  :: mu       !! Gravitational constant
          real(DP), intent(in)  :: px,py,pz !! Position vector
-         real(DP), intent(in)  :: vx,vy,vz     !! Velocity vector
-         real(DP), intent(out) :: a     !! semimajor axis
-         real(DP), intent(out) :: q     !! periapsis
-         real(DP), intent(out) :: capm  !! mean anomaly
-         real(DP), intent(out) :: tperi !! time of pericenter passage
+         real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
+         real(DP), intent(out) :: a        !! semimajor axis
+         real(DP), intent(out) :: q        !! periapsis
+         real(DP), intent(out) :: capm     !! mean anomaly
+         real(DP), intent(out) :: tperi    !! time of pericenter passage
       end subroutine orbel_xv2aqt
 
       pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
          implicit none
          real(DP), intent(in)  :: mu    !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz    !! Position vector
+         real(DP), intent(in)  :: px,py,pz !! Position vector
          real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
          real(DP), intent(out) :: a     !! semimajor axis
          real(DP), intent(out) :: e     !! eccentricity
@@ -1030,8 +1030,8 @@ module swiftest_classes
 
       module subroutine setup_body(self, n, param)
          implicit none
-         class(swiftest_body),      intent(inout) :: self  !! Swiftest body object
-         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine setup_body
 
@@ -1068,8 +1068,8 @@ module swiftest_classes
 
       module subroutine setup_tp(self, n, param)
          implicit none
-         class(swiftest_tp),        intent(inout) :: self  !! Swiftest test particle object
-         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+         class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametersr
       end subroutine setup_tp
 
@@ -1135,8 +1135,8 @@ module swiftest_classes
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
          type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,                   dimension(:),        intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B),                                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+         logical,                      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine util_append_arr_info
 
       module subroutine util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
@@ -1214,7 +1214,7 @@ module swiftest_classes
    
       module subroutine util_coord_vh2vb_tp(self, vbcb)
          implicit none
-         class(swiftest_tp),        intent(inout) :: self !! Swiftest test particle object
+         class(swiftest_tp),     intent(inout) :: self !! Swiftest test particle object
          real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
       end subroutine util_coord_vh2vb_tp
 
@@ -1434,7 +1434,7 @@ module swiftest_classes
       module subroutine util_resize_arr_info(arr, nnew)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                                   intent(in)    :: nnew !! New size
+         integer(I4B),                                            intent(in)    :: nnew !! New size
       end subroutine util_resize_arr_info
 
       module subroutine util_resize_arr_logical(arr, nnew)
@@ -1633,8 +1633,8 @@ module swiftest_classes
       pure module subroutine util_sort_rearrange_arr_DP(arr, ind, n)
          implicit none
          real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_DP
 
       pure module subroutine util_sort_rearrange_arr_DPvec(arr, ind, n)
@@ -1648,7 +1648,7 @@ module swiftest_classes
          implicit none
          integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
          integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine util_sort_rearrange_arr_I4B
 
       pure module subroutine util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
@@ -1701,22 +1701,22 @@ module swiftest_classes
 
       module subroutine util_sort_body(self, sortby, ascending)
          implicit none
-         class(swiftest_body), intent(inout) :: self    !! Swiftest body object
-         character(*),         intent(in)    :: sortby  !! Sorting attribute
+         class(swiftest_body), intent(inout) :: self      !! Swiftest body object
+         character(*),         intent(in)    :: sortby    !! Sorting attribute
          logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine util_sort_body
 
       module subroutine util_sort_pl(self, sortby, ascending)
          implicit none
-         class(swiftest_pl), intent(inout) :: self    !! Swiftest body object
-         character(*),       intent(in)    :: sortby  !! Sorting attribute
+         class(swiftest_pl), intent(inout) :: self      !! Swiftest body object
+         character(*),       intent(in)    :: sortby    !! Sorting attribute
          logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine util_sort_pl
 
       module subroutine util_sort_tp(self, sortby, ascending)
          implicit none
-         class(swiftest_tp), intent(inout) :: self    !! Swiftest body object
-         character(*),       intent(in)    :: sortby  !! Sorting attribute
+         class(swiftest_tp), intent(inout) :: self      !! Swiftest body object
+         character(*),       intent(in)    :: sortby    !! Sorting attribute
          logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine util_sort_tp
 
@@ -1769,8 +1769,8 @@ module swiftest_classes
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,                       dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                                  intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         logical,                      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_arr_info
 
       module subroutine util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
@@ -1785,9 +1785,9 @@ module swiftest_classes
    interface 
       module subroutine util_spill_body(self, discards, lspill_list, ldestructive)
          implicit none
-         class(swiftest_body),  intent(inout) :: self        !! Swiftest body object
-         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         class(swiftest_body),  intent(inout) :: self         !! Swiftest body object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_body
 
