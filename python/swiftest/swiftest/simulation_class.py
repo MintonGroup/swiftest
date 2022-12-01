@@ -63,7 +63,6 @@ class Simulation:
                   inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
-
         read_old_output_file : bool, default False
             If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
             Parameter input file equivalent: None
@@ -98,7 +97,7 @@ class Simulation:
             Parameter input file equivalent: `ISTEP_OUT`
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
-            is equivalent to only dumping data to file at the end of the simulation.
+            is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
             Parameter input file equivalent: `DUMP_CADENCE`
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
@@ -547,7 +546,7 @@ class Simulation:
             `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
-            is equivalent to only dumping data to file at the end of the simulation.
+            is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
             Parameter input file equivalent: `DUMP_CADENCE`
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
@@ -725,7 +724,7 @@ class Simulation:
             "dt": None,
             "istep_out": 1,
             "tstep_out": None,
-            "dump_cadence": 1,
+            "dump_cadence": 10,
             "init_cond_file_type": "NETCDF_DOUBLE",
             "init_cond_file_name": None,
             "init_cond_format": "EL",

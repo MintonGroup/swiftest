@@ -53,7 +53,7 @@ module swiftest_classes
       character(STRMAX)  :: out_type             = "NETCDF_DOUBLE"    !! Binary format of output file
       character(STRMAX)  :: out_form             = "XVEL"             !! Data to write to output file
       character(STRMAX)  :: out_stat             = 'NEW'              !! Open status for output binary file
-      integer(I4B)       :: dump_cadence         =  1                 !! Number of output steps between dumping simulation data to file
+      integer(I4B)       :: dump_cadence         =  10                !! Number of output steps between dumping simulation data to file
       real(DP)           :: rmin                 = -1.0_DP            !! Minimum heliocentric radius for test particle
       real(DP)           :: rmax                 = -1.0_DP            !! Maximum heliocentric radius for test particle
       real(DP)           :: rmaxu                = -1.0_DP            !! Maximum unbound heliocentric radius for test particle
