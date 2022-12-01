@@ -41,6 +41,21 @@ module encounter_classes
       final     :: encounter_util_final_list              !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
 
+   type encounter_storage_frame_list
+      class(swiftest_nbody_system), allocatable :: system
+   contains
+      procedure :: store         => encounter_util_copy_store_list !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      generic   :: assignment(=) => store
+   end type
+
+   type :: encounter_storage(nframes)
+      integer(I4B), len :: nframes
+      !! A class that that is used to store simulation history data between file output 
+      type(encounter_storage_frame_list), dimension(nframes) :: frame
+   contains
+      procedure :: dump => encounter_io_dump_storage_list
+   end type encounter_storage
+  
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
       integer(I4B), dimension(:), allocatable :: ind  !! Sorted minimum/maximum extent indices (value > n indicates an ending index)
@@ -173,16 +188,11 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_io_write_frame(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
+      module subroutine encounter_io_dump_storage_list(self, param)
          implicit none
-         integer(I4B),           intent(in) :: iu               !! Open file unit number
-         real(DP),               intent(in) :: t                !! Time of encounter
-         integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
-         real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
-         real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
-         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Swiftestcentric position vectors of the two encountering bodies 
-         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Swiftestcentric velocity vectors of the two encountering bodies 
-      end subroutine encounter_io_write_frame
+         class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
+         class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine encounter_io_dump_storage_list
 
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none
@@ -209,6 +219,12 @@ module encounter_classes
          class(encounter_list), intent(inout) :: self   !! Encounter list 
          class(encounter_list), intent(in)    :: source !! Source object to copy into
       end subroutine encounter_util_copy_list
+
+      module subroutine encounter_util_copy_store_list(self, system)
+         implicit none
+         class(encounter_storage_frame_list), intent(inout) :: self   !! Encounter storage object
+         class(encounter_list),               intent(in)    :: system !! Swiftest encounter list structure
+      end subroutine encounter_util_copy_store_list
 
       module subroutine encounter_util_dealloc_aabb(self)
          implicit none

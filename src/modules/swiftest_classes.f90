@@ -424,7 +424,7 @@ module swiftest_classes
       generic   :: assignment(=) => store
    end type
 
-   type, extends(swiftest_base) :: swiftest_storage(nframes)
+   type :: swiftest_storage(nframes)
       integer(I4B), len :: nframes
       !! A class that that is used to store simulation history data between file output 
       type(swiftest_storage_frame_system), dimension(nframes) :: frame
@@ -624,7 +624,6 @@ module swiftest_classes
          class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
-
 
       module subroutine io_dump_storage_system(self, param)
          implicit none
@@ -1245,8 +1244,8 @@ module swiftest_classes
 
       module subroutine util_copy_store_system(self, system)
          implicit none
-         class(swiftest_storage_frame_system),         intent(inout) :: self   !! Swiftest storage frame object
-         class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
+         class(swiftest_storage_frame_system), intent(inout) :: self   !! Swiftest storage frame object
+         class(swiftest_nbody_system),         intent(in)    :: system !! Swiftest n-body system object
       end subroutine util_copy_store_system
 
       module subroutine util_dealloc_body(self)
