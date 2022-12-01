@@ -28,7 +28,6 @@ program swiftest_driver
    integer(I8B)                               :: istart           !! Starting index for loop counter
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    integer(I8B)                               :: iframe           !! System history frame cindex
-   real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
    type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
@@ -92,17 +91,16 @@ program swiftest_driver
       allocate(swiftest_storage(dump_cadence) :: system_history)
       idump = dump_cadence
 
-      ! Prevent duplicate frames from being written if this is a restarted run
+      ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
       if (param%lrestart) then
-         old_t_final = nbody_system%get_old_t_final(param)
+         if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
       else
-         old_t_final = t0
          if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
-         if (istep_out > 0) call nbody_system%write_frame(param)
+         call nbody_system%write_frame(param)
       end if
 
       write(display_unit, *) " *************** Main Loop *************** "
-      if (param%lrestart .and. param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+
       if (display_style == "PROGRESS") then
          call pbar%reset(nloops)
          write(pbarmessage,fmt=pbarfmt) t0, tstop
@@ -111,6 +109,7 @@ program swiftest_driver
          write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
          call nbody_system%compact_output(param,integration_timer)
       end if
+
       do iloop = istart, nloops
          !> Step the system forward in time
          call integration_timer%start()
