@@ -41,7 +41,7 @@ module swiftest_classes
       real(DP)           :: tstop                = -1.0_DP            !! Integration stop time
       real(DP)           :: dt                   = -1.0_DP            !! Time step
       integer(I8B)       :: iloop                = 0_I8B              !! Main loop counter
-      integer(I8B)       :: ioutput              = 0_I8B              !! Output counter
+      integer(I4B)       :: ioutput              = 0                  !! Output counter
       character(STRMAX)  :: incbfile             = CB_INFILE          !! Name of input file for the central body
       character(STRMAX)  :: inplfile             = PL_INFILE          !! Name of input file for massive bodies
       character(STRMAX)  :: intpfile             = TP_INFILE          !! Name of input file for test particles
@@ -425,7 +425,7 @@ module swiftest_classes
    end type
 
    type, extends(swiftest_base) :: swiftest_storage(nframes)
-      integer(I8B), len :: nframes
+      integer(I4B), len :: nframes
       !! A class that that is used to store simulation history data between file output 
       type(storage_frame), dimension(nframes) :: frame
    contains

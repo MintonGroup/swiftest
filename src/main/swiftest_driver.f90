@@ -18,16 +18,16 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
-   class(swiftest_parameters),   allocatable  :: param            !! Run configuration parameters
-   character(len=:), allocatable              :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
-   character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-   integer(I8B)                               :: idump            !! Dump cadence counter
-   integer(I8B)                               :: iout             !! Output cadence counter
-   integer(I8B)                               :: istart           !! Starting index for loop counter
-   integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
-   integer(I8B)                               :: iframe           !! System history frame cindex
+   class(swiftest_nbody_system), allocatable  :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_parameters),   allocatable  :: param             !! Run configuration parameters
+   character(len=:), allocatable              :: integrator        !! Integrator type code (see swiftest_globals for symbolic names)
+   character(len=:),allocatable               :: param_file_name   !! Name of the file containing user-defined parameters
+   character(len=:), allocatable              :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+   integer(I8B)                               :: istart            !! Starting index for loop counter
+   integer(I8B)                               :: nloops            !! Number of steps to take in the simulation
+   integer(I4B)                               :: iout              !! Output cadence counter
+   integer(I4B)                               :: idump             !! Dump cadence counter
+   integer(I4B)                               :: iframe            !! System history frame cindex
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
    type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
@@ -83,7 +83,7 @@ program swiftest_driver
       iout = istep_out
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1, kind=I8B)
-      ioutput = int(istart / istep_out, kind=I8B)
+      ioutput = int(istart / istep_out, kind=I4B)
 
       ! Set up system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)

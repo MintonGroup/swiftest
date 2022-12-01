@@ -178,7 +178,7 @@ contains
             if (abs(system%Mtot_error) > 100 * epsilon(system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
-               param%ioutput = param%ioutput + 1_I8B
+               param%ioutput = param%ioutput + 1
                call self%write_frame(param%nciu, param)
                call param%nciu%close()
                call util_exit(FAILURE)
@@ -282,12 +282,13 @@ contains
       class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
-      integer(I8B) :: i, iloop_start
+      integer(I4B) :: i
+      integer(I8B) :: iloop_start
 
-      iloop_start = param%iloop - param%istep_out * param%dump_cadence + 1_I8B
-      do i = 1_I8B, param%dump_cadence
+      iloop_start = param%iloop - int(param%istep_out * param%dump_cadence + 1, kind=I8B)
+      do i = 1, param%dump_cadence
          if (allocated(self%frame(i)%system)) then
-            param%ioutput = int(iloop_start / param%istep_out, kind=I8B) + i
+            param%ioutput = int(iloop_start / param%istep_out, kind=I4B) + i
             call self%frame(i)%system%write_frame(param)
             deallocate(self%frame(i)%system)
          end if
