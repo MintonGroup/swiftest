@@ -417,19 +417,19 @@ module swiftest_classes
       generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
 
-   type swiftest_storage_frame_system
-      class(swiftest_nbody_system), allocatable :: system
+   type swiftest_storage_frame
+      class(*), allocatable :: item
    contains
-      procedure :: store         => util_copy_store_system !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      procedure :: store         => util_copy_store !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
       generic   :: assignment(=) => store
    end type
 
    type :: swiftest_storage(nframes)
       integer(I4B), len :: nframes
-      !! A class that that is used to store simulation history data between file output 
-      type(swiftest_storage_frame_system), dimension(nframes) :: frame
+      !! An abstract class that establishes the pattern for various storage objects
+      type(swiftest_storage_frame), dimension(nframes) :: frame
    contains
-      procedure :: dump => io_dump_storage_system
+      procedure :: dump => io_dump_storage
    end type swiftest_storage
 
    abstract interface
@@ -448,7 +448,6 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine abstract_discard_body
-
 
       subroutine abstract_kick_body(self, system, param, t, dt, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
@@ -493,6 +492,7 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t     !! Simulation time
          real(DP),                     intent(in)    :: dt    !! Current stepsize
       end subroutine abstract_step_system
+
    end interface
 
    interface
@@ -625,11 +625,11 @@ module swiftest_classes
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
 
-      module subroutine io_dump_storage_system(self, param)
+      module subroutine io_dump_storage(self, param)
          implicit none
          class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine io_dump_storage_system
+      end subroutine io_dump_storage
 
       module subroutine io_get_args(integrator, param_file_name, display_style) 
          implicit none
@@ -1242,11 +1242,11 @@ module swiftest_classes
          integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source object
       end subroutine util_copy_particle_info_arr
 
-      module subroutine util_copy_store_system(self, system)
+      module subroutine util_copy_store(self, source)
          implicit none
-         class(swiftest_storage_frame_system), intent(inout) :: self   !! Swiftest storage frame object
-         class(swiftest_nbody_system),         intent(in)    :: system !! Swiftest n-body system object
-      end subroutine util_copy_store_system
+         class(swiftest_storage_frame), intent(inout) :: self   !! Swiftest storage frame object
+         class(*),                      intent(in)    :: source !! Any object that one wishes to store
+      end subroutine util_copy_store
 
       module subroutine util_dealloc_body(self)
          implicit none

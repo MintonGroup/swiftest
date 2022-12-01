@@ -78,18 +78,18 @@ contains
    end subroutine util_copy_particle_info_arr
 
 
-   module subroutine util_copy_store_system(self, system)
+   module subroutine util_copy_store(self, source)
       !! author: David A. Minton
       !!
       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
       implicit none
-      class(swiftest_storage_frame_system),         intent(inout) :: self   !! Swiftest storage frame object
-      class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
+      class(swiftest_storage_frame),  intent(inout) :: self   !! Swiftest storage frame object
+      class(*),                       intent(in)    :: source !! Swiftest n-body system object
 
-      if (allocated(self%system)) deallocate(self%system)
-      allocate(self%system, source=system)
+      if (allocated(self%item)) deallocate(self%item)
+      allocate(self%item, source=source)
+      
       return
-
-   end subroutine util_copy_store_system
+   end subroutine util_copy_store
 
 end submodule s_util_copy

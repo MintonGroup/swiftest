@@ -41,17 +41,8 @@ module encounter_classes
       final     :: encounter_util_final_list              !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
 
-   type encounter_storage_frame_list
-      class(swiftest_nbody_system), allocatable :: system
-   contains
-      procedure :: store         => encounter_util_copy_store_list !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
-      generic   :: assignment(=) => store
-   end type
-
-   type :: encounter_storage(nframes)
-      integer(I4B), len :: nframes
+   type, extends(swiftest_storage) :: encounter_storage
       !! A class that that is used to store simulation history data between file output 
-      type(encounter_storage_frame_list), dimension(nframes) :: frame
    contains
       procedure :: dump => encounter_io_dump_storage_list
    end type encounter_storage
@@ -219,12 +210,6 @@ module encounter_classes
          class(encounter_list), intent(inout) :: self   !! Encounter list 
          class(encounter_list), intent(in)    :: source !! Source object to copy into
       end subroutine encounter_util_copy_list
-
-      module subroutine encounter_util_copy_store_list(self, system)
-         implicit none
-         class(encounter_storage_frame_list), intent(inout) :: self   !! Encounter storage object
-         class(encounter_list),               intent(in)    :: system !! Swiftest encounter list structure
-      end subroutine encounter_util_copy_store_list
 
       module subroutine encounter_util_dealloc_aabb(self)
          implicit none

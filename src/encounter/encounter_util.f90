@@ -70,7 +70,6 @@ contains
       return
    end subroutine encounter_util_copy_list
 
-
    module subroutine encounter_util_dealloc_aabb(self)
       !! author: David A. Minton
       !!
@@ -149,11 +148,11 @@ contains
       implicit none
       ! Arguments
       class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
-      integer(I8B),              intent(in)    :: nnew !! New size of list needed
+      integer(I8B),          intent(in)    :: nnew !! New size of list needed
       ! Internals
       class(encounter_list), allocatable :: enc_temp
-      integer(I8B)                           :: nold
-      logical                                :: lmalloc
+      integer(I8B)                       :: nold
+      logical                            :: lmalloc
 
       lmalloc = allocated(self%status)
       if (lmalloc) then
@@ -185,8 +184,8 @@ contains
       ! Arguments
       class(encounter_list), intent(inout) :: self         !! Swiftest encounter list 
       class(encounter_list), intent(inout) :: discards     !! Discarded object 
-      logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
       ! Internals
       integer(I8B) :: nenc_old
   

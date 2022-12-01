@@ -270,7 +270,7 @@ contains
    end subroutine io_dump_system
 
 
-   module subroutine io_dump_storage_system(self, param)
+   module subroutine io_dump_storage(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the time history of the simulation to file. Each time it writes a frame to file, it deallocates the system
@@ -287,15 +287,18 @@ contains
 
       iloop_start = param%iloop - int(param%istep_out * param%dump_cadence + 1, kind=I8B)
       do i = 1, param%dump_cadence
-         if (allocated(self%frame(i)%system)) then
-            param%ioutput = int(iloop_start / param%istep_out, kind=I4B) + i
-            call self%frame(i)%system%write_frame(param)
-            deallocate(self%frame(i)%system)
+         param%ioutput = int(iloop_start / param%istep_out, kind=I4B) + i
+         if (allocated(self%frame(i)%item)) then
+            select type(system => self%frame(i)%item)
+            class is (swiftest_nbody_system)
+               call system%write_frame(param)
+            end select
+            deallocate(self%frame(i)%item)
          end if
       end do
 
       return
-   end subroutine io_dump_storage_system
+   end subroutine io_dump_storage
 
 
    module subroutine io_get_args(integrator, param_file_name, display_style)

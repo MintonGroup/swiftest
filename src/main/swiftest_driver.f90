@@ -38,7 +38,7 @@ program swiftest_driver
    character(len=64)                          :: pbarmessage
 
    character(*), parameter                    :: symbacompactfmt = '(";NPLM",ES22.15,$)'
-   type(swiftest_storage(nframes=:)), allocatable     :: system_history
+   type(swiftest_storage(nframes=:)), allocatable :: system_history
 
    call io_get_args(integrator, param_file_name, display_style)
 
