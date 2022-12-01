@@ -270,7 +270,7 @@ contains
    end subroutine io_dump_system
 
 
-   module subroutine io_dump_system_storage(self, param)
+   module subroutine io_dump_storage_system(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the time history of the simulation to file. Each time it writes a frame to file, it deallocates the system
@@ -295,7 +295,7 @@ contains
       end do
 
       return
-   end subroutine io_dump_system_storage
+   end subroutine io_dump_storage_system
 
 
    module subroutine io_get_args(integrator, param_file_name, display_style)

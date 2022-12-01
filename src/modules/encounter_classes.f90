@@ -38,7 +38,7 @@ module encounter_classes
       procedure :: dealloc => encounter_util_dealloc_list !! Deallocates all allocatables
       procedure :: spill   => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: resize  => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      final     :: encounter_util_final_list            !! Finalize the encounter list - deallocates all allocatables
+      final     :: encounter_util_final_list              !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
 
    type encounter_bounding_box_1D

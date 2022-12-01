@@ -417,7 +417,7 @@ module swiftest_classes
       generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
 
-   type storage_frame
+   type swiftest_storage_frame_system
       class(swiftest_nbody_system), allocatable :: system
    contains
       procedure :: store         => util_copy_store_system !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
@@ -427,9 +427,9 @@ module swiftest_classes
    type, extends(swiftest_base) :: swiftest_storage(nframes)
       integer(I4B), len :: nframes
       !! A class that that is used to store simulation history data between file output 
-      type(storage_frame), dimension(nframes) :: frame
+      type(swiftest_storage_frame_system), dimension(nframes) :: frame
    contains
-      procedure :: dump => io_dump_system_storage
+      procedure :: dump => io_dump_storage_system
    end type swiftest_storage
 
    abstract interface
@@ -626,11 +626,11 @@ module swiftest_classes
       end subroutine io_dump_system
 
 
-      module subroutine io_dump_system_storage(self, param)
+      module subroutine io_dump_storage_system(self, param)
          implicit none
          class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine io_dump_system_storage
+      end subroutine io_dump_storage_system
 
       module subroutine io_get_args(integrator, param_file_name, display_style) 
          implicit none
@@ -1245,7 +1245,7 @@ module swiftest_classes
 
       module subroutine util_copy_store_system(self, system)
          implicit none
-         class(storage_frame),         intent(inout) :: self   !! Swiftest storage frame object
+         class(swiftest_storage_frame_system),         intent(inout) :: self   !! Swiftest storage frame object
          class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
       end subroutine util_copy_store_system
 

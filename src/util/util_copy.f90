@@ -83,7 +83,7 @@ contains
       !!
       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
       implicit none
-      class(storage_frame),         intent(inout) :: self   !! Swiftest storage frame object
+      class(swiftest_storage_frame_system),         intent(inout) :: self   !! Swiftest storage frame object
       class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
 
       if (allocated(self%system)) deallocate(self%system)
