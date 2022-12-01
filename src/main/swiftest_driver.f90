@@ -23,10 +23,9 @@ program swiftest_driver
    character(len=:), allocatable              :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
    character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-   integer(I4B)                               :: ierr             !! I/O error code 
    integer(I8B)                               :: idump            !! Dump cadence counter
    integer(I8B)                               :: iout             !! Output cadence counter
-   integer(I8B)                               :: ioutput_t0       !! The output frame counter at time 0
+   integer(I8B)                               :: istart           !! Starting index for loop counter
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
@@ -68,6 +67,7 @@ program swiftest_driver
 
    associate(t               => param%t, &
              t0              => param%t0, &
+             tstart          => param%tstart, &
              dt              => param%dt, &
              tstop           => param%tstop, &
              iloop           => param%iloop, &
@@ -78,13 +78,12 @@ program swiftest_driver
              display_unit    => param%display_unit)
 
       call nbody_system%initialize(param)
-      t = t0
-      iloop = 0
+      t = tstart
       iout = istep_out
       idump = dump_cadence
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
-      ioutput_t0 = int(t0 / dt / istep_out, kind=I8B)
-      ioutput = ioutput_t0
+      istart =  ceiling((tstart - t0) / dt, kind=I8B)
+      ioutput = int(istart / istep_out, kind=I8B)
       ! Prevent duplicate frames from being written if this is a restarted run
       if (param%lrestart) then
          old_t_final = nbody_system%get_old_t_final(param)
@@ -104,7 +103,7 @@ program swiftest_driver
          write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
          call nbody_system%compact_output(param,integration_timer)
       end if
-      do iloop = 1, nloops
+      do iloop = istart, nloops
          !> Step the system forward in time
          call integration_timer%start()
          call nbody_system%step(param, t, dt)
@@ -120,7 +119,7 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               ioutput = ioutput_t0 + iloop / istep_out
+               ioutput = int(iloop / istep_out, kind=I8B)
                call nbody_system%write_frame(param)
 
 

@@ -250,7 +250,7 @@ contains
       dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
       dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
       dump_param%nciu%time_chunk = 1
-      dump_param%T0 = param%t
+      dump_param%tstart = param%t
 
       call dump_param%dump(param_file_name)
 
@@ -461,7 +461,6 @@ contains
       integer, intent(out)                      :: iostat     !! IO status code
       character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
-      logical                        :: t0_set = .false.                  !! Is the initial time set in the input file?
       logical                        :: tstart_set = .false.               !! Is the final time set in the input file?
       logical                        :: tstop_set = .false.               !! Is the final time set in the input file?
       logical                        :: dt_set = .false.                  !! Is the step size set in the input file?
@@ -489,9 +488,8 @@ contains
                select case (param_name)
                case ("T0")
                   read(param_value, *, err = 667, iomsg = iomsg) param%t0
-                  t0_set = .true.
                case ("TSTART")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%t0
+                  read(param_value, *, err = 667, iomsg = iomsg) param%tstart
                   tstart_set = .true.                  
                case ("TSTOP")
                   read(param_value, *, err = 667, iomsg = iomsg) param%tstop
@@ -652,7 +650,7 @@ contains
          iostat = 0
 
          ! Do basic sanity checks on the input values
-         if ((.not. t0_set) .or. (.not. tstop_set) .or. (.not. dt_set)) then
+         if ((.not. tstart_set) .or. (.not. tstop_set) .or. (.not. dt_set)) then
             write(iomsg,*) 'Valid simulation time not set'
             iostat = -1
             return
@@ -863,6 +861,7 @@ contains
 
       associate(param => self)
          call io_param_writer_one("T0", param%t0, unit)
+         call io_param_writer_one("TSTART", param%tstart, unit)
          call io_param_writer_one("TSTOP", param%tstop, unit)
          call io_param_writer_one("DT", param%dt, unit)
          call io_param_writer_one("IN_TYPE", param%in_type, unit)

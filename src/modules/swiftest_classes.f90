@@ -36,8 +36,9 @@ module swiftest_classes
       character(STRMAX)  :: param_file_name      = "param.in"         !! The default name of the parameter input file
       integer(I4B)       :: maxid                = -1                 !! The current maximum particle id number 
       integer(I4B)       :: maxid_collision      = 0                  !! The current maximum collision id number
-      real(DP)           :: t0                   = -1.0_DP            !! Integration start time
+      real(DP)           :: t0                   =  0.0_DP            !! Integration reference time
       real(DP)           :: t                    = -1.0_DP            !! Integration current time
+      real(DP)           :: tstart               = -1.0_DP            !! Integration start time
       real(DP)           :: tstop                = -1.0_DP            !! Integration stop time
       real(DP)           :: dt                   = -1.0_DP            !! Time step
       integer(I8B)       :: iloop                = 0_I8B              !! Main loop counter
