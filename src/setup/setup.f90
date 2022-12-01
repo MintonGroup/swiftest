@@ -91,9 +91,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
       associate(system => self)
-         if ((param%out_type == "NETCDF_FLOAT") .or. (param%out_type == "NETCDF_DOUBLE")) then
-            call param%nciu%close()
-         end if
+         call param%nciu%close()
       end associate
 
       return
