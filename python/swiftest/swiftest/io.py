@@ -30,7 +30,8 @@ newfeaturelist = ("RESTART",
                   "SEED",
                   "INTERACTION_LOOPS",
                   "ENCOUNTER_CHECK",
-                  "TSTART")
+                  "TSTART",
+                  "DUMP_CADENCE")
 
 # This list defines features that are booleans, so must be converted to/from string when writing/reading from file
 bool_param = ["RESTART",
@@ -46,7 +47,7 @@ bool_param = ["RESTART",
               "YARKOVSKY",
               "YORP"]
 
-int_param = ["ISTEP_OUT", "ISTEP_DUMP"]
+int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
 float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
                "TU2S", "MIN_GMFRAG", "GMTINY"]
 
@@ -409,7 +410,7 @@ def write_labeled_param(param, param_file_name):
                'TSTOP',
                'DT',
                'ISTEP_OUT',
-               'ISTEP_DUMP',
+               'DUMP_CADENCE',
                'NC_IN',
                'PL_IN',
                'TP_IN',

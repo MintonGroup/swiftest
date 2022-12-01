@@ -628,10 +628,10 @@ class Simulation:
 
         if dump_cadence is None:
             dump_cadence = self.param.pop("DUMP_CADENCE", 1)
-            self.param['DUMP_CADENCE'] = dump_cadence
         else:
             update_list.append("dump_cadence")
-
+        self.param['DUMP_CADENCE'] = dump_cadence
+        
         time_dict = self.get_simulation_time(update_list, verbose=verbose)
 
         return time_dict
