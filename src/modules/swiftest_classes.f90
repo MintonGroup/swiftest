@@ -151,9 +151,9 @@ module swiftest_classes
       !! An abstract superclass for a generic Swiftest object
    contains
       !! The minimal methods that all systems must have
-      procedure :: read_in             => io_read_in_base              !! Read in body initial conditions from a file
-      procedure :: write_frame         => netcdf_write_frame_base      !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
-      procedure :: write_particle_info => netcdf_write_particle_info_base  !! Dump contents of particle information metadata to file
+      procedure :: read_in      => io_read_in_base         !! Read in body initial conditions from a file
+      procedure :: write_frame  => netcdf_write_frame_base !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      procedure :: write_info   => netcdf_write_info_base  !! Dump contents of particle information metadata to file
    end type swiftest_base
 
    !********************************************************************************************************************************
@@ -943,12 +943,12 @@ module swiftest_classes
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_hdr_system
 
-      module subroutine netcdf_write_particle_info_base(self, iu, param)
+      module subroutine netcdf_write_info_base(self, iu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest particle object
          class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine netcdf_write_particle_info_base
+      end subroutine netcdf_write_info_base
 
       module subroutine obl_acc_body(self, system)
          implicit none

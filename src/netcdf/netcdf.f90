@@ -1183,7 +1183,7 @@ contains
       real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
       real(DP)                                  :: a, e, inc, omega, capom, capm
 
-      call self%write_particle_info(iu, param)
+      call self%write_info(iu, param)
 
       tslot = param%ioutput + 1
 
@@ -1309,7 +1309,7 @@ contains
    end subroutine netcdf_write_frame_system
 
 
-   module subroutine netcdf_write_particle_info_base(self, iu, param)
+   module subroutine netcdf_write_info_base(self, iu, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Write all current particle to file
@@ -1324,7 +1324,7 @@ contains
       character(len=NAMELEN)                    :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode), "netcdf_write_particle_info_base nf90_set_fill nf90_nofill"  )
+      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode), "netcdf_write_info_base nf90_set_fill nf90_nofill"  )
 
       select type(self)
          class is (swiftest_body)
@@ -1335,36 +1335,36 @@ contains
             do i = 1, n
                j = ind(i)
                idslot = self%id(j) + 1
-               call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var id_varid"  )
+               call check( nf90_put_var(iu%ncid, iu%id_varid, self%id(j), start=[idslot]), "netcdf_write_info_base nf90_put_var id_varid"  )
 
                charstring = trim(adjustl(self%info(j)%name))
-               call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var name_varid"  )
+               call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var name_varid"  )
 
                charstring = trim(adjustl(self%info(j)%particle_type))
-               call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var particle_type_varid"  )
+               call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var particle_type_varid"  )
 
                charstring = trim(adjustl(self%info(j)%status))
-               call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var status_varid"  )
+               call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var status_varid"  )
 
                if (param%lclose) then
                   charstring = trim(adjustl(self%info(j)%origin_type))
-                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var origin_type_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]), "netcdf_write_particle_info_base nf90_put_var origin_time_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid,   self%info(j)%origin_xh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var origin_xhx_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid,   self%info(j)%origin_xh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var origin_xhy_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid,   self%info(j)%origin_xh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var origin_xhz_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid,   self%info(j)%origin_vh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var origin_vhx_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid,   self%info(j)%origin_vh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var origin_vhy_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid,   self%info(j)%origin_vh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var origin_vhz_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var origin_type_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]), "netcdf_write_info_base nf90_put_var origin_time_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid,   self%info(j)%origin_xh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var origin_xhx_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid,   self%info(j)%origin_xh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var origin_xhy_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid,   self%info(j)%origin_xh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var origin_xhz_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid,   self%info(j)%origin_vh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var origin_vhx_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid,   self%info(j)%origin_vh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var origin_vhy_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid,   self%info(j)%origin_vh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var origin_vhz_varid"  )
    
-                  call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info(j)%collision_id, start=[idslot]), "netcdf_write_particle_info_base nf90_put_var collision_id_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info(j)%discard_time, start=[idslot]), "netcdf_write_particle_info_base nf90_put_var discard_time_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info(j)%discard_xh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var discard_xhx_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info(j)%discard_xh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var discard_xhy_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info(j)%discard_xh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var discard_xhz_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info(j)%discard_vh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var discard_vhx_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info(j)%discard_vh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var discard_vhy_varid"  )
-                  call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info(j)%discard_vh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var discard_vhz_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info(j)%collision_id, start=[idslot]), "netcdf_write_info_base nf90_put_var collision_id_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info(j)%discard_time, start=[idslot]), "netcdf_write_info_base nf90_put_var discard_time_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info(j)%discard_xh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var discard_xhx_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info(j)%discard_xh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var discard_xhy_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info(j)%discard_xh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var discard_xhz_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info(j)%discard_vh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var discard_vhx_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info(j)%discard_vh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var discard_vhy_varid"  )
+                  call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info(j)%discard_vh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var discard_vhz_varid"  )
                end if
 
             end do
@@ -1372,44 +1372,44 @@ contains
 
       class is (swiftest_cb)
          idslot = self%id + 1
-         call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb id_varid"  )
+         call check( nf90_put_var(iu%ncid, iu%id_varid, self%id, start=[idslot]), "netcdf_write_info_base nf90_put_var cb id_varid"  )
 
          charstring = trim(adjustl(self%info%name))
-         call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var cb name_varid"  )
+         call check( nf90_put_var(iu%ncid, iu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb name_varid"  )
 
          charstring = trim(adjustl(self%info%particle_type))
-         call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var cb ptype_varid"  )
+         call check( nf90_put_var(iu%ncid, iu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb ptype_varid"  )
 
          charstring = trim(adjustl(self%info%status))
-         call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var cb status_varid"  )
+         call check( nf90_put_var(iu%ncid, iu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb status_varid"  )
 
          if (param%lclose) then
             charstring = trim(adjustl(self%info%origin_type))
-            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_particle_info_base nf90_put_var cb origin_type_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb origin_type_varid"  )
 
-            call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb origin_time_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb origin_xhx_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb origin_xhy_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb origin_xhz_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb origin_vhx_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb origin_vhy_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb origin_vhz_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_time_varid, self%info%origin_time, start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_time_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhx_varid, self%info%origin_xh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_xhx_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhy_varid, self%info%origin_xh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_xhy_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_xhz_varid, self%info%origin_xh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_xhz_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhx_varid, self%info%origin_vh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_vhx_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhy_varid, self%info%origin_vh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_vhy_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%origin_vhz_varid, self%info%origin_vh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_vhz_varid"  )
    
-            call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info%collision_id, start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb collision_id_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info%discard_time, start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb discard_time_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info%discard_xh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb discard_xhx_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info%discard_xh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb discard_xhy_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info%discard_xh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb discard_xhz_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info%discard_vh(1), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb discard_vhx_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info%discard_vh(2), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb discard_vhy_varid"  )
-            call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]), "netcdf_write_particle_info_base nf90_put_var cb discard_vhz_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%collision_id_varid, self%info%collision_id, start=[idslot]), "netcdf_write_info_base nf90_put_var cb collision_id_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%discard_time_varid, self%info%discard_time, start=[idslot]), "netcdf_write_info_base nf90_put_var cb discard_time_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%discard_xhx_varid, self%info%discard_xh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var cb discard_xhx_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%discard_xhy_varid, self%info%discard_xh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var cb discard_xhy_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%discard_xhz_varid, self%info%discard_xh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var cb discard_xhz_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%discard_vhx_varid, self%info%discard_vh(1), start=[idslot]), "netcdf_write_info_base nf90_put_var cb discard_vhx_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%discard_vhy_varid, self%info%discard_vh(2), start=[idslot]), "netcdf_write_info_base nf90_put_var cb discard_vhy_varid"  )
+            call check( nf90_put_var(iu%ncid, iu%discard_vhz_varid, self%info%discard_vh(3), start=[idslot]), "netcdf_write_info_base nf90_put_var cb discard_vhz_varid"  )
          end if
 
       end select
 
       call check( nf90_set_fill(iu%ncid, old_mode, old_mode) )
       return
-   end subroutine netcdf_write_particle_info_base
+   end subroutine netcdf_write_info_base
 
 
    module subroutine netcdf_write_hdr_system(self, iu, param) 

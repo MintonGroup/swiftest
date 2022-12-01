@@ -177,12 +177,12 @@ contains
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
 
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_particle_info(param%nciu, param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nciu, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
 
-            call pl_discards%write_particle_info(param%nciu, param)
+            call pl_discards%write_info(param%nciu, param)
          end select
       end associate
 
