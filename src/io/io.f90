@@ -283,7 +283,10 @@ contains
       iloop_start = param%iloop - param%istep_out * param%dump_cadence + 1_I8B
       do i = 1_I8B, param%dump_cadence
          param%ioutput = int(iloop_start / param%istep_out, kind=I8B) + i
-         call self%frame(i)%system%write_frame(param)
+         if (allocated(self%frame(i)%system)) then
+            call self%frame(i)%system%write_frame(param)
+            deallocate(self%frame(i)%system)
+         end if
       end do
 
       return

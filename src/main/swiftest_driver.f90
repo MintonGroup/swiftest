@@ -161,12 +161,10 @@ program swiftest_driver
          end if
 
       end do
+      ! Dump any remaining history if it exists
+      call system_history%dump(param)
       if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
    end associate
 
-   call nbody_system%dealloc()
-
    call util_exit(SUCCESS)
-
-   stop
 end program swiftest_driver
