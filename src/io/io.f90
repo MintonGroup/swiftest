@@ -269,6 +269,26 @@ contains
       return
    end subroutine io_dump_system
 
+   module subroutine io_dump_system_storage(self, param)
+      !! author: David A. Minton
+      !!
+      !! Dumps the time history of the simulation to file
+      implicit none
+      ! Arguments
+      class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      integer(I8B) :: i, iloop_start
+
+      iloop_start = param%iloop - param%istep_out * param%dump_cadence + 1_I8B
+      do i = 1_I8B, param%dump_cadence
+         param%ioutput = int(iloop_start / param%istep_out, kind=I8B) + i
+         call self%frame(i)%system%write_frame(param)
+      end do
+
+      return
+   end subroutine io_dump_system_storage
+
 
    module subroutine io_get_args(integrator, param_file_name, display_style)
       !! author: David A. Minton

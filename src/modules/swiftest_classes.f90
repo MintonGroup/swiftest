@@ -429,6 +429,7 @@ module swiftest_classes
       !! A class that that is used to store simulation history data between file output 
       type(storage_frame), dimension(nframes) :: frame
    contains
+      procedure :: dump => io_dump_system_storage
    end type swiftest_storage
 
    abstract interface
@@ -623,6 +624,13 @@ module swiftest_classes
          class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest system object
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
+
+
+      module subroutine io_dump_system_storage(self, param)
+         implicit none
+         class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
+         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine io_dump_system_storage
 
       module subroutine io_get_args(integrator, param_file_name, display_style) 
          implicit none

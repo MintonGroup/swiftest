@@ -133,10 +133,7 @@ program swiftest_driver
 
                if (idump == 0) then
                   call nbody_system%dump(param)
-                  do iframe = 1_I8B, dump_cadence
-                     ioutput = int((iloop - dump_cadence - 1_I8B + iframe) / istep_out, kind=I8B)
-                     call system_history%frame(iframe)%system%write_frame(param)
-                  end do
+                  call system_history%dump(param)
                   idump = dump_cadence
                end if
 
