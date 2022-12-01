@@ -1793,17 +1793,17 @@ module swiftest_classes
 
       module subroutine util_spill_pl(self, discards, lspill_list, ldestructive)
          implicit none
-         class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body object
-         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         class(swiftest_pl),    intent(inout) :: self         !! Swiftest massive body object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_pl
 
       module subroutine util_spill_tp(self, discards, lspill_list, ldestructive)
          implicit none
-         class(swiftest_tp),    intent(inout) :: self        !! Swiftest test particle object
-         class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         class(swiftest_tp),    intent(inout) :: self         !! Swiftest test particle object
+         class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_tp
 
