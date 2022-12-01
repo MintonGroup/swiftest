@@ -86,7 +86,9 @@ contains
       class(storage_frame),         intent(inout) :: self   !! Swiftest storage frame object
       class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
 
+      if (allocated(self%system)) deallocate(self%system)
       allocate(self%system, source=system)
+      return
 
    end subroutine util_copy_store_system
 

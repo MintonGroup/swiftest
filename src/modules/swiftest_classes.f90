@@ -425,11 +425,10 @@ module swiftest_classes
    end type
 
    type, extends(swiftest_base) :: swiftest_storage(nframes)
-      integer(I4B), len :: nframes
+      integer(I8B), len :: nframes
       !! A class that that is used to store simulation history data between file output 
       type(storage_frame), dimension(nframes) :: frame
    contains
-      procedure :: initialize => setup_initialize_storage 
    end type swiftest_storage
 
    abstract interface
@@ -1045,12 +1044,6 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine setup_initialize_particle_info_system
-
-      module subroutine setup_initialize_storage(self, param)
-         implicit none
-         class(swiftest_storage(*)), intent(inout) :: self  !! Swiftest storage object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine setup_initialize_storage
 
       module subroutine setup_initialize_system(self, param)
          implicit none

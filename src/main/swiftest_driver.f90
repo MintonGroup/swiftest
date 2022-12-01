@@ -27,6 +27,7 @@ program swiftest_driver
    integer(I8B)                               :: iout             !! Output cadence counter
    integer(I8B)                               :: istart           !! Starting index for loop counter
    integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
+   integer(I8B)                               :: iframe           !! System history frame cindex
    real(DP)                                   :: old_t_final = 0.0_DP !! Output time at which writing should start, in order to prevent duplicate lines being written for restarts
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
@@ -78,12 +79,19 @@ program swiftest_driver
              display_unit    => param%display_unit)
 
       call nbody_system%initialize(param)
+
+      ! Set up loop and output cadence variables
       t = tstart
       iout = istep_out
-      idump = dump_cadence
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
-      istart =  ceiling((tstart - t0) / dt, kind=I8B)
+      istart =  ceiling((tstart - t0) / dt + 1, kind=I8B)
       ioutput = int(istart / istep_out, kind=I8B)
+
+      ! Set up system storage for intermittent file dumps
+      if (dump_cadence == 0) dump_cadence = nloops
+      allocate(swiftest_storage(dump_cadence) :: system_history)
+      idump = dump_cadence
+
       ! Prevent duplicate frames from being written if this is a restarted run
       if (param%lrestart) then
          old_t_final = nbody_system%get_old_t_final(param)
@@ -119,9 +127,18 @@ program swiftest_driver
          if (istep_out > 0) then
             iout = iout - 1
             if (iout == 0) then
-               ioutput = int(iloop / istep_out, kind=I8B)
-               call nbody_system%write_frame(param)
+               idump = idump - 1
+               iframe = dump_cadence - idump 
+               system_history%frame(iframe) = nbody_system
 
+               if (idump == 0) then
+                  call nbody_system%dump(param)
+                  do iframe = 1_I8B, dump_cadence
+                     ioutput = int((iloop - dump_cadence - 1_I8B + iframe) / istep_out, kind=I8B)
+                     call system_history%frame(iframe)%system%write_frame(param)
+                  end do
+                  idump = dump_cadence
+               end if
 
                tfrac = (param%t - param%t0) / (param%tstop - param%t0)
 
@@ -147,14 +164,6 @@ program swiftest_driver
             end if
          end if
 
-         !> If the loop counter is at the dump cadence value, dump the state of the system to a file in case it needs to be restarted
-         if (dump_cadence > 0) then
-            idump = idump - 1
-            if (idump == 0) then
-               call nbody_system%dump(param)
-               idump = dump_cadence
-            end if
-         end if
       end do
       if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
    end associate
