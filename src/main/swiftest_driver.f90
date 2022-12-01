@@ -27,7 +27,6 @@ program swiftest_driver
    integer(I8B)                               :: nloops            !! Number of steps to take in the simulation
    integer(I4B)                               :: iout              !! Output cadence counter
    integer(I4B)                               :: idump             !! Dump cadence counter
-   integer(I4B)                               :: iframe            !! System history frame cindex
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
    type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
@@ -80,7 +79,6 @@ program swiftest_driver
 
       ! Set up loop and output cadence variables
       t = tstart
-      iout = istep_out
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1, kind=I8B)
       ioutput = int(istart / istep_out, kind=I4B)
@@ -88,7 +86,6 @@ program swiftest_driver
       ! Set up system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
       allocate(swiftest_storage(dump_cadence) :: system_history)
-      idump = dump_cadence
 
       ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
       if (param%lrestart) then
@@ -109,6 +106,8 @@ program swiftest_driver
          call nbody_system%compact_output(param,integration_timer)
       end if
 
+      iout = 0
+      idump = 0
       do iloop = istart, nloops
          !> Step the system forward in time
          call integration_timer%start()
@@ -123,16 +122,16 @@ program swiftest_driver
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
-            iout = iout - 1
-            if (iout == 0) then
-               idump = idump - 1
-               iframe = dump_cadence - idump 
-               system_history%frame(iframe) = nbody_system
+            iout = iout + 1
+            if (iout == istep_out) then
+               iout = 0
+               idump = idump + 1
+               system_history%frame(idump) = nbody_system
 
-               if (idump == 0) then
+               if (idump == dump_cadence) then
+                  idump = 0
                   call nbody_system%dump(param)
                   call system_history%dump(param)
-                  idump = dump_cadence
                end if
 
                tfrac = (t - t0) / (tstop - t0)
@@ -155,7 +154,6 @@ program swiftest_driver
 
                call integration_timer%reset()
 
-               iout = istep_out
             end if
          end if
 
