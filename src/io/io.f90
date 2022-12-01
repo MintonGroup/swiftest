@@ -526,7 +526,7 @@ contains
                case ("OUT_STAT")
                   call io_toupper(param_value)
                   param%out_stat = param_value
-               case ("ISTEP_DUMP")
+               case ("DUMP_CADENCE")
                   read(param_value, *, err = 667, iomsg = iomsg) param%istep_dump
                case ("CHK_CLOSE")
                   call io_toupper(param_value)

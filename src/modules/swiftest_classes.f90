@@ -46,14 +46,14 @@ module swiftest_classes
       character(STRMAX)    :: inplfile       = PL_INFILE          !! Name of input file for massive bodies
       character(STRMAX)    :: intpfile       = TP_INFILE          !! Name of input file for test particles
       character(STRMAX)    :: in_netcdf      = NC_INFILE          !! Name of system input file for NetCDF input
-      character(STRMAX)    :: in_type        = "ASCII"         !! Data representation type of input data files
-      character(STRMAX)    :: in_form        = "XV"                 !! Format of input data files ("EL" or "XV")
-      integer(I4B)         :: istep_out      = -1                 !! Number of time steps between binary outputs
+      character(STRMAX)    :: in_type        = "ASCII"            !! Data representation type of input data files
+      character(STRMAX)    :: in_form        = "XV"               !! Format of input data files ("EL" or "XV")
+      integer(I4B)         :: istep_out      = -1                 !! Number of time steps between saved outputs
       character(STRMAX)    :: outfile        = NETCDF_OUTFILE     !! Name of output binary file
-      character(STRMAX)    :: out_type       = "NETCDF_DOUBLE" !! Binary format of output file
-      character(STRMAX)    :: out_form       = "XVEL"               !! Data to write to output file
+      character(STRMAX)    :: out_type       = "NETCDF_DOUBLE"    !! Binary format of output file
+      character(STRMAX)    :: out_form       = "XVEL"             !! Data to write to output file
       character(STRMAX)    :: out_stat       = 'NEW'              !! Open status for output binary file
-      integer(I4B)         :: istep_dump     = -1                 !! Number of time steps between dumps
+      integer(I4B)         :: dump_cadence   =  1                 !! Number of output steps between dumping simulation data to file
       real(DP)             :: rmin           = -1.0_DP            !! Minimum heliocentric radius for test particle
       real(DP)             :: rmax           = -1.0_DP            !! Maximum heliocentric radius for test particle
       real(DP)             :: rmaxu          = -1.0_DP            !! Maximum unbound heliocentric radius for test particle
@@ -413,24 +413,25 @@ module swiftest_classes
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
-      generic   :: write_frame             => write_frame_system, write_frame_netcdf      !! Generic method call for reading a frame of output data
+      generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
 
-   type system_storage_frame
+   type storage_frame
       class(swiftest_nbody_system), allocatable :: system
+   contains
+      procedure :: store         => util_copy_store_system !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      generic   :: assignment(=) => store
    end type
 
    type, extends(swiftest_base) :: swiftest_storage(nframes)
       integer(I4B), len :: nframes
       !! A class that that is used to store simulation history data between file output 
-      type(system_storage_frame), dimension(nframes) :: frame
+      type(storage_frame), dimension(nframes) :: frame
    contains
       procedure :: initialize => setup_initialize_storage 
    end type swiftest_storage
 
-
    abstract interface
-
       subroutine abstract_accel(self, system, param, t, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body data structure
@@ -1239,6 +1240,12 @@ module swiftest_classes
          class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata information object
          integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source object
       end subroutine util_copy_particle_info_arr
+
+      module subroutine util_copy_store_system(self, system)
+         implicit none
+         class(storage_frame),         intent(inout) :: self   !! Swiftest storage frame object
+         class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
+      end subroutine util_copy_store_system
 
       module subroutine util_dealloc_body(self)
          implicit none
