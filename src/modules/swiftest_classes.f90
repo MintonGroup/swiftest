@@ -156,26 +156,6 @@ module swiftest_classes
       procedure :: write_particle_info => netcdf_write_particle_info_base  !! Dump contents of particle information metadata to file
    end type swiftest_base
 
-   type, abstract, extends(swiftest_base) :: swiftest_storage
-      !! An abstract superclass for a generic Swiftest object that is used to store simulation history data between file I/O
-   contains
-      procedure(abstract_store),         deferred :: store !! Stores the state of the simulation in memory
-      procedure(abstract_dump_storage),  deferred :: dump  !! Dumps contents of the variable to file
-   end type swiftest_storage
-
-   abstract interface
-      subroutine abstract_store(self)
-         import swiftest_storage
-         class(swiftest_storage), intent(inout) :: self
-      end subroutine abstract_store
-
-      subroutine abstract_dump_storage(self)
-         import swiftest_storage
-         class(swiftest_storage), intent(inout) :: self
-      end subroutine abstract_dump_storage
-   end interface
-         
-
    !********************************************************************************************************************************
    ! swiftest_cb class definitions and methods
    !********************************************************************************************************************************
@@ -435,6 +415,18 @@ module swiftest_classes
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
       generic   :: write_frame             => write_frame_system, write_frame_netcdf      !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
+
+   type system_storage_frame
+      class(swiftest_nbody_system), allocatable :: system
+   end type
+
+   type, extends(swiftest_base) :: swiftest_storage(nframes)
+      integer(I4B), len :: nframes
+      !! A class that that is used to store simulation history data between file output 
+      type(system_storage_frame), dimension(nframes) :: frame
+   contains
+      procedure :: initialize => setup_initialize_storage 
+   end type swiftest_storage
 
 
    abstract interface
@@ -1051,6 +1043,12 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine setup_initialize_particle_info_system
+
+      module subroutine setup_initialize_storage(self, param)
+         implicit none
+         class(swiftest_storage(*)), intent(inout) :: self  !! Swiftest storage object
+         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      end subroutine setup_initialize_storage
 
       module subroutine setup_initialize_system(self, param)
          implicit none
