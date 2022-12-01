@@ -89,18 +89,18 @@ module swiftest_classes
       logical :: ltides         = .false. !! Include tidal dissipation 
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
-      real(DP)                  :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
-      real(DP)                  :: GMtot_orig = 0.0_DP    !! Initial system mass
-      real(DP), dimension(NDIM) :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
-      real(DP), dimension(NDIM) :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
-      real(DP), dimension(NDIM) :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: GMescape = 0.0_DP      !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
-      real(DP)                  :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
+      real(DP)                  :: Eorbit_orig  = 0.0_DP  !! Initial orbital energy
+      real(DP)                  :: GMtot_orig   = 0.0_DP  !! Initial system mass
+      real(DP), dimension(NDIM) :: Ltot_orig    = 0.0_DP  !! Initial total angular momentum vector
+      real(DP), dimension(NDIM) :: Lorbit_orig  = 0.0_DP  !! Initial orbital angular momentum
+      real(DP), dimension(NDIM) :: Lspin_orig   = 0.0_DP  !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM) :: Lescape      = 0.0_DP  !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: GMescape     = 0.0_DP  !! Mass of bodies that escaped the system (used for bookeeping)
+      real(DP)                  :: Ecollisions  = 0.0_DP  !! Energy lost from system due to collisions
+      real(DP)                  :: Euntracked   = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
-      logical                   :: lfirstkick = .true.    !! Initiate the first kick in a symplectic step
-      logical                   :: lrestart = .false.     !! Indicates whether or not this is a restarted run
+      logical                   :: lfirstkick   = .true.  !! Initiate the first kick in a symplectic step
+      logical                   :: lrestart     = .false. !! Indicates whether or not this is a restarted run
 
       character(len=:), allocatable :: display_style         !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
       integer(I4B)                  :: display_unit          !! File unit number for display (either to stdout or to a log file)
