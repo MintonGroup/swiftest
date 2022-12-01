@@ -41,7 +41,6 @@ program swiftest_driver
    character(*), parameter                    :: symbacompactfmt = '(";NPLM",ES22.15,$)'
    type(swiftest_storage(nframes=:)), allocatable     :: system_history
 
-
    call io_get_args(integrator, param_file_name, display_style)
 
    !> Read in the user-defined parameters file and the initial conditions of the system
@@ -87,7 +86,7 @@ program swiftest_driver
       ioutput = int(istart / istep_out, kind=I8B)
 
       ! Set up system storage for intermittent file dumps
-      if (dump_cadence == 0) dump_cadence = nloops
+      if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
       allocate(swiftest_storage(dump_cadence) :: system_history)
       idump = dump_cadence
 
