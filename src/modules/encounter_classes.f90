@@ -43,7 +43,7 @@ module encounter_classes
    end type encounter_list
 
    type, extends(swiftest_storage) :: encounter_storage
-      !! A class that that is used to store simulation history data between file output 
+      !! A class that that is used to store simulation history data between file output
    contains
       procedure :: dump => encounter_io_dump_storage_list
    end type encounter_storage
@@ -278,6 +278,12 @@ module encounter_classes
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
          integer(I8B),          intent(in)    :: nnew !! New size of list needed
       end subroutine encounter_util_resize_list
+
+      module subroutine encounter_util_resize_storage(self, nnew)
+         implicit none
+         class(encounter_storage(*)), allocatable, intent(inout) :: self !! Swiftest encounter list 
+         integer(I4B),                             intent(in)    :: nnew !! New size of list needed
+      end subroutine encounter_util_resize_storage
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
          implicit none

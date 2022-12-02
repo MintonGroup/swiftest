@@ -34,7 +34,7 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(pl => self, plplenc_list => system%plplenc_list)
+      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb, iframe => system%iframe, encounter_history => system%encounter_history)
 
          npl = pl%nbody
          nplm = pl%nplm
@@ -57,7 +57,7 @@ contains
             call move_alloc(index2, plplenc_list%index2)
          end if
 
-         if (lany_encounter) then 
+         if (lany_encounter) then
             do k = 1_I8B, nenc
                i = plplenc_list%index1(k)
                j = plplenc_list%index2(k)
@@ -65,6 +65,10 @@ contains
                plplenc_list%id2(k) = pl%id(j)
                plplenc_list%status(k) = ACTIVE
                plplenc_list%level(k) = irec
+               plplenc_list%x1(:,k) = pl%xh(:,i)
+               plplenc_list%x2(:,k) = pl%xh(:,j)
+               plplenc_list%v1(:,k) = pl%vb(:,i) - cb%vb(:)
+               plplenc_list%v2(:,k) = pl%vb(:,j) - cb%vb(:)
                pl%lencounter(i) = .true.
                pl%lencounter(j) = .true.
                pl%levelg(i) = irec
@@ -74,6 +78,8 @@ contains
                pl%nplenc(i) = pl%nplenc(i) + 1
                pl%nplenc(j) = pl%nplenc(j) + 1
             end do
+            iframe = iframe + 1
+            encounter_history%frame(iframe) = plplenc_list
          end if
 
       end associate

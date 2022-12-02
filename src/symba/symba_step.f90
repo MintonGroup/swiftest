@@ -275,6 +275,7 @@ contains
                   nenc_old = system%plplenc_list%nenc
                   call system%plplenc_list%setup(0_I8B)
                   call system%plplcollision_list%setup(0_I8B)
+                  system%iframe = 0
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
                      call pl%reset_kinship([(i, i=1, npl)])
