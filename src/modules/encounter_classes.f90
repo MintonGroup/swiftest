@@ -32,13 +32,14 @@ module encounter_classes
       real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
       real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
    contains
-      procedure :: setup   => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: append  => encounter_util_append_list  !! Appends elements from one structure to another
-      procedure :: copy    => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
-      procedure :: dealloc => encounter_util_dealloc_list !! Deallocates all allocatables
-      procedure :: spill   => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: resize  => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      final     :: encounter_util_final_list              !! Finalize the encounter list - deallocates all allocatables
+      procedure :: setup       => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: append      => encounter_util_append_list  !! Appends elements from one structure to another
+      procedure :: copy        => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
+      procedure :: dealloc     => encounter_util_dealloc_list !! Deallocates all allocatables
+      procedure :: spill       => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: resize      => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      procedure :: write_frame => encounter_io_write_frame    !! Writes a frame of encounter data to file 
+      final     :: encounter_util_final_list                  !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
 
    type, extends(swiftest_storage) :: encounter_storage
@@ -48,11 +49,11 @@ module encounter_classes
    end type encounter_storage
 
    !! NetCDF dimension and variable names for the enounter save object
-   character(*), parameter :: ENCID_DIMNAME    = "encounter" !! The index of the encountering pair in the encounter list  
-   character(*), parameter :: COLLIDER_DIMNAME = "collider"  !! Dimension that defines the colliding bodies (bodies 1 and 2 are at dimension coordinates 1 and 2, respectively)
-   integer(I4B), parameter :: COLLIDER_DIM_SIZE = 2          !! Size of collider dimension
-   character(*), parameter :: NENC_VARNAME     = "nenc"      !! Total number of encounters
-   character(*), parameter :: LEVEL_VARNAME    = "level"     !! Recursion depth
+   character(*), parameter :: ENCID_DIMNAME     = "encounter" !! The index of the encountering pair in the encounter list  
+   character(*), parameter :: COLLIDER_DIMNAME  = "collider"  !! Dimension that defines the colliding bodies (bodies 1 and 2 are at dimension coordinates 1 and 2, respectively)
+   integer(I4B), parameter :: COLLIDER_DIM_SIZE = 2           !! Size of collider dimension
+   character(*), parameter :: NENC_VARNAME      = "nenc"      !! Total number of encounters
+   character(*), parameter :: LEVEL_VARNAME     = "level"     !! Recursion depth
 
    type, extends(netcdf_parameters) :: encounter_io_parameters
       character(STRMAX) :: outfile = "encounter.nc" !! Encounter output file name
@@ -218,6 +219,13 @@ module encounter_classes
          class(swiftest_parameters),     intent(in)    :: param    !! Current run configuration parameters
          logical, optional,              intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       end subroutine encounter_io_open_file
+
+      module subroutine encounter_io_write_frame(self, iu, param)
+         implicit none
+         class(encounter_list),          intent(in)    :: self   !! Swiftest encounter structure
+         class(encounter_io_parameters), intent(inout) :: iu     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
+      end subroutine encounter_io_write_frame
 
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none

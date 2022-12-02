@@ -100,7 +100,7 @@ contains
       class(swiftest_parameters),     intent(in)    :: param    !! Current run configuration parameters
       logical, optional,              intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       ! Internals
-      integer(I4B) :: mode, status
+      integer(I4B) :: mode
       character(len=STRMAX) :: errmsg
 
       mode = NF90_WRITE
@@ -132,5 +132,18 @@ contains
 
       return
    end subroutine encounter_io_open_file
+
+   module subroutine encounter_io_write_frame(self, iu, param)
+      !! author: David A. Minton
+      !!
+      !! Write a frame of output of an encounter list structure.
+      implicit none
+      ! Arguments
+      class(encounter_list),          intent(in)    :: self   !! Swiftest encounter structure
+      class(encounter_io_parameters), intent(inout) :: iu     !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
+
+      return
+   end subroutine encounter_io_write_frame
 
 end submodule s_encounter_io
