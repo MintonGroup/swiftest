@@ -46,7 +46,13 @@ module encounter_classes
    contains
       procedure :: dump => encounter_io_dump_storage_list
    end type encounter_storage
-  
+ 
+   type, extends(netcdf_parameters) :: encounter_io_parameters
+   contains
+      procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: open       => encounter_io_open_file         !! Opens a NetCDF file
+   end type encounter_io_parameters
+
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
       integer(I4B), dimension(:), allocatable :: ind  !! Sorted minimum/maximum extent indices (value > n indicates an ending index)
@@ -184,6 +190,19 @@ module encounter_classes
          class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
          class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
       end subroutine encounter_io_dump_storage_list
+
+      module subroutine encounter_io_initialize_output(self, param)
+         implicit none
+         class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param   
+      end subroutine encounter_io_initialize_output
+
+      module subroutine encounter_io_open_file(self, param, readonly)
+         implicit none
+         class(encounter_io_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param    !! Current run configuration parameters
+         logical, optional,              intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      end subroutine encounter_io_open_file
 
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none

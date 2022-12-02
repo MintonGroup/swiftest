@@ -21,4 +21,29 @@ contains
       class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
    end subroutine encounter_io_dump_storage_list
 
+   module subroutine encounter_io_initialize_output(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize a NetCDF encounter file system and defines all variables.
+      implicit none
+      ! Arguments
+      class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),     intent(in)    :: param   !! Current run configuration parameters
+
+      return
+   end subroutine encounter_io_initialize_output
+
+   module subroutine encounter_io_open_file(self, param, readonly)
+      !! author: David A. Minton
+      !!
+      !! Opens a NetCDF encounter file and does the variable inquiries to activate variable ids
+      implicit none
+      ! Arguments
+      class(encounter_io_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),     intent(in)    :: param    !! Current run configuration parameters
+      logical, optional,              intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+
+      return
+   end subroutine encounter_io_open_file
+
 end submodule s_encounter_io
