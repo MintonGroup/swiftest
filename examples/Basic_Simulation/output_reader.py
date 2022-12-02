@@ -29,7 +29,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 # Read in the simulation output and store it as an Xarray dataset
-ds = swiftest.Simulation(param_file="param.in").ds
+ds = swiftest.Simulation(param_file="simdata/param.in", read_old_output_file=True).data
 
 # Plot of the data and save the output plot
 colors = ['white' if x == 'Massive Body' else 'black' for x in ds['particle_type']]
