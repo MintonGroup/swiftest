@@ -30,6 +30,7 @@ module symba_classes
       real(DP)                                :: min_GMfrag     = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
       integer(I4B), dimension(:), allocatable :: seed                     !! Random seeds
       logical                                 :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: encounter_save = "NONE"  !! Indicate how encounter and/or fragmentation data should be saved
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer

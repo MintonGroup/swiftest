@@ -21,6 +21,7 @@ contains
       class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
    end subroutine encounter_io_dump_storage_list
 
+
    module subroutine encounter_io_initialize_output(self, param)
       !! author: David A. Minton
       !!
@@ -32,6 +33,7 @@ contains
 
       return
    end subroutine encounter_io_initialize_output
+
 
    module subroutine encounter_io_open_file(self, param, readonly)
       !! author: David A. Minton
