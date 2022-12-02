@@ -17,6 +17,24 @@ module encounter_classes
    public
 
    integer(I4B), parameter :: SWEEPDIM = 3
+   !! NetCDF dimension and variable names for the enounter save object
+   character(*), parameter :: ENCID_DIMNAME  = "encounter" 
+   character(*), parameter :: NENC_VARNAME   = "nenc"
+   character(*), parameter :: ID1_VARNAME    = "id1"
+   character(*), parameter :: ID2_VARNAME    = "id2"
+   character(*), parameter :: X1X_VARNAME    = "x1x"
+   character(*), parameter :: X1Y_VARNAME    = "x1y"
+   character(*), parameter :: X1Z_VARNAME    = "x1z"
+   character(*), parameter :: X2X_VARNAME    = "x2x"
+   character(*), parameter :: X2Y_VARNAME    = "x2y"
+   character(*), parameter :: X2Z_VARNAME    = "x2z"
+   character(*), parameter :: V1X_VARNAME    = "v1x"
+   character(*), parameter :: V1Y_VARNAME    = "v1y"
+   character(*), parameter :: V1Z_VARNAME    = "v1z"
+   character(*), parameter :: V2X_VARNAME    = "v2x"
+   character(*), parameter :: V2Y_VARNAME    = "v2y"
+   character(*), parameter :: V2Z_VARNAME    = "v2z"
+   character(*), parameter :: LEVEL_VARNAME  = "level"
 
    type :: encounter_list
       integer(I8B)                              :: nenc = 0  !! Total number of encounters
@@ -48,6 +66,26 @@ module encounter_classes
    end type encounter_storage
  
    type, extends(netcdf_parameters) :: encounter_io_parameters
+      character(STRMAX) :: outfile = "encounter.nc" !! Encounter output file name
+      integer(I4B)      :: encid_dimid              !! NetCDF ID for the encounter pair index dimension
+      integer(I4B)      :: encid_varid              !! NetCDF ID for the encounter pair index variable
+      integer(I4B)      :: nenc_varid               !! NetCDF ID for the number of encounters variable
+      integer(I4B)      :: id1_varid                !! NetCDF ID for the id1 of the encounter variable
+      integer(I4B)      :: id2_varid                !! NetCDF ID for the id2 of the encounter variable
+      integer(I4B)      :: x1x_varid                !! NetCDF ID for the body1 x position variable
+      integer(I4B)      :: x1y_varid                !! NetCDF ID for the body1 y position  variable
+      integer(I4B)      :: x1z_varid                !! NetCDF ID for the body1 z position  variable
+      integer(I4B)      :: x2x_varid                !! NetCDF ID for the body2 x position  variable
+      integer(I4B)      :: x2y_varid                !! NetCDF ID for the body2 y position  variable
+      integer(I4B)      :: x2z_varid                !! NetCDF ID for the body2 z position variable
+      integer(I4B)      :: v1x_varid                !! NetCDF ID for the body1 x velocity variable
+      integer(I4B)      :: v1y_varid                !! NetCDF ID for the body1 y velocity variable
+      integer(I4B)      :: v1z_varid                !! NetCDF ID for the body1 z velocity variable
+      integer(I4B)      :: v2x_varid                !! NetCDF ID for the body2 x velocity variable
+      integer(I4B)      :: v2y_varid                !! NetCDF ID for the body2 y velocity variable
+      integer(I4B)      :: v2z_varid                !! NetCDF ID for the body2 z velocity variable
+      integer(I4B)      :: level_varid              !! NetCDF ID for the recursion level variable
+
    contains
       procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => encounter_io_open_file         !! Opens a NetCDF file

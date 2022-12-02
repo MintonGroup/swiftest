@@ -496,6 +496,13 @@ module swiftest_classes
    end interface
 
    interface
+
+      module subroutine check(status, call_identifier)
+         implicit none
+         integer, intent (in) :: status !! The status code returned by a NetCDF function
+         character(len=*), intent(in), optional :: call_identifier
+      end subroutine check
+
       module subroutine discard_pl(self, system, param)
          implicit none
          class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object

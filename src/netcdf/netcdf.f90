@@ -12,7 +12,7 @@ submodule (swiftest_classes) s_netcdf
    use netcdf
 contains
 
-   subroutine check(status, call_identifier)
+   module subroutine check(status, call_identifier)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Checks the status of all NetCDF operations to catch errors
