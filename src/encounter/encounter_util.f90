@@ -201,7 +201,7 @@ contains
       end if
 
       if (nnew > nold) then
-         allocate(encounter_storage(nnew) :: tmp) 
+         allocate(encounter_storage(2 * nnew) :: tmp) 
          if (lmalloc) then
             do i = 1, nold
                if (allocated(self%frame(i)%item)) tmp%frame(i) = self%frame(i)%item
