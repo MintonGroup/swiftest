@@ -36,7 +36,12 @@ contains
       call util_append(self%x2, source%x2, nold, nsrc, lsource_mask)
       call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
       call util_append(self%v2, source%v2, nold, nsrc, lsource_mask)
-      call util_append(self%t, source%t, nold, nsrc, lsource_mask)
+      call util_append(self%Gmass1, source%Gmass1, nold, nsrc, lsource_mask)
+      call util_append(self%Gmass2, source%Gmass2, nold, nsrc, lsource_mask)
+      call util_append(self%radius1, source%radius1, nold, nsrc, lsource_mask)
+      call util_append(self%radius2, source%radius2, nold, nsrc, lsource_mask)
+      call util_append(self%name1, source%name1, nold, nsrc, lsource_mask)
+      call util_append(self%name2, source%name2, nold, nsrc, lsource_mask)
       self%nenc = nold + count(lsource_mask(1:nsrc))
 
       return
@@ -54,6 +59,7 @@ contains
 
       associate(n => source%nenc)
          self%nenc = n
+         self%t = source%t
          self%lvdotr(1:n) = source%lvdotr(1:n) 
          self%status(1:n) = source%status(1:n) 
          self%index1(1:n) = source%index1(1:n)
@@ -64,7 +70,12 @@ contains
          self%x2(:,1:n) = source%x2(:,1:n)
          self%v1(:,1:n) = source%v1(:,1:n)
          self%v2(:,1:n) = source%v2(:,1:n)
-         self%t(1:n) = source%t(1:n)
+         self%Gmass1(1:n) = source%Gmass1(1:n)
+         self%Gmass2(1:n) = source%Gmass2(1:n)
+         self%radius1(1:n) = source%radius1(1:n)
+         self%radius2(1:n) = source%radius2(1:n)
+         self%name1(1:n) = source%name1(1:n)
+         self%name2(1:n) = source%name2(1:n)
       end associate
 
       return
@@ -104,7 +115,12 @@ contains
       if (allocated(self%x2)) deallocate(self%x2)
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
-      if (allocated(self%t)) deallocate(self%t)
+      if (allocated(self%Gmass1)) deallocate(self%Gmass1)
+      if (allocated(self%Gmass2)) deallocate(self%Gmass2)
+      if (allocated(self%radius1)) deallocate(self%radius1)
+      if (allocated(self%radius2)) deallocate(self%radius2)
+      if (allocated(self%name1)) deallocate(self%name1)
+      if (allocated(self%name2)) deallocate(self%name2)
 
       return
    end subroutine encounter_util_dealloc_list
@@ -214,6 +230,7 @@ contains
       return
    end subroutine encounter_util_resize_storage
 
+
    module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
@@ -238,7 +255,12 @@ contains
          call util_spill(keeps%x2, discards%x2, lspill_list, ldestructive)
          call util_spill(keeps%v1, discards%v1, lspill_list, ldestructive)
          call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
-         call util_spill(keeps%t, discards%t, lspill_list, ldestructive)
+         call util_spill(keeps%Gmass1, discards%Gmass1, lspill_list, ldestructive)
+         call util_spill(keeps%Gmass2, discards%Gmass2, lspill_list, ldestructive)
+         call util_spill(keeps%radius1, discards%radius1, lspill_list, ldestructive)
+         call util_spill(keeps%radius2, discards%radius2, lspill_list, ldestructive)
+         call util_spill(keeps%name1, discards%name1, lspill_list, ldestructive)
+         call util_spill(keeps%name2, discards%name2, lspill_list, ldestructive)
 
          nenc_old = keeps%nenc
 

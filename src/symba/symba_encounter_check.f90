@@ -34,7 +34,7 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb, iframe => system%iframe, encounter_history => system%encounter_history)
+      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb, ienc_frame => system%ienc_frame, encounter_history => system%encounter_history)
 
          npl = pl%nbody
          nplm = pl%nplm
@@ -69,6 +69,15 @@ contains
                plplenc_list%x2(:,k) = pl%xh(:,j)
                plplenc_list%v1(:,k) = pl%vb(:,i) - cb%vb(:)
                plplenc_list%v2(:,k) = pl%vb(:,j) - cb%vb(:)
+               plplenc_list%Gmass1(k) = pl%Gmass(i)
+               plplenc_list%Gmass2(k) = pl%Gmass(j)
+               if (param%lclose) then
+                  plplenc_list%radius1(k) = pl%radius(i)
+                  plplenc_list%radius2(k) = pl%radius(j)
+               end if
+               plplenc_list%name1(k) = pl%info(i)%name
+               plplenc_list%name2(k) = pl%info(j)%name
+
                pl%lencounter(i) = .true.
                pl%lencounter(j) = .true.
                pl%levelg(i) = irec
@@ -78,8 +87,8 @@ contains
                pl%nplenc(i) = pl%nplenc(i) + 1
                pl%nplenc(j) = pl%nplenc(j) + 1
             end do
-            iframe = iframe + 1
-            encounter_history%frame(iframe) = plplenc_list
+            ienc_frame = ienc_frame + 1
+            encounter_history%frame(ienc_frame) = plplenc_list
          end if
 
       end associate

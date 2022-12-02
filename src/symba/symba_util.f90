@@ -183,6 +183,7 @@ contains
       class is (symba_encounter)
          associate(n => source%nenc)
             self%level(1:n) = source%level(1:n) 
+            self%tcollision(1:n) = source%tcollision(1:n) 
          end associate
       end select
 
@@ -201,6 +202,7 @@ contains
       class(symba_encounter),  intent(inout) :: self !! SyMBA encounter list
 
       if (allocated(self%level)) deallocate(self%level)
+      if (allocated(self%tcollision)) deallocate(self%tcollision)
 
       return
    end subroutine symba_util_dealloc_encounter_list
@@ -724,21 +726,33 @@ contains
                   ! This is an encounter we already know about, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%Gmass1(k) = plplenc_old%Gmass1(k) 
+                  system%plplenc_list%Gmass2(k) = plplenc_old%Gmass2(k) 
+                  system%plplenc_list%radius1(k) = plplenc_old%radius1(k) 
+                  system%plplenc_list%radius2(k) = plplenc_old%radius2(k) 
+                  system%plplenc_list%name1(k) = plplenc_old%name1(k) 
+                  system%plplenc_list%name2(k) = plplenc_old%name2(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
                   system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%tcollision(k) = plplenc_old%tcollision(k)
                   system%plplenc_list%level(k) = plplenc_old%level(k)
                else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
                   ! This is an encounter we already know about, but with the order reversed, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%Gmass1(k) = plplenc_old%Gmass2(k) 
+                  system%plplenc_list%Gmass2(k) = plplenc_old%Gmass1(k) 
+                  system%plplenc_list%radius1(k) = plplenc_old%radius2(k) 
+                  system%plplenc_list%radius2(k) = plplenc_old%radius1(k) 
+                  system%plplenc_list%name1(k) = plplenc_old%name2(k) 
+                  system%plplenc_list%name2(k) = plplenc_old%name1(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
                   system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%tcollision(k) = plplenc_old%tcollision(k)
                   system%plplenc_list%level(k) = plplenc_old%level(k)
                end if
                system%plplenc_list%index1(k) = findloc(pl%id(1:npl), system%plplenc_list%id1(k), dim=1)
@@ -761,7 +775,13 @@ contains
                system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%t(1:nencmin) = pack(system%plplenc_list%t(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%Gmass1(1:nencmin) = pack(system%plplenc_list%Gmass1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%Gmass2(1:nencmin) = pack(system%plplenc_list%Gmass2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%radius1(1:nencmin) = pack(system%plplenc_list%radius1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%radius2(1:nencmin) = pack(system%plplenc_list%radius2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%name1(1:nencmin) = pack(system%plplenc_list%name1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%name2(1:nencmin) = pack(system%plplenc_list%name2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%tcollision(1:nencmin) = pack(system%plplenc_list%tcollision(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))
                do i = 1, NDIM
                   system%plplenc_list%x1(i, 1:nencmin) = pack(system%plplenc_list%x1(i, 1:nenc_old), lmask(1:nenc_old))

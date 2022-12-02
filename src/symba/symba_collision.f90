@@ -339,7 +339,7 @@ contains
                   i = self%index1(k)
                   j = self%index2(k)
                   if (lcollision(k)) self%status(k) = COLLISION
-                  self%t(k) = t
+                  self%tcollision(k) = t
                   self%x1(:,k) = pl%xh(:,i) + system%cb%xb(:)
                   self%v1(:,k) = pl%vb(:,i) 
                   if (isplpl) then

@@ -142,7 +142,8 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA class for tracking close encounters in a step
    type, extends(encounter_list) :: symba_encounter
-      integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
+      integer(I4B), dimension(:),   allocatable :: level      !! encounter recursion level
+      real(DP),     dimension(:),   allocatable :: tcollision !! Time of collision
    contains
       procedure :: collision_check => symba_collision_check_encounter   !! Checks if a test particle is going to collide with a massive body
       procedure :: encounter_check => symba_encounter_check             !! Checks if massive bodies are going through close encounters with each other
@@ -180,13 +181,13 @@ module symba_classes
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_merger),  allocatable :: pl_adds            !! List of added bodies in mergers or collisions
-      class(symba_pltpenc), allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
-      class(symba_plplenc), allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
-      class(symba_plplenc), allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
-      integer(I4B)                      :: irec               !! System recursion level
-      type(encounter_storage(nframes=:)), allocatable :: encounter_history
-      integer(I4B)                      :: iframe = 0         !! Encounter history frame number
+      class(symba_merger),                allocatable :: pl_adds            !! List of added bodies in mergers or collisions
+      class(symba_pltpenc),               allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
+      class(symba_plplenc),               allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
+      class(symba_plplenc),               allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
+      integer(I4B)                                    :: irec               !! System recursion level
+      type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      integer(I4B)                                    :: ienc_frame = 0     !! Encounter history frame number
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps

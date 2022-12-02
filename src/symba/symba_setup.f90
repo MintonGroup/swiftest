@@ -120,9 +120,12 @@ contains
       if (n <= 0_I8B) return
 
       if (allocated(self%level)) deallocate(self%level)
+      if (allocated(self%tcollision)) deallocate(self%tcollision)
       allocate(self%level(n))
+      allocate(self%tcollision(n))
 
       self%level(:) = -1
+      self%tcollision(:) = 0.0_DP
 
       return
    end subroutine symba_setup_encounter_list
