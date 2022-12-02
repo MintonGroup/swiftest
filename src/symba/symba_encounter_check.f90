@@ -85,7 +85,7 @@ contains
    module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
-      !! Check for an encounter between test particles and massive bodies in the pltpenc list.
+      !! Check for an encounter between test particles and massive bodies in the plplenc and pltpenc list.
       !! Note: This method works for the polymorphic symba_pltpenc and symba_plplenc types.
       !!
       !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
