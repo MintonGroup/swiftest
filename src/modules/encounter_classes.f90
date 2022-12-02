@@ -62,13 +62,13 @@ module encounter_classes
    character(*), parameter :: LEVEL_VARNAME     = "level"     !! Recursion depth
 
    type, extends(netcdf_parameters) :: encounter_io_parameters
-      character(STRMAX) :: outfile = "encounter.nc" !! Encounter output file name
-      integer(I4B)      :: encid_dimid              !! NetCDF ID for the encounter pair index dimension
-      integer(I4B)      :: collider_dimid           !! NetCDF ID for the collider dimension
-      integer(I4B)      :: collider_varid           !! NetCDF ID for the collider variable
-      integer(I4B)      :: encid_varid              !! NetCDF ID for the encounter pair index variable
-      integer(I4B)      :: nenc_varid               !! NetCDF ID for the number of encounters variable
-      integer(I4B)      :: level_varid              !! NetCDF ID for the recursion level variable
+      character(STRMAX) :: enc_file = "encounter.nc" !! Encounter output file name
+      integer(I4B)      :: encid_dimid               !! NetCDF ID for the encounter pair index dimension
+      integer(I4B)      :: collider_dimid            !! NetCDF ID for the collider dimension
+      integer(I4B)      :: collider_varid            !! NetCDF ID for the collider variable
+      integer(I4B)      :: encid_varid               !! NetCDF ID for the encounter pair index variable
+      integer(I4B)      :: nenc_varid                !! NetCDF ID for the number of encounters variable
+      integer(I4B)      :: level_varid               !! NetCDF ID for the recursion level variable
 
    contains
       procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
