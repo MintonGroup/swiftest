@@ -38,6 +38,7 @@ contains
                lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                if (lencounter) then
                   call self%interp(param, t, dt)
+                  call self%encounter_history%dump(param) 
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
