@@ -12,7 +12,7 @@ submodule (encounter_classes) s_encounter_io
    use netcdf
 contains
 
-   module subroutine encounter_io_dump_storage_list(self, param, system)
+   module subroutine encounter_io_dump_storage_list(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the time history of an encounter to file.
@@ -20,12 +20,21 @@ contains
       ! Arguments
       class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
       class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
-      class(swiftest_nbody_system), intent(in), optional :: system !! Swiftest nbody system object
       ! Internals
+      integer(I4B) :: i
 
       ! Most of this is just temporary test code just to get something working. Eventually this should get cleaned up.
-
-
+      call self%nciu%initialize(param)
+      do i = 1, self%nframes
+         if (allocated(self%frame(i)%item)) then
+            select type(plplenc_list => self%frame(i)%item)
+            class is (symba_plplenc)
+               self%nciu%ienc_frame = i
+               call plplenc_list%write_frame(self%nciu,param)
+            end select
+         end if
+      end do
+      call self%nciu%close()
 
 
       return
@@ -42,12 +51,10 @@ contains
       class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),     intent(in)    :: param   !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
       real(SP) :: sfill
       logical :: fileExists
       character(len=STRMAX) :: errmsg
-      integer(I4B) :: ndims
 
       dfill = ieee_value(dfill, IEEE_QUIET_NAN)
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
@@ -151,6 +158,15 @@ contains
       class(encounter_list),          intent(in)    :: self   !! Swiftest encounter structure
       class(encounter_io_parameters), intent(inout) :: iu     !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
+      ! Internals
+      integer(I4B)                                  :: i,old_mode, n
+
+      i = iu%ienc_frame
+      n = int(self%nenc, kind=I4B)
+      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode), "encounter_io_write_frame_base nf90_set_fill"  )
+      call check( nf90_put_var(iu%ncid, iu%time_varid, self%t, start=[i]), "netcdf_write_hdr_system nf90_put_var time_varid"  )
+      call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%x1(1, 1), start=[1, 1, i]), "netcdf_write_frame_base nf90_put_var xhx_varid"  )
+                 
 
       return
    end subroutine encounter_io_write_frame

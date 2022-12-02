@@ -63,6 +63,7 @@ module encounter_classes
       integer(I4B)      :: encid_varid               !! NetCDF ID for the encounter pair index variable
       integer(I4B)      :: nenc_varid                !! NetCDF ID for the number of encounters variable
       integer(I4B)      :: level_varid               !! NetCDF ID for the recursion level variable
+      integer(I4B)      :: ienc_frame                !! Current frame number for the encounter history
    contains
       procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => encounter_io_open_file         !! Opens a NetCDF file
@@ -207,11 +208,10 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_io_dump_storage_list(self, param, system)
+      module subroutine encounter_io_dump_storage_list(self, param)
          implicit none
          class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
          class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
-         class(swiftest_nbody_system), intent(in), optional :: system !! Swiftest nbody system object
       end subroutine encounter_io_dump_storage_list
 
       module subroutine encounter_io_initialize_output(self, param)
