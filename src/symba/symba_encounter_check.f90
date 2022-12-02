@@ -34,7 +34,7 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb, ienc_frame => system%ienc_frame, encounter_history => system%encounter_history)
+      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb, ienc_frame => system%ienc_frame)
 
          npl = pl%nbody
          nplm = pl%nplm
@@ -89,7 +89,7 @@ contains
             end do
             ienc_frame = ienc_frame + 1
             call system%resize_storage(ienc_frame)
-            encounter_history%frame(ienc_frame) = plplenc_list
+            system%encounter_history%frame(ienc_frame) = plplenc_list
          end if
 
       end associate
