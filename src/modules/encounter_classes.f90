@@ -48,12 +48,6 @@ module encounter_classes
       final     :: encounter_util_final_list                  !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
 
-   type, extends(swiftest_storage) :: encounter_storage
-      !! A class that that is used to store simulation history data between file output
-   contains
-      procedure :: dump => encounter_io_dump_storage_list
-   end type encounter_storage
-
    !! NetCDF dimension and variable names for the enounter save object
    character(*), parameter :: ENCID_DIMNAME     = "encounter" !! The index of the encountering pair in the encounter list  
    character(*), parameter :: COLLIDER_DIMNAME  = "collider"  !! Dimension that defines the colliding bodies (bodies 1 and 2 are at dimension coordinates 1 and 2, respectively)
@@ -69,11 +63,17 @@ module encounter_classes
       integer(I4B)      :: encid_varid               !! NetCDF ID for the encounter pair index variable
       integer(I4B)      :: nenc_varid                !! NetCDF ID for the number of encounters variable
       integer(I4B)      :: level_varid               !! NetCDF ID for the recursion level variable
-
    contains
       procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => encounter_io_open_file         !! Opens a NetCDF file
    end type encounter_io_parameters
+
+   type, extends(swiftest_storage) :: encounter_storage
+      !! A class that that is used to store simulation history data between file output
+      type(encounter_io_parameters) :: nciu
+   contains
+      procedure :: dump => encounter_io_dump_storage_list
+   end type encounter_storage
 
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
@@ -207,10 +207,11 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_io_dump_storage_list(self, param)
+      module subroutine encounter_io_dump_storage_list(self, param, system)
          implicit none
-         class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
-         class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
+         class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+         class(swiftest_nbody_system), intent(in), optional :: system !! Swiftest nbody system object
       end subroutine encounter_io_dump_storage_list
 
       module subroutine encounter_io_initialize_output(self, param)

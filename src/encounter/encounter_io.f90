@@ -12,14 +12,23 @@ submodule (encounter_classes) s_encounter_io
    use netcdf
 contains
 
-   module subroutine encounter_io_dump_storage_list(self, param)
+   module subroutine encounter_io_dump_storage_list(self, param, system)
       !! author: David A. Minton
       !!
       !! Dumps the time history of an encounter to file.
       implicit none
       ! Arguments
-      class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
-      class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
+      class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+      class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      class(swiftest_nbody_system), intent(in), optional :: system !! Swiftest nbody system object
+      ! Internals
+
+      ! Most of this is just temporary test code just to get something working. Eventually this should get cleaned up.
+
+
+
+
+      return
    end subroutine encounter_io_dump_storage_list
 
 
@@ -44,13 +53,13 @@ contains
       sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
       ! Check if the file exists, and if it does, delete it
-      inquire(file=param%outfile, exist=fileExists)
+      inquire(file=self%enc_file, exist=fileExists)
       if (fileExists) then
-         open(unit=LUN, file=self%outfile, status="old", err=667, iomsg=errmsg)
+         open(unit=LUN, file=self%enc_file, status="old", err=667, iomsg=errmsg)
          close(unit=LUN, status="delete")
       end if
 
-      call check( nf90_create(self%outfile, NF90_NETCDF4, self%ncid), "encounter_io_initialize_output nf90_create" )
+      call check( nf90_create(self%enc_file, NF90_NETCDF4, self%ncid), "encounter_io_initialize_output nf90_create" )
 
       call check( nf90_def_dim(self%ncid, ENCID_DIMNAME, NF90_UNLIMITED, self%encid_dimid), "encounter_io_initialize_output nf90_def_dim encid_dimid" )    
       call check( nf90_def_dim(self%ncid, STR_DIMNAME, NAMELEN, self%str_dimid), "encounter_io_initialize_output nf90_def_dim str_dimid"  ) ! Dimension for string variables (aka character arrays)
@@ -109,7 +118,7 @@ contains
       end if
 
       write(errmsg,*) "encounter_io_open_file nf90_open ",trim(adjustl(param%outfile))
-      call check( nf90_open(self%outfile, mode, self%ncid), errmsg)
+      call check( nf90_open(self%enc_file, mode, self%ncid), errmsg)
 
       call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid), "encounter_io_open_file nf90_inq_dimid time_dimid"  )
       call check( nf90_inq_dimid(self%ncid, ENCID_DIMNAME, self%encid_dimid), "encounter_io_open_file nf90_inq_dimid encid_dimid"  )

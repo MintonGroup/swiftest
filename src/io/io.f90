@@ -270,7 +270,7 @@ contains
    end subroutine io_dump_system
 
 
-   module subroutine io_dump_storage(self, param)
+   module subroutine io_dump_storage(self, param, system)
       !! author: David A. Minton
       !!
       !! Dumps the time history of the simulation to file. Each time it writes a frame to file, it deallocates the system
@@ -279,8 +279,9 @@ contains
       !! cadence is not divisible by the total number of loops).
       implicit none
       ! Arguments
-      class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      class(swiftest_storage(*)),   intent(inout)        :: self   !! Swiftest simulation history storage object
+      class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      class(swiftest_nbody_system), intent(in), optional :: system !! Swiftest nbody system object (Note, only here so that it can be used in the extended type for encounter_storage)
       ! Internals
       integer(I4B) :: i
       integer(I8B) :: iloop_start

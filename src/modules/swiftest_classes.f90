@@ -632,10 +632,11 @@ module swiftest_classes
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine io_dump_system
 
-      module subroutine io_dump_storage(self, param)
+      module subroutine io_dump_storage(self, param, system)
          implicit none
-         class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         class(swiftest_storage(*)),   intent(inout)        :: self   !! Swiftest simulation history storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+         class(swiftest_nbody_system), intent(in), optional :: system !! Swiftest nbody system object
       end subroutine io_dump_storage
 
       module subroutine io_get_args(integrator, param_file_name, display_style) 
