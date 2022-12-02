@@ -207,7 +207,6 @@ module swiftest_globals
    type :: netcdf_variables
       integer(I4B) :: out_type              !! NetCDF output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B) :: ncid                  !! NetCDF ID for the output file
-      integer(I4B) :: dimids(3)             !! Dimensions of the NetCDF file
       integer(I4B) :: time_dimid            !! NetCDF ID for the time dimension 
       integer(I4B) :: id_dimid              !! NetCDF ID for the particle id dimension
       integer(I4B) :: str_dimid             !! NetCDF ID for the character string dimension
