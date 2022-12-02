@@ -88,6 +88,7 @@ contains
                pl%nplenc(j) = pl%nplenc(j) + 1
             end do
             ienc_frame = ienc_frame + 1
+            call system%resize_storage(ienc_frame)
             encounter_history%frame(ienc_frame) = plplenc_list
          end if
 

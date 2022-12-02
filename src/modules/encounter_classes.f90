@@ -73,7 +73,7 @@ module encounter_classes
       !! A class that that is used to store simulation history data between file output
       type(encounter_io_parameters) :: nciu
    contains
-      procedure :: dump => encounter_io_dump_storage_list
+      procedure :: dump   => encounter_io_dump_storage_list !! Dumps contents of encounter history to file
    end type encounter_storage
 
    type encounter_bounding_box_1D
@@ -285,12 +285,6 @@ module encounter_classes
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
          integer(I8B),          intent(in)    :: nnew !! New size of list needed
       end subroutine encounter_util_resize_list
-
-      module subroutine encounter_util_resize_storage(self, nnew)
-         implicit none
-         class(encounter_storage(*)), allocatable, intent(inout) :: self !! Swiftest encounter list 
-         integer(I4B),                             intent(in)    :: nnew !! New size of list needed
-      end subroutine encounter_util_resize_storage
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
          implicit none

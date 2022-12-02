@@ -197,6 +197,7 @@ module symba_classes
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
       procedure :: dealloc          => symba_util_dealloc_system          !! Deallocates all allocatable arrays
+      procedure :: resize_storage   => symba_util_resize_storage  
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
@@ -699,6 +700,12 @@ module symba_classes
          class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
          integer(I4B),    intent(in)    :: nnew  !! New size neded
       end subroutine symba_util_resize_pl
+
+      module subroutine symba_util_resize_storage(self, nnew)
+         implicit none
+         class(symba_nbody_system), intent(inout) :: self !! SyMBA nbody system object
+         integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      end subroutine symba_util_resize_storage
 
       module subroutine symba_util_resize_tp(self, nnew)
          implicit none

@@ -900,6 +900,46 @@ contains
    end subroutine symba_util_resize_pl
 
 
+   module subroutine symba_util_resize_storage(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system), intent(inout) :: self !! Swiftest encounter list 
+      integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      ! Internals
+      type(encounter_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nold
+      logical      :: lmalloc
+
+
+      lmalloc = allocated(self%encounter_history)
+      if (lmalloc) then
+         nold = self%encounter_history%nframes
+      else
+         nold = 0
+      end if
+
+      if (nnew > nold) then
+         allocate(encounter_storage(2 * nnew) :: tmp) 
+         if (lmalloc) then
+            do i = 1, nold
+               if (allocated(self%encounter_history%frame(i)%item)) tmp%frame(i) = self%encounter_history%frame(i)%item
+            end do
+            deallocate(self%encounter_history)
+         end if
+         call move_alloc(tmp,self%encounter_history)
+      end if
+
+      return
+   end subroutine symba_util_resize_storage
+
+
+
    module subroutine symba_util_resize_tp(self, nnew)
       !! author: David A. Minton
       !!
