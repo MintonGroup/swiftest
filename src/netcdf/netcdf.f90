@@ -338,7 +338,7 @@ contains
          ! Take the file out of define mode
          call check( nf90_enddef(nciu%id), "netcdf_initialize_output nf90_enddef"  )
 
-         call check( nf90_put_var(nciu%id, nciu%space_varid, ["x","y","z"], start=[1], count=[3]), "netcdf_initialize_output nf90_put_var space"  )
+         call check( nf90_put_var(nciu%id, nciu%space_varid, nciu%space_coords, start=[1], count=[3]), "netcdf_initialize_output nf90_put_var space"  )
 
       end associate
       return

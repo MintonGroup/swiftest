@@ -39,6 +39,7 @@ module swiftest_classes
       character(NAMELEN) :: space_dimname           = "space"           !! name of the space dimension
       integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
+      character(len=1),dimension(3) :: space_coords = ["x","y","z"]     !! The space dimension coordinate labels
 
       ! Non-dimension ids and variable names
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable

@@ -327,7 +327,7 @@ def vec2xr(param: Dict,
     
     dims = ['id', 'vec']
     infodims = ['id', 'vec']
-    space_var = np.array(["x","y","z"])
+    space_coords = np.array(["x","y","z"])
 
     # The central body is always given id 0
     if GMpl is not None:
@@ -404,6 +404,6 @@ def vec2xr(param: Dict,
     else:
         ds = ds[0]
     ds = xr.merge([ds_info,ds])
-    ds["space"] = xr.DataArray(space_var,dims=["space"],coords={"space":space_var})
+    ds["space"] = xr.DataArray(space_coords,dims=["space"],coords={"space":space_coords})
 
     return ds
