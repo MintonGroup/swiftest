@@ -367,133 +367,137 @@ contains
          if (readonly) mode = NF90_NOWRITE
       end if
 
-      write(errmsg,*) "netcdf_open nf90_open ",trim(adjustl(param%outfile))
-      call check( nf90_open(param%outfile, mode, self%id), errmsg)
+      associate(nciu => self)
 
-      ! Dimensions
-      call check( nf90_inq_dimid(self%id, self%time_dimname, self%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
-      call check( nf90_inq_dimid(self%id, self%id_dimname, self%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )
-      call check( nf90_inq_dimid(self%id, self%space_dimname, self%space_dimid), "netcdf_open nf90_inq_dimid space_dimid"  )
-      call check( nf90_inq_dimid(self%id, self%str_dimname, self%str_dimid), "netcdf_open nf90_inq_dimid str_dimid"  )
+         write(errmsg,*) "netcdf_open nf90_open ",trim(adjustl(param%outfile))
+         call check( nf90_open(param%outfile, mode, nciu%id), errmsg)
 
-      ! Dimension coordinates
-      call check( nf90_inq_varid(self%id, self%time_dimname, self%time_varid), "netcdf_open nf90_inq_varid time_varid" )
-      call check( nf90_inq_varid(self%id, self%id_dimname, self%id_varid), "netcdf_open nf90_inq_varid id_varid" )
-      call check( nf90_inq_varid(self%id, self%space_dimname, self%space_varid), "netcdf_open nf90_inq_varid space_varid" )
+         ! Dimensions
+         call check( nf90_inq_dimid(nciu%id, nciu%time_dimname, nciu%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
+         call check( nf90_inq_dimid(nciu%id, nciu%id_dimname, nciu%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )
+         call check( nf90_inq_dimid(nciu%id, nciu%space_dimname, nciu%space_dimid), "netcdf_open nf90_inq_dimid space_dimid"  )
+         call check( nf90_inq_dimid(nciu%id, nciu%str_dimname, nciu%str_dimid), "netcdf_open nf90_inq_dimid str_dimid"  )
 
-      ! Required Variables
-      call check( nf90_inq_varid(self%id, self%name_varname, self%name_varid), "netcdf_open nf90_inq_varid name_varid" )
-      call check( nf90_inq_varid(self%id, self%ptype_varname, self%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
-      call check( nf90_inq_varid(self%id, self%gmass_varname, self%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
+         ! Dimension coordinates
+         call check( nf90_inq_varid(nciu%id, nciu%time_dimname, nciu%time_varid), "netcdf_open nf90_inq_varid time_varid" )
+         call check( nf90_inq_varid(nciu%id, nciu%id_dimname, nciu%id_varid), "netcdf_open nf90_inq_varid id_varid" )
+         call check( nf90_inq_varid(nciu%id, nciu%space_dimname, nciu%space_varid), "netcdf_open nf90_inq_varid space_varid" )
 
-      if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
-         call check( nf90_inq_varid(self%id, self%xhx_varname, self%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
-         call check( nf90_inq_varid(self%id, self%xhy_varname, self%xhy_varid), "netcdf_open nf90_inq_varid xhy_varid" )
-         call check( nf90_inq_varid(self%id, self%xhz_varname, self%xhz_varid), "netcdf_open nf90_inq_varid xhz_varid" )
-         call check( nf90_inq_varid(self%id, self%vhx_varname, self%vhx_varid), "netcdf_open nf90_inq_varid vhx_varid" )
-         call check( nf90_inq_varid(self%id, self%vhy_varname, self%vhy_varid), "netcdf_open nf90_inq_varid vhy_varid" )
-         call check( nf90_inq_varid(self%id, self%vhz_varname, self%vhz_varid), "netcdf_open nf90_inq_varid vhz_varid" )
+         ! Required Variables
+         call check( nf90_inq_varid(nciu%id, nciu%name_varname, nciu%name_varid), "netcdf_open nf90_inq_varid name_varid" )
+         call check( nf90_inq_varid(nciu%id, nciu%ptype_varname, nciu%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
+         call check( nf90_inq_varid(nciu%id, nciu%gmass_varname, nciu%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
-         if (param%lgr) then
-            !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not do the conversion.
-            status = nf90_inq_varid(self%id, self%gr_pseudo_vhx_varname, self%gr_pseudo_vhx_varid)
-            self%lpseudo_vel_exists = (status == nf90_noerr)
-            if (self%lpseudo_vel_exists) then
-               status = nf90_inq_varid(self%id, self%gr_pseudo_vhy_varname, self%gr_pseudo_vhy_varid)
-               self%lpseudo_vel_exists = (status == nf90_noerr)
-               if (self%lpseudo_vel_exists) then
-                  status = nf90_inq_varid(self%id, self%gr_pseudo_vhz_varname, self%gr_pseudo_vhz_varid)
-                  self%lpseudo_vel_exists = (status == nf90_noerr)
+         if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
+            call check( nf90_inq_varid(nciu%id, nciu%xhx_varname, nciu%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%xhy_varname, nciu%xhy_varid), "netcdf_open nf90_inq_varid xhy_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%xhz_varname, nciu%xhz_varid), "netcdf_open nf90_inq_varid xhz_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%vhx_varname, nciu%vhx_varid), "netcdf_open nf90_inq_varid vhx_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%vhy_varname, nciu%vhy_varid), "netcdf_open nf90_inq_varid vhy_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%vhz_varname, nciu%vhz_varid), "netcdf_open nf90_inq_varid vhz_varid" )
+
+            if (param%lgr) then
+               !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not do the conversion.
+               status = nf90_inq_varid(nciu%id, nciu%gr_pseudo_vhx_varname, nciu%gr_pseudo_vhx_varid)
+               nciu%lpseudo_vel_exists = (status == nf90_noerr)
+               if (nciu%lpseudo_vel_exists) then
+                  status = nf90_inq_varid(nciu%id, nciu%gr_pseudo_vhy_varname, nciu%gr_pseudo_vhy_varid)
+                  nciu%lpseudo_vel_exists = (status == nf90_noerr)
+                  if (nciu%lpseudo_vel_exists) then
+                     status = nf90_inq_varid(nciu%id, nciu%gr_pseudo_vhz_varname, nciu%gr_pseudo_vhz_varid)
+                     nciu%lpseudo_vel_exists = (status == nf90_noerr)
+                  end if
                end if
-            end if
-            if (.not.self%lpseudo_vel_exists) then
-               write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run. If this is a restarted run, bit-identical trajectories are not guarunteed!"
-            end if
+               if (.not.nciu%lpseudo_vel_exists) then
+                  write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run. If this is a restarted run, bit-identical trajectories are not guarunteed!"
+               end if
 
+            end if
          end if
-      end if
 
-      if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
-         call check( nf90_inq_varid(self%id, self%a_varname, self%a_varid), "netcdf_open nf90_inq_varid a_varid" )
-         call check( nf90_inq_varid(self%id, self%e_varname, self%e_varid), "netcdf_open nf90_inq_varid e_varid" )
-         call check( nf90_inq_varid(self%id, self%inc_varname, self%inc_varid), "netcdf_open nf90_inq_varid inc_varid" )
-         call check( nf90_inq_varid(self%id, self%capom_varname, self%capom_varid), "netcdf_open nf90_inq_varid capom_varid" )
-         call check( nf90_inq_varid(self%id, self%omega_varname, self%omega_varid), "netcdf_open nf90_inq_varid omega_varid" )
-         call check( nf90_inq_varid(self%id, self%capm_varname, self%capm_varid), "netcdf_open nf90_inq_varid capm_varid" )
-      end if
+         if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
+            call check( nf90_inq_varid(nciu%id, nciu%a_varname, nciu%a_varid), "netcdf_open nf90_inq_varid a_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%e_varname, nciu%e_varid), "netcdf_open nf90_inq_varid e_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%inc_varname, nciu%inc_varid), "netcdf_open nf90_inq_varid inc_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%capom_varname, nciu%capom_varid), "netcdf_open nf90_inq_varid capom_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%omega_varname, nciu%omega_varid), "netcdf_open nf90_inq_varid omega_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%capm_varname, nciu%capm_varid), "netcdf_open nf90_inq_varid capm_varid" )
+         end if
 
-      if (param%lclose) then
-         call check( nf90_inq_varid(self%id, self%radius_varname, self%radius_varid), "netcdf_open nf90_inq_varid radius_varid" )
-      end if 
+         if (param%lclose) then
+            call check( nf90_inq_varid(nciu%id, nciu%radius_varname, nciu%radius_varid), "netcdf_open nf90_inq_varid radius_varid" )
+         end if 
 
-      if (param%lrotation) then
-         call check( nf90_inq_varid(self%id, self%ip1_varname, self%Ip1_varid), "netcdf_open nf90_inq_varid Ip1_varid" )
-         call check( nf90_inq_varid(self%id, self%ip2_varname, self%Ip2_varid), "netcdf_open nf90_inq_varid Ip2_varid" )
-         call check( nf90_inq_varid(self%id, self%ip3_varname, self%Ip3_varid), "netcdf_open nf90_inq_varid Ip3_varid" )
-         call check( nf90_inq_varid(self%id, self%rotx_varname, self%rotx_varid), "netcdf_open nf90_inq_varid rotx_varid" )
-         call check( nf90_inq_varid(self%id, self%roty_varname, self%roty_varid), "netcdf_open nf90_inq_varid roty_varid" )
-         call check( nf90_inq_varid(self%id, self%rotz_varname, self%rotz_varid), "netcdf_open nf90_inq_varid rotz_varid" )
-      end if
+         if (param%lrotation) then
+            call check( nf90_inq_varid(nciu%id, nciu%ip1_varname, nciu%Ip1_varid), "netcdf_open nf90_inq_varid Ip1_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%ip2_varname, nciu%Ip2_varid), "netcdf_open nf90_inq_varid Ip2_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%ip3_varname, nciu%Ip3_varid), "netcdf_open nf90_inq_varid Ip3_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%rotx_varname, nciu%rotx_varid), "netcdf_open nf90_inq_varid rotx_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%roty_varname, nciu%roty_varid), "netcdf_open nf90_inq_varid roty_varid" )
+            call check( nf90_inq_varid(nciu%id, nciu%rotz_varname, nciu%rotz_varid), "netcdf_open nf90_inq_varid rotz_varid" )
+         end if
 
-      ! if (param%ltides) then
-      !    call check( nf90_inq_varid(self%id, self%k2_varname, self%k2_varid), "netcdf_open nf90_inq_varid k2_varid" )
-      !    call check( nf90_inq_varid(self%id, self%q_varname, self%Q_varid), "netcdf_open nf90_inq_varid Q_varid" )
-      ! end if
+         ! if (param%ltides) then
+         !    call check( nf90_inq_varid(nciu%id, nciu%k2_varname, nciu%k2_varid), "netcdf_open nf90_inq_varid k2_varid" )
+         !    call check( nf90_inq_varid(nciu%id, nciu%q_varname, nciu%Q_varid), "netcdf_open nf90_inq_varid Q_varid" )
+         ! end if
 
-      ! Optional Variables
-      if (param%lrhill_present) then
-         status = nf90_inq_varid(self%id, self%rhill_varname, self%rhill_varid)
-         if (status /= nf90_noerr) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
-      end if
+         ! Optional Variables
+         if (param%lrhill_present) then
+            status = nf90_inq_varid(nciu%id, nciu%rhill_varname, nciu%rhill_varid)
+            if (status /= nf90_noerr) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
+         end if
 
-      ! Optional variables The User Doesn't Need to Know About
-      status = nf90_inq_varid(self%id, self%npl_varname, self%npl_varid)
-      status = nf90_inq_varid(self%id, self%ntp_varname, self%ntp_varid)
-      status = nf90_inq_varid(self%id, self%status_varname, self%status_varid)
-      status = nf90_inq_varid(self%id, self%j2rp2_varname, self%j2rp2_varid)
-      status = nf90_inq_varid(self%id, self%j4rp4_varname, self%j4rp4_varid)
+         ! Optional variables The User Doesn't Need to Know About
+         status = nf90_inq_varid(nciu%id, nciu%npl_varname, nciu%npl_varid)
+         status = nf90_inq_varid(nciu%id, nciu%ntp_varname, nciu%ntp_varid)
+         status = nf90_inq_varid(nciu%id, nciu%status_varname, nciu%status_varid)
+         status = nf90_inq_varid(nciu%id, nciu%j2rp2_varname, nciu%j2rp2_varid)
+         status = nf90_inq_varid(nciu%id, nciu%j4rp4_varname, nciu%j4rp4_varid)
 
-      if (param%integrator == SYMBA) then
-         status = nf90_inq_varid(self%id, self%nplm_varname, self%nplm_varid)
-      end if
+         if (param%integrator == SYMBA) then
+            status = nf90_inq_varid(nciu%id, nciu%nplm_varname, nciu%nplm_varid)
+         end if
 
-      if (param%lclose) then
-         status = nf90_inq_varid(self%id, self%origin_type_varname, self%origin_type_varid)
-         status = nf90_inq_varid(self%id, self%origin_time_varname, self%origin_time_varid)
-         status = nf90_inq_varid(self%id, self%origin_xhx_varname, self%origin_xhx_varid)
-         status = nf90_inq_varid(self%id, self%origin_xhy_varname, self%origin_xhy_varid)
-         status = nf90_inq_varid(self%id, self%origin_xhz_varname, self%origin_xhz_varid)
-         status = nf90_inq_varid(self%id, self%origin_vhx_varname, self%origin_vhx_varid)
-         status = nf90_inq_varid(self%id, self%origin_vhy_varname, self%origin_vhy_varid)
-         status = nf90_inq_varid(self%id, self%origin_vhz_varname, self%origin_vhz_varid)
-         status = nf90_inq_varid(self%id, self%collision_id_varname, self%collision_id_varid)
-         status = nf90_inq_varid(self%id, self%discard_time_varname, self%discard_time_varid)
-         status = nf90_inq_varid(self%id, self%discard_xhx_varname, self%discard_xhx_varid)
-         status = nf90_inq_varid(self%id, self%discard_xhy_varname, self%discard_xhy_varid)
-         status = nf90_inq_varid(self%id, self%discard_xhz_varname, self%discard_xhz_varid)
-         status = nf90_inq_varid(self%id, self%discard_vhx_varname, self%discard_vhx_varid)
-         status = nf90_inq_varid(self%id, self%discard_vhy_varname, self%discard_vhy_varid)
-         status = nf90_inq_varid(self%id, self%discard_vhz_varname, self%discard_vhz_varid)
-         status = nf90_inq_varid(self%id, self%discard_body_id_varname, self%discard_body_id_varid)
-      end if
+         if (param%lclose) then
+            status = nf90_inq_varid(nciu%id, nciu%origin_type_varname, nciu%origin_type_varid)
+            status = nf90_inq_varid(nciu%id, nciu%origin_time_varname, nciu%origin_time_varid)
+            status = nf90_inq_varid(nciu%id, nciu%origin_xhx_varname, nciu%origin_xhx_varid)
+            status = nf90_inq_varid(nciu%id, nciu%origin_xhy_varname, nciu%origin_xhy_varid)
+            status = nf90_inq_varid(nciu%id, nciu%origin_xhz_varname, nciu%origin_xhz_varid)
+            status = nf90_inq_varid(nciu%id, nciu%origin_vhx_varname, nciu%origin_vhx_varid)
+            status = nf90_inq_varid(nciu%id, nciu%origin_vhy_varname, nciu%origin_vhy_varid)
+            status = nf90_inq_varid(nciu%id, nciu%origin_vhz_varname, nciu%origin_vhz_varid)
+            status = nf90_inq_varid(nciu%id, nciu%collision_id_varname, nciu%collision_id_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_time_varname, nciu%discard_time_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_xhx_varname, nciu%discard_xhx_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_xhy_varname, nciu%discard_xhy_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_xhz_varname, nciu%discard_xhz_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_vhx_varname, nciu%discard_vhx_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_vhy_varname, nciu%discard_vhy_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_vhz_varname, nciu%discard_vhz_varid)
+            status = nf90_inq_varid(nciu%id, nciu%discard_body_id_varname, nciu%discard_body_id_varid)
+         end if
 
-      if (param%lenergy) then
-         status = nf90_inq_varid(self%id, self%ke_orb_varname, self%KE_orb_varid)
-         status = nf90_inq_varid(self%id, self%ke_spin_varname, self%KE_spin_varid)
-         status = nf90_inq_varid(self%id, self%pe_varname, self%PE_varid)
-         status = nf90_inq_varid(self%id, self%l_orbx_varname, self%L_orbx_varid)
-         status = nf90_inq_varid(self%id, self%l_orby_varname, self%L_orby_varid)
-         status = nf90_inq_varid(self%id, self%l_orbz_varname, self%L_orbz_varid)
-         status = nf90_inq_varid(self%id, self%l_spinx_varname, self%L_spinx_varid)
-         status = nf90_inq_varid(self%id, self%l_spiny_varname, self%L_spiny_varid)
-         status = nf90_inq_varid(self%id, self%l_spinz_varname, self%L_spinz_varid)
-         status = nf90_inq_varid(self%id, self%l_escapex_varname, self%L_escapex_varid)
-         status = nf90_inq_varid(self%id, self%l_escapey_varname, self%L_escapey_varid)
-         status = nf90_inq_varid(self%id, self%l_escapez_varname, self%L_escapez_varid)
-         status = nf90_inq_varid(self%id, self%ecollisions_varname, self%Ecollisions_varid)
-         status = nf90_inq_varid(self%id, self%euntracked_varname, self%Euntracked_varid)
-         status = nf90_inq_varid(self%id, self%gmescape_varname, self%GMescape_varid)
-      end if
+         if (param%lenergy) then
+            status = nf90_inq_varid(nciu%id, nciu%ke_orb_varname, nciu%KE_orb_varid)
+            status = nf90_inq_varid(nciu%id, nciu%ke_spin_varname, nciu%KE_spin_varid)
+            status = nf90_inq_varid(nciu%id, nciu%pe_varname, nciu%PE_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_orbx_varname, nciu%L_orbx_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_orby_varname, nciu%L_orby_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_orbz_varname, nciu%L_orbz_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_spinx_varname, nciu%L_spinx_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_spiny_varname, nciu%L_spiny_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_spinz_varname, nciu%L_spinz_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_escapex_varname, nciu%L_escapex_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_escapey_varname, nciu%L_escapey_varid)
+            status = nf90_inq_varid(nciu%id, nciu%l_escapez_varname, nciu%L_escapez_varid)
+            status = nf90_inq_varid(nciu%id, nciu%ecollisions_varname, nciu%Ecollisions_varid)
+            status = nf90_inq_varid(nciu%id, nciu%euntracked_varname, nciu%Euntracked_varid)
+            status = nf90_inq_varid(nciu%id, nciu%gmescape_varname, nciu%GMescape_varid)
+         end if
+
+      end associate
 
       return
    end subroutine netcdf_open
