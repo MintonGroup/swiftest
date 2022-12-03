@@ -925,7 +925,7 @@ contains
       end if
 
       if (nnew > nold) then
-         allocate(encounter_storage(2 * nnew) :: tmp) 
+         allocate(encounter_storage(8 * nnew) :: tmp) 
          if (lmalloc) then
             do i = 1, nold
                if (allocated(self%encounter_history%frame(i)%item)) tmp%frame(i) = self%encounter_history%frame(i)%item
