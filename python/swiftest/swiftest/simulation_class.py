@@ -2549,6 +2549,7 @@ class Simulation:
         self.data = get_nvals(self.data)
 
         self.data = self.data.sortby("id")
+        self.data = io.reorder_dims(self.data)
 
         return dsnew
 

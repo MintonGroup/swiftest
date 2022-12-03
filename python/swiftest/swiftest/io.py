@@ -193,7 +193,19 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         print(f"{param_file_name} not found.")
     return param
 
+def reorder_dims(ds):
 
+    # Re-order dimension coordinates so that they are in the same order as the Fortran side
+    idx = ds.indexes
+    if "id" in idx:
+        dim_order = ["time", "space", "id"]
+    elif "name" in idx:
+        dim_order = ["time", "space", "name"]
+    else:
+        dim_order = idx
+    idx = {index_name: idx[index_name] for index_name in dim_order}
+    ds = ds.reindex(idx)
+    return ds
 def read_swifter_param(param_file_name, verbose=True):
     """
     Reads in a Swifter param.in file and saves it as a dictionary
@@ -1134,6 +1146,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         frame = unclean_string_values(frame)
         if verbose:
             print(f"Writing initial conditions to file {infile_name}")
+        frame = reorder_dims(frame)
         frame.to_netcdf(path=infile_name)
         return frame
 

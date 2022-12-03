@@ -406,4 +406,10 @@ def vec2xr(param: Dict,
     ds = xr.merge([ds_info,ds])
     ds["space"] = xr.DataArray(space_coords,dims=["space"],coords={"space":space_coords})
 
+    # Re-order dimension coordinates so that they are in the same order as the Fortran side
+    idx = ds.indexes
+    dim_order = ["time", "space", "id"]
+    idx = {index_name: idx[index_name] for index_name in dim_order}
+    ds = ds.reindex(idx)
+
     return ds
