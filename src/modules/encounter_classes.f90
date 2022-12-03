@@ -59,8 +59,6 @@ module encounter_classes
       character(STRMAX) :: enc_file = "encounter.nc" !! Encounter output file name
       integer(I4B)      :: encid_dimid               !! NetCDF ID for the encounter pair index dimension
       integer(I4B)      :: collider_dimid            !! NetCDF ID for the collider dimension
-      integer(I4B)      :: collider_varid            !! NetCDF ID for the collider variable
-      integer(I4B)      :: encid_varid               !! NetCDF ID for the encounter pair index variable
       integer(I4B)      :: nenc_varid                !! NetCDF ID for the number of encounters variable
       integer(I4B)      :: level_varid               !! NetCDF ID for the recursion level variable
       integer(I4B)      :: ienc_frame                !! Current frame number for the encounter history

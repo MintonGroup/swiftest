@@ -82,8 +82,6 @@ contains
       end select
 
       call check( nf90_def_var(self%ncid, TIME_DIMNAME, self%out_type, self%time_dimid, self%time_varid), "encounter_io_initialize_output nf90_def_var time_varid"  )
-      call check( nf90_def_var(self%ncid, ENCID_DIMNAME, NF90_INT, self%encid_dimid, self%encid_varid), "encounter_io_initialize_output nf90_def_var encid_varid"  )
-      call check( nf90_def_var(self%ncid, COLLIDER_DIMNAME, NF90_INT, self%collider_dimid, self%collider_varid), "encounter_io_initialize_output nf90_def_var collider_varid"  )
       call check( nf90_def_var(self%ncid, NENC_VARNAME, NF90_INT, self%time_dimid, self%nenc_varid), "encounter_io_initialize_output nf90_def_var nenc_varid"  )
       call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%str_dimid, self%collider_dimid, self%encid_dimid], self%name_varid), "encounter_io_initialize_output nf90_def_var name_varid"  )
       call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%id_varid), "encounter_io_initialize_output nf90_def_var id_varid"  )
@@ -100,7 +98,6 @@ contains
 
       ! Take the file out of define mode
       call check( nf90_enddef(self%ncid), "encounter_io_initialize_output nf90_enddef"  )
-      call check( nf90_put_var(self%ncid, self%collider_varid, collider_dimension, start=[1], count=[2]), "encounter_io_initialize_output nf90_put_var collider_varid"  )
 
       return
 
@@ -137,8 +134,6 @@ contains
       call check( nf90_inq_dimid(self%ncid, STR_DIMNAME, self%str_dimid), "encounter_io_open_file nf90_inq_dimid collider_str"  )
 
       call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid), "encounter_io_open_file nf90_inq_varid time_varid" )
-      call check( nf90_inq_varid(self%ncid, ENCID_DIMNAME, self%encid_varid), "encounter_io_open_file nf90_inq_varid encid_varid" )
-      call check( nf90_inq_varid(self%ncid, COLLIDER_DIMNAME, self%collider_varid), "encounter_io_open_file nf90_inq_varid collider_varid" )
       call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid), "encounter_io_open_file nf90_inq_varid name_varid" )
       call check( nf90_inq_varid(self%ncid, NENC_VARNAME, self%nenc_varid), "encounter_io_open_file nf90_inq_varid nenc_varid" )
 
@@ -171,28 +166,30 @@ contains
       n = int(self%nenc, kind=I4B)
       call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode), "encounter_io_write_frame_base nf90_set_fill"  )
       call check( nf90_put_var(iu%ncid, iu%time_varid, self%t, start=[i]), "encounter_io_write_frame nf90_put_var time_varid"  )
-      call check( nf90_put_var(iu%ncid, iu%encid_varid, [(i, i=1,n)], start=[i], count=[n]), "encounter_io_write_frame nf90_put_var encid_varid"  )
 
       call check( nf90_put_var(iu%ncid, iu%nenc_varid, self%nenc, start=[i]), "encounter_io_frame nf90_put_var nenc_varid"  )
-      call check( nf90_put_var(iu%ncid, iu%name_varid, self%name1(1:n), start=[1, 1, i], count=[NAMELEN,1,1]), "netcdf_write_frame_base nf90_put_var name 1"  )
-      call check( nf90_put_var(iu%ncid, iu%name_varid, self%name2(1:n), start=[1, 2, i], count=[NAMELEN,1,1]), "netcdf_write_frame_base nf90_put_var name 2"  )
-      call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%x1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var xhx_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%x1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var xhy_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%x1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var xhz_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%x2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var xhx_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%x2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var xhy_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%x2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var xhz_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%v1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var vhx_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%v1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var vhy_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%v1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var vhz_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%v2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var vhx_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%v2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var vhy_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%v2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var vhz_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var Gmass 1"  )
-      call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var Gmass 2"  )
-      call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var radius 1"  )
-      call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame_base nf90_put_var radius 2"  )
-                 
+      call check( nf90_put_var(iu%ncid, iu%name_varid, self%name1(1:n), start=[1, 1, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 1"  )
+      call check( nf90_put_var(iu%ncid, iu%name_varid, self%name2(1:n), start=[1, 2, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 2"  )
+      call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%x1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 1"  )
+      call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%x1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 1"  )
+      call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%x1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 1"  )
+      call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%x2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 2"  )
+      call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%x2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 2"  )
+      call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%x2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 2"  )
+      call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%v1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 1"  )
+      call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%v1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 1"  )
+      call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%v1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 1"  )
+      call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%v2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 2"  )
+      call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%v2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 2"  )
+      call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%v2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 2"  )
+      call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 1"  )
+      call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 2"  )
+      call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 1"  )
+      call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 2"  )
+      select type(self)
+      class is (symba_encounter)
+         call check( nf90_put_var(iu%ncid, iu%level_varid, self%level(1:n), start=[1, i], count=[n,1]), "netcdf_write_frame nf90_put_var level"  )
+      end select
 
       return
    end subroutine encounter_io_write_frame
