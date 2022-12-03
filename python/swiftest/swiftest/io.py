@@ -56,6 +56,7 @@ upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM"]
 # This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "status", "origin_type"]
+char_varnames = ["space"]
 int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id"]
 
 def bool2yesno(boolval):
@@ -805,7 +806,7 @@ def swifter2xr(param, verbose=True):
     -------
     xarray dataset
     """
-    dims = ['time', 'id', 'vec']
+    dims = ['time', 'id','vec']
     pl = []
     tp = []
     with FortranFile(param['BIN_OUT'], 'r') as f:
@@ -889,7 +890,7 @@ def string_converter(da):
     Parameters
     ----------
     da    : xarray dataset
- 
+
     Returns
     -------
     da : xarray dataset with the strings cleaned up
@@ -898,6 +899,24 @@ def string_converter(da):
        da = da.astype('<U32')
     elif type(da.values[0]) != np.str_:
        da = xstrip(da)
+    return da
+
+def char_converter(da):
+    """
+    Converts a string to a unicode string
+
+    Parameters
+    ----------
+    da    : xarray dataset
+
+    Returns
+    -------
+    da : xarray dataset with the strings cleaned up
+    """
+    if da.dtype == np.dtype(object):
+        da = da.astype('<U1')
+    elif type(da.values[0]) != np.str_:
+        da = xstrip(da)
     return da
 
 def clean_string_values(ds):
@@ -916,6 +935,10 @@ def clean_string_values(ds):
     for n in string_varnames:
         if n in ds:
            ds[n] = string_converter(ds[n])
+
+    for n in char_varnames:
+        if n in ds:
+            ds[n] = char_converter(ds[n])
     return ds
 
 
@@ -936,6 +959,11 @@ def unclean_string_values(ds):
         if c in ds:
             n = string_converter(ds[c])
             ds[c] = n.str.ljust(32).str.encode('utf-8')
+
+    for c in char_varnames:
+        if c in ds:
+            n = string_converter(ds[c])
+            ds[c] = n.str.ljust(1).str.encode('utf-8')
     return ds
 
 def fix_types(ds,itype=np.int64,ftype=np.float64):
@@ -945,12 +973,12 @@ def fix_types(ds,itype=np.int64,ftype=np.float64):
         if intvar in ds:
             ds[intvar] = ds[intvar].astype(itype)
 
-    float_varnames = [x for x in list(ds.keys()) if x not in string_varnames and x not in int_varnames]
+    float_varnames = [x for x in list(ds.keys()) if x not in string_varnames + int_varnames + char_varnames]
 
     for floatvar in float_varnames:
         ds[floatvar] = ds[floatvar].astype(ftype)
 
-    float_coordnames = [x for x in list(ds.coords) if x not in string_varnames and x not in int_varnames]
+    float_coordnames = [x for x in list(ds.coords) if x not in string_varnames + int_varnames + char_varnames]
     for floatcoord in float_coordnames:
         ds[floatcoord] = ds[floatcoord].astype(np.float64)
 

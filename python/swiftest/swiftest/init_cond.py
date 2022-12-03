@@ -325,8 +325,9 @@ def vec2xr(param: Dict,
         if rotz is None:
             rotz = np.full_like(v1, 0.0)
     
-    dims = ['time', 'id', 'vec']
+    dims = ['id', 'vec']
     infodims = ['id', 'vec']
+    space_var = np.array(["x","y","z"])
 
     # The central body is always given id 0
     if GMpl is not None:
@@ -360,16 +361,19 @@ def vec2xr(param: Dict,
     vec = np.vstack([v1,v2,v3,v4,v5,v6])
 
     if iscb:
+        particle_type[icb] = "Central Body"
         lab_cb = clab.copy()
         vec_cb = np.vstack([GMpl[icb],Rpl[icb],J2[icb],J4[icb]])
         if param['ROTATION']:
             vec_cb = np.vstack([vec_cb, Ip1[icb], Ip2[icb], Ip3[icb], rotx[icb], roty[icb], rotz[icb]])
-        particle_type[icb] = "Central Body"
-        vec_cb = np.expand_dims(vec_cb.T,axis=0) # Make way for the time dimension!
-        ds_cb = xr.DataArray(vec_cb, dims=dims, coords={'time': [t], 'id': idvals[icb], 'vec': lab_cb}).to_dataset(dim='vec')
+
+        ds_cb = xr.DataArray(vec_cb.T, dims=dims, coords={'id': idvals[icb], 'vec': lab_cb})
+        ds_cb = ds_cb.expand_dims({"time":1}).assign_coords({"time": [t]}).to_dataset(dim='vec')
     else:
         ds_cb =  None
+
     if ispl:
+        particle_type[ipl] = np.repeat("Massive Body",idvals[ipl].size)
         lab_pl = plab.copy()
         vec_pl = np.vstack([vec[:,ipl], GMpl[ipl]])
         if param['CHK_CLOSE']:
@@ -378,16 +382,18 @@ def vec2xr(param: Dict,
             vec_pl = np.vstack([vec_pl, rhill[ipl]])
         if param['ROTATION']:
             vec_pl = np.vstack([vec_pl, Ip1[ipl], Ip2[ipl], Ip3[ipl], rotx[ipl], roty[ipl], rotz[ipl]])
-        particle_type[ipl] = np.repeat("Massive Body",idvals[ipl].size)
-        vec_pl = np.expand_dims(vec_pl.T,axis=0) # Make way for the time dimension!
-        ds_pl = xr.DataArray(vec_pl, dims=dims, coords={'time': [t], 'id': idvals[ipl], 'vec': lab_pl}).to_dataset(dim='vec')
+
+        ds_pl = xr.DataArray(vec_pl.T, dims=dims, coords={'id': idvals[ipl], 'vec': lab_pl})
+        ds_pl = ds_pl.expand_dims({"time":1}).assign_coords({"time": [t]}).to_dataset(dim='vec')
     else:
         ds_pl =  None
+
     if istp:
-        lab_tp = tlab.copy()
-        vec_tp = np.expand_dims(vec[:,itp].T,axis=0) # Make way for the time dimension!
-        ds_tp = xr.DataArray(vec_tp, dims=dims, coords={'time': [t], 'id': idvals[itp], 'vec': lab_tp}).to_dataset(dim='vec')
         particle_type[itp] = np.repeat("Test Particle",idvals[itp].size)
+        lab_tp = tlab.copy()
+        vec_tp = vec[:,itp]
+        ds_tp = xr.DataArray(vec_tp.T, dims=dims, coords={'id': idvals[itp], 'vec': lab_tp})
+        ds_tp = ds_tp.expand_dims({"time":1}).assign_coords({"time": [t]}).to_dataset(dim='vec')
     else:
         ds_tp =  None
 
@@ -398,5 +404,6 @@ def vec2xr(param: Dict,
     else:
         ds = ds[0]
     ds = xr.merge([ds_info,ds])
+    ds["space"] = xr.DataArray(space_var,dims=["space"],coords={"space":space_var})
 
     return ds
