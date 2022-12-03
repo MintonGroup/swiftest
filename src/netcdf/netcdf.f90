@@ -208,14 +208,14 @@ contains
 
          ! Dimensions
          call check( nf90_def_dim(nciu%id, nciu%time_dimname, NF90_UNLIMITED, nciu%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
-         call check( nf90_def_dim(nciu%id, nciu%id_dimname, NF90_UNLIMITED, nciu%id_dimid), "netcdf_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
          call check( nf90_def_dim(nciu%id, nciu%space_dimname, 3, nciu%space_dimid), "netcdf_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
+         call check( nf90_def_dim(nciu%id, nciu%id_dimname, NF90_UNLIMITED, nciu%id_dimid), "netcdf_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
          call check( nf90_def_dim(nciu%id, nciu%str_dimname, NAMELEN, nciu%str_dimid), "netcdf_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
 
          ! Dimension coordinates
          call check( nf90_def_var(nciu%id, nciu%time_dimname, nciu%out_type, nciu%time_dimid, nciu%time_varid), "netcdf_initialize_output nf90_def_var time_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%id_dimname, NF90_INT, nciu%id_dimid, nciu%id_varid), "netcdf_initialize_output nf90_def_var id_varid"  )
          call check( nf90_def_var(nciu%id, nciu%space_dimname, NF90_CHAR, nciu%space_dimid, nciu%space_varid), "netcdf_initialize_output nf90_def_var space_varid"  )
+         call check( nf90_def_var(nciu%id, nciu%id_dimname, NF90_INT, nciu%id_dimid, nciu%id_varid), "netcdf_initialize_output nf90_def_var id_varid"  )
 
          ! Variables
          call check( nf90_def_var(nciu%id, nciu%npl_varname, NF90_INT, nciu%time_dimid, nciu%npl_varid), "netcdf_initialize_output nf90_def_var npl_varid"  )
@@ -374,14 +374,14 @@ contains
 
          ! Dimensions
          call check( nf90_inq_dimid(nciu%id, nciu%time_dimname, nciu%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
-         call check( nf90_inq_dimid(nciu%id, nciu%id_dimname, nciu%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )
          call check( nf90_inq_dimid(nciu%id, nciu%space_dimname, nciu%space_dimid), "netcdf_open nf90_inq_dimid space_dimid"  )
+         call check( nf90_inq_dimid(nciu%id, nciu%id_dimname, nciu%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )
          call check( nf90_inq_dimid(nciu%id, nciu%str_dimname, nciu%str_dimid), "netcdf_open nf90_inq_dimid str_dimid"  )
 
          ! Dimension coordinates
          call check( nf90_inq_varid(nciu%id, nciu%time_dimname, nciu%time_varid), "netcdf_open nf90_inq_varid time_varid" )
-         call check( nf90_inq_varid(nciu%id, nciu%id_dimname, nciu%id_varid), "netcdf_open nf90_inq_varid id_varid" )
          call check( nf90_inq_varid(nciu%id, nciu%space_dimname, nciu%space_varid), "netcdf_open nf90_inq_varid space_varid" )
+         call check( nf90_inq_varid(nciu%id, nciu%id_dimname, nciu%id_varid), "netcdf_open nf90_inq_varid id_varid" )
 
          ! Required Variables
          call check( nf90_inq_varid(nciu%id, nciu%name_varname, nciu%name_varid), "netcdf_open nf90_inq_varid name_varid" )
