@@ -49,19 +49,19 @@ module encounter_classes
    end type encounter_list
 
    !! NetCDF dimension and variable names for the enounter save object
-   character(*), parameter :: ENCID_DIMNAME     = "encounter" !! The index of the encountering pair in the encounter list  
-   character(*), parameter :: COLLIDER_DIMNAME  = "collider"  !! Dimension that defines the colliding bodies (bodies 1 and 2 are at dimension coordinates 1 and 2, respectively)
-   integer(I4B), parameter :: COLLIDER_DIM_SIZE = 2           !! Size of collider dimension
-   character(*), parameter :: NENC_VARNAME      = "nenc"      !! Total number of encounters
-   character(*), parameter :: LEVEL_VARNAME     = "level"     !! Recursion depth
-
    type, extends(netcdf_parameters) :: encounter_io_parameters
-      character(STRMAX) :: enc_file = "encounter.nc" !! Encounter output file name
-      integer(I4B)      :: encid_dimid               !! NetCDF ID for the encounter pair index dimension
-      integer(I4B)      :: collider_dimid            !! NetCDF ID for the collider dimension
-      integer(I4B)      :: nenc_varid                !! NetCDF ID for the number of encounters variable
-      integer(I4B)      :: level_varid               !! NetCDF ID for the recursion level variable
-      integer(I4B)      :: ienc_frame                !! Current frame number for the encounter history
+      integer(I4B)       :: COLLIDER_DIM_SIZE = 2           !! Size of collider dimension
+      integer(I4B)       :: ienc_frame                !! Current frame number for the encounter history
+      character(STRMAX)  :: enc_file = "encounter.nc" !! Encounter output file name
+
+      character(NAMELEN) :: encid_dimname    = "encounter" !! The index of the encountering pair in the encounter list  
+      integer(I4B)       :: encid_dimid                    !! ID for the encounter pair index dimension
+      character(NAMELEN) :: collider_dimname = "collider"  !! Dimension that defines the colliding bodies (bodies 1 and 2 are at dimension coordinates 1 and 2, respectively)
+      integer(I4B)       :: collider_dimid                  !! ID for the collider dimension
+      character(NAMELEN) :: nenc_varname     = "nenc"      !! Total number of encounters
+      integer(I4B)       :: nenc_varid                     !! ID for the number of encounters variable
+      character(NAMELEN) :: level_varname    = "level"     !! Recursion depth
+      integer(I4B)       :: level_varid                    !! ID for the recursion level variable
    contains
       procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => encounter_io_open_file         !! Opens a NetCDF file

@@ -69,10 +69,10 @@ contains
 
       call check( nf90_create(self%enc_file, NF90_NETCDF4, self%ncid), "encounter_io_initialize_output nf90_create" )
 
-      call check( nf90_def_dim(self%ncid, ENCID_DIMNAME, NF90_UNLIMITED, self%encid_dimid), "encounter_io_initialize_output nf90_def_dim encid_dimid" )    
-      call check( nf90_def_dim(self%ncid, STR_DIMNAME, NAMELEN, self%str_dimid), "encounter_io_initialize_output nf90_def_dim str_dimid"  ) ! Dimension for string variables (aka character arrays)
-      call check( nf90_def_dim(self%ncid, TIME_DIMNAME, NF90_UNLIMITED, self%time_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
-      call check( nf90_def_dim(self%ncid, COLLIDER_DIMNAME, COLLIDER_DIM_SIZE, self%collider_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
+      call check( nf90_def_dim(self%ncid, self%encid_dimname, NF90_UNLIMITED, self%encid_dimid), "encounter_io_initialize_output nf90_def_dim encid_dimid" )    
+      call check( nf90_def_dim(self%ncid, self%str_dimname, NAMELEN, self%str_dimid), "encounter_io_initialize_output nf90_def_dim str_dimid"  ) ! Dimension for string variables (aka character arrays)
+      call check( nf90_def_dim(self%ncid, self%time_dimname, NF90_UNLIMITED, self%time_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
+      call check( nf90_def_dim(self%ncid, self%collider_dimname, self%collider_dim_size, self%collider_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
 
       select case (param%out_type)
       case("NETCDF_FLOAT")
@@ -81,19 +81,19 @@ contains
          self%out_type = NF90_DOUBLE
       end select
 
-      call check( nf90_def_var(self%ncid, TIME_DIMNAME, self%out_type, self%time_dimid, self%time_varid), "encounter_io_initialize_output nf90_def_var time_varid"  )
-      call check( nf90_def_var(self%ncid, NENC_VARNAME, NF90_INT, self%time_dimid, self%nenc_varid), "encounter_io_initialize_output nf90_def_var nenc_varid"  )
-      call check( nf90_def_var(self%ncid, NAME_VARNAME, NF90_CHAR, [self%str_dimid, self%collider_dimid, self%encid_dimid], self%name_varid), "encounter_io_initialize_output nf90_def_var name_varid"  )
-      call check( nf90_def_var(self%ncid, ID_DIMNAME, NF90_INT, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%id_varid), "encounter_io_initialize_output nf90_def_var id_varid"  )
-      call check( nf90_def_var(self%ncid, XHX_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhx_varid), "encounter_io_initialize_output nf90_def_var xhx_varid"  )
-      call check( nf90_def_var(self%ncid, XHY_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhy_varid), "encounter_io_initialize_output nf90_def_var xhy_varid"  )
-      call check( nf90_def_var(self%ncid, XHZ_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhz_varid), "encounter_io_initialize_output nf90_def_var xhz_varid"  )
-      call check( nf90_def_var(self%ncid, VHX_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhx_varid), "encounter_io_initialize_output nf90_def_var vhx_varid"  )
-      call check( nf90_def_var(self%ncid, VHY_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhy_varid), "encounter_io_initialize_output nf90_def_var vhy_varid"  )
-      call check( nf90_def_var(self%ncid, VHZ_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhz_varid), "encounter_io_initialize_output nf90_def_var vhz_varid"  )
-      call check( nf90_def_var(self%ncid, LEVEL_VARNAME, NF90_INT, [self%encid_dimid, self%time_dimid], self%level_varid), "encounter_io_initialize_output nf90_def_var level_varid"  )
-      call check( nf90_def_var(self%ncid, GMASS_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%Gmass_varid), "encounter_io_initialize_output nf90_def_var Gmass_varid"  )
-      call check( nf90_def_var(self%ncid, RADIUS_VARNAME, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%radius_varid), "encounter_io_initialize_output nf90_def_var radius_varid"  )
+      call check( nf90_def_var(self%ncid, self%time_dimname, self%out_type, self%time_dimid, self%time_varid), "encounter_io_initialize_output nf90_def_var time_varid"  )
+      call check( nf90_def_var(self%ncid, self%nenc_varname, NF90_INT, self%time_dimid, self%nenc_varid), "encounter_io_initialize_output nf90_def_var nenc_varid"  )
+      call check( nf90_def_var(self%ncid, self%name_varname, NF90_CHAR, [self%str_dimid, self%collider_dimid, self%encid_dimid], self%name_varid), "encounter_io_initialize_output nf90_def_var name_varid"  )
+      call check( nf90_def_var(self%ncid, self%id_dimname, NF90_INT, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%id_varid), "encounter_io_initialize_output nf90_def_var id_varid"  )
+      call check( nf90_def_var(self%ncid, self%xhx_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhx_varid), "encounter_io_initialize_output nf90_def_var xhx_varid"  )
+      call check( nf90_def_var(self%ncid, self%xhy_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhy_varid), "encounter_io_initialize_output nf90_def_var xhy_varid"  )
+      call check( nf90_def_var(self%ncid, self%xhz_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhz_varid), "encounter_io_initialize_output nf90_def_var xhz_varid"  )
+      call check( nf90_def_var(self%ncid, self%vhx_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhx_varid), "encounter_io_initialize_output nf90_def_var vhx_varid"  )
+      call check( nf90_def_var(self%ncid, self%vhy_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhy_varid), "encounter_io_initialize_output nf90_def_var vhy_varid"  )
+      call check( nf90_def_var(self%ncid, self%vhz_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhz_varid), "encounter_io_initialize_output nf90_def_var vhz_varid"  )
+      call check( nf90_def_var(self%ncid, self%level_varname, NF90_INT, [self%encid_dimid, self%time_dimid], self%level_varid), "encounter_io_initialize_output nf90_def_var level_varid"  )
+      call check( nf90_def_var(self%ncid, self%gmass_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%Gmass_varid), "encounter_io_initialize_output nf90_def_var Gmass_varid"  )
+      call check( nf90_def_var(self%ncid, self%radius_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%radius_varid), "encounter_io_initialize_output nf90_def_var radius_varid"  )
 
 
       ! Take the file out of define mode
@@ -128,24 +128,24 @@ contains
       write(errmsg,*) "encounter_io_open_file nf90_open ",trim(adjustl(param%outfile))
       call check( nf90_open(self%enc_file, mode, self%ncid), errmsg)
 
-      call check( nf90_inq_dimid(self%ncid, TIME_DIMNAME, self%time_dimid), "encounter_io_open_file nf90_inq_dimid time_dimid"  )
-      call check( nf90_inq_dimid(self%ncid, ENCID_DIMNAME, self%encid_dimid), "encounter_io_open_file nf90_inq_dimid encid_dimid"  )
-      call check( nf90_inq_dimid(self%ncid, COLLIDER_DIMNAME, self%collider_dimid), "encounter_io_open_file nf90_inq_dimid collider_dimid"  )
-      call check( nf90_inq_dimid(self%ncid, STR_DIMNAME, self%str_dimid), "encounter_io_open_file nf90_inq_dimid collider_str"  )
+      call check( nf90_inq_dimid(self%ncid, self%time_dimname, self%time_dimid), "encounter_io_open_file nf90_inq_dimid time_dimid"  )
+      call check( nf90_inq_dimid(self%ncid, self%encid_dimname, self%encid_dimid), "encounter_io_open_file nf90_inq_dimid encid_dimid"  )
+      call check( nf90_inq_dimid(self%ncid, self%collider_dimname, self%collider_dimid), "encounter_io_open_file nf90_inq_dimid collider_dimid"  )
+      call check( nf90_inq_dimid(self%ncid, self%str_dimname, self%str_dimid), "encounter_io_open_file nf90_inq_dimid collider_str"  )
 
-      call check( nf90_inq_varid(self%ncid, TIME_DIMNAME, self%time_varid), "encounter_io_open_file nf90_inq_varid time_varid" )
-      call check( nf90_inq_varid(self%ncid, NAME_VARNAME, self%name_varid), "encounter_io_open_file nf90_inq_varid name_varid" )
-      call check( nf90_inq_varid(self%ncid, NENC_VARNAME, self%nenc_varid), "encounter_io_open_file nf90_inq_varid nenc_varid" )
+      call check( nf90_inq_varid(self%ncid, self%time_dimname, self%time_varid), "encounter_io_open_file nf90_inq_varid time_varid" )
+      call check( nf90_inq_varid(self%ncid, self%name_varname, self%name_varid), "encounter_io_open_file nf90_inq_varid name_varid" )
+      call check( nf90_inq_varid(self%ncid, self%nenc_varname, self%nenc_varid), "encounter_io_open_file nf90_inq_varid nenc_varid" )
 
-      call check( nf90_inq_varid(self%ncid, XHX_VARNAME, self%xhx_varid), "encounter_io_open_file nf90_inq_varid xhx_varid" )
-      call check( nf90_inq_varid(self%ncid, XHY_VARNAME, self%xhy_varid), "encounter_io_open_file nf90_inq_varid xhy_varid" )
-      call check( nf90_inq_varid(self%ncid, XHZ_VARNAME, self%xhz_varid), "encounter_io_open_file nf90_inq_varid xhz_varid" )
-      call check( nf90_inq_varid(self%ncid, VHX_VARNAME, self%vhx_varid), "encounter_io_open_file nf90_inq_varid vhx_varid" )
-      call check( nf90_inq_varid(self%ncid, VHY_VARNAME, self%vhy_varid), "encounter_io_open_file nf90_inq_varid vhy_varid" )
-      call check( nf90_inq_varid(self%ncid, VHZ_VARNAME, self%vhz_varid), "encounter_io_open_file nf90_inq_varid vhz_varid" )
-      call check( nf90_inq_varid(self%ncid, LEVEL_VARNAME, self%level_varid), "encounter_io_open_file nf90_inq_varid level_varid" )
-      call check( nf90_inq_varid(self%ncid, GMASS_VARNAME, self%Gmass_varid), "encounter_io_open_file nf90_inq_varid Gmass_varid" )
-      call check( nf90_inq_varid(self%ncid, RADIUS_VARNAME, self%radius_varid), "encounter_io_open_file nf90_inq_varid radius_varid" )
+      call check( nf90_inq_varid(self%ncid, self%xhx_varname, self%xhx_varid), "encounter_io_open_file nf90_inq_varid xhx_varid" )
+      call check( nf90_inq_varid(self%ncid, self%xhy_varname, self%xhy_varid), "encounter_io_open_file nf90_inq_varid xhy_varid" )
+      call check( nf90_inq_varid(self%ncid, self%xhz_varname, self%xhz_varid), "encounter_io_open_file nf90_inq_varid xhz_varid" )
+      call check( nf90_inq_varid(self%ncid, self%vhx_varname, self%vhx_varid), "encounter_io_open_file nf90_inq_varid vhx_varid" )
+      call check( nf90_inq_varid(self%ncid, self%vhy_varname, self%vhy_varid), "encounter_io_open_file nf90_inq_varid vhy_varid" )
+      call check( nf90_inq_varid(self%ncid, self%vhz_varname, self%vhz_varid), "encounter_io_open_file nf90_inq_varid vhz_varid" )
+      call check( nf90_inq_varid(self%ncid, self%level_varname, self%level_varid), "encounter_io_open_file nf90_inq_varid level_varid" )
+      call check( nf90_inq_varid(self%ncid, self%gmass_varname, self%Gmass_varid), "encounter_io_open_file nf90_inq_varid Gmass_varid" )
+      call check( nf90_inq_varid(self%ncid, self%radius_varname, self%radius_varid), "encounter_io_open_file nf90_inq_varid radius_varid" )
 
       return
    end subroutine encounter_io_open_file
