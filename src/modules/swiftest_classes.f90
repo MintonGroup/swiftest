@@ -36,6 +36,8 @@ module swiftest_classes
       integer(I4B)       :: time_varid                                  !! ID for the time variable
       character(NAMELEN) :: id_dimname              = "id"              !! name of the particle id dimension
       integer(I4B)       :: id_varid                                    !! ID for the particle name variable
+      character(NAMELEN) :: space_dimname           = "space"           !! name of the space dimension
+      integer(I4B)       :: space_varid                                 !! ID for the space variable
 
       ! Non-dimension ids and variable names
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable
