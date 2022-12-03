@@ -21,7 +21,7 @@ module swiftest_classes
    !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as the base class defined in swiftest_classes
    type :: netcdf_variables
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
-      integer(I4B)       :: id                                        !! ID for the output file
+      integer(I4B)       :: id                                          !! ID for the output file
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard
       integer(I4B)       :: id_chunk                                    !! Chunk size for the id dimension variables
       integer(I4B)       :: time_chunk                                  !! Chunk size for the time dimension variables
@@ -68,42 +68,18 @@ module swiftest_classes
       integer(I4B)       :: rh_varid                                    !! ID for the heliocentric position vector variable 
       character(NAMELEN) :: vh_varname              = "vh"              !! name of the heliocentric velocity vector variable
       integer(I4B)       :: vh_varid                                    !! ID for the heliocentric velocity vector variable 
-      character(NAMELEN) :: xhx_varname             = "xhx"             !! name of the heliocentric position x variable 
-      integer(I4B)       :: xhx_varid                                   !! ID for the heliocentric position x variable 
-      character(NAMELEN) :: xhy_varname             = "xhy"             !! name of the heliocentric position y variable 
-      integer(I4B)       :: xhy_varid                                   !! ID for the heliocentric position y variable 
-      character(NAMELEN) :: xhz_varname             = "xhz"             !! name of the heliocentric position z variable 
-      integer(I4B)       :: xhz_varid                                   !! ID for the heliocentric position z variable 
-      character(NAMELEN) :: vhx_varname             = "vhx"             !! name of the heliocentric velocity x variable 
-      integer(I4B)       :: vhx_varid                                   !! ID for the heliocentric velocity x variable 
-      character(NAMELEN) :: vhy_varname             = "vhy"             !! name of the heliocentric velocity y variable 
-      integer(I4B)       :: vhy_varid                                   !! ID for the heliocentric velocity y variable 
-      character(NAMELEN) :: vhz_varname             = "vhz"             !! name of the heliocentric velocity z variable 
-      integer(I4B)       :: vhz_varid                                   !! ID for the heliocentric velocity z variable 
-      character(NAMELEN) :: gr_pseudo_vhx_varname   = "gr_pseudo_vhx"   !! name of the heliocentric pseudovelocity x variable (used in GR only)
-      integer(I4B)       :: gr_pseudo_vhx_varid                         !! ID for the heliocentric pseudovelocity x variable (used in GR)
-      character(NAMELEN) :: gr_pseudo_vhy_varname   = "gr_pseudo_vhy"   !! name of the heliocentric pseudovelocity y variable (used in GR only)
-      integer(I4B)       :: gr_pseudo_vhy_varid                         !! ID for the heliocentric pseudovelocity y variable (used in GR)
-      character(NAMELEN) :: gr_pseudo_vhz_varname   = "gr_pseudo_vhz"   !! name of the heliocentric pseudovelocity z variable (used in GR only)
-      integer(I4B)       :: gr_pseudo_vhz_varid                         !! ID for the heliocentric psuedovelocity z variable (used in GR)
+      character(NAMELEN) :: gr_pseudo_vh_varname    = "gr_pseudo_vh"    !! name of the heliocentric pseudovelocity vector variable (used in GR only)
+      integer(I4B)       :: gr_pseudo_vh_varid                          !! ID for the heliocentric pseudovelocity vector variable (used in GR)
       character(NAMELEN) :: gmass_varname           = "Gmass"           !! name of the mass variable
       integer(I4B)       :: Gmass_varid                                 !! ID for the mass variable
       character(NAMELEN) :: rhill_varname           = "rhill"           !! name of the hill radius variable
       integer(I4B)       :: rhill_varid                                 !! ID for the hill radius variable
       character(NAMELEN) :: radius_varname          = "radius"          !! name of the radius variable
       integer(I4B)       :: radius_varid                                !! ID for the radius variable
-      character(NAMELEN) :: ip1_varname             = "Ip1"             !! name of the axis 1 principal moment of inertial variable
-      integer(I4B)       :: Ip1_varid                                   !! ID for the axis 1 principal moment of inertia variable
-      character(NAMELEN) :: ip2_varname             = "Ip2"             !! name of the axis 2 principal moment of inertial variable
-      integer(I4B)       :: Ip2_varid                                   !! ID for the axis 2 principal moment of inertia variable
-      character(NAMELEN) :: ip3_varname             = "Ip3"             !! name of the axis 3 principal moment of inertial variable
-      integer(I4B)       :: Ip3_varid                                   !! ID for the axis 3 principal moment of inertia variable
-      character(NAMELEN) :: rotx_varname            = "rotx"            !! name of the rotation x variable
-      integer(I4B)       :: rotx_varid                                  !! ID for the rotation x variable
-      character(NAMELEN) :: roty_varname            = "roty"            !! name of the rotation y variable
-      integer(I4B)       :: roty_varid                                  !! ID for the rotation y variable
-      character(NAMELEN) :: rotz_varname            = "rotz"            !! name of the rotation z variable
-      integer(I4B)       :: rotz_varid                                  !! ID for the rotation z variable
+      character(NAMELEN) :: Ip_varname              = "Ip"              !! name of the principal moment of inertial variable
+      integer(I4B)       :: Ip_varid                                    !! ID for the axis principal moment of inertia variable
+      character(NAMELEN) :: rot_varname             = "rot"             !! name of the rotation vector variable
+      integer(I4B)       :: rot_varid                                   !! ID for the rotation vector variable
       character(NAMELEN) :: j2rp2_varname           = "j2rp2"           !! name of the j2rp2 variable
       integer(I4B)       :: j2rp2_varid                                 !! ID for the j2 variable
       character(NAMELEN) :: j4rp4_varname           = "j4rp4"           !! name of the j4pr4 variable
@@ -118,29 +94,17 @@ module swiftest_classes
       integer(I4B)       :: KE_spin_varid                               !! ID for the system spin kinetic energy variable
       character(NAMELEN) :: pe_varname              = "PE"              !! name of the system potential energy variable
       integer(I4B)       :: PE_varid                                    !! ID for the system potential energy variable
-      character(NAMELEN) :: l_orbx_varname          = "L_orbx"          !! name of the orbital angular momentum x variable
-      integer(I4B)       :: L_orbx_varid                                !! ID for the system orbital angular momentum x variable
-      character(NAMELEN) :: l_orby_varname          = "L_orby"          !! name of the orbital angular momentum y variable
-      integer(I4B)       :: L_orby_varid                                !! ID for the system orbital angular momentum y variable
-      character(NAMELEN) :: l_orbz_varname          = "L_orbz"          !! name of the orbital angular momentum z variable
-      integer(I4B)       :: L_orbz_varid                                !! ID for the system orbital angular momentum z variable
-      character(NAMELEN) :: l_spinx_varname         = "L_spinx"         !! name of the spin angular momentum x variable
-      integer(I4B)       :: L_spinx_varid                               !! ID for the system spin angular momentum x variable
-      character(NAMELEN) :: l_spiny_varname         = "L_spiny"         !! name of the spin angular momentum y variable
-      integer(I4B)       :: L_spiny_varid                               !! ID for the system spin angular momentum y variable
-      character(NAMELEN) :: l_spinz_varname         = "L_spinz"         !! name of the spin angular momentum z variable
-      integer(I4B)       :: L_spinz_varid                               !! ID for the system spin angular momentum z variable
-      character(NAMELEN) :: l_escapex_varname       = "L_escapex"       !! name of the escaped angular momentum x variable
-      integer(I4B)       :: L_escapex_varid                             !! ID for the escaped angular momentum x variable
-      character(NAMELEN) :: l_escapey_varname       = "L_escapey"       !! name of the escaped angular momentum y variable
-      integer(I4B)       :: L_escapey_varid                             !! ID for the escaped angular momentum x variable
-      character(NAMELEN) :: l_escapez_varname       = "L_escapez"       !! name of the escaped angular momentum z variable                          
-      integer(I4B)       :: L_escapez_varid                             !! ID for the escaped angular momentum x variable
-      character(NAMELEN) :: ecollisions_varname     = "Ecollisions"     !! name of the escaped angular momentum y variable                             
+      character(NAMELEN) :: L_orb_varname           = "L_orb"           !! name of the orbital angular momentum vector variable
+      integer(I4B)       :: L_orb_varid                                 !! ID for the system orbital angular momentum vector variable
+      character(NAMELEN) :: L_spin_varname          = "L_spin"          !! name of the spin angular momentum vector variable
+      integer(I4B)       :: L_spin_varid                                !! ID for the system spin angular momentum vector variable
+      character(NAMELEN) :: L_escape_varname        = "L_escape"        !! name of the escaped angular momentum vector variable
+      integer(I4B)       :: L_escape_varid                              !! ID for the escaped angular momentum vector variable
+      character(NAMELEN) :: Ecollisions_varname     = "Ecollisions"     !! name of the escaped angular momentum y variable                             
       integer(I4B)       :: Ecollisions_varid                           !! ID for the energy lost in collisions variable
-      character(NAMELEN) :: euntracked_varname      = "Euntracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      character(NAMELEN) :: Euntracked_varname      = "Euntracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       integer(I4B)       :: Euntracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
-      character(NAMELEN) :: gmescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
+      character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
       integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the system
       character(NAMELEN) :: status_varname          = "status"          !! name of the current status of the body variable (includes discard type)
       integer(I4B)       :: status_varid                                !! ID for the status variable
@@ -150,32 +114,16 @@ module swiftest_classes
       integer(I4B)       :: origin_time_varid                           !! ID for the origin time
       character(NAMELEN) :: collision_id_varname    = "collision_id"    !! name of the collision id variable
       integer(I4B)       :: collision_id_varid                          !! Netcdf ID for the origin collision ID
-      character(NAMELEN) :: origin_xhx_varname      = "origin_xhx"      !! name of the heliocentric position of the body at the time of origin x variable
-      integer(I4B)       :: origin_xhx_varid                            !! ID for the origin xh x component
-      character(NAMELEN) :: origin_xhy_varname      = "origin_xhy"      !! name of the heliocentric position of the body at the time of origin y variable
-      integer(I4B)       :: origin_xhy_varid                            !! ID for the origin xh y component
-      character(NAMELEN) :: origin_xhz_varname      = "origin_xhz"      !! name of the heliocentric position of the body at the time of origin z variable
-      integer(I4B)       :: origin_xhz_varid                            !! ID for the origin xh z component
-      character(NAMELEN) :: origin_vhx_varname      = "origin_vhx"      !! name of the heliocentric velocity of the body at the time of origin x variable
-      integer(I4B)       :: origin_vhx_varid                            !! ID for the origin xh x component
-      character(NAMELEN) :: origin_vhy_varname      = "origin_vhy"      !! name of the heliocentric velocity of the body at the time of origin y variable
-      integer(I4B)       :: origin_vhy_varid                            !! ID for the origin xh y component
-      character(NAMELEN) :: origin_vhz_varname      = "origin_vhz"      !! name of the heliocentric velocity of the body at the time of origin z variable
-      integer(I4B)       :: origin_vhz_varid                            !! ID for the origin xh z component
+      character(NAMELEN) :: origin_rh_varname       = "origin_rh"       !! name of the heliocentric position vector of the body at the time of origin variable
+      integer(I4B)       :: origin_rh_varid                             !! ID for the origin position vector variable
+      character(NAMELEN) :: origin_vh_varname       = "origin_vh"       !! name of the heliocentric velocity vector of the body at the time of origin variable
+      integer(I4B)       :: origin_vh_varid                             !! ID for the origin velocity vector component
       character(NAMELEN) :: discard_time_varname    = "discard_time"    !! name of the time of discard variable
       integer(I4B)       :: discard_time_varid                          !! ID for the time of discard variable
-      character(NAMELEN) :: discard_xhx_varname     = "discard_xhx"     !! name of the heliocentric position of the body at the time of discard x variable
-      integer(I4B)       :: discard_xhx_varid                           !! ID for the heliocentric position of the body at the time of discard x variable
-      character(NAMELEN) :: discard_xhy_varname     = "discard_xhy"     !! name of the heliocentric position of the body at the time of discard y variable
-      integer(I4B)       :: discard_xhy_varid                           !! ID for the heliocentric position of the body at the time of discard y variable
-      character(NAMELEN) :: discard_xhz_varname     = "discard_xhz"     !! name of the heliocentric position of the body at the time of discard z variable
-      integer(I4B)       :: discard_xhz_varid                           !! ID for the heliocentric position of the body at the time of discard z variable
-      character(NAMELEN) :: discard_vhx_varname     = "discard_vhx"     !! name of the heliocentric velocity of the body at the time of discard x variable
-      integer(I4B)       :: discard_vhx_varid                           !! ID for the heliocentric velocity of the body at the time of discard x variable
-      character(NAMELEN) :: discard_vhy_varname     = "discard_vhy"     !! name of the heliocentric velocity of the body at the time of discard y variable
-      integer(I4B)       :: discard_vhy_varid                           !! ID for the heliocentric velocity of the body at the time of discard y variable
-      character(NAMELEN) :: discard_vhz_varname     = "discard_vhz"     !! name of the heliocentric velocity of the body at the time of discard z variable
-      integer(I4B)       :: discard_vhz_varid                           !! ID for the heliocentric velocity of the body at the time of discard z variable
+      character(NAMELEN) :: discard_rh_varname      = "discard_rh"      !! name of the heliocentric position vector of the body at the time of discard variable
+      integer(I4B)       :: discard_rh_varid                            !! ID for the heliocentric position vector of the body at the time of discard  variable
+      character(NAMELEN) :: discard_vh_varname      = "discard_vh"      !! name of the heliocentric velocity vector of the body at the time of discard  variable
+      integer(I4B)       :: discard_vh_varid                            !! ID for the heliocentric velocity vector of the body at the time of discard  variable
       character(NAMELEN) :: discard_body_id_varname = "discard_body_id" !! name of the id of the other body involved in the discard
    end type netcdf_variables
 

@@ -198,9 +198,9 @@ def reorder_dims(ds):
     # Re-order dimension coordinates so that they are in the same order as the Fortran side
     idx = ds.indexes
     if "id" in idx:
-        dim_order = ["time", "space", "id"]
+        dim_order = ["time", "id", "space"]
     elif "name" in idx:
-        dim_order = ["time", "space", "name"]
+        dim_order = ["time", "name", "space"]
     else:
         dim_order = idx
     idx = {index_name: idx[index_name] for index_name in dim_order}
