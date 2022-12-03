@@ -64,6 +64,10 @@ module swiftest_classes
       integer(I4B)       :: omega_varid                                 !! ID for the arg. periapsis variable 
       character(NAMELEN) :: capm_varname            = "capm"            !! name of the mean anomaly variable 
       integer(I4B)       :: capm_varid                                  !! ID for the mean anomaly variable 
+      character(NAMELEN) :: rh_varname              = "rh"              !! name of the heliocentric position vector variable
+      integer(I4B)       :: rh_varid                                    !! ID for the heliocentric position vector variable 
+      character(NAMELEN) :: vh_varname              = "vh"              !! name of the heliocentric velocity vector variable
+      integer(I4B)       :: vh_varid                                    !! ID for the heliocentric velocity vector variable 
       character(NAMELEN) :: xhx_varname             = "xhx"             !! name of the heliocentric position x variable 
       integer(I4B)       :: xhx_varid                                   !! ID for the heliocentric position x variable 
       character(NAMELEN) :: xhy_varname             = "xhy"             !! name of the heliocentric position y variable 

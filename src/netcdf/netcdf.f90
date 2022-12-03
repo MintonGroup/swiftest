@@ -226,6 +226,8 @@ contains
          call check( nf90_def_var(nciu%id, nciu%status_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%status_varid), "netcdf_initialize_output nf90_def_var status_varid"  )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
+            call check( nf90_def_var(nciu%id, nciu%rh_varname,  nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%rh_varid), "netcdf_initialize_output nf90_def_var rh_varid"  )
+            call check( nf90_def_var(nciu%id, nciu%vh_varname,  nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%vh_varid), "netcdf_initialize_output nf90_def_var vh_varid"  )
             call check( nf90_def_var(nciu%id, nciu%xhx_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%xhx_varid), "netcdf_initialize_output nf90_def_var xhx_varid"  )
             call check( nf90_def_var(nciu%id, nciu%xhy_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%xhy_varid), "netcdf_initialize_output nf90_def_var xhy_varid"  )
             call check( nf90_def_var(nciu%id, nciu%xhz_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%xhz_varid), "netcdf_initialize_output nf90_def_var xhz_varid"  )
@@ -389,6 +391,8 @@ contains
          call check( nf90_inq_varid(nciu%id, nciu%gmass_varname, nciu%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
+            status = nf90_inq_varid(nciu%id, nciu%rh_varname, nciu%rh_varid)
+            status = nf90_inq_varid(nciu%id, nciu%vh_varname, nciu%vh_varid)
             call check( nf90_inq_varid(nciu%id, nciu%xhx_varname, nciu%xhx_varid), "netcdf_open nf90_inq_varid xhx_varid" )
             call check( nf90_inq_varid(nciu%id, nciu%xhy_varname, nciu%xhy_varid), "netcdf_open nf90_inq_varid xhy_varid" )
             call check( nf90_inq_varid(nciu%id, nciu%xhz_varname, nciu%xhz_varid), "netcdf_open nf90_inq_varid xhz_varid" )
@@ -1212,6 +1216,8 @@ contains
                if (param%lgr) call gr_pseudovel2vel(param, self%mu(j), self%xh(:, j), self%vh(:, j), vh(:))
 
                if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
+                  call check( nf90_put_var(nciu%id, nciu%rh_varid, self%xh(:, j), start=[1,idslot, tslot], count=[3,1,1]), "netcdf_write_frame_base nf90_put_var rh_varid"  )
+                  call check( nf90_put_var(nciu%id, nciu%vh_varid, self%vh(:, j), start=[1,idslot, tslot], count=[3,1,1]), "netcdf_write_frame_base nf90_put_var vh_varid"  )
                   call check( nf90_put_var(nciu%id, nciu%xhx_varid, self%xh(1, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var xhx_varid"  )
                   call check( nf90_put_var(nciu%id, nciu%xhy_varid, self%xh(2, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var xhy_varid"  )
                   call check( nf90_put_var(nciu%id, nciu%xhz_varid, self%xh(3, j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var xhz_varid"  )
