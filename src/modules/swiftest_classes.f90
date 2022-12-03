@@ -21,22 +21,23 @@ module swiftest_classes
    !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as the base class defined in swiftest_classes
    type :: netcdf_variables
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
-      integer(I4B)       :: ncid                                        !! ID for the output file
+      integer(I4B)       :: id                                        !! ID for the output file
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard
       integer(I4B)       :: id_chunk                                    !! Chunk size for the id dimension variables
       integer(I4B)       :: time_chunk                                  !! Chunk size for the time dimension variables
       logical            :: lpseudo_vel_exists = .false.                !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
 
       ! Dimension ids and variable names
-      integer(I4B)       :: time_dimid                                  !! ID for the time dimension 
-      integer(I4B)       :: id_dimid                                    !! ID for the particle id dimension
       character(NAMELEN) :: str_dimname             = "string32"        !! name of the character string dimension
       integer(I4B)       :: str_dimid                                   !! ID for the character string dimension
       character(NAMELEN) :: time_dimname            = "time"            !! name of the time dimension 
+      integer(I4B)       :: time_dimid                                  !! ID for the time dimension 
       integer(I4B)       :: time_varid                                  !! ID for the time variable
       character(NAMELEN) :: id_dimname              = "id"              !! name of the particle id dimension
+      integer(I4B)       :: id_dimid                                    !! ID for the particle id dimension
       integer(I4B)       :: id_varid                                    !! ID for the particle name variable
       character(NAMELEN) :: space_dimname           = "space"           !! name of the space dimension
+      integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
 
       ! Non-dimension ids and variable names
@@ -1062,55 +1063,55 @@ module swiftest_classes
          class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_sync
 
-      module function netcdf_read_frame_system(self, iu, param) result(ierr)
+      module function netcdf_read_frame_system(self, nciu, param) result(ierr)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
-         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(netcdf_parameters),      intent(inout) :: nciu  !! Parameters used to for reading a NetCDF dataset to file
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                                 :: ierr  !! Error code: returns 0 if the read is successful
       end function netcdf_read_frame_system
 
-      module subroutine netcdf_read_hdr_system(self, iu, param) 
+      module subroutine netcdf_read_hdr_system(self, nciu, param) 
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(netcdf_parameters),     intent(inout) :: nciu  !! Parameters used to for reading a NetCDF dataset to file
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_read_hdr_system
 
-      module subroutine netcdf_read_particle_info_system(self, iu, param, plmask, tpmask)
+      module subroutine netcdf_read_particle_info_system(self, nciu, param, plmask, tpmask)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(netcdf_parameters),     intent(inout) :: nciu   !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
          logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
          logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       end subroutine netcdf_read_particle_info_system
 
-      module subroutine netcdf_write_frame_base(self, iu, param)
+      module subroutine netcdf_write_frame_base(self, nciu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
-         class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),   intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_base
 
-      module subroutine netcdf_write_frame_system(self, iu, param)
+      module subroutine netcdf_write_frame_system(self, nciu, param)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
-         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),      intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_system
 
-      module subroutine netcdf_write_hdr_system(self, iu, param) 
+      module subroutine netcdf_write_hdr_system(self, nciu, param) 
          implicit none
          class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),     intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_hdr_system
 
-      module subroutine netcdf_write_info_base(self, iu, param)
+      module subroutine netcdf_write_info_base(self, nciu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest particle object
-         class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
+         class(netcdf_parameters),   intent(inout) :: nciu  !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_info_base
 

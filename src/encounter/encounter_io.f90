@@ -67,12 +67,12 @@ contains
          close(unit=LUN, status="delete")
       end if
 
-      call check( nf90_create(self%enc_file, NF90_NETCDF4, self%ncid), "encounter_io_initialize_output nf90_create" )
+      call check( nf90_create(self%enc_file, NF90_NETCDF4, self%id), "encounter_io_initialize_output nf90_create" )
 
-      call check( nf90_def_dim(self%ncid, self%encid_dimname, NF90_UNLIMITED, self%encid_dimid), "encounter_io_initialize_output nf90_def_dim encid_dimid" )    
-      call check( nf90_def_dim(self%ncid, self%str_dimname, NAMELEN, self%str_dimid), "encounter_io_initialize_output nf90_def_dim str_dimid"  ) ! Dimension for string variables (aka character arrays)
-      call check( nf90_def_dim(self%ncid, self%time_dimname, NF90_UNLIMITED, self%time_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
-      call check( nf90_def_dim(self%ncid, self%collider_dimname, self%collider_dim_size, self%collider_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
+      call check( nf90_def_dim(self%id, self%eid_dimname, NF90_UNLIMITED, self%eid_dimid), "encounter_io_initialize_output nf90_def_dim eid_dimid" )    
+      call check( nf90_def_dim(self%id, self%str_dimname, NAMELEN, self%str_dimid), "encounter_io_initialize_output nf90_def_dim str_dimid"  ) ! Dimension for string variables (aka character arrays)
+      call check( nf90_def_dim(self%id, self%time_dimname, NF90_UNLIMITED, self%time_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
+      call check( nf90_def_dim(self%id, self%collider_dimname, self%collider_dim_size, self%collider_dimid), "encounter_io_initialize_output nf90_def_dim time_dimid" ) ! 'y' dimension
 
       select case (param%out_type)
       case("NETCDF_FLOAT")
@@ -81,23 +81,23 @@ contains
          self%out_type = NF90_DOUBLE
       end select
 
-      call check( nf90_def_var(self%ncid, self%time_dimname, self%out_type, self%time_dimid, self%time_varid), "encounter_io_initialize_output nf90_def_var time_varid"  )
-      call check( nf90_def_var(self%ncid, self%nenc_varname, NF90_INT, self%time_dimid, self%nenc_varid), "encounter_io_initialize_output nf90_def_var nenc_varid"  )
-      call check( nf90_def_var(self%ncid, self%name_varname, NF90_CHAR, [self%str_dimid, self%collider_dimid, self%encid_dimid], self%name_varid), "encounter_io_initialize_output nf90_def_var name_varid"  )
-      call check( nf90_def_var(self%ncid, self%id_dimname, NF90_INT, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%id_varid), "encounter_io_initialize_output nf90_def_var id_varid"  )
-      call check( nf90_def_var(self%ncid, self%xhx_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhx_varid), "encounter_io_initialize_output nf90_def_var xhx_varid"  )
-      call check( nf90_def_var(self%ncid, self%xhy_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhy_varid), "encounter_io_initialize_output nf90_def_var xhy_varid"  )
-      call check( nf90_def_var(self%ncid, self%xhz_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%xhz_varid), "encounter_io_initialize_output nf90_def_var xhz_varid"  )
-      call check( nf90_def_var(self%ncid, self%vhx_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhx_varid), "encounter_io_initialize_output nf90_def_var vhx_varid"  )
-      call check( nf90_def_var(self%ncid, self%vhy_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhy_varid), "encounter_io_initialize_output nf90_def_var vhy_varid"  )
-      call check( nf90_def_var(self%ncid, self%vhz_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%vhz_varid), "encounter_io_initialize_output nf90_def_var vhz_varid"  )
-      call check( nf90_def_var(self%ncid, self%level_varname, NF90_INT, [self%encid_dimid, self%time_dimid], self%level_varid), "encounter_io_initialize_output nf90_def_var level_varid"  )
-      call check( nf90_def_var(self%ncid, self%gmass_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%Gmass_varid), "encounter_io_initialize_output nf90_def_var Gmass_varid"  )
-      call check( nf90_def_var(self%ncid, self%radius_varname, self%out_type, [self%collider_dimid, self%encid_dimid, self%time_dimid], self%radius_varid), "encounter_io_initialize_output nf90_def_var radius_varid"  )
+      call check( nf90_def_var(self%id, self%time_dimname, self%out_type, self%time_dimid, self%time_varid), "encounter_io_initialize_output nf90_def_var time_varid"  )
+      call check( nf90_def_var(self%id, self%nenc_varname, NF90_INT, self%time_dimid, self%nenc_varid), "encounter_io_initialize_output nf90_def_var nenc_varid"  )
+      call check( nf90_def_var(self%id, self%name_varname, NF90_CHAR, [self%str_dimid, self%collider_dimid, self%eid_dimid], self%name_varid), "encounter_io_initialize_output nf90_def_var name_varid"  )
+      call check( nf90_def_var(self%id, self%id_dimname, NF90_INT, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%id_varid), "encounter_io_initialize_output nf90_def_var id_varid"  )
+      call check( nf90_def_var(self%id, self%xhx_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%xhx_varid), "encounter_io_initialize_output nf90_def_var xhx_varid"  )
+      call check( nf90_def_var(self%id, self%xhy_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%xhy_varid), "encounter_io_initialize_output nf90_def_var xhy_varid"  )
+      call check( nf90_def_var(self%id, self%xhz_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%xhz_varid), "encounter_io_initialize_output nf90_def_var xhz_varid"  )
+      call check( nf90_def_var(self%id, self%vhx_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%vhx_varid), "encounter_io_initialize_output nf90_def_var vhx_varid"  )
+      call check( nf90_def_var(self%id, self%vhy_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%vhy_varid), "encounter_io_initialize_output nf90_def_var vhy_varid"  )
+      call check( nf90_def_var(self%id, self%vhz_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%vhz_varid), "encounter_io_initialize_output nf90_def_var vhz_varid"  )
+      call check( nf90_def_var(self%id, self%level_varname, NF90_INT, [self%eid_dimid, self%time_dimid], self%level_varid), "encounter_io_initialize_output nf90_def_var level_varid"  )
+      call check( nf90_def_var(self%id, self%gmass_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%Gmass_varid), "encounter_io_initialize_output nf90_def_var Gmass_varid"  )
+      call check( nf90_def_var(self%id, self%radius_varname, self%out_type, [self%collider_dimid, self%eid_dimid, self%time_dimid], self%radius_varid), "encounter_io_initialize_output nf90_def_var radius_varid"  )
 
 
       ! Take the file out of define mode
-      call check( nf90_enddef(self%ncid), "encounter_io_initialize_output nf90_enddef"  )
+      call check( nf90_enddef(self%id), "encounter_io_initialize_output nf90_enddef"  )
 
       return
 
@@ -126,26 +126,26 @@ contains
       end if
 
       write(errmsg,*) "encounter_io_open_file nf90_open ",trim(adjustl(param%outfile))
-      call check( nf90_open(self%enc_file, mode, self%ncid), errmsg)
+      call check( nf90_open(self%enc_file, mode, self%id), errmsg)
 
-      call check( nf90_inq_dimid(self%ncid, self%time_dimname, self%time_dimid), "encounter_io_open_file nf90_inq_dimid time_dimid"  )
-      call check( nf90_inq_dimid(self%ncid, self%encid_dimname, self%encid_dimid), "encounter_io_open_file nf90_inq_dimid encid_dimid"  )
-      call check( nf90_inq_dimid(self%ncid, self%collider_dimname, self%collider_dimid), "encounter_io_open_file nf90_inq_dimid collider_dimid"  )
-      call check( nf90_inq_dimid(self%ncid, self%str_dimname, self%str_dimid), "encounter_io_open_file nf90_inq_dimid collider_str"  )
+      call check( nf90_inq_dimid(self%id, self%time_dimname, self%time_dimid), "encounter_io_open_file nf90_inq_dimid time_dimid"  )
+      call check( nf90_inq_dimid(self%id, self%eid_dimname, self%eid_dimid), "encounter_io_open_file nf90_inq_dimid eid_dimid"  )
+      call check( nf90_inq_dimid(self%id, self%collider_dimname, self%collider_dimid), "encounter_io_open_file nf90_inq_dimid collider_dimid"  )
+      call check( nf90_inq_dimid(self%id, self%str_dimname, self%str_dimid), "encounter_io_open_file nf90_inq_dimid collider_str"  )
 
-      call check( nf90_inq_varid(self%ncid, self%time_dimname, self%time_varid), "encounter_io_open_file nf90_inq_varid time_varid" )
-      call check( nf90_inq_varid(self%ncid, self%name_varname, self%name_varid), "encounter_io_open_file nf90_inq_varid name_varid" )
-      call check( nf90_inq_varid(self%ncid, self%nenc_varname, self%nenc_varid), "encounter_io_open_file nf90_inq_varid nenc_varid" )
+      call check( nf90_inq_varid(self%id, self%time_dimname, self%time_varid), "encounter_io_open_file nf90_inq_varid time_varid" )
+      call check( nf90_inq_varid(self%id, self%name_varname, self%name_varid), "encounter_io_open_file nf90_inq_varid name_varid" )
+      call check( nf90_inq_varid(self%id, self%nenc_varname, self%nenc_varid), "encounter_io_open_file nf90_inq_varid nenc_varid" )
 
-      call check( nf90_inq_varid(self%ncid, self%xhx_varname, self%xhx_varid), "encounter_io_open_file nf90_inq_varid xhx_varid" )
-      call check( nf90_inq_varid(self%ncid, self%xhy_varname, self%xhy_varid), "encounter_io_open_file nf90_inq_varid xhy_varid" )
-      call check( nf90_inq_varid(self%ncid, self%xhz_varname, self%xhz_varid), "encounter_io_open_file nf90_inq_varid xhz_varid" )
-      call check( nf90_inq_varid(self%ncid, self%vhx_varname, self%vhx_varid), "encounter_io_open_file nf90_inq_varid vhx_varid" )
-      call check( nf90_inq_varid(self%ncid, self%vhy_varname, self%vhy_varid), "encounter_io_open_file nf90_inq_varid vhy_varid" )
-      call check( nf90_inq_varid(self%ncid, self%vhz_varname, self%vhz_varid), "encounter_io_open_file nf90_inq_varid vhz_varid" )
-      call check( nf90_inq_varid(self%ncid, self%level_varname, self%level_varid), "encounter_io_open_file nf90_inq_varid level_varid" )
-      call check( nf90_inq_varid(self%ncid, self%gmass_varname, self%Gmass_varid), "encounter_io_open_file nf90_inq_varid Gmass_varid" )
-      call check( nf90_inq_varid(self%ncid, self%radius_varname, self%radius_varid), "encounter_io_open_file nf90_inq_varid radius_varid" )
+      call check( nf90_inq_varid(self%id, self%xhx_varname, self%xhx_varid), "encounter_io_open_file nf90_inq_varid xhx_varid" )
+      call check( nf90_inq_varid(self%id, self%xhy_varname, self%xhy_varid), "encounter_io_open_file nf90_inq_varid xhy_varid" )
+      call check( nf90_inq_varid(self%id, self%xhz_varname, self%xhz_varid), "encounter_io_open_file nf90_inq_varid xhz_varid" )
+      call check( nf90_inq_varid(self%id, self%vhx_varname, self%vhx_varid), "encounter_io_open_file nf90_inq_varid vhx_varid" )
+      call check( nf90_inq_varid(self%id, self%vhy_varname, self%vhy_varid), "encounter_io_open_file nf90_inq_varid vhy_varid" )
+      call check( nf90_inq_varid(self%id, self%vhz_varname, self%vhz_varid), "encounter_io_open_file nf90_inq_varid vhz_varid" )
+      call check( nf90_inq_varid(self%id, self%level_varname, self%level_varid), "encounter_io_open_file nf90_inq_varid level_varid" )
+      call check( nf90_inq_varid(self%id, self%gmass_varname, self%Gmass_varid), "encounter_io_open_file nf90_inq_varid Gmass_varid" )
+      call check( nf90_inq_varid(self%id, self%radius_varname, self%radius_varid), "encounter_io_open_file nf90_inq_varid radius_varid" )
 
       return
    end subroutine encounter_io_open_file
@@ -164,31 +164,31 @@ contains
 
       i = iu%ienc_frame
       n = int(self%nenc, kind=I4B)
-      call check( nf90_set_fill(iu%ncid, nf90_nofill, old_mode), "encounter_io_write_frame_base nf90_set_fill"  )
-      call check( nf90_put_var(iu%ncid, iu%time_varid, self%t, start=[i]), "encounter_io_write_frame nf90_put_var time_varid"  )
+      call check( nf90_set_fill(iu%id, nf90_nofill, old_mode), "encounter_io_write_frame_base nf90_set_fill"  )
+      call check( nf90_put_var(iu%id, iu%time_varid, self%t, start=[i]), "encounter_io_write_frame nf90_put_var time_varid"  )
 
-      call check( nf90_put_var(iu%ncid, iu%nenc_varid, self%nenc, start=[i]), "encounter_io_frame nf90_put_var nenc_varid"  )
-      call check( nf90_put_var(iu%ncid, iu%name_varid, self%name1(1:n), start=[1, 1, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 1"  )
-      call check( nf90_put_var(iu%ncid, iu%name_varid, self%name2(1:n), start=[1, 2, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 2"  )
-      call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%x1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%x1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%x1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%xhx_varid, self%x2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%xhy_varid, self%x2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%xhz_varid, self%x2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%v1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%v1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%v1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 1"  )
-      call check( nf90_put_var(iu%ncid, iu%vhx_varid, self%v2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%vhy_varid, self%v2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%vhz_varid, self%v2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 2"  )
-      call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 1"  )
-      call check( nf90_put_var(iu%ncid, iu%Gmass_varid, self%Gmass2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 2"  )
-      call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 1"  )
-      call check( nf90_put_var(iu%ncid, iu%radius_varid, self%radius2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 2"  )
+      call check( nf90_put_var(iu%id, iu%nenc_varid, self%nenc, start=[i]), "encounter_io_frame nf90_put_var nenc_varid"  )
+      call check( nf90_put_var(iu%id, iu%name_varid, self%name1(1:n), start=[1, 1, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 1"  )
+      call check( nf90_put_var(iu%id, iu%name_varid, self%name2(1:n), start=[1, 2, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 2"  )
+      call check( nf90_put_var(iu%id, iu%xhx_varid, self%x1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 1"  )
+      call check( nf90_put_var(iu%id, iu%xhy_varid, self%x1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 1"  )
+      call check( nf90_put_var(iu%id, iu%xhz_varid, self%x1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 1"  )
+      call check( nf90_put_var(iu%id, iu%xhx_varid, self%x2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 2"  )
+      call check( nf90_put_var(iu%id, iu%xhy_varid, self%x2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 2"  )
+      call check( nf90_put_var(iu%id, iu%xhz_varid, self%x2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 2"  )
+      call check( nf90_put_var(iu%id, iu%vhx_varid, self%v1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 1"  )
+      call check( nf90_put_var(iu%id, iu%vhy_varid, self%v1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 1"  )
+      call check( nf90_put_var(iu%id, iu%vhz_varid, self%v1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 1"  )
+      call check( nf90_put_var(iu%id, iu%vhx_varid, self%v2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 2"  )
+      call check( nf90_put_var(iu%id, iu%vhy_varid, self%v2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 2"  )
+      call check( nf90_put_var(iu%id, iu%vhz_varid, self%v2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 2"  )
+      call check( nf90_put_var(iu%id, iu%Gmass_varid, self%Gmass1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 1"  )
+      call check( nf90_put_var(iu%id, iu%Gmass_varid, self%Gmass2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 2"  )
+      call check( nf90_put_var(iu%id, iu%radius_varid, self%radius1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 1"  )
+      call check( nf90_put_var(iu%id, iu%radius_varid, self%radius2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 2"  )
       select type(self)
       class is (symba_encounter)
-         call check( nf90_put_var(iu%ncid, iu%level_varid, self%level(1:n), start=[1, i], count=[n,1]), "netcdf_write_frame nf90_put_var level"  )
+         call check( nf90_put_var(iu%id, iu%level_varid, self%level(1:n), start=[1, i], count=[n,1]), "netcdf_write_frame nf90_put_var level"  )
       end select
 
       return

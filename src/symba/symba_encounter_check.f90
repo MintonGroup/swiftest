@@ -119,7 +119,7 @@ contains
       logical                   :: isplpl
       real(DP)                  :: rlim2, rji2, rcrit12
       logical, dimension(:), allocatable :: lencmask, lencounter
-      integer(I4B), dimension(:), allocatable :: encidx
+      integer(I4B), dimension(:), allocatable :: eidx
 
       lany_encounter = .false.
       if (self%nenc == 0) return
@@ -142,13 +142,13 @@ contains
 
             call pl%set_renc(irec)
 
-            allocate(encidx(nenc_enc))
+            allocate(eidx(nenc_enc))
             allocate(lencounter(nenc_enc))
-            encidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
+            eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
             lencounter(:) = .false.
             if (isplpl) then
                do concurrent(lidx = 1:nenc_enc)
-                  k = encidx(lidx)
+                  k = eidx(lidx)
                   i = self%index1(k)
                   j = self%index2(k)
                   xr(:) = pl%xh(:,j) - pl%xh(:,i)
@@ -163,7 +163,7 @@ contains
                end do
             else
                do concurrent(lidx = 1:nenc_enc)
-                  k = encidx(lidx)
+                  k = eidx(lidx)
                   i = self%index1(k)
                   j = self%index2(k)
                   xr(:) = tp%xh(:,j) - pl%xh(:,i)
@@ -180,9 +180,9 @@ contains
             lany_encounter = any(lencounter(:))
             if (lany_encounter) then
                nenc_enc = count(lencounter(:))
-               encidx(1:nenc_enc) = pack(encidx(:), lencounter(:))
+               eidx(1:nenc_enc) = pack(eidx(:), lencounter(:))
                do lidx = 1, nenc_enc
-                  k = encidx(lidx)
+                  k = eidx(lidx)
                   i = self%index1(k)
                   j = self%index2(k)
                   pl%levelg(i) = irec

@@ -54,8 +54,8 @@ module encounter_classes
       integer(I4B)       :: ienc_frame                !! Current frame number for the encounter history
       character(STRMAX)  :: enc_file = "encounter.nc" !! Encounter output file name
 
-      character(NAMELEN) :: encid_dimname    = "encounter" !! The index of the encountering pair in the encounter list  
-      integer(I4B)       :: encid_dimid                    !! ID for the encounter pair index dimension
+      character(NAMELEN) :: eid_dimname    = "encounter" !! The index of the encountering pair in the encounter list  
+      integer(I4B)       :: eid_dimid                    !! ID for the encounter pair index dimension
       character(NAMELEN) :: collider_dimname = "collider"  !! Dimension that defines the colliding bodies (bodies 1 and 2 are at dimension coordinates 1 and 2, respectively)
       integer(I4B)       :: collider_dimid                  !! ID for the collider dimension
       character(NAMELEN) :: nenc_varname     = "nenc"      !! Total number of encounters
