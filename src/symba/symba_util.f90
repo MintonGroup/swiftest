@@ -534,7 +534,7 @@ contains
             if (param%qmin_coord == "HELIO") then
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
+                     vdotr = dot_product(pl%rh(:,i), pl%vh(:,i))
                      if (vdotr > 0.0_DP) then
                         pl%isperi(i) = 1
                      else
@@ -558,11 +558,11 @@ contains
             if (param%qmin_coord == "HELIO") then
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
+                     vdotr = dot_product(pl%rh(:,i), pl%vh(:,i))
                      if (pl%isperi(i) == -1) then
                         if (vdotr >= 0.0_DP) then
                            pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(pl%mu(i), pl%xh(1,i), pl%xh(2,i), pl%xh(3,i), pl%vh(1,i), pl%vh(2,i), pl%vh(3,i), &
+                           CALL orbel_xv2aeq(pl%mu(i), pl%rh(1,i), pl%rh(2,i), pl%rh(3,i), pl%vh(1,i), pl%vh(2,i), pl%vh(3,i), &
                                   pl%atp(i), e, pl%peri(i))
                         end if
                      else

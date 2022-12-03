@@ -25,7 +25,7 @@ contains
       if (allocated(self%ldiscard)) deallocate(self%ldiscard)
       if (allocated(self%lmask)) deallocate(self%lmask)
       if (allocated(self%mu)) deallocate(self%mu)
-      if (allocated(self%xh)) deallocate(self%xh)
+      if (allocated(self%rh)) deallocate(self%rh)
       if (allocated(self%vh)) deallocate(self%vh)
       if (allocated(self%xb)) deallocate(self%xb)
       if (allocated(self%vb)) deallocate(self%vb)

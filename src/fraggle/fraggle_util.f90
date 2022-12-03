@@ -37,7 +37,7 @@ contains
          do concurrent (i = 1:nfrag)
             pl%xb(:,npl_before+i) =  frag%xb(:,i) 
             pl%vb(:,npl_before+i) =  frag%vb(:,i) 
-            pl%xh(:,npl_before+i) =  frag%xb(:,i) - cb%xb(:)
+            pl%rh(:,npl_before+i) =  frag%xb(:,i) - cb%xb(:)
             pl%vh(:,npl_before+i) =  frag%vb(:,i) - cb%vb(:)
          end do
          if (param%lrotation) then

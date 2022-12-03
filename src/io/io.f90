@@ -1381,7 +1381,7 @@ contains
 
                select case(param%in_form)
                case ("XV")
-                  read(iu, *, err = 667, iomsg = errmsg) self%xh(1, i), self%xh(2, i), self%xh(3, i)
+                  read(iu, *, err = 667, iomsg = errmsg) self%rh(1, i), self%rh(2, i), self%rh(3, i)
                   read(iu, *, err = 667, iomsg = errmsg) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                case ("EL")
                   read(iu, *, err = 667, iomsg = errmsg) self%a(i), self%e(i), self%inc(i)

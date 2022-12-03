@@ -43,9 +43,9 @@ contains
          call pl%set_renc(irec)
 
          if (nplt == 0) then
-            call encounter_check_all_plpl(param, npl, pl%xh, pl%vb, pl%renc, dt, nenc, index1, index2, lvdotr)
+            call encounter_check_all_plpl(param, npl, pl%rh, pl%vb, pl%renc, dt, nenc, index1, index2, lvdotr)
          else
-            call encounter_check_all_plplm(param, nplm, nplt, pl%xh(:,1:nplm), pl%vb(:,1:nplm), pl%xh(:,nplm+1:npl), &
+            call encounter_check_all_plplm(param, nplm, nplt, pl%rh(:,1:nplm), pl%vb(:,1:nplm), pl%rh(:,nplm+1:npl), &
                   pl%vb(:,nplm+1:npl), pl%renc(1:nplm), pl%renc(nplm+1:npl), dt, nenc, index1, index2, lvdotr)
          end if
          
@@ -65,8 +65,8 @@ contains
                plplenc_list%id2(k) = pl%id(j)
                plplenc_list%status(k) = ACTIVE
                plplenc_list%level(k) = irec
-               plplenc_list%x1(:,k) = pl%xh(:,i)
-               plplenc_list%x2(:,k) = pl%xh(:,j)
+               plplenc_list%x1(:,k) = pl%rh(:,i)
+               plplenc_list%x2(:,k) = pl%rh(:,j)
                plplenc_list%v1(:,k) = pl%vb(:,i) - cb%vb(:)
                plplenc_list%v2(:,k) = pl%vb(:,j) - cb%vb(:)
                plplenc_list%Gmass1(k) = pl%Gmass(i)
@@ -151,7 +151,7 @@ contains
                   k = eidx(lidx)
                   i = self%index1(k)
                   j = self%index2(k)
-                  xr(:) = pl%xh(:,j) - pl%xh(:,i)
+                  xr(:) = pl%rh(:,j) - pl%rh(:,i)
                   vr(:) = pl%vb(:,j) - pl%vb(:,i)
                   rcrit12 = pl%renc(i) + pl%renc(j)
                   call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), rcrit12, dt, lencounter(lidx), self%lvdotr(k))
@@ -166,7 +166,7 @@ contains
                   k = eidx(lidx)
                   i = self%index1(k)
                   j = self%index2(k)
-                  xr(:) = tp%xh(:,j) - pl%xh(:,i)
+                  xr(:) = tp%rh(:,j) - pl%rh(:,i)
                   vr(:) = tp%vb(:,j) - pl%vb(:,i)
                   call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%renc(i), dt, &
                                            lencounter(lidx), self%lvdotr(k))
@@ -229,7 +229,7 @@ contains
 
       associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
          call pl%set_renc(irec)
-         call encounter_check_all_pltp(param, npl, ntp, pl%xh, pl%vb, tp%xh, tp%vb, pl%renc, dt, nenc, index1, index2, lvdotr) 
+         call encounter_check_all_pltp(param, npl, ntp, pl%rh, pl%vb, tp%rh, tp%vb, pl%renc, dt, nenc, index1, index2, lvdotr) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 

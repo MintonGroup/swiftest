@@ -31,17 +31,17 @@ contains
       associate(n => self%nbody, cb => system%cb)
          self%aobl(:,:) = 0.0_DP
          do concurrent(i = 1:n, self%lmask(i))
-            r2 = dot_product(self%xh(:, i), self%xh(:, i))
+            r2 = dot_product(self%rh(:, i), self%rh(:, i))
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
             t0 = -cb%Gmass * rinv2 * rinv2 * irh
             t1 = 1.5_DP * cb%j2rp2
-            t2 = self%xh(3, i) * self%xh(3, i) * rinv2
+            t2 = self%rh(3, i) * self%rh(3, i) * rinv2
             t3 = 1.875_DP * cb%j4rp4 * rinv2
             fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
             fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-            self%aobl(:, i) = fac1 * self%xh(:, i)
-            self%aobl(3, i) = fac2 * self%xh(3, i) + self%aobl(3, i)
+            self%aobl(:, i) = fac1 * self%rh(:, i)
+            self%aobl(3, i) = fac2 * self%rh(3, i) + self%aobl(3, i)
          end do
       end associate
       return
@@ -137,7 +137,7 @@ contains
       associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          if (.not. any(pl%lmask(1:npl))) return
          do concurrent (i = 1:npl, pl%lmask(i))
-            oblpot_arr(i) = obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%xh(3,i), 1.0_DP / norm2(pl%xh(:,i)))
+            oblpot_arr(i) = obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
          end do
          system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))
       end associate

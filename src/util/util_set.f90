@@ -53,7 +53,7 @@ contains
       if (self%nbody > 0) then
 
          do i = 1, self%nbody
-            r2 = dot_product(self%xh(:, i), self%xh(:, i))
+            r2 = dot_product(self%rh(:, i), self%rh(:, i))
             irh = 1.0_DP / sqrt(r2)
             self%ir3h(i) = irh / r2
          end do
@@ -107,8 +107,8 @@ contains
       return
    end subroutine util_set_mu_tp
 
-   module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_xh,&
-                                            origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+   module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_rh,&
+                                            origin_vh, discard_time, discard_rh, discard_vh, discard_body_id)
       !! author: David A. Minton
       !!
       !! Sets one or more values of the particle information metadata object
@@ -121,10 +121,10 @@ contains
       character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
       integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
-      real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(:),        intent(in),    optional :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
       real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
-      real(DP), dimension(:),        intent(in),    optional :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+      real(DP), dimension(:),        intent(in),    optional :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
       real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
       ! Internals
@@ -152,8 +152,8 @@ contains
       if (present(collision_id)) then
          self%collision_id = collision_id
       end if
-      if (present(origin_xh)) then
-         self%origin_xh(:) = origin_xh(:)
+      if (present(origin_rh)) then
+         self%origin_rh(:) = origin_rh(:)
       end if
       if (present(origin_vh)) then
          self%origin_vh(:) = origin_vh(:)
@@ -161,8 +161,8 @@ contains
       if (present(discard_time)) then
          self%discard_time = discard_time
       end if
-      if (present(discard_xh)) then
-         self%discard_xh(:) = discard_xh(:)
+      if (present(discard_rh)) then
+         self%discard_rh(:) = discard_rh(:)
       end if
       if (present(discard_vh)) then
          self%discard_vh(:) = discard_vh(:)
@@ -242,7 +242,7 @@ contains
 
       if (self%nbody == 0) return
 
-      rh(1:self%nbody) = .mag. self%xh(:,1:self%nbody)
+      rh(1:self%nbody) = .mag. self%rh(:,1:self%nbody)
       self%rhill(1:self%nbody) = rh(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
 
       return

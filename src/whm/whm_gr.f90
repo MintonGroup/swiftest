@@ -62,7 +62,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, inv_c2 => param%inv_c2)
-         call gr_kick_getacch(tp%mu, tp%xh, tp%lmask, ntp, param%inv_c2, tp%agr) 
+         call gr_kick_getacch(tp%mu, tp%rh, tp%lmask, ntp, param%inv_c2, tp%agr) 
          tp%ah(:,1:ntp) = tp%ah(:,1:ntp) + tp%agr(:,1:ntp)
       end associate
 
@@ -116,7 +116,7 @@ contains
       associate(tp => self, ntp => self%nbody)
          if (ntp == 0) return
          do concurrent(i = 1:ntp, tp%lmask(i))
-            call gr_p4_pos_kick(param, tp%xh(:, i), tp%vh(:, i), dt)
+            call gr_p4_pos_kick(param, tp%rh(:, i), tp%vh(:, i), dt)
          end do
       end associate
  

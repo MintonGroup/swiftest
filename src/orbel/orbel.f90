@@ -28,7 +28,7 @@ contains
       call self%set_mu(cb)
       do concurrent (i = 1:self%nbody)
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
-                           self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
+                           self%omega(i), self%capm(i), self%rh(:, i), self%vh(:, i))
       end do
       return
    end subroutine orbel_el2xv_vec
@@ -885,7 +885,7 @@ contains
       if (allocated(self%omega)) deallocate(self%omega); allocate(self%omega(self%nbody))
       if (allocated(self%capm)) deallocate(self%capm);  allocate(self%capm(self%nbody))
       do concurrent (i = 1:self%nbody)
-         call orbel_xv2el(self%mu(i), self%xh(1,i), self%xh(2,i), self%xh(3,i), &
+         call orbel_xv2el(self%mu(i), self%rh(1,i), self%rh(2,i), self%rh(3,i), &
                                       self%vh(1,i), self%vh(2,i), self%vh(3,i), &
                           self%a(i), self%e(i), self%inc(i),  &
                           self%capom(i), self%omega(i), self%capm(i))

@@ -29,9 +29,9 @@ contains
          pl%atide(:,:) = 0.0_DP
          cb%atide(:) = 0.0_DP
          do i = 1, npl
-            rmag = norm2(pl%xh(:,i))
+            rmag = norm2(pl%rh(:,i))
             vmag = norm2(pl%vh(:,i))
-            r_unit(:) = pl%xh(:,i) / rmag
+            r_unit(:) = pl%rh(:,i) / rmag
             v_unit(:) = pl%vh(:,i) / vmag
             h_unit(:) = r_unit(:) .cross. v_unit(:)
             theta_unit(:) = h_unit(:) .cross. r_unit(:)

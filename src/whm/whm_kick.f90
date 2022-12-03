@@ -34,7 +34,7 @@ contains
       associate(cb => system%cb, pl => self, npl => self%nbody)
          call pl%set_ir3()
 
-         ah0(:) = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%xh(:,2:npl), npl-1)
+         ah0(:) = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%rh(:,2:npl), npl-1)
          do i = 1, npl
             pl%ah(:, i) = pl%ah(:, i) + ah0(:)
          end do
@@ -158,7 +158,7 @@ contains
       associate(npl => pl%nbody)
          do concurrent (i = 2:npl, pl%lmask(i))
             ah1j(:) = pl%xj(:, i) * pl%ir3j(i)
-            ah1h(:) = pl%xh(:, i) * pl%ir3h(i)
+            ah1h(:) = pl%rh(:, i) * pl%ir3h(i)
             pl%ah(:, i) = pl%ah(:, i) + cb%Gmass * (ah1j(:) - ah1h(:))
          end do
       end associate
@@ -227,11 +227,11 @@ contains
                call pl%accel(system, param, t, lbeg)
                pl%lfirst = .false.
             end if
-            call pl%set_beg_end(xbeg = pl%xh)
+            call pl%set_beg_end(xbeg = pl%rh)
          else
             pl%ah(:, 1:npl) = 0.0_DP
             call pl%accel(system, param, t, lbeg)
-            call pl%set_beg_end(xend = pl%xh)
+            call pl%set_beg_end(xend = pl%rh)
          end if
          do concurrent(i = 1:npl, pl%lmask(i))
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt

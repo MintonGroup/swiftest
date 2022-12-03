@@ -108,9 +108,9 @@ contains
       do i = 1, pl%nbody
          write(LUN, *) i, pl%vb(:,i)
       end do
-      write(LUN, *) "xh"
+      write(LUN, *) "rh"
       do i = 1, pl%nbody
-         write(LUN, *) i, pl%xh(:,i)
+         write(LUN, *) i, pl%rh(:,i)
       end do
       write(LUN, *) "vh"
       do i = 1, pl%nbody

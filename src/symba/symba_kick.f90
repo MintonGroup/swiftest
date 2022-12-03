@@ -42,9 +42,9 @@ contains
       end if
 
       if (param%lflatten_interactions) then
-         call kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+         call kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
       else
-         call kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%xh, self%Gmass, self%radius, self%ah)
+         call kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%rh, self%Gmass, self%radius, self%ah)
       end if
 
       if (param%ladaptive_interactions .and. self%nplplm > 0) then 
@@ -87,7 +87,7 @@ contains
                allocate(k_plpl_enc(2,nplplenc))
                k_plpl_enc(1,1:nplplenc) = plplenc_list%index1(1:nplplenc)
                k_plpl_enc(2,1:nplplenc) = plplenc_list%index2(1:nplplenc)
-               call kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%xh, pl%Gmass, pl%radius, ah_enc)
+               call kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
 
@@ -129,9 +129,9 @@ contains
                j = pltpenc_list%index2(k)
                if (tp%lmask(j)) then
                   if (lbeg) then
-                     dx(:) = tp%xh(:,j) - pl%xbeg(:,i)
+                     dx(:) = tp%rh(:,j) - pl%xbeg(:,i)
                   else
-                     dx(:) = tp%xh(:,j) - pl%xend(:,i)
+                     dx(:) = tp%rh(:,j) - pl%xend(:,i)
                   end if
                   rjj = dot_product(dx(:), dx(:))
                   fac = pl%Gmass(i) / (rjj * sqrt(rjj))
@@ -232,11 +232,11 @@ contains
                      if (isplpl) then
                         ri = ((pl%rhill(i)  + pl%rhill(j))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)
-                        dx(:) = pl%xh(:,j) - pl%xh(:,i)
+                        dx(:) = pl%rh(:,j) - pl%rh(:,i)
                      else
                         ri = ((pl%rhill(i))**2) * (RHSCALE**2) * (RSHELL**(2*irecl))
                         rim1 = ri * (RSHELL**2)
-                        dx(:) = tp%xh(:,j) - pl%xh(:,i)
+                        dx(:) = tp%rh(:,j) - pl%rh(:,i)
                      end if
                      r2 = dot_product(dx(:), dx(:))
                      if (r2 < rim1) then

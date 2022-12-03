@@ -34,11 +34,11 @@ contains
       associate(n => self%nbody, cb => system%cb, inv_c2 => param%inv_c2)
          if (n == 0) return
          do i = 1, n
-            rmag = norm2(self%xh(:,i))
+            rmag = norm2(self%rh(:,i))
             vmag2 = dot_product(self%vh(:,i), self%vh(:,i))
-            rdotv = dot_product(self%xh(:,i), self%vh(:,i))
+            rdotv = dot_product(self%rh(:,i), self%vh(:,i))
             self%agr(:, i) = self%mu * inv_c2 / rmag**3 * ((4 * self%mu(i) / rmag - vmag2) &
-                           * self%xh(:,i) + 4 * rdotv * self%vh(:,i))
+                           * self%rh(:,i) + 4 * rdotv * self%vh(:,i))
          end do
 
          select type(self)
@@ -113,7 +113,7 @@ contains
    end subroutine gr_p4_pos_kick
 
 
-   pure module subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
+   pure module subroutine gr_pseudovel2vel(param, mu, rh, pv, vh) 
       !! author: David A. Minton
       !!
       !! Converts the relativistic pseudovelocity back into a veliocentric velocity
@@ -128,7 +128,7 @@ contains
       ! Arguments
       class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
       real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-      real(DP), dimension(:),     intent(in)  :: xh    !! Heliocentric position vector 
+      real(DP), dimension(:),     intent(in)  :: rh    !! Heliocentric position vector 
       real(DP), dimension(:),     intent(in)  :: pv    !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
       real(DP), dimension(:),     intent(out) :: vh    !! Heliocentric velocity vector 
       ! Internals
@@ -136,7 +136,7 @@ contains
    
       associate(inv_c2 => param%inv_c2)
          vmag2 = dot_product(pv(:), pv(:))
-         rmag  = norm2(xh(:))
+         rmag  = norm2(rh(:))
          grterm = 1.0_DP - inv_c2 * (0.5_DP * vmag2 + 3 * mu / rmag)
          vh(:) = pv(:) * grterm
       end associate
@@ -161,7 +161,7 @@ contains
          if (n == 0) return
          allocate(vh, mold = self%vh)
          do i = 1, n
-            call gr_pseudovel2vel(param, self%mu(i), self%xh(:, i), self%vh(:, i), vh(:, i))
+            call gr_pseudovel2vel(param, self%mu(i), self%rh(:, i), self%vh(:, i), vh(:, i))
          end do
          call move_alloc(vh, self%vh)
       end associate
@@ -170,7 +170,7 @@ contains
    end subroutine gr_pv2vh_body
 
 
-   pure module subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
+   pure module subroutine gr_vel2pseudovel(param, mu, rh, vh, pv)
       !! author: David A. Minton
       !!
       !! Converts the heliocentric velocity into a pseudovelocity with relativistic corrections. 
@@ -186,7 +186,7 @@ contains
       ! Arguments
       class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
       real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-      real(DP), dimension(:),     intent(in)  :: xh    !! Heliocentric position vector 
+      real(DP), dimension(:),     intent(in)  :: rh    !! Heliocentric position vector 
       real(DP), dimension(:),     intent(in)  :: vh    !! Heliocentric velocity vector 
       real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       ! Internals
@@ -199,7 +199,7 @@ contains
 
       associate(inv_c2 => param%inv_c2)
          pv(1:NDIM) = vh(1:NDIM) ! Initial guess
-         rterm = 3 * mu / norm2(xh(:))
+         rterm = 3 * mu / norm2(rh(:))
          v2 = dot_product(vh(:), vh(:))
          do n = 1, MAXITER
             pv2 = dot_product(pv(:), pv(:))
@@ -263,7 +263,7 @@ contains
          if (n == 0) return
          allocate(pv, mold = self%vh)
          do i = 1, n
-            call gr_vel2pseudovel(param, self%mu(i), self%xh(:, i), self%vh(:, i), pv(:, i))
+            call gr_vel2pseudovel(param, self%mu(i), self%rh(:, i), self%vh(:, i), pv(:, i))
          end do
          call move_alloc(pv, self%vh)
       end associate

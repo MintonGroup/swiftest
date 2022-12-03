@@ -34,11 +34,11 @@ contains
          allocate(vdotr(ntp))
          if (param%qmin_coord == "HELIO") then
             do i = 1, ntp
-               vdotr(i) = dot_product(tp%xh(:, i), tp%vh(:, i))
+               vdotr(i) = dot_product(tp%rh(:, i), tp%vh(:, i))
                if (tp%isperi(i) == -1) then
                   if (vdotr(i) >= 0.0_DP) then
                      tp%isperi(i) = 0
-                     call orbel_xv2aeq(tp%mu(i), tp%xh(1,i), tp%xh(2,i), tp%xh(3,i), tp%vh(1,i), tp%vh(2,i), tp%vh(3,i), &
+                     call orbel_xv2aeq(tp%mu(i), tp%rh(1,i), tp%rh(2,i), tp%rh(3,i), tp%vh(1,i), tp%vh(2,i), tp%vh(3,i), &
                                        tp%atp(i), e, tp%peri(i))
                   end if
                else

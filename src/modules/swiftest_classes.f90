@@ -244,11 +244,11 @@ module swiftest_classes
       character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time     !! The time of the particle's formation
       integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
-      real(DP), dimension(NDIM) :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
       real(DP)                  :: discard_time    !! The time of the particle's discard
       character(len=NAMELEN)    :: status          !! Particle status description: Active, Merged, Fragmented, etc.
-      real(DP), dimension(NDIM) :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+      real(DP), dimension(NDIM) :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
       real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
    contains
@@ -314,7 +314,7 @@ module swiftest_classes
       logical,                      dimension(:),   allocatable :: ldiscard        !! Body should be discarded
       logical,                      dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       real(DP),                     dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      real(DP),                     dimension(:,:), allocatable :: xh              !! Swiftestcentric position
+      real(DP),                     dimension(:,:), allocatable :: rh              !! Swiftestcentric position
       real(DP),                     dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
       real(DP),                     dimension(:,:), allocatable :: xb              !! Barycentric position
       real(DP),                     dimension(:,:), allocatable :: vb              !! Barycentric velocity
@@ -396,7 +396,7 @@ module swiftest_classes
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vh2vb        => util_coord_vh2vb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure :: vb2vh        => util_coord_vb2vh_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
+      procedure :: xh2xb        => util_coord_rh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc      => util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -436,7 +436,7 @@ module swiftest_classes
       procedure :: b2h       => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure :: xh2xb     => util_coord_xh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
+      procedure :: xh2xb     => util_coord_rh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc   => util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
@@ -688,11 +688,11 @@ module swiftest_classes
          real(DP),                   intent(in)    :: dt    !! Step size
       end subroutine gr_p4_pos_kick
 
-      pure module subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
+      pure module subroutine gr_pseudovel2vel(param, mu, rh, pv, vh) 
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),     intent(in)  :: xh    !! Swiftestcentric position vector 
+         real(DP), dimension(:),     intent(in)  :: rh    !! Swiftestcentric position vector 
          real(DP), dimension(:),     intent(in)  :: pv    !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
          real(DP), dimension(:),     intent(out) :: vh    !! Swiftestcentric velocity vector 
       end subroutine gr_pseudovel2vel
@@ -703,11 +703,11 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine gr_pv2vh_body
 
-      pure module subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
+      pure module subroutine gr_vel2pseudovel(param, mu, rh, vh, pv)
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),     intent(in)  :: xh    !! Swiftestcentric position vector 
+         real(DP), dimension(:),     intent(in)  :: rh    !! Swiftestcentric position vector 
          real(DP), dimension(:),     intent(in)  :: vh    !! Swiftestcentric velocity vector 
          real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       end subroutine gr_vel2pseudovel
@@ -1336,17 +1336,17 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
       end subroutine util_coord_vh2vb_tp
 
-      module subroutine util_coord_xh2xb_pl(self, cb)
+      module subroutine util_coord_rh2xb_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine util_coord_xh2xb_pl
+      end subroutine util_coord_rh2xb_pl
 
-      module subroutine util_coord_xh2xb_tp(self, cb)
+      module subroutine util_coord_rh2xb_tp(self, cb)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
-      end subroutine util_coord_xh2xb_tp
+      end subroutine util_coord_rh2xb_tp
 
       module subroutine util_copy_particle_info(self, source)
          implicit none
@@ -1618,7 +1618,7 @@ module swiftest_classes
       end subroutine util_set_mu_tp
 
       module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, &
-                                               origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+                                               origin_rh, origin_vh, discard_time, discard_rh, discard_vh, discard_body_id)
          implicit none
          class(swiftest_particle_info), intent(inout)           :: self
          character(len=*),              intent(in),    optional :: name            !! Non-unique name
@@ -1627,10 +1627,10 @@ module swiftest_classes
          character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
          real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
          integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
-         real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+         real(DP), dimension(:),        intent(in),    optional :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
          real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
          real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
-         real(DP), dimension(:),        intent(in),    optional :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+         real(DP), dimension(:),        intent(in),    optional :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
          real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
          integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
       end subroutine util_set_particle_info
