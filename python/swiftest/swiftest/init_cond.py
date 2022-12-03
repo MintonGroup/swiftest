@@ -192,6 +192,9 @@ def solar_system_horizons(plname: str,
             v4 = pldata[plname].vectors()['vx'][0] * VCONV
             v5 = pldata[plname].vectors()['vy'][0] * VCONV
             v6 = pldata[plname].vectors()['vz'][0] * VCONV
+
+            rh = pldata[plname].vectors()[['x','y','z']][0] * DCONV
+            vh = pldata[plname].vectors()[['vx','vy','vz']][0] * VCONV
         elif param['IN_FORM'] == 'EL':
             v1 = pldata[plname].elements()['a'][0] * DCONV
             v2 = pldata[plname].elements()['e'][0]
@@ -276,13 +279,13 @@ def vec2xr(param: Dict,
     namevals :
 
     v1 : array of floats
-        xh 
+        rh 
     v2 : array of floats
         yh
     v3 : array of floats
         zh
     v4 : array of floats
-        vhxh
+        vhrh
     v5 : array of floats
         vhyh
     v6 : array of floats

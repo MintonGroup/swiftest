@@ -2273,13 +2273,13 @@ class Simulation:
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_] | None=None,
                  idvals: int | list[int] | npt.NDArray[np.int_] | None=None,
-                 v1: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v2: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v3: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v4: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v5: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v6: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 xh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                 a: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 e: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 inc: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 capom: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 omega: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 capm: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 rh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  vh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  mass: float | List[float] | npt.NDArray[np.float_] | None=None,
                  Gmass: float | List[float] | npt.NDArray[np.float_] | None=None,
@@ -2308,19 +2308,19 @@ class Simulation:
         idvals : int or array-like of int, optional
             Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
             Dataset ids.
-        v1 : float or array-like of float, optional
-            xhx for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
-        v2 : float or array-like of float, optional
-            xhy for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
-        v3 : float or array-like of float, optional
-            xhz for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
-        v4 : float or array-like of float, optional
-            vhx for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
-        v5 : float or array-like of float, optional
-            vhy for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
-        v6 : float or array-like of float, optional
-            vhz for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
-        xh : (n,3) array-like of float, optional
+        a : float or array-like of float, optional
+             semimajor axis for param['IN_FORM'] == "EL"
+        e : float or array-like of float, optional
+            eccentricity  for param['IN_FORM'] == "EL"
+        inc : float or array-like of float, optional
+            inclination for param['IN_FORM'] == "EL"
+        capom : float or array-like of float, optional
+            longitude of periapsis for param['IN_FORM'] == "EL"
+        omega : float or array-like of float, optional
+            argument of periapsis for param['IN_FORM'] == "EL"
+        capm : float or array-like of float, optional
+            mean anomaly for param['IN_FORM'] == "EL"
+        rh : (n,3) array-like of float, optional
             Position vector array. This can be used instead of passing v1, v2, and v3 sepearately for "XV" input format
         vh : (n,3) array-like of float, optional
             Velocity vector array. This can be used instead of passing v4, v5, and v6 sepearately for "XV" input format
@@ -2332,10 +2332,6 @@ class Simulation:
             Radius values if these are massive bodies
         rhill : float or array-like of float, optional
             Hill's radius values if these are massive bodies
-        Ip<1,2,3> : float or array-like of float, optional
-            Principal axes moments of inertia if these are massive bodies with rotation enabled
-        rot<x,y,z>: float or array-like of float, optional
-            Rotation rate vector components if these are massive bodies with rotation enabled
         rot: (3) or (n,3) array-like of float, optional
             Rotation rate vectors if these are massive bodies with rotation enabled. This can be used instead of passing
             rotx, roty, and rotz separately
@@ -2404,27 +2400,21 @@ class Simulation:
 
         nbodies = None
         name,nbodies = input_to_array(name,"s",nbodies)
-        v1,nbodies = input_to_array(v1,"f",nbodies)
-        v2,nbodies = input_to_array(v2,"f",nbodies)
-        v3,nbodies = input_to_array(v3,"f",nbodies)
-        v4,nbodies = input_to_array(v4,"f",nbodies)
-        v5,nbodies = input_to_array(v5,"f",nbodies)
-        v6,nbodies = input_to_array(v6,"f",nbodies)
+        a,nbodies = input_to_array(a,"f",nbodies)
+        e,nbodies = input_to_array(e,"f",nbodies)
+        inc,nbodies = input_to_array(inc,"f",nbodies)
+        capom,nbodies = input_to_array(capm,"f",nbodies)
+        omega,nbodies = input_to_array(omega,"f",nbodies)
+        capm,nbodies = input_to_array(capm,"f",nbodies)
         idvals,nbodies = input_to_array(idvals,"i",nbodies)
         mass,nbodies = input_to_array(mass,"f",nbodies)
         Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
         rhill,nbodies = input_to_array(rhill,"f",nbodies)
         radius,nbodies = input_to_array(radius,"f",nbodies)
-        Ip1,nbodies = input_to_array(Ip1,"f",nbodies)
-        Ip2,nbodies = input_to_array(Ip2,"f",nbodies)
-        Ip3,nbodies = input_to_array(Ip3,"f",nbodies)
-        rotx,nbodies = input_to_array(rotx,"f",nbodies)
-        roty,nbodies = input_to_array(roty,"f",nbodies)
-        rotz,nbodies = input_to_array(rotz,"f",nbodies)
         J2,nbodies = input_to_array(J2,"f",nbodies)
         J4,nbodies = input_to_array(J4,"f",nbodies)
 
-        xh,nbodies = input_to_array_3d(xh,nbodies)
+        rh,nbodies = input_to_array_3d(rh,nbodies)
         vh,nbodies = input_to_array_3d(vh,nbodies)
         rot,nbodies = input_to_array_3d(rot,nbodies)
         Ip,nbodies = input_to_array_3d(Ip,nbodies)
@@ -2447,13 +2437,13 @@ class Simulation:
 
         t = self.param['TSTART']
 
-        if xh is not None:
+        if rh is not None:
             if v1 is not None or v2 is not None or v3 is not None:
-                raise ValueError("Cannot use xh and v1,v2,v3 inputs simultaneously!")
+                raise ValueError("Cannot use rh and v1,v2,v3 inputs simultaneously!")
             else:
-                v1 = xh.T[0]
-                v2 = xh.T[1]
-                v3 = xh.T[2]
+                v1 = rh.T[0]
+                v2 = rh.T[1]
+                v3 = rh.T[2]
 
         if vh is not None:
             if v4 is not None or v5 is not None or v6 is not None:
