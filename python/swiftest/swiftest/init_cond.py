@@ -135,38 +135,37 @@ def solar_system_horizons(plname: str,
     solarpole = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree)
     solarrot = planetrot['Sun'] * param['TU2S']
     rotcb = solarpole.cartesian * solarrot
+    rotcb = np.array([rotcb.x.value, rotcb.y.value, rotcb.z.value])
     Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
 
     param_tmp = param
     param_tmp['OUT_FORM'] = 'XVEL'
 
+    rh = None
+    vh = None
+    a = None
+    e = None
+    inc = None
+    capom = None
+    omega = None
+    capm = None
+    Ip = None
+    rot = None
+    rhill = None
+    GMpl = None
+    Rpl = None
+    J2 = None
+    J4 = None
+
     if plname == "Sun" : # Create central body
         print("Creating the Sun as a central body")
-        v1 = None
-        v2 = None
-        v3 = None
-        v4 = None
-        v5 = None
-        v6 = None
-        rhill = None
         GMpl = GMcb
         Rpl = Rcb
         J2 = J2RP2
         J4 = J4RP4
         if param['ROTATION']:
-            Ip1 = Ipsun[0]
-            Ip2 = Ipsun[1]
-            Ip3 = Ipsun[2]
-            rotx = rotcb.x.value
-            roty = rotcb.y.value
-            rotz = rotcb.z.value
-        else:
-            Ip1 = None
-            Ip2 = None
-            Ip3 = None
-            rotx = None
-            roty = None
-            rotz = None
+            Ip = Ipsun
+            rot = rotcb
     else: # Fetch solar system ephemerides from Horizons
         print(f"Fetching ephemerides data for {plname} from JPL/Horizons")
 
@@ -177,44 +176,38 @@ def solar_system_horizons(plname: str,
         ephemerides_end_date = tend.isoformat()
         ephemerides_step = '1d'
 
-        J2 = None
-        J4 = None
-
         pldata = {}
         pldata[plname] = Horizons(id=idval, location='@sun',
                                epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                        'step': ephemerides_step})
         
         if param['IN_FORM'] == 'XV':
-            v1 = pldata[plname].vectors()['x'][0] * DCONV
-            v2 = pldata[plname].vectors()['y'][0] * DCONV
-            v3 = pldata[plname].vectors()['z'][0] * DCONV
-            v4 = pldata[plname].vectors()['vx'][0] * VCONV
-            v5 = pldata[plname].vectors()['vy'][0] * VCONV
-            v6 = pldata[plname].vectors()['vz'][0] * VCONV
+            rx = pldata[plname].vectors()['x'][0] * DCONV
+            ry = pldata[plname].vectors()['y'][0] * DCONV
+            rz = pldata[plname].vectors()['z'][0] * DCONV
+            vx = pldata[plname].vectors()['vx'][0] * VCONV
+            vy = pldata[plname].vectors()['vy'][0] * VCONV
+            vz = pldata[plname].vectors()['vz'][0] * VCONV
 
-            rh = pldata[plname].vectors()[['x','y','z']][0] * DCONV
-            vh = pldata[plname].vectors()[['vx','vy','vz']][0] * VCONV
+            rh = np.array([rx,ry,rz])
+            vh = np.array([vx,vy,vz])
         elif param['IN_FORM'] == 'EL':
-            v1 = pldata[plname].elements()['a'][0] * DCONV
-            v2 = pldata[plname].elements()['e'][0]
-            v3 = pldata[plname].elements()['incl'][0]
-            v4 = pldata[plname].elements()['Omega'][0]
-            v5 = pldata[plname].elements()['w'][0]
-            v6 = pldata[plname].elements()['M'][0]
+            a = pldata[plname].elements()['a'][0] * DCONV
+            e = pldata[plname].elements()['e'][0]
+            inc = pldata[plname].elements()['incl'][0]
+            capom = pldata[plname].elements()['Omega'][0]
+            omega = pldata[plname].elements()['w'][0]
+            capm = pldata[plname].elements()['M'][0]
 
         if ispl:
             GMpl = GMcb / MSun_over_Mpl[plname]
             if param['CHK_CLOSE']:
                 Rpl = planetradius[plname] * DCONV
-            else:
-                Rpl = None
 
             # Generate planet value vectors
             if (param['RHILL_PRESENT']):
                 rhill = pldata[plname].elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[plname]) ** (-THIRDLONG)
-            else:
-                rhill = None
+
             if (param['ROTATION']):
                 RA = pldata[plname].ephemerides()['NPole_RA'][0]
                 DEC = pldata[plname].ephemerides()['NPole_DEC'][0]
@@ -222,20 +215,9 @@ def solar_system_horizons(plname: str,
                 rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree)
                 rotrate = planetrot[plname] * param['TU2S']
                 rot = rotpole.cartesian * rotrate
+                rot = np.array([rot.x.value, rot.y.value, rot.z.value])
                 Ip = np.array([0.0, 0.0, planetIpz[plname]])
-                Ip1 = Ip[0]
-                Ip2 = Ip[1]
-                Ip3 = Ip[2]
-                rotx = rot.x.value
-                roty = rot.y.value
-                rotz = rot.z.value
-            else:
-                Ip1 = None
-                Ip2 = None
-                Ip3 = None
-                rotx = None
-                roty = None
-                rotz = None
+
         else:
             GMpl = None
 
@@ -244,7 +226,7 @@ def solar_system_horizons(plname: str,
     else:
         plid = idval
 
-    return plname,v1,v2,v3,v4,v5,v6,idval,GMpl,Rpl,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4
+    return plname,idval,a,e,inc,capom,omega,capm,rh,vh,GMpl,Rpl,rhill,Ip,rot,J2,J4
 
 def vec2xr(param: Dict,
            namevals: npt.NDArray[np.str_],
