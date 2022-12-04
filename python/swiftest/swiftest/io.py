@@ -847,7 +847,6 @@ def swifter2xr(param, verbose=True):
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
-
 def swiftest2xr(param, verbose=True):
     """
     Converts a Swiftest binary data file into an xarray DataSet.

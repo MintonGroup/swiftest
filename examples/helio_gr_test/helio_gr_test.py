@@ -30,10 +30,6 @@ el = obj.elements()
 t = (el['datetime_jd']-el['datetime_jd'][0]) / 365.25
 varpi_obs = el['w'] + el['Omega']
 
-# Compute the longitude of the periapsis
-sim_gr.data['varpi'] = np.mod(sim_gr.data['omega'] + sim_gr.data['capom'],360)
-sim_nogr.data['varpi'] = np.mod(sim_nogr.data['omega'] + sim_nogr.data['capom'],360)
-
 varpisim_gr= sim_gr.data['varpi'].sel(name="Mercury")
 varpisim_nogr= sim_nogr.data['varpi'].sel(name="Mercury")
 tsim = sim_gr.data['time']
