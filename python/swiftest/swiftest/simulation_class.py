@@ -2081,30 +2081,33 @@ class Simulation:
 
         body_list = []
         for i,n in enumerate(name):
-            body_list.append(init_cond.solar_system_horizons(n, self.param, date, idval=ephemeris_id[i]))
+            body_list.append(init_cond.solar_system_horizons(n, self.param, date, id=ephemeris_id[i]))
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
         if len(body_list) == 1:
             values = list(np.hsplit(np.array(body_list[0]),17))
         else:
             values = list(np.squeeze(np.hsplit(np.array(body_list),17)))
-        keys = ["name","id","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
+        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
         kwargs = dict(zip(keys,values))
         scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
 
-        for k in scalar_ints:
-            kwargs[k] = kwargs[k].astype(int)
-        for k in scalar_floats:
-            kwargs[k] = kwargs[k].astype(np.float64)
-            if all(np.isnan(kwargs[k])):
-                kwargs[k] = None
-        for k in vector_floats:
-            kwargs[k] = kwargs[k][0].astype(np.float64)
-            if all(np.isnan(kwargs[k])):
-                kwargs[k] = None
-        kwargs['t'] = self.param['TSTART']
+        for k,v in kwargs.items():
+            if k in scalar_ints:
+                kwargs[k] = v.astype(int)
+            elif k in scalar_floats:
+                kwargs[k] = v.astype(np.float64)
+                if all(np.isnan(kwargs[k])):
+                    kwargs[k] = None
+            elif k in vector_floats:
+                kwargs[k] = np.vstack(v)
+                kwargs[k] = kwargs[k].astype(np.float64)
+                if np.all(np.isnan(kwargs[k])):
+                    kwargs[k] = None
+
+        kwargs['t'] = np.array([self.param['TSTART']])
         
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
