@@ -133,7 +133,7 @@ contains
    end subroutine encounter_io_initialize_output
 
 
-   module subroutine encounter_io_write_frame(self, iu, param)
+   module subroutine encounter_io_write_frame(self, nciu, param)
       !! author: David A. Minton
       !!
       !! Write a frame of output of an encounter list structure.
