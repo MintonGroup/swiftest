@@ -26,10 +26,10 @@ contains
          origin_type = source%origin_type, &
          origin_time = source%origin_time, & 
          collision_id = source%collision_id, &
-         origin_xh = source%origin_xh(:), &
+         origin_rh = source%origin_rh(:), &
          origin_vh = source%origin_vh(:), &
          discard_time = source%discard_time, & 
-         discard_xh = source%discard_xh(:), &
+         discard_rh = source%discard_rh(:), &
          discard_vh = source%discard_vh(:), &
          discard_body_id = source%discard_body_id &
       )
@@ -78,18 +78,18 @@ contains
    end subroutine util_copy_particle_info_arr
 
 
-   module subroutine util_copy_store_system(self, system)
+   module subroutine util_copy_store(self, source)
       !! author: David A. Minton
       !!
       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
       implicit none
-      class(storage_frame),         intent(inout) :: self   !! Swiftest storage frame object
-      class(swiftest_nbody_system), intent(in)    :: system !! Swiftest n-body system object
+      class(swiftest_storage_frame),  intent(inout) :: self   !! Swiftest storage frame object
+      class(*),                       intent(in)    :: source !! Swiftest n-body system object
 
-      if (allocated(self%system)) deallocate(self%system)
-      allocate(self%system, source=system)
+      if (allocated(self%item)) deallocate(self%item)
+      allocate(self%item, source=source)
+      
       return
-
-   end subroutine util_copy_store_system
+   end subroutine util_copy_store
 
 end submodule s_util_copy

@@ -36,7 +36,7 @@ contains
          iflag(:) = 0
          allocate(mu(n))
          mu(:) = system%cb%Gmass
-         call drift_all(mu, self%xh, self%vb, self%nbody, param, dt, self%lmask, iflag)
+         call drift_all(mu, self%rh, self%vb, self%nbody, param, dt, self%lmask, iflag)
          if (any(iflag(1:n) /= 0)) then
             where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
             do i = 1, n
@@ -84,29 +84,29 @@ contains
    end subroutine helio_drift_tp
 
 
-   pure elemental subroutine helio_drift_linear_one(xhx, xhy, xhz, ptx, pty, ptz, dt)
+   pure elemental subroutine helio_drift_linear_one(rhx, rhy, rhz, ptx, pty, ptz, dt)
       !! author: David A. Minton
       !!
       !! Calculate the linear drift for a single body
       implicit none
-      real(DP), intent(inout) :: xhx, xhy, xhz
+      real(DP), intent(inout) :: rhx, rhy, rhz
       real(DP), intent(in) :: ptx, pty, ptz, dt
      
-      xhx = xhx + ptx * dt
-      xhy = xhy + pty * dt
-      xhz = xhz + ptz * dt
+      rhx = rhx + ptx * dt
+      rhy = rhy + pty * dt
+      rhz = rhz + ptz * dt
 
       return
    end subroutine helio_drift_linear_one
 
 
-   subroutine helio_drift_linear_all(xh, pt, dt, n, lmask)
+   subroutine helio_drift_linear_all(rh, pt, dt, n, lmask)
       !! author: David A. Minton
       !!
       !! Loop through all the bodies and calculate the linear drift
       implicit none
       ! Arguments
-      real(DP), dimension(:,:), intent(inout) :: xh
+      real(DP), dimension(:,:), intent(inout) :: rh
       real(DP), dimension(:),   intent(in)    :: pt
       real(DP),                 intent(in)    :: dt
       integer(I4B),             intent(in)    :: n
@@ -115,7 +115,7 @@ contains
       integer(I4B) :: i
 
       do i = 1, n
-         if (lmask(i)) call helio_drift_linear_one(xh(1,i), xh(2,i), xh(3,i), pt(1), pt(2), pt(3), dt) 
+         if (lmask(i)) call helio_drift_linear_one(rh(1,i), rh(2,i), rh(3,i), pt(1), pt(2), pt(3), dt) 
       end do
 
       return
@@ -146,7 +146,7 @@ contains
          pt(2) = sum(pl%Gmass(1:npl) * pl%vb(2,1:npl), self%lmask(1:npl))
          pt(3) = sum(pl%Gmass(1:npl) * pl%vb(3,1:npl), self%lmask(1:npl))
          pt(:) = pt(:) / cb%Gmass
-         call helio_drift_linear_all(pl%xh(:,:), pt(:), dt, npl, pl%lmask(:))
+         call helio_drift_linear_all(pl%rh(:,:), pt(:), dt, npl, pl%lmask(:))
 
          if (lbeg) then
             cb%ptbeg = pt(:)
@@ -186,9 +186,9 @@ contains
             pt(:) = cb%ptend
          end if
          where (self%lmask(1:ntp))
-            tp%xh(1, 1:ntp) = tp%xh(1, 1:ntp) + pt(1) * dt
-            tp%xh(2, 1:ntp) = tp%xh(2, 1:ntp) + pt(2) * dt
-            tp%xh(3, 1:ntp) = tp%xh(3, 1:ntp) + pt(3) * dt
+            tp%rh(1, 1:ntp) = tp%rh(1, 1:ntp) + pt(1) * dt
+            tp%rh(2, 1:ntp) = tp%rh(2, 1:ntp) + pt(2) * dt
+            tp%rh(3, 1:ntp) = tp%rh(3, 1:ntp) + pt(3) * dt
          end where
       end associate
    

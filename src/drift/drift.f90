@@ -39,7 +39,7 @@ contains
       associate(n => self%nbody)
          allocate(iflag(n))
          iflag(:) = 0
-         call drift_all(self%mu, self%xh, self%vh, self%nbody, param, dt, self%lmask, iflag)
+         call drift_all(self%mu, self%rh, self%vh, self%nbody, param, dt, self%lmask, iflag)
          if (any(iflag(1:n) /= 0)) then
             where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
             do i = 1, n

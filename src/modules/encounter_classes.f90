@@ -19,27 +19,60 @@ module encounter_classes
    integer(I4B), parameter :: SWEEPDIM = 3
 
    type :: encounter_list
-      integer(I8B)                              :: nenc = 0  !! Total number of encounters
-      logical,      dimension(:),   allocatable :: lvdotr !! relative vdotr flag
-      integer(I4B), dimension(:),   allocatable :: status !! status of the interaction
-      integer(I4B), dimension(:),   allocatable :: index1 !! position of the first body in the encounter
-      integer(I4B), dimension(:),   allocatable :: index2 !! position of the second body in the encounter
-      integer(I4B), dimension(:),   allocatable :: id1    !! id of the first body in the encounter
-      integer(I4B), dimension(:),   allocatable :: id2    !! id of the second body in the encounter
-      real(DP),     dimension(:,:), allocatable :: x1     !! the position of body 1 in the encounter
-      real(DP),     dimension(:,:), allocatable :: x2     !! the position of body 2 in the encounter
-      real(DP),     dimension(:,:), allocatable :: v1     !! the velocity of body 1 in the encounter
-      real(DP),     dimension(:,:), allocatable :: v2     !! the velocity of body 2 in the encounter
-      real(DP),     dimension(:),   allocatable :: t      !! Time of encounter
+      integer(I8B)                                    :: nenc = 0  !! Total number of encounters
+      real(DP)                                        :: t         !! Time of encounter
+      logical,            dimension(:),   allocatable :: lvdotr    !! relative vdotr flag
+      integer(I4B),       dimension(:),   allocatable :: status    !! status of the interaction
+      integer(I4B),       dimension(:),   allocatable :: index1    !! position of the first body in the encounter
+      integer(I4B),       dimension(:),   allocatable :: index2    !! position of the second body in the encounter
+      integer(I4B),       dimension(:),   allocatable :: id1       !! id of the first body in the encounter
+      integer(I4B),       dimension(:),   allocatable :: id2       !! id of the second body in the encounter
+      real(DP),           dimension(:,:), allocatable :: x1        !! the position of body 1 in the encounter
+      real(DP),           dimension(:,:), allocatable :: x2        !! the position of body 2 in the encounter
+      real(DP),           dimension(:,:), allocatable :: v1        !! the velocity of body 1 in the encounter
+      real(DP),           dimension(:,:), allocatable :: v2        !! the velocity of body 2 in the encounter
+      real(DP),           dimension(:),   allocatable :: Gmass1    !! G*mass of body 1 in the encounter
+      real(DP),           dimension(:),   allocatable :: Gmass2    !! G*mass of body 2 in the encounter
+      real(DP),           dimension(:),   allocatable :: radius1   !! radius of body 1 in the encounter
+      real(DP),           dimension(:),   allocatable :: radius2   !! radius of body 2 in the encounter
+      character(NAMELEN), dimension(:),   allocatable :: name1     !! name body 1 in the encounter
+      character(NAMELEN), dimension(:),   allocatable :: name2     !! name of body 2 in the encounter
    contains
-      procedure :: setup   => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: append  => encounter_util_append_list  !! Appends elements from one structure to another
-      procedure :: copy    => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
-      procedure :: dealloc => encounter_util_dealloc_list !! Deallocates all allocatables
-      procedure :: spill   => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: resize  => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      final     :: encounter_util_final_list            !! Finalize the encounter list - deallocates all allocatables
+      procedure :: setup       => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: append      => encounter_util_append_list  !! Appends elements from one structure to another
+      procedure :: copy        => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
+      procedure :: dealloc     => encounter_util_dealloc_list !! Deallocates all allocatables
+      procedure :: spill       => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: resize      => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      procedure :: write_frame => encounter_io_write_frame    !! Writes a frame of encounter data to file 
+      final     :: encounter_util_final_list                  !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
+
+   !! NetCDF dimension and variable names for the enounter save object
+   type, extends(netcdf_parameters) :: encounter_io_parameters
+      integer(I4B)       :: COLLIDER_DIM_SIZE = 2           !! Size of collider dimension
+      integer(I4B)       :: ienc_frame                !! Current frame number for the encounter history
+      character(STRMAX)  :: enc_file = "encounter.nc" !! Encounter output file name
+
+      character(NAMELEN) :: eid_dimname    = "encounter" !! The index of the encountering pair in the encounter list  
+      integer(I4B)       :: eid_dimid                    !! ID for the encounter pair index dimension
+      character(NAMELEN) :: collider_dimname = "collider"  !! Dimension that defines the colliding bodies (bodies 1 and 2 are at dimension coordinates 1 and 2, respectively)
+      integer(I4B)       :: collider_dimid                  !! ID for the collider dimension
+      character(NAMELEN) :: nenc_varname     = "nenc"      !! Total number of encounters
+      integer(I4B)       :: nenc_varid                     !! ID for the number of encounters variable
+      character(NAMELEN) :: level_varname    = "level"     !! Recursion depth
+      integer(I4B)       :: level_varid                    !! ID for the recursion level variable
+   contains
+      procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: open       => encounter_io_open_file         !! Opens a NetCDF file
+   end type encounter_io_parameters
+
+   type, extends(swiftest_storage) :: encounter_storage
+      !! A class that that is used to store simulation history data between file output
+      type(encounter_io_parameters) :: nciu
+   contains
+      procedure :: dump   => encounter_io_dump_storage_list !! Dumps contents of encounter history to file
+   end type encounter_storage
 
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
@@ -173,15 +206,30 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_io_write_frame(iu, t, id1, id2, Gmass1, Gmass2, radius1, radius2, xh1, xh2, vh1, vh2)
+      module subroutine encounter_io_dump_storage_list(self, param)
          implicit none
-         integer(I4B),           intent(in) :: iu               !! Open file unit number
-         real(DP),               intent(in) :: t                !! Time of encounter
-         integer(I4B),           intent(in) :: id1, id2         !! ids of the two encountering bodies
-         real(DP),               intent(in) :: Gmass1, Gmass2   !! G*mass of the two encountering bodies
-         real(DP),               intent(in) :: radius1, radius2 !! Radii of the two encountering bodies
-         real(DP), dimension(:), intent(in) :: xh1, xh2         !! Swiftestcentric position vectors of the two encountering bodies 
-         real(DP), dimension(:), intent(in) :: vh1, vh2         !! Swiftestcentric velocity vectors of the two encountering bodies 
+         class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      end subroutine encounter_io_dump_storage_list
+
+      module subroutine encounter_io_initialize_output(self, param)
+         implicit none
+         class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param   
+      end subroutine encounter_io_initialize_output
+
+      module subroutine encounter_io_open_file(self, param, readonly)
+         implicit none
+         class(encounter_io_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param    !! Current run configuration parameters
+         logical, optional,              intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      end subroutine encounter_io_open_file
+
+      module subroutine encounter_io_write_frame(self, iu, param)
+         implicit none
+         class(encounter_list),          intent(in)    :: self   !! Swiftest encounter structure
+         class(encounter_io_parameters), intent(inout) :: iu     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
       end subroutine encounter_io_write_frame
 
       module subroutine encounter_setup_aabb(self, n, n_last)

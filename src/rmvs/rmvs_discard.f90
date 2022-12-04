@@ -43,7 +43,7 @@ contains
                               // " (" // trim(adjustl(idstrj)) // ") is too small at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
-                     call tp%info(i)%set_value(status="DISCARDED_PLQ", discard_time=t, discard_xh=tp%xh(:,i), &
+                     call tp%info(i)%set_value(status="DISCARDED_PLQ", discard_time=t, discard_rh=tp%rh(:,i), &
                                                discard_vh=tp%vh(:,i), discard_body_id=pl%id(iplperP))
                   end if
                end if

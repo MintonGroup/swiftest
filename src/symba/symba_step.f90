@@ -38,6 +38,7 @@ contains
                lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                if (lencounter) then
                   call self%interp(param, t, dt)
+                  !call self%encounter_history%dump(param) 
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
@@ -275,6 +276,8 @@ contains
                   nenc_old = system%plplenc_list%nenc
                   call system%plplenc_list%setup(0_I8B)
                   call system%plplcollision_list%setup(0_I8B)
+                  system%ienc_frame = 0
+                  if (allocated(system%encounter_history)) deallocate(system%encounter_history)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
                      call pl%reset_kinship([(i, i=1, npl)])

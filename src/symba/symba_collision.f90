@@ -314,7 +314,7 @@ contains
                do concurrent(k = 1:nenc, lmask(k))
                   i = self%index1(k)
                   j = self%index2(k)
-                  xr(:) = pl%xh(:, i) - pl%xh(:, j) 
+                  xr(:) = pl%rh(:, i) - pl%rh(:, j) 
                   vr(:) = pl%vb(:, i) - pl%vb(:, j)
                   rlim = pl%radius(i) + pl%radius(j)
                   Gmtot = pl%Gmass(i) + pl%Gmass(j)
@@ -325,7 +325,7 @@ contains
                do concurrent(k = 1:nenc, lmask(k))
                   i = self%index1(k)
                   j = self%index2(k)
-                  xr(:) = pl%xh(:, i) - tp%xh(:, j) 
+                  xr(:) = pl%rh(:, i) - tp%rh(:, j) 
                   vr(:) = pl%vb(:, i) - tp%vb(:, j)
                   lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), &
                                                             pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k))
@@ -339,11 +339,11 @@ contains
                   i = self%index1(k)
                   j = self%index2(k)
                   if (lcollision(k)) self%status(k) = COLLISION
-                  self%t(k) = t
-                  self%x1(:,k) = pl%xh(:,i) + system%cb%xb(:)
+                  self%tcollision(k) = t
+                  self%x1(:,k) = pl%rh(:,i) + system%cb%xb(:)
                   self%v1(:,k) = pl%vb(:,i) 
                   if (isplpl) then
-                     self%x2(:,k) = pl%xh(:,j) + system%cb%xb(:)
+                     self%x2(:,k) = pl%rh(:,j) + system%cb%xb(:)
                      self%v2(:,k) = pl%vb(:,j) 
                      if (lcollision(k)) then
                         ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional colliders%idx
@@ -352,11 +352,11 @@ contains
                         ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                         pl%lcollision([i, j]) = .true.
                         pl%status([i, j]) = COLLISION
-                        call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i))
-                        call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_xh=pl%xh(:,j), discard_vh=pl%vh(:,j))
+                        call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i))
+                        call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,j), discard_vh=pl%vh(:,j))
                      end if
                   else
-                     self%x2(:,k) = tp%xh(:,j) + system%cb%xb(:)
+                     self%x2(:,k) = tp%rh(:,j) + system%cb%xb(:)
                      self%v2(:,k) = tp%vb(:,j) 
                      if (lcollision(k)) then
                         tp%status(j) = DISCARDED_PLR
@@ -364,7 +364,7 @@ contains
                         write(idstri, *) pl%id(i)
                         write(idstrj, *) tp%id(j)
                         write(timestr, *) t
-                        call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_xh=tp%xh(:,j), discard_vh=tp%vh(:,j))
+                        call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_rh=tp%rh(:,j), discard_vh=tp%vh(:,j))
                         write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                               //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
                               //  " at t = " // trim(adjustl(timestr))
@@ -508,7 +508,7 @@ contains
 
       ! Find the barycenter of each body along with its children, if it has any
       do j = 1, 2
-         colliders%xb(:, j)  = pl%xh(:, idx_parent(j)) + cb%xb(:)
+         colliders%xb(:, j)  = pl%rh(:, idx_parent(j)) + cb%xb(:)
          colliders%vb(:, j)  = pl%vb(:, idx_parent(j))
          ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
          if (param%lrotation) then
@@ -521,7 +521,7 @@ contains
                idx_child = parent_child_index_array(j)%idx(i + 1)
                if (.not. pl%lcollision(idx_child)) cycle
                mchild = pl%mass(idx_child)
-               xchild(:) = pl%xh(:, idx_child) + cb%xb(:)
+               xchild(:) = pl%rh(:, idx_child) + cb%xb(:)
                vchild(:) = pl%vb(:, idx_child)
                volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
                volume(j) = volume(j) + volchild
@@ -747,7 +747,7 @@ contains
                call pl%vb2vh(cb)
                call pl%xh2xb(cb)
                do i = 1, nfrag
-                  plnew%xh(:,i) = frag%xb(:, i) - cb%xb(:)
+                  plnew%rh(:,i) = frag%xb(:, i) - cb%xb(:)
                   plnew%vh(:,i) = frag%vb(:, i) - cb%vb(:)
                end do
                plnew%mass(1:nfrag) = frag%mass(1:nfrag)
@@ -762,7 +762,7 @@ contains
                   do i = 1, nfrag
                      write(newname, FRAGFMT) frag%id(i)
                      call plnew%info(i)%set_value(origin_type="Disruption", origin_time=system%t, name=newname, &
-                                                  origin_xh=plnew%xh(:,i), &
+                                                  origin_rh=plnew%rh(:,i), &
                                                   origin_vh=plnew%vh(:,i), collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
@@ -772,14 +772,14 @@ contains
                         iother = ibiggest
                      end if
                      call pl%info(colliders%idx(i))%set_value(status="Disruption", discard_time=system%t, &
-                                                              discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
+                                                              discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do
                case(SUPERCATASTROPHIC)
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
                      write(newname, FRAGFMT) frag%id(i)
                      call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=system%t, name=newname, &
-                                                  origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), &
+                                                  origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
@@ -789,7 +789,7 @@ contains
                         iother = ibiggest
                      end if
                      call pl%info(colliders%idx(i))%set_value(status="Supercatastrophic", discard_time=system%t, &
-                                                              discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), &
+                                                              discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do
                case(HIT_AND_RUN_DISRUPT)
@@ -798,14 +798,14 @@ contains
                   do i = 2, nfrag
                      write(newname, FRAGFMT) frag%id(i)
                      call plnew%info(i)%set_value(origin_type="Hit and run fragment", origin_time=system%t, name=newname, &
-                                                  origin_xh=plnew%xh(:,i), origin_vh=plnew%vh(:,i), &
+                                                  origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) cycle
                      iother = ibiggest
                      call pl%info(colliders%idx(i))%set_value(status="Hit and run fragmention", discard_time=system%t, &
-                                                              discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), &
+                                                              discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do 
                case(MERGED)
@@ -815,7 +815,7 @@ contains
                      if (colliders%idx(i) == ibiggest) cycle
 
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status="MERGED", discard_time=system%t, discard_xh=pl%xh(:,i), &
+                     call pl%info(colliders%idx(i))%set_value(status="MERGED", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                                               discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do 
                end select

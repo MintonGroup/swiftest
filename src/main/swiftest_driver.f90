@@ -18,16 +18,15 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   class(swiftest_nbody_system), allocatable  :: nbody_system     !! Polymorphic object containing the nbody system to be integrated
-   class(swiftest_parameters),   allocatable  :: param            !! Run configuration parameters
-   character(len=:), allocatable              :: integrator       !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: param_file_name  !! Name of the file containing user-defined parameters
-   character(len=:), allocatable              :: display_style    !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-   integer(I8B)                               :: idump            !! Dump cadence counter
-   integer(I8B)                               :: iout             !! Output cadence counter
-   integer(I8B)                               :: istart           !! Starting index for loop counter
-   integer(I8B)                               :: nloops           !! Number of steps to take in the simulation
-   integer(I8B)                               :: iframe           !! System history frame cindex
+   class(swiftest_nbody_system), allocatable  :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_parameters),   allocatable  :: param             !! Run configuration parameters
+   character(len=:), allocatable              :: integrator        !! Integrator type code (see swiftest_globals for symbolic names)
+   character(len=:),allocatable               :: param_file_name   !! Name of the file containing user-defined parameters
+   character(len=:), allocatable              :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+   integer(I8B)                               :: istart            !! Starting index for loop counter
+   integer(I8B)                               :: nloops            !! Number of steps to take in the simulation
+   integer(I4B)                               :: iout              !! Output cadence counter
+   integer(I4B)                               :: idump             !! Dump cadence counter
    type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                   :: tfrac
    type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
@@ -39,7 +38,7 @@ program swiftest_driver
    character(len=64)                          :: pbarmessage
 
    character(*), parameter                    :: symbacompactfmt = '(";NPLM",ES22.15,$)'
-   type(swiftest_storage(nframes=:)), allocatable     :: system_history
+   type(swiftest_storage(nframes=:)), allocatable :: system_history
 
    call io_get_args(integrator, param_file_name, display_style)
 
@@ -50,7 +49,7 @@ program swiftest_driver
    case default
       allocate(swiftest_parameters :: param)
    end select
-   param%integrator = integrator
+   param%integrator = trim(adjustl(integrator))
    call param%set_display(display_style)
 
    !> Define the maximum number of threads
@@ -80,15 +79,13 @@ program swiftest_driver
 
       ! Set up loop and output cadence variables
       t = tstart
-      iout = istep_out
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1, kind=I8B)
-      ioutput = int(istart / istep_out, kind=I8B)
+      ioutput = int(istart / istep_out, kind=I4B)
 
       ! Set up system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
       allocate(swiftest_storage(dump_cadence) :: system_history)
-      idump = dump_cadence
 
       ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
       if (param%lrestart) then
@@ -96,6 +93,7 @@ program swiftest_driver
       else
          if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
          call nbody_system%write_frame(param)
+         call nbody_system%dump(param)
       end if
 
       write(display_unit, *) " *************** Main Loop *************** "
@@ -105,10 +103,12 @@ program swiftest_driver
          write(pbarmessage,fmt=pbarfmt) t0, tstop
          call pbar%update(1,message=pbarmessage)
       else if (display_style == "COMPACT") then
-         write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
+         write(*,*) "SWIFTEST START " // param%integrator
          call nbody_system%compact_output(param,integration_timer)
       end if
 
+      iout = 0
+      idump = 0
       do iloop = istart, nloops
          !> Step the system forward in time
          call integration_timer%start()
@@ -123,16 +123,16 @@ program swiftest_driver
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
-            iout = iout - 1
-            if (iout == 0) then
-               idump = idump - 1
-               iframe = dump_cadence - idump 
-               system_history%frame(iframe) = nbody_system
+            iout = iout + 1
+            if (iout == istep_out) then
+               iout = 0
+               idump = idump + 1
+               system_history%frame(idump) = nbody_system
 
-               if (idump == 0) then
+               if (idump == dump_cadence) then
+                  idump = 0
                   call nbody_system%dump(param)
                   call system_history%dump(param)
-                  idump = dump_cadence
                end if
 
                tfrac = (t - t0) / (tstop - t0)
@@ -155,14 +155,13 @@ program swiftest_driver
 
                call integration_timer%reset()
 
-               iout = istep_out
             end if
          end if
 
       end do
       ! Dump any remaining history if it exists
       call system_history%dump(param)
-      if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
+      if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // param%integrator
    end associate
 
    call util_exit(SUCCESS)

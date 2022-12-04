@@ -171,7 +171,7 @@ contains
 
       if (self%nbody > 0) then
          do i = 1, self%nbody
-            r2 = dot_product(self%xh(:, i), self%xh(:, i))
+            r2 = dot_product(self%rh(:, i), self%rh(:, i))
             ir = 1.0_DP / sqrt(r2)
             self%ir3h(i) = ir / r2
             r2 = dot_product(self%xj(:, i), self%xj(:, i))

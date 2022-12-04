@@ -35,14 +35,14 @@ contains
          do i = 1, npl
             if (pl%status(i) == INACTIVE) cycle
             Gmtot = Gmtot + pl%Gmass(i)
-            xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%xh(:,i)
+            xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%rh(:,i)
             vtmp(:) = vtmp(:) + pl%Gmass(i) * pl%vh(:,i)
          end do
          cb%xb(:) = -xtmp(:) / Gmtot
          cb%vb(:) = -vtmp(:) / Gmtot
          do i = 1, npl
             if (pl%status(i) == INACTIVE) cycle
-            pl%xb(:,i) = pl%xh(:,i) + cb%xb(:)
+            pl%xb(:,i) = pl%rh(:,i) + cb%xb(:)
             pl%vb(:,i) = pl%vh(:,i) + cb%vb(:)
          end do
       end associate
@@ -68,7 +68,7 @@ contains
       if (self%nbody == 0) return
       associate(tp => self, ntp => self%nbody)
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
-            tp%xb(:, i) = tp%xh(:, i) + cb%xb(:)
+            tp%xb(:, i) = tp%rh(:, i) + cb%xb(:)
             tp%vb(:, i) = tp%vh(:, i) + cb%vb(:)
          end do
       end associate
@@ -95,7 +95,7 @@ contains
 
       associate(pl => self, npl => self%nbody)
          do concurrent (i = 1:npl, pl%status(i) /= INACTIVE)
-            pl%xh(:, i) = pl%xb(:, i) - cb%xb(:)
+            pl%rh(:, i) = pl%xb(:, i) - cb%xb(:)
             pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
          end do
       end associate
@@ -122,7 +122,7 @@ contains
 
       associate(tp => self, ntp => self%nbody)
          do concurrent(i = 1:ntp, tp%status(i) /= INACTIVE)
-            tp%xh(:, i) = tp%xb(:, i) - cb%xb(:)
+            tp%rh(:, i) = tp%xb(:, i) - cb%xb(:)
             tp%vh(:, i) = tp%vb(:, i) - cb%vb(:)
          end do
       end associate
@@ -246,7 +246,7 @@ contains
    end subroutine util_coord_vh2vb_tp
    
 
-   module subroutine util_coord_xh2xb_pl(self, cb)
+   module subroutine util_coord_rh2xb_pl(self, cb)
       !! author: David A. Minton
       !!
       !! Convert position vectors of massive bodies from heliocentric to barycentric coordinates (position only)
@@ -269,20 +269,20 @@ contains
          do i = 1, npl
             if (pl%status(i) == INACTIVE) cycle
             Gmtot = Gmtot + pl%Gmass(i)
-            xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%xh(:,i)
+            xtmp(:) = xtmp(:) + pl%Gmass(i) * pl%rh(:,i)
          end do
          cb%xb(:) = -xtmp(:) / Gmtot
          do i = 1, npl
             if (pl%status(i) == INACTIVE) cycle
-            pl%xb(:,i) = pl%xh(:,i) + cb%xb(:)
+            pl%xb(:,i) = pl%rh(:,i) + cb%xb(:)
          end do
       end associate
 
       return
-   end subroutine util_coord_xh2xb_pl
+   end subroutine util_coord_rh2xb_pl
 
 
-   module subroutine util_coord_xh2xb_tp(self, cb)
+   module subroutine util_coord_rh2xb_tp(self, cb)
       !! author: David A. Minton
       !!
       !! Convert test particles from heliocentric to barycentric coordinates (position only)
@@ -299,11 +299,11 @@ contains
       if (self%nbody == 0) return
       associate(tp => self, ntp => self%nbody)
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
-            tp%xb(:, i) = tp%xh(:, i) + cb%xb(:)
+            tp%xb(:, i) = tp%rh(:, i) + cb%xb(:)
          end do
       end associate
 
       return
-   end subroutine util_coord_xh2xb_tp
+   end subroutine util_coord_rh2xb_tp
 
 end submodule s_util_coord

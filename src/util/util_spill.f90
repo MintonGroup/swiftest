@@ -339,7 +339,7 @@ contains
          call util_spill(keeps%lmask, discards%lmask, lspill_list, ldestructive)
          call util_spill(keeps%ldiscard, discards%ldiscard, lspill_list, ldestructive)
          call util_spill(keeps%mu, discards%mu, lspill_list, ldestructive)
-         call util_spill(keeps%xh, discards%xh, lspill_list, ldestructive)
+         call util_spill(keeps%rh, discards%rh, lspill_list, ldestructive)
          call util_spill(keeps%vh, discards%vh, lspill_list, ldestructive)
          call util_spill(keeps%xb, discards%xb, lspill_list, ldestructive)
          call util_spill(keeps%vb, discards%vb, lspill_list, ldestructive)

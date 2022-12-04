@@ -31,18 +31,18 @@ contains
 
       if (self%nbody == 0) return
 
-      associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
+      associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, rh => self%rh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
-         xj(:, 1) = xh(:, 1)
+         xj(:, 1) = rh(:, 1)
          vj(:, 1) = vh(:, 1)
          sumx(:) = 0.0_DP
          sumv(:) = 0.0_DP
          do i = 2, npl
-            sumx(:) = sumx(:) + GMpl(i - 1) * xh(:, i - 1)
+            sumx(:) = sumx(:) + GMpl(i - 1) * rh(:, i - 1)
             sumv(:) = sumv(:) + GMpl(i - 1) * vh(:, i - 1)
             cap(:) = sumx(:) / eta(i - 1)
             capv(:) = sumv(:) / eta(i - 1)
-            xj(:, i) = xh(:, i) - cap(:)
+            xj(:, i) = rh(:, i) - cap(:)
             vj(:, i) = vh(:, i) - capv(:)
          end do
       end associate
@@ -72,16 +72,16 @@ contains
 
       if (self%nbody == 0) return
 
-      associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, xh => self%xh, vh => self%vh, &
+      associate(npl => self%nbody, GMpl => self%Gmass, eta => self%eta, rh => self%rh, vh => self%vh, &
                 xj => self%xj, vj => self%vj)
-         xh(:, 1) = xj(:, 1)
+         rh(:, 1) = xj(:, 1)
          vh(:, 1) = vj(:, 1)
          sumx(:) = 0.0_DP
          sumv(:) = 0.0_DP
          do i = 2, npl 
             sumx(:) = sumx(:) + GMpl(i - 1) * xj(:, i - 1) / eta(i - 1)
             sumv(:) = sumv(:) + GMpl(i - 1) * vj(:, i - 1) / eta(i - 1)
-            xh(:, i) = xj(:, i) + sumx(:)
+            rh(:, i) = xj(:, i) + sumx(:)
             vh(:, i) = vj(:, i) + sumv(:)
          end do
       end associate

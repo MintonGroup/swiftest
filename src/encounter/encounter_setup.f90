@@ -62,6 +62,8 @@ contains
       ! Arguments
       class(encounter_list), intent(inout) :: self !! Swiftest encounter structure
       integer(I8B),          intent(in)    :: n    !! Number of encounters to allocate space for
+      ! Internals
+      integer(I8B) :: i
 
       if (n < 0) return
 
@@ -75,10 +77,16 @@ contains
       if (allocated(self%x2)) deallocate(self%x2)
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
-      if (allocated(self%t)) deallocate(self%t)
+      if (allocated(self%Gmass1)) deallocate(self%Gmass1)
+      if (allocated(self%Gmass2)) deallocate(self%Gmass2)
+      if (allocated(self%radius1)) deallocate(self%radius1)
+      if (allocated(self%radius2)) deallocate(self%radius2)
+      if (allocated(self%name1)) deallocate(self%name1)
+      if (allocated(self%name2)) deallocate(self%name2)
 
       self%nenc = n
       if (n == 0_I8B) return
+      self%t = 0.0_DP
 
       allocate(self%lvdotr(n))
       allocate(self%status(n))
@@ -90,7 +98,12 @@ contains
       allocate(self%x2(NDIM,n))
       allocate(self%v1(NDIM,n))
       allocate(self%v2(NDIM,n))
-      allocate(self%t(n))
+      allocate(self%Gmass1(n))
+      allocate(self%Gmass2(n))
+      allocate(self%radius1(n))
+      allocate(self%radius2(n))
+      allocate(self%name1(n))
+      allocate(self%name2(n))
 
       self%lvdotr(:) = .false.
       self%status(:) = INACTIVE
@@ -102,7 +115,14 @@ contains
       self%x2(:,:) = 0.0_DP
       self%v1(:,:) = 0.0_DP
       self%v2(:,:) = 0.0_DP
-      self%t(:) = 0.0_DP
+      self%Gmass1(:) = 0.0_DP
+      self%Gmass2(:) = 0.0_DP
+      self%radius1(:) = 0.0_DP
+      self%radius2(:) = 0.0_DP
+      do i = 1_I8B, n
+         self%name1(i) = "UNNAMED"
+         self%name2(i) = "UNNAMED"
+      end do
 
       return
    end subroutine encounter_setup_list

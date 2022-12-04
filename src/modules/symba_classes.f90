@@ -16,20 +16,21 @@ module symba_classes
    use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, netcdf_parameters
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use fraggle_classes,   only : fraggle_colliders, fraggle_fragments
-   use encounter_classes, only : encounter_list
+   use encounter_classes, only : encounter_list, encounter_storage
    implicit none
    public
 
-   integer(I4B), private, parameter :: NENMAX           = 32767
-   integer(I4B), private, parameter :: NTENC            = 3
-   real(DP),     private, parameter :: RHSCALE          = 6.5_DP
-   real(DP),     private, parameter :: RSHELL           = 0.48075_DP
+   integer(I4B), private, parameter :: NENMAX  = 32767
+   integer(I4B), private, parameter :: NTENC   = 3
+   real(DP),     private, parameter :: RHSCALE = 6.5_DP
+   real(DP),     private, parameter :: RSHELL  = 0.48075_DP
 
    type, extends(swiftest_parameters) :: symba_parameters
-      real(DP)                                :: GMTINY         = -1.0_DP          !! Smallest G*mass that is fully gravitating
-      real(DP)                                :: min_GMfrag     = -1.0_DP           !! Smallest G*mass that can be produced in a fragmentation event
-      integer(I4B), dimension(:), allocatable :: seed                             !! Random seeds
-      logical                                 :: lfragmentation = .false.         !! Do fragmentation modeling instead of simple merger.
+      real(DP)                                :: GMTINY         = -1.0_DP !! Smallest G*mass that is fully gravitating
+      real(DP)                                :: min_GMfrag     = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
+      integer(I4B), dimension(:), allocatable :: seed                     !! Random seeds
+      logical                                 :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: encounter_save = "NONE"  !! Indicate how encounter and/or fragmentation data should be saved
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
@@ -45,7 +46,7 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    contains
       procedure :: dealloc  => symba_util_dealloc_kin !! Deallocates all allocatable arrays
-      final :: symba_util_final_kin                   !! Finalizes the SyMBA kinship object - deallocates all allocatables
+      final     :: symba_util_final_kin               !! Finalizes the SyMBA kinship object - deallocates all allocatables
    end type symba_kinship
 
    !********************************************************************************************************************************
@@ -53,8 +54,8 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA central body particle class
    type, extends(helio_cb) :: symba_cb
-      real(DP) :: GM0  = 0.0_DP !! Initial G*mass of the central body
-      real(DP) :: dGM  = 0.0_DP !! Change in G*mass of the central body
+      real(DP) :: GM0 = 0.0_DP !! Initial G*mass of the central body
+      real(DP) :: dGM = 0.0_DP !! Change in G*mass of the central body
       real(DP) :: R0  = 0.0_DP !! Initial radius of the central body
       real(DP) :: dR  = 0.0_DP !! Change in the radius of the central body
    contains
@@ -141,7 +142,8 @@ module symba_classes
    !*******************************************************************************************************************************
    !> SyMBA class for tracking close encounters in a step
    type, extends(encounter_list) :: symba_encounter
-      integer(I4B), dimension(:),   allocatable :: level  !! encounter recursion level
+      integer(I4B), dimension(:),   allocatable :: level      !! encounter recursion level
+      real(DP),     dimension(:),   allocatable :: tcollision !! Time of collision
    contains
       procedure :: collision_check => symba_collision_check_encounter   !! Checks if a test particle is going to collide with a massive body
       procedure :: encounter_check => symba_encounter_check             !! Checks if massive bodies are going through close encounters with each other
@@ -179,11 +181,13 @@ module symba_classes
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_merger),  allocatable :: pl_adds            !! List of added bodies in mergers or collisions
-      class(symba_pltpenc), allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
-      class(symba_plplenc), allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
-      class(symba_plplenc), allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
-      integer(I4B)                      :: irec               !! System recursion level
+      class(symba_merger),                allocatable :: pl_adds            !! List of added bodies in mergers or collisions
+      class(symba_pltpenc),               allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
+      class(symba_plplenc),               allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
+      class(symba_plplenc),               allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
+      integer(I4B)                                    :: irec               !! System recursion level
+      type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      integer(I4B)                                    :: ienc_frame = 0     !! Encounter history frame number
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
@@ -193,6 +197,7 @@ module symba_classes
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
       procedure :: dealloc          => symba_util_dealloc_system          !! Deallocates all allocatable arrays
+      procedure :: resize_storage   => symba_util_resize_storage  
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
@@ -219,7 +224,7 @@ module symba_classes
       module subroutine symba_collision_make_colliders_pl(self,idx)
          implicit none
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
-         integer(I4B), dimension(2), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision
+         integer(I4B), dimension(2), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
       end subroutine symba_collision_make_colliders_pl
 
       module subroutine symba_collision_resolve_fragmentations(self, system, param)
@@ -695,6 +700,12 @@ module symba_classes
          class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
          integer(I4B),    intent(in)    :: nnew  !! New size neded
       end subroutine symba_util_resize_pl
+
+      module subroutine symba_util_resize_storage(self, nnew)
+         implicit none
+         class(symba_nbody_system), intent(inout) :: self !! SyMBA nbody system object
+         integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      end subroutine symba_util_resize_storage
 
       module subroutine symba_util_resize_tp(self, nnew)
          implicit none

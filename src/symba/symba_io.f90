@@ -63,6 +63,9 @@ contains
                   read(param_value, *) param%GMTINY
                case ("MIN_GMFRAG")
                   read(param_value, *) param%min_GMfrag
+               case ("ENCOUNTER_SAVE")
+                  call io_toupper(param_value)
+                  read(param_value, *) param%encounter_save
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -112,6 +115,13 @@ contains
 
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
          call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
+
+         if ((param%encounter_save /= "NONE") .and. (param%encounter_save /= "ALL") .and. (param%encounter_save /= "FRAGMENTATION")) then
+            write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
+            write(iomsg,*) 'Valid options are NONE, ALL, or FRAGMENTATION'
+            iostat = -1
+            return
+         end if
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
@@ -177,12 +187,12 @@ contains
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
 
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_particle_info(param%nciu, param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nciu, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
 
-            call pl_discards%write_particle_info(param%nciu, param)
+            call pl_discards%write_info(param%nciu, param)
          end select
       end associate
 

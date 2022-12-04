@@ -112,9 +112,9 @@ contains
          pl%ah(:, 1:npl) = 0.0_DP
          call pl%accel(system, param, t, lbeg)
          if (lbeg) then
-            call pl%set_beg_end(xbeg = pl%xh)
+            call pl%set_beg_end(xbeg = pl%rh)
          else
-            call pl%set_beg_end(xend = pl%xh)
+            call pl%set_beg_end(xend = pl%rh)
          end if
          do concurrent(i = 1:npl, pl%lmask(i)) 
             pl%vb(1, i) = pl%vb(1, i) + pl%ah(1, i) * dt

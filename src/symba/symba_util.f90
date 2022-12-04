@@ -183,6 +183,7 @@ contains
       class is (symba_encounter)
          associate(n => source%nenc)
             self%level(1:n) = source%level(1:n) 
+            self%tcollision(1:n) = source%tcollision(1:n) 
          end associate
       end select
 
@@ -201,6 +202,7 @@ contains
       class(symba_encounter),  intent(inout) :: self !! SyMBA encounter list
 
       if (allocated(self%level)) deallocate(self%level)
+      if (allocated(self%tcollision)) deallocate(self%tcollision)
 
       return
    end subroutine symba_util_dealloc_encounter_list
@@ -532,7 +534,7 @@ contains
             if (param%qmin_coord == "HELIO") then
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
+                     vdotr = dot_product(pl%rh(:,i), pl%vh(:,i))
                      if (vdotr > 0.0_DP) then
                         pl%isperi(i) = 1
                      else
@@ -556,11 +558,11 @@ contains
             if (param%qmin_coord == "HELIO") then
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
+                     vdotr = dot_product(pl%rh(:,i), pl%vh(:,i))
                      if (pl%isperi(i) == -1) then
                         if (vdotr >= 0.0_DP) then
                            pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(pl%mu(i), pl%xh(1,i), pl%xh(2,i), pl%xh(3,i), pl%vh(1,i), pl%vh(2,i), pl%vh(3,i), &
+                           CALL orbel_xv2aeq(pl%mu(i), pl%rh(1,i), pl%rh(2,i), pl%rh(3,i), pl%vh(1,i), pl%vh(2,i), pl%vh(3,i), &
                                   pl%atp(i), e, pl%peri(i))
                         end if
                      else
@@ -678,7 +680,7 @@ contains
             end where
          end select
 
-         call pl%write_particle_info(param%nciu, param)
+         call pl%write_info(param%nciu, param)
          deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 
@@ -724,21 +726,33 @@ contains
                   ! This is an encounter we already know about, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%Gmass1(k) = plplenc_old%Gmass1(k) 
+                  system%plplenc_list%Gmass2(k) = plplenc_old%Gmass2(k) 
+                  system%plplenc_list%radius1(k) = plplenc_old%radius1(k) 
+                  system%plplenc_list%radius2(k) = plplenc_old%radius2(k) 
+                  system%plplenc_list%name1(k) = plplenc_old%name1(k) 
+                  system%plplenc_list%name2(k) = plplenc_old%name2(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
                   system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%tcollision(k) = plplenc_old%tcollision(k)
                   system%plplenc_list%level(k) = plplenc_old%level(k)
                else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
                   ! This is an encounter we already know about, but with the order reversed, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
+                  system%plplenc_list%Gmass1(k) = plplenc_old%Gmass2(k) 
+                  system%plplenc_list%Gmass2(k) = plplenc_old%Gmass1(k) 
+                  system%plplenc_list%radius1(k) = plplenc_old%radius2(k) 
+                  system%plplenc_list%radius2(k) = plplenc_old%radius1(k) 
+                  system%plplenc_list%name1(k) = plplenc_old%name2(k) 
+                  system%plplenc_list%name2(k) = plplenc_old%name1(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
                   system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
+                  system%plplenc_list%tcollision(k) = plplenc_old%tcollision(k)
                   system%plplenc_list%level(k) = plplenc_old%level(k)
                end if
                system%plplenc_list%index1(k) = findloc(pl%id(1:npl), system%plplenc_list%id1(k), dim=1)
@@ -761,7 +775,13 @@ contains
                system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%t(1:nencmin) = pack(system%plplenc_list%t(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%Gmass1(1:nencmin) = pack(system%plplenc_list%Gmass1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%Gmass2(1:nencmin) = pack(system%plplenc_list%Gmass2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%radius1(1:nencmin) = pack(system%plplenc_list%radius1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%radius2(1:nencmin) = pack(system%plplenc_list%radius2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%name1(1:nencmin) = pack(system%plplenc_list%name1(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%name2(1:nencmin) = pack(system%plplenc_list%name2(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%tcollision(1:nencmin) = pack(system%plplenc_list%tcollision(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))
                do i = 1, NDIM
                   system%plplenc_list%x1(i, 1:nencmin) = pack(system%plplenc_list%x1(i, 1:nenc_old), lmask(1:nenc_old))
@@ -878,6 +898,46 @@ contains
 
       return
    end subroutine symba_util_resize_pl
+
+
+   module subroutine symba_util_resize_storage(self, nnew)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system), intent(inout) :: self !! Swiftest encounter list 
+      integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      ! Internals
+      type(encounter_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nold
+      logical      :: lmalloc
+
+
+      lmalloc = allocated(self%encounter_history)
+      if (lmalloc) then
+         nold = self%encounter_history%nframes
+      else
+         nold = 0
+      end if
+
+      if (nnew > nold) then
+         allocate(encounter_storage(8 * nnew) :: tmp) 
+         if (lmalloc) then
+            do i = 1, nold
+               if (allocated(self%encounter_history%frame(i)%item)) tmp%frame(i) = self%encounter_history%frame(i)%item
+            end do
+            deallocate(self%encounter_history)
+         end if
+         call move_alloc(tmp,self%encounter_history)
+      end if
+
+      return
+   end subroutine symba_util_resize_storage
+
 
 
    module subroutine symba_util_resize_tp(self, nnew)

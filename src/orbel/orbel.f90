@@ -28,7 +28,7 @@ contains
       call self%set_mu(cb)
       do concurrent (i = 1:self%nbody)
          call orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
-                           self%omega(i), self%capm(i), self%xh(:, i), self%vh(:, i))
+                           self%omega(i), self%capm(i), self%rh(:, i), self%vh(:, i))
       end do
       return
    end subroutine orbel_el2xv_vec
@@ -874,6 +874,7 @@ contains
       class(swiftest_cb),   intent(inout) :: cb   !! Swiftest central body object
       ! internals
       integer(I4B) :: i
+      real(DP) :: varpi, lam, f, cape, capf
     
       if (self%nbody == 0) return
 
@@ -885,17 +886,18 @@ contains
       if (allocated(self%omega)) deallocate(self%omega); allocate(self%omega(self%nbody))
       if (allocated(self%capm)) deallocate(self%capm);  allocate(self%capm(self%nbody))
       do concurrent (i = 1:self%nbody)
-         call orbel_xv2el(self%mu(i), self%xh(1,i), self%xh(2,i), self%xh(3,i), &
+         call orbel_xv2el(self%mu(i), self%rh(1,i), self%rh(2,i), self%rh(3,i), &
                                       self%vh(1,i), self%vh(2,i), self%vh(3,i), &
-                          self%a(i), self%e(i), self%inc(i),  &
-                          self%capom(i), self%omega(i), self%capm(i))
+                                      self%a(i), self%e(i), self%inc(i),  &
+                                      self%capom(i), self%omega(i), self%capm(i), &
+                                      varpi, lam, f, cape, capf)
       end do
 
       return
    end subroutine orbel_xv2el_vec 
 
 
-   pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
+   pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -921,9 +923,14 @@ contains
       real(DP), intent(out) :: capom !! longitude of ascending node
       real(DP), intent(out) :: omega !! argument of periapsis
       real(DP), intent(out) :: capm  !! mean anomaly
+      real(DP), intent(out) :: varpi !! longitude of periapsis
+      real(DP), intent(out) :: lam   !! mean longitude
+      real(DP), intent(out) :: f     !! true anomaly
+      real(DP), intent(out) :: cape  !! eccentric anomaly (eccentric orbits)
+      real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, cape, tmpf, capf
+      real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot
       real(DP), dimension(NDIM) :: hvec, x, v
 
       a = 0.0_DP
@@ -1023,6 +1030,18 @@ contains
       end select
       omega = u - w
       if (omega < 0.0_DP) omega = omega + TWOPI
+      varpi = mod(omega + capom, TWOPI)
+      lam = mod(capm + varpi, TWOPI)
+      if (e > VSMALL) then
+         cf = 1.0_DP / e * (a * (1.0_DP - e**2)/r - 1.0_DP)
+         rdot = sign(sqrt(v2 - (h / r)**2),rdotv)
+         sf = a * (1.0_DP - e**2) / (h * e) * rdot
+         f = atan2(sf,cf)
+         if (f < 0.0_DP) f = f + TWOPI
+      else
+         f = u
+      end if
+
 
       return
    end subroutine orbel_xv2el
