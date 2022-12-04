@@ -141,25 +141,25 @@ def solar_system_horizons(plname: str,
     param_tmp = param
     param_tmp['OUT_FORM'] = 'XVEL'
 
-    rh = None
-    vh = None
+    rh = np.full(3,np.nan)
+    vh = np.full(3,np.nan)
     a = None
     e = None
     inc = None
     capom = None
     omega = None
     capm = None
-    Ip = None
-    rot = None
+    Ip = np.full(3,np.nan)
+    rot = np.full(3,np.nan)
     rhill = None
-    GMpl = None
+    Gmass = None
     Rpl = None
     J2 = None
     J4 = None
 
     if plname == "Sun" : # Create central body
         print("Creating the Sun as a central body")
-        GMpl = GMcb
+        Gmass = GMcb
         Rpl = Rcb
         J2 = J2RP2
         J4 = J4RP4
@@ -200,7 +200,7 @@ def solar_system_horizons(plname: str,
             capm = pldata[plname].elements()['M'][0]
 
         if ispl:
-            GMpl = GMcb / MSun_over_Mpl[plname]
+            Gmass = GMcb / MSun_over_Mpl[plname]
             if param['CHK_CLOSE']:
                 Rpl = planetradius[plname] * DCONV
 
@@ -219,33 +219,31 @@ def solar_system_horizons(plname: str,
                 Ip = np.array([0.0, 0.0, planetIpz[plname]])
 
         else:
-            GMpl = None
+            Gmass = None
 
     if idval is None:
         plid = planetid[plname]
     else:
         plid = idval
 
-    return plname,idval,a,e,inc,capom,omega,capm,rh,vh,GMpl,Rpl,rhill,Ip,rot,J2,J4
+    return plname,idval,a,e,inc,capom,omega,capm,rh,vh,Gmass,Rpl,rhill,Ip,rot,J2,J4
 
 def vec2xr(param: Dict,
-           namevals: npt.NDArray[np.str_],
-           v1: npt.NDArray[np.float_],
-           v2: npt.NDArray[np.float_],
-           v3: npt.NDArray[np.float_],
-           v4: npt.NDArray[np.float_],
-           v5: npt.NDArray[np.float_],
-           v6: npt.NDArray[np.float_],
-           idvals: npt.NDArray[np.int_],
-           GMpl: npt.NDArray[np.float_] | None=None,
-           Rpl: npt.NDArray[np.float_] | None=None,
+           name: npt.NDArray[np.str_] | None=None,
+           id: npt.NDArray[np.int_] | None=None,
+           a: npt.NDArray[np.float_] | None=None,
+           e: npt.NDArray[np.float_] | None=None,
+           inc: npt.NDArray[np.float_] | None=None,
+           capom: npt.NDArray[np.float_] | None=None,
+           omega: npt.NDArray[np.float_] | None=None,
+           capm: npt.NDArray[np.float_] | None=None,
+           rh: npt.NDArray[np.int_] | None=None,
+           vh: npt.NDArray[np.int_] | None=None,
+           Gmass: npt.NDArray[np.float_] | None=None,
+           radius: npt.NDArray[np.float_] | None=None,
            rhill: npt.NDArray[np.float_] | None=None,
-           Ip1: npt.NDArray[np.float_] | None=None,
-           Ip2: npt.NDArray[np.float_] | None=None,
-           Ip3: npt.NDArray[np.float_] | None=None,
-           rotx: npt.NDArray[np.float_] | None=None,
-           roty: npt.NDArray[np.float_] | None=None,
-           rotz: npt.NDArray[np.float_] | None=None,
+           Ip: npt.NDArray[np.float_] | None=None,
+           rot: npt.NDArray[np.float_] | None=None,
            J2: npt.NDArray[np.float_] | None=None,
            J4: npt.NDArray[np.float_] | None=None,
            t: float=0.0):
@@ -256,76 +254,66 @@ def vec2xr(param: Dict,
     ----------
     param : dict
         Swiftest paramuration parameters.
-    idvals : integer 
-        Array of body index values.
-    namevals :
-
-    v1 : array of floats
-        rh 
-    v2 : array of floats
-        yh
-    v3 : array of floats
-        zh
-    v4 : array of floats
-        vhrh
-    v5 : array of floats
-        vhyh
-    v6 : array of floats
-        vhzh
-    GMpl : array of floats
-        G*mass
-    Rpl : array of floats
-        radius
-    rhill : array of floats
-        Hill Radius
-    Ip1 : array of floats
-        Principal axes moments of inertia
-    Ip2 : array of floats
-        Principal axes moments of inertia
-    Ip3 : array of floats
-        Principal axes moments of inertia
-    rox : array of floats
-        Rotation rate vector
-    roty : array of floats
-        Rotation rate vector
-    rotz : array of floats
-        Rotation rate vector
+    name : str or array-like of str, optional
+        Name or names of Bodies. If none passed, name will be "Body<idval>"
+    id : int or array-like of int, optional
+        Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
+        Dataset ids.
+    a : float or array-like of float, optional
+        semimajor axis for param['IN_FORM'] == "EL"
+    e : float or array-like of float, optional
+        eccentricity  for param['IN_FORM'] == "EL"
+    inc : float or array-like of float, optional
+        inclination for param['IN_FORM'] == "EL"
+    capom : float or array-like of float, optional
+        longitude of periapsis for param['IN_FORM'] == "EL"
+    omega : float or array-like of float, optional
+        argument of periapsis for param['IN_FORM'] == "EL"
+    capm : float or array-like of float, optional
+        mean anomaly for param['IN_FORM'] == "EL"
+    rh : (n,3) array-like of float, optional
+        Position vector array. This can be used instead of passing v1, v2, and v3 sepearately for "XV" input format
+    vh : (n,3) array-like of float, optional
+        Velocity vector array. This can be used instead of passing v4, v5, and v6 sepearately for "XV" input format
+    Gmass : float or array-like of float, optional
+        G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
+    radius : float or array-like of float, optional
+        Radius values if these are massive bodies
+    rhill : float or array-like of float, optional
+        Hill's radius values if these are massive bodies
+    rot:  (n,3) array-like of float, optional
+        Rotation rate vectors if these are massive bodies with rotation enabled. This can be used instead of passing
+    rotx, roty, and rotz separately
+        Ip: (n,3) array-like of flaot, optional
+    Principal axes moments of inertia vectors if these are massive bodies with rotation enabled. This can be used
+        instead of passing Ip1, Ip2, and Ip3 separately
     t : array of floats
         Time at start of simulation
     Returns
     -------
     ds : xarray dataset
     """
+
     if param['ROTATION']:
-        if Ip1 is None:
-            Ip1 = np.full_like(v1, 0.4)
-        if Ip2 is None:
-            Ip2 = np.full_like(v1, 0.4)
-        if Ip3 is None:
-            Ip3 = np.full_like(v1, 0.4)
-        if rotx is None:
-            rotx = np.full_like(v1, 0.0)
-        if roty is None:
-            roty = np.full_like(v1, 0.0)
-        if rotz is None:
-            rotz = np.full_like(v1, 0.0)
-    
+        if Ip is None:
+            Ip = np.full_like(rot, 0.4)
+
     dims = ['id', 'vec']
     infodims = ['id', 'vec']
     space_coords = np.array(["x","y","z"])
 
     # The central body is always given id 0
-    if GMpl is not None:
-        icb = (~np.isnan(GMpl)) & (idvals == 0)
-        ipl = (~np.isnan(GMpl)) & (idvals != 0)
-        itp = (np.isnan(GMpl)) & (idvals != 0)
+    if Gmass is not None:
+        icb = (~np.isnan(Gmass)) & (id == 0)
+        ipl = (~np.isnan(Gmass)) & (id != 0)
+        itp = (np.isnan(Gmass)) & (id != 0)
         iscb = any(icb)
         ispl = any(ipl)
         istp = any(itp)
     else:
-        icb = np.full_like(idvals,False)
-        ipl = np.full_like(idvals,False)
-        itp = idvals != 0
+        icb = np.full_like(id,False)
+        ipl = np.full_like(id,False)
+        itp = id != 0
         iscb = False
         ispl = False
         istp = any(itp)
@@ -342,25 +330,25 @@ def vec2xr(param: Dict,
     param['OUT_FORM'] = param['IN_FORM']
     clab, plab, tlab, infolab_float, infolab_int, infolab_str = swiftest.io.make_swiftest_labels(param)
     param['OUT_FORM'] = old_out_form
-    particle_type = np.empty_like(namevals)
+    particle_type = np.empty_like(name)
     vec = np.vstack([v1,v2,v3,v4,v5,v6])
 
     if iscb:
         particle_type[icb] = "Central Body"
         lab_cb = clab.copy()
-        vec_cb = np.vstack([GMpl[icb],Rpl[icb],J2[icb],J4[icb]])
+        vec_cb = np.vstack([Gmass[icb],Rpl[icb],J2[icb],J4[icb]])
         if param['ROTATION']:
             vec_cb = np.vstack([vec_cb, Ip1[icb], Ip2[icb], Ip3[icb], rotx[icb], roty[icb], rotz[icb]])
 
-        ds_cb = xr.DataArray(vec_cb.T, dims=dims, coords={'id': idvals[icb], 'vec': lab_cb})
+        ds_cb = xr.DataArray(vec_cb.T, dims=dims, coords={'id': id[icb], 'vec': lab_cb})
         ds_cb = ds_cb.expand_dims({"time":1}).assign_coords({"time": [t]}).to_dataset(dim='vec')
     else:
         ds_cb =  None
 
     if ispl:
-        particle_type[ipl] = np.repeat("Massive Body",idvals[ipl].size)
+        particle_type[ipl] = np.repeat("Massive Body",id[ipl].size)
         lab_pl = plab.copy()
-        vec_pl = np.vstack([vec[:,ipl], GMpl[ipl]])
+        vec_pl = np.vstack([vec[:,ipl], Gmass[ipl]])
         if param['CHK_CLOSE']:
             vec_pl = np.vstack([vec_pl, Rpl[ipl]])
         if param['RHILL_PRESENT']:
@@ -368,21 +356,21 @@ def vec2xr(param: Dict,
         if param['ROTATION']:
             vec_pl = np.vstack([vec_pl, Ip1[ipl], Ip2[ipl], Ip3[ipl], rotx[ipl], roty[ipl], rotz[ipl]])
 
-        ds_pl = xr.DataArray(vec_pl.T, dims=dims, coords={'id': idvals[ipl], 'vec': lab_pl})
+        ds_pl = xr.DataArray(vec_pl.T, dims=dims, coords={'id': id[ipl], 'vec': lab_pl})
         ds_pl = ds_pl.expand_dims({"time":1}).assign_coords({"time": [t]}).to_dataset(dim='vec')
     else:
         ds_pl =  None
 
     if istp:
-        particle_type[itp] = np.repeat("Test Particle",idvals[itp].size)
+        particle_type[itp] = np.repeat("Test Particle",id[itp].size)
         lab_tp = tlab.copy()
         vec_tp = vec[:,itp]
-        ds_tp = xr.DataArray(vec_tp.T, dims=dims, coords={'id': idvals[itp], 'vec': lab_tp})
+        ds_tp = xr.DataArray(vec_tp.T, dims=dims, coords={'id': id[itp], 'vec': lab_tp})
         ds_tp = ds_tp.expand_dims({"time":1}).assign_coords({"time": [t]}).to_dataset(dim='vec')
     else:
         ds_tp =  None
 
-    ds_info = xr.DataArray(np.vstack([namevals,particle_type]).T, dims=infodims, coords={'id': idvals, 'vec' : ["name", "particle_type"]}).to_dataset(dim='vec')
+    ds_info = xr.DataArray(np.vstack([name,particle_type]).T, dims=infodims, coords={'id': id, 'vec' : ["name", "particle_type"]}).to_dataset(dim='vec')
     ds = [d for d in [ds_cb, ds_pl, ds_tp] if d is not None]
     if len(ds) > 1:
         ds = xr.combine_by_coords(ds)

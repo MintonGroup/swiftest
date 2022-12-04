@@ -2085,61 +2085,28 @@ class Simulation:
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
         if len(body_list) == 1:
-            name,v1,v2,v3,v4,v5,v6,ephemeris_id,Gmass,radius,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.hsplit(np.array(body_list[0]),19))
+            values = list(np.hsplit(np.array(body_list[0]),17))
         else:
-            name,v1,v2,v3,v4,v5,v6,ephemeris_id,Gmass,radius,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.squeeze(np.hsplit(np.array(body_list),19)))
+            values = list(np.squeeze(np.hsplit(np.array(body_list),17)))
+        keys = ["name","id","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
+        kwargs = dict(zip(keys,values))
+        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
+        vector_floats = ["rh","vh","Ip","rot"]
+        scalar_ints = ["id"]
 
-        ephemeris_id = ephemeris_id.astype(int)
-        v1 = v1.astype(np.float64)
-        v2 = v2.astype(np.float64)
-        v3 = v3.astype(np.float64)
-        v4 = v4.astype(np.float64)
-        v5 = v5.astype(np.float64)
-        v6 = v6.astype(np.float64)
-        rhill = rhill.astype(np.float64)
-        J2 = J2.astype(np.float64)
-        J4 = J4.astype(np.float64)
-
-        Gmass = Gmass.astype(np.float64)
-        radius = radius.astype(np.float64)
-        Ip1 = Ip1.astype(np.float64)
-        Ip2 = Ip2.astype(np.float64)
-        Ip3 = Ip3.astype(np.float64)
-        rotx = rotx.astype(np.float64)
-        roty = roty.astype(np.float64)
-        rotz = rotz.astype(np.float64)
-
-
-        if all(np.isnan(Gmass)):
-            Gmass = None
-        if all(np.isnan(radius)):
-            radius = None
-        if all(np.isnan(rhill)):
-            rhill = None
-        if all(np.isnan(Ip1)):
-            Ip1 = None
-        if all(np.isnan(Ip2)):
-            Ip2 = None
-        if all(np.isnan(Ip3)):
-            Ip3 = None
-        if all(np.isnan(rotx)):
-            rotx = None
-        if all(np.isnan(roty)):
-            roty = None
-        if all(np.isnan(rotz)):
-            rotz = None
-        if all(np.isnan(J2)):
-            J2 = None
-        if all(np.isnan(J4)):
-            J4 = None
-
-        t = self.param['TSTART']
-
-        dsnew = init_cond.vec2xr(self.param,name,v1,v2,v3,v4,v5,v6,ephemeris_id,
-                                 GMpl=Gmass, Rpl=radius, rhill=rhill,
-                                 Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
-                                 rotx=rotx, roty=roty, rotz=rotz,
-                                 J2=J2, J4=J4, t=t)
+        for k in scalar_ints:
+            kwargs[k] = kwargs[k].astype(int)
+        for k in scalar_floats:
+            kwargs[k] = kwargs[k].astype(np.float64)
+            if all(np.isnan(kwargs[k])):
+                kwargs[k] = None
+        for k in vector_floats:
+            kwargs[k] = kwargs[k][0].astype(np.float64)
+            if all(np.isnan(kwargs[k])):
+                kwargs[k] = None
+        kwargs['t'] = self.param['TSTART']
+        
+        dsnew = init_cond.vec2xr(self.param,**kwargs)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
@@ -2272,7 +2239,7 @@ class Simulation:
 
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_] | None=None,
-                 idvals: int | list[int] | npt.NDArray[np.int_] | None=None,
+                 id: int | list[int] | npt.NDArray[np.int_] | None=None,
                  a: float | List[float] | npt.NDArray[np.float_] | None = None,
                  e: float | List[float] | npt.NDArray[np.float_] | None = None,
                  inc: float | List[float] | npt.NDArray[np.float_] | None = None,
@@ -2285,14 +2252,8 @@ class Simulation:
                  Gmass: float | List[float] | npt.NDArray[np.float_] | None=None,
                  radius: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip1: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip3: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip: List[float] | npt.NDArray[np.float_] | None=None,
-                 rotx: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 roty: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 rotz: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
+                 Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None):
         """
@@ -2305,7 +2266,7 @@ class Simulation:
         ----------
         name : str or array-like of str, optional
             Name or names of Bodies. If none passed, name will be "Body<idval>"
-        idvals : int or array-like of int, optional
+        id : int or array-like of int, optional
             Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
             Dataset ids.
         a : float or array-like of float, optional
@@ -2403,10 +2364,10 @@ class Simulation:
         a,nbodies = input_to_array(a,"f",nbodies)
         e,nbodies = input_to_array(e,"f",nbodies)
         inc,nbodies = input_to_array(inc,"f",nbodies)
-        capom,nbodies = input_to_array(capm,"f",nbodies)
+        capom,nbodies = input_to_array(capom,"f",nbodies)
         omega,nbodies = input_to_array(omega,"f",nbodies)
         capm,nbodies = input_to_array(capm,"f",nbodies)
-        idvals,nbodies = input_to_array(idvals,"i",nbodies)
+        idvals,nbodies = input_to_array(id,"i",nbodies)
         mass,nbodies = input_to_array(mass,"f",nbodies)
         Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
         rhill,nbodies = input_to_array(rhill,"f",nbodies)
