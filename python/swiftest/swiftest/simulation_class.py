@@ -2085,9 +2085,9 @@ class Simulation:
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
         if len(body_list) == 1:
-            values = list(np.hsplit(np.array(body_list[0]),17))
+            values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
         else:
-            values = list(np.squeeze(np.hsplit(np.array(body_list),17)))
+            values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
         keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
         kwargs = dict(zip(keys,values))
         scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
@@ -2107,7 +2107,7 @@ class Simulation:
                 if np.all(np.isnan(kwargs[k])):
                     kwargs[k] = None
 
-        kwargs['t'] = np.array([self.param['TSTART']])
+        kwargs['time'] = np.array([self.param['TSTART']])
         
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
@@ -2370,7 +2370,7 @@ class Simulation:
         capom,nbodies = input_to_array(capom,"f",nbodies)
         omega,nbodies = input_to_array(omega,"f",nbodies)
         capm,nbodies = input_to_array(capm,"f",nbodies)
-        idvals,nbodies = input_to_array(id,"i",nbodies)
+        id,nbodies = input_to_array(id,"i",nbodies)
         mass,nbodies = input_to_array(mass,"f",nbodies)
         Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
         rhill,nbodies = input_to_array(rhill,"f",nbodies)
@@ -2388,50 +2388,18 @@ class Simulation:
         else:
             maxid = self.data.id.max().values[()]
 
-        if idvals is None:
-            idvals = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
+        if id is None:
+            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
 
         if name is None:
-            name=np.char.mod(f"Body%d",idvals)
+            name=np.char.mod(f"Body%d",id)
 
         if len(self.data) > 0:
-            dup_id = np.in1d(idvals, self.data.id)
+            dup_id = np.in1d(id, self.data.id)
             if any(dup_id):
-                raise ValueError(f"Duplicate ids detected: ", *idvals[dup_id])
+                raise ValueError(f"Duplicate ids detected: ", *id[dup_id])
 
-        t = self.param['TSTART']
-
-        if rh is not None:
-            if v1 is not None or v2 is not None or v3 is not None:
-                raise ValueError("Cannot use rh and v1,v2,v3 inputs simultaneously!")
-            else:
-                v1 = rh.T[0]
-                v2 = rh.T[1]
-                v3 = rh.T[2]
-
-        if vh is not None:
-            if v4 is not None or v5 is not None or v6 is not None:
-                raise ValueError("Cannot use vh and v4,v5,v6 inputs simultaneously!")
-            else:
-                v4 = vh.T[0]
-                v5 = vh.T[1]
-                v6 = vh.T[2]
-
-        if rot is not None:
-            if rotx is not None or roty is not None or rotz is not None:
-                raise ValueError("Cannot use rot and rotx,roty,rotz inputs simultaneously!")
-            else:
-                rotx = rot.T[0]
-                roty = rot.T[1]
-                rotz = rot.T[2]
-
-        if Ip is not None:
-            if Ip1 is not None or Ip2 is not None or Ip3 is not None:
-                raise ValueError("Cannot use Ip and Ip1,Ip2,Ip3 inputs simultaneously!")
-            else:
-                Ip1 = Ip.T[0]
-                Ip2 = Ip.T[1]
-                Ip3 = Ip.T[2]
+        time = [self.param['TSTART']]
 
         if mass is not None:
             if Gmass is not None:
@@ -2439,11 +2407,8 @@ class Simulation:
             else:
                 Gmass = self.param['GU'] * mass
 
-        dsnew = init_cond.vec2xr(self.param, name, v1, v2, v3, v4, v5, v6, idvals,
-                                 GMpl=Gmass, Rpl=radius, rhill=rhill,
-                                 Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
-                                 rotx=rotx, roty=roty, rotz=rotz,
-                                 J2=J2, J4=J4,t=t)
+        dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, J2=J2, J4=J4, time=time)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)

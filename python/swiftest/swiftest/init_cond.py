@@ -266,36 +266,35 @@ def vec2xr(param: Dict, **kwargs: Any):
     Ip: (n,3) array-like of flaot, optional
         Principal axes moments of inertia vectors if these are massive bodies with rotation enabled. This can be used
         instead of passing Ip1, Ip2, and Ip3 separately
-    t : array of floats
+    time : array of floats
         Time at start of simulation
     Returns
     -------
     ds : xarray dataset
     """
-
-
-
-    kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
-
-    if param['ROTATION']:
-        if "rot" not in kwargs:
-            warnings.warn("Rotation vectors must be given when rotation is enabled",stacklevel=2)
-            return
-        if "Ip" not in kwargs:
-            kwargs['Ip'] = np.full_like(rot, 0.4)
-
-    if "t" not in kwargs:
-        kwargs["t"] = np.array([0.0])
-
     scalar_dims = ['id']
     vector_dims = ['id','space']
-    time_dims =['time']
     space_coords = np.array(["x","y","z"])
-
 
     vector_vars = ["rh","vh","Ip","rot"]
     scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
     time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
+
+    # Check for valid keyword arguments
+    kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
+    if param['ROTATION']:
+        if "rot" not in kwargs and "Gmass" in kwargs:
+            warnings.warn("Rotation vectors must be given when rotation is enabled for massive bodies",stacklevel=2)
+            return
+        if "Ip" not in kwargs and "rot" in kwargs:
+            kwargs['Ip'] = np.full_like(rot, 0.4)
+
+    if "time" not in kwargs:
+        kwargs["time"] = np.array([0.0])
+
+    valid_arguments = vector_vars + scalar_vars + ['time','id']
+
+    kwargs = {k:v for k,v in kwargs.items() if k in valid_arguments}
 
     data_vars = {k:(scalar_dims,v) for k,v in kwargs.items() if k in scalar_vars}
     data_vars.update({k:(vector_dims,v) for k,v in kwargs.items() if k in vector_vars})
@@ -307,12 +306,6 @@ def vec2xr(param: Dict, **kwargs: Any):
                     )
     time_vars = [v for v in time_vars if v in ds]
     for v in time_vars:
-        ds[v] = ds[v].expand_dims({"time":1}).assign_coords({"time": kwargs['t']})
-
-    # Re-order dimension coordinates so that they are in the same order as the Fortran side
-    idx = ds.indexes
-    dim_order = ["time", "id", "space"]
-    idx = {index_name: idx[index_name] for index_name in dim_order}
-    ds = ds.reindex(idx)
+        ds[v] = ds[v].expand_dims({"time":1}).assign_coords({"time": kwargs['time']})
 
     return ds
