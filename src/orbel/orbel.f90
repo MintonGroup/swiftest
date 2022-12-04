@@ -1037,6 +1037,7 @@ contains
          rdot = sign(sqrt(v2 - (h / r)**2),rdotv)
          sf = a * (1.0_DP - e**2) / (h * e) * rdot
          f = atan2(sf,cf)
+         if (f < 0.0_DP) f = f + TWOPI
       else
          f = u
       end if
