@@ -63,4 +63,4 @@ sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=ome
 sim.get_parameter()
 
 # Run the simulation
-#sim.run(tstart=0.0, tstop=1.0e2, dt=0.01, tstep_out=1.0e0, dump_cadence=0, )
+sim.run(tstart=0.0, tstop=1.0e2, dt=0.01, tstep_out=1.0e0, dump_cadence=0, )

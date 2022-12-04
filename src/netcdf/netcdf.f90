@@ -336,7 +336,6 @@ contains
 
          ! Required Variables
          call check( nf90_inq_varid(nciu%id, nciu%name_varname, nciu%name_varid), "netcdf_open nf90_inq_varid name_varid" )
-         call check( nf90_inq_varid(nciu%id, nciu%ptype_varname, nciu%ptype_varid), "netcdf_open nf90_inq_varid ptype_varid" )
          call check( nf90_inq_varid(nciu%id, nciu%gmass_varname, nciu%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
@@ -389,6 +388,7 @@ contains
          status = nf90_inq_varid(nciu%id, nciu%status_varname, nciu%status_varid)
          status = nf90_inq_varid(nciu%id, nciu%j2rp2_varname, nciu%j2rp2_varid)
          status = nf90_inq_varid(nciu%id, nciu%j4rp4_varname, nciu%j4rp4_varid)
+         status = nf90_inq_varid(nciu%id, nciu%ptype_varname, nciu%ptype_varid)
 
          if (param%integrator == SYMBA) then
             status = nf90_inq_varid(nciu%id, nciu%nplm_varname, nciu%nplm_varid)
@@ -472,8 +472,8 @@ contains
          end if
 
          ! Next, filter only bodies that don't have mass (test particles)
-         call check( nf90_get_var(nciu%id, nciu%Gmass_varid, vectemp(:,:), start=[1, 1, tslot]), "netcdf_read_frame_system nf90_getvar Gmass_varid"  )
-         plmask(:) = vectemp(1,:) == vectemp(1,:) .and. validmask(:)
+         call check( nf90_get_var(nciu%id, nciu%Gmass_varid, rtemp(:), start=[1, tslot]), "netcdf_read_frame_system nf90_getvar tp finder Gmass_varid"  )
+         plmask(:) = rtemp(:) == rtemp(:) .and. validmask(:)
          tpmask(:) = .not. plmask(:) .and. validmask(:)
          plmask(1) = .false. ! This is the central body
 
@@ -694,7 +694,7 @@ contains
 
 
       tslot = param%ioutput + 1
-      call check( nf90_inquire_dimension(nciu%id, nciu%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
+      call check( nf90_inquire_dimension(nciu%id, nciu%id_dimid, len=idmax), "netcdf_read_hdr_system nf90_inquire_dimension id_dimid"  )
       call check( nf90_get_var(nciu%id, nciu%time_varid, self%t, start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
 
       allocate(gmtemp(idmax))
@@ -702,7 +702,7 @@ contains
       allocate(plmask(idmax))
       allocate(plmmask(idmax))
 
-      call check( nf90_get_var(nciu%id, nciu%Gmass_varid, gmtemp, start=[1,1], count=[idmax,1]), "netcdf_read_frame_system nf90_getvar Gmass_varid"  )
+      call check( nf90_get_var(nciu%id, nciu%Gmass_varid, gmtemp, start=[1,1], count=[idmax,1]), "netcdf_read_hdr_system nf90_getvar Gmass_varid"  )
 
       plmask(:) = gmtemp(:) == gmtemp(:)
       tpmask(:) = .not. plmask(:)
@@ -827,14 +827,40 @@ contains
             call tp%info(i)%set_value(name=ctemp(tpind(i)))
          end do
 
-         call check( nf90_get_var(nciu%id, nciu%ptype_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar ptype_varid"  )
-         call cb%info%set_value(particle_type=ctemp(1))
-         do i = 1, npl
-            call pl%info(i)%set_value(particle_type=ctemp(plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(particle_type=ctemp(tpind(i)))
-         end do
+         status = nf90_get_var(nciu%id, nciu%ptype_varid, ctemp, count=[NAMELEN, idmax])
+         if (status /= nf90_noerr) then ! Set default particle types
+            call cb%info%set_value(particle_type=CB_TYPE_NAME)
+
+            ! Handle semi-interacting bodies in SyMBA
+            select type(pl)
+            class is (symba_pl)
+               select type (param)
+               class is (symba_parameters)
+                  do i = 1, npl
+                     if (pl%Gmass(i) < param%GMTINY) then
+                        call pl%info(i)%set_value(particle_type=PL_TINY_TYPE_NAME)
+                     else
+                        call pl%info(i)%set_value(particle_type=PL_TYPE_NAME)
+                     end if
+                  end do
+               end select
+            class default ! Non-SyMBA massive bodies
+               do i = 1, npl
+                  call pl%info(i)%set_value(particle_type=PL_TYPE_NAME)
+               end do
+            end select
+            do i = 1, ntp
+               call tp%info(i)%set_value(particle_type=TP_TYPE_NAME)
+            end do
+         else ! Use particle types defined in input file
+            call cb%info%set_value(particle_type=ctemp(1))
+            do i = 1, npl
+               call pl%info(i)%set_value(particle_type=ctemp(plind(i)))
+            end do
+            do i = 1, ntp
+               call tp%info(i)%set_value(particle_type=ctemp(tpind(i)))
+            end do
+         end if
 
          status = nf90_inq_varid(nciu%id, nciu%status_varname, nciu%status_varid) 
          if (status == nf90_noerr) then
@@ -1049,28 +1075,28 @@ contains
                                        self%vh(1,j), self%vh(2,j), self%vh(3,j), &
                                        a, e, inc, capom, omega, capm)
                   end if
-                  call check( nf90_put_var(nciu%id, nciu%a_varid, a, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var a_varid"  )
-                  call check( nf90_put_var(nciu%id, nciu%e_varid, e, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var e_varid"  )
-                  call check( nf90_put_var(nciu%id, nciu%inc_varid, inc * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var inc_varid"  )
-                  call check( nf90_put_var(nciu%id, nciu%capom_varid, capom * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var capom_varid"  )
-                  call check( nf90_put_var(nciu%id, nciu%omega_varid, omega * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var omega_varid"  )
-                  call check( nf90_put_var(nciu%id, nciu%capm_varid, capm * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var capm_varid"  ) 
+                  call check( nf90_put_var(nciu%id, nciu%a_varid, a, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body a_varid"  )
+                  call check( nf90_put_var(nciu%id, nciu%e_varid, e, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body e_varid"  )
+                  call check( nf90_put_var(nciu%id, nciu%inc_varid, inc * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body inc_varid"  )
+                  call check( nf90_put_var(nciu%id, nciu%capom_varid, capom * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body capom_varid"  )
+                  call check( nf90_put_var(nciu%id, nciu%omega_varid, omega * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body omega_varid"  )
+                  call check( nf90_put_var(nciu%id, nciu%capm_varid, capm * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body capm_varid"  ) 
                end if
 
                select type(self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-                  call check( nf90_put_var(nciu%id, nciu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var Gmass_varid"  )
+                  call check( nf90_put_var(nciu%id, nciu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body Gmass_varid"  )
                   if (param%lrhill_present) then
-                     call check( nf90_put_var(nciu%id, nciu%rhill_varid, self%rhill(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var rhill_varid"  )
+                     call check( nf90_put_var(nciu%id, nciu%rhill_varid, self%rhill(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body rhill_varid"  )
                   end if
-                  if (param%lclose) call check( nf90_put_var(nciu%id, nciu%radius_varid, self%radius(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var radius_varid"  )
+                  if (param%lclose) call check( nf90_put_var(nciu%id, nciu%radius_varid, self%radius(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body radius_varid"  )
                   if (param%lrotation) then
-                     call check( nf90_put_var(nciu%id, nciu%Ip_varid, self%Ip(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_write_frame_base nf90_put_var Ip_varid"  )
-                     call check( nf90_put_var(nciu%id, nciu%rot_varid, self%rot(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_write_frame_base nf90_put_var rotx_varid"  )
+                     call check( nf90_put_var(nciu%id, nciu%Ip_varid, self%Ip(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_write_frame_base nf90_put_var body Ip_varid"  )
+                     call check( nf90_put_var(nciu%id, nciu%rot_varid, self%rot(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_write_frame_base nf90_put_var body rotx_varid"  )
                   end if
                   ! if (param%ltides) then
-                  !    call check( nf90_put_var(nciu%id, nciu%k2_varid, self%k2(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var k2_varid"  )
-                  !    call check( nf90_put_var(nciu%id, nciu%Q_varid, self%Q(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var Q_varid"  )
+                  !    call check( nf90_put_var(nciu%id, nciu%k2_varid, self%k2(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body k2_varid"  )
+                  !    call check( nf90_put_var(nciu%id, nciu%Q_varid, self%Q(j), start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body Q_varid"  )
                   ! end if
 
                end select
