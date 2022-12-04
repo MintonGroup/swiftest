@@ -56,6 +56,7 @@ upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM"]
 # This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "status", "origin_type"]
+char_varnames = ["space"]
 int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id"]
 
 def bool2yesno(boolval):
@@ -192,7 +193,19 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         print(f"{param_file_name} not found.")
     return param
 
+def reorder_dims(ds):
 
+    # Re-order dimension coordinates so that they are in the same order as the Fortran side
+    idx = ds.indexes
+    if "id" in idx:
+        dim_order = ["time", "id", "space"]
+    elif "name" in idx:
+        dim_order = ["time", "name", "space"]
+    else:
+        dim_order = idx
+    idx = {index_name: idx[index_name] for index_name in dim_order}
+    ds = ds.reindex(idx)
+    return ds
 def read_swifter_param(param_file_name, verbose=True):
     """
     Reads in a Swifter param.in file and saves it as a dictionary
@@ -516,9 +529,9 @@ def swifter_stream(f, param):
         
         tlab = []
         if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-            tlab.append('xhx')
-            tlab.append('xhy')
-            tlab.append('xhz')
+            tlab.append('rhx')
+            tlab.append('rhy')
+            tlab.append('rhz')
             tlab.append('vhx')
             tlab.append('vhy')
             tlab.append('vhz')
@@ -564,9 +577,9 @@ def make_swiftest_labels(param):
     """
     tlab = []
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        tlab.append('xhx')
-        tlab.append('xhy')
-        tlab.append('xhz')
+        tlab.append('rhx')
+        tlab.append('rhy')
+        tlab.append('rhz')
         tlab.append('vhx')
         tlab.append('vhy')
         tlab.append('vhz')
@@ -606,16 +619,16 @@ def make_swiftest_labels(param):
 
     infolab_float = [
         "origin_time",
-        "origin_xhx",
-        "origin_xhy",
-        "origin_xhz",
+        "origin_rhx",
+        "origin_rhy",
+        "origin_rhz",
         "origin_vhx",
         "origin_vhy",
         "origin_vhz",
         "discard_time",
-        "discard_xhx",
-        "discard_xhy",
-        "discard_xhz",
+        "discard_rhx",
+        "discard_rhy",
+        "discard_rhz",
         "discard_vhx",
         "discard_vhy",
         "discard_vhz",
@@ -805,7 +818,7 @@ def swifter2xr(param, verbose=True):
     -------
     xarray dataset
     """
-    dims = ['time', 'id', 'vec']
+    dims = ['time', 'id','vec']
     pl = []
     tp = []
     with FortranFile(param['BIN_OUT'], 'r') as f:
@@ -833,7 +846,6 @@ def swifter2xr(param, verbose=True):
         ds = xr.combine_by_coords([plds, tpds])
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
-
 
 def swiftest2xr(param, verbose=True):
     """
@@ -889,7 +901,7 @@ def string_converter(da):
     Parameters
     ----------
     da    : xarray dataset
- 
+
     Returns
     -------
     da : xarray dataset with the strings cleaned up
@@ -898,6 +910,24 @@ def string_converter(da):
        da = da.astype('<U32')
     elif type(da.values[0]) != np.str_:
        da = xstrip(da)
+    return da
+
+def char_converter(da):
+    """
+    Converts a string to a unicode string
+
+    Parameters
+    ----------
+    da    : xarray dataset
+
+    Returns
+    -------
+    da : xarray dataset with the strings cleaned up
+    """
+    if da.dtype == np.dtype(object):
+        da = da.astype('<U1')
+    elif type(da.values[0]) != np.str_:
+        da = xstrip(da)
     return da
 
 def clean_string_values(ds):
@@ -916,6 +946,10 @@ def clean_string_values(ds):
     for n in string_varnames:
         if n in ds:
            ds[n] = string_converter(ds[n])
+
+    for n in char_varnames:
+        if n in ds:
+            ds[n] = char_converter(ds[n])
     return ds
 
 
@@ -936,6 +970,11 @@ def unclean_string_values(ds):
         if c in ds:
             n = string_converter(ds[c])
             ds[c] = n.str.ljust(32).str.encode('utf-8')
+
+    for c in char_varnames:
+        if c in ds:
+            n = string_converter(ds[c])
+            ds[c] = n.str.ljust(1).str.encode('utf-8')
     return ds
 
 def fix_types(ds,itype=np.int64,ftype=np.float64):
@@ -945,12 +984,12 @@ def fix_types(ds,itype=np.int64,ftype=np.float64):
         if intvar in ds:
             ds[intvar] = ds[intvar].astype(itype)
 
-    float_varnames = [x for x in list(ds.keys()) if x not in string_varnames and x not in int_varnames]
+    float_varnames = [x for x in list(ds.keys()) if x not in string_varnames + int_varnames + char_varnames]
 
     for floatvar in float_varnames:
         ds[floatvar] = ds[floatvar].astype(ftype)
 
-    float_coordnames = [x for x in list(ds.coords) if x not in string_varnames and x not in int_varnames]
+    float_coordnames = [x for x in list(ds.coords) if x not in string_varnames + int_varnames + char_varnames]
     for floatcoord in float_coordnames:
         ds[floatcoord] = ds[floatcoord].astype(np.float64)
 
@@ -973,7 +1012,7 @@ def swiftest_particle_stream(f):
       ID of massive bodie
    origin_type : string
       The origin type for the body (Initial conditions, disruption, supercatastrophic, hit and run, etc)
-   origin_xh : float array
+   origin_rh : float array
       The origin heliocentric position vector
    origin_vh : float array
       The origin heliocentric velocity vector
@@ -1003,7 +1042,7 @@ def swiftest_particle_2xr(param):
     -------
     infoxr : xarray dataset
     """
-    veclab = ['time_origin', 'xhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
+    veclab = ['time_origin', 'rhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
     id_list = []
     origin_type_list = []
     origin_vec_list = []
@@ -1060,7 +1099,7 @@ def select_active_from_frame(ds, param, framenum=-1):
     # Select only the active particles at this time step
     # Remove the inactive particles
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['xhx'])), drop=True)[count_dim]
+        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['rhx'])), drop=True)[count_dim]
     else:
         iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True)[count_dim]
     if count_dim == "id":
@@ -1106,6 +1145,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         frame = unclean_string_values(frame)
         if verbose:
             print(f"Writing initial conditions to file {infile_name}")
+        frame = reorder_dims(frame)
         frame.to_netcdf(path=infile_name)
         return frame
 
@@ -1156,7 +1196,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
             if param['CHK_CLOSE']:
                print(pli['radius'].values[0], file=plfile)
             if param['IN_FORM'] == 'XV':
-                print(pli['xhx'].values[0], pli['xhy'].values[0], pli['xhz'].values[0], file=plfile)
+                print(pli['rhx'].values[0], pli['rhy'].values[0], pli['rhz'].values[0], file=plfile)
                 print(pli['vhx'].values[0], pli['vhy'].values[0], pli['vhz'].values[0], file=plfile)
             elif param['IN_FORM'] == 'EL':
                 print(pli['a'].values[0], pli['e'].values[0], pli['inc'].values[0], file=plfile)
@@ -1175,7 +1215,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
             tpi = tp.sel(id=i)
             print(tpi['name'].values[0], file=tpfile)
             if param['IN_FORM'] == 'XV':
-                print(tpi['xhx'].values[0], tpi['xhy'].values[0], tpi['xhz'].values[0], file=tpfile)
+                print(tpi['rhx'].values[0], tpi['rhy'].values[0], tpi['rhz'].values[0], file=tpfile)
                 print(tpi['vhx'].values[0], tpi['vhy'].values[0], tpi['vhz'].values[0], file=tpfile)
             elif param['IN_FORM'] == 'EL':
                 print(tpi['a'].values[0], tpi['e'].values[0], tpi['inc'].values[0], file=tpfile)
@@ -1239,7 +1279,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
                 print(i.values, pli['Gmass'].values, file=plfile)
             if param['CHK_CLOSE']:
                 print(pli['radius'].values, file=plfile)
-            print(pli['xhx'].values, pli['xhy'].values, pli['xhz'].values, file=plfile)
+            print(pli['rhx'].values, pli['rhy'].values, pli['rhz'].values, file=plfile)
             print(pli['vhx'].values, pli['vhy'].values, pli['vhz'].values, file=plfile)
         plfile.close()
         
@@ -1249,7 +1289,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
         for i in tp.id:
             tpi = tp.sel(id=i)
             print(i.values, file=tpfile)
-            print(tpi['xhx'].values, tpi['xhy'].values, tpi['xhz'].values, file=tpfile)
+            print(tpi['rhx'].values, tpi['rhy'].values, tpi['rhz'].values, file=tpfile)
             print(tpi['vhx'].values, tpi['vhy'].values, tpi['vhz'].values, file=tpfile)
         tpfile.close()
     else:
@@ -1420,10 +1460,10 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                     print(plrad, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                xh = real2float(i_list[0])
+                rh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
-                print(xh, yh, zh, file=plnew)
+                print(rh, yh, zh, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])
@@ -1459,10 +1499,10 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                 print(npl + n + 1, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                xh = real2float(i_list[0])
+                rh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
-                print(xh, yh, zh, file=tpnew)
+                print(rh, yh, zh, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])
@@ -1548,10 +1588,10 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                     print(plrad, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                xh = real2float(i_list[0])
+                rh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
-                print(xh, yh, zh, file=plnew)
+                print(rh, yh, zh, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])
@@ -1592,10 +1632,10 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                 print(name, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                xh = real2float(i_list[0])
+                rh = real2float(i_list[0])
                 yh = real2float(i_list[1])
                 zh = real2float(i_list[2])
-                print(xh, yh, zh, file=tpnew)
+                print(rh, yh, zh, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 vhx = real2float(i_list[0])

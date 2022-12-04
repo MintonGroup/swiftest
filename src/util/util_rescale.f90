@@ -48,7 +48,7 @@ contains
          pl%mass(1:npl) = pl%mass(1:npl) / mscale
          pl%Gmass(1:npl) = param%GU * pl%mass(1:npl) 
          pl%radius(1:npl) = pl%radius(1:npl) / dscale
-         pl%xh(:,1:npl) = pl%xh(:,1:npl) / dscale
+         pl%rh(:,1:npl) = pl%rh(:,1:npl) / dscale
          pl%vh(:,1:npl) = pl%vh(:,1:npl) / vscale
          pl%xb(:,1:npl) = pl%xb(:,1:npl) / dscale
          pl%vb(:,1:npl) = pl%vb(:,1:npl) / vscale

@@ -188,13 +188,13 @@ if __name__ == "__main__":
        if run_new:
            sim = swiftest.Simulation(param_file=param_file, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
            sim.add_solar_system_body("Sun")
-           sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], xh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
+           sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
            # Set fragmentation parameters
            minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
            gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
            sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-           sim.run(dt=1e-8, tstop=2.e-5)
+           sim.run(dt=2e-5, tstop=2.e-5)
        else:
            sim = swiftest.Simulation(param_file=param_file, read_old_output_file=True)
 

@@ -297,7 +297,7 @@ contains
       call util_resize(self%ldiscard, nnew)
       call util_resize(self%lmask, nnew)
       call util_resize(self%mu, nnew)
-      call util_resize(self%xh, nnew)
+      call util_resize(self%rh, nnew)
       call util_resize(self%vh, nnew)
       call util_resize(self%xb, nnew)
       call util_resize(self%vb, nnew)

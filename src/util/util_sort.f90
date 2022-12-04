@@ -51,7 +51,7 @@ contains
             call util_sort(direction * body%capom(1:n), ind)
          case("mu")
             call util_sort(direction * body%mu(1:n), ind)
-         case("lfirst", "nbody", "ldiscard", "xh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
+         case("lfirst", "nbody", "ldiscard", "rh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not found!'
@@ -760,7 +760,7 @@ contains
          call util_sort_rearrange(self%info,     ind, n)
          call util_sort_rearrange(self%status,   ind, n)
          call util_sort_rearrange(self%ldiscard, ind, n)
-         call util_sort_rearrange(self%xh,       ind, n)
+         call util_sort_rearrange(self%rh,       ind, n)
          call util_sort_rearrange(self%vh,       ind, n)
          call util_sort_rearrange(self%xb,       ind, n)
          call util_sort_rearrange(self%vb,       ind, n)

@@ -209,7 +209,7 @@ contains
       call util_append(self%ldiscard, source%ldiscard, nold, nsrc, lsource_mask)
       call util_append(self%lmask, source%lmask, nold, nsrc, lsource_mask)
       call util_append(self%mu, source%mu, nold, nsrc, lsource_mask)
-      call util_append(self%xh, source%xh, nold, nsrc, lsource_mask)
+      call util_append(self%rh, source%rh, nold, nsrc, lsource_mask)
       call util_append(self%vh, source%vh, nold, nsrc, lsource_mask)
       call util_append(self%xb, source%xb, nold, nsrc, lsource_mask)
       call util_append(self%vb, source%vb, nold, nsrc, lsource_mask)

@@ -113,14 +113,14 @@ contains
       associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
 
          call cb%info%set_value(particle_type=CB_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
-                                origin_time=param%t0, origin_xh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP])
+                                origin_time=param%t0, origin_rh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP])
          do i = 1, self%pl%nbody
             call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
-                                       origin_time=param%t0, origin_xh=self%pl%xh(:,i), origin_vh=self%pl%vh(:,i))
+                                       origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i))
          end do
          do i = 1, self%tp%nbody
             call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
-                                      origin_time=param%t0, origin_xh=self%tp%xh(:,i), origin_vh=self%tp%vh(:,i))
+                                      origin_time=param%t0, origin_rh=self%tp%rh(:,i), origin_vh=self%tp%vh(:,i))
          end do
 
       end associate
@@ -193,7 +193,7 @@ contains
       allocate(self%ldiscard(n))
       allocate(self%lmask(n))
       allocate(self%mu(n))
-      allocate(self%xh(NDIM, n))
+      allocate(self%rh(NDIM, n))
       allocate(self%vh(NDIM, n))
       allocate(self%xb(NDIM, n))
       allocate(self%vb(NDIM, n))
@@ -210,10 +210,10 @@ contains
             origin_type = "UNKNOWN", &
             collision_id = 0, &
             origin_time = -huge(1.0_DP), & 
-            origin_xh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            origin_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
             origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
             discard_time = -huge(1.0_DP), & 
-            discard_xh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
             discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
             discard_body_id = -1  &
          )
@@ -223,7 +223,7 @@ contains
       self%ldiscard(:) = .false.
       self%lmask(:)  = .false.
       self%mu(:)     = 0.0_DP
-      self%xh(:,:)   = 0.0_DP
+      self%rh(:,:)   = 0.0_DP
       self%vh(:,:)   = 0.0_DP
       self%xb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP

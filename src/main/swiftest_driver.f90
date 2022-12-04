@@ -49,7 +49,7 @@ program swiftest_driver
    case default
       allocate(swiftest_parameters :: param)
    end select
-   param%integrator = integrator
+   param%integrator = trim(adjustl(integrator))
    call param%set_display(display_style)
 
    !> Define the maximum number of threads
@@ -93,6 +93,7 @@ program swiftest_driver
       else
          if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
          call nbody_system%write_frame(param)
+         call nbody_system%dump(param)
       end if
 
       write(display_unit, *) " *************** Main Loop *************** "
@@ -102,7 +103,7 @@ program swiftest_driver
          write(pbarmessage,fmt=pbarfmt) t0, tstop
          call pbar%update(1,message=pbarmessage)
       else if (display_style == "COMPACT") then
-         write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
+         write(*,*) "SWIFTEST START " // param%integrator
          call nbody_system%compact_output(param,integration_timer)
       end if
 
@@ -160,7 +161,7 @@ program swiftest_driver
       end do
       ! Dump any remaining history if it exists
       call system_history%dump(param)
-      if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
+      if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // param%integrator
    end associate
 
    call util_exit(SUCCESS)

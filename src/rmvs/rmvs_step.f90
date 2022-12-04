@@ -38,7 +38,7 @@ contains
                select type(tp => self%tp)
                class is (rmvs_tp)
                   associate(system => self, ntp => tp%nbody, npl => pl%nbody)
-                     allocate(xbeg, source=pl%xh)
+                     allocate(xbeg, source=pl%rh)
                      allocate(vbeg, source=pl%vh)
                      call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
                      ! ****** Check for close encounters ***** !
@@ -49,7 +49,7 @@ contains
                         pl%outer(0)%x(:, 1:npl) = xbeg(:, 1:npl)
                         pl%outer(0)%v(:, 1:npl) = vbeg(:, 1:npl)
                         call pl%step(system, param, t, dt) 
-                        pl%outer(NTENC)%x(:, 1:npl) = pl%xh(:, 1:npl)
+                        pl%outer(NTENC)%x(:, 1:npl) = pl%rh(:, 1:npl)
                         pl%outer(NTENC)%v(:, 1:npl) = pl%vh(:, 1:npl)
                         call rmvs_interp_out(cb, pl, dt)
                         call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
@@ -96,7 +96,7 @@ contains
 
       dntenc = real(NTENC, kind=DP)
       associate (npl => pl%nbody)
-         allocate(xtmp, mold = pl%xh)
+         allocate(xtmp, mold = pl%rh)
          allocate(vtmp, mold = pl%vh)
          allocate(GMcb(npl))
          allocate(dto(npl))
@@ -247,7 +247,7 @@ contains
          pl%inner(NTPHENC)%x(:, 1:npl) = pl%outer(outer_index)%x(:, 1:npl)
          pl%inner(NTPHENC)%v(:, 1:npl) = pl%outer(outer_index)%v(:, 1:npl)
 
-         allocate(xtmp,mold=pl%xh)
+         allocate(xtmp,mold=pl%rh)
          allocate(vtmp,mold=pl%vh)
          allocate(GMcb(npl))
          allocate(dti(npl))
@@ -258,9 +258,9 @@ contains
          vtmp(:, 1:npl) = pl%inner(0)%v(:, 1:npl)
 
          if ((param%loblatecb) .or. (param%ltides)) then
-            allocate(xh_original, source=pl%xh)
+            allocate(xh_original, source=pl%rh)
             allocate(ah_original, source=pl%ah)
-            pl%xh(:, 1:npl) = xtmp(:, 1:npl) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
+            pl%rh(:, 1:npl) = xtmp(:, 1:npl) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
          end if
          if (param%loblatecb) then
             call pl%accel_obl(system)
@@ -317,7 +317,7 @@ contains
             pl%inner(inner_index)%v(:, 1:npl) = pl%inner(inner_index)%v(:, 1:npl) + frac * vtmp(:, 1:npl)
 
             if (param%loblatecb) then
-               pl%xh(:,1:npl) = pl%inner(inner_index)%x(:, 1:npl)
+               pl%rh(:,1:npl) = pl%inner(inner_index)%x(:, 1:npl)
                call pl%accel_obl(system)
                pl%inner(inner_index)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
             end if
@@ -329,7 +329,7 @@ contains
          end do
          if (param%loblatecb) then
             ! Calculate the final value of oblateness accelerations at the final inner substep
-            pl%xh(:, 1:npl) = pl%inner(NTPHENC)%x(:, 1:npl)
+            pl%rh(:, 1:npl) = pl%inner(NTPHENC)%x(:, 1:npl)
             call pl%accel_obl(system)
             pl%inner(NTPHENC)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
          end if
@@ -339,7 +339,7 @@ contains
          !    pl%inner(NTPHENC)%atide(:, 1:npl) = pl%atide(:, 1:npl) 
          ! end if
          ! Put the planet positions and accelerations back into place 
-         if (allocated(xh_original)) call move_alloc(xh_original, pl%xh)
+         if (allocated(xh_original)) call move_alloc(xh_original, pl%rh)
          if (allocated(ah_original)) call move_alloc(ah_original, pl%ah)
       end associate
       return
@@ -388,7 +388,7 @@ contains
                            ! now step the encountering test particles fully through the inner encounter
                            lfirsttp = .true.
                            do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
-                              plenci%xh(:, 1:npl) = plenci%inner(inner_index - 1)%x(:, 1:npl)
+                              plenci%rh(:, 1:npl) = plenci%inner(inner_index - 1)%x(:, 1:npl)
                               call plenci%set_beg_end(xbeg = plenci%inner(inner_index - 1)%x, &
                                                       xend = plenci%inner(inner_index)%x)
 
@@ -403,7 +403,7 @@ contains
 
                               call tpenci%step(planetocen_system, param, inner_time, dti)
                               do j = 1, pl%nenc(i)
-                                 tpenci%xheliocentric(:, j) = tpenci%xh(:, j) + pl%inner(inner_index)%x(:,i)
+                                 tpenci%xheliocentric(:, j) = tpenci%rh(:, j) + pl%inner(inner_index)%x(:,i)
                               end do
                               inner_time = outer_time + j * dti
                               call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., inner_index, i, param) 
@@ -464,8 +464,8 @@ contains
                         ! Grab all the encountering test particles and convert them to a planetocentric frame
                         tpenci%id(1:nenci) = pack(tp%id(1:ntp), encmask(1:ntp)) 
                         do j = 1, NDIM 
-                           tpenci%xheliocentric(j, 1:nenci) = pack(tp%xh(j,1:ntp), encmask(:)) 
-                           tpenci%xh(j, 1:nenci) = tpenci%xheliocentric(j, 1:nenci) - pl%inner(0)%x(j, i)
+                           tpenci%xheliocentric(j, 1:nenci) = pack(tp%rh(j,1:ntp), encmask(:)) 
+                           tpenci%rh(j, 1:nenci) = tpenci%xheliocentric(j, 1:nenci) - pl%inner(0)%x(j, i)
                            tpenci%vh(j, 1:nenci) = pack(tp%vh(j, 1:ntp), encmask(1:ntp)) - pl%inner(0)%v(j, i)
                         end do
                         tpenci%lperi(1:nenci) = pack(tp%lperi(1:ntp), encmask(1:ntp)) 
@@ -538,7 +538,7 @@ contains
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)
-      associate(nenc => tp%nbody, xpc => tp%xh, vpc => tp%vh)
+      associate(nenc => tp%nbody, xpc => tp%rh, vpc => tp%vh)
          if (lfirst) then
             do i = 1, nenc
                if (tp%lmask(i)) then
@@ -625,7 +625,7 @@ contains
                         tp%status(tpind(1:nenci)) = tpenci%status(1:nenci) 
                         tp%lmask(tpind(1:nenci)) = tpenci%lmask(1:nenci) 
                         do j = 1, NDIM
-                           tp%xh(j, tpind(1:nenci)) = tpenci%xh(j,1:nenci) + pl%inner(NTPHENC)%x(j, i)
+                           tp%rh(j, tpind(1:nenci)) = tpenci%rh(j,1:nenci) + pl%inner(NTPHENC)%x(j, i)
                            tp%vh(j, tpind(1:nenci)) = tpenci%vh(j,1:nenci) + pl%inner(NTPHENC)%v(j, i)
                         end do
                         tp%lperi(tpind(1:nenci)) = tpenci%lperi(1:nenci)

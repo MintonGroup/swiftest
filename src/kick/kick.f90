@@ -43,15 +43,15 @@ contains
 
       if (param%lflatten_interactions) then
          if (param%lclose) then
-            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, self%radius, self%ah)
+            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
          else
-            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%xh, self%Gmass, acc=self%ah)
+            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, acc=self%ah)
          end if
       else
          if (param%lclose) then
-            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, self%radius, self%ah)
+            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, self%radius, self%ah)
          else
-            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%xh, self%Gmass, acc=self%ah)
+            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, acc=self%ah)
          end if
       end if
 
@@ -80,7 +80,7 @@ contains
 
       if ((self%nbody == 0) .or. (npl == 0)) return
 
-      call kick_getacch_int_all_tp(self%nbody, npl, self%xh, xhp, GMpl, self%lmask, self%ah)
+      call kick_getacch_int_all_tp(self%nbody, npl, self%rh, xhp, GMpl, self%lmask, self%ah)
       
       return
    end subroutine kick_getacch_int_tp

@@ -497,8 +497,9 @@ contains
       logical                        :: dt_set = .false.                  !! Is the step size set in the input file?
       integer(I4B)                   :: ilength, ifirst, ilast, i         !! Variables used to parse input file
       character(STRMAX)              :: line                              !! Line of the input file
-      character (len=:), allocatable :: line_trim,param_name, param_value !! Strings used to parse the param file
+      character(len=:), allocatable  :: line_trim,param_name, param_value !! Strings used to parse the param file
       character(*),parameter         :: linefmt = '(A)'                   !! Format code for simple text string
+      character(len=:), allocatable  :: integrator
       
 
       ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
@@ -762,30 +763,29 @@ contains
          ! Calculate the G for the system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-         associate(integrator => v_list(1))
-            if ((integrator == RMVS) .or. (integrator == SYMBA)) then
-               if (.not.param%lclose) then
-                  write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
-                  iostat = -1
-                  return
-               end if
+         integrator = v_list(1)
+         if ((integrator == RMVS) .or. (integrator == SYMBA)) then
+            if (.not.param%lclose) then
+               write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
+               iostat = -1
+               return
             end if
-      
-            ! Determine if the GR flag is set correctly for this integrator
-            select case(integrator)
-            case(WHM, RMVS, HELIO, SYMBA)
-            case default   
-               if (param%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
-               param%lgr = .false.
-            end select
+         end if
+   
+         ! Determine if the GR flag is set correctly for this integrator
+         select case(integrator)
+         case(WHM, RMVS, HELIO, SYMBA)
+         case default   
+            if (param%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
+            param%lgr = .false.
+         end select
 
-            if (param%lgr) then
-               ! Calculate the inverse speed of light in the system units
-               param%inv_c2 = einsteinC * param%TU2S / param%DU2M
-               param%inv_c2 = (param%inv_c2)**(-2)
-            end if
+         if (param%lgr) then
+            ! Calculate the inverse speed of light in the system units
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+         end if
 
-         end associate
 
          select case(trim(adjustl(param%interaction_loops)))
          case("ADAPTIVE")
@@ -1381,7 +1381,7 @@ contains
 
                select case(param%in_form)
                case ("XV")
-                  read(iu, *, err = 667, iomsg = errmsg) self%xh(1, i), self%xh(2, i), self%xh(3, i)
+                  read(iu, *, err = 667, iomsg = errmsg) self%rh(1, i), self%rh(2, i), self%rh(3, i)
                   read(iu, *, err = 667, iomsg = errmsg) self%vh(1, i), self%vh(2, i), self%vh(3, i)
                case ("EL")
                   read(iu, *, err = 667, iomsg = errmsg) self%a(i), self%e(i), self%inc(i)
@@ -1444,8 +1444,8 @@ contains
       character(STRMAX) :: errmsg   !! Error message in UDIO procedure
 
       ! Read in name of parameter file
-      write(self%display_unit, *) 'Parameter input file is ', trim(adjustl(param_file_name))
-      self%param_file_name = param_file_name
+      self%param_file_name = trim(adjustl(param_file_name))
+      write(self%display_unit, *) 'Parameter input file is ' // self%param_file_name 
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    as the newline characters are ignored in the input file when compiled in ifort.

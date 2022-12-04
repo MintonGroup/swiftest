@@ -160,7 +160,7 @@ contains
          call util_fill(keeps%ldiscard, inserts%ldiscard, lfill_list)
          call util_fill(keeps%lmask, inserts%lmask, lfill_list)
          call util_fill(keeps%mu, inserts%mu, lfill_list)
-         call util_fill(keeps%xh, inserts%xh, lfill_list)
+         call util_fill(keeps%rh, inserts%rh, lfill_list)
          call util_fill(keeps%vh, inserts%vh, lfill_list)
          call util_fill(keeps%xb, inserts%xb, lfill_list)
          call util_fill(keeps%vb, inserts%vb, lfill_list)

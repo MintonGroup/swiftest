@@ -131,7 +131,7 @@ contains
          rmaxu2 = param%rmaxu**2
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
-               rh2 = dot_product(tp%xh(:, i), tp%xh(:, i))
+               rh2 = dot_product(tp%rh(:, i), tp%rh(:, i))
                if ((param%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   tp%status(i) = DISCARDED_RMAX
                   write(idstr, *) tp%id(i)
@@ -140,7 +140,7 @@ contains
                               " too far from the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
-                  call tp%info(i)%set_value(status="DISCARDED_RMAX", discard_time=system%t, discard_xh=tp%xh(:,i), &
+                  call tp%info(i)%set_value(status="DISCARDED_RMAX", discard_time=system%t, discard_rh=tp%rh(:,i), &
                                             discard_vh=tp%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
@@ -150,7 +150,7 @@ contains
                               " too close to the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
-                  call tp%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_xh=tp%xh(:,i), &
+                  call tp%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_rh=tp%rh(:,i), &
                                             discard_vh=tp%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
@@ -164,7 +164,7 @@ contains
                                  " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
-                     call tp%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=system%t, discard_xh=tp%xh(:,i), &
+                     call tp%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=system%t, discard_rh=tp%rh(:,i), &
                                                discard_vh=tp%vh(:,i))
                   end if
                end if
@@ -201,7 +201,7 @@ contains
                if (tp%isperi(i) == 0) then
                   ih = 1
                   do j = 1, npl
-                     dx(:) = tp%xh(:, i) - pl%xh(:, j)
+                     dx(:) = tp%rh(:, i) - pl%rh(:, j)
                      r2 = dot_product(dx(:), dx(:))
                      if (r2 <= (pl%rhill(j))**2) ih = 0
                   end do
@@ -215,7 +215,7 @@ contains
                         write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                                     " perihelion distance too small at t = " // trim(adjustl(timestr))
                         tp%ldiscard(i) = .true.
-                        call tp%info(i)%set_value(status="DISCARDED_PERI", discard_time=system%t, discard_xh=tp%xh(:,i), &
+                        call tp%info(i)%set_value(status="DISCARDED_PERI", discard_time=system%t, discard_rh=tp%rh(:,i), &
                                                   discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))
                      end if
                   end if
@@ -250,7 +250,7 @@ contains
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                do j = 1, npl
-                  dx(:) = tp%xh(:, i) - pl%xh(:, j)
+                  dx(:) = tp%rh(:, i) - pl%rh(:, j)
                   dv(:) = tp%vh(:, i) - pl%vh(:, j)
                   radius = pl%radius(j)
                   call discard_pl_close(dx(:), dv(:), dt, radius**2, isp, r2min)
@@ -265,7 +265,7 @@ contains
                                                   // "  too close to massive body " // trim(adjustl(pl%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                                                   // " at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
-                     call tp%info(i)%set_value(status="DISCARDED_PLR", discard_time=system%t, discard_xh=tp%xh(:,i), &
+                     call tp%info(i)%set_value(status="DISCARDED_PLR", discard_time=system%t, discard_rh=tp%rh(:,i), &
                                                discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))
                      exit
                   end if

@@ -38,7 +38,7 @@ contains
          rmaxu2 = param%rmaxu**2
          do i = 1, npl
             if (pl%status(i) == ACTIVE) then
-               rh2 = dot_product(pl%xh(:,i), pl%xh(:,i))
+               rh2 = dot_product(pl%rh(:,i), pl%rh(:,i))
                if ((param%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   pl%ldiscard(i) = .true.
                   pl%lcollision(i) = .false. 
@@ -54,7 +54,7 @@ contains
                   call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
                                                            "***********************************************************")
                   call io_log_one_message(FRAGGLE_LOG_OUT, "")
-                  call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=system%t, discard_xh=pl%xh(:,i), &
+                  call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                             discard_vh=pl%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   pl%ldiscard(i) = .true.
@@ -71,7 +71,7 @@ contains
                   call io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
                                                            "************************************************************")
                   call io_log_one_message(FRAGGLE_LOG_OUT, "")
-                  call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_xh=pl%xh(:,i), &
+                  call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                             discard_vh=pl%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
@@ -92,7 +92,7 @@ contains
                      call io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
                                                               "************************************************************")
                      call io_log_one_message(FRAGGLE_LOG_OUT, "")
-                     call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=system%t, discard_xh=pl%xh(:,i), &
+                     call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                                discard_vh=pl%vh(:,i))
                   end if
                end if
@@ -330,7 +330,7 @@ contains
                      write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // &
                                  ") perihelion distance too small at t = " // trim(adjustl(timestr)) 
                      call pl%info(i)%set_value(status="DISCARDED_PERI", discard_time=system%t, &
-                                               discard_xh=pl%xh(:,i), discard_vh=pl%vh(:,i), discard_body_id=system%cb%id)
+                                               discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), discard_body_id=system%cb%id)
                   end if
                end if
             end if

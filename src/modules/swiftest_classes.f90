@@ -21,21 +21,25 @@ module swiftest_classes
    !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as the base class defined in swiftest_classes
    type :: netcdf_variables
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
-      integer(I4B)       :: ncid                                        !! ID for the output file
+      integer(I4B)       :: id                                          !! ID for the output file
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard
       integer(I4B)       :: id_chunk                                    !! Chunk size for the id dimension variables
       integer(I4B)       :: time_chunk                                  !! Chunk size for the time dimension variables
       logical            :: lpseudo_vel_exists = .false.                !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
 
       ! Dimension ids and variable names
-      integer(I4B)       :: time_dimid                                  !! ID for the time dimension 
-      integer(I4B)       :: id_dimid                                    !! ID for the particle id dimension
       character(NAMELEN) :: str_dimname             = "string32"        !! name of the character string dimension
       integer(I4B)       :: str_dimid                                   !! ID for the character string dimension
       character(NAMELEN) :: time_dimname            = "time"            !! name of the time dimension 
+      integer(I4B)       :: time_dimid                                  !! ID for the time dimension 
       integer(I4B)       :: time_varid                                  !! ID for the time variable
       character(NAMELEN) :: id_dimname              = "id"              !! name of the particle id dimension
+      integer(I4B)       :: id_dimid                                    !! ID for the particle id dimension
       integer(I4B)       :: id_varid                                    !! ID for the particle name variable
+      character(NAMELEN) :: space_dimname           = "space"           !! name of the space dimension
+      integer(I4B)       :: space_dimid                                 !! ID for the space dimension
+      integer(I4B)       :: space_varid                                 !! ID for the space variable
+      character(len=1),dimension(3) :: space_coords = ["x","y","z"]     !! The space dimension coordinate labels
 
       ! Non-dimension ids and variable names
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable
@@ -56,46 +60,34 @@ module swiftest_classes
       integer(I4B)       :: inc_varid                                   !! ID for the inclination variable 
       character(NAMELEN) :: capom_varname           = "capom"           !! name of the long. asc. node variable 
       integer(I4B)       :: capom_varid                                 !! ID for the long. asc. node variable 
-      character(NAMELEN) :: omega_varname           = "omega"           !! name of the arg. periapsis variable 
-      integer(I4B)       :: omega_varid                                 !! ID for the arg. periapsis variable 
+      character(NAMELEN) :: omega_varname           = "omega"           !! name of the arg. of periapsis variable 
+      integer(I4B)       :: omega_varid                                 !! ID for the arg. of periapsis variable 
       character(NAMELEN) :: capm_varname            = "capm"            !! name of the mean anomaly variable 
       integer(I4B)       :: capm_varid                                  !! ID for the mean anomaly variable 
-      character(NAMELEN) :: xhx_varname             = "xhx"             !! name of the heliocentric position x variable 
-      integer(I4B)       :: xhx_varid                                   !! ID for the heliocentric position x variable 
-      character(NAMELEN) :: xhy_varname             = "xhy"             !! name of the heliocentric position y variable 
-      integer(I4B)       :: xhy_varid                                   !! ID for the heliocentric position y variable 
-      character(NAMELEN) :: xhz_varname             = "xhz"             !! name of the heliocentric position z variable 
-      integer(I4B)       :: xhz_varid                                   !! ID for the heliocentric position z variable 
-      character(NAMELEN) :: vhx_varname             = "vhx"             !! name of the heliocentric velocity x variable 
-      integer(I4B)       :: vhx_varid                                   !! ID for the heliocentric velocity x variable 
-      character(NAMELEN) :: vhy_varname             = "vhy"             !! name of the heliocentric velocity y variable 
-      integer(I4B)       :: vhy_varid                                   !! ID for the heliocentric velocity y variable 
-      character(NAMELEN) :: vhz_varname             = "vhz"             !! name of the heliocentric velocity z variable 
-      integer(I4B)       :: vhz_varid                                   !! ID for the heliocentric velocity z variable 
-      character(NAMELEN) :: gr_pseudo_vhx_varname   = "gr_pseudo_vhx"   !! name of the heliocentric pseudovelocity x variable (used in GR only)
-      integer(I4B)       :: gr_pseudo_vhx_varid                         !! ID for the heliocentric pseudovelocity x variable (used in GR)
-      character(NAMELEN) :: gr_pseudo_vhy_varname   = "gr_pseudo_vhy"   !! name of the heliocentric pseudovelocity y variable (used in GR only)
-      integer(I4B)       :: gr_pseudo_vhy_varid                         !! ID for the heliocentric pseudovelocity y variable (used in GR)
-      character(NAMELEN) :: gr_pseudo_vhz_varname   = "gr_pseudo_vhz"   !! name of the heliocentric pseudovelocity z variable (used in GR only)
-      integer(I4B)       :: gr_pseudo_vhz_varid                         !! ID for the heliocentric psuedovelocity z variable (used in GR)
+      character(NAMELEN) :: varpi_varname           = "varpi"           !! name of the long. of periapsis variable 
+      integer(I4B)       :: varpi_varid                                 !! ID for the long. of periapsis variable 
+      character(NAMELEN) :: lam_varname             = "lam"             !! name of the mean longitude variable 
+      integer(I4B)       :: lam_varid                                   !! ID for the mean longitude variable 
+      character(NAMELEN) :: f_varname               = "f"               !! name of the true anomaly variable 
+      integer(I4B)       :: f_varid                                     !! ID for the true anomaly variable 
+      character(NAMELEN) :: cape_varname            = "cape"            !! name of the eccentric anomaly variable 
+      integer(I4B)       :: cape_varid                                  !! ID for the eccentric anomaly variable 
+      character(NAMELEN) :: rh_varname              = "rh"              !! name of the heliocentric position vector variable
+      integer(I4B)       :: rh_varid                                    !! ID for the heliocentric position vector variable 
+      character(NAMELEN) :: vh_varname              = "vh"              !! name of the heliocentric velocity vector variable
+      integer(I4B)       :: vh_varid                                    !! ID for the heliocentric velocity vector variable 
+      character(NAMELEN) :: gr_pseudo_vh_varname    = "gr_pseudo_vh"    !! name of the heliocentric pseudovelocity vector variable (used in GR only)
+      integer(I4B)       :: gr_pseudo_vh_varid                          !! ID for the heliocentric pseudovelocity vector variable (used in GR)
       character(NAMELEN) :: gmass_varname           = "Gmass"           !! name of the mass variable
       integer(I4B)       :: Gmass_varid                                 !! ID for the mass variable
       character(NAMELEN) :: rhill_varname           = "rhill"           !! name of the hill radius variable
       integer(I4B)       :: rhill_varid                                 !! ID for the hill radius variable
       character(NAMELEN) :: radius_varname          = "radius"          !! name of the radius variable
       integer(I4B)       :: radius_varid                                !! ID for the radius variable
-      character(NAMELEN) :: ip1_varname             = "Ip1"             !! name of the axis 1 principal moment of inertial variable
-      integer(I4B)       :: Ip1_varid                                   !! ID for the axis 1 principal moment of inertia variable
-      character(NAMELEN) :: ip2_varname             = "Ip2"             !! name of the axis 2 principal moment of inertial variable
-      integer(I4B)       :: Ip2_varid                                   !! ID for the axis 2 principal moment of inertia variable
-      character(NAMELEN) :: ip3_varname             = "Ip3"             !! name of the axis 3 principal moment of inertial variable
-      integer(I4B)       :: Ip3_varid                                   !! ID for the axis 3 principal moment of inertia variable
-      character(NAMELEN) :: rotx_varname            = "rotx"            !! name of the rotation x variable
-      integer(I4B)       :: rotx_varid                                  !! ID for the rotation x variable
-      character(NAMELEN) :: roty_varname            = "roty"            !! name of the rotation y variable
-      integer(I4B)       :: roty_varid                                  !! ID for the rotation y variable
-      character(NAMELEN) :: rotz_varname            = "rotz"            !! name of the rotation z variable
-      integer(I4B)       :: rotz_varid                                  !! ID for the rotation z variable
+      character(NAMELEN) :: Ip_varname              = "Ip"              !! name of the principal moment of inertial variable
+      integer(I4B)       :: Ip_varid                                    !! ID for the axis principal moment of inertia variable
+      character(NAMELEN) :: rot_varname             = "rot"             !! name of the rotation vector variable
+      integer(I4B)       :: rot_varid                                   !! ID for the rotation vector variable
       character(NAMELEN) :: j2rp2_varname           = "j2rp2"           !! name of the j2rp2 variable
       integer(I4B)       :: j2rp2_varid                                 !! ID for the j2 variable
       character(NAMELEN) :: j4rp4_varname           = "j4rp4"           !! name of the j4pr4 variable
@@ -110,29 +102,17 @@ module swiftest_classes
       integer(I4B)       :: KE_spin_varid                               !! ID for the system spin kinetic energy variable
       character(NAMELEN) :: pe_varname              = "PE"              !! name of the system potential energy variable
       integer(I4B)       :: PE_varid                                    !! ID for the system potential energy variable
-      character(NAMELEN) :: l_orbx_varname          = "L_orbx"          !! name of the orbital angular momentum x variable
-      integer(I4B)       :: L_orbx_varid                                !! ID for the system orbital angular momentum x variable
-      character(NAMELEN) :: l_orby_varname          = "L_orby"          !! name of the orbital angular momentum y variable
-      integer(I4B)       :: L_orby_varid                                !! ID for the system orbital angular momentum y variable
-      character(NAMELEN) :: l_orbz_varname          = "L_orbz"          !! name of the orbital angular momentum z variable
-      integer(I4B)       :: L_orbz_varid                                !! ID for the system orbital angular momentum z variable
-      character(NAMELEN) :: l_spinx_varname         = "L_spinx"         !! name of the spin angular momentum x variable
-      integer(I4B)       :: L_spinx_varid                               !! ID for the system spin angular momentum x variable
-      character(NAMELEN) :: l_spiny_varname         = "L_spiny"         !! name of the spin angular momentum y variable
-      integer(I4B)       :: L_spiny_varid                               !! ID for the system spin angular momentum y variable
-      character(NAMELEN) :: l_spinz_varname         = "L_spinz"         !! name of the spin angular momentum z variable
-      integer(I4B)       :: L_spinz_varid                               !! ID for the system spin angular momentum z variable
-      character(NAMELEN) :: l_escapex_varname       = "L_escapex"       !! name of the escaped angular momentum x variable
-      integer(I4B)       :: L_escapex_varid                             !! ID for the escaped angular momentum x variable
-      character(NAMELEN) :: l_escapey_varname       = "L_escapey"       !! name of the escaped angular momentum y variable
-      integer(I4B)       :: L_escapey_varid                             !! ID for the escaped angular momentum x variable
-      character(NAMELEN) :: l_escapez_varname       = "L_escapez"       !! name of the escaped angular momentum z variable                          
-      integer(I4B)       :: L_escapez_varid                             !! ID for the escaped angular momentum x variable
-      character(NAMELEN) :: ecollisions_varname     = "Ecollisions"     !! name of the escaped angular momentum y variable                             
+      character(NAMELEN) :: L_orb_varname           = "L_orb"           !! name of the orbital angular momentum vector variable
+      integer(I4B)       :: L_orb_varid                                 !! ID for the system orbital angular momentum vector variable
+      character(NAMELEN) :: L_spin_varname          = "L_spin"          !! name of the spin angular momentum vector variable
+      integer(I4B)       :: L_spin_varid                                !! ID for the system spin angular momentum vector variable
+      character(NAMELEN) :: L_escape_varname        = "L_escape"        !! name of the escaped angular momentum vector variable
+      integer(I4B)       :: L_escape_varid                              !! ID for the escaped angular momentum vector variable
+      character(NAMELEN) :: Ecollisions_varname     = "Ecollisions"     !! name of the escaped angular momentum y variable                             
       integer(I4B)       :: Ecollisions_varid                           !! ID for the energy lost in collisions variable
-      character(NAMELEN) :: euntracked_varname      = "Euntracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      character(NAMELEN) :: Euntracked_varname      = "Euntracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       integer(I4B)       :: Euntracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
-      character(NAMELEN) :: gmescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
+      character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
       integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the system
       character(NAMELEN) :: status_varname          = "status"          !! name of the current status of the body variable (includes discard type)
       integer(I4B)       :: status_varid                                !! ID for the status variable
@@ -142,32 +122,16 @@ module swiftest_classes
       integer(I4B)       :: origin_time_varid                           !! ID for the origin time
       character(NAMELEN) :: collision_id_varname    = "collision_id"    !! name of the collision id variable
       integer(I4B)       :: collision_id_varid                          !! Netcdf ID for the origin collision ID
-      character(NAMELEN) :: origin_xhx_varname      = "origin_xhx"      !! name of the heliocentric position of the body at the time of origin x variable
-      integer(I4B)       :: origin_xhx_varid                            !! ID for the origin xh x component
-      character(NAMELEN) :: origin_xhy_varname      = "origin_xhy"      !! name of the heliocentric position of the body at the time of origin y variable
-      integer(I4B)       :: origin_xhy_varid                            !! ID for the origin xh y component
-      character(NAMELEN) :: origin_xhz_varname      = "origin_xhz"      !! name of the heliocentric position of the body at the time of origin z variable
-      integer(I4B)       :: origin_xhz_varid                            !! ID for the origin xh z component
-      character(NAMELEN) :: origin_vhx_varname      = "origin_vhx"      !! name of the heliocentric velocity of the body at the time of origin x variable
-      integer(I4B)       :: origin_vhx_varid                            !! ID for the origin xh x component
-      character(NAMELEN) :: origin_vhy_varname      = "origin_vhy"      !! name of the heliocentric velocity of the body at the time of origin y variable
-      integer(I4B)       :: origin_vhy_varid                            !! ID for the origin xh y component
-      character(NAMELEN) :: origin_vhz_varname      = "origin_vhz"      !! name of the heliocentric velocity of the body at the time of origin z variable
-      integer(I4B)       :: origin_vhz_varid                            !! ID for the origin xh z component
+      character(NAMELEN) :: origin_rh_varname       = "origin_rh"       !! name of the heliocentric position vector of the body at the time of origin variable
+      integer(I4B)       :: origin_rh_varid                             !! ID for the origin position vector variable
+      character(NAMELEN) :: origin_vh_varname       = "origin_vh"       !! name of the heliocentric velocity vector of the body at the time of origin variable
+      integer(I4B)       :: origin_vh_varid                             !! ID for the origin velocity vector component
       character(NAMELEN) :: discard_time_varname    = "discard_time"    !! name of the time of discard variable
       integer(I4B)       :: discard_time_varid                          !! ID for the time of discard variable
-      character(NAMELEN) :: discard_xhx_varname     = "discard_xhx"     !! name of the heliocentric position of the body at the time of discard x variable
-      integer(I4B)       :: discard_xhx_varid                           !! ID for the heliocentric position of the body at the time of discard x variable
-      character(NAMELEN) :: discard_xhy_varname     = "discard_xhy"     !! name of the heliocentric position of the body at the time of discard y variable
-      integer(I4B)       :: discard_xhy_varid                           !! ID for the heliocentric position of the body at the time of discard y variable
-      character(NAMELEN) :: discard_xhz_varname     = "discard_xhz"     !! name of the heliocentric position of the body at the time of discard z variable
-      integer(I4B)       :: discard_xhz_varid                           !! ID for the heliocentric position of the body at the time of discard z variable
-      character(NAMELEN) :: discard_vhx_varname     = "discard_vhx"     !! name of the heliocentric velocity of the body at the time of discard x variable
-      integer(I4B)       :: discard_vhx_varid                           !! ID for the heliocentric velocity of the body at the time of discard x variable
-      character(NAMELEN) :: discard_vhy_varname     = "discard_vhy"     !! name of the heliocentric velocity of the body at the time of discard y variable
-      integer(I4B)       :: discard_vhy_varid                           !! ID for the heliocentric velocity of the body at the time of discard y variable
-      character(NAMELEN) :: discard_vhz_varname     = "discard_vhz"     !! name of the heliocentric velocity of the body at the time of discard z variable
-      integer(I4B)       :: discard_vhz_varid                           !! ID for the heliocentric velocity of the body at the time of discard z variable
+      character(NAMELEN) :: discard_rh_varname      = "discard_rh"      !! name of the heliocentric position vector of the body at the time of discard variable
+      integer(I4B)       :: discard_rh_varid                            !! ID for the heliocentric position vector of the body at the time of discard  variable
+      character(NAMELEN) :: discard_vh_varname      = "discard_vh"      !! name of the heliocentric velocity vector of the body at the time of discard  variable
+      integer(I4B)       :: discard_vh_varid                            !! ID for the heliocentric velocity vector of the body at the time of discard  variable
       character(NAMELEN) :: discard_body_id_varname = "discard_body_id" !! name of the id of the other body involved in the discard
    end type netcdf_variables
 
@@ -188,8 +152,8 @@ module swiftest_classes
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
-      character(STRMAX)  :: integrator           = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
-      character(STRMAX)  :: param_file_name      = "param.in"         !! The default name of the parameter input file
+      character(len=:), allocatable :: integrator      !! Symbolic name of the nbody integrator  used
+      character(len=:), allocatable :: param_file_name !! The name of the parameter file
       integer(I4B)       :: maxid                = -1                 !! The current maximum particle id number 
       integer(I4B)       :: maxid_collision      = 0                  !! The current maximum collision id number
       real(DP)           :: t0                   =  0.0_DP            !! Integration reference time
@@ -288,11 +252,11 @@ module swiftest_classes
       character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time     !! The time of the particle's formation
       integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
-      real(DP), dimension(NDIM) :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
       real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
       real(DP)                  :: discard_time    !! The time of the particle's discard
       character(len=NAMELEN)    :: status          !! Particle status description: Active, Merged, Fragmented, etc.
-      real(DP), dimension(NDIM) :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+      real(DP), dimension(NDIM) :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
       real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
    contains
@@ -358,7 +322,7 @@ module swiftest_classes
       logical,                      dimension(:),   allocatable :: ldiscard        !! Body should be discarded
       logical,                      dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       real(DP),                     dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      real(DP),                     dimension(:,:), allocatable :: xh              !! Swiftestcentric position
+      real(DP),                     dimension(:,:), allocatable :: rh              !! Swiftestcentric position
       real(DP),                     dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
       real(DP),                     dimension(:,:), allocatable :: xb              !! Barycentric position
       real(DP),                     dimension(:,:), allocatable :: vb              !! Barycentric velocity
@@ -440,7 +404,7 @@ module swiftest_classes
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vh2vb        => util_coord_vh2vb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure :: vb2vh        => util_coord_vb2vh_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure :: xh2xb        => util_coord_xh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
+      procedure :: xh2xb        => util_coord_rh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc      => util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -480,7 +444,7 @@ module swiftest_classes
       procedure :: b2h       => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure :: xh2xb     => util_coord_xh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
+      procedure :: xh2xb     => util_coord_rh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc   => util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
@@ -732,11 +696,11 @@ module swiftest_classes
          real(DP),                   intent(in)    :: dt    !! Step size
       end subroutine gr_p4_pos_kick
 
-      pure module subroutine gr_pseudovel2vel(param, mu, xh, pv, vh) 
+      pure module subroutine gr_pseudovel2vel(param, mu, rh, pv, vh) 
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),     intent(in)  :: xh    !! Swiftestcentric position vector 
+         real(DP), dimension(:),     intent(in)  :: rh    !! Swiftestcentric position vector 
          real(DP), dimension(:),     intent(in)  :: pv    !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
          real(DP), dimension(:),     intent(out) :: vh    !! Swiftestcentric velocity vector 
       end subroutine gr_pseudovel2vel
@@ -747,11 +711,11 @@ module swiftest_classes
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       end subroutine gr_pv2vh_body
 
-      pure module subroutine gr_vel2pseudovel(param, mu, xh, vh, pv)
+      pure module subroutine gr_vel2pseudovel(param, mu, rh, vh, pv)
          implicit none
          class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
          real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-         real(DP), dimension(:),     intent(in)  :: xh    !! Swiftestcentric position vector 
+         real(DP), dimension(:),     intent(in)  :: rh    !! Swiftestcentric position vector 
          real(DP), dimension(:),     intent(in)  :: vh    !! Swiftestcentric velocity vector 
          real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       end subroutine gr_vel2pseudovel
@@ -1060,55 +1024,55 @@ module swiftest_classes
          class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_sync
 
-      module function netcdf_read_frame_system(self, iu, param) result(ierr)
+      module function netcdf_read_frame_system(self, nciu, param) result(ierr)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
-         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(netcdf_parameters),      intent(inout) :: nciu  !! Parameters used to for reading a NetCDF dataset to file
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                                 :: ierr  !! Error code: returns 0 if the read is successful
       end function netcdf_read_frame_system
 
-      module subroutine netcdf_read_hdr_system(self, iu, param) 
+      module subroutine netcdf_read_hdr_system(self, nciu, param) 
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for reading a NetCDF dataset to file
+         class(netcdf_parameters),     intent(inout) :: nciu  !! Parameters used to for reading a NetCDF dataset to file
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_read_hdr_system
 
-      module subroutine netcdf_read_particle_info_system(self, iu, param, plmask, tpmask)
+      module subroutine netcdf_read_particle_info_system(self, nciu, param, plmask, tpmask)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: iu     !! Parameters used to identify a particular NetCDF dataset
+         class(netcdf_parameters),     intent(inout) :: nciu   !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
          logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
          logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       end subroutine netcdf_read_particle_info_system
 
-      module subroutine netcdf_write_frame_base(self, iu, param)
+      module subroutine netcdf_write_frame_base(self, nciu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
-         class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),   intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_base
 
-      module subroutine netcdf_write_frame_system(self, iu, param)
+      module subroutine netcdf_write_frame_system(self, nciu, param)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
-         class(netcdf_parameters),      intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),      intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_system
 
-      module subroutine netcdf_write_hdr_system(self, iu, param) 
+      module subroutine netcdf_write_hdr_system(self, nciu, param) 
          implicit none
          class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: iu    !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),     intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_hdr_system
 
-      module subroutine netcdf_write_info_base(self, iu, param)
+      module subroutine netcdf_write_info_base(self, nciu, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest particle object
-         class(netcdf_parameters),   intent(inout) :: iu    !! Parameters used to identify a particular NetCDF dataset
+         class(netcdf_parameters),   intent(inout) :: nciu  !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_info_base
 
@@ -1171,7 +1135,7 @@ module swiftest_classes
          real(DP), intent(out) :: tperi    !! time of pericenter passage
       end subroutine orbel_xv2aqt
 
-      pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
+      pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
          implicit none
          real(DP), intent(in)  :: mu    !! Gravitational constant
          real(DP), intent(in)  :: px,py,pz !! Position vector
@@ -1182,6 +1146,11 @@ module swiftest_classes
          real(DP), intent(out) :: capom !! longitude of ascending node
          real(DP), intent(out) :: omega !! argument of periapsis
          real(DP), intent(out) :: capm  !! mean anomaly
+         real(DP), intent(out) :: varpi !! longitude of periapsis
+         real(DP), intent(out) :: lam   !! mean longitude
+         real(DP), intent(out) :: f     !! true anomaly
+         real(DP), intent(out) :: cape  !! eccentric anomaly (eccentric orbits)
+         real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
       end subroutine orbel_xv2el
 
       module subroutine orbel_xv2el_vec(self, cb)
@@ -1380,17 +1349,17 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
       end subroutine util_coord_vh2vb_tp
 
-      module subroutine util_coord_xh2xb_pl(self, cb)
+      module subroutine util_coord_rh2xb_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine util_coord_xh2xb_pl
+      end subroutine util_coord_rh2xb_pl
 
-      module subroutine util_coord_xh2xb_tp(self, cb)
+      module subroutine util_coord_rh2xb_tp(self, cb)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
-      end subroutine util_coord_xh2xb_tp
+      end subroutine util_coord_rh2xb_tp
 
       module subroutine util_copy_particle_info(self, source)
          implicit none
@@ -1662,7 +1631,7 @@ module swiftest_classes
       end subroutine util_set_mu_tp
 
       module subroutine util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, &
-                                               origin_xh, origin_vh, discard_time, discard_xh, discard_vh, discard_body_id)
+                                               origin_rh, origin_vh, discard_time, discard_rh, discard_vh, discard_body_id)
          implicit none
          class(swiftest_particle_info), intent(inout)           :: self
          character(len=*),              intent(in),    optional :: name            !! Non-unique name
@@ -1671,10 +1640,10 @@ module swiftest_classes
          character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
          real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
          integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
-         real(DP), dimension(:),        intent(in),    optional :: origin_xh       !! The heliocentric distance vector at the time of the particle's formation
+         real(DP), dimension(:),        intent(in),    optional :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
          real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
          real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
-         real(DP), dimension(:),        intent(in),    optional :: discard_xh      !! The heliocentric distance vector at the time of the particle's discard
+         real(DP), dimension(:),        intent(in),    optional :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
          real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
          integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
       end subroutine util_set_particle_info

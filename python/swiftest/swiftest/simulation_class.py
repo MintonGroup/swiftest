@@ -41,7 +41,7 @@ class Simulation:
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, **kwargs: Any):
+    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, simdir: os.PathLike | str = "simdata", **kwargs: Any):
         """
 
         Parameters
@@ -66,6 +66,9 @@ class Simulation:
         read_old_output_file : bool, default False
             If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
             Parameter input file equivalent: None
+        simdir : PathLike, default `"simdir"`
+            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
+            dump files, and log files.
 
         **kwargs : See list of valid parameters and their defaults below
 
@@ -302,16 +305,28 @@ class Simulation:
 
         self.param = {}
         self.data = xr.Dataset()
+        self.ic = xr.Dataset()
+
+
+        self.simdir = Path(simdir)
+        if self.simdir.exists():
+            if not self.simdir.is_dir():
+                msg = f"Cannot create the {self.simdir} directory: File exists."
+                msg += "\nDelete the file or change the location of param_file"
+                warnings.warn(msg,stacklevel=2)
+        else:
+            self.simdir.mkdir(parents=True, exist_ok=False)
+
 
         # Set the location of the parameter input file, choosing the default if it isn't specified.
-        param_file = kwargs.pop("param_file",Path.cwd() / "simdata" / "param.in")
+        param_file = kwargs.pop("param_file",Path.cwd() / self.simdir / "param.in")
         self.verbose = kwargs.pop("verbose",True)
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
 
         #--------------------------
-        # Lowest Priority: Defaults
+        # Lowest Priority: Defaults:
         #--------------------------
         # Quietly set all parameters to their defaults.
         self.set_parameter(verbose=False,param_file=param_file)
@@ -322,8 +337,8 @@ class Simulation:
 
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
+        param_file_found = False
         if read_param or read_old_output_file:
-
             if self.read_param(read_init_cond = not read_old_output_file):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
@@ -345,9 +360,9 @@ class Simulation:
 
         # Read in an old simulation file if requested
         if read_old_output_file:
-            binpath = os.path.join(self.sim_dir, self.param['BIN_OUT'])
+            binpath = os.path.join(self.simdir, self.param['BIN_OUT'])
             if os.path.exists(binpath):
-                self.bin2xr()
+                self.read_output_file()
             else:
                 warnings.warn(f"BIN_OUT file {binpath} not found.",stacklevel=2)
         return
@@ -364,7 +379,7 @@ class Simulation:
         with open(driver_script, 'w') as f:
             f.write(f"#{self._shell_full} -l\n")
             f.write(f"source ~/.{self._shell}rc\n")
-            f.write(f"cd {self.sim_dir}\n")
+            f.write(f"cd {self.simdir}\n")
             f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
 
         cmd = f"{env['SHELL']} -l {driver_script}"
@@ -470,7 +485,7 @@ class Simulation:
         self._run_swiftest_driver()
 
         # Read in new data
-        self.bin2xr()
+        self.read_output_file()
 
         return
 
@@ -766,14 +781,6 @@ class Simulation:
         # Extract the simulation directory and create it if it doesn't exist
         if param_file is not None:
             self.param_file = Path.cwd() / param_file
-            self.sim_dir = self.param_file.parent
-            if self.sim_dir.exists():
-                if not self.sim_dir.is_dir():
-                    msg = f"Cannot create the {self.sim_dir} directory: File exists."
-                    msg += "\nDelete the file or change the location of param_file"
-                    warnings.warn(msg,stacklevel=2)
-            else:
-                self.sim_dir.mkdir(parents=True, exist_ok=False)
 
         # If no arguments (other than, possibly, verbose) are requested, use defaults
         if len(kwargs) == 0:
@@ -2051,7 +2058,8 @@ class Simulation:
             >*Note.* Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
         Returns
         -------
-            data : Xarray dataset with body or bodies added.
+        None
+            initial conditions data stored as an Xarray Dataset in the init_cond instance variable
         """
 
         if type(name) is str:
@@ -2081,71 +2089,43 @@ class Simulation:
 
         body_list = []
         for i,n in enumerate(name):
-            body_list.append(init_cond.solar_system_horizons(n, self.param, date, idval=ephemeris_id[i]))
+            body_list.append(init_cond.solar_system_horizons(n, self.param, date, id=ephemeris_id[i]))
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
         if len(body_list) == 1:
-            name,v1,v2,v3,v4,v5,v6,ephemeris_id,Gmass,radius,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.hsplit(np.array(body_list[0]),19))
+            values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
         else:
-            name,v1,v2,v3,v4,v5,v6,ephemeris_id,Gmass,radius,rhill,Ip1,Ip2,Ip3,rotx,roty,rotz,J2,J4 = tuple(np.squeeze(np.hsplit(np.array(body_list),19)))
+            values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
+        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
+        kwargs = dict(zip(keys,values))
+        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
+        vector_floats = ["rh","vh","Ip","rot"]
+        scalar_ints = ["id"]
 
-        ephemeris_id = ephemeris_id.astype(int)
-        v1 = v1.astype(np.float64)
-        v2 = v2.astype(np.float64)
-        v3 = v3.astype(np.float64)
-        v4 = v4.astype(np.float64)
-        v5 = v5.astype(np.float64)
-        v6 = v6.astype(np.float64)
-        rhill = rhill.astype(np.float64)
-        J2 = J2.astype(np.float64)
-        J4 = J4.astype(np.float64)
+        for k,v in kwargs.items():
+            if k in scalar_ints:
+                kwargs[k] = v.astype(int)
+            elif k in scalar_floats:
+                kwargs[k] = v.astype(np.float64)
+                if all(np.isnan(kwargs[k])):
+                    kwargs[k] = None
+            elif k in vector_floats:
+                kwargs[k] = np.vstack(v)
+                kwargs[k] = kwargs[k].astype(np.float64)
+                if np.all(np.isnan(kwargs[k])):
+                    kwargs[k] = None
 
-        Gmass = Gmass.astype(np.float64)
-        radius = radius.astype(np.float64)
-        Ip1 = Ip1.astype(np.float64)
-        Ip2 = Ip2.astype(np.float64)
-        Ip3 = Ip3.astype(np.float64)
-        rotx = rotx.astype(np.float64)
-        roty = roty.astype(np.float64)
-        rotz = rotz.astype(np.float64)
-
-
-        if all(np.isnan(Gmass)):
-            Gmass = None
-        if all(np.isnan(radius)):
-            radius = None
-        if all(np.isnan(rhill)):
-            rhill = None
-        if all(np.isnan(Ip1)):
-            Ip1 = None
-        if all(np.isnan(Ip2)):
-            Ip2 = None
-        if all(np.isnan(Ip3)):
-            Ip3 = None
-        if all(np.isnan(rotx)):
-            rotx = None
-        if all(np.isnan(roty)):
-            roty = None
-        if all(np.isnan(rotz)):
-            rotz = None
-        if all(np.isnan(J2)):
-            J2 = None
-        if all(np.isnan(J4)):
-            J4 = None
-
-        t = self.param['TSTART']
-
-        dsnew = init_cond.vec2xr(self.param,name,v1,v2,v3,v4,v5,v6,ephemeris_id,
-                                 GMpl=Gmass, Rpl=radius, rhill=rhill,
-                                 Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
-                                 rotx=rotx, roty=roty, rotz=rotz,
-                                 J2=J2, J4=J4, t=t)
+        kwargs['time'] = np.array([self.param['TSTART']])
+        
+        dsnew = init_cond.vec2xr(self.param,**kwargs)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
            self.save(verbose=False)
 
-        return dsnew
+        self.ic = self.data.copy(deep=True)
+
+        return
 
 
     def set_ephemeris_date(self,
@@ -2272,27 +2252,21 @@ class Simulation:
 
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_] | None=None,
-                 idvals: int | list[int] | npt.NDArray[np.int_] | None=None,
-                 v1: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v2: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v3: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v4: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v5: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 v6: float | List[float] | npt.NDArray[np.float_] | None = None,
-                 xh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                 id: int | list[int] | npt.NDArray[np.int_] | None=None,
+                 a: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 e: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 inc: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 capom: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 omega: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 capm: float | List[float] | npt.NDArray[np.float_] | None = None,
+                 rh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  vh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  mass: float | List[float] | npt.NDArray[np.float_] | None=None,
                  Gmass: float | List[float] | npt.NDArray[np.float_] | None=None,
                  radius: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip1: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip3: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 Ip: List[float] | npt.NDArray[np.float_] | None=None,
-                 rotx: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 roty: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 rotz: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
+                 Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None):
         """
@@ -2305,22 +2279,22 @@ class Simulation:
         ----------
         name : str or array-like of str, optional
             Name or names of Bodies. If none passed, name will be "Body<idval>"
-        idvals : int or array-like of int, optional
+        id : int or array-like of int, optional
             Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
             Dataset ids.
-        v1 : float or array-like of float, optional
-            xhx for param['IN_FORM'] == "XV"; a for param['IN_FORM'] == "EL"
-        v2 : float or array-like of float, optional
-            xhy for param['IN_FORM'] == "XV"; e for param['IN_FORM'] == "EL"
-        v3 : float or array-like of float, optional
-            xhz for param['IN_FORM'] == "XV"; inc for param['IN_FORM'] == "EL"
-        v4 : float or array-like of float, optional
-            vhx for param['IN_FORM'] == "XV"; capom for param['IN_FORM'] == "EL"
-        v5 : float or array-like of float, optional
-            vhy for param['IN_FORM'] == "XV"; omega for param['IN_FORM'] == "EL"
-        v6 : float or array-like of float, optional
-            vhz for param['IN_FORM'] == "XV"; capm for param['IN_FORM'] == "EL"
-        xh : (n,3) array-like of float, optional
+        a : float or array-like of float, optional
+             semimajor axis for param['IN_FORM'] == "EL"
+        e : float or array-like of float, optional
+            eccentricity  for param['IN_FORM'] == "EL"
+        inc : float or array-like of float, optional
+            inclination for param['IN_FORM'] == "EL"
+        capom : float or array-like of float, optional
+            longitude of periapsis for param['IN_FORM'] == "EL"
+        omega : float or array-like of float, optional
+            argument of periapsis for param['IN_FORM'] == "EL"
+        capm : float or array-like of float, optional
+            mean anomaly for param['IN_FORM'] == "EL"
+        rh : (n,3) array-like of float, optional
             Position vector array. This can be used instead of passing v1, v2, and v3 sepearately for "XV" input format
         vh : (n,3) array-like of float, optional
             Velocity vector array. This can be used instead of passing v4, v5, and v6 sepearately for "XV" input format
@@ -2332,10 +2306,6 @@ class Simulation:
             Radius values if these are massive bodies
         rhill : float or array-like of float, optional
             Hill's radius values if these are massive bodies
-        Ip<1,2,3> : float or array-like of float, optional
-            Principal axes moments of inertia if these are massive bodies with rotation enabled
-        rot<x,y,z>: float or array-like of float, optional
-            Rotation rate vector components if these are massive bodies with rotation enabled
         rot: (3) or (n,3) array-like of float, optional
             Rotation rate vectors if these are massive bodies with rotation enabled. This can be used instead of passing
             rotx, roty, and rotz separately
@@ -2404,27 +2374,21 @@ class Simulation:
 
         nbodies = None
         name,nbodies = input_to_array(name,"s",nbodies)
-        v1,nbodies = input_to_array(v1,"f",nbodies)
-        v2,nbodies = input_to_array(v2,"f",nbodies)
-        v3,nbodies = input_to_array(v3,"f",nbodies)
-        v4,nbodies = input_to_array(v4,"f",nbodies)
-        v5,nbodies = input_to_array(v5,"f",nbodies)
-        v6,nbodies = input_to_array(v6,"f",nbodies)
-        idvals,nbodies = input_to_array(idvals,"i",nbodies)
+        a,nbodies = input_to_array(a,"f",nbodies)
+        e,nbodies = input_to_array(e,"f",nbodies)
+        inc,nbodies = input_to_array(inc,"f",nbodies)
+        capom,nbodies = input_to_array(capom,"f",nbodies)
+        omega,nbodies = input_to_array(omega,"f",nbodies)
+        capm,nbodies = input_to_array(capm,"f",nbodies)
+        id,nbodies = input_to_array(id,"i",nbodies)
         mass,nbodies = input_to_array(mass,"f",nbodies)
         Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
         rhill,nbodies = input_to_array(rhill,"f",nbodies)
         radius,nbodies = input_to_array(radius,"f",nbodies)
-        Ip1,nbodies = input_to_array(Ip1,"f",nbodies)
-        Ip2,nbodies = input_to_array(Ip2,"f",nbodies)
-        Ip3,nbodies = input_to_array(Ip3,"f",nbodies)
-        rotx,nbodies = input_to_array(rotx,"f",nbodies)
-        roty,nbodies = input_to_array(roty,"f",nbodies)
-        rotz,nbodies = input_to_array(rotz,"f",nbodies)
         J2,nbodies = input_to_array(J2,"f",nbodies)
         J4,nbodies = input_to_array(J4,"f",nbodies)
 
-        xh,nbodies = input_to_array_3d(xh,nbodies)
+        rh,nbodies = input_to_array_3d(rh,nbodies)
         vh,nbodies = input_to_array_3d(vh,nbodies)
         rot,nbodies = input_to_array_3d(rot,nbodies)
         Ip,nbodies = input_to_array_3d(Ip,nbodies)
@@ -2434,50 +2398,18 @@ class Simulation:
         else:
             maxid = self.data.id.max().values[()]
 
-        if idvals is None:
-            idvals = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
+        if id is None:
+            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
 
         if name is None:
-            name=np.char.mod(f"Body%d",idvals)
+            name=np.char.mod(f"Body%d",id)
 
         if len(self.data) > 0:
-            dup_id = np.in1d(idvals, self.data.id)
+            dup_id = np.in1d(id, self.data.id)
             if any(dup_id):
-                raise ValueError(f"Duplicate ids detected: ", *idvals[dup_id])
+                raise ValueError(f"Duplicate ids detected: ", *id[dup_id])
 
-        t = self.param['TSTART']
-
-        if xh is not None:
-            if v1 is not None or v2 is not None or v3 is not None:
-                raise ValueError("Cannot use xh and v1,v2,v3 inputs simultaneously!")
-            else:
-                v1 = xh.T[0]
-                v2 = xh.T[1]
-                v3 = xh.T[2]
-
-        if vh is not None:
-            if v4 is not None or v5 is not None or v6 is not None:
-                raise ValueError("Cannot use vh and v4,v5,v6 inputs simultaneously!")
-            else:
-                v4 = vh.T[0]
-                v5 = vh.T[1]
-                v6 = vh.T[2]
-
-        if rot is not None:
-            if rotx is not None or roty is not None or rotz is not None:
-                raise ValueError("Cannot use rot and rotx,roty,rotz inputs simultaneously!")
-            else:
-                rotx = rot.T[0]
-                roty = rot.T[1]
-                rotz = rot.T[2]
-
-        if Ip is not None:
-            if Ip1 is not None or Ip2 is not None or Ip3 is not None:
-                raise ValueError("Cannot use Ip and Ip1,Ip2,Ip3 inputs simultaneously!")
-            else:
-                Ip1 = Ip.T[0]
-                Ip2 = Ip.T[1]
-                Ip3 = Ip.T[2]
+        time = [self.param['TSTART']]
 
         if mass is not None:
             if Gmass is not None:
@@ -2485,16 +2417,14 @@ class Simulation:
             else:
                 Gmass = self.param['GU'] * mass
 
-        dsnew = init_cond.vec2xr(self.param, name, v1, v2, v3, v4, v5, v6, idvals,
-                                 GMpl=Gmass, Rpl=radius, rhill=rhill,
-                                 Ip1=Ip1, Ip2=Ip2, Ip3=Ip3,
-                                 rotx=rotx, roty=roty, rotz=rotz,
-                                 J2=J2, J4=J4,t=t)
+        dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, J2=J2, J4=J4, time=time)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)
+        self.ic = self.data.copy(deep=True)
 
-        return dsnew
+        return
 
     def _combine_and_fix_dsnew(self,dsnew):
         """
@@ -2549,6 +2479,7 @@ class Simulation:
         self.data = get_nvals(self.data)
 
         self.data = self.data.sortby("id")
+        self.data = io.reorder_dims(self.data)
 
         return dsnew
 
@@ -2592,11 +2523,12 @@ class Simulation:
             self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
             if read_init_cond:
                 if "NETCDF" in self.param['IN_TYPE']:
-                   init_cond_file = self.sim_dir / self.param['NC_IN']
+                   init_cond_file = self.simdir / self.param['NC_IN']
                    if os.path.exists(init_cond_file):
                        param_tmp = self.param.copy()
                        param_tmp['BIN_OUT'] = init_cond_file
                        self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                       self.ic = self.data.copy(deep=True)
                    else:
                        warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
                 else:
@@ -2721,12 +2653,14 @@ class Simulation:
             warnings.warn(f"Conversion from {self.codename} to {newcodename} is not supported.",stacklevel=2)
         return oldparam
 
-    def bin2xr(self):
+    def read_output_file(self,read_init_cond : bool = True):
         """
-        Converts simulation output files from a flat binary file to a xarray dataset. 
+        Reads in simulation data from an output file and stores it as an Xarray Dataset in the `data` instance variable.
 
         Parameters
         ----------
+            read_init_cond : bool
+                Read in an initial conditions file along with the output file. Default is True
 
         Returns
         -------
@@ -2737,10 +2671,17 @@ class Simulation:
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
         param_tmp = self.param.copy()
-        param_tmp['BIN_OUT'] = os.path.join(self.sim_dir, self.param['BIN_OUT'])
+        param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
+            if read_init_cond:
+                if "NETCDF" in self.param['IN_TYPE']:
+                    param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['NC_IN'])
+                    self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                else:
+                    self.ic = self.data.isel(time=0)
+
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swifter simulation data stored as xarray DataSet .data')
@@ -2764,11 +2705,11 @@ class Simulation:
             fol : xarray dataset
         """
         if self.data is None:
-            self.bin2xr()
+            self.read_output_file()
         if codestyle == "Swift":
             try:
                 with open('follow.in', 'r') as f:
-                    line = f.readline()  # Parameter file (ignored because bin2xr already takes care of it
+                    line = f.readline()  # Parameter file (ignored because read_output_file already takes care of it
                     line = f.readline()  # PL file (ignored)
                     line = f.readline()  # TP file (ignored)
                     line = f.readline()  # ifol
@@ -2829,7 +2770,7 @@ class Simulation:
             param = self.param
 
         if codename == "Swiftest":
-            infile_name = Path(self.sim_dir) / param['NC_IN']
+            infile_name = Path(self.simdir) / param['NC_IN']
             io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)
             self.write_param(param_file=param_file,**kwargs)
         elif codename == "Swifter":
