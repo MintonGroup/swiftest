@@ -5,10 +5,10 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
-sim_gr = swiftest.Simulation(param_file="param.gr.in", output_file_name="bin.gr.nc")
+sim_gr = swiftest.Simulation(simdir="gr")
 sim_gr.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
 
-sim_nogr = swiftest.Simulation(param_file="param.nogr.in", output_file_name="bin.nogr.nc")
+sim_nogr = swiftest.Simulation(simdir="nogr")
 sim_nogr.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
 
 tstep_out = 10.0
