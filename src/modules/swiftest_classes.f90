@@ -144,8 +144,8 @@ module swiftest_classes
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
-      character(STRMAX)  :: integrator           = UNKNOWN_INTEGRATOR !! Symbolic name of the nbody integrator  used
-      character(STRMAX)  :: param_file_name      = "param.in"         !! The default name of the parameter input file
+      character(len=:), allocatable :: integrator      !! Symbolic name of the nbody integrator  used
+      character(len=:), allocatable :: param_file_name !! The name of the parameter file
       integer(I4B)       :: maxid                = -1                 !! The current maximum particle id number 
       integer(I4B)       :: maxid_collision      = 0                  !! The current maximum collision id number
       real(DP)           :: t0                   =  0.0_DP            !! Integration reference time
