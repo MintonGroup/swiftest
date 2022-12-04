@@ -302,6 +302,7 @@ class Simulation:
 
         self.param = {}
         self.data = xr.Dataset()
+        self.ic = xr.Dataset()
 
         # Set the location of the parameter input file, choosing the default if it isn't specified.
         param_file = kwargs.pop("param_file",Path.cwd() / "simdata" / "param.in")
@@ -322,8 +323,8 @@ class Simulation:
 
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
+        param_file_found = False
         if read_param or read_old_output_file:
-
             if self.read_param(read_init_cond = not read_old_output_file):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
@@ -347,7 +348,7 @@ class Simulation:
         if read_old_output_file:
             binpath = os.path.join(self.sim_dir, self.param['BIN_OUT'])
             if os.path.exists(binpath):
-                self.bin2xr()
+                self.read_output_file()
             else:
                 warnings.warn(f"BIN_OUT file {binpath} not found.",stacklevel=2)
         return
@@ -470,7 +471,7 @@ class Simulation:
         self._run_swiftest_driver()
 
         # Read in new data
-        self.bin2xr()
+        self.read_output_file()
 
         return
 
@@ -2051,7 +2052,8 @@ class Simulation:
             >*Note.* Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
         Returns
         -------
-            data : Xarray dataset with body or bodies added.
+        None
+            initial conditions data stored as an Xarray Dataset in the init_cond instance variable
         """
 
         if type(name) is str:
@@ -2115,7 +2117,9 @@ class Simulation:
         if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
            self.save(verbose=False)
 
-        return dsnew
+        self.ic = self.data.copy(deep=True)
+
+        return
 
 
     def set_ephemeris_date(self,
@@ -2412,8 +2416,9 @@ class Simulation:
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)
+        self.ic = self.data.copy(deep=True)
 
-        return dsnew
+        return
 
     def _combine_and_fix_dsnew(self,dsnew):
         """
@@ -2517,6 +2522,7 @@ class Simulation:
                        param_tmp = self.param.copy()
                        param_tmp['BIN_OUT'] = init_cond_file
                        self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                       self.ic = self.data.copy(deep=True)
                    else:
                        warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
                 else:
@@ -2641,12 +2647,14 @@ class Simulation:
             warnings.warn(f"Conversion from {self.codename} to {newcodename} is not supported.",stacklevel=2)
         return oldparam
 
-    def bin2xr(self):
+    def read_output_file(self,read_init_cond : bool = True):
         """
-        Converts simulation output files from a flat binary file to a xarray dataset. 
+        Reads in simulation data from an output file and stores it as an Xarray Dataset in the `data` instance variable.
 
         Parameters
         ----------
+            read_init_cond : bool
+                Read in an initial conditions file along with the output file. Default is True
 
         Returns
         -------
@@ -2661,6 +2669,13 @@ class Simulation:
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
+            if read_init_cond:
+                if "NETCDF" in param['IN_TYPE']:
+                    param_tmp['BIN_OUT'] = os.path.join(self.sim_dir, self.param['NC_IN'])
+                    self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                else:
+                    self.ic = self.data.isel(time=0)
+
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swifter simulation data stored as xarray DataSet .data')
@@ -2684,11 +2699,11 @@ class Simulation:
             fol : xarray dataset
         """
         if self.data is None:
-            self.bin2xr()
+            self.read_output_file()
         if codestyle == "Swift":
             try:
                 with open('follow.in', 'r') as f:
-                    line = f.readline()  # Parameter file (ignored because bin2xr already takes care of it
+                    line = f.readline()  # Parameter file (ignored because read_output_file already takes care of it
                     line = f.readline()  # PL file (ignored)
                     line = f.readline()  # TP file (ignored)
                     line = f.readline()  # ifol
