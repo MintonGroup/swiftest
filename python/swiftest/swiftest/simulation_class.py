@@ -41,7 +41,7 @@ class Simulation:
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, **kwargs: Any):
+    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, simdir: os.PathLike | str = "simdata",**kwargs: Any):
         """
 
         Parameters
@@ -66,6 +66,9 @@ class Simulation:
         read_old_output_file : bool, default False
             If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
             Parameter input file equivalent: None
+        simdir : PathLike, default `"simdir"`
+            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
+            dump files, and log files.
 
         **kwargs : See list of valid parameters and their defaults below
 
@@ -308,6 +311,8 @@ class Simulation:
         param_file = kwargs.pop("param_file",Path.cwd() / "simdata" / "param.in")
         self.verbose = kwargs.pop("verbose",True)
 
+        self.simdir = simdir
+
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
 
@@ -346,7 +351,7 @@ class Simulation:
 
         # Read in an old simulation file if requested
         if read_old_output_file:
-            binpath = os.path.join(self.sim_dir, self.param['BIN_OUT'])
+            binpath = os.path.join(self.simdir, self.param['BIN_OUT'])
             if os.path.exists(binpath):
                 self.read_output_file()
             else:
@@ -365,7 +370,7 @@ class Simulation:
         with open(driver_script, 'w') as f:
             f.write(f"#{self._shell_full} -l\n")
             f.write(f"source ~/.{self._shell}rc\n")
-            f.write(f"cd {self.sim_dir}\n")
+            f.write(f"cd {self.simdir}\n")
             f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
 
         cmd = f"{env['SHELL']} -l {driver_script}"
@@ -767,14 +772,13 @@ class Simulation:
         # Extract the simulation directory and create it if it doesn't exist
         if param_file is not None:
             self.param_file = Path.cwd() / param_file
-            self.sim_dir = self.param_file.parent
-            if self.sim_dir.exists():
-                if not self.sim_dir.is_dir():
-                    msg = f"Cannot create the {self.sim_dir} directory: File exists."
+            if self.simdir.exists():
+                if not self.simdir.is_dir():
+                    msg = f"Cannot create the {self.simdir} directory: File exists."
                     msg += "\nDelete the file or change the location of param_file"
                     warnings.warn(msg,stacklevel=2)
             else:
-                self.sim_dir.mkdir(parents=True, exist_ok=False)
+                self.simdir.mkdir(parents=True, exist_ok=False)
 
         # If no arguments (other than, possibly, verbose) are requested, use defaults
         if len(kwargs) == 0:
@@ -2517,7 +2521,7 @@ class Simulation:
             self.param = io.read_swiftest_param(param_file, self.param, verbose=verbose)
             if read_init_cond:
                 if "NETCDF" in self.param['IN_TYPE']:
-                   init_cond_file = self.sim_dir / self.param['NC_IN']
+                   init_cond_file = self.simdir / self.param['NC_IN']
                    if os.path.exists(init_cond_file):
                        param_tmp = self.param.copy()
                        param_tmp['BIN_OUT'] = init_cond_file
@@ -2665,13 +2669,13 @@ class Simulation:
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
         param_tmp = self.param.copy()
-        param_tmp['BIN_OUT'] = os.path.join(self.sim_dir, self.param['BIN_OUT'])
+        param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
             if read_init_cond:
                 if "NETCDF" in self.param['IN_TYPE']:
-                    param_tmp['BIN_OUT'] = os.path.join(self.sim_dir, self.param['NC_IN'])
+                    param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['NC_IN'])
                     self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
                 else:
                     self.ic = self.data.isel(time=0)
@@ -2764,7 +2768,7 @@ class Simulation:
             param = self.param
 
         if codename == "Swiftest":
-            infile_name = Path(self.sim_dir) / param['NC_IN']
+            infile_name = Path(self.simdir) / param['NC_IN']
             io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)
             self.write_param(param_file=param_file,**kwargs)
         elif codename == "Swifter":
