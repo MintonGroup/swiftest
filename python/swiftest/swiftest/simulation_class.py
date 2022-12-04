@@ -41,7 +41,7 @@ class Simulation:
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, simdir: os.PathLike | str = "simdata",**kwargs: Any):
+    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, simdir: os.PathLike | str = "simdata", **kwargs: Any):
         """
 
         Parameters
@@ -307,11 +307,20 @@ class Simulation:
         self.data = xr.Dataset()
         self.ic = xr.Dataset()
 
-        # Set the location of the parameter input file, choosing the default if it isn't specified.
-        param_file = kwargs.pop("param_file",Path.cwd() / "simdata" / "param.in")
-        self.verbose = kwargs.pop("verbose",True)
 
-        self.simdir = simdir
+        self.simdir = Path(simdir)
+        if self.simdir.exists():
+            if not self.simdir.is_dir():
+                msg = f"Cannot create the {self.simdir} directory: File exists."
+                msg += "\nDelete the file or change the location of param_file"
+                warnings.warn(msg,stacklevel=2)
+        else:
+            self.simdir.mkdir(parents=True, exist_ok=False)
+
+
+        # Set the location of the parameter input file, choosing the default if it isn't specified.
+        param_file = kwargs.pop("param_file",Path.cwd() / self.simdir / "param.in")
+        self.verbose = kwargs.pop("verbose",True)
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
@@ -772,13 +781,6 @@ class Simulation:
         # Extract the simulation directory and create it if it doesn't exist
         if param_file is not None:
             self.param_file = Path.cwd() / param_file
-            if self.simdir.exists():
-                if not self.simdir.is_dir():
-                    msg = f"Cannot create the {self.simdir} directory: File exists."
-                    msg += "\nDelete the file or change the location of param_file"
-                    warnings.warn(msg,stacklevel=2)
-            else:
-                self.simdir.mkdir(parents=True, exist_ok=False)
 
         # If no arguments (other than, possibly, verbose) are requested, use defaults
         if len(kwargs) == 0:
