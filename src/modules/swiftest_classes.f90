@@ -60,10 +60,18 @@ module swiftest_classes
       integer(I4B)       :: inc_varid                                   !! ID for the inclination variable 
       character(NAMELEN) :: capom_varname           = "capom"           !! name of the long. asc. node variable 
       integer(I4B)       :: capom_varid                                 !! ID for the long. asc. node variable 
-      character(NAMELEN) :: omega_varname           = "omega"           !! name of the arg. periapsis variable 
-      integer(I4B)       :: omega_varid                                 !! ID for the arg. periapsis variable 
+      character(NAMELEN) :: omega_varname           = "omega"           !! name of the arg. of periapsis variable 
+      integer(I4B)       :: omega_varid                                 !! ID for the arg. of periapsis variable 
       character(NAMELEN) :: capm_varname            = "capm"            !! name of the mean anomaly variable 
       integer(I4B)       :: capm_varid                                  !! ID for the mean anomaly variable 
+      character(NAMELEN) :: varpi_varname           = "varpi"           !! name of the long. of periapsis variable 
+      integer(I4B)       :: varpi_varid                                 !! ID for the long. of periapsis variable 
+      character(NAMELEN) :: lam_varname             = "lam"             !! name of the mean longitude variable 
+      integer(I4B)       :: lam_varid                                   !! ID for the mean longitude variable 
+      character(NAMELEN) :: f_varname               = "f"               !! name of the true anomaly variable 
+      integer(I4B)       :: f_varid                                     !! ID for the true anomaly variable 
+      character(NAMELEN) :: cape_varname            = "cape"            !! name of the eccentric anomaly variable 
+      integer(I4B)       :: cape_varid                                  !! ID for the eccentric anomaly variable 
       character(NAMELEN) :: rh_varname              = "rh"              !! name of the heliocentric position vector variable
       integer(I4B)       :: rh_varid                                    !! ID for the heliocentric position vector variable 
       character(NAMELEN) :: vh_varname              = "vh"              !! name of the heliocentric velocity vector variable
@@ -1127,7 +1135,7 @@ module swiftest_classes
          real(DP), intent(out) :: tperi    !! time of pericenter passage
       end subroutine orbel_xv2aqt
 
-      pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm)
+      pure module subroutine orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
          implicit none
          real(DP), intent(in)  :: mu    !! Gravitational constant
          real(DP), intent(in)  :: px,py,pz !! Position vector
@@ -1138,6 +1146,11 @@ module swiftest_classes
          real(DP), intent(out) :: capom !! longitude of ascending node
          real(DP), intent(out) :: omega !! argument of periapsis
          real(DP), intent(out) :: capm  !! mean anomaly
+         real(DP), intent(out) :: varpi !! longitude of periapsis
+         real(DP), intent(out) :: lam   !! mean longitude
+         real(DP), intent(out) :: f     !! true anomaly
+         real(DP), intent(out) :: cape  !! eccentric anomaly (eccentric orbits)
+         real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
       end subroutine orbel_xv2el
 
       module subroutine orbel_xv2el_vec(self, cb)

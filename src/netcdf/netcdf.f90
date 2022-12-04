@@ -220,6 +220,10 @@ contains
             call check( nf90_def_var(nciu%id, nciu%capom_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%capom_varid), "netcdf_initialize_output nf90_def_var capom_varid"  )
             call check( nf90_def_var(nciu%id, nciu%omega_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%omega_varid), "netcdf_initialize_output nf90_def_var omega_varid"  )
             call check( nf90_def_var(nciu%id, nciu%capm_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%capm_varid), "netcdf_initialize_output nf90_def_var capm_varid"  )
+            call check( nf90_def_var(nciu%id, nciu%varpi_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%varpi_varid), "netcdf_initialize_output nf90_def_var varpi_varid"  )
+            call check( nf90_def_var(nciu%id, nciu%lam_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%lam_varid), "netcdf_initialize_output nf90_def_var lam_varid"  )
+            call check( nf90_def_var(nciu%id, nciu%f_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%f_varid), "netcdf_initialize_output nf90_def_var f_varid"  )
+            call check( nf90_def_var(nciu%id, nciu%cape_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%cape_varid), "netcdf_initialize_output nf90_def_var cape_varid"  )
          end if
 
          call check( nf90_def_var(nciu%id, nciu%gmass_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%Gmass_varid), "netcdf_initialize_output nf90_def_var Gmass_varid"  )
@@ -389,6 +393,10 @@ contains
          status = nf90_inq_varid(nciu%id, nciu%j2rp2_varname, nciu%j2rp2_varid)
          status = nf90_inq_varid(nciu%id, nciu%j4rp4_varname, nciu%j4rp4_varid)
          status = nf90_inq_varid(nciu%id, nciu%ptype_varname, nciu%ptype_varid)
+         status = nf90_inq_varid(nciu%id, nciu%varpi_varname, nciu%varpi_varid)
+         status = nf90_inq_varid(nciu%id, nciu%lam_varname, nciu%lam_varid)
+         status = nf90_inq_varid(nciu%id, nciu%f_varname, nciu%f_varid)
+         status = nf90_inq_varid(nciu%id, nciu%cape_varname, nciu%cape_varid)
 
          if (param%integrator == SYMBA) then
             status = nf90_inq_varid(nciu%id, nciu%nplm_varname, nciu%nplm_varid)
@@ -1033,7 +1041,7 @@ contains
       integer(I4B)                              :: i, j, tslot, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
-      real(DP)                                  :: a, e, inc, omega, capom, capm
+      real(DP)                                  :: a, e, inc, omega, capom, capm, varpi, lam, f, cape, capf
 
       call self%write_info(nciu, param)
 
@@ -1069,11 +1077,11 @@ contains
                   if (param%lgr) then !! For GR-enabled runs, use the true value of velocity computed above
                      call orbel_xv2el(self%mu(j), self%rh(1,j), self%rh(2,j), self%rh(3,j), &
                                        vh(1), vh(2), vh(3), &
-                                       a, e, inc, capom, omega, capm)
+                                       a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
                   else !! For non-GR runs just convert from the velocity we have
                      call orbel_xv2el(self%mu(j), self%rh(1,j), self%rh(2,j), self%rh(3,j), &
                                        self%vh(1,j), self%vh(2,j), self%vh(3,j), &
-                                       a, e, inc, capom, omega, capm)
+                                       a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
                   end if
                   call check( nf90_put_var(nciu%id, nciu%a_varid, a, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body a_varid"  )
                   call check( nf90_put_var(nciu%id, nciu%e_varid, e, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body e_varid"  )
@@ -1081,6 +1089,14 @@ contains
                   call check( nf90_put_var(nciu%id, nciu%capom_varid, capom * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body capom_varid"  )
                   call check( nf90_put_var(nciu%id, nciu%omega_varid, omega * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body omega_varid"  )
                   call check( nf90_put_var(nciu%id, nciu%capm_varid, capm * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body capm_varid"  ) 
+                  call check( nf90_put_var(nciu%id, nciu%varpi_varid, varpi * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body varpi_varid"  ) 
+                  call check( nf90_put_var(nciu%id, nciu%lam_varid, lam * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body lam_varid"  ) 
+                  call check( nf90_put_var(nciu%id, nciu%f_varid, f * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body f_varid"  ) 
+                  if (e < 1.0_DP) then
+                     call check( nf90_put_var(nciu%id, nciu%cape_varid, cape * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body cape_varid"  ) 
+                  else if (e > 1.0_DP) then
+                     call check( nf90_put_var(nciu%id, nciu%cape_varid, capf * RAD2DEG, start=[idslot, tslot]), "netcdf_write_frame_base nf90_put_var body (capf) cape_varid"  ) 
+                  end if
                end if
 
                select type(self)  
