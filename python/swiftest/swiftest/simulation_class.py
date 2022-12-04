@@ -312,7 +312,7 @@ class Simulation:
         # then using the arguments passed via **kwargs.
 
         #--------------------------
-        # Lowest Priority: Defaults
+        # Lowest Priority: Defaults:
         #--------------------------
         # Quietly set all parameters to their defaults.
         self.set_parameter(verbose=False,param_file=param_file)
@@ -2670,7 +2670,7 @@ class Simulation:
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
             if read_init_cond:
-                if "NETCDF" in param['IN_TYPE']:
+                if "NETCDF" in self.param['IN_TYPE']:
                     param_tmp['BIN_OUT'] = os.path.join(self.sim_dir, self.param['NC_IN'])
                     self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
                 else:
