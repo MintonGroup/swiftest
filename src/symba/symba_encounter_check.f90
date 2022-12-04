@@ -69,15 +69,6 @@ contains
                plplenc_list%x2(:,k) = pl%rh(:,j)
                plplenc_list%v1(:,k) = pl%vb(:,i) - cb%vb(:)
                plplenc_list%v2(:,k) = pl%vb(:,j) - cb%vb(:)
-               plplenc_list%Gmass1(k) = pl%Gmass(i)
-               plplenc_list%Gmass2(k) = pl%Gmass(j)
-               if (param%lclose) then
-                  plplenc_list%radius1(k) = pl%radius(i)
-                  plplenc_list%radius2(k) = pl%radius(j)
-               end if
-               plplenc_list%name1(k) = pl%info(i)%name
-               plplenc_list%name2(k) = pl%info(j)%name
-
                pl%lencounter(i) = .true.
                pl%lencounter(j) = .true.
                pl%levelg(i) = irec
@@ -87,9 +78,6 @@ contains
                pl%nplenc(i) = pl%nplenc(i) + 1
                pl%nplenc(j) = pl%nplenc(j) + 1
             end do
-            ienc_frame = ienc_frame + 1
-            call system%resize_storage(ienc_frame)
-            system%encounter_history%frame(ienc_frame) = plplenc_list
          end if
 
       end associate
