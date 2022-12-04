@@ -132,30 +132,6 @@ contains
    end subroutine encounter_io_initialize_output
 
 
-   module subroutine encounter_io_open_file(self, param, readonly)
-      !! author: David A. Minton
-      !!
-      !! Opens a NetCDF encounter file and does the variable inquiries to activate variable ids
-      implicit none
-      ! Arguments
-      class(encounter_io_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),     intent(in)    :: param    !! Current run configuration parameters
-      logical, optional,              intent(in)    :: readonly !! Logical flag indicating that this should be open read only
-      ! Internals
-      integer(I4B) :: mode
-      character(len=STRMAX) :: errmsg
-
-      mode = NF90_WRITE
-      if (present(readonly)) then
-         if (readonly) mode = NF90_NOWRITE
-      end if
-
-      write(errmsg,*) "encounter_io_open_file nf90_open ",trim(adjustl(param%outfile))
-      call check( nf90_open(self%enc_file, mode, self%id), errmsg)
-
-      return
-   end subroutine encounter_io_open_file
-
    module subroutine encounter_io_write_frame(self, iu, param)
       !! author: David A. Minton
       !!
@@ -173,29 +149,6 @@ contains
       call check( nf90_set_fill(iu%id, nf90_nofill, old_mode), "encounter_io_write_frame_base nf90_set_fill"  )
       call check( nf90_put_var(iu%id, iu%time_varid, self%t, start=[i]), "encounter_io_write_frame nf90_put_var time_varid"  )
 
-      ! call check( nf90_put_var(iu%id, iu%nenc_varid, self%nenc, start=[i]), "encounter_io_frame nf90_put_var nenc_varid"  )
-      ! call check( nf90_put_var(iu%id, iu%name_varid, self%name1(1:n), start=[1, 1, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 1"  )
-      ! call check( nf90_put_var(iu%id, iu%name_varid, self%name2(1:n), start=[1, 2, i], count=[NAMELEN,1,1]), "netcdf_write_frame nf90_put_var name 2"  )
-      ! call check( nf90_put_var(iu%id, iu%xhx_varid, self%x1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 1"  )
-      ! call check( nf90_put_var(iu%id, iu%xhy_varid, self%x1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 1"  )
-      ! call check( nf90_put_var(iu%id, iu%xhz_varid, self%x1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 1"  )
-      ! call check( nf90_put_var(iu%id, iu%xhx_varid, self%x2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhx_varid 2"  )
-      ! call check( nf90_put_var(iu%id, iu%xhy_varid, self%x2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhy_varid 2"  )
-      ! call check( nf90_put_var(iu%id, iu%xhz_varid, self%x2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var xhz_varid 2"  )
-      ! call check( nf90_put_var(iu%id, iu%vhx_varid, self%v1(1, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 1"  )
-      ! call check( nf90_put_var(iu%id, iu%vhy_varid, self%v1(2, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 1"  )
-      ! call check( nf90_put_var(iu%id, iu%vhz_varid, self%v1(3, 1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 1"  )
-      ! call check( nf90_put_var(iu%id, iu%vhx_varid, self%v2(1, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhx_varid 2"  )
-      ! call check( nf90_put_var(iu%id, iu%vhy_varid, self%v2(2, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhy_varid 2"  )
-      ! call check( nf90_put_var(iu%id, iu%vhz_varid, self%v2(3, 1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var vhz_varid 2"  )
-      ! call check( nf90_put_var(iu%id, iu%Gmass_varid, self%Gmass1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 1"  )
-      ! call check( nf90_put_var(iu%id, iu%Gmass_varid, self%Gmass2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var Gmass 2"  )
-      ! call check( nf90_put_var(iu%id, iu%radius_varid, self%radius1(1:n), start=[1, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 1"  )
-      ! call check( nf90_put_var(iu%id, iu%radius_varid, self%radius2(1:n), start=[2, 1, i], count=[1,n,1]), "netcdf_write_frame nf90_put_var radius 2"  )
-      ! select type(self)
-      ! class is (symba_encounter)
-      !    call check( nf90_put_var(iu%id, iu%level_varid, self%level(1:n), start=[1, i], count=[n,1]), "netcdf_write_frame nf90_put_var level"  )
-      ! end select
 
       return
    end subroutine encounter_io_write_frame
