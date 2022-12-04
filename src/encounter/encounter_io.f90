@@ -105,6 +105,7 @@ contains
             call check( nf90_def_var(nciu%id, nciu%Ip_varname, nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%Ip_varid), "encounter_io_initialize_output nf90_def_var Ip_varid"  )
             call check( nf90_def_var(nciu%id, nciu%rot_varname, nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%rot_varid), "encounter_io_initialize_output nf90_def_var rot_varid"  )
          end if
+
          call check( nf90_inquire(nciu%id, nVariables=nvar), "encounter_io_initialize_output nf90_inquire nVariables"  )
          do varid = 1, nvar
             call check( nf90_inquire_variable(nciu%id, varid, xtype=vartype, ndims=ndims), "encounter_io_initialize_output nf90_inquire_variable"  )
@@ -139,16 +140,31 @@ contains
       implicit none
       ! Arguments
       class(encounter_list),          intent(in)    :: self   !! Swiftest encounter structure
-      class(encounter_io_parameters), intent(inout) :: iu     !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(encounter_io_parameters), intent(inout) :: nciu     !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                                  :: i,old_mode, n
+      integer(I4B)                             :: tslot,i,old_mode, n
+      character(len=NAMELEN)                   :: charstring
 
-      i = iu%ienc_frame
-      n = int(self%nenc, kind=I4B)
-      call check( nf90_set_fill(iu%id, nf90_nofill, old_mode), "encounter_io_write_frame_base nf90_set_fill"  )
-      call check( nf90_put_var(iu%id, iu%time_varid, self%t, start=[i]), "encounter_io_write_frame nf90_put_var time_varid"  )
+      tslot = nciu%ienc_frame
+      call check( nf90_set_fill(nciu%id, nf90_nofill, old_mode), "encounter_io_write_frame_base nf90_set_fill"  )
+      call check( nf90_put_var(nciu%id, nciu%time_varid, self%t, start=[tslot]), "encounter_io_write_frame nf90_put_var time_varid"  )
 
+      ! charstring = trim(adjustl(self%info(j)%name))
+      ! call check( nf90_put_var(nciu%id, nciu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_write_info_base nf90_put_var name_varid"  )
+
+      ! charstring = trim(adjustl(self%info(j)%particle_type))
+      ! call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_write_info_base nf90_put_var particle_type_varid"  )
+
+
+      ! call check( nf90_put_var(nciu%id, nciu%rh_varid, self%rh(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame_base nf90_put_var rh_varid"  )
+      ! call check( nf90_put_var(nciu%id, nciu%vh_varid, self%vh(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame_base nf90_put_var vh_varid"  )
+      ! call check( nf90_put_var(nciu%id, nciu%Gmass_varid, self%Gmass(j), start=[idslot, tslot]), "encounter_io_write_frame_base nf90_put_var body Gmass_varid"  )
+      ! if (param%lclose) call check( nf90_put_var(nciu%id, nciu%radius_varid, self%radius(j), start=[idslot, tslot]), "encounter_io_write_frame_base nf90_put_var body radius_varid"  )
+      ! if (param%lrotation) then
+      !    call check( nf90_put_var(nciu%id, nciu%Ip_varid, self%Ip(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame_base nf90_put_var body Ip_varid"  )
+      !    call check( nf90_put_var(nciu%id, nciu%rot_varid, self%rot(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame_base nf90_put_var body rotx_varid"  )
+      ! end if
 
       return
    end subroutine encounter_io_write_frame
