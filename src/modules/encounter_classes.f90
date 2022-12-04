@@ -64,7 +64,6 @@ module encounter_classes
       integer(I4B)       :: level_varid                    !! ID for the recursion level variable
    contains
       procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-      procedure :: open       => encounter_io_open_file         !! Opens a NetCDF file
    end type encounter_io_parameters
 
    type, extends(swiftest_storage) :: encounter_storage
@@ -217,13 +216,6 @@ module encounter_classes
          class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),     intent(in)    :: param   
       end subroutine encounter_io_initialize_output
-
-      module subroutine encounter_io_open_file(self, param, readonly)
-         implicit none
-         class(encounter_io_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),     intent(in)    :: param    !! Current run configuration parameters
-         logical, optional,              intent(in)    :: readonly !! Logical flag indicating that this should be open read only
-      end subroutine encounter_io_open_file
 
       module subroutine encounter_io_write_frame(self, iu, param)
          implicit none

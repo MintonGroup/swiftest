@@ -114,8 +114,6 @@ module swiftest_classes
       integer(I4B)       :: Euntracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
       integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the system
-      character(NAMELEN) :: status_varname          = "status"          !! name of the current status of the body variable (includes discard type)
-      integer(I4B)       :: status_varid                                !! ID for the status variable
       character(NAMELEN) :: origin_type_varname     = "origin_type"     !! name of the origin type variable (Initial Conditions, Disruption, etc.)
       integer(I4B)       :: origin_type_varid                           !! ID for the origin type
       character(NAMELEN) :: origin_time_varname     = "origin_time"     !! name of the time of origin variable
