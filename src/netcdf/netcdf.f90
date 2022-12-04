@@ -198,7 +198,6 @@ contains
          if (param%integrator == SYMBA) call check( nf90_def_var(nciu%id, nciu%nplm_varname, NF90_INT, nciu%time_dimid, nciu%nplm_varid), "netcdf_initialize_output nf90_def_var nplm_varid"  )
          call check( nf90_def_var(nciu%id, nciu%name_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%name_varid), "netcdf_initialize_output nf90_def_var name_varid"  )
          call check( nf90_def_var(nciu%id, nciu%ptype_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%ptype_varid), "netcdf_initialize_output nf90_def_var ptype_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%status_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%status_varid), "netcdf_initialize_output nf90_def_var status_varid"  )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
             call check( nf90_def_var(nciu%id, nciu%rh_varname,  nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%rh_varid), "netcdf_initialize_output nf90_def_var rh_varid"  )
@@ -389,7 +388,6 @@ contains
          ! Optional variables The User Doesn't Need to Know About
          status = nf90_inq_varid(nciu%id, nciu%npl_varname, nciu%npl_varid)
          status = nf90_inq_varid(nciu%id, nciu%ntp_varname, nciu%ntp_varid)
-         status = nf90_inq_varid(nciu%id, nciu%status_varname, nciu%status_varid)
          status = nf90_inq_varid(nciu%id, nciu%j2rp2_varname, nciu%j2rp2_varid)
          status = nf90_inq_varid(nciu%id, nciu%j4rp4_varname, nciu%j4rp4_varid)
          status = nf90_inq_varid(nciu%id, nciu%ptype_varname, nciu%ptype_varid)
@@ -870,19 +868,7 @@ contains
             end do
          end if
 
-         status = nf90_inq_varid(nciu%id, nciu%status_varname, nciu%status_varid) 
-         if (status == nf90_noerr) then
-            call check( nf90_get_var(nciu%id, nciu%status_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar status_varid")
-            call cb%info%set_value(status=ctemp(1))
-         else
-            call cb%info%set_value(status="ACTIVE")
-         end if
-         do i = 1, npl
-            call pl%info(i)%set_value(status=ctemp(plind(i)))
-         end do
-         do i = 1, ntp
-            call tp%info(i)%set_value(status=ctemp(tpind(i)))
-         end do
+         call cb%info%set_value(status="ACTIVE")
 
          if (param%lclose) then
 
@@ -1195,9 +1181,6 @@ contains
                charstring = trim(adjustl(self%info(j)%particle_type))
                call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var particle_type_varid"  )
 
-               charstring = trim(adjustl(self%info(j)%status))
-               call check( nf90_put_var(nciu%id, nciu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var status_varid"  )
-
                if (param%lclose) then
                   charstring = trim(adjustl(self%info(j)%origin_type))
                   call check( nf90_put_var(nciu%id, nciu%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var origin_type_varid"  )
@@ -1223,9 +1206,6 @@ contains
 
          charstring = trim(adjustl(self%info%particle_type))
          call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb ptype_varid"  )
-
-         charstring = trim(adjustl(self%info%status))
-         call check( nf90_put_var(nciu%id, nciu%status_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb status_varid"  )
 
          if (param%lclose) then
             charstring = trim(adjustl(self%info%origin_type))
