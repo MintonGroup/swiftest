@@ -201,7 +201,14 @@ module symba_classes
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
+   type, extends(helio_nbody_system) :: symba_system_snapshot
+   contains
+      procedure :: snapshot => symba_util_take_system_snapshot
+      final :: symba_util_final_snapshot
+   end type 
+
    interface
+
       module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -373,6 +380,15 @@ module symba_classes
          class(symba_pl), intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    intent(in)    :: scale !! Current recursion depth
       end subroutine symba_util_set_renc
+
+      module subroutine symba_util_take_system_snapshot(self, system, param, t)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_system_snapshot), intent(inout) :: self   !! SyMBA nbody system snapshot object
+         class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
+         class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                        intent(in)    :: t      !! current time
+      end subroutine symba_util_take_system_snapshot
 
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -647,6 +663,11 @@ module symba_classes
          implicit none
          type(symba_pl),  intent(inout) :: self !! SyMBA massive body object
       end subroutine symba_util_final_pl
+
+      module subroutine symba_util_final_snapshot(self)
+         implicit none
+         type(symba_system_snapshot),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine symba_util_final_snapshot
 
       module subroutine symba_util_final_system(self)
          implicit none

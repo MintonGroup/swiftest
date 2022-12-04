@@ -140,7 +140,7 @@ contains
       implicit none
       ! Arguments
       class(encounter_list),          intent(in)    :: self   !! Swiftest encounter structure
-      class(encounter_io_parameters), intent(inout) :: nciu     !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(encounter_io_parameters), intent(inout) :: nciu   !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)                             :: tslot,i,old_mode, n
