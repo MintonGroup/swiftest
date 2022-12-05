@@ -919,19 +919,24 @@ contains
       integer(I4B),              intent(in)    :: nnew !! New size of list needed
       ! Internals
       type(symba_encounter_storage(nframes=:)), allocatable :: tmp
-      integer(I4B) :: i, nold
+      integer(I4B) :: i, nold, nbig, iframe_old = 0
       logical      :: lmalloc
 
 
       lmalloc = allocated(self%encounter_history)
       if (lmalloc) then
          nold = self%encounter_history%nframes
+         iframe_old = self%encounter_history%iframe
       else
          nold = 0
       end if
 
       if (nnew > nold) then
-         allocate(symba_encounter_storage(8 * nnew) :: tmp) 
+         nbig = nold
+         do while (nbig < nnew)
+            nbig = nbig * 2
+         end do
+         allocate(symba_encounter_storage(nbig) :: tmp) 
          if (lmalloc) then
             do i = 1, nold
                if (allocated(self%encounter_history%frame(i)%item)) tmp%frame(i) = self%encounter_history%frame(i)%item
@@ -939,6 +944,7 @@ contains
             deallocate(self%encounter_history)
          end if
          call move_alloc(tmp,self%encounter_history)
+         self%encounter_history%iframe = iframe_old
       end if
 
       return
@@ -1383,6 +1389,7 @@ contains
 
                ! Save the snapshot
                self%encounter_history%iframe = self%encounter_history%iframe + 1
+               call self%resize_storage(self%encounter_history%iframe)
                self%encounter_history%frame(self%encounter_history%iframe) = snapshot
             end select
          end select 
