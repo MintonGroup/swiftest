@@ -1336,8 +1336,8 @@ contains
                   tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == self%irec
                   ntp_snap = count(tp%lmask(1:ntp))
                end if
-               if (npl_snap + ntp_snap == 0) return
 
+               ! Take snapshot of the currently encountering massive bodies
                if (npl_snap > 0) then
                   allocate(snapshot%pl%id(npl_snap))
                   allocate(snapshot%pl%info(npl_snap))
@@ -1365,6 +1365,26 @@ contains
                      end do
                   end if
                end if
+
+               ! Take snapshot of the currently encountering test particles
+               if (ntp_snap > 0) then
+                  allocate(snapshot%tp%id(ntp_snap))
+                  allocate(snapshot%tp%info(ntp_snap))
+                  snapshot%tp%id(:) = pack(tp%id(1:ntp), tp%lmask(1:ntp))
+                  snapshot%tp%info(:) = pack(tp%info(1:ntp), tp%lmask(1:ntp))
+                  allocate(snapshot%tp%rh(NDIM,ntp_snap))
+                  allocate(snapshot%tp%vh(NDIM,ntp_snap))
+                  do i = 1, NDIM
+                     snapshot%tp%rh(i,:) = pack(tp%rh(i,1:ntp), tp%lmask(1:ntp))
+                     snapshot%tp%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
+                  end do
+               end if
+
+               if (npl_snap + ntp_snap == 0) return
+
+               ! Save the snapshot
+               self%encounter_history%iframe = self%encounter_history%iframe + 1
+               self%encounter_history%frame(self%encounter_history%iframe) = snapshot
             end select
          end select 
       end associate

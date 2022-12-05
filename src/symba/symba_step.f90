@@ -312,6 +312,9 @@ contains
 
                   tp%lfirst = param%lfirstkick
                   pl%lfirst = param%lfirstkick
+
+                  if (allocated(system%encounter_history)) deallocate(system%encounter_history)
+                  allocate(symba_encounter_storage(8) :: system%encounter_history)
                end associate
             end select
          end select
