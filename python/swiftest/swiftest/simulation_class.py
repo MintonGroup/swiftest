@@ -2811,6 +2811,7 @@ class Simulation:
             A dataset containing the extracted initial condition data.
         """
 
+        frame = None
         if codename != "Swiftest":
             self.save(new_param_file, framenum, codename)
             return
