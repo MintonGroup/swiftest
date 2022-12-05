@@ -498,19 +498,29 @@ contains
       return
    end subroutine symba_util_final_system
 
+   module subroutine symba_util_final_encounter_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA encounter system snapshot object - deallocates all allocatables
+      implicit none
+      type(symba_encounter_snapshot),  intent(inout) :: self !! SyMBA nbody system object
 
-   module subroutine symba_util_final_snapshot(self)
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_encounter_snapshot
+
+
+   module subroutine symba_util_final_encounter_storage(self)
       !! author: David A. Minton
       !!
       !! Finalize the SyMBA nbody system object - deallocates all allocatables
       implicit none
       ! Argument
-      type(symba_system_snapshot),  intent(inout) :: self !! SyMBA nbody system object
-
-      call self%dealloc()
+      type(symba_encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
 
       return
-   end subroutine symba_util_final_snapshot
+   end subroutine symba_util_final_encounter_storage
 
 
    module subroutine symba_util_final_tp(self)
@@ -908,7 +918,7 @@ contains
       class(symba_nbody_system), intent(inout) :: self !! Swiftest encounter list 
       integer(I4B),              intent(in)    :: nnew !! New size of list needed
       ! Internals
-      type(encounter_storage(nframes=:)), allocatable :: tmp
+      type(symba_encounter_storage(nframes=:)), allocatable :: tmp
       integer(I4B) :: i, nold
       logical      :: lmalloc
 
@@ -921,7 +931,7 @@ contains
       end if
 
       if (nnew > nold) then
-         allocate(encounter_storage(8 * nnew) :: tmp) 
+         allocate(symba_encounter_storage(8 * nnew) :: tmp) 
          if (lmalloc) then
             do i = 1, nold
                if (allocated(self%encounter_history%frame(i)%item)) tmp%frame(i) = self%encounter_history%frame(i)%item
@@ -1294,14 +1304,14 @@ contains
    end subroutine symba_util_spill_tp
 
 
-   module subroutine symba_util_take_system_snapshot(self, system, param, t)
+   module subroutine symba_util_take_encounter_snapshot(self, system, param, t)
       !! author: David A. Minton
       !!
       !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
       !! Can be played back through the encounter
       implicit none
       ! Internals
-      class(symba_system_snapshot),    intent(inout) :: self   !! SyMBA nbody system snapshot object
+      class(symba_encounter_snapshot), intent(inout) :: self   !! SyMBA nbody system snapshot object
       class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
       class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                        intent(in)    :: t      !! current time
@@ -1311,6 +1321,6 @@ contains
       !if (system%pl)
 
       return
-   end subroutine symba_util_take_system_snapshot
+   end subroutine symba_util_take_encounter_snapshot
 
 end submodule s_symba_util

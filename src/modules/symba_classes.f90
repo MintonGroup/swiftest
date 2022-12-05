@@ -13,10 +13,10 @@ module symba_classes
    !! Definition of classes and methods specific to the SyMBA integrator
    !! Adapted from David E. Kaufmann's Swifter routine: module_symba.f90
    use swiftest_globals
-   use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, netcdf_parameters
+   use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, swiftest_storage, netcdf_parameters
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use fraggle_classes,   only : fraggle_colliders, fraggle_fragments
-   use encounter_classes, only : encounter_list, encounter_storage
+   use encounter_classes, only : encounter_list
    implicit none
    public
 
@@ -177,24 +177,39 @@ module symba_classes
       procedure :: resolve_collision      => symba_collision_resolve_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_plplenc
 
-   type, extends(helio_nbody_system) :: symba_system_snapshot
+
+   !! NetCDF dimension and variable names for the enounter save object
+   type, extends(netcdf_parameters) :: symba_io_encounter_parameters
+      integer(I4B)       :: COLLIDER_DIM_SIZE = 2           !! Size of collider dimension
+      integer(I4B)       :: ienc_frame                !! Current frame number for the encounter history
+      character(STRMAX)  :: enc_file = "encounter.nc" !! Encounter output file name
+
+      character(NAMELEN) :: level_varname    = "level"     !! Recursion depth
+      integer(I4B)       :: level_varid                    !! ID for the recursion level variable
    contains
-      procedure :: snapshot => symba_util_take_system_snapshot
-      final :: symba_util_final_snapshot
-   end type 
+      procedure :: initialize => symba_io_encounter_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+   end type symba_io_encounter_parameters
+
+   type, extends(swiftest_storage) :: symba_encounter_storage
+      !! A class that that is used to store simulation history data between file output
+      type(symba_io_encounter_parameters) :: nciu
+   contains
+      procedure :: dump   => symba_io_encounter_dump !! Dumps contents of encounter history to file
+      final     :: symba_util_final_encounter_storage
+   end type symba_encounter_storage
+
 
    !********************************************************************************************************************************
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_merger),                allocatable :: pl_adds            !! List of added bodies in mergers or collisions
-      class(symba_pltpenc),               allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
-      class(symba_plplenc),               allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
-      class(symba_plplenc),               allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
-      integer(I4B)                                    :: irec               !! System recursion level
-      type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
-      integer(I4B)                                    :: ienc_frame = 0     !! Encounter history frame number
-      type(symba_system_snapshot)                     :: snapshot
+      class(symba_merger),                      allocatable :: pl_adds            !! List of added bodies in mergers or collisions
+      class(symba_pltpenc),                     allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
+      class(symba_plplenc),                     allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
+      class(symba_plplenc),                     allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
+      integer(I4B)                                          :: irec               !! System recursion level
+      type(symba_encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      integer(I4B)                                          :: ienc_frame = 0     !! Encounter history frame number
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
@@ -208,6 +223,14 @@ module symba_classes
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
+
+   type, extends(symba_nbody_system) :: symba_encounter_snapshot
+   contains
+      procedure :: snapshot              => symba_util_take_encounter_snapshot
+      procedure :: write_encounter_frame => symba_io_encounter_write_frame    !! Writes a frame of encounter data to file 
+      generic   :: write_frame           => write_encounter_frame
+      final     :: symba_util_final_encounter_snapshot
+   end type symba_encounter_snapshot
 
    interface
 
@@ -383,14 +406,33 @@ module symba_classes
          integer(I4B),    intent(in)    :: scale !! Current recursion depth
       end subroutine symba_util_set_renc
 
-      module subroutine symba_util_take_system_snapshot(self, system, param, t)
+      module subroutine symba_util_take_encounter_snapshot(self, system, param, t)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_system_snapshot), intent(inout) :: self   !! SyMBA nbody system snapshot object
+         class(symba_encounter_snapshot), intent(inout) :: self   !! SyMBA nbody system snapshot object
          class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                        intent(in)    :: t      !! current time
-      end subroutine symba_util_take_system_snapshot
+      end subroutine symba_util_take_encounter_snapshot
+
+      module subroutine symba_io_encounter_dump(self, param)
+         implicit none
+         class(symba_encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      end subroutine symba_io_encounter_dump
+
+      module subroutine symba_io_encounter_initialize_output(self, param)
+         implicit none
+         class(symba_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param   
+      end subroutine symba_io_encounter_initialize_output
+
+      module subroutine symba_io_encounter_write_frame(self, nciu, param)
+         implicit none
+         class(symba_encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
+         class(symba_io_encounter_parameters), intent(inout) :: nciu   !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
+      end subroutine symba_io_encounter_write_frame
 
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -651,6 +693,16 @@ module symba_classes
          type(symba_encounter),  intent(inout) :: self !! SyMBA encounter list object
       end subroutine symba_util_final_encounter_list
 
+      module subroutine symba_util_final_encounter_snapshot(self)
+         implicit none
+         type(symba_encounter_snapshot),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine symba_util_final_encounter_snapshot
+
+      module subroutine symba_util_final_encounter_storage(self)
+         implicit none
+         type(symba_encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine symba_util_final_encounter_storage
+
       module subroutine symba_util_final_kin(self)
          implicit none
          type(symba_kinship),  intent(inout) :: self !! SyMBA kinship object
@@ -665,11 +717,6 @@ module symba_classes
          implicit none
          type(symba_pl),  intent(inout) :: self !! SyMBA massive body object
       end subroutine symba_util_final_pl
-
-      module subroutine symba_util_final_snapshot(self)
-         implicit none
-         type(symba_system_snapshot),  intent(inout) :: self !! SyMBA nbody system object
-      end subroutine symba_util_final_snapshot
 
       module subroutine symba_util_final_system(self)
          implicit none

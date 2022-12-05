@@ -28,7 +28,6 @@ SET(FAST_MATH_FILES
             ${SRC}/discard/discard.f90
             ${SRC}/drift/drift.f90
             ${SRC}/encounter/encounter_check.f90
-            ${SRC}/encounter/encounter_io.f90
             ${SRC}/encounter/encounter_setup.f90
             ${SRC}/encounter/encounter_util.f90
             ${SRC}/fraggle/fraggle_generate.f90
