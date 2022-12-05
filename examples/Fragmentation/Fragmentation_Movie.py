@@ -167,7 +167,6 @@ if __name__ == "__main__":
       movie_styles = available_movie_styles.copy()
 
    for style in movie_styles:
-       param_file = Path(style) / "param.in"
        bin_file = Path(style) / "bin.nc"
        if bin_file.exists():
            user_selection = input(f"An older simulation of {movie_titles[style]} exists. Do you want to re-run it? [y/N] ")
@@ -185,7 +184,7 @@ if __name__ == "__main__":
 
        # Pull in the Swiftest output data from the parameter file and store it as a Xarray dataset.
        if run_new:
-           sim = swiftest.Simulation(param_file=param_file, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
+           sim = swiftest.Simulation(simdir=style, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
            sim.add_solar_system_body("Sun")
            sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style]) #, rot=rot_vectors[style])
 
