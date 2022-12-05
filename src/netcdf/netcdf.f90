@@ -292,6 +292,7 @@ contains
          ! Take the file out of define mode
          call check( nf90_enddef(nciu%id), "netcdf_initialize_output nf90_enddef"  )
 
+         ! Add in the space dimension coordinates
          call check( nf90_put_var(nciu%id, nciu%space_varid, nciu%space_coords, start=[1], count=[NDIM]), "netcdf_initialize_output nf90_put_var space"  )
 
       end associate
