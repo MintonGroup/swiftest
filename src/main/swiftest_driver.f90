@@ -81,7 +81,7 @@ program swiftest_driver
       t = tstart
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1.0_DP, kind=I8B)
-      ioutput = int(istart / istep_out, kind=I4B)
+      ioutput = max(int(istart / istep_out, kind=I4B),1)
 
       ! Set up system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
