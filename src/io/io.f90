@@ -287,7 +287,7 @@ contains
 
       iloop_start = max(param%iloop - int(param%istep_out * param%dump_cadence, kind=I8B),1)
       do i = 1, param%dump_cadence
-         param%ioutput = int(iloop_start / param%istep_out, kind=I4B) + i
+         param%ioutput = max(int(iloop_start / param%istep_out, kind=I4B),1) + i
          if (allocated(self%frame(i)%item)) then
             select type(system => self%frame(i)%item)
             class is (swiftest_nbody_system)
