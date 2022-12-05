@@ -1356,7 +1356,7 @@ contains
                   allocate(snapshot%pl%vh(NDIM,npl_snap))
                   do i = 1, NDIM
                      snapshot%pl%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
-                     snapshot%pl%vh(i,:) = pack(pl%vh(i,1:npl), pl%lmask(1:npl))
+                     snapshot%pl%vh(i,:) = pack(pl%vb(i,1:npl), pl%lmask(1:npl))
                   end do
                   if (param%lclose) then
                      allocate(snapshot%pl%radius(npl_snap))
