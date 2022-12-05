@@ -544,11 +544,13 @@ module swiftest_classes
 
    type :: swiftest_storage(nframes)
       !! An class that establishes the pattern for various storage objects
-      integer(I4B), len                                :: nframes    !! Total number of frames that can be stored
-      type(swiftest_storage_frame), dimension(nframes) :: frame      !! Array of stored frames
-      integer(I4B)                                     :: iframe = 0 !! The current frame number
+      integer(I4B), len                                :: nframes = 10 !! Total number of frames that can be stored
+      type(swiftest_storage_frame), dimension(nframes) :: frame        !! Array of stored frames
+      integer(I4B)                                     :: iframe = 0   !! The current frame number
    contains
-      procedure :: dump => io_dump_storage
+      procedure :: dump   => io_dump_storage     !! Dumps storage object contents to file
+      procedure :: reset  => util_reset_storage  !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      procedure :: resize => util_resize_storage 
    end type swiftest_storage
 
    abstract interface
@@ -1526,13 +1528,17 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
 
-
       module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
          real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
       end subroutine util_rescale_system
+
+      module subroutine util_reset_storage(self)
+         implicit none
+         class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+      end subroutine util_reset_storage
    end interface
 
 
@@ -1586,6 +1592,13 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          integer(I4B),       intent(in)    :: nnew !! New size neded
       end subroutine util_resize_pl
+
+      module subroutine util_resize_storage(self, nnew, new_storage)
+         implicit none
+         class(swiftest_storage(*)),                      intent(in)  :: self !! Swiftest storage object
+         integer(I4B),                                    intent(in)  :: nnew !! New size of list needed
+         class(swiftest_storage(*)), allocatable, intent(out) :: new_storage
+      end subroutine util_resize_storage
 
       module subroutine util_resize_tp(self, nnew)
          implicit none

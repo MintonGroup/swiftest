@@ -350,6 +350,50 @@ contains
    end subroutine util_resize_pl
 
 
+   module subroutine util_resize_storage(self, nnew, new_storage)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+      implicit none
+      ! Arguments
+      class(swiftest_storage(*)),           intent(in)  :: self         !! Swiftest storage_object
+      integer(I4B),                         intent(in)  :: nnew         !! New size of list needed
+      class(swiftest_storage), allocatable, intent(out) :: new_storage  !! New, resized storage
+      ! Internals
+      !type(symba_encounter_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nold, iframe_old, nbig
+
+      nold = self%nframes
+      iframe_old = self%iframe
+
+      if (nnew > nold) then
+         nbig = nold
+         do while (nbig < nnew)
+            nbig = 2*nbig
+         end do
+         select type(self)
+         class is (symba_encounter_storage(*))
+            allocate(symba_encounter_storage(nbig) :: new_storage) 
+         class is (swiftest_storage(*))
+            allocate(swiftest_storage(nbig) :: new_storage) 
+         end select
+         do i = 1, nold
+            if (allocated(self%frame(i)%item)) new_storage%frame(i) = self%frame(i)%item
+         end do
+      else
+         allocate(new_storage, source=self)
+      end if
+
+      new_storage%iframe = iframe_old
+      return
+   end subroutine util_resize_storage
+
+
+
+
    module subroutine util_resize_tp(self, nnew)
       !! author: David A. Minton
       !!
