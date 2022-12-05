@@ -114,7 +114,7 @@ class AnimatedScatter(object):
 
         scale_frame =   abs(rhy1) + abs(rhy2)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
-        self.ax_pt_size = figsize[0] * 0.8 *  72 / scale_frame
+        self.ax_pt_size = figsize[0] * 0.8 *  72 / (2 * scale_frame)
         ax.set_xlim(-scale_frame, scale_frame)
         ax.set_ylim(-scale_frame, scale_frame)
         ax.set_xticks([])
@@ -140,7 +140,7 @@ class AnimatedScatter(object):
         Gmass, rh, point_rad = next(self.data_stream(frame))
         x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
         self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_com, rh[:,1] - y_com])
-        self.scatter_artist.set_sizes(point_rad)
+        self.scatter_artist.set_sizes(point_rad**2)
         return self.scatter_artist,
 
     def data_stream(self, frame=0):
@@ -180,6 +180,6 @@ if __name__ == "__main__":
        minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
        gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
        sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-       sim.run(dt=1e-3, tstop=1.0e-2, tstep_out=1e-2, dump_cadence=0)
+       sim.run(dt=1e-2, tstop=2.0e-2, istep_out=1, dump_cadence=0)
 
-       anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=10)
+       anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=1)
