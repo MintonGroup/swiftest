@@ -408,9 +408,9 @@ module symba_classes
       module subroutine symba_util_take_encounter_snapshot(self, param, t)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_nbody_system),       intent(in)    :: self   !! SyMBA nbody system object
-         class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                        intent(in)    :: t      !! current time
+         class(symba_nbody_system),  intent(inout) :: self   !! SyMBA nbody system object
+         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t      !! current time
       end subroutine symba_util_take_encounter_snapshot
 
       module subroutine symba_io_encounter_dump(self, param)

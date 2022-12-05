@@ -1311,51 +1311,62 @@ contains
       !! Can be played back through the encounter
       implicit none
       ! Internals
-      class(symba_nbody_system),       intent(in)    :: self  !! SyMBA nbody system object
-      class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                        intent(in)    :: t      !! current time
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t      !! current time
       ! Arguments
-      logical, dimension(self%pl%nbody) :: lmask
       type(symba_encounter_snapshot)  :: snapshot
-      integer(I4B) :: i, n
+      integer(I4B) :: i, npl_snap, ntp_snap
 
-         !allocate(symba_tp :: snapshot%tp)
-      associate(system => self, npl => self%pl%nbody,  ntp => self%tp%nbody)
+      associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
 
-         if (npl > 0) then
-            allocate(symba_pl :: snapshot%pl)
-            select type(pl => system%pl)
-            class is (symba_pl)
-               lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
-               n = count(lmask)
-               if (n > 0) then
-                  allocate(snapshot%pl%id(n))
-                  allocate(snapshot%pl%info(n))
-                  allocate(snapshot%pl%Gmass(n))
-                  snapshot%pl%id(:) = pack(pl%id(:), lmask)
-                  snapshot%pl%info(:) = pack(pl%info(:), lmask)
-                  snapshot%pl%Gmass(:) = pack(pl%Gmass(:), lmask)
-                  if (allocated(pl%radius)) then
-                     allocate(snapshot%pl%radius(n))
-                     snapshot%pl%radius(:) = pack(pl%radius(:), lmask)
-                  end if
-                  allocate(snapshot%pl%rh(NDIM,n))
-                  allocate(snapshot%pl%vh(NDIM,n))
+         if (npl > 0) allocate(symba_pl :: snapshot%pl)
+         if (ntp > 0) allocate(symba_tp :: snapshot%tp)
+         if (npl + ntp == 0) return
+
+         select type (pl => self%pl)
+         class is (symba_pl)
+            select type (tp => self%tp)
+            class is (symba_tp)
+               if (npl > 0) then
+                  pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == self%irec
+                  npl_snap = count(pl%lmask(1:npl))
+               end if
+               if (ntp > 0) then
+                  tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == self%irec
+                  ntp_snap = count(tp%lmask(1:ntp))
+               end if
+               if (npl_snap + ntp_snap == 0) return
+
+               if (npl_snap > 0) then
+                  allocate(snapshot%pl%id(npl_snap))
+                  allocate(snapshot%pl%info(npl_snap))
+                  allocate(snapshot%pl%Gmass(npl_snap))
+                  snapshot%pl%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
+                  snapshot%pl%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
+                  snapshot%pl%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
+                  allocate(snapshot%pl%rh(NDIM,npl_snap))
+                  allocate(snapshot%pl%vh(NDIM,npl_snap))
                   do i = 1, NDIM
-                     snapshot%pl%rh(i,:) = pack(pl%rh(i,:), lmask)
-                     snapshot%pl%vh(i,:) = pack(pl%vh(i,:), lmask)
+                     snapshot%pl%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
+                     snapshot%pl%vh(i,:) = pack(pl%vh(i,1:npl), pl%lmask(1:npl))
                   end do
-                  if (allocated(pl%Ip) .and. allocated(pl%rot)) then
-                     allocate(snapshot%pl%Ip(NDIM,n))
-                     allocate(snapshot%pl%rot(NDIM,n))
+                  if (param%lclose) then
+                     allocate(snapshot%pl%radius(npl_snap))
+                     snapshot%pl%radius(:) = pack(pl%radius(1:npl), pl%lmask(1:npl))
+                  end if
+
+                  if (param%lrotation) then
+                     allocate(snapshot%pl%Ip(NDIM,npl_snap))
+                     allocate(snapshot%pl%rot(NDIM,npl_snap))
                      do i = 1, NDIM
-                        snapshot%pl%Ip(i,:) = pack(pl%Ip(i,:), lmask)
-                        snapshot%pl%rot(i,:) = pack(pl%rot(i,:), lmask)
+                        snapshot%pl%Ip(i,:) = pack(pl%Ip(i,1:npl), pl%lmask(1:npl))
+                        snapshot%pl%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
                      end do
                   end if
                end if
-            end select 
-         end if
+            end select
+         end select 
       end associate
 
       return
