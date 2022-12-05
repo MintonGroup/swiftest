@@ -349,7 +349,7 @@ contains
                !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not do the conversion.
                status = nf90_inq_varid(nciu%id, nciu%gr_pseudo_vh_varname, nciu%gr_pseudo_vh_varid)
                nciu%lpseudo_vel_exists = (status == nf90_noerr)
-               if (.not.nciu%lpseudo_vel_exists) then
+               if (param%lrestart .and. .not.nciu%lpseudo_vel_exists) then
                   write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run. If this is a restarted run, bit-identical trajectories are not guarunteed!"
                end if
 

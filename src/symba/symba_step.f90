@@ -278,7 +278,6 @@ contains
                   nenc_old = system%plplenc_list%nenc
                   call system%plplenc_list%setup(0_I8B)
                   call system%plplcollision_list%setup(0_I8B)
-                  system%ienc_frame = 0
                   if (allocated(system%encounter_history)) deallocate(system%encounter_history)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.

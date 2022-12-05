@@ -543,9 +543,10 @@ module swiftest_classes
    end type
 
    type :: swiftest_storage(nframes)
-      integer(I4B), len :: nframes
-      !! An abstract class that establishes the pattern for various storage objects
-      type(swiftest_storage_frame), dimension(nframes) :: frame
+      !! An class that establishes the pattern for various storage objects
+      integer(I4B), len                                :: nframes    !! Total number of frames that can be stored
+      type(swiftest_storage_frame), dimension(nframes) :: frame      !! Array of stored frames
+      integer(I4B)                                     :: iframe = 0 !! The current frame number
    contains
       procedure :: dump => io_dump_storage
    end type swiftest_storage
