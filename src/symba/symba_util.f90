@@ -1315,9 +1315,9 @@ contains
       class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                        intent(in)    :: t      !! current time
       ! Arguments
-      logical, dimension(:), allocatable :: lmask
+      logical, dimension(self%pl%nbody) :: lmask
       type(symba_encounter_snapshot)  :: snapshot
-      integer(I4B) :: i
+      integer(I4B) :: i, n
 
          !allocate(symba_tp :: snapshot%tp)
       associate(system => self, npl => self%pl%nbody,  ntp => self%tp%nbody)
@@ -1326,20 +1326,33 @@ contains
             allocate(symba_pl :: snapshot%pl)
             select type(pl => system%pl)
             class is (symba_pl)
-               lmask(:) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
-               snapshot%pl%id(:) = pack(pl%id(:), lmask)
-               snapshot%pl%info(:) = pack(pl%info(:), lmask)
-               snapshot%pl%Gmass(:) = pack(pl%Gmass(:), lmask)
-               if (allocated(pl%radius)) snapshot%pl%radius(:) = pack(pl%radius(:), lmask)
-               do i = 1, NDIM
-                  snapshot%pl%rh(:,i) = pack(pl%rh(:,i), lmask)
-                  snapshot%pl%vh(:,i) = pack(pl%vh(:,i), lmask)
-               end do
-               if (allocated(pl%Ip) .and. allocated(pl%rot)) then
+               lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
+               n = count(lmask)
+               if (n > 0) then
+                  allocate(snapshot%pl%id(n))
+                  allocate(snapshot%pl%info(n))
+                  allocate(snapshot%pl%Gmass(n))
+                  snapshot%pl%id(:) = pack(pl%id(:), lmask)
+                  snapshot%pl%info(:) = pack(pl%info(:), lmask)
+                  snapshot%pl%Gmass(:) = pack(pl%Gmass(:), lmask)
+                  if (allocated(pl%radius)) then
+                     allocate(snapshot%pl%radius(n))
+                     snapshot%pl%radius(:) = pack(pl%radius(:), lmask)
+                  end if
+                  allocate(snapshot%pl%rh(NDIM,n))
+                  allocate(snapshot%pl%vh(NDIM,n))
                   do i = 1, NDIM
-                     snapshot%pl%Ip(:,i) = pack(pl%Ip(:,i), lmask)
-                     snapshot%pl%rot(:,i) = pack(pl%rot(:,i), lmask)
+                     snapshot%pl%rh(i,:) = pack(pl%rh(i,:), lmask)
+                     snapshot%pl%vh(i,:) = pack(pl%vh(i,:), lmask)
                   end do
+                  if (allocated(pl%Ip) .and. allocated(pl%rot)) then
+                     allocate(snapshot%pl%Ip(NDIM,n))
+                     allocate(snapshot%pl%rot(NDIM,n))
+                     do i = 1, NDIM
+                        snapshot%pl%Ip(i,:) = pack(pl%Ip(i,:), lmask)
+                        snapshot%pl%rot(i,:) = pack(pl%rot(i,:), lmask)
+                     end do
+                  end if
                end if
             end select 
          end if
