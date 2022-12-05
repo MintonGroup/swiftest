@@ -306,7 +306,7 @@ class Simulation:
         self.param = {}
         self.data = xr.Dataset()
         self.ic = xr.Dataset()
-
+        self.enc = xr.Dataset()
 
         self.simdir = Path(simdir)
         if self.simdir.exists():
@@ -2670,17 +2670,28 @@ class Simulation:
         # Make a temporary copy of the parameter dictionary so we can supply the absolute path of the binary file
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
+
+        # EXPERIMENTAL
+        read_encounter = True
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
             if read_init_cond:
+                if self.verbose:
+                    print("Reading initial conditions file as .ic")
                 if "NETCDF" in self.param['IN_TYPE']:
-                    param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['NC_IN'])
+                    param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
+
                     self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
                 else:
                     self.ic = self.data.isel(time=0)
+            if read_encounter:
+                param_tmp['BIN_OUT'] = self.simdir / "encounter.nc"
+                if self.verbose:
+                    print("Reading encounter history file as .enc")
+                self.enc = io.swiftest2xr(param_tmp, verbose=self.verbose)
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
