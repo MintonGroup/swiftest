@@ -80,7 +80,6 @@ SET(FAST_MATH_FILES
             ${SRC}/util/util_minimize_bfgs.f90
             ${SRC}/util/util_peri.f90
             ${SRC}/util/util_rescale.f90
-            ${SRC}/util/util_reset.f90
             ${SRC}/util/util_resize.f90
             ${SRC}/util/util_set.f90
             ${SRC}/util/util_solve.f90

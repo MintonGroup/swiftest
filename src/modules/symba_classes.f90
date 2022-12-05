@@ -208,7 +208,7 @@ module symba_classes
       class(symba_plplenc),                     allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
       class(symba_plplenc),                     allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
       integer(I4B)                                          :: irec               !! System recursion level
-      class(symba_encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      type(symba_encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps

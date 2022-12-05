@@ -918,20 +918,32 @@ contains
       class(symba_nbody_system), intent(inout) :: self !! Swiftest encounter list 
       integer(I4B),              intent(in)    :: nnew !! New size of list needed
       ! Internals
-      class(swiftest_storage), allocatable :: tmp
+      type(symba_encounter_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nold
+      logical      :: lmalloc
 
-      if (nnew > self%encounter_history%nframes) then
-         call self%encounter_history%resize(nnew,tmp)
-         deallocate(self%encounter_history)
-         select type(tmp)
-         class is (symba_encounter_storage(*))
-            allocate(self%encounter_history, source=tmp)
-         end select
-         deallocate(tmp)
+
+      lmalloc = allocated(self%encounter_history)
+      if (lmalloc) then
+         nold = self%encounter_history%nframes
+      else
+         nold = 0
+      end if
+
+      if (nnew > nold) then
+         allocate(symba_encounter_storage(8 * nnew) :: tmp) 
+         if (lmalloc) then
+            do i = 1, nold
+               if (allocated(self%encounter_history%frame(i)%item)) tmp%frame(i) = self%encounter_history%frame(i)%item
+            end do
+            deallocate(self%encounter_history)
+         end if
+         call move_alloc(tmp,self%encounter_history)
       end if
 
       return
    end subroutine symba_util_resize_storage
+
 
 
    module subroutine symba_util_resize_tp(self, nnew)
@@ -1311,8 +1323,6 @@ contains
          if (npl > 0) allocate(symba_pl :: snapshot%pl)
          if (ntp > 0) allocate(symba_tp :: snapshot%tp)
          if (npl + ntp == 0) return
-         npl_snap = npl
-         ntp_snap = ntp
 
          select type (pl => self%pl)
          class is (symba_pl)
@@ -1374,7 +1384,6 @@ contains
 
                ! Save the snapshot
                self%encounter_history%iframe = self%encounter_history%iframe + 1
-               call self%resize_storage(self%encounter_history%iframe)
                self%encounter_history%frame(self%encounter_history%iframe) = snapshot
             end select
          end select 
