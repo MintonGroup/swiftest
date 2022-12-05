@@ -284,10 +284,9 @@ def vec2xr(param: Dict, **kwargs: Any):
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
     if param['ROTATION']:
         if "rot" not in kwargs and "Gmass" in kwargs:
-            warnings.warn("Rotation vectors must be given when rotation is enabled for massive bodies",stacklevel=2)
-            return
+            kwargs['rot'] = np.zeros((len(kwargs['Gmass']),3))
         if "Ip" not in kwargs and "rot" in kwargs:
-            kwargs['Ip'] = np.full_like(rot, 0.4)
+            kwargs['Ip'] = np.full_like(kwargs['rot'], 0.4)
 
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])

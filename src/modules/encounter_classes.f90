@@ -31,12 +31,6 @@ module encounter_classes
       real(DP),           dimension(:,:), allocatable :: x2        !! the position of body 2 in the encounter
       real(DP),           dimension(:,:), allocatable :: v1        !! the velocity of body 1 in the encounter
       real(DP),           dimension(:,:), allocatable :: v2        !! the velocity of body 2 in the encounter
-      real(DP),           dimension(:),   allocatable :: Gmass1    !! G*mass of body 1 in the encounter
-      real(DP),           dimension(:),   allocatable :: Gmass2    !! G*mass of body 2 in the encounter
-      real(DP),           dimension(:),   allocatable :: radius1   !! radius of body 1 in the encounter
-      real(DP),           dimension(:),   allocatable :: radius2   !! radius of body 2 in the encounter
-      character(NAMELEN), dimension(:),   allocatable :: name1     !! name body 1 in the encounter
-      character(NAMELEN), dimension(:),   allocatable :: name2     !! name of body 2 in the encounter
    contains
       procedure :: setup       => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: append      => encounter_util_append_list  !! Appends elements from one structure to another
@@ -217,10 +211,10 @@ module encounter_classes
          class(swiftest_parameters),     intent(in)    :: param   
       end subroutine encounter_io_initialize_output
 
-      module subroutine encounter_io_write_frame(self, iu, param)
+      module subroutine encounter_io_write_frame(self, nciu, param)
          implicit none
          class(encounter_list),          intent(in)    :: self   !! Swiftest encounter structure
-         class(encounter_io_parameters), intent(inout) :: iu     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(encounter_io_parameters), intent(inout) :: nciu   !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
       end subroutine encounter_io_write_frame
 

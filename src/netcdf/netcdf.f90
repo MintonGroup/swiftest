@@ -456,7 +456,7 @@ contains
          call pl%setup(npl, param)
          call tp%setup(ntp, param)
 
-         tslot = param%ioutput + 1
+         tslot = param%ioutput
 
          call check( nf90_inquire_dimension(nciu%id, nciu%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
          allocate(rtemp(idmax))
@@ -699,7 +699,7 @@ contains
       logical, dimension(:), allocatable        :: plmask, tpmask, plmmask
 
 
-      tslot = param%ioutput + 1
+      tslot = param%ioutput
       call check( nf90_inquire_dimension(nciu%id, nciu%id_dimid, len=idmax), "netcdf_read_hdr_system nf90_inquire_dimension id_dimid"  )
       call check( nf90_get_var(nciu%id, nciu%time_varid, self%t, start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
 
@@ -1031,7 +1031,7 @@ contains
 
       call self%write_info(nciu, param)
 
-      tslot = param%ioutput + 1
+      tslot = param%ioutput
 
       call check( nf90_set_fill(nciu%id, nf90_nofill, old_mode), "netcdf_write_frame_base nf90_set_fill"  )
       select type(self)
@@ -1242,7 +1242,7 @@ contains
       ! Internals
       integer(I4B) :: tslot
 
-      tslot = param%ioutput + 1
+      tslot = param%ioutput
 
       call check( nf90_put_var(nciu%id, nciu%time_varid, self%t, start=[tslot]), "netcdf_write_hdr_system nf90_put_var time_varid"  )
       call check( nf90_put_var(nciu%id, nciu%npl_varid, self%pl%nbody, start=[tslot]), "netcdf_write_hdr_system nf90_put_var npl_varid"  )

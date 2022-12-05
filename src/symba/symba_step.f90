@@ -218,6 +218,8 @@ contains
                   call pl%drift(system, param, dtl)
                   call tp%drift(system, param, dtl)
 
+                  !call system%
+
                   if (lencounter) call system%recursive_step(param, t+dth,irecp)
                   system%irec = ireci
 

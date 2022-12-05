@@ -529,12 +529,8 @@ def swifter_stream(f, param):
         
         tlab = []
         if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-            tlab.append('rhx')
-            tlab.append('rhy')
-            tlab.append('rhz')
-            tlab.append('vhx')
-            tlab.append('vhy')
-            tlab.append('vhz')
+            tlab.append('rh')
+            tlab.append('vh')
         if param['OUT_FORM'] == 'EL' or param['OUT_FORM'] == 'XVEL':
             tlab.append('a')
             tlab.append('e')
@@ -577,12 +573,8 @@ def make_swiftest_labels(param):
     """
     tlab = []
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        tlab.append('rhx')
-        tlab.append('rhy')
-        tlab.append('rhz')
-        tlab.append('vhx')
-        tlab.append('vhy')
-        tlab.append('vhz')
+        tlab.append('rh')
+        tlab.append('vh')
    
     if param['OUT_FORM'] == 'EL' or param['OUT_FORM'] == 'XVEL':
         tlab.append('a')
@@ -599,18 +591,10 @@ def make_swiftest_labels(param):
         plab.append('rhill')
     clab = ['Gmass', 'radius', 'j2rp2', 'j4rp4']
     if param['ROTATION']:
-        clab.append('Ip1')
-        clab.append('Ip2')
-        clab.append('Ip3')
-        clab.append('rotx')
-        clab.append('roty')
-        clab.append('rotz')
-        plab.append('Ip1')
-        plab.append('Ip2')
-        plab.append('Ip3')
-        plab.append('rotx')
-        plab.append('roty')
-        plab.append('rotz')
+        clab.append('Ip')
+        clab.append('rot')
+        plab.append('Ip')
+        plab.append('rot')
     if param['TIDES']:
         clab.append('k2')
         clab.append('Q')
@@ -619,19 +603,11 @@ def make_swiftest_labels(param):
 
     infolab_float = [
         "origin_time",
-        "origin_rhx",
-        "origin_rhy",
-        "origin_rhz",
-        "origin_vhx",
-        "origin_vhy",
-        "origin_vhz",
+        "origin_rh",
+        "origin_vh",
         "discard_time",
-        "discard_rhx",
-        "discard_rhy",
-        "discard_rhz",
-        "discard_vhx",
-        "discard_vhy",
-        "discard_vhz",
+        "discard_rh",
+        "discard_vh",
         ]
     infolab_int = [
         "collision_id",
@@ -1042,7 +1018,7 @@ def swiftest_particle_2xr(param):
     -------
     infoxr : xarray dataset
     """
-    veclab = ['time_origin', 'rhx_origin', 'py_origin', 'pz_origin', 'vhx_origin', 'vhy_origin', 'vhz_origin']
+    veclab = ['time_origin', 'rh_origin', 'vh_origin']
     id_list = []
     origin_type_list = []
     origin_vec_list = []
@@ -1099,7 +1075,7 @@ def select_active_from_frame(ds, param, framenum=-1):
     # Select only the active particles at this time step
     # Remove the inactive particles
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['rhx'])), drop=True)[count_dim]
+        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['rh'].isel(space=0))), drop=True)[count_dim]
     else:
         iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True)[count_dim]
     if count_dim == "id":
@@ -1164,12 +1140,12 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     J4 = np.double(cb['j4rp4'])
     cbname = cb['name'].values[0]
     if param['ROTATION']:
-        Ip1cb = np.double(cb['Ip1'])
-        Ip2cb = np.double(cb['Ip2'])
-        Ip3cb = np.double(cb['Ip3'])
-        rotxcb = np.double(cb['rotx'])
-        rotycb = np.double(cb['roty'])
-        rotzcb = np.double(cb['rotz'])
+        Ip1cb = np.double(cb['Ip'].values[0])
+        Ip2cb = np.double(cb['Ip'].values[1])
+        Ip3cb = np.double(cb['Ip'].values[2])
+        rotxcb = np.double(cb['rot'].values[0])
+        rotycb = np.double(cb['rot'].values[1])
+        rotzcb = np.double(cb['rot'].values[2])
     cbid = int(0)
     
     if in_type == 'ASCII':
@@ -1196,16 +1172,16 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
             if param['CHK_CLOSE']:
                print(pli['radius'].values[0], file=plfile)
             if param['IN_FORM'] == 'XV':
-                print(pli['rhx'].values[0], pli['rhy'].values[0], pli['rhz'].values[0], file=plfile)
-                print(pli['vhx'].values[0], pli['vhy'].values[0], pli['vhz'].values[0], file=plfile)
+                print(pli['rh'].values[0,0], pli['rh'].values[0,1], pli['rh'].values[0,2], file=plfile)
+                print(pli['vh'].values[0,0], pli['vh'].values[0,1], pli['vh'].values[0,2], file=plfile)
             elif param['IN_FORM'] == 'EL':
                 print(pli['a'].values[0], pli['e'].values[0], pli['inc'].values[0], file=plfile)
                 print(pli['capom'].values[0], pli['omega'].values[0], pli['capm'].values[0], file=plfile)
             else:
                 print(f"{param['IN_FORM']} is not a valid input format type.")
             if param['ROTATION']:
-                print(pli['Ip1'].values[0], pli['Ip2'].values[0], pli['Ip3'].values[0], file=plfile)
-                print(pli['rotx'].values[0], pli['roty'].values[0], pli['rotz'].values[0], file=plfile)
+                print(pli['Ip'].values[0,0], pli['Ip'].values[0,1], pli['Ip'].values[0,2], file=plfile)
+                print(pli['rot'].values[0,0], pli['rot'].values[0,1], pli['rot'].values[0,2], file=plfile)
         plfile.close()
         
         # TP file
@@ -1215,8 +1191,8 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
             tpi = tp.sel(id=i)
             print(tpi['name'].values[0], file=tpfile)
             if param['IN_FORM'] == 'XV':
-                print(tpi['rhx'].values[0], tpi['rhy'].values[0], tpi['rhz'].values[0], file=tpfile)
-                print(tpi['vhx'].values[0], tpi['vhy'].values[0], tpi['vhz'].values[0], file=tpfile)
+                print(tpi['rh'].values[0,0], tpi['rh'].values[0,1], tpi['rh'].values[0,2], file=tpfile)
+                print(tpi['vh'].values[0,0], tpi['vh'].values[0,1], tpi['vh'].values[0,2], file=tpfile)
             elif param['IN_FORM'] == 'EL':
                 print(tpi['a'].values[0], tpi['e'].values[0], tpi['inc'].values[0], file=tpfile)
                 print(tpi['capom'].values[0], tpi['omega'].values[0], tpi['capm'].values[0], file=tpfile)
@@ -1279,8 +1255,8 @@ def swifter_xr2infile(ds, param, framenum=-1):
                 print(i.values, pli['Gmass'].values, file=plfile)
             if param['CHK_CLOSE']:
                 print(pli['radius'].values, file=plfile)
-            print(pli['rhx'].values, pli['rhy'].values, pli['rhz'].values, file=plfile)
-            print(pli['vhx'].values, pli['vhy'].values, pli['vhz'].values, file=plfile)
+            print(pli['rh'].values[0,0], pli['ry'].values[0,1], pli['rh'].values[0,2], file=plfile)
+            print(pli['vh'].values[0,0], pli['vh'].values[0,1], pli['vh'].values[0,2], file=plfile)
         plfile.close()
         
         # TP file
@@ -1289,8 +1265,8 @@ def swifter_xr2infile(ds, param, framenum=-1):
         for i in tp.id:
             tpi = tp.sel(id=i)
             print(i.values, file=tpfile)
-            print(tpi['rhx'].values, tpi['rhy'].values, tpi['rhz'].values, file=tpfile)
-            print(tpi['vhx'].values, tpi['vhy'].values, tpi['vhz'].values, file=tpfile)
+            print(tpi['rh'].values[0,0], tpi['ry'].values[0,1], tpi['rh'].values[0,2], file=tpfile)
+            print(tpi['vh'].values[0,0], tpi['vh'].values[0,1], tpi['vh'].values[0,2], file=tpfile)
         tpfile.close()
     else:
         # Now make Swiftest files

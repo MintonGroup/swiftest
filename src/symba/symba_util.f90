@@ -499,6 +499,20 @@ contains
    end subroutine symba_util_final_system
 
 
+   module subroutine symba_util_final_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the SyMBA nbody system object - deallocates all allocatables
+      implicit none
+      ! Argument
+      type(symba_system_snapshot),  intent(inout) :: self !! SyMBA nbody system object
+
+      call self%dealloc()
+
+      return
+   end subroutine symba_util_final_snapshot
+
+
    module subroutine symba_util_final_tp(self)
       !! author: David A. Minton
       !!
@@ -726,12 +740,6 @@ contains
                   ! This is an encounter we already know about, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%Gmass1(k) = plplenc_old%Gmass1(k) 
-                  system%plplenc_list%Gmass2(k) = plplenc_old%Gmass2(k) 
-                  system%plplenc_list%radius1(k) = plplenc_old%radius1(k) 
-                  system%plplenc_list%radius2(k) = plplenc_old%radius2(k) 
-                  system%plplenc_list%name1(k) = plplenc_old%name1(k) 
-                  system%plplenc_list%name2(k) = plplenc_old%name2(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
@@ -742,12 +750,6 @@ contains
                   ! This is an encounter we already know about, but with the order reversed, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%Gmass1(k) = plplenc_old%Gmass2(k) 
-                  system%plplenc_list%Gmass2(k) = plplenc_old%Gmass1(k) 
-                  system%plplenc_list%radius1(k) = plplenc_old%radius2(k) 
-                  system%plplenc_list%radius2(k) = plplenc_old%radius1(k) 
-                  system%plplenc_list%name1(k) = plplenc_old%name2(k) 
-                  system%plplenc_list%name2(k) = plplenc_old%name1(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
@@ -775,12 +777,6 @@ contains
                system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%Gmass1(1:nencmin) = pack(system%plplenc_list%Gmass1(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%Gmass2(1:nencmin) = pack(system%plplenc_list%Gmass2(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%radius1(1:nencmin) = pack(system%plplenc_list%radius1(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%radius2(1:nencmin) = pack(system%plplenc_list%radius2(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%name1(1:nencmin) = pack(system%plplenc_list%name1(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%name2(1:nencmin) = pack(system%plplenc_list%name2(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%tcollision(1:nencmin) = pack(system%plplenc_list%tcollision(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))
                do i = 1, NDIM
@@ -1296,5 +1292,25 @@ contains
      
       return
    end subroutine symba_util_spill_tp
+
+
+   module subroutine symba_util_take_system_snapshot(self, system, param, t)
+      !! author: David A. Minton
+      !!
+      !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
+      !! Can be played back through the encounter
+      implicit none
+      ! Internals
+      class(symba_system_snapshot),    intent(inout) :: self   !! SyMBA nbody system snapshot object
+      class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
+      class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                        intent(in)    :: t      !! current time
+      ! Arguments
+      logical, dimension(:), allocatable :: lmask
+
+      !if (system%pl)
+
+      return
+   end subroutine symba_util_take_system_snapshot
 
 end submodule s_symba_util

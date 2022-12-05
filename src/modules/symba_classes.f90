@@ -177,6 +177,12 @@ module symba_classes
       procedure :: resolve_collision      => symba_collision_resolve_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_plplenc
 
+   type, extends(helio_nbody_system) :: symba_system_snapshot
+   contains
+      procedure :: snapshot => symba_util_take_system_snapshot
+      final :: symba_util_final_snapshot
+   end type 
+
    !********************************************************************************************************************************
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
@@ -188,6 +194,7 @@ module symba_classes
       integer(I4B)                                    :: irec               !! System recursion level
       type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
       integer(I4B)                                    :: ienc_frame = 0     !! Encounter history frame number
+      type(symba_system_snapshot)                     :: snapshot
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
@@ -201,7 +208,9 @@ module symba_classes
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
+
    interface
+
       module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -373,6 +382,15 @@ module symba_classes
          class(symba_pl), intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    intent(in)    :: scale !! Current recursion depth
       end subroutine symba_util_set_renc
+
+      module subroutine symba_util_take_system_snapshot(self, system, param, t)
+         use swiftest_classes, only : swiftest_parameters
+         implicit none
+         class(symba_system_snapshot), intent(inout) :: self   !! SyMBA nbody system snapshot object
+         class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
+         class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                        intent(in)    :: t      !! current time
+      end subroutine symba_util_take_system_snapshot
 
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -647,6 +665,11 @@ module symba_classes
          implicit none
          type(symba_pl),  intent(inout) :: self !! SyMBA massive body object
       end subroutine symba_util_final_pl
+
+      module subroutine symba_util_final_snapshot(self)
+         implicit none
+         type(symba_system_snapshot),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine symba_util_final_snapshot
 
       module subroutine symba_util_final_system(self)
          implicit none
