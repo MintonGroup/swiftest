@@ -1300,10 +1300,15 @@ contains
       !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
       !! Can be played back through the encounter
       implicit none
+      ! Internals
       class(symba_system_snapshot),    intent(inout) :: self   !! SyMBA nbody system snapshot object
       class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
       class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                        intent(in)    :: t      !! current time
+      ! Arguments
+      logical, dimension(:), allocatable :: lmask
+
+      !if (system%pl)
 
       return
    end subroutine symba_util_take_system_snapshot
