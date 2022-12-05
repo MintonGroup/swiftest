@@ -1389,6 +1389,8 @@ contains
 
                if (npl_snap + ntp_snap == 0) return
 
+               snapshot%t = t
+
                ! Save the snapshot
                self%encounter_history%iframe = self%encounter_history%iframe + 1
                call self%resize_storage(self%encounter_history%iframe)
