@@ -160,7 +160,7 @@ contains
          call check( nf90_put_var(nciu%id, nciu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
          charstring = trim(adjustl(self%pl%info(i)%particle_type))
          call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
-
+         call check( nf90_put_var(nciu%id, nciu%id_varid, self%pl%id(i), start=[idslot]), "symba_io_encounter_write_frame_base nf90_put_var id_varid"  )
          call check( nf90_put_var(nciu%id, nciu%rh_varid, self%pl%rh(:, i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var rh_varid"  )
          call check( nf90_put_var(nciu%id, nciu%vh_varid, self%pl%vh(:, i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var vh_varid"  )
          call check( nf90_put_var(nciu%id, nciu%Gmass_varid, self%pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body Gmass_varid"  )
