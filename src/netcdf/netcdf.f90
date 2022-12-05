@@ -524,7 +524,7 @@ contains
                   if (ntp > 0) tp%vh(i,:) = pack(vectemp(i,:), tpmask(:))
                end do
             else
-               call check( nf90_get_var(nciu%id, nciu%vh_varid, rtemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_read_frame_system nf90_getvar vhx_varid"  )
+               call check( nf90_get_var(nciu%id, nciu%vh_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_read_frame_system nf90_getvar vh_varid"  )
                do i = 1, NDIM
                   if (npl > 0) pl%vh(i,:) = pack(vectemp(i,:), plmask(:))
                   if (ntp > 0) tp%vh(i,:) = pack(vectemp(i,:), tpmask(:))
