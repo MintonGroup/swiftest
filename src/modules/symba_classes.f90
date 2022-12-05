@@ -219,8 +219,8 @@ module symba_classes
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
       procedure :: dealloc          => symba_util_dealloc_system          !! Deallocates all allocatable arrays
-      procedure :: resize_storage   => symba_util_resize_storage  
-      procedure :: snapshot         => symba_util_take_encounter_snapshot
+      procedure :: resize_storage   => symba_util_resize_storage          !! Resizes the encounter history storage object so that it contains enough spaces for the number of snapshots needed  
+      procedure :: snapshot         => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
@@ -410,7 +410,7 @@ module symba_classes
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_nbody_system),       intent(in)    :: self   !! SyMBA nbody system object
-         class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
+         class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                        intent(in)    :: t      !! current time
       end subroutine symba_util_take_encounter_snapshot
 

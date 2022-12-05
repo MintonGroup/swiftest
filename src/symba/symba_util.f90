@@ -1312,12 +1312,38 @@ contains
       implicit none
       ! Internals
       class(symba_nbody_system),       intent(in)    :: self  !! SyMBA nbody system object
-      class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),      intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                        intent(in)    :: t      !! current time
       ! Arguments
       logical, dimension(:), allocatable :: lmask
+      type(symba_encounter_snapshot)  :: snapshot
+      integer(I4B) :: i
 
-      !if (system%pl)
+         !allocate(symba_tp :: snapshot%tp)
+      associate(system => self, npl => self%pl%nbody,  ntp => self%tp%nbody)
+
+         if (npl > 0) then
+            allocate(symba_pl :: snapshot%pl)
+            select type(pl => system%pl)
+            class is (symba_pl)
+               lmask(:) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
+               snapshot%pl%id(:) = pack(pl%id(:), lmask)
+               snapshot%pl%info(:) = pack(pl%info(:), lmask)
+               snapshot%pl%Gmass(:) = pack(pl%Gmass(:), lmask)
+               if (allocated(pl%radius)) snapshot%pl%radius(:) = pack(pl%radius(:), lmask)
+               do i = 1, NDIM
+                  snapshot%pl%rh(:,i) = pack(pl%rh(:,i), lmask)
+                  snapshot%pl%vh(:,i) = pack(pl%vh(:,i), lmask)
+               end do
+               if (allocated(pl%Ip) .and. allocated(pl%rot)) then
+                  do i = 1, NDIM
+                     snapshot%pl%Ip(:,i) = pack(pl%Ip(:,i), lmask)
+                     snapshot%pl%rot(:,i) = pack(pl%rot(:,i), lmask)
+                  end do
+               end if
+            end select 
+         end if
+      end associate
 
       return
    end subroutine symba_util_take_encounter_snapshot
