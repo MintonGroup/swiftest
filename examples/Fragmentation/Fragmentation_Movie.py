@@ -84,7 +84,7 @@ class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
     def __init__(self, sim, animfile, title, nskip=1):
-        nframes = int(sim.data['time'].size)
+        nframes = int(sim.enc['time'].size)
         self.sim = sim
         self.title = title
         self.body_color_list = {'Initial conditions': 'xkcd:windows blue',
@@ -109,8 +109,10 @@ class AnimatedScatter(object):
 
         # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
         # This will be used to scale the axis limits on the movie.
-        scale_frame =   abs(sim.data['xhy'].isel(time=0, name=1).values) \
-                      + abs( sim.data['xhy'].isel(time=0, name=2).values)
+        rhy1 = sim.enc['rh'].isel(time=0).sel(name="Body1",space='y').values[()]
+        rhy2 = sim.enc['rh'].isel(time=0).sel(name="Body2",space='y').values[()]
+
+        scale_frame =   abs(rhy1) + abs(rhy2)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
         self.ax_pt_size = figsize[0] * 0.8 *  72 / scale_frame
         ax.set_xlim(-scale_frame, scale_frame)
@@ -136,14 +138,14 @@ class AnimatedScatter(object):
             return x_com, y_com
 
         Gmass, rh, point_rad = next(self.data_stream(frame))
-        x_com, y_com = center(Gmass, rh[:,1], rh[:,2])
-        self.scatter_artist.set_offsets(np.c_[x - x_com, y - y_com])
+        x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
+        self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_com, rh[:,1] - y_com])
         self.scatter_artist.set_sizes(point_rad)
         return self.scatter_artist,
 
     def data_stream(self, frame=0):
         while True:
-            ds = self.sim.data.isel(time=frame)
+            ds = self.sim.enc.isel(time=frame)
             ds = ds.where(ds['name'] != "Sun", drop=True)
             radius = ds['radius'].values
             Gmass = ds['Gmass'].values
@@ -167,33 +169,17 @@ if __name__ == "__main__":
       movie_styles = available_movie_styles.copy()
 
    for style in movie_styles:
-       bin_file = Path(style) / "bin.nc"
-       if bin_file.exists():
-           user_selection = input(f"An older simulation of {movie_titles[style]} exists. Do you want to re-run it? [y/N] ")
-           if user_selection == "":
-               run_new = False
-           else:
-               try:
-                   run_new = swiftest.io.str2bool(user_selection)
-               except:
-                   run_new = False
-       else:
-           run_new = True
-
        movie_filename = f"{style}.mp4"
 
        # Pull in the Swiftest output data from the parameter file and store it as a Xarray dataset.
-       if run_new:
-           sim = swiftest.Simulation(simdir=style, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
-           sim.add_solar_system_body("Sun")
-           sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style]) #, rot=rot_vectors[style])
+       sim = swiftest.Simulation(simdir=style, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
+       sim.add_solar_system_body("Sun")
+       sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style]) #, rot=rot_vectors[style])
 
-           # Set fragmentation parameters
-           minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
-           gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
-           sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-           sim.run(dt=2e-5, tstop=2.e-5)
-       else:
-           sim = swiftest.Simulation(param_file=param_file, read_old_output_file=True)
+       # Set fragmentation parameters
+       minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
+       gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
+       sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
+       sim.run(dt=1e-4, tstop=1.0e-2, tstep_out=1e-2, dump_cadence=0)
 
-       anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=10)
+       anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=1)
