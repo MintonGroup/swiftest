@@ -80,7 +80,7 @@ program swiftest_driver
       ! Set up loop and output cadence variables
       t = tstart
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
-      istart =  ceiling((tstart - t0) / dt + 1, kind=I8B)
+      istart =  ceiling((tstart - t0) / dt + 1.0_DP, kind=I8B)
       ioutput = int(istart / istep_out, kind=I4B)
 
       ! Set up system storage for intermittent file dumps

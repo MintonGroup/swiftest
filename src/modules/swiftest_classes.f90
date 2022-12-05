@@ -159,7 +159,7 @@ module swiftest_classes
       real(DP)           :: tstop                = -1.0_DP            !! Integration stop time
       real(DP)           :: dt                   = -1.0_DP            !! Time step
       integer(I8B)       :: iloop                = 0_I8B              !! Main loop counter
-      integer(I4B)       :: ioutput              = 0                  !! Output counter
+      integer(I4B)       :: ioutput              = 1                  !! Output counter
       character(STRMAX)  :: incbfile             = CB_INFILE          !! Name of input file for the central body
       character(STRMAX)  :: inplfile             = PL_INFILE          !! Name of input file for massive bodies
       character(STRMAX)  :: intpfile             = TP_INFILE          !! Name of input file for test particles

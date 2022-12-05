@@ -256,7 +256,7 @@ contains
 
       dump_param%out_form = "XV"
       dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
-      dump_param%ioutput = 0 
+      dump_param%ioutput = 1 
       call dump_param%nciu%initialize(dump_param)
       call self%write_frame(dump_param%nciu, dump_param)
       call dump_param%nciu%close()
@@ -285,7 +285,7 @@ contains
       integer(I4B) :: i
       integer(I8B) :: iloop_start
 
-      iloop_start = param%iloop - int(param%istep_out * param%dump_cadence + 1, kind=I8B)
+      iloop_start = max(param%iloop - int(param%istep_out * param%dump_cadence, kind=I8B),1)
       do i = 1, param%dump_cadence
          param%ioutput = int(iloop_start / param%istep_out, kind=I4B) + i
          if (allocated(self%frame(i)%item)) then
