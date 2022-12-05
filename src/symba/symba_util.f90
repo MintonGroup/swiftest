@@ -1304,15 +1304,14 @@ contains
    end subroutine symba_util_spill_tp
 
 
-   module subroutine symba_util_take_encounter_snapshot(self, system, param, t)
+   module subroutine symba_util_take_encounter_snapshot(self, param, t)
       !! author: David A. Minton
       !!
       !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
       !! Can be played back through the encounter
       implicit none
       ! Internals
-      class(symba_encounter_snapshot), intent(inout) :: self   !! SyMBA nbody system snapshot object
-      class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
+      class(symba_nbody_system),       intent(in)    :: self  !! SyMBA nbody system object
       class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                        intent(in)    :: t      !! current time
       ! Arguments

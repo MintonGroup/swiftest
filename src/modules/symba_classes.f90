@@ -220,13 +220,13 @@ module symba_classes
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
       procedure :: dealloc          => symba_util_dealloc_system          !! Deallocates all allocatable arrays
       procedure :: resize_storage   => symba_util_resize_storage  
+      procedure :: snapshot         => symba_util_take_encounter_snapshot
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
 
    type, extends(symba_nbody_system) :: symba_encounter_snapshot
    contains
-      procedure :: snapshot              => symba_util_take_encounter_snapshot
       procedure :: write_encounter_frame => symba_io_encounter_write_frame    !! Writes a frame of encounter data to file 
       generic   :: write_frame           => write_encounter_frame
       final     :: symba_util_final_encounter_snapshot
@@ -406,11 +406,10 @@ module symba_classes
          integer(I4B),    intent(in)    :: scale !! Current recursion depth
       end subroutine symba_util_set_renc
 
-      module subroutine symba_util_take_encounter_snapshot(self, system, param, t)
+      module subroutine symba_util_take_encounter_snapshot(self, param, t)
          use swiftest_classes, only : swiftest_parameters
          implicit none
-         class(symba_encounter_snapshot), intent(inout) :: self   !! SyMBA nbody system snapshot object
-         class(symba_nbody_system),       intent(in)    :: system !! SyMBA nbody system object
+         class(symba_nbody_system),       intent(in)    :: self   !! SyMBA nbody system object
          class(symba_parameters),         intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                        intent(in)    :: t      !! current time
       end subroutine symba_util_take_encounter_snapshot
