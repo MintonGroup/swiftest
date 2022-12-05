@@ -90,7 +90,6 @@ contains
          call check( nf90_def_var(nciu%id, nciu%time_dimname, nciu%out_type, nciu%time_dimid, nciu%time_varid), "symba_io_encounter_initialize_output nf90_def_var time_varid"  )
          call check( nf90_def_var(nciu%id, nciu%space_dimname, NF90_CHAR, nciu%space_dimid, nciu%space_varid), "symba_io_encounter_initialize_output nf90_def_var space_varid"  )
          call check( nf90_def_var(nciu%id, nciu%id_dimname, NF90_INT, nciu%id_dimid, nciu%id_varid), "symba_io_encounter_initialize_output nf90_def_var id_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%name_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%name_varid), "symba_io_encounter_initialize_output nf90_def_var name_varid"  )
       
          ! Variables
          call check( nf90_def_var(nciu%id, nciu%name_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%name_varid), "symba_io_encounter_initialize_output nf90_def_var name_varid"  )
