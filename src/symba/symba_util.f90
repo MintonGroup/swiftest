@@ -1328,6 +1328,8 @@ contains
          if (npl > 0) allocate(symba_pl :: snapshot%pl)
          if (ntp > 0) allocate(symba_tp :: snapshot%tp)
          if (npl + ntp == 0) return
+         npl_snap = npl
+         ntp_snap = ntp
 
          select type (pl => self%pl)
          class is (symba_pl)
