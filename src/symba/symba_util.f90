@@ -945,7 +945,6 @@ contains
    end subroutine symba_util_resize_storage
 
 
-
    module subroutine symba_util_resize_tp(self, nnew)
       !! author: David A. Minton
       !!
