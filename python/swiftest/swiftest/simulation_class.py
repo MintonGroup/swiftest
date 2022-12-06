@@ -2762,7 +2762,7 @@ class Simulation:
     def read_encounter(self):
         if self.verbose:
             print("Reading encounter history file as .enc")
-        enc_files = self.simdir.glob("**/enc_*.nc")
+        enc_files = self.simdir.glob("**/encounter_*.nc")
 
         # This is needed in order to pass the param argument down to the io.process_netcdf_input function
         def _preprocess(ds, param):
