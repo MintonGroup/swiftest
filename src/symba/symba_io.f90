@@ -150,12 +150,12 @@ contains
       character(len=NAMELEN)                   :: charstring
 
       tslot = nc%ienc_frame
+      call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame nf90_set_fill"  )
       select type(pl => self%pl)
       class is (symba_pl)
          n = size(pl%id(:))
          do i = 1, n
             idslot = pl%id(i)
-            call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame nf90_set_fill"  )
             call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
             call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame nf90_put_var id_varid"  )
             call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var rh_varid"  )
