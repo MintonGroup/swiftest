@@ -73,7 +73,6 @@ contains
          ! Check if the file exists, and if it does, delete it
          inquire(file=nc%enc_file, exist=fileExists)
          if (fileExists) then
-            return
             open(unit=LUN, file=nc%enc_file, status="old", err=667, iomsg=errmsg)
             close(unit=LUN, status="delete")
          end if
