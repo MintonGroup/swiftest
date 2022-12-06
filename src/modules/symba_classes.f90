@@ -222,7 +222,7 @@ module symba_classes
       procedure :: dealloc          => symba_util_dealloc_system          !! Deallocates all allocatable arrays
       procedure :: resize_storage   => symba_util_resize_storage          !! Resizes the encounter history storage object so that it contains enough spaces for the number of snapshots needed  
       procedure :: snapshot         => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
-      procedure :: start_encounter  => symba_io_start_encounter           !! Initializes the new encounter and/or fragmentation save file(s)
+      procedure :: start_encounter  => symba_io_start_encounter           !! Initializes the new encounter history
       procedure :: stop_encounter   => symba_io_stop_encounter            !! Saves the encounter and/or fragmentation data to file(s)   
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
