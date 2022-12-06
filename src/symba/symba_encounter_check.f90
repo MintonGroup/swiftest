@@ -34,7 +34,7 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb, ienc_frame => system%ienc_frame)
+      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb)
 
          npl = pl%nbody
          nplm = pl%nplm

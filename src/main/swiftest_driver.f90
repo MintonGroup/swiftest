@@ -18,26 +18,26 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   class(swiftest_nbody_system), allocatable  :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
-   class(swiftest_parameters),   allocatable  :: param             !! Run configuration parameters
-   character(len=:), allocatable              :: integrator        !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable               :: param_file_name   !! Name of the file containing user-defined parameters
-   character(len=:), allocatable              :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-   integer(I8B)                               :: istart            !! Starting index for loop counter
-   integer(I8B)                               :: nloops            !! Number of steps to take in the simulation
-   integer(I4B)                               :: iout              !! Output cadence counter
-   integer(I4B)                               :: idump             !! Dump cadence counter
-   type(walltimer)                            :: integration_timer !! Object used for computing elapsed wall time
-   real(DP)                                   :: tfrac
-   type(progress_bar)                         :: pbar              !! Object used to print out a progress bar
-   character(*), parameter                    :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
-                                                             '"; Number of active pl, tp = ", I6, ", ", I6)'
-   character(*), parameter                    :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
-                                                                '"; Number of active plm, pl, tp = ", I6, ", ", I6, ", ", I6)'
-   character(*), parameter                    :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
-   character(len=64)                          :: pbarmessage
+   class(swiftest_nbody_system), allocatable      :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_parameters),   allocatable      :: param             !! Run configuration parameters
+   character(len=:), allocatable                  :: integrator        !! Integrator type code (see swiftest_globals for symbolic names)
+   character(len=:),allocatable                   :: param_file_name   !! Name of the file containing user-defined parameters
+   character(len=:), allocatable                  :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+   integer(I8B)                                   :: istart            !! Starting index for loop counter
+   integer(I8B)                                   :: nloops            !! Number of steps to take in the simulation
+   integer(I4B)                                   :: iout              !! Output cadence counter
+   integer(I4B)                                   :: idump             !! Dump cadence counter
+   type(walltimer)                                :: integration_timer !! Object used for computing elapsed wall time
+   real(DP)                                       :: tfrac
+   type(progress_bar)                             :: pbar              !! Object used to print out a progress bar
+   character(*), parameter                        :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
+                                                                 '"; Number of active pl, tp = ", I6, ", ", I6)'
+   character(*), parameter                        :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+                                                                    '"; Number of active plm, pl, tp = ", I6, ", ", I6, ", ", I6)'
+   character(*), parameter                        :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
+   character(len=64)                              :: pbarmessage
 
-   character(*), parameter                    :: symbacompactfmt = '(";NPLM",ES22.15,$)'
+   character(*), parameter                        :: symbacompactfmt = '(";NPLM",ES22.15,$)'
    type(swiftest_storage(nframes=:)), allocatable :: system_history
 
    call io_get_args(integrator, param_file_name, display_style)

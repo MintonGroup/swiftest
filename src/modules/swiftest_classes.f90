@@ -150,8 +150,8 @@ module swiftest_classes
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type :: swiftest_parameters
-      character(len=:), allocatable :: integrator      !! Symbolic name of the nbody integrator  used
-      character(len=:), allocatable :: param_file_name !! The name of the parameter file
+      character(len=:), allocatable :: integrator                     !! Symbolic name of the nbody integrator  used
+      character(len=:), allocatable :: param_file_name                !! The name of the parameter file
       integer(I4B)       :: maxid                = -1                 !! The current maximum particle id number 
       integer(I4B)       :: maxid_collision      = 0                  !! The current maximum collision id number
       real(DP)           :: t0                   =  0.0_DP            !! Integration reference time
@@ -229,7 +229,7 @@ module swiftest_classes
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
 
-      type(netcdf_parameters) :: nciu !! Object containing NetCDF parameters
+      type(netcdf_parameters) :: nc   !! Object containing NetCDF parameters
    contains
       procedure :: reader      => io_param_reader
       procedure :: writer      => io_param_writer
@@ -543,11 +543,13 @@ module swiftest_classes
    end type
 
    type :: swiftest_storage(nframes)
-      integer(I4B), len :: nframes
-      !! An abstract class that establishes the pattern for various storage objects
-      type(swiftest_storage_frame), dimension(nframes) :: frame
+      !! An class that establishes the pattern for various storage objects
+      integer(I4B), len                                :: nframes = 2048 !! Total number of frames that can be stored
+      type(swiftest_storage_frame), dimension(nframes) :: frame          !! Array of stored frames
+      integer(I4B)                                     :: iframe = 0     !! The current frame number
    contains
-      procedure :: dump => io_dump_storage
+      procedure :: dump   => io_dump_storage     !! Dumps storage object contents to file
+      procedure :: reset  => util_reset_storage  !! Resets a storage object by deallocating all items and resetting the frame counter to 0
    end type swiftest_storage
 
    abstract interface
@@ -1022,55 +1024,55 @@ module swiftest_classes
          class(netcdf_parameters),   intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_sync
 
-      module function netcdf_read_frame_system(self, nciu, param) result(ierr)
+      module function netcdf_read_frame_system(self, nc, param) result(ierr)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
-         class(netcdf_parameters),      intent(inout) :: nciu  !! Parameters used to for reading a NetCDF dataset to file
+         class(netcdf_parameters),      intent(inout) :: nc    !! Parameters used to for reading a NetCDF dataset to file
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                                 :: ierr  !! Error code: returns 0 if the read is successful
       end function netcdf_read_frame_system
 
-      module subroutine netcdf_read_hdr_system(self, nciu, param) 
+      module subroutine netcdf_read_hdr_system(self, nc, param) 
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: nciu  !! Parameters used to for reading a NetCDF dataset to file
+         class(netcdf_parameters),     intent(inout) :: nc    !! Parameters used to for reading a NetCDF dataset to file
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_read_hdr_system
 
-      module subroutine netcdf_read_particle_info_system(self, nciu, param, plmask, tpmask)
+      module subroutine netcdf_read_particle_info_system(self, nc, param, plmask, tpmask)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: nciu   !! Parameters used to identify a particular NetCDF dataset
+         class(netcdf_parameters),     intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
          logical, dimension(:),        intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
          logical, dimension(:),        intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       end subroutine netcdf_read_particle_info_system
 
-      module subroutine netcdf_write_frame_base(self, nciu, param)
+      module subroutine netcdf_write_frame_base(self, nc, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest base object
-         class(netcdf_parameters),   intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),   intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_base
 
-      module subroutine netcdf_write_frame_system(self, nciu, param)
+      module subroutine netcdf_write_frame_system(self, nc, param)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
-         class(netcdf_parameters),      intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),      intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
       end subroutine netcdf_write_frame_system
 
-      module subroutine netcdf_write_hdr_system(self, nciu, param) 
+      module subroutine netcdf_write_hdr_system(self, nc, param) 
          implicit none
          class(swiftest_nbody_system), intent(in)    :: self  !! Swiftest nbody system object
-         class(netcdf_parameters),     intent(inout) :: nciu  !! Parameters used to for writing a NetCDF dataset to file
+         class(netcdf_parameters),     intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_hdr_system
 
-      module subroutine netcdf_write_info_base(self, nciu, param)
+      module subroutine netcdf_write_info_base(self, nc, param)
          implicit none
          class(swiftest_base),       intent(in)    :: self  !! Swiftest particle object
-         class(netcdf_parameters),   intent(inout) :: nciu  !! Parameters used to identify a particular NetCDF dataset
+         class(netcdf_parameters),   intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine netcdf_write_info_base
 
@@ -1525,13 +1527,17 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine util_peri_tp
 
-
       module subroutine util_rescale_system(self, param, mscale, dscale, tscale)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
          real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
       end subroutine util_rescale_system
+
+      module subroutine util_reset_storage(self)
+         implicit none
+         class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+      end subroutine util_reset_storage
    end interface
 
 

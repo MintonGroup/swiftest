@@ -21,6 +21,7 @@ from pathlib import Path
 import datetime
 import xarray as xr
 import numpy as np
+from functools import partial
 import numpy.typing as npt
 import shutil
 import subprocess
@@ -213,6 +214,11 @@ class Simulation:
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
             Parameter input file equivalent: `CHK_CLOSE`
+        encounter_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how encounter data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories are saved to file. If set to "CLOSEST" only the trajectories at the time of closest approach
+            are saved. If set to "NONE" no trajectory information is saved.
+            *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, default True
             Include the post-Newtonian correction in acceleration calculations.
             Parameter input file equivalent: `GR`
@@ -220,6 +226,12 @@ class Simulation:
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
             Parameter input file equivalent: `FRAGMENTATION`
+        fragmentation_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
+            at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
+            details are still logged fraggle.log).
+            *WARNING*: Enabling this feature could lead to very large files.
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
@@ -306,7 +318,7 @@ class Simulation:
         self.param = {}
         self.data = xr.Dataset()
         self.ic = xr.Dataset()
-
+        self.enc = xr.Dataset()
 
         self.simdir = Path(simdir)
         if self.simdir.exists():
@@ -344,14 +356,14 @@ class Simulation:
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
                 param_file_found = True
-
             else:
                 param_file_found = False
 
         # -----------------------------------------------------------------
         # Highest Priority: Values from arguments passed to Simulation()
         # -----------------------------------------------------------------
-        self.set_parameter(verbose=False, **kwargs)
+        if len(kwargs) > 0 and "param_file" not in kwargs or len(kwargs) > 1 and "param_file" in kwargs:
+            self.set_parameter(verbose=False, **kwargs)
 
         # Let the user know that there was a problem reading an old parameter file and we're going to create a new one
         if read_param and not param_file_found:
@@ -479,6 +491,9 @@ class Simulation:
             msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
             warnings.warn(msg,stacklevel=2)
             return
+
+        if not self.restart:
+            self.clean()
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
@@ -775,6 +790,8 @@ class Simulation:
             "encounter_check_loops": "TRIANGULAR",
             "ephemeris_date": "MBCL",
             "restart": False,
+            "encounter_save" : "NONE",
+            "fragmentation_save" : "NONE"
         }
         param_file = kwargs.pop("param_file",None)
 
@@ -1010,6 +1027,8 @@ class Simulation:
                     tides: bool | None = None,
                     interaction_loops: Literal["TRIANGULAR", "FLAT", "ADAPTIVE"] | None = None,
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
+                    encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
+                    fragmentation_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
                     verbose: bool | None = None,
                     **kwargs: Any
                     ):
@@ -1021,11 +1040,22 @@ class Simulation:
         close_encounter_check : bool, optional
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
+        encounter_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how encounter data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories are saved to file. If set to "CLOSEST" only the trajectories at the time of closest approach
+            are saved. If set to "NONE" no trajectory information is saved.
+            *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, optional
             Include the post-Newtonian correction in acceleration calculations.
         fragmentation : bool, optional
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        fragmentation_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
+            at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
+            details are still logged fraggle.log).
+            *WARNING*: Enabling this feature could lead to very large files.
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
@@ -1179,6 +1209,33 @@ class Simulation:
                 self.param["ENCOUNTER_CHECK"] = encounter_check_loops
                 update_list.append("encounter_check_loops")
 
+        if encounter_save is not None:
+            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST"]
+            encounter_save = encounter_save.upper()
+            if encounter_save not in valid_vals:
+                msg = f"{encounter_save} is not a valid option for encounter_save."
+                msg += f"\nMust be one of {valid_vals}"
+                warnings.warn(msg,stacklevel=2)
+                if "ENCOUNTER_SAVE" not in self.param:
+                    self.param["ENCOUNTER_SAVE"] = valid_vals[0]
+            else:
+                self.param["ENCOUNTER_SAVE"] = encounter_save
+                update_list.append("encounter_save")
+
+
+        if fragmentation_save is not None:
+            fragmentation_save = fragmentation_save.upper()
+            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST"]
+            if fragmentation_save not in valid_vals:
+                msg = f"{fragmentation_save} is not a valid option for fragmentation_save."
+                msg += f"\nMust be one of {valid_vals}"
+                warnings.warn(msg,stacklevel=2)
+                if "FRAGMENTATION_SAVE" not in self.param:
+                    self.param["FRAGMENTATION_SAVE"] = valid_vals[0]
+            else:
+                self.param["FRAGMENTATION_SAVE"] = fragmentation_save
+                update_list.append("fragmentation_save")
+
         self.param["TIDES"] = False
 
         feature_dict = self.get_feature(update_list, verbose)
@@ -1210,6 +1267,8 @@ class Simulation:
 
         valid_var = {"close_encounter_check": "CHK_CLOSE",
                      "fragmentation": "FRAGMENTATION",
+                     "encounter_save": "ENCOUNTER_SAVE",
+                     "fragmentation_save": "FRAGMENTATION_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
                      "rotation": "ROTATION",
                      "general_relativity": "GR",
@@ -2670,17 +2729,27 @@ class Simulation:
         # Make a temporary copy of the parameter dictionary so we can supply the absolute path of the binary file
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
+
+        if "ENCOUNTER_SAVE" in self.param or "FRAGMENTATION_SAVE" in self.param:
+            read_encounter = self.param["ENCOUNTER_SAVE"] != "NONE" or self.param["FRAGMENTATION_SAVE"] != "NONE"
+        else:
+            read_encounter = False
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
             if read_init_cond:
+                if self.verbose:
+                    print("Reading initial conditions file as .ic")
                 if "NETCDF" in self.param['IN_TYPE']:
-                    param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['NC_IN'])
+                    param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
+
                     self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
                 else:
                     self.ic = self.data.isel(time=0)
+            if read_encounter:
+                self.read_encounter()
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
@@ -2690,6 +2759,22 @@ class Simulation:
         else:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
+
+    def read_encounter(self):
+        if self.verbose:
+            print("Reading encounter history file as .enc")
+        enc_files = self.simdir.glob("**/encounter_*.nc")
+
+        # This is needed in order to pass the param argument down to the io.process_netcdf_input function
+        def _preprocess(ds, param):
+            return io.process_netcdf_input(ds,param)
+        partial_func = partial(_preprocess, param=self.param)
+
+        self.enc = xr.open_mfdataset(enc_files,parallel=True,preprocess=partial_func,mask_and_scale=True)
+        self.enc = io.process_netcdf_input(self.enc, self.param)
+
+        return
+
 
     def follow(self, codestyle="Swifter"):
         """
@@ -2849,3 +2934,25 @@ class Simulation:
             self.write_param(new_param_file, param=new_param)
 
         return frame
+
+    def clean(self):
+        """
+        Cleans up simulation directory by deleting old files (dump, logs, and output files).
+        """
+        old_files = [self.simdir / self.param['BIN_OUT'],
+                     self.simdir / "fraggle.log",
+                     self.simdir / "swiftest.log",
+                     ]
+        glob_files = [self.simdir.glob("**/dump_param?.in")] \
+                     + [self.simdir.glob("**/dump_bin?.nc")] \
+                     + [self.simdir.glob("**/enc*.nc")] \
+                     + [self.simdir.glob("**/frag*.nc")]
+
+        for f in old_files:
+            if f.exists():
+                os.remove(f)
+        for g in glob_files:
+            for f in g:
+                if f.exists():
+                    os.remove(f)
+        return
