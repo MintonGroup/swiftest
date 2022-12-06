@@ -17,7 +17,7 @@ stored in the /supercat subdirectory.
 
 Input
 ------
-None
+None.
 
 Output
 ------

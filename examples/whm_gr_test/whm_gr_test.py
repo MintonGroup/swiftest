@@ -17,7 +17,7 @@ without general reelativity are stored in the /nogr subdirectory.
 
 Input
 ------
-None
+None.
 
 Output
 ------
@@ -63,13 +63,13 @@ run_args = {"tstop":1000.0, "dt":0.005, "tstep_out":10.0, "dump_cadence": 0,"int
 sim_gr.run(**run_args,general_relativity=True)
 sim_nogr.run(**run_args,general_relativity=False)
 
-# Get the start and end date of the simulation so we can compare with the real solar system
+# Get the start and end date of the simulation so we can compare with the real solar system.
 start_date = sim_gr.ephemeris_date
 tstop_d = sim_gr.param['TSTOP'] * sim_gr.param['TU2S'] / swiftest.JD2S
 
 stop_date = (datetime.datetime.fromisoformat(start_date) + datetime.timedelta(days=tstop_d)).isoformat()
 
-#Get the ephemerides of Mercury for the same timeframe as the simulation
+#Get the ephemerides of Mercury for the same timeframe as the simulation.
 obj = Horizons(id='1', location='@sun',
                epochs={'start':start_date, 'stop':stop_date,
                        'step':'10y'})
@@ -85,7 +85,7 @@ dvarpi_gr = np.diff(varpisim_gr)  * 3600 * 100 / run_args['tstep_out']
 dvarpi_nogr = np.diff(varpisim_nogr)  * 3600 * 100 / run_args['tstep_out']
 dvarpi_obs = np.diff(varpi_obs) / np.diff(t) * 3600 * 100
 
-# Plot of the data and save the output plot
+# Plot of the data and save the output plot.
 fig, ax = plt.subplots()
 
 ax.plot(t, varpi_obs, label="JPL Horizons",linewidth=2.5)
