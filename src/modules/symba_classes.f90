@@ -26,11 +26,12 @@ module symba_classes
    real(DP),     private, parameter :: RSHELL  = 0.48075_DP
 
    type, extends(swiftest_parameters) :: symba_parameters
-      real(DP)                                :: GMTINY         = -1.0_DP !! Smallest G*mass that is fully gravitating
-      real(DP)                                :: min_GMfrag     = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
-      integer(I4B), dimension(:), allocatable :: seed                     !! Random seeds
-      logical                                 :: lfragmentation = .false. !! Do fragmentation modeling instead of simple merger.
-      character(STRMAX)                       :: encounter_save = "NONE"  !! Indicate how encounter and/or fragmentation data should be saved
+      real(DP)                                :: GMTINY             = -1.0_DP !! Smallest G*mass that is fully gravitating
+      real(DP)                                :: min_GMfrag         = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
+      integer(I4B), dimension(:), allocatable :: seed                         !! Random seeds
+      logical                                 :: lfragmentation     = .false. !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: encounter_save     = "NONE"  !! Indicate if and how encounter data should be saved
+      character(STRMAX)                       :: fragmentation_save = "NONE"  !! Indicate if and how fragmentation data should be saved
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
@@ -428,7 +429,7 @@ module symba_classes
       module subroutine symba_io_encounter_write_frame(self, nc, param)
          implicit none
          class(symba_encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
-         class(symba_io_encounter_parameters), intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(symba_io_encounter_parameters), intent(inout) :: nc   !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
       end subroutine symba_io_encounter_write_frame
 

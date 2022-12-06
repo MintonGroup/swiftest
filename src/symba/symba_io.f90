@@ -235,6 +235,9 @@ contains
                case ("ENCOUNTER_SAVE")
                   call io_toupper(param_value)
                   read(param_value, *) param%encounter_save
+               case ("FRAGMENTATION_SAVE")
+                  call io_toupper(param_value)
+                  read(param_value, *) param%fragmentation_save
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -285,9 +288,16 @@ contains
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
          call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
 
-         if ((param%encounter_save /= "NONE") .and. (param%encounter_save /= "ALL") .and. (param%encounter_save /= "FRAGMENTATION")) then
+         if ((param%encounter_save /= "NONE") .and. (param%encounter_save /= "TRAJECTORY") .and. (param%encounter_save /= "CLOSEST")) then
             write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
-            write(iomsg,*) 'Valid options are NONE, ALL, or FRAGMENTATION'
+            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
+            iostat = -1
+            return
+         end if
+
+         if ((param%fragmentation_save /= "NONE") .and. (param%fragmentation_save /= "TRAJECTORY") .and. (param%fragmentation_save /= "CLOSEST")) then
+            write(iomsg,*) 'Invalid fragmentation_save parameter: ',trim(adjustl(param%out_type))
+            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
             iostat = -1
             return
          end if
