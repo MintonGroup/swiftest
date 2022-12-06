@@ -14,24 +14,23 @@
 Reads and processes a Swiftest output file.
 
 Input
--------
-out.nc     : NetCDF file
-    Swiftest output file.
+------
+bin.nc     : A NetCDF file containing the simulation output.
 
-Returns
--------
-output.eps : Encapsulated PostScript file.
-    A figure containing the eccentricity vs. semi-major axis for all bodies at the start of the simulation.
+Output
+------
+output.eps : Encapsulated PostScript file depicting the eccentricity vs. semi-major axis for all bodies at the start 
+             of the simulation.
 """
 
 import swiftest
 import xarray as xr
 import matplotlib.pyplot as plt
 
-# Read in the simulation output and store it as an Xarray dataset
+# Read in the simulation output and store it as an Xarray dataset.
 sim = swiftest.Simulation(read_old_output_file=True)
 
-# Plot of the data and save the output plot
+# Plot of the data and save the output plot.
 colors = ['white' if x == 'Massive Body' else 'black' for x in sim.data['particle_type']]
 sizes = [100 if x == 'Massive Body' else 10 for x in sim.data['particle_type']]
 
