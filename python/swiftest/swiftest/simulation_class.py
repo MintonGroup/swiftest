@@ -21,6 +21,7 @@ from pathlib import Path
 import datetime
 import xarray as xr
 import numpy as np
+from functools import partial
 import numpy.typing as npt
 import shutil
 import subprocess
@@ -355,7 +356,6 @@ class Simulation:
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
                 param_file_found = True
-
             else:
                 param_file_found = False
 
@@ -2729,8 +2729,10 @@ class Simulation:
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
 
-        # EXPERIMENTAL
-        read_encounter = True
+        if "ENCOUNTER_SAVE" in self.param or "FRAGMENTATION_SAVE" in self.param:
+            read_encounter = self.param["ENCOUNTER_SAVE"] != "NONE" or self.param["FRAGMENTATION_SAVE"] != "NONE"
+        else:
+            read_encounter = False
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
@@ -2746,10 +2748,7 @@ class Simulation:
                 else:
                     self.ic = self.data.isel(time=0)
             if read_encounter:
-                param_tmp['BIN_OUT'] = self.simdir / "encounter.nc"
-                if self.verbose:
-                    print("Reading encounter history file as .enc")
-                self.enc = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                self.read_encounter()
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
@@ -2759,6 +2758,22 @@ class Simulation:
         else:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
+
+    def read_encounter(self):
+        if self.verbose:
+            print("Reading encounter history file as .enc")
+        enc_files = self.simdir.glob("**/enc_*.nc")
+
+        # This is needed in order to pass the param argument down to the io.process_netcdf_input function
+        def _preprocess(ds, param):
+            return io.process_netcdf_input(ds,param)
+        partial_func = partial(_precprocess, param=self.param)
+
+        self.enc = xr.open_mfdataset(enc_files,parallel=True,combine="nested", concat_dim="encounter",preprocess=partial_func)
+
+        return
+
+
 
     def follow(self, codestyle="Swifter"):
         """

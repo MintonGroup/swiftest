@@ -800,6 +800,35 @@ def swifter2xr(param, verbose=True):
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
+def process_netcdf_intput(ds, param):
+    """
+    Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that
+    is used by the Python side. These include:
+    - Ensuring all types are correct
+    - Removing any bad id values (empty id slots)
+    - Swapping the id and name dimension if the names are unique
+
+    Parameters
+    ----------
+    ds : Xarray dataset
+
+    Returns
+    -------
+    ds : xarray dataset
+    """
+
+    if param['OUT_TYPE'] == "NETCDF_DOUBLE":
+        ds = fix_types(ds,ftype=np.float64)
+    elif param['OUT_TYPE'] == "NETCDF_FLOAT":
+        ds = fix_types(ds,ftype=np.float32)
+    ds = ds.where(ds.id >=0 ,drop=True)
+    # Check if the name variable contains unique values. If so, make name the dimension instead of id
+    if len(np.unique(ds['name'])) == len(ds['name']):
+        ds = ds.swap_dims({"id" : "name"})
+        ds = ds.reset_coords("id")
+
+    return ds
+
 def swiftest2xr(param, verbose=True):
     """
     Converts a Swiftest binary data file into an xarray DataSet.
@@ -814,19 +843,11 @@ def swiftest2xr(param, verbose=True):
     xarray dataset
     """
 
+
     if ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         if verbose: print('\nCreating Dataset from NetCDF file')
         ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
-
-        if param['OUT_TYPE'] == "NETCDF_DOUBLE":
-            ds = fix_types(ds,ftype=np.float64)
-        elif param['OUT_TYPE'] == "NETCDF_FLOAT":
-            ds = fix_types(ds,ftype=np.float32)
-        ds = ds.where(ds.id >=0 ,drop=True)
-        # Check if the name variable contains unique values. If so, make name the dimension instead of id
-        if len(np.unique(ds['name'])) == len(ds['name']):
-           ds = ds.swap_dims({"id" : "name"})
-           ds = ds.reset_coords("id")
+        ds = process_netcdf_intput(ds, param)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
