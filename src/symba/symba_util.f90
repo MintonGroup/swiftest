@@ -1257,10 +1257,10 @@ contains
       !! Note: Because the symba_plplenc currently does not contain any additional variable components, this method can recieve it as an input as well.
       implicit none
       ! Arguments
-      class(symba_encounter),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
-      class(encounter_list), intent(inout) :: discards     !! Discarded object 
-      logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      class(symba_encounter), intent(inout) :: self         !! SyMBA pl-tp encounter list 
+      class(encounter_list),  intent(inout) :: discards     !! Discarded object 
+      logical, dimension(:),  intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+      logical,                intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
   
       associate(keeps => self)
          select type(discards)
@@ -1397,8 +1397,19 @@ contains
                ! Save the snapshot
                self%encounter_history%iframe = self%encounter_history%iframe + 1
                call self%resize_storage(self%encounter_history%iframe)
+
+               ! Find out which time slot this belongs in by searching for an existing slot
+               ! with the same value of time or the first available one
+               do i = 1, self%encounter_history%nframes
+                  if (t >= self%encounter_history%tvals(i)) then
+                     snapshot%tslot = i
+                     self%encounter_history%tvals(i) = t
+                     exit
+                  end if
+               end do
                
                self%encounter_history%frame(self%encounter_history%iframe) = snapshot
+
             end select
          end select 
       end associate

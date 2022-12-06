@@ -182,7 +182,7 @@ module symba_classes
 
    !! NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: symba_io_encounter_parameters
-      integer(I4B)       :: COLLIDER_DIM_SIZE = 2           !! Size of collider dimension
+      integer(I4B)       :: COLLIDER_DIM_SIZE = 2     !! Size of collider dimension
       integer(I4B)       :: ienc_frame = 1            !! Current frame number for the encounter history
       character(STRMAX)  :: enc_file = "encounter.nc" !! Encounter output file name
 
@@ -194,7 +194,8 @@ module symba_classes
 
    type, extends(swiftest_storage) :: symba_encounter_storage
       !! A class that that is used to store simulation history data between file output
-      type(symba_io_encounter_parameters) :: nc
+      type(symba_io_encounter_parameters) :: nc    !! NetCDF parameter object
+      real(DP), dimension(nframes)        :: tvals !! Stored time values for snapshots
    contains
       procedure :: dump   => symba_io_encounter_dump !! Dumps contents of encounter history to file
       final     :: symba_util_final_encounter_storage
@@ -229,6 +230,7 @@ module symba_classes
 
 
    type, extends(symba_nbody_system) :: symba_encounter_snapshot
+      integer(I4B)                 :: tslot !! The index for the time array in the final NetCDF file
    contains
       procedure :: write_encounter_frame => symba_io_encounter_write_frame    !! Writes a frame of encounter data to file 
       generic   :: write_frame           => write_encounter_frame

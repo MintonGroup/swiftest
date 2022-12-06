@@ -148,7 +148,7 @@ contains
       integer(I4B)                             :: i,  tslot, idslot, old_mode, n
       character(len=NAMELEN)                   :: charstring
 
-      tslot = nc%ienc_frame
+      tslot = self%tslot
       call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame nf90_set_fill"  )
       select type(pl => self%pl)
       class is (symba_pl)
@@ -367,6 +367,9 @@ contains
 
       if (.not. allocated(self%encounter_history)) allocate(symba_encounter_storage :: self%encounter_history)
       call self%encounter_history%reset()
+
+      ! Empty out the time slot array for the next pass
+      self%encounter_history%tvals(:) = -huge(1.0_DP)
 
       ! Take the snapshot at the start of the encounter
       call self%snapshot(param, t) 
