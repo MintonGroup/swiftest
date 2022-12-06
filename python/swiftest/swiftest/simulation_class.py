@@ -2767,7 +2767,7 @@ class Simulation:
         # This is needed in order to pass the param argument down to the io.process_netcdf_input function
         def _preprocess(ds, param):
             return io.process_netcdf_input(ds,param)
-        partial_func = partial(_precprocess, param=self.param)
+        partial_func = partial(_preprocess, param=self.param)
 
         self.enc = xr.open_mfdataset(enc_files,parallel=True,combine="nested", concat_dim="encounter",preprocess=partial_func)
 
