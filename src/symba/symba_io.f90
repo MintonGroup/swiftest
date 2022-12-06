@@ -387,9 +387,6 @@ contains
       ! Internals
       !character(STRMAX) 
 
-      ! Take the final snapshot
-      call self%snapshot(param, t)
-
       ! Create and save the output file for this encounter
       write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop
       call self%encounter_history%nc%initialize(param)
