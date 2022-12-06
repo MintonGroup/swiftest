@@ -21,7 +21,7 @@ dump*
 src/*/Makefile
 !Makefile.Defines
 src/*/Makefile.Defines
-!.gitignore
+!**/.gitignore
 !*.py
 !*.ipynb
 *ipynb_checkpoints
