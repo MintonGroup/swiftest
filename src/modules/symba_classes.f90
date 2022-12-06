@@ -32,6 +32,7 @@ module symba_classes
       logical                                 :: lfragmentation     = .false. !! Do fragmentation modeling instead of simple merger.
       character(STRMAX)                       :: encounter_save     = "NONE"  !! Indicate if and how encounter data should be saved
       character(STRMAX)                       :: fragmentation_save = "NONE"  !! Indicate if and how fragmentation data should be saved
+      logical                                 :: lencounter_save    = .false. !! Turns on encounter saving
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
@@ -221,6 +222,8 @@ module symba_classes
       procedure :: dealloc          => symba_util_dealloc_system          !! Deallocates all allocatable arrays
       procedure :: resize_storage   => symba_util_resize_storage          !! Resizes the encounter history storage object so that it contains enough spaces for the number of snapshots needed  
       procedure :: snapshot         => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
+      procedure :: start_encounter  => symba_io_start_encounter           !! Initializes the new encounter and/or fragmentation save file(s)
+      procedure :: stop_encounter   => symba_io_stop_encounter            !! Saves the encounter and/or fragmentation data to file(s)   
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
@@ -455,6 +458,20 @@ module symba_classes
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
 
+      module subroutine symba_io_start_encounter(self, param, t)
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+         class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t     !! Current simulation time
+      end subroutine symba_io_start_encounter
+
+      module subroutine symba_io_stop_encounter(self, param, t)
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+         class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t     !! Current simulation time
+      end subroutine symba_io_stop_encounter
+
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters
          implicit none
@@ -563,8 +580,8 @@ module symba_classes
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)        :: t
-         integer(I4B),               intent(in)        :: ireci !! input recursion level
+         real(DP),                   intent(in)    :: t     !! Current simulation time
+         integer(I4B),               intent(in)    :: ireci !! input recursion level
       end subroutine symba_step_recur_system
 
       module subroutine symba_step_reset_system(self, param)

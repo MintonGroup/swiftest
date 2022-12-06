@@ -37,10 +37,9 @@ contains
                call self%reset(param)
                lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                if (lencounter) then
-                  call self%snapshot(param, t)
+                  if (param%lencounter_save) call self%start_encounter(param, t)
                   call self%interp(param, t, dt)
-                  call self%snapshot(param, t+dt)
-                  call self%encounter_history%dump(param) 
+                  if (param%lencounter_save) call self%stop_encounter(param, t+dt)
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
