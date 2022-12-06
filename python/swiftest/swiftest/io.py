@@ -800,7 +800,7 @@ def swifter2xr(param, verbose=True):
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
-def process_netcdf_intput(ds, param):
+def process_netcdf_input(ds, param):
     """
     Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that
     is used by the Python side. These include:
@@ -847,7 +847,7 @@ def swiftest2xr(param, verbose=True):
     if ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         if verbose: print('\nCreating Dataset from NetCDF file')
         ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
-        ds = process_netcdf_intput(ds, param)
+        ds = process_netcdf_input(ds, param)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
