@@ -11,18 +11,31 @@
 
 #!/usr/bin/env python3
 """
-Generates a set of Swiftest input files from initial conditions.
+Generates and runs a set of Swiftest input files from initial conditions. All simulation outputs are stored in the 
+/simdata subdirectory.
 
-Returns
--------
-Updates sim.data with the simulation data
+Input
+------
+None
+
+Output
+------
+bin.nc         : A NetCDF file containing the simulation output.
+dump_bin1.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
+dump_bin2.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
+dump_param1.nc : A NetCDF file containing the necessary parameters to restart a simulation.
+dump_param2.nc : A NetCDF file containing the necessary parameters to restart a simulation.
+fraggle.log    : An ASCII file containing the information of any collisional events that occured.
+init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
+param.in       : An ASCII file containing the parameters for the simulation.
+swiftest.log   : An ASCII file containing the information on the status of the simulation as it runs.
 """
 
 import swiftest
 import numpy as np
 from numpy.random import default_rng
 
-# Initialize the simulation object as a variable
+# Initialize the simulation object as a variable. Arguments may be defined here or through the sim.run() method.
 sim = swiftest.Simulation(fragmentation=True, minimum_fragment_mass = 2.5e-11, mtiny=2.5e-8)
 
 # Add the modern planets and the Sun using the JPL Horizons Database
@@ -62,5 +75,5 @@ sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=ome
 # Display the run configuration parameters
 sim.get_parameter()
 
-# Run the simulation
+# Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
 sim.run(tstart=0.0, tstop=1.0e3, dt=0.01, tstep_out=1.0e0, dump_cadence=0)

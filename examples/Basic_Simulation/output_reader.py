@@ -14,14 +14,13 @@
 Reads and processes a Swiftest output file.
 
 Input
--------
-out.nc     : NetCDF file
-    Swiftest output file.
+------
+bin.nc     : A NetCDF file containing the simulation output.
 
-Returns
--------
-output.eps : Encapsulated PostScript file.
-    A figure containing the eccentricity vs. semi-major axis for all bodies at the start of the simulation.
+Output
+------
+output.eps : Encapsulated PostScript file depicting the eccentricity vs. semi-major axis for all bodies at the start 
+             of the simulation.
 """
 
 import swiftest
