@@ -84,7 +84,8 @@ class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
     def __init__(self, sim, animfile, title, nskip=1):
-        nframes = int(sim.enc['time'].size)
+        self.ds = sim.enc.mean(dim="encounter") # Reduce out the encounter dimension
+        nframes = int(self.ds['time'].size)
         self.sim = sim
         self.title = title
         self.body_color_list = {'Initial conditions': 'xkcd:windows blue',
@@ -106,11 +107,10 @@ class AnimatedScatter(object):
         fig = plt.figure(figsize=figsize, dpi=300)
         plt.tight_layout(pad=0)
 
-
         # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
         # This will be used to scale the axis limits on the movie.
-        rhy1 = sim.enc['rh'].isel(time=0).sel(name="Body1",space='y').values[()]
-        rhy2 = sim.enc['rh'].isel(time=0).sel(name="Body2",space='y').values[()]
+        rhy1 = self.ds['rh'].isel(time=0).sel(name="Body1",space='y').values[()]
+        rhy2 = self.ds['rh'].isel(time=0).sel(name="Body2",space='y').values[()]
 
         scale_frame =   abs(rhy1) + abs(rhy2)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
@@ -145,7 +145,7 @@ class AnimatedScatter(object):
 
     def data_stream(self, frame=0):
         while True:
-            ds = self.sim.enc.isel(time=frame)
+            ds = self.ds.isel(time=frame)
             ds = ds.where(ds['name'] != "Sun", drop=True)
             radius = ds['radius'].values
             Gmass = ds['Gmass'].values

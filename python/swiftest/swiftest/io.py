@@ -823,9 +823,10 @@ def process_netcdf_input(ds, param):
         ds = fix_types(ds,ftype=np.float32)
     ds = ds.where(ds.id >=0 ,drop=True)
     # Check if the name variable contains unique values. If so, make name the dimension instead of id
-    if "name" not in ds.dims and len(np.unique(ds['name'])) == len(ds['name']):
-        ds = ds.swap_dims({"id" : "name"})
-        ds = ds.reset_coords("id")
+    if "id" in ds.dims:
+        if len(np.unique(ds['name'])) == len(ds['name']):
+            ds = ds.swap_dims({"id" : "name"})
+            ds = ds.reset_coords("id")
 
     return ds
 
@@ -855,20 +856,36 @@ def swiftest2xr(param, verbose=True):
 
     return ds
 
-def xstrip(a):
+def xstrip_nonstr(a):
     """
     Cleans up the string values in the DataSet to remove extra white space
 
     Parameters
     ----------
     a    : xarray dataset
- 
+
     Returns
     -------
     da : xarray dataset with the strings cleaned up
     """
     func = lambda x: np.char.strip(x)
     return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'),dask='parallelized')
+
+def xstrip_str(a):
+    """
+    Cleans up the string values in the DataSet to remove extra white space
+
+    Parameters
+    ----------
+    a    : xarray dataset
+
+    Returns
+    -------
+    da : xarray dataset with the strings cleaned up
+    """
+    func = lambda x: np.char.strip(x)
+    return xr.apply_ufunc(func, a,dask='parallelized')
+
 
 def string_converter(da):
     """
@@ -883,9 +900,10 @@ def string_converter(da):
     da : xarray dataset with the strings cleaned up
     """
     if da.dtype == np.dtype(object):
-       da = da.astype('<U32')
+        da = da.astype('<U32')
+        da = xstrip_str(da)
     elif type(da.values[0]) != np.str_:
-       da = xstrip(da)
+        da = xstrip_nonstr(da)
     return da
 
 def char_converter(da):
@@ -903,7 +921,7 @@ def char_converter(da):
     if da.dtype == np.dtype(object):
         da = da.astype('<U1')
     elif type(da.values[0]) != np.str_:
-        da = xstrip(da)
+        da = xstrip_nonstr(da)
     return da
 
 def clean_string_values(ds):
