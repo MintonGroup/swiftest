@@ -213,6 +213,11 @@ class Simulation:
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
             Parameter input file equivalent: `CHK_CLOSE`
+        encounter_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how encounter data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories are saved to file. If set to "CLOSEST" only the trajectories at the time of closest approach
+            are saved. If set to "NONE" no trajectory information is saved.
+            *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, default True
             Include the post-Newtonian correction in acceleration calculations.
             Parameter input file equivalent: `GR`
@@ -220,6 +225,12 @@ class Simulation:
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
             Parameter input file equivalent: `FRAGMENTATION`
+        fragmentation_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
+            at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
+            details are still logged fraggle.log).
+            *WARNING*: Enabling this feature could lead to very large files.
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
@@ -479,6 +490,9 @@ class Simulation:
             msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
             warnings.warn(msg,stacklevel=2)
             return
+
+        if not self.restart:
+            self.clean()
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
@@ -1010,6 +1024,8 @@ class Simulation:
                     tides: bool | None = None,
                     interaction_loops: Literal["TRIANGULAR", "FLAT", "ADAPTIVE"] | None = None,
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
+                    encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
+                    fragmentation_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
                     verbose: bool | None = None,
                     **kwargs: Any
                     ):
@@ -1021,11 +1037,22 @@ class Simulation:
         close_encounter_check : bool, optional
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
+        encounter_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how encounter data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories are saved to file. If set to "CLOSEST" only the trajectories at the time of closest approach
+            are saved. If set to "NONE" no trajectory information is saved.
+            *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, optional
             Include the post-Newtonian correction in acceleration calculations.
         fragmentation : bool, optional
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+        fragmentation_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+            Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
+            trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
+            at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
+            details are still logged fraggle.log).
+            *WARNING*: Enabling this feature could lead to very large files.
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
@@ -1179,6 +1206,33 @@ class Simulation:
                 self.param["ENCOUNTER_CHECK"] = encounter_check_loops
                 update_list.append("encounter_check_loops")
 
+        if encounter_save is not None:
+            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST"]
+            encounter_save = encounter_save.upper()
+            if encounter_save not in valid_vals:
+                msg = f"{encounter_save} is not a valid option for encounter_save."
+                msg += f"\nMust be one of {valid_vals}"
+                warnings.warn(msg,stacklevel=2)
+                if "ENCOUNTER_SAVE" not in self.param:
+                    self.param["ENCOUNTER_SAVE"] = valid_vals[0]
+            else:
+                self.param["ENCOUNTER_SAVE"] = encounter_save
+                update_list.append("encounter_save")
+
+
+        if fragmentation_save is not None:
+            fragmentation_save = fragmentation_save.upper()
+            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST"]
+            if fragmentation_save not in valid_vals:
+                msg = f"{fragmentation_save} is not a valid option for fragmentation_save."
+                msg += f"\nMust be one of {valid_vals}"
+                warnings.warn(msg,stacklevel=2)
+                if "FRAGMENTATION_SAVE" not in self.param:
+                    self.param["FRAGMENTATION_SAVE"] = valid_vals[0]
+            else:
+                self.param["FRAGMENTATION_SAVE"] = fragmentation_save
+                update_list.append("fragmentation_save")
+
         self.param["TIDES"] = False
 
         feature_dict = self.get_feature(update_list, verbose)
@@ -1210,6 +1264,8 @@ class Simulation:
 
         valid_var = {"close_encounter_check": "CHK_CLOSE",
                      "fragmentation": "FRAGMENTATION",
+                     "encounter_save": "ENCOUNTER_SAVE",
+                     "fragmentation_save": "FRAGMENTATION_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
                      "rotation": "ROTATION",
                      "general_relativity": "GR",
@@ -2860,3 +2916,25 @@ class Simulation:
             self.write_param(new_param_file, param=new_param)
 
         return frame
+
+    def clean(self):
+        """
+        Cleans up simulation directory by deleting old files (dump, logs, and output files).
+        """
+        old_files = [self.simdir / self.param['BIN_OUT'],
+                     self.simdir / "fraggle.log",
+                     self.simdir / "swiftest.log",
+                     ]
+        glob_files = [self.simdir.glob("**/dump_param?.in")] \
+                     + [self.simdir.glob("**/dump_bin?.nc")] \
+                     + [self.simdir.glob("**/enc*.nc")] \
+                     + [self.simdir.glob("**/frag*.nc")]
+
+        for f in old_files:
+            if f.exists():
+                os.remove(f)
+        for g in glob_files:
+            for f in g:
+                if f.exists():
+                    os.remove(f)
+        return

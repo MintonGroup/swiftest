@@ -31,7 +31,11 @@ newfeaturelist = ("RESTART",
                   "INTERACTION_LOOPS",
                   "ENCOUNTER_CHECK",
                   "TSTART",
-                  "DUMP_CADENCE")
+                  "DUMP_CADENCE",
+                  "ENCOUNTER_SAVE",
+                  "FRAGMENTATION_SAVE")
+
+
 
 # This list defines features that are booleans, so must be converted to/from string when writing/reading from file
 bool_param = ["RESTART",
@@ -51,7 +55,10 @@ int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
 float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
                "TU2S", "MIN_GMFRAG", "GMTINY"]
 
-upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM"]
+upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE","FRAGMENTATION_SAVE", "CHK_QMIN_COORD"]
+lower_str_param = ["NC_IN", "PL_IN", "TP_IN", "CB_IN", "CHK_QMIN_RANGE"]
+
+param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_str_param+ bool_param
 
 # This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
@@ -417,52 +424,22 @@ def write_labeled_param(param, param_file_name):
     Prints a text file containing the parameter information.
     """
     outfile = open(param_file_name, 'w')
-    keylist = ['! VERSION',
-               'T0',
-               'TSTART',
-               'TSTOP',
-               'DT',
-               'ISTEP_OUT',
-               'DUMP_CADENCE',
-               'NC_IN',
-               'PL_IN',
-               'TP_IN',
-               'CB_IN',
-               'IN_TYPE',
-               'IN_FORM',
-               'BIN_OUT',
-               'OUT_FORM',
-               'OUT_TYPE',
-               'OUT_STAT',
-               'CHK_QMIN',
-               'CHK_RMIN',
-               'CHK_RMAX',
-               'CHK_EJECT',
-               'CHK_QMIN_COORD',
-               'CHK_QMIN_RANGE',
-               'MU2KG',
-               'TU2S',
-               'DU2M',
-               'GMTINY',
-               'FRAGMENTATION',
-               'MIN_GMFRAG',
-               'RESTART']
     ptmp = param.copy()
     # Print the list of key/value pairs in the preferred order
-    for key in keylist:
+    for key in param_keys:
         val = ptmp.pop(key, None)
         if val is not None:
             if type(val) is bool:
-                print(f"{key:<16} {bool2yesno(val)}", file=outfile)
+                print(f"{key:<32} {bool2yesno(val)}", file=outfile)
             else:
-                print(f"{key:<16} {val}", file=outfile)
+                print(f"{key:<32} {val}", file=outfile)
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
         if val != "":
             if type(val) is bool:
-                print(f"{key:<16} {bool2yesno(val)}", file=outfile)
+                print(f"{key:<32} {bool2yesno(val)}", file=outfile)
             else:
-                print(f"{key:<16} {val}", file=outfile)
+                print(f"{key:<32} {val}", file=outfile)
     outfile.close()
     return
 
@@ -840,10 +817,12 @@ def swiftest2xr(param, verbose=True):
     if ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         if verbose: print('\nCreating Dataset from NetCDF file')
         ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
+
         if param['OUT_TYPE'] == "NETCDF_DOUBLE":
             ds = fix_types(ds,ftype=np.float64)
         elif param['OUT_TYPE'] == "NETCDF_FLOAT":
             ds = fix_types(ds,ftype=np.float32)
+        ds = ds.where(ds.id >=0 ,drop=True)
         # Check if the name variable contains unique values. If so, make name the dimension instead of id
         if len(np.unique(ds['name'])) == len(ds['name']):
            ds = ds.swap_dims({"id" : "name"})

@@ -179,7 +179,7 @@ if __name__ == "__main__":
        # Set fragmentation parameters
        minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
        gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
-       sim.set_parameter(fragmentation = True, gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-       sim.run(dt=1e-4, tstop=2.0e-3, istep_out=1, dump_cadence=0)
+       sim.set_parameter(fragmentation=True, fragmentation_save="TRAJECTORY", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
+       sim.run(dt=1e-5, tstop=2.0e-3, istep_out=1, dump_cadence=0)
 
        anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=1)
