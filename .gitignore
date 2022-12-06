@@ -18,6 +18,7 @@ dump*
 !*.ipynb
 !examples/**
 *ipynb_checkpoints
+**/.DS_Store
 
 #Documentation
 !docs/*
