@@ -301,8 +301,8 @@ contains
             iostat = -1
             return
          end if
-         param%lencounter_save = (param%encounter_save /= "TRAJECTORY") .or. (param%encounter_save /= "CLOSEST") .or. &
-                                 (param%fragmentation_save /= "TRAJECTORY") .or. (param%fragmentation_save /= "CLOSEST") 
+         param%lencounter_save = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "CLOSEST") .or. &
+                                 (param%fragmentation_save == "TRAJECTORY") .or. (param%fragmentation_save == "CLOSEST") 
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
@@ -367,8 +367,8 @@ contains
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Current simulation time
 
-      if (allocated(self%encounter_history)) deallocate(self%encounter_history)
-      allocate(symba_encounter_storage :: self%encounter_history)
+      if (.not. allocated(self%encounter_history)) allocate(symba_encounter_storage :: self%encounter_history)
+      call self%encounter_history%reset()
 
       ! Take the snapshot at the start of the encounter
       call self%snapshot(param, t) 
@@ -390,7 +390,6 @@ contains
       ! Take the final snapshot
       call self%snapshot(param, t)
       call self%encounter_history%dump(param)
-      deallocate(self%encounter_history)
 
       return
    end subroutine symba_io_stop_encounter

@@ -671,7 +671,8 @@ contains
                   else if (param_value == "YES" .or. param_value == 'T') then
                      param%lrestart = .true.
                   end if 
-               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP", "ENCOUNTER_SAVE", "FRAGMENTATION_SAVE") 
                case default
                   write(*,*) "Ignoring unknown parameter -> ",param_name
                end select

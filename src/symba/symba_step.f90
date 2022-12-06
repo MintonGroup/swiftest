@@ -315,8 +315,6 @@ contains
                   tp%lfirst = param%lfirstkick
                   pl%lfirst = param%lfirstkick
 
-                  call system%encounter_history%reset()
-
                end associate
             end select
          end select
