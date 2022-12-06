@@ -170,16 +170,15 @@ if __name__ == "__main__":
 
     for style in movie_styles:
         movie_filename = f"{style}.mp4"
-        sim = swiftest.Simulation(simdir=style, read_old_output_file=True)
         # Pull in the Swiftest output data from the parameter file and store it as a Xarray dataset.
-        # sim = swiftest.Simulation(simdir=style, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
-        # sim.add_solar_system_body("Sun")
-        # sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style]) #, rot=rot_vectors[style])
-        # #
-        # # Set fragmentation parameters
-        # minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
-        # gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
-        # sim.set_parameter(fragmentation=True, fragmentation_save="TRAJECTORY", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-        # sim.run(dt=1e-4, tstop=2.0e-3, istep_out=1, dump_cadence=0)
+        sim = swiftest.Simulation(simdir=style, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
+        sim.add_solar_system_body("Sun")
+        sim.add_body(Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style]) #, rot=rot_vectors[style])
         #
-        # anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=1)
+        # Set fragmentation parameters
+        minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
+        gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
+        sim.set_parameter(fragmentation=True, fragmentation_save="TRAJECTORY", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
+        sim.run(dt=1e-4, tstop=2.0e-3, istep_out=1, dump_cadence=0)
+
+        anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=1)
