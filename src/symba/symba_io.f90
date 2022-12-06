@@ -395,6 +395,7 @@ contains
       call self%encounter_history%nc%initialize(param)
       call self%encounter_history%dump(param)
       call self%encounter_history%nc%close()
+      call self%encounter_history%reset()
 
       return
    end subroutine symba_io_stop_encounter

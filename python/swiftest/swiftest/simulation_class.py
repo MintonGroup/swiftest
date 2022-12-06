@@ -2774,7 +2774,6 @@ class Simulation:
         return
 
 
-
     def follow(self, codestyle="Swifter"):
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations. 
