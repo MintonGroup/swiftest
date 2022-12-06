@@ -13,7 +13,7 @@
 !paper/paper.bib
 !README.swifter 
 dump*
-!.gitignore
+!**/.gitignore
 !*.py
 !*.ipynb
 !examples/**
