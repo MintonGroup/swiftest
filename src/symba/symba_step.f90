@@ -37,8 +37,9 @@ contains
                call self%reset(param)
                lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                if (lencounter) then
+                  if (param%lencounter_save) call self%start_encounter(param, t)
                   call self%interp(param, t, dt)
-                  !call self%encounter_history%dump(param) 
+                  if (param%lencounter_save) call self%stop_encounter(param, t+dt)
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
@@ -180,72 +181,74 @@ contains
       logical :: lencounter, lplpl_collision, lpltp_collision
 
       associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
-         select type(pl => self%pl)
-         class is (symba_pl)
-            select type(tp => self%tp)
-            class is (symba_tp)
-               system%irec = ireci
-               dtl = param%dt / (NTENC**ireci)
-               dth = 0.5_DP * dtl
-               IF (dtl / param%dt < VSMALL) THEN
-                  write(*, *) "SWIFTEST Warning:"
-                  write(*, *) "   In symba_step_recur_system, local time step is too small"
-                  write(*, *) "   Roundoff error will be important!"
-                  call util_exit(FAILURE)
-               END IF
-               irecp = ireci + 1
-               if (ireci == 0) then
-                  nloops = 1
-               else
-                  nloops = NTENC
-               end if
-               do j = 1, nloops
-                  lencounter = plplenc_list%encounter_check(param, system, dtl, irecp) &
-                          .or. pltpenc_list%encounter_check(param, system, dtl, irecp)
-                   
-                  call plplenc_list%kick(system, dth, irecp, 1)
-                  call pltpenc_list%kick(system, dth, irecp, 1)
-                  if (ireci /= 0) then
-                     call plplenc_list%kick(system, dth, irecp, -1)
-                     call pltpenc_list%kick(system, dth, irecp, -1)
-                  end if
-
-                  if (param%lgr) then
-                     call pl%gr_pos_kick(system, param, dth)
-                     call tp%gr_pos_kick(system, param, dth)
-                  end if
-
-                  call pl%drift(system, param, dtl)
-                  call tp%drift(system, param, dtl)
-
-                  !call system%
-
-                  if (lencounter) call system%recursive_step(param, t+dth,irecp)
+         select type(param)
+         class is (symba_parameters)
+            select type(pl => self%pl)
+            class is (symba_pl)
+               select type(tp => self%tp)
+               class is (symba_tp)
                   system%irec = ireci
-
-                  if (param%lgr) then
-                     call pl%gr_pos_kick(system, param, dth)
-                     call tp%gr_pos_kick(system, param, dth)
+                  dtl = param%dt / (NTENC**ireci)
+                  dth = 0.5_DP * dtl
+                  IF (dtl / param%dt < VSMALL) THEN
+                     write(*, *) "SWIFTEST Warning:"
+                     write(*, *) "   In symba_step_recur_system, local time step is too small"
+                     write(*, *) "   Roundoff error will be important!"
+                     call util_exit(FAILURE)
+                  END IF
+                  irecp = ireci + 1
+                  if (ireci == 0) then
+                     nloops = 1
+                  else
+                     nloops = NTENC
                   end if
+                  do j = 1, nloops
+                     lencounter = plplenc_list%encounter_check(param, system, dtl, irecp) &
+                           .or. pltpenc_list%encounter_check(param, system, dtl, irecp)
+                     
+                     call plplenc_list%kick(system, dth, irecp, 1)
+                     call pltpenc_list%kick(system, dth, irecp, 1)
+                     if (ireci /= 0) then
+                        call plplenc_list%kick(system, dth, irecp, -1)
+                        call pltpenc_list%kick(system, dth, irecp, -1)
+                     end if
 
-                  call plplenc_list%kick(system, dth, irecp, 1)
-                  call pltpenc_list%kick(system, dth, irecp, 1)
-                  if (ireci /= 0) then
-                     call plplenc_list%kick(system, dth, irecp, -1)
-                     call pltpenc_list%kick(system, dth, irecp, -1)
-                  end if
+                     if (param%lgr) then
+                        call pl%gr_pos_kick(system, param, dth)
+                        call tp%gr_pos_kick(system, param, dth)
+                     end if
 
-                  if (param%lclose) then
-                     lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
-                     lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                     call pl%drift(system, param, dtl)
+                     call tp%drift(system, param, dtl)
 
-                     if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
-                     if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
-                  end if
+                     if (lencounter) call system%recursive_step(param, t+dth,irecp)
+                     system%irec = ireci
 
-                  call self%set_recur_levels(ireci)
+                     if (param%lgr) then
+                        call pl%gr_pos_kick(system, param, dth)
+                        call tp%gr_pos_kick(system, param, dth)
+                     end if
 
-               end do
+                     call plplenc_list%kick(system, dth, irecp, 1)
+                     call pltpenc_list%kick(system, dth, irecp, 1)
+                     if (ireci /= 0) then
+                        call plplenc_list%kick(system, dth, irecp, -1)
+                        call pltpenc_list%kick(system, dth, irecp, -1)
+                     end if
+
+                     if (param%lclose) then
+                        lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                        lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+
+                        if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
+                        if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
+                     end if
+                     if (param%lencounter_save) call system%snapshot(param, t+dtl)
+
+                     call self%set_recur_levels(ireci)
+
+                  end do
+               end select
             end select
          end select
       end associate
@@ -278,8 +281,6 @@ contains
                   nenc_old = system%plplenc_list%nenc
                   call system%plplenc_list%setup(0_I8B)
                   call system%plplcollision_list%setup(0_I8B)
-                  system%ienc_frame = 0
-                  if (allocated(system%encounter_history)) deallocate(system%encounter_history)
                   if (npl > 0) then
                      pl%lcollision(1:npl) = .false.
                      call pl%reset_kinship([(i, i=1, npl)])
@@ -313,6 +314,7 @@ contains
 
                   tp%lfirst = param%lfirstkick
                   pl%lfirst = param%lfirstkick
+
                end associate
             end select
          end select

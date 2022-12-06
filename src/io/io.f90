@@ -179,8 +179,8 @@ contains
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
                param%ioutput = param%ioutput + 1
-               call self%write_frame(param%nciu, param)
-               call param%nciu%close()
+               call self%write_frame(param%nc, param)
+               call param%nc%close()
                call util_exit(FAILURE)
             end if
          end if
@@ -248,8 +248,8 @@ contains
       dump_param%out_stat = 'APPEND'
       dump_param%in_type = "NETCDF_DOUBLE"
       dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
-      dump_param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
-      dump_param%nciu%time_chunk = 1
+      dump_param%nc%id_chunk = self%pl%nbody + self%tp%nbody
+      dump_param%nc%time_chunk = 1
       dump_param%tstart = self%t
 
       call dump_param%dump(param_file_name)
@@ -257,11 +257,11 @@ contains
       dump_param%out_form = "XV"
       dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
       dump_param%ioutput = 1 
-      call dump_param%nciu%initialize(dump_param)
-      call self%write_frame(dump_param%nciu, dump_param)
-      call dump_param%nciu%close()
+      call dump_param%nc%initialize(dump_param)
+      call self%write_frame(dump_param%nc, dump_param)
+      call dump_param%nc%close()
       ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
-      call param%nciu%flush(param)
+      call param%nc%flush(param)
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
@@ -671,7 +671,8 @@ contains
                   else if (param_value == "YES" .or. param_value == 'T') then
                      param%lrestart = .true.
                   end if 
-               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP") ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
+               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP", "ENCOUNTER_SAVE", "FRAGMENTATION_SAVE") 
                case default
                   write(*,*) "Ignoring unknown parameter -> ",param_name
                end select
@@ -1308,7 +1309,7 @@ contains
             ! Turn off energy computation so we don't have to feed it into the initial conditions
             tmp_param%lenergy = .false.
          end if
-         ierr = self%read_frame(tmp_param%nciu, tmp_param)
+         ierr = self%read_frame(tmp_param%nc, tmp_param)
          deallocate(tmp_param)
          if (ierr /=0) call util_exit(FAILURE)
       end if
@@ -1537,8 +1538,8 @@ contains
       character(len=STRMAX)            :: errmsg
       logical                          :: fileExists
 
-      param%nciu%id_chunk = self%pl%nbody + self%tp%nbody
-      param%nciu%time_chunk = max(param%dump_cadence / param%istep_out, 1)
+      param%nc%id_chunk = self%pl%nbody + self%tp%nbody
+      param%nc%time_chunk = max(param%dump_cadence / param%istep_out, 1)
       if (lfirst) then
          inquire(file=param%outfile, exist=fileExists)
          
@@ -1553,15 +1554,15 @@ contains
                errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
                goto 667
             end if
-            call param%nciu%initialize(param)
+            call param%nc%initialize(param)
          case('REPLACE', 'UNKNOWN')
-            call param%nciu%initialize(param)
+            call param%nc%initialize(param)
          end select
 
          lfirst = .false.
       end if
 
-      call self%write_frame(param%nciu, param)
+      call self%write_frame(param%nc, param)
 
       return
 

@@ -11,6 +11,173 @@ submodule (symba_classes) s_symba_io
    use swiftest
 contains
 
+   module subroutine symba_io_encounter_dump(self, param)
+      !! author: David A. Minton
+      !!
+      !! Dumps the time history of an encounter to file.
+      implicit none
+      ! Arguments
+      class(symba_encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+      class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      ! Internals
+      integer(I4B) :: i
+
+      ! Most of this is just temporary test code just to get something working. Eventually this should get cleaned up.
+      
+      do i = 1, self%nframes
+         if (allocated(self%frame(i)%item)) then
+            select type(snapshot => self%frame(i)%item)
+            class is (symba_encounter_snapshot)
+               self%nc%ienc_frame = i
+               call snapshot%write_frame(self%nc,param)
+            end select
+         end if
+      end do
+
+
+      return
+   end subroutine symba_io_encounter_dump
+
+
+   module subroutine symba_io_encounter_initialize_output(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize a NetCDF encounter file system. This is a simplified version of the main simulation output NetCDF file, but with fewer variables.
+      use, intrinsic :: ieee_arithmetic
+      use netcdf
+      implicit none
+      ! Arguments
+      class(symba_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),           intent(in)    :: param   !! Current run configuration parameters
+      ! Internals
+      integer(I4B) :: nvar, varid, vartype
+      real(DP) :: dfill
+      real(SP) :: sfill
+      logical :: fileExists
+      character(len=STRMAX) :: errmsg
+      integer(I4B) :: ndims
+
+
+      associate(nc => self)
+         dfill = ieee_value(dfill, IEEE_QUIET_NAN)
+         sfill = ieee_value(sfill, IEEE_QUIET_NAN)
+
+         select case (param%out_type)
+         case("NETCDF_FLOAT")
+            self%out_type = NF90_FLOAT
+         case("NETCDF_DOUBLE")
+            self%out_type = NF90_DOUBLE
+         end select
+
+
+         ! Check if the file exists, and if it does, delete it
+         inquire(file=nc%enc_file, exist=fileExists)
+         if (fileExists) then
+            open(unit=LUN, file=nc%enc_file, status="old", err=667, iomsg=errmsg)
+            close(unit=LUN, status="delete")
+         end if
+
+         call check( nf90_create(nc%enc_file, NF90_NETCDF4, nc%id), "symba_io_encounter_initialize_output nf90_create" )
+
+         ! Dimensions
+         call check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "symba_io_encounter_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
+         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "symba_io_encounter_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
+         call check( nf90_def_dim(nc%id, nc%id_dimname, NF90_UNLIMITED, nc%id_dimid), "symba_io_encounter_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
+         call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "symba_io_encounter_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
+
+         ! Dimension coordinates
+         call check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "symba_io_encounter_initialize_output nf90_def_var time_varid"  )
+         call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "symba_io_encounter_initialize_output nf90_def_var space_varid"  )
+         call check( nf90_def_var(nc%id, nc%id_dimname, NF90_INT, nc%id_dimid, nc%id_varid), "symba_io_encounter_initialize_output nf90_def_var id_varid"  )
+      
+         ! Variables
+         call check( nf90_def_var(nc%id, nc%name_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%name_varid), "symba_io_encounter_initialize_output nf90_def_var name_varid"  )
+         call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%ptype_varid), "symba_io_encounter_initialize_output nf90_def_var ptype_varid"  )
+         call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "symba_io_encounter_initialize_output nf90_def_var rh_varid"  )
+         call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "symba_io_encounter_initialize_output nf90_def_var vh_varid"  )
+         call check( nf90_def_var(nc%id, nc%gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "symba_io_encounter_initialize_output nf90_def_var Gmass_varid"  )
+         if (param%lclose) then
+            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "symba_io_encounter_initialize_output nf90_def_var radius_varid"  )
+         end if
+         if (param%lrotation) then
+            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "symba_io_encounter_initialize_output nf90_def_var Ip_varid"  )
+            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "symba_io_encounter_initialize_output nf90_def_var rot_varid"  )
+         end if
+
+         call check( nf90_inquire(nc%id, nVariables=nvar), "symba_io_encounter_initialize_output nf90_inquire nVariables"  )
+         do varid = 1, nvar
+            call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "symba_io_encounter_initialize_output nf90_inquire_variable"  )
+            select case(vartype)
+            case(NF90_INT)
+               call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_INT"  )
+            case(NF90_FLOAT)
+               call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_FLOAT"  )
+            case(NF90_DOUBLE)
+               call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
+            case(NF90_CHAR)
+               call check( nf90_def_var_fill(nc%id, varid, 0, 0), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_CHAR"  )
+            end select
+         end do
+
+         ! Take the file out of define mode
+         call check( nf90_enddef(nc%id), "symba_io_encounter_initialize_output nf90_enddef"  )
+
+         ! Add in the space dimension coordinates
+         call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "symba_io_encounter_initialize_output nf90_put_var space"  )
+      end associate
+
+      return
+
+      667 continue
+      write(*,*) "Error creating encounter output file. " // trim(adjustl(errmsg))
+      call util_exit(FAILURE)
+   end subroutine symba_io_encounter_initialize_output
+
+
+   module subroutine symba_io_encounter_write_frame(self, nc, param)
+      !! author: David A. Minton
+      !!
+      !! Write a frame of output of an encounter trajectory.
+      use netcdf
+      implicit none
+      ! Arguments
+      class(symba_encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
+      class(symba_io_encounter_parameters), intent(inout) :: nc   !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
+      ! Internals
+      integer(I4B)                             :: i,  tslot, idslot, old_mode, n
+      character(len=NAMELEN)                   :: charstring
+
+      tslot = self%tslot
+      call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame nf90_set_fill"  )
+      select type(pl => self%pl)
+      class is (symba_pl)
+         n = size(pl%id(:))
+         do i = 1, n
+            idslot = pl%id(i)
+            call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
+            call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame nf90_put_var id_varid"  )
+            call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var rh_varid"  )
+            call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var vh_varid"  )
+            call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var body Gmass_varid"  )
+            if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var body radius_varid"  )
+            if (param%lrotation) then
+               call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var body Ip_varid"  )
+               call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var body rotx_varid"  )
+            end if
+            charstring = trim(adjustl(pl%info(i)%name))
+            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
+            charstring = trim(adjustl(pl%info(i)%particle_type))
+            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
+         end do
+      end select
+
+      call check( nf90_set_fill(nc%id, old_mode, old_mode) )
+
+      return
+   end subroutine symba_io_encounter_write_frame
+
+
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -66,6 +233,9 @@ contains
                case ("ENCOUNTER_SAVE")
                   call io_toupper(param_value)
                   read(param_value, *) param%encounter_save
+               case ("FRAGMENTATION_SAVE")
+                  call io_toupper(param_value)
+                  read(param_value, *) param%fragmentation_save
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -116,12 +286,21 @@ contains
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
          call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
 
-         if ((param%encounter_save /= "NONE") .and. (param%encounter_save /= "ALL") .and. (param%encounter_save /= "FRAGMENTATION")) then
+         if ((param%encounter_save /= "NONE") .and. (param%encounter_save /= "TRAJECTORY") .and. (param%encounter_save /= "CLOSEST")) then
             write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
-            write(iomsg,*) 'Valid options are NONE, ALL, or FRAGMENTATION'
+            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
             iostat = -1
             return
          end if
+
+         if ((param%fragmentation_save /= "NONE") .and. (param%fragmentation_save /= "TRAJECTORY") .and. (param%fragmentation_save /= "CLOSEST")) then
+            write(iomsg,*) 'Invalid fragmentation_save parameter: ',trim(adjustl(param%out_type))
+            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
+            iostat = -1
+            return
+         end if
+         param%lencounter_save = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "CLOSEST") .or. &
+                                 (param%fragmentation_save == "TRAJECTORY") .or. (param%fragmentation_save == "CLOSEST") 
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
@@ -176,6 +355,52 @@ contains
    end subroutine symba_io_param_writer
 
 
+   module subroutine symba_io_start_encounter(self, param, t)
+      !! author: David A. Minton
+      !!
+      !! Initializes the new encounter and/or fragmentation history
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     !! Current simulation time
+
+      if (.not. allocated(self%encounter_history)) allocate(symba_encounter_storage :: self%encounter_history)
+      call self%encounter_history%reset()
+
+      ! Empty out the time slot array for the next pass
+      self%encounter_history%tvals(:) = huge(1.0_DP)
+
+      ! Take the snapshot at the start of the encounter
+      call self%snapshot(param, t) 
+
+      return
+   end subroutine symba_io_start_encounter
+
+
+   module subroutine symba_io_stop_encounter(self, param, t)
+      !! author: David A. Minton
+      !!
+      !! Saves the encounter and/or fragmentation data to file(s)  
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     !! Current simulation time
+      ! Internals
+      !character(STRMAX) 
+
+      ! Create and save the output file for this encounter
+      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop
+      call self%encounter_history%nc%initialize(param)
+      call self%encounter_history%dump(param)
+      call self%encounter_history%nc%close()
+      call self%encounter_history%reset()
+
+      return
+   end subroutine symba_io_stop_encounter
+
+
    module subroutine symba_io_write_discard(self, param)
       !! author: David A. Minton
       !!
@@ -187,12 +412,12 @@ contains
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
 
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nciu, param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nc, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
 
-            call pl_discards%write_info(param%nciu, param)
+            call pl_discards%write_info(param%nc, param)
          end select
       end associate
 
