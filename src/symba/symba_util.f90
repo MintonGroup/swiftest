@@ -1313,7 +1313,7 @@ contains
       !! author: David A. Minton
       !!
       !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
-      !! Can be played back through the encounter
+      !! can be played back through the encounter
       implicit none
       ! Internals
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
@@ -1401,7 +1401,7 @@ contains
                ! Find out which time slot this belongs in by searching for an existing slot
                ! with the same value of time or the first available one
                do i = 1, self%encounter_history%nframes
-                  if (t >= self%encounter_history%tvals(i)) then
+                  if (t <= self%encounter_history%tvals(i)) then
                      snapshot%tslot = i
                      self%encounter_history%tvals(i) = t
                      exit

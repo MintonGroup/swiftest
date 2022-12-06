@@ -137,7 +137,7 @@ contains
    module subroutine symba_io_encounter_write_frame(self, nc, param)
       !! author: David A. Minton
       !!
-      !! Write a frame of output of an encounter list structure.
+      !! Write a frame of output of an encounter trajectory.
       use netcdf
       implicit none
       ! Arguments
@@ -369,7 +369,7 @@ contains
       call self%encounter_history%reset()
 
       ! Empty out the time slot array for the next pass
-      self%encounter_history%tvals(:) = -huge(1.0_DP)
+      self%encounter_history%tvals(:) = huge(1.0_DP)
 
       ! Take the snapshot at the start of the encounter
       call self%snapshot(param, t) 

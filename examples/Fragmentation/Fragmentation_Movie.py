@@ -84,7 +84,8 @@ class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
     def __init__(self, sim, animfile, title, nskip=1):
-        self.ds = sim.enc.mean(dim="encounter") # Reduce out the encounter dimension
+        tgood = sim.enc.where(sim.enc['Gmass'] > 9e-8).time
+        self.ds = sim.enc.sel(time=tgood)
         nframes = int(self.ds['time'].size)
         self.sim = sim
         self.title = title
@@ -109,8 +110,8 @@ class AnimatedScatter(object):
 
         # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
         # This will be used to scale the axis limits on the movie.
-        rhy1 = self.ds['rh'].isel(time=0).sel(name="Body1",space='y').values[()]
-        rhy2 = self.ds['rh'].isel(time=0).sel(name="Body2",space='y').values[()]
+        rhy1 = self.ds['rh'].sel(name="Body1",space='y').isel(time=0).values[()]
+        rhy2 = self.ds['rh'].sel(name="Body2",space='y').isel(time=0).values[()]
 
         scale_frame =   abs(rhy1) + abs(rhy2)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
@@ -133,12 +134,13 @@ class AnimatedScatter(object):
             x = x[~np.isnan(x)]
             y = y[~np.isnan(y)]
             Gmass = Gmass[~np.isnan(Gmass)]
+            x = x[Gmass]
             x_com = np.sum(Gmass * x) / np.sum(Gmass)
-            y_com = np.sum(Gmass * y) / np.sum(Gmass)
+            y_com = #np.sum(Gmass * y) / np.sum(Gmass)
             return x_com, y_com
 
         Gmass, rh, point_rad = next(self.data_stream(frame))
-        x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
+        #x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
         self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_com, rh[:,1] - y_com])
         self.scatter_artist.set_sizes(point_rad**2)
         return self.scatter_artist,

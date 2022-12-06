@@ -2770,7 +2770,7 @@ class Simulation:
             return io.process_netcdf_input(ds,param)
         partial_func = partial(_preprocess, param=self.param)
 
-        self.enc = xr.open_mfdataset(enc_files,parallel=True,combine="nested", concat_dim="encounter",preprocess=partial_func)
+        self.enc = xr.open_mfdataset(enc_files,parallel=True,preprocess=partial_func,mask_and_scale=True)
         self.enc = io.process_netcdf_input(self.enc, self.param)
 
         return
