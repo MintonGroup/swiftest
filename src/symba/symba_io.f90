@@ -23,17 +23,16 @@ contains
       integer(I4B) :: i
 
       ! Most of this is just temporary test code just to get something working. Eventually this should get cleaned up.
-      call self%nc%initialize(param)
+      
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
             select type(snapshot => self%frame(i)%item)
             class is (symba_encounter_snapshot)
-               self%nc%ienc_frame = self%nc%ienc_frame + 1
+               self%nc%ienc_frame = i
                call snapshot%write_frame(self%nc,param)
             end select
          end if
       end do
-      !call self%nc%close()
 
 
       return
@@ -156,16 +155,16 @@ contains
          n = size(pl%id(:))
          do i = 1, n
             idslot = pl%id(i)
-            call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame_base nf90_set_fill"  )
+            call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame nf90_set_fill"  )
             call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
-            call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame_base nf90_put_var id_varid"  )
-            call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var rh_varid"  )
-            call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var vh_varid"  )
-            call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body Gmass_varid"  )
-            if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body radius_varid"  )
+            call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame nf90_put_var id_varid"  )
+            call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var rh_varid"  )
+            call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var vh_varid"  )
+            call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var body Gmass_varid"  )
+            if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var body radius_varid"  )
             if (param%lrotation) then
-               call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body Ip_varid"  )
-               call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body rotx_varid"  )
+               call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var body Ip_varid"  )
+               call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var body rotx_varid"  )
             end if
             charstring = trim(adjustl(pl%info(i)%name))
             call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
@@ -386,10 +385,17 @@ contains
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Current simulation time
+      ! Internals
+      !character(STRMAX) 
 
       ! Take the final snapshot
       call self%snapshot(param, t)
+
+      ! Create and save the output file for this encounter
+      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop
+      call self%encounter_history%nc%initialize(param)
       call self%encounter_history%dump(param)
+      call self%encounter_history%nc%close()
 
       return
    end subroutine symba_io_stop_encounter
