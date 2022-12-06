@@ -419,20 +419,20 @@ module symba_classes
 
       module subroutine symba_io_encounter_dump(self, param)
          implicit none
-         class(symba_encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
-         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+         class(symba_encounter_storage(*)),  intent(inout) :: self   !! Encounter storage object
+         class(swiftest_parameters),         intent(inout) :: param  !! Current run configuration parameters 
       end subroutine symba_io_encounter_dump
 
       module subroutine symba_io_encounter_initialize_output(self, param)
          implicit none
          class(symba_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),     intent(in)    :: param   
+         class(swiftest_parameters),           intent(in)    :: param   
       end subroutine symba_io_encounter_initialize_output
 
       module subroutine symba_io_encounter_write_frame(self, nc, param)
          implicit none
          class(symba_encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
-         class(symba_io_encounter_parameters), intent(inout) :: nc   !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(symba_io_encounter_parameters), intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
       end subroutine symba_io_encounter_write_frame
 

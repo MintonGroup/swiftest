@@ -356,6 +356,32 @@ contains
       write(*,*) "Error writing parameter file for SyMBA: " // trim(adjustl(iomsg))
    end subroutine symba_io_param_writer
 
+   module subroutine symba_io_start_encounter(self, param, t)
+      !! author: David A. Minton
+      !!
+      !! Initializes the new encounter and/or fragmentation save file(s)
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     !! Current simulation time
+
+      return
+   end subroutine symba_io_start_encounter
+
+   module subroutine symba_io_stop_encounter(self, param, t)
+      !! author: David A. Minton
+      !!
+      !! Saves the encounter and/or fragmentation data to file(s)  
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     !! Current simulation time
+
+      return
+   end subroutine symba_io_stop_encounter
+
 
    module subroutine symba_io_write_discard(self, param)
       !! author: David A. Minton
