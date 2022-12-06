@@ -23,17 +23,17 @@ contains
       integer(I4B) :: i
 
       ! Most of this is just temporary test code just to get something working. Eventually this should get cleaned up.
-      call self%nciu%initialize(param)
+      call self%nc%initialize(param)
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
             select type(snapshot => self%frame(i)%item)
             class is (symba_encounter_snapshot)
-               self%nciu%ienc_frame = i
-               call snapshot%write_frame(self%nciu,param)
+               self%nc%ienc_frame = self%nc%ienc_frame + 1
+               call snapshot%write_frame(self%nc,param)
             end select
          end if
       end do
-      call self%nciu%close()
+      !call self%nc%close()
 
 
       return
@@ -59,7 +59,7 @@ contains
       integer(I4B) :: ndims
 
 
-      associate(nciu => self)
+      associate(nc => self)
          dfill = ieee_value(dfill, IEEE_QUIET_NAN)
          sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
@@ -72,59 +72,60 @@ contains
 
 
          ! Check if the file exists, and if it does, delete it
-         inquire(file=nciu%enc_file, exist=fileExists)
+         inquire(file=nc%enc_file, exist=fileExists)
          if (fileExists) then
-            open(unit=LUN, file=nciu%enc_file, status="old", err=667, iomsg=errmsg)
+            return
+            open(unit=LUN, file=nc%enc_file, status="old", err=667, iomsg=errmsg)
             close(unit=LUN, status="delete")
          end if
 
-         call check( nf90_create(nciu%enc_file, NF90_NETCDF4, nciu%id), "symba_io_encounter_initialize_output nf90_create" )
+         call check( nf90_create(nc%enc_file, NF90_NETCDF4, nc%id), "symba_io_encounter_initialize_output nf90_create" )
 
          ! Dimensions
-         call check( nf90_def_dim(nciu%id, nciu%time_dimname, NF90_UNLIMITED, nciu%time_dimid), "symba_io_encounter_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
-         call check( nf90_def_dim(nciu%id, nciu%space_dimname, NDIM, nciu%space_dimid), "symba_io_encounter_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
-         call check( nf90_def_dim(nciu%id, nciu%id_dimname, NF90_UNLIMITED, nciu%id_dimid), "symba_io_encounter_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
-         call check( nf90_def_dim(nciu%id, nciu%str_dimname, NAMELEN, nciu%str_dimid), "symba_io_encounter_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
+         call check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "symba_io_encounter_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
+         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "symba_io_encounter_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
+         call check( nf90_def_dim(nc%id, nc%id_dimname, NF90_UNLIMITED, nc%id_dimid), "symba_io_encounter_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
+         call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "symba_io_encounter_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
 
          ! Dimension coordinates
-         call check( nf90_def_var(nciu%id, nciu%time_dimname, nciu%out_type, nciu%time_dimid, nciu%time_varid), "symba_io_encounter_initialize_output nf90_def_var time_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%space_dimname, NF90_CHAR, nciu%space_dimid, nciu%space_varid), "symba_io_encounter_initialize_output nf90_def_var space_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%id_dimname, NF90_INT, nciu%id_dimid, nciu%id_varid), "symba_io_encounter_initialize_output nf90_def_var id_varid"  )
+         call check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "symba_io_encounter_initialize_output nf90_def_var time_varid"  )
+         call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "symba_io_encounter_initialize_output nf90_def_var space_varid"  )
+         call check( nf90_def_var(nc%id, nc%id_dimname, NF90_INT, nc%id_dimid, nc%id_varid), "symba_io_encounter_initialize_output nf90_def_var id_varid"  )
       
          ! Variables
-         call check( nf90_def_var(nciu%id, nciu%name_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%name_varid), "symba_io_encounter_initialize_output nf90_def_var name_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%ptype_varname, NF90_CHAR, [nciu%str_dimid, nciu%id_dimid], nciu%ptype_varid), "symba_io_encounter_initialize_output nf90_def_var ptype_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%rh_varname,  nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%rh_varid), "symba_io_encounter_initialize_output nf90_def_var rh_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%vh_varname,  nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%vh_varid), "symba_io_encounter_initialize_output nf90_def_var vh_varid"  )
-         call check( nf90_def_var(nciu%id, nciu%gmass_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%Gmass_varid), "symba_io_encounter_initialize_output nf90_def_var Gmass_varid"  )
+         call check( nf90_def_var(nc%id, nc%name_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%name_varid), "symba_io_encounter_initialize_output nf90_def_var name_varid"  )
+         call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%ptype_varid), "symba_io_encounter_initialize_output nf90_def_var ptype_varid"  )
+         call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "symba_io_encounter_initialize_output nf90_def_var rh_varid"  )
+         call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "symba_io_encounter_initialize_output nf90_def_var vh_varid"  )
+         call check( nf90_def_var(nc%id, nc%gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "symba_io_encounter_initialize_output nf90_def_var Gmass_varid"  )
          if (param%lclose) then
-            call check( nf90_def_var(nciu%id, nciu%radius_varname, nciu%out_type, [nciu%id_dimid, nciu%time_dimid], nciu%radius_varid), "symba_io_encounter_initialize_output nf90_def_var radius_varid"  )
+            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "symba_io_encounter_initialize_output nf90_def_var radius_varid"  )
          end if
          if (param%lrotation) then
-            call check( nf90_def_var(nciu%id, nciu%Ip_varname, nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%Ip_varid), "symba_io_encounter_initialize_output nf90_def_var Ip_varid"  )
-            call check( nf90_def_var(nciu%id, nciu%rot_varname, nciu%out_type, [nciu%space_dimid, nciu%id_dimid, nciu%time_dimid], nciu%rot_varid), "symba_io_encounter_initialize_output nf90_def_var rot_varid"  )
+            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "symba_io_encounter_initialize_output nf90_def_var Ip_varid"  )
+            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "symba_io_encounter_initialize_output nf90_def_var rot_varid"  )
          end if
 
-         call check( nf90_inquire(nciu%id, nVariables=nvar), "symba_io_encounter_initialize_output nf90_inquire nVariables"  )
+         call check( nf90_inquire(nc%id, nVariables=nvar), "symba_io_encounter_initialize_output nf90_inquire nVariables"  )
          do varid = 1, nvar
-            call check( nf90_inquire_variable(nciu%id, varid, xtype=vartype, ndims=ndims), "symba_io_encounter_initialize_output nf90_inquire_variable"  )
+            call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "symba_io_encounter_initialize_output nf90_inquire_variable"  )
             select case(vartype)
             case(NF90_INT)
-               call check( nf90_def_var_fill(nciu%id, varid, 0, NF90_FILL_INT), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_INT"  )
+               call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_INT"  )
             case(NF90_FLOAT)
-               call check( nf90_def_var_fill(nciu%id, varid, 0, sfill), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_FLOAT"  )
+               call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_FLOAT"  )
             case(NF90_DOUBLE)
-               call check( nf90_def_var_fill(nciu%id, varid, 0, dfill), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
+               call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
             case(NF90_CHAR)
-               call check( nf90_def_var_fill(nciu%id, varid, 0, 0), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_CHAR"  )
+               call check( nf90_def_var_fill(nc%id, varid, 0, 0), "symba_io_encounter_initialize_output nf90_def_var_fill NF90_CHAR"  )
             end select
          end do
 
          ! Take the file out of define mode
-         call check( nf90_enddef(nciu%id), "symba_io_encounter_initialize_output nf90_enddef"  )
+         call check( nf90_enddef(nc%id), "symba_io_encounter_initialize_output nf90_enddef"  )
 
          ! Add in the space dimension coordinates
-         call check( nf90_put_var(nciu%id, nciu%space_varid, nciu%space_coords, start=[1], count=[NDIM]), "symba_io_encounter_initialize_output nf90_put_var space"  )
+         call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "symba_io_encounter_initialize_output nf90_put_var space"  )
       end associate
 
       return
@@ -135,7 +136,7 @@ contains
    end subroutine symba_io_encounter_initialize_output
 
 
-   module subroutine symba_io_encounter_write_frame(self, nciu, param)
+   module subroutine symba_io_encounter_write_frame(self, nc, param)
       !! author: David A. Minton
       !!
       !! Write a frame of output of an encounter list structure.
@@ -143,37 +144,37 @@ contains
       implicit none
       ! Arguments
       class(symba_encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
-      class(symba_io_encounter_parameters), intent(inout) :: nciu   !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(symba_io_encounter_parameters), intent(inout) :: nc   !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)                             :: i,  tslot, idslot, old_mode, n
       character(len=NAMELEN)                   :: charstring
 
-      tslot = nciu%ienc_frame
+      tslot = nc%ienc_frame
       select type(pl => self%pl)
       class is (symba_pl)
          n = size(pl%id(:))
          do i = 1, n
             idslot = pl%id(i)
-            call check( nf90_set_fill(nciu%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame_base nf90_set_fill"  )
-            call check( nf90_put_var(nciu%id, nciu%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
-            call check( nf90_put_var(nciu%id, nciu%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame_base nf90_put_var id_varid"  )
-            call check( nf90_put_var(nciu%id, nciu%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var rh_varid"  )
-            call check( nf90_put_var(nciu%id, nciu%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var vh_varid"  )
-            call check( nf90_put_var(nciu%id, nciu%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body Gmass_varid"  )
-            if (param%lclose) call check( nf90_put_var(nciu%id, nciu%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body radius_varid"  )
+            call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame_base nf90_set_fill"  )
+            call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
+            call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame_base nf90_put_var id_varid"  )
+            call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var rh_varid"  )
+            call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var vh_varid"  )
+            call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body Gmass_varid"  )
+            if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body radius_varid"  )
             if (param%lrotation) then
-               call check( nf90_put_var(nciu%id, nciu%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body Ip_varid"  )
-               call check( nf90_put_var(nciu%id, nciu%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body rotx_varid"  )
+               call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body Ip_varid"  )
+               call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body rotx_varid"  )
             end if
             charstring = trim(adjustl(pl%info(i)%name))
-            call check( nf90_put_var(nciu%id, nciu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
+            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
             charstring = trim(adjustl(pl%info(i)%particle_type))
-            call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
+            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
          end do
       end select
 
-      call check( nf90_set_fill(nciu%id, old_mode, old_mode) )
+      call check( nf90_set_fill(nc%id, old_mode, old_mode) )
 
       return
    end subroutine symba_io_encounter_write_frame
@@ -355,12 +356,12 @@ contains
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
 
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nciu, param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nc, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
 
-            call pl_discards%write_info(param%nciu, param)
+            call pl_discards%write_info(param%nc, param)
          end select
       end associate
 

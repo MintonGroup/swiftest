@@ -704,7 +704,7 @@ contains
             end where
          end select
 
-         call pl%write_info(param%nciu, param)
+         call pl%write_info(param%nc, param)
          deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 

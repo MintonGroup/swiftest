@@ -181,7 +181,7 @@ module symba_classes
    !! NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: symba_io_encounter_parameters
       integer(I4B)       :: COLLIDER_DIM_SIZE = 2           !! Size of collider dimension
-      integer(I4B)       :: ienc_frame                !! Current frame number for the encounter history
+      integer(I4B)       :: ienc_frame = 1            !! Current frame number for the encounter history
       character(STRMAX)  :: enc_file = "encounter.nc" !! Encounter output file name
 
       character(NAMELEN) :: level_varname    = "level"     !! Recursion depth
@@ -192,7 +192,7 @@ module symba_classes
 
    type, extends(swiftest_storage) :: symba_encounter_storage
       !! A class that that is used to store simulation history data between file output
-      type(symba_io_encounter_parameters) :: nciu
+      type(symba_io_encounter_parameters) :: nc
    contains
       procedure :: dump   => symba_io_encounter_dump !! Dumps contents of encounter history to file
       final     :: symba_util_final_encounter_storage
@@ -425,10 +425,10 @@ module symba_classes
          class(swiftest_parameters),     intent(in)    :: param   
       end subroutine symba_io_encounter_initialize_output
 
-      module subroutine symba_io_encounter_write_frame(self, nciu, param)
+      module subroutine symba_io_encounter_write_frame(self, nc, param)
          implicit none
          class(symba_encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
-         class(symba_io_encounter_parameters), intent(inout) :: nciu   !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(symba_io_encounter_parameters), intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
       end subroutine symba_io_encounter_write_frame
 

@@ -92,7 +92,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
       associate(system => self)
-         call param%nciu%close()
+         call param%nc%close()
       end associate
 
       return
