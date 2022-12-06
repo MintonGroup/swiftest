@@ -823,7 +823,7 @@ def process_netcdf_input(ds, param):
         ds = fix_types(ds,ftype=np.float32)
     ds = ds.where(ds.id >=0 ,drop=True)
     # Check if the name variable contains unique values. If so, make name the dimension instead of id
-    if len(np.unique(ds['name'])) == len(ds['name']):
+    if "name" not in ds.dims and len(np.unique(ds['name'])) == len(ds['name']):
         ds = ds.swap_dims({"id" : "name"})
         ds = ds.reset_coords("id")
 
