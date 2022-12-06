@@ -29,18 +29,18 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 # Read in the simulation output and store it as an Xarray dataset
-ds = swiftest.Simulation(param_file="simdata/param.in", read_old_output_file=True).data
+sim = swiftest.Simulation(read_old_output_file=True)
 
 # Plot of the data and save the output plot
-colors = ['white' if x == 'Massive Body' else 'black' for x in ds['particle_type']]
-sizes = [100 if x == 'Massive Body' else 10 for x in ds['particle_type']]
+colors = ['white' if x == 'Massive Body' else 'black' for x in sim.data['particle_type']]
+sizes = [100 if x == 'Massive Body' else 10 for x in sim.data['particle_type']]
 
 fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(5,3))
-ax.set(xlabel="Semimajor Axis (AU)", ylabel="Eccentricity", title="Simulation Start")
-ax.scatter(ds['a'].isel(time=0), ds['e'].isel(time=0), c=colors, s=sizes, edgecolor='black')
+ax.set(xlabel="Semimajor Axis (AU)", ylabel="Eccentricity", title="Simulation Initial Conditions (t=0)")
+ax.scatter(sim.data['a'].isel(time=0), sim.data['e'].isel(time=0), c=colors, s=sizes, edgecolor='black')
 ax.set_xlim(0, 2.0)
 ax.set_ylim(0, 0.4)
-ax.text(1.5, 0.35, f"t = {ds['time'].isel(time=0).values} years", size=10, ha="left")
+ax.text(1.5, 0.35, f"t = {sim.data['time'].isel(time=0).values} years", size=10, ha="left")
 plt.tight_layout()
 plt.show()
 fig.savefig("output.eps", dpi=300, facecolor='white', transparent=False, bbox_inches="tight")
