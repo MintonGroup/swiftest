@@ -1320,10 +1320,12 @@ contains
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t      !! current time
       ! Arguments
-      type(symba_encounter_snapshot)  :: snapshot
+      type(symba_encounter_snapshot), allocatable  :: snapshot
       integer(I4B) :: i, npl_snap, ntp_snap
 
       associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
+
+         allocate(symba_encounter_snapshot :: snapshot)
 
          if (npl > 0) allocate(symba_pl :: snapshot%pl)
          if (ntp > 0) allocate(symba_tp :: snapshot%tp)

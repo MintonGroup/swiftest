@@ -167,9 +167,9 @@ contains
                call check( nf90_put_var(nciu%id, nciu%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body rotx_varid"  )
             end if
             charstring = trim(adjustl(pl%info(i)%name))
-            call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
-            charstring = trim(adjustl(pl%info(i)%particle_type))
             call check( nf90_put_var(nciu%id, nciu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
+            charstring = trim(adjustl(pl%info(i)%particle_type))
+            call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
          end do
       end select
 
