@@ -789,6 +789,8 @@ class Simulation:
             "encounter_check_loops": "TRIANGULAR",
             "ephemeris_date": "MBCL",
             "restart": False,
+            "encounter_save" : "NONE",
+            "fragmentation_save" : "NONE"
         }
         param_file = kwargs.pop("param_file",None)
 
