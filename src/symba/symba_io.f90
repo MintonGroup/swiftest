@@ -146,30 +146,34 @@ contains
       class(symba_io_encounter_parameters), intent(inout) :: nciu   !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                             :: tslot,i,old_mode, n, idslot
+      integer(I4B)                             :: i,  tslot, idslot, old_mode, n
       character(len=NAMELEN)                   :: charstring
 
       tslot = nciu%ienc_frame
-      call check( nf90_set_fill(nciu%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame_base nf90_set_fill"  )
-      call check( nf90_put_var(nciu%id, nciu%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
+      select type(pl => self%pl)
+      class is (symba_pl)
+         n = size(pl%id(:))
+         do i = 1, n
+            idslot = pl%id(i)
+            call check( nf90_set_fill(nciu%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame_base nf90_set_fill"  )
+            call check( nf90_put_var(nciu%id, nciu%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
+            call check( nf90_put_var(nciu%id, nciu%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame_base nf90_put_var id_varid"  )
+            call check( nf90_put_var(nciu%id, nciu%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var rh_varid"  )
+            call check( nf90_put_var(nciu%id, nciu%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var vh_varid"  )
+            call check( nf90_put_var(nciu%id, nciu%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body Gmass_varid"  )
+            if (param%lclose) call check( nf90_put_var(nciu%id, nciu%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body radius_varid"  )
+            if (param%lrotation) then
+               call check( nf90_put_var(nciu%id, nciu%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body Ip_varid"  )
+               call check( nf90_put_var(nciu%id, nciu%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body rotx_varid"  )
+            end if
+            charstring = trim(adjustl(pl%info(i)%name))
+            call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
+            charstring = trim(adjustl(pl%info(i)%particle_type))
+            call check( nf90_put_var(nciu%id, nciu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
+         end do
+      end select
 
-      n = size(self%pl%id(:))
-      do i = 1, n
-         idslot = self%pl%id(i)
-         charstring = trim(adjustl(self%pl%info(i)%name))
-         call check( nf90_put_var(nciu%id, nciu%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
-         charstring = trim(adjustl(self%pl%info(i)%particle_type))
-         call check( nf90_put_var(nciu%id, nciu%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
-         call check( nf90_put_var(nciu%id, nciu%id_varid, self%pl%id(i), start=[idslot]), "symba_io_encounter_write_frame_base nf90_put_var id_varid"  )
-         call check( nf90_put_var(nciu%id, nciu%rh_varid, self%pl%rh(:, i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var rh_varid"  )
-         call check( nf90_put_var(nciu%id, nciu%vh_varid, self%pl%vh(:, i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var vh_varid"  )
-         call check( nf90_put_var(nciu%id, nciu%Gmass_varid, self%pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body Gmass_varid"  )
-         if (param%lclose) call check( nf90_put_var(nciu%id, nciu%radius_varid, self%pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame_base nf90_put_var body radius_varid"  )
-         if (param%lrotation) then
-            call check( nf90_put_var(nciu%id, nciu%Ip_varid, self%pl%Ip(:, i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body Ip_varid"  )
-            call check( nf90_put_var(nciu%id, nciu%rot_varid, self%pl%rot(:, i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame_base nf90_put_var body rotx_varid"  )
-         end if
-      end do
+      call check( nf90_set_fill(nciu%id, old_mode, old_mode) )
 
       return
    end subroutine symba_io_encounter_write_frame

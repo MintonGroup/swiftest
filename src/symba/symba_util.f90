@@ -939,7 +939,7 @@ contains
          allocate(symba_encounter_storage(nbig) :: tmp) 
          if (lmalloc) then
             do i = 1, nold
-               if (allocated(self%encounter_history%frame(i)%item)) tmp%frame(i) = self%encounter_history%frame(i)%item
+               if (allocated(self%encounter_history%frame(i)%item)) call move_alloc(self%encounter_history%frame(i)%item, tmp%frame(i)%item)
             end do
             deallocate(self%encounter_history)
          end if
@@ -1371,6 +1371,7 @@ contains
                         snapshot%pl%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
                      end do
                   end if
+                  call snapshot%pl%sort("id", ascending=.true.)
                end if
 
                ! Take snapshot of the currently encountering test particles
@@ -1394,6 +1395,7 @@ contains
                ! Save the snapshot
                self%encounter_history%iframe = self%encounter_history%iframe + 1
                call self%resize_storage(self%encounter_history%iframe)
+               
                self%encounter_history%frame(self%encounter_history%iframe) = snapshot
             end select
          end select 
