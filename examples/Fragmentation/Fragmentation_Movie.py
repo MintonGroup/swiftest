@@ -83,9 +83,14 @@ figsize = (4,4)
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
-    def __init__(self, sim, animfile, title, nskip=1):
-        tgood = sim.enc.where(sim.enc['Gmass'] > 9e-8).time
-        self.ds = sim.enc.sel(time=tgood)
+    def __init__(self, sim, animfile, title, style, nskip=1):
+        if style == "disruption_headon" or style == "hitandrun":
+            tgood = sim.enc.where(sim.enc['Gmass'] > 0.8 * body_Gmass[style][0]).time
+        else:
+            tgood = sim.enc.where(sim.enc['Gmass'] > 0.01 * body_Gmass[style][1]).time
+
+        self.ds = sim.enc[['rh','vh','Gmass','radius']].sel(time=tgood).load().interpolate_na(dim="time")
+
         nframes = int(self.ds['time'].size)
         self.sim = sim
         self.title = title
@@ -134,13 +139,12 @@ class AnimatedScatter(object):
             x = x[~np.isnan(x)]
             y = y[~np.isnan(y)]
             Gmass = Gmass[~np.isnan(Gmass)]
-            x = x[Gmass]
             x_com = np.sum(Gmass * x) / np.sum(Gmass)
-            y_com = #np.sum(Gmass * y) / np.sum(Gmass)
+            y_com = np.sum(Gmass * y) / np.sum(Gmass)
             return x_com, y_com
 
         Gmass, rh, point_rad = next(self.data_stream(frame))
-        #x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
+        x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
         self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_com, rh[:,1] - y_com])
         self.scatter_artist.set_sizes(point_rad**2)
         return self.scatter_artist,
@@ -183,4 +187,4 @@ if __name__ == "__main__":
         sim.set_parameter(fragmentation=True, fragmentation_save="TRAJECTORY", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
         sim.run(dt=1e-4, tstop=2.0e-3, istep_out=1, dump_cadence=0)
 
-        anim = AnimatedScatter(sim,movie_filename,movie_titles[style],nskip=1)
+        anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)
