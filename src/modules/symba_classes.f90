@@ -182,12 +182,12 @@ module symba_classes
 
    !! NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: symba_io_encounter_parameters
-      integer(I4B)       :: COLLIDER_DIM_SIZE = 2     !! Size of collider dimension
-      integer(I4B)       :: ienc_frame = 1            !! Current frame number for the encounter history
-      character(STRMAX)  :: enc_file = "encounter.nc" !! Encounter output file name
-
-      character(NAMELEN) :: level_varname    = "level"     !! Recursion depth
+      integer(I4B)       :: ienc_frame    = 1              !! Current frame number for the encounter history
+      character(STRMAX)  :: enc_file      = "encounter.nc" !! Encounter output file name
+      character(NAMELEN) :: level_varname = "level"        !! Recursion depth
       integer(I4B)       :: level_varid                    !! ID for the recursion level variable
+      integer(I4B)       :: time_dimsize = 0               !! Number of time values in snapshot
+      integer(I4B)       :: id_dimsize   = 0               !! Number of potential id values in snapshot
    contains
       procedure :: initialize => symba_io_encounter_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
    end type symba_io_encounter_parameters
@@ -230,7 +230,7 @@ module symba_classes
 
 
    type, extends(symba_nbody_system) :: symba_encounter_snapshot
-      integer(I4B)                 :: tslot !! The index for the time array in the final NetCDF file
+      integer(I4B)                   :: tslot !! The index for the time array in the final NetCDF file
    contains
       procedure :: write_encounter_frame => symba_io_encounter_write_frame    !! Writes a frame of encounter data to file 
       generic   :: write_frame           => write_encounter_frame

@@ -1326,9 +1326,10 @@ contains
       associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
 
          allocate(symba_encounter_snapshot :: snapshot)
+         snapshot%t = t
 
-         if (npl > 0) allocate(symba_pl :: snapshot%pl)
-         if (ntp > 0) allocate(symba_tp :: snapshot%tp)
+         allocate(symba_pl :: snapshot%pl)
+         allocate(symba_tp :: snapshot%tp)
          if (npl + ntp == 0) return
          npl_snap = npl
          ntp_snap = ntp
@@ -1345,6 +1346,7 @@ contains
                   tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == self%irec
                   ntp_snap = count(tp%lmask(1:ntp))
                end if
+               snapshot%pl%nbody = npl_snap
 
                ! Take snapshot of the currently encountering massive bodies
                if (npl_snap > 0) then
@@ -1377,6 +1379,7 @@ contains
                end if
 
                ! Take snapshot of the currently encountering test particles
+               snapshot%tp%nbody = ntp_snap
                if (ntp_snap > 0) then
                   allocate(snapshot%tp%id(ntp_snap))
                   allocate(snapshot%tp%info(ntp_snap))
@@ -1389,10 +1392,6 @@ contains
                      snapshot%tp%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
                   end do
                end if
-
-               if (npl_snap + ntp_snap == 0) return
-
-               snapshot%t = t
 
                ! Save the snapshot
                self%encounter_history%iframe = self%encounter_history%iframe + 1
