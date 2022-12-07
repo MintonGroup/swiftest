@@ -31,6 +31,8 @@ contains
                self%nc%ienc_frame = i
                call snapshot%write_frame(self%nc,param)
             end select
+         else
+            exit
          end if
       end do
 
@@ -57,7 +59,6 @@ contains
       character(len=STRMAX) :: errmsg
       integer(I4B) :: ndims
 
-
       associate(nc => self)
          dfill = ieee_value(dfill, IEEE_QUIET_NAN)
          sfill = ieee_value(sfill, IEEE_QUIET_NAN)
@@ -69,7 +70,6 @@ contains
             self%out_type = NF90_DOUBLE
          end select
 
-
          ! Check if the file exists, and if it does, delete it
          inquire(file=nc%enc_file, exist=fileExists)
          if (fileExists) then
@@ -80,9 +80,9 @@ contains
          call check( nf90_create(nc%enc_file, NF90_NETCDF4, nc%id), "symba_io_encounter_initialize_output nf90_create" )
 
          ! Dimensions
-         call check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "symba_io_encounter_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
-         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "symba_io_encounter_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
-         call check( nf90_def_dim(nc%id, nc%id_dimname, NF90_UNLIMITED, nc%id_dimid), "symba_io_encounter_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
+         call check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "symba_io_encounter_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
+         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM , nc%space_dimid), "symba_io_encounter_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
+         call check( nf90_def_dim(nc%id, nc%id_dimname, param%maxid, nc%id_dimid), "symba_io_encounter_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
          call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "symba_io_encounter_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
 
          ! Dimension coordinates
@@ -141,36 +141,57 @@ contains
       use netcdf
       implicit none
       ! Arguments
-      class(symba_encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
-      class(symba_io_encounter_parameters), intent(inout) :: nc   !! Parameters used to identify a particular encounter io NetCDF dataset
-      class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
+      class(symba_encounter_snapshot),      intent(in)    :: self  !! Swiftest encounter structure
+      class(symba_io_encounter_parameters), intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B)                             :: i,  tslot, idslot, old_mode, n
-      character(len=NAMELEN)                   :: charstring
+      integer(I4B)           :: i,  tslot, idslot, old_mode, npl, ntp
+      character(len=NAMELEN) :: charstring
+
+      call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame nf90_set_fill"  )
 
       tslot = self%tslot
-      call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "symba_io_encounter_write_frame nf90_set_fill"  )
+      call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
+
       select type(pl => self%pl)
       class is (symba_pl)
-         n = size(pl%id(:))
-         do i = 1, n
+         npl = pl%nbody
+         do i = 1, npl
             idslot = pl%id(i)
-            call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
-            call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame nf90_put_var id_varid"  )
-            call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var rh_varid"  )
-            call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var vh_varid"  )
-            call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var body Gmass_varid"  )
-            if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var body radius_varid"  )
+            call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i), start=[idslot]), "symba_io_encounter_write_frame nf90_put_var pl id_varid"  )
+            call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var pl rh_varid"  )
+            call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var pl vh_varid"  )
+            call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var pl Gmass_varid"  )
+
+            if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var pl radius_varid"  )
+
             if (param%lrotation) then
-               call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var body Ip_varid"  )
-               call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var body rotx_varid"  )
+               call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var pl Ip_varid"  )
+               call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var pl rotx_varid"  )
             end if
+ 
             charstring = trim(adjustl(pl%info(i)%name))
-            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var name_varid"  )
+            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var pl name_varid"  )
             charstring = trim(adjustl(pl%info(i)%particle_type))
-            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var particle_type_varid"  )
+            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var pl particle_type_varid"  )
          end do
+       
       end select
+
+      associate(tp => self%tp) 
+         ntp = tp%nbody
+         do i = 1, ntp
+            idslot = tp%id(i)
+            call check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), "symba_io_encounter_write_frame nf90_put_var tp id_varid"  )
+            call check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var tp rh_varid"  )
+            call check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var tp vh_varid"  )
+
+            charstring = trim(adjustl(tp%info(i)%name))
+            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var tp name_varid"  )
+            charstring = trim(adjustl(tp%info(i)%particle_type))
+            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var tp particle_type_varid"  )
+         end do
+      end associate
 
       call check( nf90_set_fill(nc%id, old_mode, old_mode) )
 
@@ -388,10 +409,20 @@ contains
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Current simulation time
       ! Internals
-      !character(STRMAX) 
+      integer(I4B) :: i
 
       ! Create and save the output file for this encounter
+      
+      ! Figure out how many time slots we need
+      do i = 1, self%encounter_history%nframes
+         if (self%t + param%dt <= self%encounter_history%tvals(i)) then
+            self%encounter_history%nc%time_dimsize = i
+            exit
+         end if
+      end do
+
       write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop
+
       call self%encounter_history%nc%initialize(param)
       call self%encounter_history%dump(param)
       call self%encounter_history%nc%close()
