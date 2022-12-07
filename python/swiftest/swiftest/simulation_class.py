@@ -323,12 +323,14 @@ class Simulation:
         self.simdir = Path(simdir)
         if self.simdir.exists():
             if not self.simdir.is_dir():
-                msg = f"Cannot create the {self.simdir} directory: File exists."
+                msg = f"Cannot create the {self.simdir.resolve()} directory: File exists."
                 msg += "\nDelete the file or change the location of param_file"
-                warnings.warn(msg,stacklevel=2)
+                raise NotADirectoryError(msg)
         else:
-            self.simdir.mkdir(parents=True, exist_ok=False)
-
+            if read_old_output_file or read_param:
+                raise NotADirectoryError(f"Cannot find directory {self.simdir.resolve()} ")
+            else:
+                self.simdir.mkdir(parents=True, exist_ok=False)
 
         # Set the location of the parameter input file, choosing the default if it isn't specified.
         param_file = kwargs.pop("param_file",Path.cwd() / self.simdir / "param.in")
@@ -376,7 +378,7 @@ class Simulation:
             if os.path.exists(binpath):
                 self.read_output_file()
             else:
-                warnings.warn(f"BIN_OUT file {binpath} not found.",stacklevel=2)
+                raise FileNotFoundError(f"BIN_OUT file {binpath} not found.")
         return
 
     def _run_swiftest_driver(self):
@@ -2770,7 +2772,7 @@ class Simulation:
             return io.process_netcdf_input(ds,param)
         partial_func = partial(_preprocess, param=self.param)
 
-        self.enc = xr.open_mfdataset(enc_files,parallel=True,preprocess=partial_func,mask_and_scale=True)
+        self.enc = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
         self.enc = io.process_netcdf_input(self.enc, self.param)
 
         return
