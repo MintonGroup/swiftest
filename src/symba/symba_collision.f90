@@ -26,7 +26,7 @@ contains
       ! Result
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)          :: i, nfrag
+      integer(I4B)          :: i, ibiggest, nfrag
       logical               :: lfailure
       character(len=STRMAX) :: message 
 
@@ -63,11 +63,16 @@ contains
          select case(frag%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION)
             status = DISRUPTION
+            ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
+            frag%id(1) = system%pl%id(ibiggest)
+            frag%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
+            param%maxid = frag%id(nfrag)
          case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
             status = SUPERCATASTROPHIC
+            frag%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+            param%maxid = frag%id(nfrag)
          end select
-         frag%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
-         param%maxid = frag%id(nfrag)
+
          call symba_collision_mergeaddsub(system, param, colliders, frag, status)
       end if
 
@@ -720,7 +725,7 @@ contains
       logical, dimension(system%pl%nbody)    :: lmask
       class(symba_pl), allocatable           :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
-      character(len=NAMELEN) :: newname
+      character(len=NAMELEN) :: newname, origin_type
    
       select type(pl => system%pl)
       class is (symba_pl)
@@ -757,23 +762,6 @@ contains
                call plnew%set_rhill(cb)
 
                select case(status)
-               case(DISRUPTION)
-                  plnew%status(1:nfrag) = NEW_PARTICLE
-                  do i = 1, nfrag
-                     write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Disruption", origin_time=system%t, name=newname, &
-                                                  origin_rh=plnew%rh(:,i), &
-                                                  origin_vh=plnew%vh(:,i), collision_id=param%maxid_collision)
-                  end do
-                  do i = 1, ncolliders
-                     if (colliders%idx(i) == ibiggest) then
-                        iother = ismallest
-                     else
-                        iother = ibiggest
-                     end if
-                     call pl%info(colliders%idx(i))%set_value(status="Disruption", discard_time=system%t, &
-                                                              discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), discard_body_id=iother)
-                  end do
                case(SUPERCATASTROPHIC)
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
@@ -792,19 +780,24 @@ contains
                                                               discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do
-               case(HIT_AND_RUN_DISRUPT)
+               case(DISRUPTION,HIT_AND_RUN_DISRUPT)
+                  if (status == DISRUPTION) then
+                     write(origin_type,*) "Disruption"
+                  else if (status == HIT_AND_RUN_DISRUPT) then
+                     write(origin_type,*) "Hit and run fragmention"
+                  end if
                   call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
                   do i = 2, nfrag
                      write(newname, FRAGFMT) frag%id(i)
-                     call plnew%info(i)%set_value(origin_type="Hit and run fragment", origin_time=system%t, name=newname, &
+                     call plnew%info(i)%set_value(origin_type=origin_type, origin_time=system%t, name=newname, &
                                                   origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) cycle
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status="Hit and run fragmention", discard_time=system%t, &
+                     call pl%info(colliders%idx(i))%set_value(status=origin_type, discard_time=system%t, &
                                                               discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do 

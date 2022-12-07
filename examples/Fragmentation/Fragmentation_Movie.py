@@ -97,7 +97,7 @@ class AnimatedScatter(object):
         self.body_color_list = {'Initial conditions': 'xkcd:windows blue',
                       'Disruption': 'xkcd:baby poop',
                       'Supercatastrophic': 'xkcd:shocking pink',
-                      'Hit and run fragment': 'xkcd:blue with a hint of purple',
+                      'Hit and run fragmention': 'xkcd:blue with a hint of purple',
                       'Central body': 'xkcd:almost black'}
 
         # Set up the figure and axes...
