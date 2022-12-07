@@ -17,6 +17,7 @@ from swiftest import constants
 from swiftest import __file__ as _pyfile
 import json
 import os
+from glob import glob
 from pathlib import Path
 import datetime
 import xarray as xr
@@ -2667,23 +2668,23 @@ class Simulation:
 
         Parameters
         ----------
-           param_file : string
-                File name of the input parameter file
-            newcodename : string
-                Name of the desired format (Swift/Swifter/Swiftest)
-            plname : string
-                File name of the massive body input file
-            tpname : string
-                File name of the test particle input file
-            cbname : string
-                File name of the central body input file
-            conversion_questions : dictronary
-                Dictionary of additional parameters required to convert between formats
+        param_file : string
+        File name of the input parameter file
+        newcodename : string
+        Name of the desired format (Swift/Swifter/Swiftest)
+        plname : string
+        File name of the massive body input file
+        tpname : string
+        File name of the test particle input file
+        cbname : string
+        File name of the central body input file
+        conversion_questions : dictronary
+        Dictionary of additional parameters required to convert between formats
 
         Returns
         -------
-            oldparam : xarray dataset
-                The old parameter configuration.
+        oldparam : xarray dataset
+        The old parameter configuration.
         """
         oldparam = self.param
         if self.codename == newcodename:
@@ -2720,12 +2721,12 @@ class Simulation:
 
         Parameters
         ----------
-            read_init_cond : bool
-                Read in an initial conditions file along with the output file. Default is True
+        read_init_cond : bool
+        Read in an initial conditions file along with the output file. Default is True
 
         Returns
         -------
-            self.data : xarray dataset
+        self.data : xarray dataset
         """
 
         # Make a temporary copy of the parameter dictionary so we can supply the absolute path of the binary file
@@ -2765,7 +2766,8 @@ class Simulation:
     def read_encounter(self):
         if self.verbose:
             print("Reading encounter history file as .enc")
-        enc_files = self.simdir.glob("**/encounter_*.nc")
+        enc_files = glob(f"{self.simdir}{os.path.sep}encounter_*.nc")
+        enc_files.sort()
 
         # This is needed in order to pass the param argument down to the io.process_netcdf_input function
         def _preprocess(ds, param):
@@ -2774,6 +2776,9 @@ class Simulation:
 
         self.enc = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
         self.enc = io.process_netcdf_input(self.enc, self.param)
+        # Remove any overlapping time values
+        tgood,tid = np.unique(self.enc.time,return_index=True)
+        self.enc = self.enc.isel(time=tid)
 
         return
 
