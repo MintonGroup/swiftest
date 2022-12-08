@@ -33,7 +33,7 @@ contains
       ! Arguments
       type(helio_nbody_system),  intent(inout) :: self !! Helio nbody system object
 
-      call self%dealloc()
+      call whm_util_final_system(self%whm_nbody_system)
 
       return
    end subroutine helio_util_final_system

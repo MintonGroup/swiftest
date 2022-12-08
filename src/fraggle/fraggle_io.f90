@@ -12,6 +12,26 @@ submodule(fraggle_classes) s_fraggle_io
 
 contains
 
+
+   module subroutine fraggle_io_encounter_dump(self, param)
+      implicit none
+      class(fraggle_storage(*)), intent(inout) :: self   !! Encounter storage object
+      class(swiftest_parameters),          intent(inout) :: param  !! Current run configuration parameters 
+   end subroutine fraggle_io_encounter_dump
+
+   module subroutine fraggle_io_encounter_initialize_output(self, param)
+      implicit none
+      class(fraggle_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),             intent(in)    :: param   
+   end subroutine fraggle_io_encounter_initialize_output
+
+   module subroutine fraggle_io_encounter_write_frame(self, nc, param)
+      implicit none
+      class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
+      class(encounter_io_parameters),    intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
+   end subroutine fraggle_io_encounter_write_frame
+
    module subroutine fraggle_io_log_generate(frag)
       !! author: David A. Minton
       !!

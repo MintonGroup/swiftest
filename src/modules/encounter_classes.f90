@@ -38,8 +38,38 @@ module encounter_classes
       procedure :: dealloc     => encounter_util_dealloc_list !! Deallocates all allocatables
       procedure :: spill       => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: resize      => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      final     :: encounter_util_final_list                  !! Finalize the encounter list - deallocates all allocatables
+      final     ::                encounter_util_final_list   !! Finalize the encounter list - deallocates all allocatables
    end type encounter_list
+
+   type :: encounter_snapshot
+      !! A simplified version of a SyMBA nbody system object for storing minimal snapshots of the system state during encounters
+      class(swiftest_pl), allocatable :: pl  !! Massive body data structure
+      class(swiftest_tp), allocatable :: tp  !! Test particle data structure
+      real(DP)                        :: t   !! Simulation time when snapshot was taken
+   contains
+      procedure :: write_frame => encounter_io_write_frame !! Writes a frame of encounter data to file 
+      final     ::                encounter_util_final_snapshot
+   end type encounter_snapshot
+
+   !> NetCDF dimension and variable names for the enounter save object
+   type, extends(netcdf_parameters) :: encounter_io_parameters
+      integer(I4B)       :: ienc_frame    = 1       !! Current frame number for the encounter history
+      character(STRMAX)  :: enc_file                !! Encounter output file name
+      character(NAMELEN) :: level_varname = "level" !! Recursion depth
+      integer(I4B)       :: level_varid             !! ID for the recursion level variable
+      integer(I4B)       :: time_dimsize = 0        !! Number of time values in snapshot
+      integer(I4B)       :: id_dimsize   = 0        !! Number of potential id values in snapshot
+   contains
+      procedure :: initialize => encounter_io_initialize !! Initialize a set of parameters used to identify a NetCDF output object
+   end type encounter_io_parameters
+
+   !> A class that that is used to store simulation history data between file output
+   type, extends(swiftest_storage) :: encounter_storage
+      type(encounter_io_parameters) :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object 
+   contains
+      procedure :: dump   => encounter_io_dump !! Dumps contents of encounter history to file
+      final     ::           encounter_util_final_storage
+   end type encounter_storage
 
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
@@ -47,9 +77,9 @@ module encounter_classes
       integer(I8B), dimension(:), allocatable :: ibeg !! Beginning index for box
       integer(I8B), dimension(:), allocatable :: iend !! Ending index for box
    contains
-      procedure :: sort  => encounter_check_sort_aabb_1D !! Sorts the bounding box extents along a single dimension prior to the sweep phase
-      procedure :: dealloc => encounter_util_dealloc_aabb !! Deallocates all allocatables
-      final     :: encounter_util_final_aabb             !! Finalize the axis-aligned bounding box (1D) - deallocates all allocatables
+      procedure :: sort    => encounter_check_sort_aabb_1D !! Sorts the bounding box extents along a single dimension prior to the sweep phase
+      procedure :: dealloc => encounter_util_dealloc_aabb  !! Deallocates all allocatables
+      final     ::            encounter_util_final_aabb    !! Finalize the axis-aligned bounding box (1D) - deallocates all allocatables
    end type
 
    type encounter_bounding_box
@@ -173,6 +203,25 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
+      module subroutine encounter_io_dump(self, param)
+         implicit none
+         class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
+         class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine encounter_io_dump
+
+      module subroutine encounter_io_initialize(self, param)
+         implicit none
+         class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param   
+      end subroutine encounter_io_initialize
+
+      module subroutine encounter_io_write_frame(self, nc, param)
+         implicit none
+         class(encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
+         class(encounter_io_parameters), intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
+      end subroutine encounter_io_write_frame
+
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none
          class(encounter_bounding_box), intent(inout) :: self   !! Swiftest encounter structure
@@ -218,6 +267,16 @@ module encounter_classes
          implicit none
          type(encounter_list), intent(inout) :: self !! Swiftest encounter list object
       end subroutine encounter_util_final_list
+
+      module subroutine encounter_util_final_snapshot(self)
+         implicit none
+         type(encounter_snapshot),  intent(inout) :: self !! Encounter snapshot object
+      end subroutine encounter_util_final_snapshot
+
+      module subroutine encounter_util_final_storage(self)
+         implicit none
+         type(encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine encounter_util_final_storage
 
       module subroutine encounter_util_resize_list(self, nnew)
          implicit none

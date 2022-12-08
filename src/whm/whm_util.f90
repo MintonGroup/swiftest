@@ -117,7 +117,7 @@ contains
       ! Arguments
       type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
 
-      call self%dealloc()
+      call util_final_system(self)
 
       return
    end subroutine whm_util_final_system

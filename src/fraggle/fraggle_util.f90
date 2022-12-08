@@ -131,6 +131,70 @@ contains
    end subroutine fraggle_util_construct_temporary_system
 
 
+
+   module subroutine fraggle_util_final_colliders(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      type(fraggle_colliders),  intent(inout) :: self !! Fraggle encountar storage object
+
+      if (allocated(self%idx)) deallocate(self%idx)
+
+      return
+   end subroutine fraggle_util_final_colliders
+
+
+   module subroutine fraggle_util_final_fragments(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
+
+      if (allocated(self%x_coll)) deallocate(self%x_coll)
+      if (allocated(self%v_coll)) deallocate(self%v_coll)
+      if (allocated(self%v_r_unit)) deallocate(self%v_r_unit)
+      if (allocated(self%v_t_unit)) deallocate(self%v_t_unit)
+      if (allocated(self%v_n_unit)) deallocate(self%v_n_unit)
+      if (allocated(self%rmag)) deallocate(self%rmag)
+      if (allocated(self%rotmag)) deallocate(self%rotmag)
+      if (allocated(self%v_r_mag)) deallocate(self%v_r_mag)
+      if (allocated(self%v_t_mag)) deallocate(self%v_t_mag)
+
+      return
+   end subroutine fraggle_util_final_fragments
+
+
+   module subroutine fraggle_util_final_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      type(fraggle_storage(*)),  intent(inout) :: self !! Fraggle encountar storage object
+
+      call util_final_storage(self%swiftest_storage)
+
+      return
+   end subroutine fraggle_util_final_storage
+
+   module subroutine fraggle_util_final_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      type(fraggle_encounter_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+
+      call encounter_util_final_snapshot(self%encounter_snapshot)
+
+      return
+   end subroutine fraggle_util_final_snapshot
+
+
    module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)
       !! Author: David A. Minton
       !!

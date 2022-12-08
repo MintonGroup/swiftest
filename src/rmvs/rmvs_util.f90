@@ -232,7 +232,8 @@ contains
       ! Arguments
       type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
 
-      call self%dealloc()
+      if (allocated(self%vbeg)) deallocate(self%vbeg)
+      call whm_util_final_system(self%whm_nbody_system)
 
       return
    end subroutine rmvs_util_final_system

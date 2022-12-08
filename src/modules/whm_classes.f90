@@ -58,7 +58,7 @@ module whm_classes
       procedure :: spill       => whm_util_spill_pl          !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: setup       => whm_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
-      final     :: whm_util_final_pl                         !! Finalizes the WHM massive body object - deallocates all allocatables
+      final     ::                whm_util_final_pl          !! Finalizes the WHM massive body object - deallocates all allocatables
    end type whm_pl
 
    !********************************************************************************************************************************
@@ -75,7 +75,7 @@ module whm_classes
       procedure :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
       procedure :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
       procedure :: step        => whm_step_tp            !! Steps the particle forward one stepsize
-      final     :: whm_util_final_tp                   !! Finalizes the WHM test particle object - deallocates all allocatables 
+      final     ::                whm_util_final_tp      !! Finalizes the WHM test particle object - deallocates all allocatables 
    end type whm_tp
 
    !********************************************************************************************************************************
@@ -87,7 +87,7 @@ module whm_classes
       !> Replace the abstract procedures with concrete ones
       procedure :: initialize   => whm_setup_initialize_system !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
       procedure :: step         => whm_step_system             !! Advance the WHM nbody system forward in time by one step
-      final     :: whm_util_final_system                     !! Finalizes the WHM system object - deallocates all allocatables 
+      final     ::                 whm_util_final_system       !! Finalizes the WHM system object - deallocates all allocatables 
    end type whm_nbody_system
 
    interface

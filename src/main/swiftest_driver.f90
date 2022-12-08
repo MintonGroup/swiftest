@@ -28,7 +28,7 @@ program swiftest_driver
    integer(I4B)                                   :: iout              !! Output cadence counter
    integer(I4B)                                   :: idump             !! Dump cadence counter
    type(walltimer)                                :: integration_timer !! Object used for computing elapsed wall time
-   real(DP)                                       :: tfrac
+   real(DP)                                       :: tfrac             !! Fraction of total simulation time completed
    type(progress_bar)                             :: pbar              !! Object used to print out a progress bar
    character(*), parameter                        :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                                                  '"; Number of active pl, tp = ", I6, ", ", I6)'
@@ -127,7 +127,7 @@ program swiftest_driver
             if (iout == istep_out) then
                iout = 0
                idump = idump + 1
-               system_history%frame(idump) = nbody_system
+               system_history%frame(idump) = nbody_system ! Store a snapshot of the system for posterity
 
                if (idump == dump_cadence) then
                   idump = 0
