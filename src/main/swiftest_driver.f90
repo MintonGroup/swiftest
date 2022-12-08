@@ -51,6 +51,8 @@ program swiftest_driver
    end select
    param%integrator = trim(adjustl(integrator))
    call param%set_display(display_style)
+   call param%read_in(param_file_name)
+   call setup_construct_system(nbody_system, param)
 
    !> Define the maximum number of threads
    nthreads = 1            ! In the *serial* case
@@ -60,8 +62,6 @@ program swiftest_driver
    !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
    !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 
-   call setup_construct_system(nbody_system, param)
-   call param%read_in(param_file_name)
 
    associate(t               => nbody_system%t, &
              t0              => param%t0, &

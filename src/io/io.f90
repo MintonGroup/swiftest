@@ -264,6 +264,17 @@ contains
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
 
+      ! Dump the encounter history if necessary
+      select type(param)
+      class is (symba_parameters)
+         if (param%lencounter_save) then
+            select type(self)
+            class is (symba_nbody_system)
+               call self%dump_encounter(param)
+            end select
+         end if
+      end select
+
       return
    end subroutine io_dump_system
 

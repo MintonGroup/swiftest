@@ -64,7 +64,7 @@ param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_s
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "status", "origin_type"]
 char_varnames = ["space"]
-int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id"]
+int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "loopnum"]
 
 def bool2yesno(boolval):
     """
@@ -816,8 +816,8 @@ def process_netcdf_input(ds, param):
     -------
     ds : xarray dataset
     """
-
-    ds = ds.where(~np.isnan(ds.id) ,drop=True)
+    #
+    ds = ds.where(ds.id >=0,drop=True)
     if param['OUT_TYPE'] == "NETCDF_DOUBLE":
         ds = fix_types(ds,ftype=np.float64)
     elif param['OUT_TYPE'] == "NETCDF_FLOAT":

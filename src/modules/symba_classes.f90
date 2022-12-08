@@ -199,8 +199,7 @@ module symba_classes
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
       procedure :: snapshot         => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
-      procedure :: start_encounter  => symba_io_start_encounter           !! Initializes the new encounter history
-      procedure :: stop_encounter   => symba_io_stop_encounter            !! Saves the encounter and/or fragmentation data to file(s)   
+      procedure :: dump_encounter   => symba_io_dump_encounter            !! Saves the encounter and/or fragmentation data to file(s)   
       final     ::                     symba_util_final_system            !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
@@ -409,19 +408,11 @@ module symba_classes
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
 
-      module subroutine symba_io_start_encounter(self, param, t)
+      module subroutine symba_io_dump_encounter(self, param)
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
          class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t     !! Current simulation time
-      end subroutine symba_io_start_encounter
-
-      module subroutine symba_io_stop_encounter(self, param, t)
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t     !! Current simulation time
-      end subroutine symba_io_stop_encounter
+      end subroutine symba_io_dump_encounter
 
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters

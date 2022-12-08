@@ -68,6 +68,14 @@ contains
             allocate(symba_pltpenc :: system%pltpenc_list)
             allocate(symba_plplenc :: system%plplenc_list)
             allocate(symba_plplenc :: system%plplcollision_list)
+
+            select type(param)
+            class is (symba_parameters)
+               if (param%lencounter_save) then
+                  if (.not. allocated(system%encounter_history)) allocate(encounter_storage :: system%encounter_history)
+                  call system%encounter_history%reset()
+               end if
+            end select
          end select
       case (RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'

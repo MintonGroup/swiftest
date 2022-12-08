@@ -11,6 +11,30 @@ submodule (symba_classes) s_symba_io
    use swiftest
 contains
 
+
+   module subroutine symba_io_dump_encounter(self, param)
+      !! author: David A. Minton
+      !!
+      !! Saves the encounter and/or fragmentation data to file with the name of the current output interval number attached
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
+
+      if (self%encounter_history%iframe == 0) return ! No enounters in this interval
+      
+      ! Create and save the output file for this encounter
+      self%encounter_history%nc%time_dimsize = maxval(self%encounter_history%tslot(:))
+      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop / param%dump_cadence
+      call self%encounter_history%nc%initialize(param)
+      call self%encounter_history%dump(param)
+      call self%encounter_history%nc%close()
+      call self%encounter_history%reset()
+
+      return
+   end subroutine symba_io_dump_encounter
+
+
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -186,55 +210,6 @@ contains
       667 continue
       write(*,*) "Error writing parameter file for SyMBA: " // trim(adjustl(iomsg))
    end subroutine symba_io_param_writer
-
-
-   module subroutine symba_io_start_encounter(self, param, t)
-      !! author: David A. Minton
-      !!
-      !! Initializes the new encounter and/or fragmentation history
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! Current simulation time
-
-      if (.not. allocated(self%encounter_history)) then
-         allocate(encounter_storage :: self%encounter_history)
-      end if
-      call self%encounter_history%reset()
-
-      ! Take the snapshot at the start of the encounter
-      call self%snapshot(param, t) 
-
-      return
-   end subroutine symba_io_start_encounter
-
-
-   module subroutine symba_io_stop_encounter(self, param, t)
-      !! author: David A. Minton
-      !!
-      !! Saves the encounter and/or fragmentation data to file(s)  
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! Current simulation time
-      ! Internals
-      integer(I4B) :: i
-
-      ! Create and save the output file for this encounter
-      
-      self%encounter_history%nc%time_dimsize = maxval(self%encounter_history%tslot(:))
-
-      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop
-
-      call self%encounter_history%nc%initialize(param)
-      call self%encounter_history%dump(param)
-      call self%encounter_history%nc%close()
-      call self%encounter_history%reset()
-
-      return
-   end subroutine symba_io_stop_encounter
 
 
    module subroutine symba_io_write_discard(self, param)

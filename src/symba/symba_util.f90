@@ -1302,6 +1302,7 @@ contains
       associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
 
          snapshot%t = t
+         snapshot%iloop = param%iloop
 
          if (npl + ntp == 0) return
          npl_snap = npl

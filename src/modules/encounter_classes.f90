@@ -43,9 +43,10 @@ module encounter_classes
 
    type :: encounter_snapshot
       !! A simplified version of a SyMBA nbody system object for storing minimal snapshots of the system state during encounters
-      class(swiftest_pl), allocatable :: pl  !! Massive body data structure
-      class(swiftest_tp), allocatable :: tp  !! Test particle data structure
-      real(DP)                        :: t   !! Simulation time when snapshot was taken
+      class(swiftest_pl), allocatable :: pl    !! Massive body data structure
+      class(swiftest_tp), allocatable :: tp    !! Test particle data structure
+      real(DP)                        :: t     !! Simulation time when snapshot was taken
+      integer(I8B)                    :: iloop !! Loop number at time of snapshot
    contains
       procedure :: write_frame => encounter_io_write_frame !! Writes a frame of encounter data to file 
       final     ::                encounter_util_final_snapshot
@@ -53,19 +54,19 @@ module encounter_classes
 
    !> NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: encounter_io_parameters
-      integer(I4B)       :: ienc_frame    = 1       !! Current frame number for the encounter history
-      character(STRMAX)  :: enc_file                !! Encounter output file name
-      character(NAMELEN) :: level_varname = "level" !! Recursion depth
-      integer(I4B)       :: level_varid             !! ID for the recursion level variable
-      integer(I4B)       :: time_dimsize = 0        !! Number of time values in snapshot
-      integer(I4B)       :: id_dimsize   = 0        !! Number of potential id values in snapshot
+      integer(I4B)       :: ienc_frame    = 1        !! Current frame number for the encounter history
+      character(STRMAX)  :: enc_file                 !! Encounter output file name
+      character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
+      integer(I4B)       :: loop_varid               !! ID for the recursion level variable
+      integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
+      integer(I4B)       :: id_dimsize   = 0         !! Number of potential id values in snapshot
    contains
       procedure :: initialize => encounter_io_initialize !! Initialize a set of parameters used to identify a NetCDF output object
    end type encounter_io_parameters
 
    !> A class that that is used to store simulation history data between file output
    type, extends(swiftest_storage) :: encounter_storage
-      type(encounter_io_parameters) :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object 
+      type(encounter_io_parameters) :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
    contains
       procedure :: dump   => encounter_io_dump !! Dumps contents of encounter history to file
       final     ::           encounter_util_final_storage

@@ -2780,6 +2780,11 @@ class Simulation:
         tgood,tid = np.unique(self.enc.time,return_index=True)
         self.enc = self.enc.isel(time=tid)
 
+        # Reduce the dimensionality of variables that got expanded in the combine process
+        self.enc['loopnum'] = self.enc['loopnum'].max(dim="name")
+        self.enc['id'] = self.enc['id'].max(dim="time")
+        self.enc['particle_type'] = self.enc['particle_type'].max(dim="time")
+
         return
 
 
