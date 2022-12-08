@@ -344,33 +344,24 @@ module symba_classes
          real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine symba_gr_p4_tp
 
-      module function symba_collision_casedisruption(system, param, colliders, fragments) result(status)
-         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
+      module function symba_collision_casedisruption(system, param) result(status)
          implicit none
          class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-         class(fraggle_fragments),  intent(inout) :: fragments !! Fraggle fragmentation system object
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casedisruption
    
-      module function symba_collision_casehitandrun(system, param, colliders, fragments) result(status)
-         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
+      module function symba_collision_casehitandrun(system, param) result(status)
          implicit none
          class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-         class(fraggle_fragments),  intent(inout) :: fragments !! Fraggle fragmentation system object
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casehitandrun
 
-      module function symba_collision_casemerge(system, param, colliders, fragments) result(status)
-         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
+      module function symba_collision_casemerge(system, param) result(status)
          implicit none
          class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-         class(fraggle_fragments),  intent(inout) :: fragments !! Fraggle fragmentation system object 
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casemerge
 
