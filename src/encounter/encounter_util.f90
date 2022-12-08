@@ -136,6 +136,36 @@ contains
    end subroutine encounter_util_final_list
 
 
+   module subroutine encounter_util_final_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates allocatable arrays in an encounter snapshot
+      implicit none
+      ! Arguments
+      type(encounter_snapshot),  intent(inout) :: self !! Encounter storage object
+
+      if (allocated(self%pl)) deallocate(self%pl)
+      if (allocated(self%tp)) deallocate(self%tp)
+      self%t = 0.0_DP
+
+      return
+   end subroutine encounter_util_final_snapshot
+
+
+   module subroutine encounter_util_final_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates allocatable arrays in an encounter snapshot
+      implicit none
+      ! Arguments
+      type(encounter_storage(*)),  intent(inout) :: self !! Encounter storage object
+
+      call util_final_storage(self%swiftest_storage)
+
+      return
+   end subroutine encounter_util_final_storage
+
+
    module subroutine encounter_util_resize_list(self, nnew)
       !! author: David A. Minton
       !!

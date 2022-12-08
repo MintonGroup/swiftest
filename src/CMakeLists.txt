@@ -30,6 +30,7 @@ SET(FAST_MATH_FILES
             ${SRC}/encounter/encounter_check.f90
             ${SRC}/encounter/encounter_setup.f90
             ${SRC}/encounter/encounter_util.f90
+            ${SRC}/encounter/encounter_io.f90
             ${SRC}/fraggle/fraggle_generate.f90
             ${SRC}/fraggle/fraggle_io.f90
             ${SRC}/fraggle/fraggle_placeholder.f90
@@ -74,6 +75,7 @@ SET(FAST_MATH_FILES
             ${SRC}/util/util_dealloc.f90
             ${SRC}/util/util_exit.f90
             ${SRC}/util/util_fill.f90
+            ${SRC}/util/util_final.f90
             ${SRC}/util/util_flatten.f90
             ${SRC}/util/util_get_energy_momentum.f90
             ${SRC}/util/util_index_array.f90

@@ -28,6 +28,7 @@ fragmentation.mp4 : mp4 movie file
 
 import swiftest
 import numpy as np
+import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from pathlib import Path
@@ -75,21 +76,37 @@ body_radius = body_Gmass.copy()
 for k,v in body_Gmass.items():
     body_radius[k] = [((Gmass/GU)/(4./3.*np.pi*density))**(1./3.) for Gmass in v]
 
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Define the animation class that will generate the movies of the fragmentation outcomes
 # ----------------------------------------------------------------------------------------------------------------------
-figsize = (4,4)
+
+
+def encounter_combiner(sim):
+    """
+    Combines simulation data with encounter data to produce a dataset that contains the position,
+    mass, radius, etc. of both. It will interpolate over empty time values to fill in gaps.
+    """
+
+    # Only keep a minimal subset of necessary data from the simulation and encounter datasets
+    keep_vars = ['rh','Gmass','radius']
+    data = sim.data[keep_vars]
+    enc = sim.enc[keep_vars].load()
+
+    # Remove any encounter data at the same time steps that appear in the data to prevent duplicates
+    t_not_duplicate = ~enc['time'].isin(data['time'])
+    enc = enc.where(t_not_duplicate,drop=True)
+
+    # The following will combine the two datasets along the time dimension, sort the time dimension, and then fill in any time gaps with interpolation
+    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
+
+    return ds
+
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
     def __init__(self, sim, animfile, title, style, nskip=1):
-        if style == "disruption_headon" or style == "hitandrun":
-            tgood = sim.enc.where(sim.enc['Gmass'] > 0.8 * body_Gmass[style][0]).time
-        else:
-            tgood = sim.enc.where(sim.enc['Gmass'] > 0.01 * body_Gmass[style][1]).time
 
-        self.ds = sim.enc[['rh','vh','Gmass','radius']].sel(time=tgood).load().interpolate_na(dim="time")
+        self.ds = encounter_combiner(sim)
 
         nframes = int(self.ds['time'].size)
         self.sim = sim
@@ -101,6 +118,7 @@ class AnimatedScatter(object):
                       'Central body': 'xkcd:almost black'}
 
         # Set up the figure and axes...
+        self.figsize = (4,4)
         self.fig, self.ax = self.setup_plot()
 
         # Then setup FuncAnimation.
@@ -110,7 +128,7 @@ class AnimatedScatter(object):
         print(f"Finished writing {animfile}")
 
     def setup_plot(self):
-        fig = plt.figure(figsize=figsize, dpi=300)
+        fig = plt.figure(figsize=self.figsize, dpi=300)
         plt.tight_layout(pad=0)
 
         # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
@@ -120,7 +138,7 @@ class AnimatedScatter(object):
 
         scale_frame =   abs(rhy1) + abs(rhy2)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
-        self.ax_pt_size = figsize[0] * 0.8 *  72 / (2 * scale_frame)
+        self.ax_pt_size = self.figsize[0] * 0.8 *  72 / (2 * scale_frame)
         ax.set_xlim(-scale_frame, scale_frame)
         ax.set_ylim(-scale_frame, scale_frame)
         ax.set_xticks([])
@@ -185,6 +203,7 @@ if __name__ == "__main__":
         minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
         gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
         sim.set_parameter(fragmentation=True, fragmentation_save="TRAJECTORY", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-        sim.run(dt=1e-4, tstop=4.0e-3, istep_out=1, dump_cadence=0)
+        sim.run(dt=1e-4, tstop=1.0e-3, istep_out=1, dump_cadence=0)
 
+        print("Generating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)
