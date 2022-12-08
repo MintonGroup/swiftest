@@ -870,7 +870,7 @@ contains
    end subroutine symba_collision_mergeaddsub
 
 
-   module subroutine symba_collision_resolve_fragmentations(self, system, param)
+   module subroutine symba_resolve_collision_fragmentations(self, system, param)
       !! author: David A. Minton
       !! 
       !! Process list of collisions, determine the collisional regime, and then create fragments.
@@ -918,10 +918,10 @@ contains
       end associate
 
       return
-   end subroutine symba_collision_resolve_fragmentations
+   end subroutine symba_resolve_collision_fragmentations
 
 
-   module subroutine symba_collision_resolve_mergers(self, system, param)
+   module subroutine symba_resolve_collision_mergers(self, system, param)
       !! author: David A. Minton
       !! 
       !! Process list of collisions and merge colliding bodies together.
@@ -964,10 +964,10 @@ contains
       end associate
 
       return
-   end subroutine symba_collision_resolve_mergers
+   end subroutine symba_resolve_collision_mergers
 
 
-   module subroutine symba_collision_resolve_plplenc(self, system, param, t, dt, irec)
+   module subroutine symba_resolve_collision_plplenc(self, system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -1051,10 +1051,10 @@ contains
       end associate
 
       return
-   end subroutine symba_collision_resolve_plplenc
+   end subroutine symba_resolve_collision_plplenc
 
 
-   module subroutine symba_collision_resolve_pltpenc(self, system, param, t, dt, irec)
+   module subroutine symba_resolve_collision_pltpenc(self, system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -1078,6 +1078,6 @@ contains
       call system%tp%discard(system, param)
 
       return
-   end subroutine symba_collision_resolve_pltpenc
+   end subroutine symba_resolve_collision_pltpenc
 
 end submodule s_symba_collision

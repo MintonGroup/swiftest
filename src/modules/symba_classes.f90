@@ -164,7 +164,7 @@ module symba_classes
    !> SyMBA class for tracking pl-tp close encounters in a step
    type, extends(symba_encounter) :: symba_pltpenc
    contains
-      procedure :: resolve_collision => symba_collision_resolve_pltpenc !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the c
+      procedure :: resolve_collision => symba_resolve_collision_pltpenc !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -174,9 +174,9 @@ module symba_classes
    type, extends(symba_encounter) :: symba_plplenc
    contains
       procedure :: extract_collisions     => symba_collision_encounter_extract_collisions !! Processes the pl-pl encounter list remove only those encounters that led to a collision
-      procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
-      procedure :: resolve_mergers        => symba_collision_resolve_mergers              !! Process list of collisions and merge colliding bodies together
-      procedure :: resolve_collision      => symba_collision_resolve_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
+      procedure :: resolve_fragmentations => symba_resolve_collision_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
+      procedure :: resolve_mergers        => symba_resolve_collision_mergers              !! Process list of collisions and merge colliding bodies together
+      procedure :: resolve_collision      => symba_resolve_collision_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_plplenc
 
 
@@ -231,21 +231,21 @@ module symba_classes
          integer(I4B), dimension(2), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
       end subroutine symba_collision_make_colliders_pl
 
-      module subroutine symba_collision_resolve_fragmentations(self, system, param)
+      module subroutine symba_resolve_collision_fragmentations(self, system, param)
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-      end subroutine symba_collision_resolve_fragmentations
+      end subroutine symba_resolve_collision_fragmentations
    
-      module subroutine symba_collision_resolve_mergers(self, system, param)
+      module subroutine symba_resolve_collision_mergers(self, system, param)
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-      end subroutine symba_collision_resolve_mergers
+      end subroutine symba_resolve_collision_mergers
 
-      module subroutine symba_collision_resolve_plplenc(self, system, param, t, dt, irec)
+      module subroutine symba_resolve_collision_plplenc(self, system, param, t, dt, irec)
          implicit none
          class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
@@ -253,9 +253,9 @@ module symba_classes
          real(DP),                   intent(in)    :: t      !! Current simulation time
          real(DP),                   intent(in)    :: dt     !! Current simulation step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      end subroutine symba_collision_resolve_plplenc
+      end subroutine symba_resolve_collision_plplenc
    
-      module subroutine symba_collision_resolve_pltpenc(self, system, param, t, dt, irec)
+      module subroutine symba_resolve_collision_pltpenc(self, system, param, t, dt, irec)
          implicit none
          class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
@@ -263,7 +263,7 @@ module symba_classes
          real(DP),                   intent(in)    :: t      !! Current simulation time
          real(DP),                   intent(in)    :: dt     !! Current simulation step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      end subroutine symba_collision_resolve_pltpenc
+      end subroutine symba_resolve_collision_pltpenc
 
       module subroutine symba_discard_pl(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
