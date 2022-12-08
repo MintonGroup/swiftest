@@ -183,7 +183,7 @@ module symba_classes
    !! NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: symba_io_encounter_parameters
       integer(I4B)       :: ienc_frame    = 1              !! Current frame number for the encounter history
-      character(STRMAX)  :: enc_file      = "encounter.nc" !! Encounter output file name
+      character(STRMAX)  :: enc_file                       !! Encounter output file name
       character(NAMELEN) :: level_varname = "level"        !! Recursion depth
       integer(I4B)       :: level_varid                    !! ID for the recursion level variable
       integer(I4B)       :: time_dimsize = 0               !! Number of time values in snapshot
@@ -200,6 +200,20 @@ module symba_classes
       procedure :: dump   => symba_io_encounter_dump !! Dumps contents of encounter history to file
       final     :: symba_util_final_encounter_storage
    end type symba_encounter_storage
+
+
+   type :: symba_encounter_snapshot
+      !! A simplified version of a SyMBA nbody system object for storing minimal snapshots of the system state during encounters
+      type(symba_pl) :: pl         !! Massive body data structure
+      type(symba_tp) :: tp         !! Test particle data structure
+      real(DP)       :: t = 0.0_DP !! Time at the snapshot 
+      integer(I4B)   :: tslot = 0  !! The index for the time array in the final NetCDF file
+   contains
+      procedure :: write_encounter_frame => symba_io_encounter_write_frame !! Writes a frame of encounter data to file 
+      procedure :: dealloc               => symba_util_dealloc_snapshot    !! Deallocates all allocatable arrays
+      generic   :: write_frame           => write_encounter_frame          !! Writes a snaphot frame to file
+      final     :: symba_util_final_encounter_snapshot
+   end type symba_encounter_snapshot
 
 
    !********************************************************************************************************************************
@@ -228,18 +242,6 @@ module symba_classes
       final     :: symba_util_final_system                                !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
-
-   type :: symba_encounter_snapshot
-      type(symba_pl) :: pl         !! Massive body data structure
-      type(symba_tp) :: tp         !! Test particle data structure
-      real(DP)       :: t = 0.0_DP !! Time at the snapshot 
-      integer(I4B)   :: tslot = 0  !! The index for the time array in the final NetCDF file
-   contains
-      procedure :: write_encounter_frame => symba_io_encounter_write_frame !! Writes a frame of encounter data to file 
-      procedure :: dealloc               => symba_util_dealloc_snapshot    !! Deallocates all allocatable arrays
-      generic   :: write_frame           => write_encounter_frame          !! Writes a snaphot frame to file
-      final     :: symba_util_final_encounter_snapshot
-   end type symba_encounter_snapshot
 
    interface
 
