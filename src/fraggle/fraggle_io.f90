@@ -36,31 +36,6 @@ contains
       write(LUN,fmtlabel) ' Qloss       |', -frag%Qloss / abs(frag%Etot_before)
       write(LUN,fmtlabel) ' dE - Qloss  |', (frag%Etot_after - frag%Etot_before + frag%Qloss) / abs(frag%Etot_before)
       write(LUN,        "(' -------------------------------------------------------------------------------------')")
-      write(LUN, *) "Individual fragment values (collisional system natural units)"
-      write(LUN, *) "mass"
-      do i = 1, frag%nbody
-         write(LUN, *) i, frag%mass(i)
-      end do
-      write(LUN, *) "x_coll"
-      do i = 1, frag%nbody
-         write(LUN, *) i, frag%x_coll(:,i)
-      end do
-      write(LUN, *) "v_coll"
-      do i = 1, frag%nbody
-         write(LUN, *) i, frag%v_coll(:,i)
-      end do
-      write(LUN, *) "xb"
-      do i = 1, frag%nbody
-         write(LUN, *) i, frag%xb(:,i)
-      end do
-      write(LUN, *) "vb"
-      do i = 1, frag%nbody
-         write(LUN, *) i, frag%vb(:,i)
-      end do
-      write(LUN, *) "rot"
-      do i = 1, frag%nbody
-         write(LUN, *) i, frag%rot(:,i)
-      end do
 
       close(LUN)
 
@@ -81,69 +56,6 @@ contains
       ! Internals
       integer(I4B) :: i
       character(STRMAX) :: errmsg
-
-      open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-      write(LUN, *, err = 667, iomsg = errmsg)
-
-      write(LUN, *) "--------------------------------------------------------------------"
-      write(LUN, *) "           Fraggle fragment final body properties"
-      write(LUN, *) "--------------------------------------------------------------------"
-      write(LUN, *) "id, name"
-      do i = 1, pl%nbody
-         write(LUN, *) i, pl%id(i), pl%info(i)%name
-      end do
-      write(LUN, *) "mass, Gmass"
-      do i = 1, pl%nbody
-         write(LUN, *) i, pl%mass(i), pl%Gmass(i)
-      end do
-      write(LUN, *) "radius"
-      do i = 1, pl%nbody
-         write(LUN, *) i, pl%radius(i)
-      end do
-      write(LUN, *) "xb"
-      do i = 1, pl%nbody
-         write(LUN, *) i, pl%xb(:,i)
-      end do
-      write(LUN, *) "vb"
-      do i = 1, pl%nbody
-         write(LUN, *) i, pl%vb(:,i)
-      end do
-      write(LUN, *) "rh"
-      do i = 1, pl%nbody
-         write(LUN, *) i, pl%rh(:,i)
-      end do
-      write(LUN, *) "vh"
-      do i = 1, pl%nbody
-         write(LUN, *) i, pl%vh(:,i)
-      end do
-
-      if (param%lrotation) then
-         write(LUN, *) "rot"
-         do i = 1, pl%nbody
-            write(LUN, *) i, pl%rot(:,i)
-         end do
-         write(LUN, *) "Ip"
-         do i = 1, pl%nbody
-            write(LUN, *) i, pl%Ip(:,i)
-         end do
-      end if
-
-      ! if (param%ltides) then
-      !    write(LUN, *) "Q"
-      !    do i = 1, pl%nbody
-      !       write(LUN, *) i, pl%Q(i)
-      !    end do
-      !    write(LUN, *) "k2"
-      !    do i = 1, pl%nbody
-      !       write(LUN, *) i, pl%k2(i)
-      !    end do
-      !    write(LUN, *) "tlag"
-      !    do i = 1, pl%nbody
-      !       write(LUN, *) i, pl%tlag(i)
-      !    end do
-      ! end if
-
-      close(LUN)
 
       return
       667 continue
@@ -167,46 +79,20 @@ contains
       write(LUN, *) "--------------------------------------------------------------------"
       write(LUN, *) "           Fraggle collisional regime determination results"
       write(LUN, *) "--------------------------------------------------------------------"
-      write(LUN, *) "----------------------- Collider information -----------------------" 
       write(LUN, *) "True number of colliders : ",colliders%ncoll
       write(LUN, *) "Index list of true colliders  : ",colliders%idx(1:colliders%ncoll)
-      write(LUN, *) "-------------------- Two-body equialent values ---------------------"
-      write(LUN, *) "mass1    : ",colliders%mass(1)
-      write(LUN, *) "radius1  : ",colliders%radius(1)
-      write(LUN, *) "xb1      : ",colliders%xb(:,1)
-      write(LUN, *) "vb1      : ",colliders%vb(:,1)
-      write(LUN, *) "rot1     : ",colliders%rot(:,1)
-      write(LUN, *) "Ip1      : ",colliders%Ip(:,1)
-      write(LUN, *) "L_spin1  : ",colliders%L_spin(:,1)
-      write(LUN, *) "L_orbit1 : ",colliders%L_orbit(:,1)
-      write(LUN, *) "mass2    : ",colliders%mass(2)
-      write(LUN, *) "radius2  : ",colliders%radius(2)
-      write(LUN, *) "xb2      : ",colliders%xb(:,2)
-      write(LUN, *) "vb2      : ",colliders%vb(:,2)
-      write(LUN, *) "rot2     : ",colliders%rot(:,2)
-      write(LUN, *) "Ip2      : ",colliders%Ip(:,2)
-      write(LUN, *) "L_spin2  : ",colliders%L_spin(:,2)
-      write(LUN, *) "L_orbit2 : ",colliders%L_orbit(:,2)
-      write(LUN, *) "------------------------------ Regime -----------------------------"
       select case(frag%regime) 
       case(COLLRESOLVE_REGIME_MERGE)
-         write(LUN, *) "Merge"
+         write(LUN, *) "Regime: Merge"
       case(COLLRESOLVE_REGIME_DISRUPTION)
-         write(LUN, *) "Disruption"
+         write(LUN, *) "Regime: Disruption"
       case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-         write(LUN, *) "Supercatastrophic disruption"
+         write(LUN, *) "Regime: Supercatastrophic disruption"
       case(COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-         write(LUN, *) "Graze and merge"
+         write(LUN, *) "Regime: Graze and merge"
       case(COLLRESOLVE_REGIME_HIT_AND_RUN)
-         write(LUN, *) "Hit and run"
+         write(LUN, *) "Regime: Hit and run"
       end select
-      write(LUN, *) "----------------------- Fragment information ----------------------"
-      write(LUN, *) "Total mass of fragments      : ", frag%mtot
-      write(LUN, *) "Largest fragment mass        : ", frag%mass_dist(1)
-      write(LUN, *) "Second-largest fragment mass : ", frag%mass_dist(2)
-      write(LUN, *) "Remaining fragment mass      : ", frag%mass_dist(3)
-      write(LUN, *) "Center of mass position      : ", frag%xbcom(:)
-      write(LUN, *) "Center of mass velocity      : ", frag%vbcom(:)
       write(LUN, *) "Energy loss                  : ", frag%Qloss
       write(LUN, *) "--------------------------------------------------------------------"
       close(LUN)
