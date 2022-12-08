@@ -95,7 +95,8 @@ contains
          call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%ptype_varid), "symba_io_encounter_initialize_output nf90_def_var ptype_varid"  )
          call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "symba_io_encounter_initialize_output nf90_def_var rh_varid"  )
          call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "symba_io_encounter_initialize_output nf90_def_var vh_varid"  )
-         call check( nf90_def_var(nc%id, nc%gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "symba_io_encounter_initialize_output nf90_def_var Gmass_varid"  )
+         call check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "symba_io_encounter_initialize_output nf90_def_var Gmass_varid"  )
+         call check( nf90_def_var(nc%id, nc%level_varname, NF90_INT, [nc%id_dimid, nc%time_dimid], nc%level_varid), "symba_io_encounter_initialize_output nf90_def_var level_varid"  )
          if (param%lclose) then
             call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "symba_io_encounter_initialize_output nf90_def_var radius_varid"  )
          end if
@@ -153,8 +154,7 @@ contains
       tslot = self%tslot
       call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "symba_io_encounter_write_frame nf90_put_var time_varid"  )
 
-      select type(pl => self%pl)
-      class is (symba_pl)
+      associate(pl => self%pl, tp => self%tp)
          npl = pl%nbody
          do i = 1, npl
             idslot = pl%id(i)
@@ -162,6 +162,7 @@ contains
             call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var pl rh_varid"  )
             call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "symba_io_encounter_write_frame nf90_put_var pl vh_varid"  )
             call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var pl Gmass_varid"  )
+            call check( nf90_put_var(nc%id, nc%level_varid, pl%levelg(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var pl level_varid"  )
 
             if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "symba_io_encounter_write_frame nf90_put_var pl radius_varid"  )
 
@@ -175,10 +176,7 @@ contains
             charstring = trim(adjustl(pl%info(i)%particle_type))
             call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "symba_io_encounter_write_frame nf90_put_var pl particle_type_varid"  )
          end do
-       
-      end select
 
-      associate(tp => self%tp) 
          ntp = tp%nbody
          do i = 1, ntp
             idslot = tp%id(i)

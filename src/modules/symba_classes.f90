@@ -229,11 +229,15 @@ module symba_classes
    end type symba_nbody_system
 
 
-   type, extends(symba_nbody_system) :: symba_encounter_snapshot
-      integer(I4B)                   :: tslot !! The index for the time array in the final NetCDF file
+   type :: symba_encounter_snapshot
+      type(symba_pl) :: pl         !! Massive body data structure
+      type(symba_tp) :: tp         !! Test particle data structure
+      real(DP)       :: t = 0.0_DP !! Time at the snapshot 
+      integer(I4B)   :: tslot = 0  !! The index for the time array in the final NetCDF file
    contains
-      procedure :: write_encounter_frame => symba_io_encounter_write_frame    !! Writes a frame of encounter data to file 
-      generic   :: write_frame           => write_encounter_frame
+      procedure :: write_encounter_frame => symba_io_encounter_write_frame !! Writes a frame of encounter data to file 
+      procedure :: dealloc               => symba_util_dealloc_snapshot    !! Deallocates all allocatable arrays
+      generic   :: write_frame           => write_encounter_frame          !! Writes a snaphot frame to file
       final     :: symba_util_final_encounter_snapshot
    end type symba_encounter_snapshot
 
@@ -656,6 +660,11 @@ module symba_classes
          implicit none
          class(symba_merger),  intent(inout) :: self !! SyMBA body merger object
       end subroutine symba_util_dealloc_merger
+
+      module subroutine symba_util_dealloc_snapshot(self)
+         implicit none
+         class(symba_encounter_snapshot),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine symba_util_dealloc_snapshot
 
       module subroutine symba_util_dealloc_system(self)
          implicit none

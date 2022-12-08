@@ -238,10 +238,28 @@ contains
    end subroutine symba_util_dealloc_merger
 
 
+   module subroutine symba_util_dealloc_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates allocatable arrays in an encounter snapshot
+      implicit none
+      ! Arguments
+      class(symba_encounter_snapshot),  intent(inout) :: self !! SyMBA nbody system object
+
+
+      call self%pl%dealloc()
+      call self%tp%dealloc()
+      self%t = 0.0_DP
+      self%tslot = 0
+
+      return
+   end subroutine symba_util_dealloc_snapshot
+
+
    module subroutine symba_util_dealloc_system(self)
       !! author: David A. Minton
       !!
-      !! Deallocates all allocatabale arrays
+      !! Deallocates all allocatabale arrays in a SyMBA system object
       implicit none
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
@@ -937,6 +955,8 @@ contains
             nbig = nbig * 2
          end do
          allocate(symba_encounter_storage(nbig) :: tmp) 
+         tmp%tvals(1:nold) = self%encounter_history%tvals(1:nold)
+         tmp%tvals(nold+1:nbig) = huge(1.0_DP)
          if (lmalloc) then
             do i = 1, nold
                if (allocated(self%encounter_history%frame(i)%item)) call move_alloc(self%encounter_history%frame(i)%item, tmp%frame(i)%item)
@@ -1328,8 +1348,6 @@ contains
          allocate(symba_encounter_snapshot :: snapshot)
          snapshot%t = t
 
-         allocate(symba_pl :: snapshot%pl)
-         allocate(symba_tp :: snapshot%tp)
          if (npl + ntp == 0) return
          npl_snap = npl
          ntp_snap = ntp
@@ -1353,6 +1371,8 @@ contains
                   allocate(snapshot%pl%id(npl_snap))
                   allocate(snapshot%pl%info(npl_snap))
                   allocate(snapshot%pl%Gmass(npl_snap))
+                  allocate(snapshot%pl%levelg(npl_snap))
+                  snapshot%pl%levelg(:) = pack(pl%levelg(1:npl), pl%lmask(1:npl))
                   snapshot%pl%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
                   snapshot%pl%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
                   snapshot%pl%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
@@ -1394,8 +1414,6 @@ contains
                end if
 
                ! Save the snapshot
-               self%encounter_history%iframe = self%encounter_history%iframe + 1
-               call self%resize_storage(self%encounter_history%iframe)
 
                ! Find out which time slot this belongs in by searching for an existing slot
                ! with the same value of time or the first available one
@@ -1403,6 +1421,8 @@ contains
                   if (t <= self%encounter_history%tvals(i)) then
                      snapshot%tslot = i
                      self%encounter_history%tvals(i) = t
+                     self%encounter_history%iframe = i
+                     call self%resize_storage(i)
                      exit
                   end if
                end do
