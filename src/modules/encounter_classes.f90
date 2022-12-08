@@ -19,18 +19,19 @@ module encounter_classes
    integer(I4B), parameter :: SWEEPDIM = 3
 
    type :: encounter_list
-      integer(I8B)                                    :: nenc = 0  !! Total number of encounters
-      real(DP)                                        :: t         !! Time of encounter
-      logical,            dimension(:),   allocatable :: lvdotr    !! relative vdotr flag
-      integer(I4B),       dimension(:),   allocatable :: status    !! status of the interaction
-      integer(I4B),       dimension(:),   allocatable :: index1    !! position of the first body in the encounter
-      integer(I4B),       dimension(:),   allocatable :: index2    !! position of the second body in the encounter
-      integer(I4B),       dimension(:),   allocatable :: id1       !! id of the first body in the encounter
-      integer(I4B),       dimension(:),   allocatable :: id2       !! id of the second body in the encounter
-      real(DP),           dimension(:,:), allocatable :: x1        !! the position of body 1 in the encounter
-      real(DP),           dimension(:,:), allocatable :: x2        !! the position of body 2 in the encounter
-      real(DP),           dimension(:,:), allocatable :: v1        !! the velocity of body 1 in the encounter
-      real(DP),           dimension(:,:), allocatable :: v2        !! the velocity of body 2 in the encounter
+      integer(I8B)                                    :: nenc = 0   !! Total number of encounters
+      logical                                         :: lcollision !! Indicates if the encounter resulted in at least one collision
+      real(DP)                                        :: t          !! Time of encounter
+      logical,            dimension(:),   allocatable :: lvdotr     !! relative vdotr flag
+      integer(I4B),       dimension(:),   allocatable :: status     !! status of the interaction
+      integer(I4B),       dimension(:),   allocatable :: index1     !! position of the first body in the encounter
+      integer(I4B),       dimension(:),   allocatable :: index2     !! position of the second body in the encounter
+      integer(I4B),       dimension(:),   allocatable :: id1        !! id of the first body in the encounter
+      integer(I4B),       dimension(:),   allocatable :: id2        !! id of the second body in the encounter
+      real(DP),           dimension(:,:), allocatable :: x1         !! the position of body 1 in the encounter
+      real(DP),           dimension(:,:), allocatable :: x2         !! the position of body 2 in the encounter
+      real(DP),           dimension(:,:), allocatable :: v1         !! the velocity of body 1 in the encounter
+      real(DP),           dimension(:,:), allocatable :: v2         !! the velocity of body 2 in the encounter
    contains
       procedure :: setup       => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: append      => encounter_util_append_list  !! Appends elements from one structure to another

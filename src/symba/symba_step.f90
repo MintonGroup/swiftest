@@ -178,9 +178,10 @@ contains
       ! Internals
       integer(I4B) :: j, irecp, nloops
       real(DP) :: dtl, dth
-      logical :: lencounter, lplpl_collision, lpltp_collision
+      logical :: lencounter
 
-      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
+      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, &
+         lplpl_collision => self%plplenc_list%lcollision, lpltp_collision => self%pltpenc_list%lcollision)
          select type(param)
          class is (symba_parameters)
             select type(pl => self%pl)
