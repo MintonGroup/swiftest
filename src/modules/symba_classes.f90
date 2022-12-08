@@ -194,13 +194,12 @@ module symba_classes
 
    type, extends(swiftest_storage) :: symba_encounter_storage
       !! A class that that is used to store simulation history data between file output
-      type(symba_io_encounter_parameters) :: nc    !! NetCDF parameter object
-      real(DP), dimension(nframes)        :: tvals !! Stored time values for snapshots
+      class(symba_io_encounter_parameters), allocatable :: nc    !! NetCDF parameter object
+      real(DP), dimension(nframes)                      :: tvals !! Stored time values for snapshots
    contains
       procedure :: dump   => symba_io_encounter_dump !! Dumps contents of encounter history to file
       final     :: symba_util_final_encounter_storage
    end type symba_encounter_storage
-
 
    type :: symba_encounter_snapshot
       !! A simplified version of a SyMBA nbody system object for storing minimal snapshots of the system state during encounters

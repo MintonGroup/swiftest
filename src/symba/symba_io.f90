@@ -384,7 +384,10 @@ contains
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! Current simulation time
 
-      if (.not. allocated(self%encounter_history)) allocate(symba_encounter_storage :: self%encounter_history)
+      if (.not. allocated(self%encounter_history)) then
+         allocate(symba_encounter_storage :: self%encounter_history)
+         allocate(symba_io_encounter_parameters :: self%encounter_history%nc)
+      end if
       call self%encounter_history%reset()
 
       ! Empty out the time slot array for the next pass

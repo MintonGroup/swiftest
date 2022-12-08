@@ -955,6 +955,7 @@ contains
             nbig = nbig * 2
          end do
          allocate(symba_encounter_storage(nbig) :: tmp) 
+         call move_alloc(self%encounter_history%nc, tmp%nc)
          tmp%tvals(1:nold) = self%encounter_history%tvals(1:nold)
          tmp%tvals(nold+1:nbig) = huge(1.0_DP)
          if (lmalloc) then
