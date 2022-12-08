@@ -1296,7 +1296,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t     !! current time
       ! Arguments
-      type(encounter_snapshot) :: snapshot
+      type(fraggle_encounter_snapshot) :: snapshot
       integer(I4B) :: i, npl_snap, ntp_snap
 
       associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
@@ -1380,6 +1380,10 @@ contains
                   end select
                end select
 
+               if (self%plplenc_list%lcollision) then
+                  allocate(snapshot%colliders, source=self%colliders)
+                  allocate(snapshot%fragments, source=self%fragments)
+               end if
 
                ! Save the snapshot
                call symba_util_save_storage(self,snapshot,t)
