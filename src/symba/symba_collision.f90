@@ -12,7 +12,7 @@ submodule (symba_classes) s_symba_collision
 
 contains
 
-   module function symba_collision_casedisruption(system, param, colliders, frag)  result(status)
+   module function symba_collision_casedisruption(system, param, colliders, fragments)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Create the fragments resulting from a non-catastrophic disruption collision
@@ -22,7 +22,7 @@ contains
       class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
       class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
       class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-      class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
+      class(fraggle_fragments),  intent(inout) :: fragments !! Fraggle fragmentation system object 
       ! Result
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
@@ -30,7 +30,7 @@ contains
       logical               :: lfailure
       character(len=STRMAX) :: message 
 
-      select case(frag%regime)
+      select case(fragments%regime)
       case(COLLRESOLVE_REGIME_DISRUPTION)
          message = "Disruption between"
       case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
@@ -40,10 +40,10 @@ contains
       call io_log_one_message(FRAGGLE_LOG_OUT, message)
 
       ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
-      call frag%set_mass_dist(colliders, param)
+      call fragments%set_mass_dist(colliders, param)
 
       ! Generate the position and velocity distributions of the fragments
-      call frag%generate_fragments(colliders, system, param, lfailure)
+      call fragments%generate_fragments(colliders, system, param, lfailure)
 
       if (lfailure) then
          call io_log_one_message(FRAGGLE_LOG_OUT, "No fragment solution found, so treat as a pure hit-and-run")
@@ -57,30 +57,30 @@ contains
          end select
       else
          ! Populate the list of new bodies
-         nfrag = frag%nbody
+         nfrag = fragments%nbody
          write(message, *) nfrag
          call io_log_one_message(FRAGGLE_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
-         select case(frag%regime)
+         select case(fragments%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION)
             status = DISRUPTION
             ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
-            frag%id(1) = system%pl%id(ibiggest)
-            frag%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-            param%maxid = frag%id(nfrag)
+            fragments%id(1) = system%pl%id(ibiggest)
+            fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
+            param%maxid = fragments%id(nfrag)
          case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
             status = SUPERCATASTROPHIC
-            frag%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
-            param%maxid = frag%id(nfrag)
+            fragments%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+            param%maxid = fragments%id(nfrag)
          end select
 
-         call symba_collision_mergeaddsub(system, param, colliders, frag, status)
+         call symba_collision_mergeaddsub(system, param, colliders, fragments, status)
       end if
 
       return
    end function symba_collision_casedisruption
 
 
-   module function symba_collision_casehitandrun(system, param, colliders, frag)  result(status)
+   module function symba_collision_casehitandrun(system, param, colliders, fragments)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Create the fragments resulting from a non-catastrophic hit-and-run collision
@@ -90,7 +90,7 @@ contains
       class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
       class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
       class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-      class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
+      class(fraggle_fragments),  intent(inout) :: fragments !! Fraggle fragmentation system object 
       ! Result
       integer(I4B)                             :: status    !! Status flag assigned to this outcom
       ! Internals
@@ -110,22 +110,22 @@ contains
          jproj = 1
       end if
 
-      if (frag%mass_dist(2) > 0.9_DP * colliders%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
+      if (fragments%mass_dist(2) > 0.9_DP * colliders%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
          call io_log_one_message(FRAGGLE_LOG_OUT, "Pure hit and run. No new fragments generated.")
          nfrag = 0
          lpure = .true.
       else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
          lpure = .false.
-         call frag%set_mass_dist(colliders, param)
+         call fragments%set_mass_dist(colliders, param)
 
          ! Generate the position and velocity distributions of the fragments
-         call frag%generate_fragments(colliders, system, param, lpure)
+         call fragments%generate_fragments(colliders, system, param, lpure)
 
          if (lpure) then
             call io_log_one_message(FRAGGLE_LOG_OUT, "Should have been a pure hit and run instead")
             nfrag = 0
          else
-            nfrag = frag%nbody
+            nfrag = fragments%nbody
             write(message, *) nfrag
             call io_log_one_message(FRAGGLE_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
          end if
@@ -140,18 +140,18 @@ contains
          end select
       else
          ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
-         frag%id(1) = system%pl%id(ibiggest)
-         frag%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-         param%maxid = frag%id(nfrag)
+         fragments%id(1) = system%pl%id(ibiggest)
+         fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
+         param%maxid = fragments%id(nfrag)
          status = HIT_AND_RUN_DISRUPT
-         call symba_collision_mergeaddsub(system, param, colliders, frag, status)
+         call symba_collision_mergeaddsub(system, param, colliders, fragments, status)
       end if
 
       return
    end function symba_collision_casehitandrun
 
 
-   module function symba_collision_casemerge(system, param, colliders, frag)  result(status)
+   module function symba_collision_casemerge(system, param, colliders, fragments)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Merge massive bodies.
@@ -164,7 +164,7 @@ contains
       class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
       class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
       class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-      class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
+      class(fraggle_fragments),  intent(inout) :: fragments      !! Fraggle fragmentation system object 
       ! Result
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
@@ -180,18 +180,18 @@ contains
       select type(pl => system%pl)
       class is (symba_pl)
 
-         call frag%set_mass_dist(colliders, param)
+         call fragments%set_mass_dist(colliders, param)
          ibiggest = colliders%idx(maxloc(pl%Gmass(colliders%idx(:)), dim=1))
-         frag%id(1) = pl%id(ibiggest)
-         frag%xb(:,1) = frag%xbcom(:)
-         frag%vb(:,1) = frag%vbcom(:)
+         fragments%id(1) = pl%id(ibiggest)
+         fragments%xb(:,1) = fragments%xbcom(:)
+         fragments%vb(:,1) = fragments%vbcom(:)
 
          if (param%lrotation) then
             ! Conserve angular momentum by putting pre-impact orbital momentum into spin of the new body
             L_spin_new(:) = colliders%L_orbit(:,1) + colliders%L_orbit(:,2) + colliders%L_spin(:,1) + colliders%L_spin(:,2)  
 
             ! Assume prinicpal axis rotation on 3rd Ip axis
-            frag%rot(:,1) = L_spin_new(:) / (frag%Ip(3,1) * frag%mass(1) * frag%radius(1)**2)
+            fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
          else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
             param%Lescape(:) = param%Lescape(:) + colliders%L_orbit(:,1) + colliders%L_orbit(:,2) 
          end if
@@ -225,7 +225,7 @@ contains
 
          status = MERGED
          
-         call symba_collision_mergeaddsub(system, param, colliders, frag, status) 
+         call symba_collision_mergeaddsub(system, param, colliders, fragments, status) 
 
       end select
 
@@ -708,7 +708,7 @@ contains
    end subroutine symba_collision_make_colliders_pl
 
 
-   subroutine symba_collision_mergeaddsub(system, param, colliders, frag, status)
+   subroutine symba_collision_mergeaddsub(system, param, colliders, fragments, status)
       !! author:  David A. Minton
       !!
       !! Fills the pl_discards and pl_adds with removed and added bodies
@@ -718,7 +718,7 @@ contains
       class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
       class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
       class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-      class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
+      class(fraggle_fragments),  intent(inout) :: fragments !! Fraggle fragmentation system object 
       integer(I4B),              intent(in)    :: status    !! Status flag to assign to adds
       ! Internals
       integer(I4B) :: i, ibiggest, ismallest, iother, nstart, nend, ncolliders, nfrag
@@ -734,7 +734,7 @@ contains
             associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody)
                ! Add the colliders%idx bodies to the subtraction list
                ncolliders = colliders%ncoll
-               nfrag = frag%nbody
+               nfrag = fragments%nbody
 
                param%maxid_collision = max(param%maxid_collision, maxval(system%pl%info(:)%collision_id))
                param%maxid_collision = param%maxid_collision + 1
@@ -746,26 +746,26 @@ contains
                ismallest = colliders%idx(minloc(pl%Gmass(colliders%idx(:)), dim=1))
 
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
-               plnew%id(1:nfrag) = frag%id(1:nfrag) 
-               plnew%xb(:, 1:nfrag) = frag%xb(:, 1:nfrag) 
-               plnew%vb(:, 1:nfrag) = frag%vb(:, 1:nfrag)
+               plnew%id(1:nfrag) = fragments%id(1:nfrag) 
+               plnew%xb(:, 1:nfrag) = fragments%xb(:, 1:nfrag) 
+               plnew%vb(:, 1:nfrag) = fragments%vb(:, 1:nfrag)
                call pl%vb2vh(cb)
                call pl%xh2xb(cb)
                do i = 1, nfrag
-                  plnew%rh(:,i) = frag%xb(:, i) - cb%xb(:)
-                  plnew%vh(:,i) = frag%vb(:, i) - cb%vb(:)
+                  plnew%rh(:,i) = fragments%xb(:, i) - cb%xb(:)
+                  plnew%vh(:,i) = fragments%vb(:, i) - cb%vb(:)
                end do
-               plnew%mass(1:nfrag) = frag%mass(1:nfrag)
-               plnew%Gmass(1:nfrag) = param%GU * frag%mass(1:nfrag)
-               plnew%radius(1:nfrag) = frag%radius(1:nfrag)
-               plnew%density(1:nfrag) = frag%mass(1:nfrag) / frag%radius(1:nfrag)
+               plnew%mass(1:nfrag) = fragments%mass(1:nfrag)
+               plnew%Gmass(1:nfrag) = param%GU * fragments%mass(1:nfrag)
+               plnew%radius(1:nfrag) = fragments%radius(1:nfrag)
+               plnew%density(1:nfrag) = fragments%mass(1:nfrag) / fragments%radius(1:nfrag)
                call plnew%set_rhill(cb)
 
                select case(status)
                case(SUPERCATASTROPHIC)
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
-                     write(newname, FRAGFMT) frag%id(i)
+                     write(newname, FRAGFMT) fragments%id(i)
                      call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=system%t, name=newname, &
                                                   origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
@@ -789,7 +789,7 @@ contains
                   call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
                   do i = 2, nfrag
-                     write(newname, FRAGFMT) frag%id(i)
+                     write(newname, FRAGFMT) fragments%id(i)
                      call plnew%info(i)%set_value(origin_type=origin_type, origin_time=system%t, name=newname, &
                                                   origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
@@ -814,8 +814,8 @@ contains
                end select
    
                if (param%lrotation) then
-                  plnew%Ip(:, 1:nfrag) = frag%Ip(:, 1:nfrag)
-                  plnew%rot(:, 1:nfrag) = frag%rot(:, 1:nfrag)
+                  plnew%Ip(:, 1:nfrag) = fragments%Ip(:, 1:nfrag)
+                  plnew%rot(:, 1:nfrag) = fragments%rot(:, 1:nfrag)
                end if
    
                ! if (param%ltides) then
@@ -885,10 +885,8 @@ contains
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
-      type(fraggle_colliders)                     :: colliders !! Fraggle colliders object
-      type(fraggle_fragments)                     :: frag      !! Fraggle fragmentation system object
 
-      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, colliders => system%colliders, fragments => system%fragments)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
@@ -899,15 +897,15 @@ contains
                   lgoodcollision = symba_collision_consolidate_colliders(pl, cb, param, idx_parent, colliders) 
                   if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLISION)) cycle
 
-                  call colliders%regime(frag, system, param)
+                  call colliders%regime(fragments, system, param)
    
-                  select case (frag%regime)
+                  select case (fragments%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     plplcollision_list%status(i) = symba_collision_casedisruption(system, param, colliders, frag)
+                     plplcollision_list%status(i) = symba_collision_casedisruption(system, param, colliders, fragments)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                     plplcollision_list%status(i) = symba_collision_casehitandrun(system, param, colliders, frag)
+                     plplcollision_list%status(i) = symba_collision_casehitandrun(system, param, colliders, fragments)
                   case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                     plplcollision_list%status(i) = symba_collision_casemerge(system, param, colliders, frag)
+                     plplcollision_list%status(i) = symba_collision_casemerge(system, param, colliders, fragments)
                   case default 
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
@@ -935,10 +933,8 @@ contains
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
-      type(fraggle_colliders)                     :: colliders !! Fraggle colliders object
-      type(fraggle_fragments)                     :: frag      !! Fraggle fragmentation system object
 
-      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, fragments => system%fragments, colliders => system%colliders)
          select type(pl => system%pl)
          class is (symba_pl)
             select type(cb => system%cb)
@@ -950,14 +946,14 @@ contains
                   if (.not. lgoodcollision) cycle
                   if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
  
-                  frag%regime = COLLRESOLVE_REGIME_MERGE
-                  frag%mtot = sum(colliders%mass(:))
-                  frag%mass_dist(1) = frag%mtot
-                  frag%mass_dist(2) = 0.0_DP
-                  frag%mass_dist(3) = 0.0_DP
-                  frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
-                  frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
-                  plplcollision_list%status(i) = symba_collision_casemerge(system, param, colliders, frag)
+                  fragments%regime = COLLRESOLVE_REGIME_MERGE
+                  fragments%mtot = sum(colliders%mass(:))
+                  fragments%mass_dist(1) = fragments%mtot
+                  fragments%mass_dist(2) = 0.0_DP
+                  fragments%mass_dist(3) = 0.0_DP
+                  fragments%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / fragments%mtot 
+                  fragments%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / fragments%mtot
+                  plplcollision_list%status(i) = symba_collision_casemerge(system, param, colliders, fragments)
                end do
             end select
          end select
