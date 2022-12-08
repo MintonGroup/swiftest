@@ -22,10 +22,10 @@ contains
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
 
       if (self%encounter_history%iframe == 0) return ! No enounters in this interval
-      
+      self%encounter_history%nc%file_number = self%encounter_history%nc%file_number + 1 
       ! Create and save the output file for this encounter
       self%encounter_history%nc%time_dimsize = maxval(self%encounter_history%tslot(:))
-      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop / param%dump_cadence
+      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') self%encounter_history%nc%file_number
       call self%encounter_history%nc%initialize(param)
       call self%encounter_history%dump(param)
       call self%encounter_history%nc%close()

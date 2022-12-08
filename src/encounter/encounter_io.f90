@@ -23,7 +23,6 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      ! Most of this is just temporary test code just to get something working. Eventually this should get cleaned up.
       
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then

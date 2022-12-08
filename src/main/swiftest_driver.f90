@@ -18,7 +18,7 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   class(swiftest_nbody_system), allocatable      :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_nbody_system), allocatable      :: system           !! Polymorphic object containing the nbody system to be integrated
    class(swiftest_parameters),   allocatable      :: param             !! Run configuration parameters
    character(len=:), allocatable                  :: integrator        !! Integrator type code (see swiftest_globals for symbolic names)
    character(len=:),allocatable                   :: param_file_name   !! Name of the file containing user-defined parameters
@@ -52,33 +52,21 @@ program swiftest_driver
    param%integrator = trim(adjustl(integrator))
    call param%set_display(display_style)
    call param%read_in(param_file_name)
-   call setup_construct_system(nbody_system, param)
-
-   !> Define the maximum number of threads
-   nthreads = 1            ! In the *serial* case
-   !$ nthreads = omp_get_max_threads() ! In the *parallel* case
-   !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
-   !$ write(param%display_unit,'(a)')   ' ------------------'
-   !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-   !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 
 
-   associate(t               => nbody_system%t, &
-             t0              => param%t0, &
-             tstart          => param%tstart, &
-             dt              => param%dt, &
-             tstop           => param%tstop, &
-             iloop           => param%iloop, &
-             istep_out       => param%istep_out, &
-             dump_cadence    => param%dump_cadence, &
-             ioutput         => param%ioutput, &
-             display_style   => param%display_style, &
-             display_unit    => param%display_unit)
+   associate(t0       => param%t0, &
+      tstart          => param%tstart, &
+      dt              => param%dt, &
+      tstop           => param%tstop, &
+      iloop           => param%iloop, &
+      istep_out       => param%istep_out, &
+      dump_cadence    => param%dump_cadence, &
+      ioutput         => param%ioutput, &
+      display_style   => param%display_style, &
+      display_unit    => param%display_unit)
 
-      call nbody_system%initialize(param)
 
       ! Set up loop and output cadence variables
-      t = tstart
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1.0_DP, kind=I8B)
       ioutput = max(int(istart / istep_out, kind=I4B),1)
@@ -87,13 +75,27 @@ program swiftest_driver
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
       allocate(swiftest_storage(dump_cadence) :: system_history)
 
+      ! Construct the main n-body system using the user-input integrator to choose the type of system
+      call setup_construct_system(system, param)
+
+      !> Define the maximum number of threads
+      nthreads = 1            ! In the *serial* case
+      !$ nthreads = omp_get_max_threads() ! In the *parallel* case
+      !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
+      !$ write(param%display_unit,'(a)')   ' ------------------'
+      !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
+      !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+
+      call system%initialize(param)
+
+
       ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
       if (param%lrestart) then
-         if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+         if (param%lenergy) call system%conservation_report(param, lterminal=.true.)
       else
-         if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
-         call nbody_system%write_frame(param)
-         call nbody_system%dump(param)
+         if (param%lenergy) call system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
+         call system%write_frame(param)
+         call system%dump(param)
       end if
 
       write(display_unit, *) " *************** Main Loop *************** "
@@ -104,21 +106,22 @@ program swiftest_driver
          call pbar%update(1,message=pbarmessage)
       else if (display_style == "COMPACT") then
          write(*,*) "SWIFTEST START " // param%integrator
-         call nbody_system%compact_output(param,integration_timer)
+         call system%compact_output(param,integration_timer)
       end if
 
       iout = 0
       idump = 0
+      system%t = tstart
       do iloop = istart, nloops
          !> Step the system forward in time
          call integration_timer%start()
-         call nbody_system%step(param, t, dt)
+         call system%step(param, system%t, dt)
          call integration_timer%stop()
 
-         t = t0 + iloop * dt
+         system%t = t0 + iloop * dt
 
          !> Evaluate any discards or collisional outcomes
-         call nbody_system%discard(param)
+         call system%discard(param)
          if (display_style == "PROGRESS") call pbar%update(iloop)
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
@@ -127,30 +130,30 @@ program swiftest_driver
             if (iout == istep_out) then
                iout = 0
                idump = idump + 1
-               system_history%frame(idump) = nbody_system ! Store a snapshot of the system for posterity
+               system_history%frame(idump) = system ! Store a snapshot of the system for posterity
 
                if (idump == dump_cadence) then
                   idump = 0
-                  call nbody_system%dump(param)
+                  call system%dump(param)
                   call system_history%dump(param)
                end if
 
-               tfrac = (t - t0) / (tstop - t0)
+               tfrac = (system%t - t0) / (tstop - t0)
 
-               select type(pl => nbody_system%pl)
+               select type(pl => system%pl)
                class is (symba_pl)
-                  write(display_unit, symbastatfmt) t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
+                  write(display_unit, symbastatfmt) system%t, tfrac, pl%nplm, pl%nbody, system%tp%nbody
                class default
-                  write(display_unit, statusfmt) t, tfrac, pl%nbody, nbody_system%tp%nbody
+                  write(display_unit, statusfmt) system%t, tfrac, pl%nbody, system%tp%nbody
                end select
-               if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+               if (param%lenergy) call system%conservation_report(param, lterminal=.true.)
                call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
 
                if (display_style == "PROGRESS") then
-                  write(pbarmessage,fmt=pbarfmt) t, tstop
+                  write(pbarmessage,fmt=pbarfmt) system%t, tstop
                   call pbar%update(1,message=pbarmessage)
                else if (display_style == "COMPACT") then
-                  call nbody_system%compact_output(param,integration_timer)
+                  call system%compact_output(param,integration_timer)
                end if
 
                call integration_timer%reset()
@@ -160,6 +163,7 @@ program swiftest_driver
 
       end do
       ! Dump any remaining history if it exists
+      call system%dump(param)
       call system_history%dump(param)
       if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // param%integrator
    end associate
