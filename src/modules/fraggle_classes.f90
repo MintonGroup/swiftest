@@ -35,6 +35,7 @@ module fraggle_classes
       real(DP),     dimension(NDIM,2)              :: Ip      !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(2)                   :: mass    !! Two-body equivalent mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: radius  !! Two-body equivalent radii of the collider bodies prior to the collision
+      class(swiftest_pl), allocatable              :: pl      !! A snapshot of the planets involved in the collision
    contains
       procedure :: regime => fraggle_regime_colliders     !! Determine which fragmentation regime the set of colliders will be
       final     ::           fraggle_util_final_colliders !! Finalizer will deallocate all allocatables
