@@ -115,13 +115,6 @@ module fraggle_classes
       procedure :: initialize => fraggle_io_encounter_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
    end type fraggle_io_encounter_parameters
 
-   !> A class that that is used to store fragmentation data between file output
-   type, extends(swiftest_storage) :: fraggle_storage
-   contains
-      procedure :: dump   => fraggle_io_encounter_dump !! Dumps contents of encounter history to file
-      final     ::           fraggle_util_final_storage
-   end type fraggle_storage
-
    type, extends(encounter_snapshot)  :: fraggle_encounter_snapshot
       logical                               :: lcollision !! Indicates that this snapshot contains at least one collision
       class(fraggle_colliders), allocatable :: colliders  !! Colliders object at this snapshot
@@ -142,12 +135,6 @@ module fraggle_classes
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
 
-      module subroutine fraggle_io_encounter_dump(self, param)
-         implicit none
-         class(fraggle_storage(*)), intent(inout) :: self   !! Encounter storage object
-         class(swiftest_parameters),          intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine fraggle_io_encounter_dump
-   
       module subroutine fraggle_io_encounter_initialize_output(self, param)
          implicit none
          class(fraggle_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
@@ -293,11 +280,6 @@ module fraggle_classes
          implicit none
          type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
       end subroutine fraggle_util_final_fragments
-
-      module subroutine fraggle_util_final_storage(self)
-         implicit none
-         type(fraggle_storage(*)),  intent(inout) :: self !! Fraggle encountar storage object
-      end subroutine fraggle_util_final_storage
 
       module subroutine fraggle_util_final_snapshot(self)
          implicit none

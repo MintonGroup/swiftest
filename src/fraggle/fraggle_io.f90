@@ -13,12 +13,6 @@ submodule(fraggle_classes) s_fraggle_io
 contains
 
 
-   module subroutine fraggle_io_encounter_dump(self, param)
-      implicit none
-      class(fraggle_storage(*)), intent(inout) :: self   !! Encounter storage object
-      class(swiftest_parameters),          intent(inout) :: param  !! Current run configuration parameters 
-   end subroutine fraggle_io_encounter_dump
-
    module subroutine fraggle_io_encounter_initialize_output(self, param)
       implicit none
       class(fraggle_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset

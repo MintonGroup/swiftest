@@ -168,19 +168,6 @@ contains
    end subroutine fraggle_util_final_fragments
 
 
-   module subroutine fraggle_util_final_storage(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer will deallocate all allocatables
-      implicit none
-      ! Arguments
-      type(fraggle_storage(*)),  intent(inout) :: self !! Fraggle encountar storage object
-
-      call util_final_storage(self%swiftest_storage)
-
-      return
-   end subroutine fraggle_util_final_storage
-
    module subroutine fraggle_util_final_snapshot(self)
       !! author: David A. Minton
       !!
