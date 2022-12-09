@@ -31,7 +31,7 @@ contains
          nce%time_dimsize = maxval(encounter_history%tslot(:))
          ncc%time_dimsize = maxval(encounter_history%tslot(:))
          write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
-         write(ncc%file_name, '("fragmentation_",I0.6,".nc")') ncc%file_number
+         write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
          call nce%initialize(param)
          call ncc%initialize(param)
          call encounter_history%dump(param)
