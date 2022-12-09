@@ -22,14 +22,14 @@ contains
       implicit none
       ! Arguments
       class(fraggle_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),             intent(in)    :: param   
+      class(swiftest_parameters),   intent(in)    :: param   
       ! Internals
-      integer(I4B) :: i, nvar, varid, vartype
+      integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
       real(SP) :: sfill
       logical :: fileExists
       character(len=STRMAX) :: errmsg
-      integer(I4B) :: ndims
+      integer(I4B) :: i, ndims
 
       associate(nc => self)
          dfill = ieee_value(dfill, IEEE_QUIET_NAN)
@@ -44,14 +44,14 @@ contains
          end select
 
          ! Check if the file exists, and if it does, delete it
-         inquire(file=nc%frag_file, exist=fileExists)
+         inquire(file=nc%file_name, exist=fileExists)
          if (fileExists) then
-            open(unit=LUN, file=nc%enc_file, status="old", err=667, iomsg=errmsg)
+            open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
             close(unit=LUN, status="delete")
          end if
 
 
-         call check( nf90_create(nc%frag_file, NF90_NETCDF4, nc%id), "fraggle_io_initialize nf90_create" )
+         call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "fraggle_io_initialize nf90_create" )
 
          ! Dimensions
          call check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "fraggle_io_initialize nf90_def_dim time_dimid" ) ! Simulation time dimension
@@ -60,19 +60,32 @@ contains
          call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "fraggle_io_initialize nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
          call check( nf90_def_dim(nc%id, nc%stage_dimname, 2, nc%stage_dimid), "fraggle_io_initialize nf90_def_dim stage_dimid"  )          ! Dimension for stage variables (aka "before" vs. "after"
 
+         ! Dimension coordinates
+         call check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "fraggle_io_initialize nf90_def_var time_varid"  )
+         call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "fraggle_io_initialize nf90_def_var space_varid"  )
+         call check( nf90_def_var(nc%id, nc%id_dimname, NF90_INT, nc%id_dimid, nc%id_varid), "fraggle_io_initialize nf90_def_var id_varid"  )
+         call check( nf90_def_var(nc%id, nc%stage_dimname, NF90_CHAR, nc%stage_dimid, nc%stage_varid), "fraggle_io_initialize nf90_def_var stage_varid"  )
+      
+
          ! Variables
          call check( nf90_def_var(nc%id, nc%name_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%name_varid), "fraggle_io_initialize nf90_def_var name_varid"  )
          call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "fraggle_io_initialize nf90_def_var rh_varid"  )
          call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "fraggle_io_initialize nf90_def_var vh_varid"  )
          call check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "fraggle_io_initialize nf90_def_var Gmass_varid"  )
          call check( nf90_def_var(nc%id, nc%loop_varname, NF90_INT, [nc%time_dimid], nc%loop_varid), "fraggle_io_initialize nf90_def_var loop_varid"  )
-         if (param%lclose) then
-            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "fraggle_io_initialize nf90_def_var radius_varid"  )
-         end if
-         if (param%lrotation) then
-            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "fraggle_io_initialize nf90_def_var Ip_varid"  )
-            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "fraggle_io_initialize nf90_def_var rot_varid"  )
-         end if
+         call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "fraggle_io_initialize nf90_def_var radius_varid"  )
+         call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "fraggle_io_initialize nf90_def_var Ip_varid"  )
+         call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "fraggle_io_initialize nf90_def_var rot_varid"  )
+         call check( nf90_def_var(nc%id, nc%ke_orb_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), "netcdf_initialize_output nf90_def_var KE_orb_varid"  )
+         call check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type, nc%time_dimid, nc%KE_spin_varid), "netcdf_initialize_output nf90_def_var KE_spin_varid"  )
+         call check( nf90_def_var(nc%id, nc%pe_varname, nc%out_type, nc%time_dimid, nc%PE_varid), "netcdf_initialize_output nf90_def_var PE_varid"  )
+         call check( nf90_def_var(nc%id, nc%L_orb_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_orb_varid), "netcdf_initialize_output nf90_def_var L_orb_varid"  )
+         call check( nf90_def_var(nc%id, nc%L_spin_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_spin_varid), "netcdf_initialize_output nf90_def_var L_spin_varid"  )
+         call check( nf90_def_var(nc%id, nc%L_escape_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_escape_varid), "netcdf_initialize_output nf90_def_var L_escape_varid"  )
+         call check( nf90_def_var(nc%id, nc%Ecollisions_varname, nc%out_type, nc%time_dimid, nc%Ecollisions_varid), "netcdf_initialize_output nf90_def_var Ecollisions_varid"  )
+         call check( nf90_def_var(nc%id, nc%Euntracked_varname, nc%out_type, nc%time_dimid, nc%Euntracked_varid), "netcdf_initialize_output nf90_def_var Euntracked_varid"  )
+         call check( nf90_def_var(nc%id, nc%GMescape_varname, nc%out_type, nc%time_dimid, nc%GMescape_varid), "netcdf_initialize_output nf90_def_var GMescape_varid"  )
+
 
          call check( nf90_inquire(nc%id, nVariables=nvar), "fraggle_io_initialize nf90_inquire nVariables"  )
          do varid = 1, nvar
@@ -102,7 +115,7 @@ contains
       return
 
       667 continue
-      write(*,*) "Error creating encounter output file. " // trim(adjustl(errmsg))
+      write(*,*) "Error creating fragmentation output file. " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine fraggle_io_initialize_output
 
@@ -110,43 +123,11 @@ contains
    module subroutine fraggle_io_write_frame(self, nc, param)
       implicit none
       class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
-      class(encounter_io_parameters),    intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(encounter_io_parameters),    intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
 
       return
    end subroutine fraggle_io_write_frame
-
-   module subroutine fraggle_io_log_generate(frag)
-      !! author: David A. Minton
-      !!
-      !! Writes a log of the results of the fragment generation
-      implicit none
-      ! Arguments
-      class(fraggle_fragments),   intent(in) :: frag
-      ! Internals
-      integer(I4B) :: i
-      character(STRMAX) :: errmsg
-      character(len=*), parameter :: fmtlabel = "(A14,10(ES11.4,1X,:))"
-
-      open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-      write(LUN, *, err = 667, iomsg = errmsg)
-      write(LUN, *) "--------------------------------------------------------------------"
-      write(LUN, *) "           Fraggle fragment generation results"
-      write(LUN, *) "--------------------------------------------------------------------"
-      write(LUN,    "(' dL_tot should be very small' )")
-      write(LUN,fmtlabel) ' dL_tot      |', (.mag.(frag%Ltot_after(:) - frag%Ltot_before(:))) / (.mag.frag%Ltot_before(:))
-      write(LUN,        "(' dE_tot should be negative and equal to Qloss' )")
-      write(LUN,fmtlabel) ' dE_tot      |', (frag%Etot_after - frag%Etot_before) / abs(frag%Etot_before)
-      write(LUN,fmtlabel) ' Qloss       |', -frag%Qloss / abs(frag%Etot_before)
-      write(LUN,fmtlabel) ' dE - Qloss  |', (frag%Etot_after - frag%Etot_before + frag%Qloss) / abs(frag%Etot_before)
-      write(LUN,        "(' -------------------------------------------------------------------------------------')")
-
-      close(LUN)
-
-      return
-      667 continue
-      write(*,*) "Error writing Fraggle message to log file: " // trim(adjustl(errmsg))
-   end subroutine fraggle_io_log_generate
 
 
    module subroutine fraggle_io_log_pl(pl, param)
