@@ -885,21 +885,23 @@ contains
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
 
-      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, colliders => system%colliders, fragments => system%fragments, t => system%t)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, t => system%t)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
             class is (symba_cb)
                do i = 1, ncollisions
+                  allocate(fraggle_colliders :: system%colliders)
+                  allocate(fraggle_fragments :: system%fragments)
                   idx_parent(1) = pl%kin(idx1(i))%parent
                   idx_parent(2) = pl%kin(idx2(i))%parent
-                  lgoodcollision = symba_collision_consolidate_colliders(pl, cb, param, idx_parent, colliders) 
+                  lgoodcollision = symba_collision_consolidate_colliders(pl, cb, param, idx_parent, system%colliders) 
                   if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLISION)) cycle
 
-                  call colliders%regime(fragments, system, param)
+                  call system%colliders%regime(system%fragments, system, param)
 
                   if (param%lencounter_save) call system%collision_snap(param, t, "before") 
-                  select case (fragments%regime)
+                  select case (system%fragments%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                      plplcollision_list%status(i) = symba_collision_casedisruption(system, param)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -911,6 +913,7 @@ contains
                      call util_exit(FAILURE)
                   end select
                   if (param%lencounter_save) call system%collision_snap(param, t, "after") 
+                  deallocate(system%colliders,system%fragments)
                end do
             end select
          end select

@@ -189,8 +189,8 @@ module symba_classes
       class(symba_plplenc),           allocatable     :: plplenc_list       !! List of massive body-massive body encounters in a single step
       class(symba_plplenc),           allocatable     :: plplcollision_list !! List of massive body-massive body collisions in a single step
       integer(I4B)                                    :: irec               !! System recursion level
-      type(fraggle_colliders)                         :: colliders          !! Fraggle colliders object
-      type(fraggle_fragments)                         :: fragments          !! Fraggle fragmentation system object
+      class(fraggle_colliders), allocatable           :: colliders          !! Fraggle colliders object
+      class(fraggle_fragments), allocatable           :: fragments          !! Fraggle fragmentation system object
       type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
