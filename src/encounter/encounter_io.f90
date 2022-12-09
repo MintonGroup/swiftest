@@ -23,13 +23,17 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
             select type(snapshot => self%frame(i)%item)
             class is (encounter_snapshot)
                param%ioutput = self%tslot(i)
                call snapshot%write_frame(self%nc,param)
+               select type(snapshot) ! Be sure to call the base class method to get the regular encounter data sved
+               class is (fraggle_encounter_snapshot)
+                  call snapshot%encounter_snapshot%write_frame(self%nc,param)
+            end select
+
             end select
          else
             exit

@@ -123,8 +123,9 @@ module fraggle_classes
    end type fraggle_storage
 
    type, extends(encounter_snapshot)  :: fraggle_encounter_snapshot
-      class(fraggle_colliders), allocatable :: colliders !! Colliders object at this snapshot
-      class(fraggle_fragments), allocatable :: fragments !! Fragments object at this snapshot
+      logical                               :: lcollision !! Indicates that this snapshot contains at least one collision
+      class(fraggle_colliders), allocatable :: colliders  !! Colliders object at this snapshot
+      class(fraggle_fragments), allocatable :: fragments  !! Fragments object at this snapshot
    contains
       procedure :: write_frame => fraggle_io_encounter_write_frame !! Writes a frame of encounter data to file 
       final     ::                fraggle_util_final_snapshot

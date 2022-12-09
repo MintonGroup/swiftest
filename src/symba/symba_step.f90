@@ -296,6 +296,7 @@ contains
                      call pl%set_renc(0)
                      call system%plplenc_list%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
                      system%plplenc_list%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+                     system%plplenc_list%lcollision = .false.
                   end if
             
                   nenc_old = system%pltpenc_list%nenc
@@ -308,6 +309,7 @@ contains
                      tp%ldiscard(1:ntp) = .false.
                      call system%pltpenc_list%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
                      system%pltpenc_list%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+                     system%pltpenc_list%lcollision = .false.
                   end if
 
                   call system%pl_adds%setup(0, param)
