@@ -72,25 +72,6 @@ contains
       return
    end subroutine util_dealloc_pl
 
-
-   module subroutine util_dealloc_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the swiftest nbody system object - deallocates all allocatables
-      implicit none
-      ! Argument
-      class(swiftest_nbody_system),  intent(inout) :: self !! Swiftest nbody system object
-
-      if (allocated(self%cb)) deallocate(self%cb)
-      if (allocated(self%pl)) deallocate(self%pl)
-      if (allocated(self%tp)) deallocate(self%tp)
-      if (allocated(self%tp_discards)) deallocate(self%tp_discards)
-      if (allocated(self%pl_discards)) deallocate(self%pl_discards)
-
-      return
-   end subroutine util_dealloc_system
-
-
    module subroutine util_dealloc_tp(self)
       !! author: David A. Minton
       !!

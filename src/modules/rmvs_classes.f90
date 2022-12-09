@@ -36,7 +36,7 @@ module rmvs_classes
       !> Replace the abstract procedures with concrete ones
       procedure :: initialize => rmvs_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
       procedure :: step       => rmvs_step_system              !! Advance the RMVS nbody system forward in time by one step
-      final     :: rmvs_util_final_system                      !! Finalizes the RMVS nbody system object - deallocates all allocatables
+      final     ::               rmvs_util_final_system        !! Finalizes the RMVS nbody system object - deallocates all allocatables
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -46,7 +46,7 @@ module rmvs_classes
       real(DP), dimension(:, :), allocatable :: atide !! Encountering planet's tidal acceleration value
    contains
       procedure :: dealloc => rmvs_util_dealloc_interp !! Deallocates all allocatable arrays
-      final     :: rmvs_util_final_interp              !! Finalizes the RMVS interpolated system variables object - deallocates all allocatables
+      final     ::            rmvs_util_final_interp   !! Finalizes the RMVS interpolated system variables object - deallocates all allocatables
    end type rmvs_interp
 
    !********************************************************************************************************************************
@@ -59,7 +59,7 @@ module rmvs_classes
       logical                                      :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
       procedure :: dealloc => rmvs_util_dealloc_cb !! Deallocates all allocatable arrays
-      final     :: rmvs_util_final_cb              !! Finalizes the RMVS central body object - deallocates all allocatables
+      final     ::            rmvs_util_final_cb   !! Finalizes the RMVS central body object - deallocates all allocatables
    end type rmvs_cb
 
    !********************************************************************************************************************************
@@ -94,7 +94,7 @@ module rmvs_classes
       procedure :: sort            => rmvs_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => rmvs_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => rmvs_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      final     :: rmvs_util_final_tp                             !! Finalizes the RMVS test particle object - deallocates all allocatables
+      final     ::                    rmvs_util_final_tp          !! Finalizes the RMVS test particle object - deallocates all allocatables
    end type rmvs_tp
 
    !********************************************************************************************************************************
@@ -119,7 +119,7 @@ module rmvs_classes
       procedure :: sort      => rmvs_util_sort_pl           !! Sorts body arrays by a sortable componen
       procedure :: rearrange => rmvs_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill     => rmvs_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      final     :: rmvs_util_final_pl                       !! Finalizes the RMVS massive body object - deallocates all allocatables
+      final     ::              rmvs_util_final_pl          !! Finalizes the RMVS massive body object - deallocates all allocatables
    end type rmvs_pl
 
    interface

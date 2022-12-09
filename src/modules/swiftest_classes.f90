@@ -39,7 +39,7 @@ module swiftest_classes
       character(NAMELEN) :: space_dimname           = "space"           !! name of the space dimension
       integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
-      character(len=1),dimension(3) :: space_coords = ["x","y","z"]     !! The space dimension coordinate labels
+      character(len=1), dimension(3) :: space_coords = ["x","y","z"]    !! The space dimension coordinate labels
 
       ! Non-dimension ids and variable names
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable
@@ -133,7 +133,6 @@ module swiftest_classes
       character(NAMELEN) :: discard_body_id_varname = "discard_body_id" !! name of the id of the other body involved in the discard
    end type netcdf_variables
 
-
    type, extends(netcdf_variables) :: netcdf_parameters
    contains
       procedure :: close      => netcdf_close             !! Closes an open NetCDF file
@@ -142,6 +141,27 @@ module swiftest_classes
       procedure :: open       => netcdf_open              !! Opens a NetCDF file
       procedure :: sync       => netcdf_sync              !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
+
+   type swiftest_storage_frame
+      class(*), allocatable :: item
+   contains
+      procedure :: store         => util_copy_store !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      generic   :: assignment(=) => store
+      final     :: util_final_storage_frame
+   end type
+
+   type :: swiftest_storage(nframes)
+      !! An class that establishes the pattern for various storage objects
+      integer(I4B), len                                :: nframes = 4096 !! Total number of frames that can be stored
+      type(swiftest_storage_frame), dimension(nframes) :: frame          !! Array of stored frames
+      integer(I4B)                                     :: iframe = 0     !! Index of the last frame stored in the system
+      integer(I4B),                 dimension(nframes) :: tslot          !! The value of the time dimension index associated with each frame
+      real(DP),                     dimension(nframes) :: tvals          !! Stored time values for snapshots
+   contains
+      procedure :: dump   => io_dump_storage     !! Dumps storage object contents to file
+      procedure :: reset  => util_reset_storage  !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      final     :: util_final_storage
+   end type swiftest_storage
 
    !********************************************************************************************************************************
    ! swiftest_parameters class definitions 
@@ -527,7 +547,6 @@ module swiftest_classes
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
       ! procedure :: step_spin               => tides_step_spin_system               !! Steps the spins of the massive & central bodies due to tides.
-      procedure :: dealloc                 => util_dealloc_system                    !! Deallocates all allocatable components of the system
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
@@ -535,22 +554,6 @@ module swiftest_classes
       generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
 
-   type swiftest_storage_frame
-      class(*), allocatable :: item
-   contains
-      procedure :: store         => util_copy_store !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
-      generic   :: assignment(=) => store
-   end type
-
-   type :: swiftest_storage(nframes)
-      !! An class that establishes the pattern for various storage objects
-      integer(I4B), len                                :: nframes = 2048 !! Total number of frames that can be stored
-      type(swiftest_storage_frame), dimension(nframes) :: frame          !! Array of stored frames
-      integer(I4B)                                     :: iframe = 0     !! The current frame number
-   contains
-      procedure :: dump   => io_dump_storage     !! Dumps storage object contents to file
-      procedure :: reset  => util_reset_storage  !! Resets a storage object by deallocating all items and resetting the frame counter to 0
-   end type swiftest_storage
 
    abstract interface
       subroutine abstract_accel(self, system, param, t, lbeg)
@@ -579,14 +582,6 @@ module swiftest_classes
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine abstract_kick_body
-
-      function abstract_read_frame(self, iu, param) result(ierr)
-         import DP, I4B, swiftest_base, swiftest_parameters
-         class(swiftest_base),       intent(inout) :: self  !! Swiftest base object
-         integer(I4B),               intent(inout) :: iu    !! Unit number for the output file to write frame to
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-         integer(I4B)                              :: ierr  !! Error code: returns 0 if the read is successful
-      end function abstract_read_frame
 
       subroutine abstract_set_mu(self, cb) 
          import swiftest_body, swiftest_cb
@@ -1026,10 +1021,10 @@ module swiftest_classes
 
       module function netcdf_read_frame_system(self, nc, param) result(ierr)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self  !! Swiftest system object
-         class(netcdf_parameters),      intent(inout) :: nc    !! Parameters used to for reading a NetCDF dataset to file
-         class(swiftest_parameters),    intent(inout) :: param !! Current run configuration parameters 
-         integer(I4B)                                 :: ierr  !! Error code: returns 0 if the read is successful
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(netcdf_parameters),     intent(inout) :: nc    !! Parameters used to for reading a NetCDF dataset to file
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+         integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       end function netcdf_read_frame_system
 
       module subroutine netcdf_read_hdr_system(self, nc, param) 
@@ -1390,10 +1385,10 @@ module swiftest_classes
          class(swiftest_pl),  intent(inout) :: self
       end subroutine util_dealloc_pl
 
-      module subroutine util_dealloc_system(self)
+      module subroutine util_final_system(self)
          implicit none
          class(swiftest_nbody_system),  intent(inout) :: self
-      end subroutine util_dealloc_system
+      end subroutine util_final_system
 
       module subroutine util_dealloc_tp(self)
          implicit none
@@ -1472,6 +1467,17 @@ module swiftest_classes
    end interface
 
    interface
+
+      module subroutine util_final_storage(self)
+         implicit none
+         type(swiftest_storage(*)) :: self
+      end subroutine util_final_storage
+
+      module subroutine util_final_storage_frame(self)
+         implicit none
+         type(swiftest_storage_frame) :: self
+      end subroutine util_final_storage_frame
+
       pure module subroutine util_flatten_eucl_ij_to_k(n, i, j, k)
          !$omp declare simd(util_flatten_eucl_ij_to_k)
          implicit none

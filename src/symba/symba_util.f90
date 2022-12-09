@@ -238,25 +238,6 @@ contains
    end subroutine symba_util_dealloc_merger
 
 
-   module subroutine symba_util_dealloc_system(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatabale arrays
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
-
-      if (allocated(self%pl_adds)) deallocate(self%pl_adds)
-      if (allocated(self%pltpenc_list)) deallocate(self%pltpenc_list)
-      if (allocated(self%plplenc_list)) deallocate(self%plplenc_list)
-      if (allocated(self%plplcollision_list)) deallocate(self%plplcollision_list)
-
-      call util_dealloc_system(self)
-
-      return
-   end subroutine symba_util_dealloc_system
-
-
    module subroutine symba_util_dealloc_pl(self)
       !! author: David A. Minton
       !!
@@ -471,6 +452,7 @@ contains
       return
    end subroutine symba_util_final_merger
 
+
    module subroutine symba_util_final_pl(self)
       !! author: David A. Minton
       !!
@@ -493,34 +475,15 @@ contains
       ! Argument
       type(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
 
-      call self%dealloc()
+      if (allocated(self%pl_adds)) deallocate(self%pl_adds)
+      if (allocated(self%pltpenc_list)) deallocate(self%pltpenc_list)
+      if (allocated(self%plplenc_list)) deallocate(self%plplenc_list)
+      if (allocated(self%plplcollision_list)) deallocate(self%plplcollision_list)
+
+      call helio_util_final_system(self%helio_nbody_system)
 
       return
    end subroutine symba_util_final_system
-
-   module subroutine symba_util_final_encounter_snapshot(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA encounter system snapshot object - deallocates all allocatables
-      implicit none
-      type(symba_encounter_snapshot),  intent(inout) :: self !! SyMBA nbody system object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_encounter_snapshot
-
-
-   module subroutine symba_util_final_encounter_storage(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA nbody system object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
-
-      return
-   end subroutine symba_util_final_encounter_storage
 
 
    module subroutine symba_util_final_tp(self)
@@ -906,7 +869,7 @@ contains
    end subroutine symba_util_resize_pl
 
 
-   module subroutine symba_util_resize_storage(self, nnew)
+   subroutine symba_util_save_storage(system, snapshot, t)
       !! author: David A. Minton
       !!
       !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
@@ -915,40 +878,53 @@ contains
       !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
       implicit none
       ! Arguments
-      class(symba_nbody_system), intent(inout) :: self !! Swiftest encounter list 
-      integer(I4B),              intent(in)    :: nnew !! New size of list needed
+      type(symba_nbody_system),  intent(inout) :: system   !! SyMBA nbody system object 
+      class(encounter_snapshot), intent(in)    :: snapshot !! Encounter snapshot object
+      real(DP),                  intent(in)    :: t        !! The time of the snapshot
       ! Internals
-      type(symba_encounter_storage(nframes=:)), allocatable :: tmp
-      integer(I4B) :: i, nold, nbig, iframe_old = 0
-      logical      :: lmalloc
+      type(encounter_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nnew, nold, nbig
 
+      ! Advance the snapshot frame counter
+      system%encounter_history%iframe = system%encounter_history%iframe + 1
 
-      lmalloc = allocated(self%encounter_history)
-      if (lmalloc) then
-         nold = self%encounter_history%nframes
-         iframe_old = self%encounter_history%iframe
-      else
-         nold = 0
-      end if
+      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
+      nnew = system%encounter_history%iframe
+      nold = system%encounter_history%nframes
 
       if (nnew > nold) then
          nbig = nold
          do while (nbig < nnew)
             nbig = nbig * 2
          end do
-         allocate(symba_encounter_storage(nbig) :: tmp) 
-         if (lmalloc) then
-            do i = 1, nold
-               if (allocated(self%encounter_history%frame(i)%item)) call move_alloc(self%encounter_history%frame(i)%item, tmp%frame(i)%item)
-            end do
-            deallocate(self%encounter_history)
-         end if
-         call move_alloc(tmp,self%encounter_history)
-         self%encounter_history%iframe = iframe_old
+         allocate(encounter_storage(nbig) :: tmp) 
+         tmp%tvals(1:nold) = system%encounter_history%tvals(1:nold)
+         tmp%tvals(nold+1:nbig) = huge(1.0_DP)
+         tmp%tslot(1:nold) = system%encounter_history%tslot(1:nold)
+         tmp%tslot(nold+1:nbig) = 0
+         tmp%iframe = system%encounter_history%iframe
+
+         do i = 1, nold
+            if (allocated(system%encounter_history%frame(i)%item)) call move_alloc(system%encounter_history%frame(i)%item, tmp%frame(i)%item)
+         end do
+         deallocate(system%encounter_history)
+         call move_alloc(tmp,system%encounter_history)
+         nnew = nbig
       end if
 
+      ! Find out which time slot this belongs in by searching for an existing slot
+      ! with the same value of time or the first available one
+      do i = 1, nnew
+         if (t <= system%encounter_history%tvals(i)) then
+            system%encounter_history%tvals(i) = t
+            system%encounter_history%tslot(nnew) = i
+            system%encounter_history%frame(nnew) = snapshot
+            exit
+         end if
+      end do
+
       return
-   end subroutine symba_util_resize_storage
+   end subroutine symba_util_save_storage
 
 
    module subroutine symba_util_resize_tp(self, nnew)
@@ -1317,18 +1293,16 @@ contains
       implicit none
       ! Internals
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t      !! current time
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     !! current time
       ! Arguments
-      type(symba_encounter_snapshot), allocatable  :: snapshot
+      type(encounter_snapshot) :: snapshot
       integer(I4B) :: i, npl_snap, ntp_snap
 
       associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
 
-         allocate(symba_encounter_snapshot :: snapshot)
+         snapshot%t = t
 
-         if (npl > 0) allocate(symba_pl :: snapshot%pl)
-         if (ntp > 0) allocate(symba_tp :: snapshot%tp)
          if (npl + ntp == 0) return
          npl_snap = npl
          ntp_snap = ntp
@@ -1337,81 +1311,79 @@ contains
          class is (symba_pl)
             select type (tp => self%tp)
             class is (symba_tp)
-               if (npl > 0) then
-                  pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == self%irec
-                  npl_snap = count(pl%lmask(1:npl))
-               end if
-               if (ntp > 0) then
-                  tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == self%irec
-                  ntp_snap = count(tp%lmask(1:ntp))
-               end if
+               allocate(symba_pl :: snapshot%pl)
+               allocate(symba_tp :: snapshot%tp)
 
-               ! Take snapshot of the currently encountering massive bodies
-               if (npl_snap > 0) then
-                  allocate(snapshot%pl%id(npl_snap))
-                  allocate(snapshot%pl%info(npl_snap))
-                  allocate(snapshot%pl%Gmass(npl_snap))
-                  snapshot%pl%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
-                  snapshot%pl%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
-                  snapshot%pl%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
-                  allocate(snapshot%pl%rh(NDIM,npl_snap))
-                  allocate(snapshot%pl%vh(NDIM,npl_snap))
-                  do i = 1, NDIM
-                     snapshot%pl%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
-                     snapshot%pl%vh(i,:) = pack(pl%vb(i,1:npl), pl%lmask(1:npl))
-                  end do
-                  if (param%lclose) then
-                     allocate(snapshot%pl%radius(npl_snap))
-                     snapshot%pl%radius(:) = pack(pl%radius(1:npl), pl%lmask(1:npl))
-                  end if
+               select type(pl_snap => snapshot%pl)
+               class is (symba_pl)
+                  select type(tp_snap => snapshot%tp)
+                  class is (symba_tp)
 
-                  if (param%lrotation) then
-                     allocate(snapshot%pl%Ip(NDIM,npl_snap))
-                     allocate(snapshot%pl%rot(NDIM,npl_snap))
-                     do i = 1, NDIM
-                        snapshot%pl%Ip(i,:) = pack(pl%Ip(i,1:npl), pl%lmask(1:npl))
-                        snapshot%pl%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
-                     end do
-                  end if
-                  call snapshot%pl%sort("id", ascending=.true.)
-               end if
+                     if (npl > 0) then
+                        pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == self%irec
+                        npl_snap = count(pl%lmask(1:npl))
+                     end if
+                     if (ntp > 0) then
+                        tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == self%irec
+                        ntp_snap = count(tp%lmask(1:ntp))
+                     end if
+                     pl_snap%nbody = npl_snap
 
-               ! Take snapshot of the currently encountering test particles
-               if (ntp_snap > 0) then
-                  allocate(snapshot%tp%id(ntp_snap))
-                  allocate(snapshot%tp%info(ntp_snap))
-                  snapshot%tp%id(:) = pack(tp%id(1:ntp), tp%lmask(1:ntp))
-                  snapshot%tp%info(:) = pack(tp%info(1:ntp), tp%lmask(1:ntp))
-                  allocate(snapshot%tp%rh(NDIM,ntp_snap))
-                  allocate(snapshot%tp%vh(NDIM,ntp_snap))
-                  do i = 1, NDIM
-                     snapshot%tp%rh(i,:) = pack(tp%rh(i,1:ntp), tp%lmask(1:ntp))
-                     snapshot%tp%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
-                  end do
-               end if
+                     ! Take snapshot of the currently encountering massive bodies
+                     if (npl_snap > 0) then
+                        allocate(pl_snap%id(npl_snap))
+                        allocate(pl_snap%info(npl_snap))
+                        allocate(pl_snap%Gmass(npl_snap))
 
-               if (npl_snap + ntp_snap == 0) return
+                        allocate(pl_snap%levelg(npl_snap))
+                        pl_snap%levelg(:) = pack(pl%levelg(1:npl), pl%lmask(1:npl))
+                        pl_snap%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
+                        pl_snap%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
+                        pl_snap%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
+                        allocate(pl_snap%rh(NDIM,npl_snap))
+                        allocate(pl_snap%vh(NDIM,npl_snap))
+                        do i = 1, NDIM
+                           pl_snap%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
+                           pl_snap%vh(i,:) = pack(pl%vb(i,1:npl), pl%lmask(1:npl))
+                        end do
+                        if (param%lclose) then
+                           allocate(pl_snap%radius(npl_snap))
+                           pl_snap%radius(:) = pack(pl%radius(1:npl), pl%lmask(1:npl))
+                        end if
 
-               snapshot%t = t
+                        if (param%lrotation) then
+                           allocate(pl_snap%Ip(NDIM,npl_snap))
+                           allocate(pl_snap%rot(NDIM,npl_snap))
+                           do i = 1, NDIM
+                              pl_snap%Ip(i,:) = pack(pl%Ip(i,1:npl), pl%lmask(1:npl))
+                              pl_snap%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
+                           end do
+                        end if
+                        call pl_snap%sort("id", ascending=.true.)
+                     end if
+
+                     ! Take snapshot of the currently encountering test particles
+                     tp_snap%nbody = ntp_snap
+                     if (ntp_snap > 0) then
+                        allocate(tp_snap%id(ntp_snap))
+                        allocate(tp_snap%info(ntp_snap))
+                        tp_snap%id(:) = pack(tp%id(1:ntp), tp%lmask(1:ntp))
+                        tp_snap%info(:) = pack(tp%info(1:ntp), tp%lmask(1:ntp))
+                        allocate(tp_snap%rh(NDIM,ntp_snap))
+                        allocate(tp_snap%vh(NDIM,ntp_snap))
+                        do i = 1, NDIM
+                           tp_snap%rh(i,:) = pack(tp%rh(i,1:ntp), tp%lmask(1:ntp))
+                           tp_snap%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
+                        end do
+                     end if
+                  end select
+               end select
+
 
                ! Save the snapshot
-               self%encounter_history%iframe = self%encounter_history%iframe + 1
-               call self%resize_storage(self%encounter_history%iframe)
-
-               ! Find out which time slot this belongs in by searching for an existing slot
-               ! with the same value of time or the first available one
-               do i = 1, self%encounter_history%nframes
-                  if (t <= self%encounter_history%tvals(i)) then
-                     snapshot%tslot = i
-                     self%encounter_history%tvals(i) = t
-                     exit
-                  end if
-               end do
-               
-               self%encounter_history%frame(self%encounter_history%iframe) = snapshot
-
+               call symba_util_save_storage(self,snapshot,t)
             end select
-         end select 
+         end select
       end associate
 
       return

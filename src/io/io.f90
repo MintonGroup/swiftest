@@ -122,9 +122,7 @@ contains
       ! Internals
       real(DP), dimension(NDIM)       :: Ltot_now,  Lorbit_now,  Lspin_now
       real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  Eorbit_now
-      real(DP)                        :: Eorbit_error, Etot_error, Ecoll_error
       real(DP)                        :: GMtot_now
-      real(DP)                        :: Lerror, Merror
       character(len=STRMAX)           :: errmsg
       integer(I4B), parameter         :: EGYIU = 72
       character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5 &

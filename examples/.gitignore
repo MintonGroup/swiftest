@@ -1,6 +1,6 @@
 *
 !.gitignore
-!Basic_Simulation/*
-!Fragmentation/*
-!helio_gr_test/*
-!whm_gr_test/*
+!Basic_Simulation
+!Fragmentation
+!helio_gr_test
+!whm_gr_test

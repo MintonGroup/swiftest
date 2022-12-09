@@ -77,7 +77,7 @@ contains
       integer(I4B)                              :: itmax, idmax
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: rtemp
-      real(DP), dimension(NDIM)                 :: vectemp, rot0, Ip0, Lnow
+      real(DP), dimension(NDIM)                 :: rot0, Ip0, Lnow
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig
 
       call param%nc%open(param)
@@ -438,7 +438,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-      class(netcdf_parameters),     intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
+      class(netcdf_parameters),     intent(inout) :: nc    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
@@ -449,6 +449,8 @@ contains
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: validmask, tpmask, plmask
 
+      tslot = param%ioutput
+
       call nc%open(param, readonly=.true.)
       call self%read_hdr(nc, param)
 
@@ -456,8 +458,6 @@ contains
 
          call pl%setup(npl, param)
          call tp%setup(ntp, param)
-
-         tslot = param%ioutput
 
          call check( nf90_inquire_dimension(nc%id, nc%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
          allocate(rtemp(idmax))
@@ -1021,18 +1021,18 @@ contains
       !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
       implicit none
       ! Arguments
-      class(swiftest_base),       intent(in)    :: self   !! Swiftest particle object
-      class(netcdf_parameters),   intent(inout) :: nc       !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
+      class(swiftest_base),       intent(in)    :: self  !! Swiftest particle object
+      class(netcdf_parameters),   intent(inout) :: nc    !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B)                              :: i, j, tslot, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
       real(DP)                                  :: a, e, inc, omega, capom, capm, varpi, lam, f, cape, capf
 
-      call self%write_info(nc, param)
-
       tslot = param%ioutput
+
+      call self%write_info(nc, param)
 
       call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_write_frame_base nf90_set_fill"  )
       select type(self)

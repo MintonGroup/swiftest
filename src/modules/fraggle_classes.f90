@@ -12,7 +12,8 @@ module fraggle_classes
    !!
    !! Definition of classes and methods specific to Fraggel: The Fragment Generation Model
    use swiftest_globals
-   use swiftest_classes, only : swiftest_parameters, swiftest_nbody_system, swiftest_cb, swiftest_pl
+   use swiftest_classes,  only : swiftest_parameters, swiftest_nbody_system, swiftest_cb, swiftest_pl, swiftest_storage, netcdf_parameters
+   use encounter_classes, only : encounter_snapshot, encounter_io_parameters
    implicit none
    public
 
@@ -35,7 +36,8 @@ module fraggle_classes
       real(DP),     dimension(2)                   :: mass    !! Two-body equivalent mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: radius  !! Two-body equivalent radii of the collider bodies prior to the collision
    contains
-      procedure :: regime => fraggle_regime_colliders !! Determine which fragmentation regime the set of colliders will be
+      procedure :: regime => fraggle_regime_colliders     !! Determine which fragmentation regime the set of colliders will be
+      final     ::           fraggle_util_final_colliders !! Finalizer will deallocate all allocatables
    end type fraggle_colliders
 
    !********************************************************************************************************************************
@@ -103,7 +105,28 @@ module fraggle_classes
       procedure :: get_ang_mtm             => fraggle_util_ang_mtm               !! Calcualtes the current angular momentum of the fragments
       procedure :: get_energy_and_momentum => fraggle_util_get_energy_momentum   !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: restructure             => fraggle_util_restructure           !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
+      final     ::                            fraggle_util_final_fragments       !! Finalizer will deallocate all allocatables
+
    end type fraggle_fragments
+
+   !! NetCDF dimension and variable names for the enounter save object
+   type, extends(encounter_io_parameters) :: fraggle_io_encounter_parameters
+   contains
+      procedure :: initialize => fraggle_io_encounter_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+   end type fraggle_io_encounter_parameters
+
+   !> A class that that is used to store fragmentation data between file output
+   type, extends(swiftest_storage) :: fraggle_storage
+   contains
+      procedure :: dump   => fraggle_io_encounter_dump !! Dumps contents of encounter history to file
+      final     ::           fraggle_util_final_storage
+   end type fraggle_storage
+
+   type, extends(encounter_snapshot)  :: fraggle_encounter_snapshot
+   contains
+      procedure :: write_frame => fraggle_io_encounter_write_frame !! Writes a frame of encounter data to file 
+      final     ::                fraggle_util_final_snapshot
+   end type fraggle_encounter_snapshot
 
    interface
       module subroutine fraggle_generate_fragments(self, colliders, system, param, lfailure)
@@ -115,6 +138,25 @@ module fraggle_classes
          class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
+
+      module subroutine fraggle_io_encounter_dump(self, param)
+         implicit none
+         class(fraggle_storage(*)), intent(inout) :: self   !! Encounter storage object
+         class(swiftest_parameters),          intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine fraggle_io_encounter_dump
+   
+      module subroutine fraggle_io_encounter_initialize_output(self, param)
+         implicit none
+         class(fraggle_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),             intent(in)    :: param   
+      end subroutine fraggle_io_encounter_initialize_output
+   
+      module subroutine fraggle_io_encounter_write_frame(self, nc, param)
+         implicit none
+         class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
+         class(encounter_io_parameters),    intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
+      end subroutine fraggle_io_encounter_write_frame
 
       module subroutine fraggle_io_log_generate(frag)
          implicit none
@@ -238,6 +280,26 @@ module fraggle_classes
          class(swiftest_nbody_system), allocatable,  intent(out) :: tmpsys   !! Output temporary swiftest nbody system object
          class(swiftest_parameters),   allocatable,  intent(out) :: tmpparam !! Output temporary configuration run parameters
       end subroutine fraggle_util_construct_temporary_system
+
+      module subroutine fraggle_util_final_colliders(self)
+         implicit none
+         type(fraggle_colliders),  intent(inout) :: self !! Fraggle encountar storage object
+      end subroutine fraggle_util_final_colliders
+
+      module subroutine fraggle_util_final_fragments(self)
+         implicit none
+         type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
+      end subroutine fraggle_util_final_fragments
+
+      module subroutine fraggle_util_final_storage(self)
+         implicit none
+         type(fraggle_storage(*)),  intent(inout) :: self !! Fraggle encountar storage object
+      end subroutine fraggle_util_final_storage
+
+      module subroutine fraggle_util_final_snapshot(self)
+         implicit none
+         type(fraggle_encounter_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+      end subroutine fraggle_util_final_snapshot
 
       module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
