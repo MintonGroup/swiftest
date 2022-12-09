@@ -2348,7 +2348,7 @@ class Simulation:
         inc : float or array-like of float, optional
             inclination for param['IN_FORM'] == "EL"
         capom : float or array-like of float, optional
-            longitude of periapsis for param['IN_FORM'] == "EL"
+            longitude of ascending node for param['IN_FORM'] == "EL"
         omega : float or array-like of float, optional
             argument of periapsis for param['IN_FORM'] == "EL"
         capm : float or array-like of float, optional
