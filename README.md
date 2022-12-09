@@ -133,6 +133,120 @@ $ ipython kernel install --user --name EnvName --display-name "Swiftest Kernel"
 
 Swiftest is built to make running a Swiftest simulation a streamlined and user friendly experience, even for a new user. As a result, Swiftest is highly flexible and a simulation can be created, run, and processed in a number of different ways. The first choice the user must make is if they would prefer ASCII input files or NetCDF input files. We recommend NetCDF input files, however we include documentation for ASCII input files for completeness.
 
+**NetCDF Input Files (Recommended)**
+
+Swiftest accepts a single NetCDF input file. This file can be created using the Swiftest Python Package through a few simple steps.
+
+To begin, simply create a new Python script in the directory you would like to store your simulation. Open the new script and import the Swiftest Python package.
+
+```
+import swiftest          
+```
+
+Next, we initialize the Swiftest simulation object. Various parameters can be provided to the simulation via key word arguments at this stage. 
+
+```
+sim = swiftest.Simulation(**kwargs)   
+```
+
+The key word arguments available to the user, along with the default values for these arguments, are as follows:
+
+| Key Word Name                   | Key Word Description                                                                               | Options                                                                                            | Compatible Integrators |
+|---------------------------------|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|------------------------|
+|```simdir```                     | Path to subdirectory in which to store data. Default is ```/simdir```.                             | pathlike string (ex. ```path/to/directory```)                                                      | all
+|```read_param```                 | Read in a pre-existing parameter input file. Default is ```False```.                               | ```True```, ```False```                                                                            | all
+|```param_file```                 | Name of the pre-existing parameter input file. Only used if ```read_param``` is set to ```True```. | string (ex. ```param.in```)                                                                        | all
+|```read_old_output_file```       | Read in a pre-existing simulation output file. Default is ```False```.                             | ```True```, ```False```                                                                            | all
+|```codename```                   | Name of the N-body code to use. Default is ```Swiftest```.                                         | ```Swiftest```, ```Swifter```, ```Swift```                                                         | all
+|```integrator```                 | Name of the N-body integrator to use. Default is ```symba```.                                      | ```symba```, ```helio```, ```rmvs```, ```whm```                                                    | all
+|```t0```                         | The reference time for the start of the simulation in time units. Default is ```0.0```.            | floating point (ex. ```0.0```)                                                                     | all
+|```tstart```                     | Simulation start time for a restarted run in time units. Default is ```0.0```.                     | floating point (ex. ```0.0```)                                                                     | all
+|```tstop```                      | Simulation end time in time units. Must be greater than ```tstart```.                              | floating point (ex. ```100.0```)                                                                   | all
+|```dt```                         | Simulation step size in time units. Must be less than or equal to ```tstop```-```tstart```.        | floating point (ex. ```0.005```)                                                                   | all
+|```istep_out```                  | The number of time steps (```dt```) between output saves to memory. Either ```istep_out``` **OR** ```tstep_out``` may be set. Default is ```1```. | integer (ex. ```200```)                             | all
+|```dump_cadence```               | The number of output steps between when data saved to memory is written to file. Setting to ```0``` results in writing data to file only at the completion of the simulation. Default is ```10```. | integer (ex. ```10```) | all
+|```tstep_out```                  | The approximate time between when outputs saved in memory are written to file in time units. Either ```istep_out``` **OR** ```tstep_out``` may be set. | floating point (ex. ```10.0```) that calculates ```istep_out = floor(tstep_out / dt)``` | all
+|```init_cond_file_type```        | Input file format. Default is ```NETCDF_DOUBLE```.                                                 | ```NETCDF_DOUBLE```, ```NETCDF_FLOAT```, ```ASCII```                                               | all
+|```init_cond_file_name```        | Input file name(s). If ```init_cond_file_type``` is set to ```NETCDF_DOUBLE``` or ```NETCDF_FLOAT```, default is ```init_cond.nc```. If ```init_cond_file_type``` is set to ```ASCII```, default is a dictionary: ```{"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}```. | string (ex. ```my_init_cond.nc```) or dictionary ```{"CB" : "mycb.in", "PL" : "mypl.in", "TP" : "mytp.in"}``` | all
+|```init_cond_format```           | Input format. Default is ```EL```.                                                                 | ```EL```, ```XV```                                                                                 | all
+|```output_file_type```           | Output file format. Default is ```NETCDF_DOUBLE```. ```REAL4```, ```REAL8```, ```XDR4```, ```XDR8``` Swifter/Swift only. | ```NETCDF_DOUBLE```, ```NETCDF_FLOAT```, ```REAL4```, ```REAL8```, ```XDR4```, ```XDR8``` | all
+|```output_file_name```           | Output file name. Default is ```bin.nc```.                                                         | string (ex. ```mydata.nc```)                                                                       | all
+|```output_format```              | Output format. Default is ```XVEL```.                                                              | ```XV```, ```XVEL```                                                                               | all
+|```MU```                         | Mass unit system to use in the simulation. Default is ```Msun```.                                  | ```Msun```, ```Mearth```, ```kg```, ```g``` (case-insensitive)                                     | all                           
+|```DU```                         | Distance unit system to use in the simulation. Default is ```AU```.                                | ```AU```, ```Rearth```, ```m```, ```cm``` (case-insensitive)                                       | all
+|```TU```                         | Time unit system to use in the simulation. Default is ```Y```.                                     | ```Y```, ```YR```, ```DAY``` (Julian day), ```d``` (Julian day), ```JD``` (Julian day), ```s``` (case-insensitive) | all
+|```MU2KG```                      | Mass units to kilogram conversion factor. Overrides ```MU```.                                      | floating point (ex. ```1.988409870698051e+30```)                                                   | all
+|```DU2M```                       | Distance units to meters conversion factor. Overrides ```DU```.                                    | floating point (ex. ```31557600.0```)                                                              | all
+|```TU2S```                       | Time units to seconds conversion factor. Overrides ```TU```.                                       | floating point (ex. ```149597870700.0```)                                                          | all
+|```rmin```                       | Heliocentric distance at which a test particle is considered merged with the central body in distance units. Default is the radius of the central body in system units. | floating point (ex. ```0.3```) | all
+|```rmax```                       | Heliocentric distance at which a test particle is too distant from the central body in distance units. Default is ```10000.0 AU```. | floating point (ex. ```10000.0```)                                | all
+|```qmin_coord```                 | Coordinate frame used to check for minimum pericenter distance. Default is ```HELIO```.            | ```HELIO```, ```BARY```                                                                            | all
+|```mtiny```                      | Mass cutoff between fully and semi-interacting massive bodies in mass units. Either ```mtiny``` **OR** ```gmtiny``` may be set. | floating point (ex. ```1e23```)                                       | all
+|```gmtiny```                     | Mass cutoff between fully and semi-interacting massive bodies in gravitational mass units. Default is ```0.0```. Either ```mtiny``` **OR** ```gmtiny``` may be set. | floating point (ex. ```4e-6```)   | all
+|```close_encounter_check```      | Check for close encounters. Default is ```True```. Requires radius of massive bodies to be provided in initial conditions. | ```True```, ```False```                                                    | all
+|```general_relativity```         | General relativity. Default is ```True```.                                                         | ```True```, ```False```                                                                            | all
+|```fragmentation```              | Resolve collisions with fragmentation. Default is ```False```.                                     | ```True```, ```False```                                                                            | SyMBA
+|```minimum_fragment_gmass```     | Minimum fragment mass in gravitational mass units. Default is ```0.0```. Either ```minimum_fragment_gmass``` **OR** ```minimum_fragment_mass``` may be set. | floating point (ex. ```1e-9```)           | SyMBA
+|```minimum_fragment_mass```      | Minimum fragment mass in mass units. Either ```minimum_fragment_gmass``` **OR** ```minimum_fragment_mass``` may be set. | floating point (ex. ```1e20```)                                               | SyMBA
+|```rotation```                   | Rotation of massive bodies. Requires rotation vectors, radii, and moments of inertia to be provided in initial conditions. Default is ```False```. | ```True```, ```False```                            | SyMBA
+|```compute_conservation_values```| Track and report the total energy, angular momentum, and mass of the system. Default is ```False```. | ```True```, ```False```                                                                          | SyMBA
+|```rhill_present```              | Hill Radius present in massive body input file. Default is ```False```.                            | ```True```, ```False```                                                                            | SyMBA
+|```extra_force```                | Additional user defined force routines provided. Default is ```False```.                           | ```True```, ```False```                                                                            | all
+|```big_discard```                | Include data for all fully-interacting bodies (above GMTINY) in each discard. Swifter only. Default is ```False```. | ```True```, ```False```                                                           | all
+|```restart```                    | If ```True```, the simulation given by ```output_file_name``` will be restarted from ```t0```.  Default is ```False```. | ```True```, ```False```                                                       | all
+|```interaction_loops```          | Method for checking for interactions between bodies. Default is ```TRIANGULAR```.                  | ```TRIANGULAR```, ```FLAT```, ```ADAPTIVE```                                                       | all
+|```encounter_check_loops```      | Method for checking for close encounters between bodies. Default is ```TRIANGULAR```.              | ```TRIANGULAR```, ```SORTSWEEP```, ```ADAPTIVE```                                                  | all
+
+In the above list, the following are defined as:
+- ```HELIO``` - Use the heliocentric coordinate frame.
+- ```BARY``` - Use the barycentric coordinate frame.
+- ```XV``` - Heliocentric position and velocity components.
+- ```EL``` - Osculating orbital elements.
+- ```XVEL``` - Heliocentric position and velocity components and osculating orbital elements.
+- ```NETCDF_FLOAT``` - Single precision NetCDF format.
+- ```NETCDF_DOUBLE``` - Double precision NetCDF format.
+- ```REAL4``` - Single precision 4-byte native Fortran binary format (Swifter/Swift only)
+- ```REAL8``` - Double precision 8-byte native Fortran binary format (Swifter/Swift only)
+- ```XDR4``` - Single precision 4-byte XDR format (Swifter/Swift only)
+- ```XDR8``` - Double precision 8-byte XDR format (Swifter/Swift only)
+
+After creating the simulation and defining all desired parameters as keyword arguments, it is time to add bodies to the simulation. The Swiftest Python package interfaces with the [NASA JPL Horizons database](https://ssd.jpl.nasa.gov/horizons/), allowing a user to easily import the initial conditions of known solar system bodies using the ```add_solar_system_body``` method.
+
+```
+sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])     
+```
+
+User defined bodies can also be added to a Swiftest simulation through the Python package. Massive bodies and test particles can both be added using the ```add_body``` method. 
+
+```
+sim.add_body(**kwargs**)
+```
+
+The ```add_body``` method accepts the following keyword arguments:
+
+| Key Word Name   | Key Word Description                                                                                                                    | Options                        |
+|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
+| ```name```      | Name(s) of bodies.                                                                                                                      | string or array-like of strings
+| ```id```        | Unique identification value(s) of bodies.                                                                                               | float or array-like of floats
+| ```a```         | Semi-major axis value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                            | float or array-like of floats
+| ```e```         | Eccentricity value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                               | float or array-like of floats
+| ```inc```       | Inclination value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                                | float or array-like of floats
+| ```capom```     | Longitude of the ascending node value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                            | float or array-like of floats
+| ```omega```     | Argument of pericenter value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                     | float or array-like of floats
+| ```capm```      | Mean anomaly value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                               | float or array-like of floats
+| ```rh```        | Position vector(s) of bodies. Only used if  ```init_cond_format``` is set to ```XV```.                                                  | (n,3) array-like of floats
+| ```vh```        | Velocity vector(s) of bodies. Only used if  ```init_cond_format``` is set to ```XV```.                                                  | (n,3) array-like of floats
+| ```mass```      | Mass value(s) of bodies. Only for massive bodies. Only  ```mass``` **OR** ```Gmass``` may be set.                                       | float or array-like of floats
+| ```Gmass```     | Gravitational mass value(s) of bodies. Only for massive bodies. Only  ```mass``` **OR** ```Gmass``` may be set.                         | float or array-like of floats
+| ```radius```    | Radius value(s) of bodies. Only for massive bodies.                                                                                     | float or array-like of floats
+| ```rhill```     | Hill Radius value(s) of bodies. Only for massive bodies.                                                                                | float or array-like of floats
+| ```rot```       | Rotation rate vector(s) of bodies. Only for massive bodies. Only used if ```rotation``` is set to ```True```.                           | (n,3) array-like of floats
+| ```Ip```        | Principal axes moments of inertia vector(s) of bodies. Only for massive bodies. Only used if ```rotation``` is set to ```True```.       | (n,3) array-like of floats
+| ```J2```        | The J2 term of the central body.                                                                                                        | float or array-like of floats
+| ```J4```        | The J4 term of the central body.                                                                                                        | float or array-like of floats
+
+All desired bodies and parameters are added to the simulation object and the information is saved to a NetCDF input file (**<span>init_cond.nc</span>**) and an ASCII parameter file (**<span>param.in</span>**) automatically. The parameter file is not necessary to run a Swiftest simulation, it is simply a convenient reference for the user. These files are stored in the ```/simdata``` subdirectory.
+
 **ASCII Input Files**
 Swiftest accepts 4 ASCII input files. All four input files are necessary, however the structure of each input file varies slightly depending on the features and capabilities of the integrator selected. For examples of Swiftest input files, see the examples section. The four input files are as follows:
 
@@ -165,21 +279,21 @@ The parameter options used in the **<span>param.in</span>** are as follows:
 | ```CHK_RMIN```          | Heliocentric distance at which a test particle is considered merged with the central body in distance units.                 | floating point, turn off using ```-1.0```                                                               | all
 | ```CHK_RMAX```          | Heliocentric distance at which a test particle is too distant from the central body in distance units.                       | floating point (ex. ```1000.0```)                                                                       | all
 | ```CHK_EJECT```         | Heliocentric distance at which an unbound test particle is too distant from the central body in distance units.              | floating point (ex. ```1000.0```)                                                                       | all
-| ```CHK_QMIN_COORD```    | Coordinate frame used to check for pericenter distance.                                                                      | ```HELIO```, ```BARY```                                                                                 | all
+| ```CHK_QMIN_COORD```    | Coordinate frame used to check for minimum pericenter distance.                                                              | ```HELIO```, ```BARY```                                                                                 | all
 | ```CHK_QMIN_RANGE```    | Upper and lower bounds of the semimajor axis range used to check the pericenter distance.                                    | two floating points, turn off using ```-1.0 -1.0```                                                     | all
 | ```EXTRA_FORCE```       | Additional user defined force routines provided.                                                                             | ```YES```, ```NO```                                                                                     | all
-| ```CHK_CLOSE```         | Check for close encounters.                                                                                                  | ```YES```, ```NO```                                                                                     | all
+| ```CHK_CLOSE```         | Check for close encounters. Requires radius of massive bodies to be provided in initial conditions.                          | ```YES```, ```NO```                                                                                     | all
 | ```INTERACTION_LOOPS``` | Method for checking for interactions between bodies.                                                                         | ```TRIANGULAR```, ```FLAT```, ```ADAPTIVE```                                                            | all
 | ```ENCOUNTER_CHECK```   | Method for checking for close encounters between bodies.                                                                     | ```TRIANGULAR```, ```SORTSWEEP```, ```ADAPTIVE```                                                       | all
-| ```MU2KG```             | Mass units to kilogram conversion.                                                                                           | floating point (ex. ```1.988409870698051e+30```)                                                        | all
-| ```TU2S```              | Time units to seconds conversion.                                                                                            | floating point (ex. ```31557600.0```)                                                                   | all
-| ```DU2M```              | Distance units to meters conversion.                                                                                         | floating point (ex. ```149597870700.0```)                                                               | all
-| ```BIG_DISCARD```       | Include data for all fully-interacting bodies (above GMTINY) in each discard.                                                | ```YES```, ```NO```                                                                                     | all
+| ```MU2KG```             | Mass units to kilogram conversion factor.                                                                                    | floating point (ex. ```1.988409870698051e+30```)                                                        | all
+| ```TU2S```              | Time units to seconds conversion factor.                                                                                     | floating point (ex. ```31557600.0```)                                                                   | all
+| ```DU2M```              | Distance units to meters conversion factor.                                                                                  | floating point (ex. ```149597870700.0```)                                                               | all
+| ```BIG_DISCARD```       | Include data for all fully-interacting bodies (above GMTINY) in each discard. Swifter only.                                  | ```YES```, ```NO```                                                                                     | all
 | ```GR```                | General relativity.                                                                                                          | ```YES```, ```NO```                                                                                     | all
 | ```RHILL_PRESENT```     | Hill Radius present in massive body input file.                                                                              | ```YES```, ```NO```                                                                                     | SyMBA
-| ```ENERGY```            | Track the total energy of the system.                                                                                        | ```YES```, ```NO```                                                                                     | SyMBA
+| ```ENERGY```            | Track and report the total energy, angular momentum, and mass of the system.                                                 | ```YES```, ```NO```                                                                                     | SyMBA
 | ```FRAGMENTATION```     | Resolve collisions with fragmentation.                                                                                       | ```YES```, ```NO```                                                                                     | SyMBA
-| ```ROTATION```          | Rotational vectors present in massive body input file.                                                                       | ```YES```, ```NO```                                                                                     | SyMBA
+| ```ROTATION```          | Rotation of massive bodies. Requires rotation vectors, radii, and moments of inertia to be provided in initial conditions.   | ```YES```, ```NO```                                                                                     | SyMBA
 | ```GMTINY```            | Mass cutoff between fully and semi-interacting massive bodies in gravitational mass units.                                   | floating point (ex. ```4e-06```)                                                                        | SyMBA
 | ```MIN_GMFRAG```        | Minimum fragment mass in gravitational mass units.                                                                           | floating point (ex. ```1e-09```)                                                                        | SyMBA
 | ```TIDES```             | Tidal dissipation model.                                                                                                     | ```YES```, ```NO```                                                                                     | *(under development)*
@@ -241,97 +355,26 @@ The **<span>tp.in</span>** includes all test particle initial conditions. In the
 
 Note that the ID numbers of the test particles are a continuation of the ID numbers of the massive bodies. No two bodies in the system can have the same ID number. 
 
-**NetCDF Input Files (Recommended)**
+**Running a Swiftest Simulation**
 
-Swiftest accepts a single NetCDF input file. This file can be created using the Swiftest Python Package through a few simple steps.
+The input files necessary to successfully run Swiftest should now be generated in the simulation directory. The user is now faced with a second choice: to run a Swiftest simulation from a Python environment (recommended) or to run it directly from the terminal. Either option is possible with NetCDF format input files, however ASCII input files must be run directly from the terminal.
 
-To begin, simply create a new Python script in the directory you would like to store your simulation. Open the new script and import the Swiftest Python package.
+**Running via Python**
 
-```
-import swiftest          
-```
-
-Next, we initialize the Swiftest simulation object. Various parameters can be provided to the simulation via key word arguments at this stage. 
+To run a Swiftest simulation from the same script in which the initial conditions are created, simply add the following line after you have finished defining parameters and adding bodies to the simulation:
 
 ```
-sim = swiftest.Simulation()   
+sim.run()
 ```
 
-The key word arguments available to the user, along with the default values for these arguments, are as follows:
-
-| Key Word Name                   | Key Word Description                                                                               | Options                                                                                            | Compatible Integrators |
-|---------------------------------|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|------------------------|
-|```simdir```                     | Path to subdirectory in which to store data. Default is ```/simdir```.                             | pathlike string (ex. ```path/to/directory```)
-|```read_param```                 | Read in a pre-existing parameter input file. Default is ```False```.                               | ```True```, ```False```
-|```param_file```                 | Name of the pre-existing parameter input file. Only used if ```param_file``` is set to ```True```. | string (ex. ```param.in```)
-|```read_old_output_file```       | Read in a pre-existing simulation output file. Default is ```False```.                             | ```True```, ```False```
-|```codename```                   | Name of the N-body code to use. Default is ```Swiftest```.                                         | ```Swiftest```, ```Swifter```, ```Swift```
-|```integrator```                 | Name of the N-body integrator to use. Default is ```symba```.                                      | ```symba```, ```helio```, ```rmvs```, ```whm```
-|```t0```                         | The reference time for the start of the simulation in time units. Default is ```0.0```.            | floating point (ex. ```0.0```) 
-|```tstart```                     | Simulation start time for a restarted run in time units. Default is ```0.0```.                     | floating point (ex. ```0.0```) 
-|```tstop```                      | Simulation end time in time units. Must be greater than ```tstart```.                              | floating point (ex. ```100.0```) 
-|```dt```                         | Simulation step size in time units. Must be less than or equal to ```tstop```-```tstart```.        | floating point (ex. ```0.005```) 
-|```istep_out```                  | The number of time steps (```dt```) between output saves to memory. Either ```istep_out``` **OR** ```tstep_out``` may be set. | integer (ex. ```200```)
-|```dump_cadence```               | The number of output steps between when data saved to memory is written to file. Setting to ```0``` results in writing data to file only at the completion of the simulation. Default is ```10```. | integer (ex. ```10```)
-|```tstep_out```                  | The approximate time between when outputs saved in memory are written to file in time units. Either ```istep_out``` **OR** ```tstep_out``` may be set. | floating point (ex. ```10.0```) that calculates ```istep_out = floor(tstep_out / dt)```
-|```init_cond_file_type```        | Input file format. Default is ```NETCDF_DOUBLE```.                                                 | ```NETCDF_DOUBLE```, ```NETCDF_FLOAT```, ```ASCII```
-|```init_cond_file_name```        | Input file name(s). If ```init_cond_file_type``` is set to ```NETCDF_DOUBLE``` or ```NETCDF_FLOAT```, default is ```init_cond.nc```. If ```init_cond_file_type``` is set to ```ASCII```, default is a dictionary: ```{"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}```. | string (ex. ```my_init_cond.nc```) or dictionary ```{"CB" : "mycb.in", "PL" : "mypl.in", "TP" : "mytp.in"}```
-|```init_cond_format```           | Input format. Default is ```EL```.                                                                 | ```EL```, ```XV```
-|```output_file_type```           | Output file format. Default is ```NETCDF_DOUBLE```.                                                | ```NETCDF_DOUBLE```, ```NETCDF_FLOAT```, ```REAL4```, ```REAL8```, ```XDR4```, ```XDR8```
-|```output_file_name```           | Output file name. Default is ```bin.nc```.                                                         | string (ex. ```mydata.nc```)
-|```output_format```              | Output format. Default is ```XVEL```.                                                              | ```XV```, ```XVEL```
-|```MU```                         | Mass unit system to use in the simulation. Default is ```Msun```.                                  | ```Msun```, ```Mearth```, ```kg```, ```g``` (case-insensitive)                               
-|```DU```                         | Distance unit system to use in the simulation. 
-|```TU```                         | 
-|```MU2KG```                      |
-|```DU2M```                       |
-|```TU2S```                       |
-|```MU_NAME```                    |
-|```DU_NAME```                    |
-|```TU_NAME```                    |
-|```rmin```                       |
-|```rmax```                       |
-|```qmin_coord```                 |
-|```mtiny```                      |
-|```gmtiny```                     |
-|```close_encounter_check```      |
-|```general_relativity```         |
-|```fragmentation```              |
-|```minimum_fragment_gmass```     |
-|```minimum_fragment_mass```      |
-|```rotation```                   |
-|```compute_conservation_values```|
-|```extra_force```                |
-|```big_discard```                |
-|```rhill_present```              |
-|```restart```                    |
-|```interaction_loops```          |
-|```encounter_check_loops```      |
-|```verbose```                    |
-
-
-**NOTHING IS CHECKED BELOW HERE**
-
-The Swiftest Python package also interfaces with the [NASA JPL Horizons database](https://ssd.jpl.nasa.gov/horizons/), allowing a user to easily import the initial conditions of known solar system bodies using the ```add``` function.
+To run a previously created set of initial conditions, first read the old output file into Python, and then run it. Note that Swiftest will look in the ```/simdata``` subdirectory for the initial conditions by default. You may set a new path to the initial conditions using the ```param_file``` keyword argument.
 
 ```
-sim.add("Mercury")             # An example of how to add a known body from the JPL Horizons database to a Swiftest simulation.
+sim = swiftest.Simulation(read_param=True, param_file='path/to/param.in')
+sim.run()
 ```
 
-User defined bodies can also be added to a Swiftest simulation through the Python package. To add massive bodies using the ```addp``` function, define an ```IN_FORM``` and then add all desired initial conditions. The first 8 arguments (the id, the name, and either the cartesian state vectors or the orbital elements, depending on the value of ```IN_FORM```) are required, while the last 9 arguments (the gravitational mass, the radius, the Hill Radius, the principal moments of inertia, and the rotation vector) are optional. The ```addp``` function accepts single values or arrays of values.
-
-```
-sim.param['IN_FORM'] = "EL"    # Set the in form to be orbital elements. Can also set to cartesian state vectors using XV.
-sim.addp(id, name, a, e, inc, capom, omega, capm, GMpl=GMpl, Rpl=Rpl, rhill=rhill, Ip1=Ip1, Ip2=Ip2, Ip3=Ip3, rotx=rotx, roty=roty, rotz=rotz) # An example of how to add a user defined body to a Swiftest simulation.
-```
-
-Once all desired bodies and parameters are added to the simulation object, the information is saved to a set of initial condition files (**<span>param.in</span>**, **<span>cb.in</span>**, **<span>pl.in</span>**, **<span>tp.in</span>**) using the following line:
-
-```
-sim.save('param.in')           # Saving the Swiftest input files. 
-```
-
-The input files necessary to successfully run Swiftest should now be generated in the simulation directory.
+**Running via a Terminal**
 
 When creating a new Swiftest simulation, ensure that all required input files exist in a unique directory. A symbolic link to the Swiftest driver should also exist in the simulation directory. To create a symbolic link to the Swiftest driver from your current directory, type:
 
@@ -347,17 +390,17 @@ $ ./swiftest_driver INTEGRATOR param.in
 
 Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs```, ```helio```, or ```symba```.
 
-
 **Outputs**
 
-Swiftest generates between 1 and 6 output files, depending on the parameters defined in the **<span>param.in</span>**. The output files are as follows:
-- **<span>out.nc</span>** - Always generated, the output file containing the information for every body in the system, written every ```ISTEP_OUT``` timesteps.
-- **fraggle.log** - The log containing the record of each fragmentation event, including the properties of the colliding bodies, the collisional regime, and the properties of the fragments created, only if ```FRAGMENTATION``` is ```YES```, SyMBA only, ASCII file format only
-- **encounter_check_plpl_timer.log** - The log containing the encounter check timer for each massive body/massive body encounter, only if ```ENCOUNTER_CHECK``` is ```ADAPTIVE```, ASCII file format only
-- **encounter_check_pltp_time.log** - The log containing the encounter check timer for each massive body/test particle encounter, only if ```ENCOUNTER_CHECK``` is ```ADAPTIVE```, ASCII file format only
+Swiftest generates between 1 and 6 output files, depending on the input parameters selected and the method through which Swiftest was run. The output files are as follows:
+- **<span>bin.nc</span>** - Always generated, the output file containing the information for every body in the system, recorded every ```ISTEP_OUT``` timesteps and written every ```DUMP_CADENCE```.
+- **fraggle.log** - The log containing the record of each fragmentation event, including the properties of the colliding bodies, the collisional regime, and the properties of the fragments created, only if ```FRAGMENTATION``` is ```YES```, Swiftest SyMBA only, ASCII file format only
+- **encounter_check_plpl_timer.log** - The log containing the encounter check timer for each massive body/massive body encounter,  only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True``` and ```ENCOUNTER_CHECK```/```encounter_check_loops``` is ```ADAPTIVE```, ASCII file format only
+- **encounter_check_pltp_time.log** - The log containing the encounter check timer for each massive body/test particle encounter, only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True``` and ```ENCOUNTER_CHECK```/```encounter_check_loops``` is ```ADAPTIVE```, ASCII file format only
 - **interaction_timer.log** - The log containing the interaction loop timer for each interacting pair of bodies, only if ```INTERACTION_LOOPS``` is ```ADAPTIVE```, ASCII file format only
+- **swiftest.log** - A log containing the input parameters and a brief updated on the status of the run. Only generated if Swiftest is run through the Python package. If Swiftest is run through the terminal, these updates are output directly to the terminal.
 
-Each time Swiftest writes to the output files, it also writes a short update to the terminal. At the start of the simulation, it outputs all user parameters set in the **<span>param.in</span>** to the terminal. Each subsequent output is then appended beneath the listed parameters in the following fashion:
+Regardless of whether the status outputs are recorded in the **swiftest.log** or in the terminal, the output format is the same. Below is an example of a single status output:
 
 ``````
 Time =  1.00000E+03; fraction done =  0.001; Number of active plm, pl, tp =    57,   108,    50
@@ -365,11 +408,13 @@ Time =  1.00000E+03; fraction done =  0.001; Number of active plm, pl, tp =    5
 Integration steps: Total wall time:  2.99848E+02; Interval wall time:  9.36192E+01;Interval wall time/step:   4.68956E-04
 ``````
 
-The first line includes the simulation time, the fraction of the simulation that is complete relative to ```tmax```, the number of fully-interactive massive bodies (```plm```), the total number of massive bodies (```pl```) including fully-interactive and semi-interactive bodies, and the number of test particles (```tp```) remaining in the system at that time. The second line includes the angular momentum error, the change in energy as a result of collisions only, the total change in energy, and the change in mass up to this point in the simulation. The third line contains the total wall time elapsed since the start of the simulation, the wall time elapsed since the start of the last step, and the average wall time per step since the start of the simulation.
+The first line includes the simulation time, the fraction of the simulation that is complete relative to ```tstop```, the number of fully-interactive massive bodies (```plm```) (SyMBA only), the total number of massive bodies (```pl```) including fully-interactive and semi-interactive bodies, and the number of test particles (```tp```) remaining in the system at that time. The second line includes the angular momentum error, the change in energy as a result of collisions only, the total change in energy, and the change in mass up to this point in the simulation (error analysis included only if ```ENERGY```/```compute_conservation_values``` is set to ```YES```/```True```). The third line contains the total wall time elapsed since the start of the simulation, the wall time elapsed since the start of the last step, and the average wall time per step since the start of the simulation.
+
+**NOTHING IS CHECKED BELOW HERE**
 
 **Restarting a Simulation From t $\neq$ 0**
 
-Swiftest allows the user to restart a simulation in two different ways. Restarting from the dump files is ideal if there is a risk that the simulation was terminated in the writing stage or if the output was corrupted during termination. Restarting from a timestamp is ideal if the point at which the user would like to restart from is not the last timestep written to the output file. Both ways allow the user to restart a simulation from the last timestep written to the output file. 
+Just like Swiftest allows the user to run a simulation through the terminal or through Python, Swiftest also allows the user to restart a simulation in the same two manners. 
 
 In case of accidental termination of a simulation, such as through a power outage or computer failure, Swiftest generates a series of dump files. Every ```ISTEP_DUMP``` timesteps, Swiftest dumps all simulation information to the dump files. Every ```ISTEP_DUMP``` timestep, Swiftest alternates which set of dump files to dump to (either set "1" or set "2"). This way, even if Swiftest is terminated during the writing stage, at least one set of dump files is preserved and the information is not lost. When Swiftest is restarted from a dump file, it automatically determines which set of dump files has proceeded further in simulation time, and picks up from that point. 
 
