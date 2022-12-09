@@ -72,10 +72,12 @@ contains
             select type(param)
             class is (symba_parameters)
                if (param%lencounter_save) then
-                  if (.not. allocated(system%encounter_history)) allocate(encounter_storage :: system%encounter_history)
-                  allocate(fraggle_io_parameters :: system%encounter_history%nc)
+                  allocate(encounter_storage :: system%encounter_history)
+                  allocate(encounter_io_parameters :: system%encounter_history%nce)
+                  allocate(fraggle_io_parameters :: system%encounter_history%ncc)
                   call system%encounter_history%reset()
-                  system%encounter_history%nc%file_number = param%iloop / param%dump_cadence
+                  system%encounter_history%nce%file_number = param%iloop / param%dump_cadence
+                  system%encounter_history%ncc%file_number = param%iloop / param%dump_cadence
                end if
             end select
          end select

@@ -827,7 +827,8 @@ def process_netcdf_input(ds, param):
     if "id" in ds.dims:
         if len(np.unique(ds['name'])) == len(ds['name']):
             ds = ds.swap_dims({"id" : "name"})
-            ds = ds.reset_coords("id")
+            if "id" in ds:
+                ds = ds.reset_coords("id")
 
     return ds
 

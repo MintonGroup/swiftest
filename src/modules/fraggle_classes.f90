@@ -10,10 +10,10 @@
 module fraggle_classes
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Definition of classes and methods specific to Fraggel: The Fragment Generation Model
+   !! Definition of classes and methods specific to Fraggle: *Frag*ment *g*eneration that conserves angular momentum (*L*) and energy (*E*)
    use swiftest_globals
    use swiftest_classes,  only : swiftest_parameters, swiftest_nbody_system, swiftest_cb, swiftest_pl, swiftest_storage, netcdf_parameters
-   use encounter_classes, only : encounter_snapshot, encounter_io_parameters
+   use encounter_classes, only : encounter_snapshot, encounter_io_parameters, encounter_storage
    implicit none
    public
 
@@ -111,7 +111,6 @@ module fraggle_classes
 
    !! NetCDF dimension and variable names for the enounter save object
    type, extends(encounter_io_parameters) :: fraggle_io_parameters
-      character(STRMAX)  :: frag_file                 !! Encounter output file name
       integer(I4B)       :: stage_dimid                                     !! ID for the name variable  
       integer(I4B)       :: stage_varid                                     !! ID for the name variable  
       character(NAMELEN) :: stage_dimname            = "stage"              !! name of the stage dimension (before/after)
@@ -155,14 +154,9 @@ module fraggle_classes
       module subroutine fraggle_io_write_frame(self, nc, param)
          implicit none
          class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
-         class(encounter_io_parameters),    intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(encounter_io_parameters),    intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
       end subroutine fraggle_io_write_frame
-
-      module subroutine fraggle_io_log_generate(frag)
-         implicit none
-         class(fraggle_fragments),   intent(in) :: frag
-      end subroutine fraggle_io_log_generate
 
       module subroutine fraggle_io_log_pl(pl, param)
          implicit none

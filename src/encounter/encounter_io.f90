@@ -25,15 +25,14 @@ contains
 
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
-            select type(snapshot => self%frame(i)%item)
-            class is (encounter_snapshot)
-               param%ioutput = self%tslot(i)
-               call snapshot%write_frame(self%nc,param)
-               select type(snapshot) ! Be sure to call the base class method to get the regular encounter data sved
-               class is (fraggle_encounter_snapshot)
-                  call snapshot%encounter_snapshot%write_frame(self%nc,param)
-            end select
+            param%ioutput = self%tslot(i)
 
+            select type(snapshot => self%frame(i)%item)
+            class is (fraggle_encounter_snapshot)
+               call snapshot%write_frame(self%ncc,param)
+               call snapshot%encounter_snapshot%write_frame(self%nce,param)
+            class is (encounter_snapshot)
+               call snapshot%write_frame(self%nce,param)
             end select
          else
             exit
@@ -56,12 +55,13 @@ contains
       class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),     intent(in)    :: param   !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i, nvar, varid, vartype
+      integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
       real(SP) :: sfill
       logical :: fileExists
       character(len=STRMAX) :: errmsg
-      integer(I4B) :: ndims
+      integer(I4B) :: ndims, i
+      character(len=NAMELEN) :: charstring
 
       associate(nc => self)
          dfill = ieee_value(dfill, IEEE_QUIET_NAN)
@@ -75,13 +75,13 @@ contains
          end select
 
          ! Check if the file exists, and if it does, delete it
-         inquire(file=nc%enc_file, exist=fileExists)
+         inquire(file=nc%file_name, exist=fileExists)
          if (fileExists) then
-            open(unit=LUN, file=nc%enc_file, status="old", err=667, iomsg=errmsg)
+            open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
             close(unit=LUN, status="delete")
          end if
 
-         call check( nf90_create(nc%enc_file, NF90_NETCDF4, nc%id), "encounter_io_initialize nf90_create" )
+         call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "encounter_io_initialize nf90_create" )
 
          ! Dimensions
          call check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "encounter_io_initialize nf90_def_dim time_dimid" ) ! Simulation time dimension
@@ -130,8 +130,7 @@ contains
          ! Add in the space dimension coordinates
          call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "encounter_io_initialize nf90_put_var space"  )
 
-         ! Pre-fill id slots with ids
-
+         ! Pre-fill name slots with ids 
          call check( nf90_put_var(nc%id, nc%id_varid, [(-1,i=1,param%maxid)], start=[1], count=[param%maxid]), "encounter_io_initialize nf90_put_var pl id_varid"  )
       end associate
 
@@ -151,20 +150,20 @@ contains
       implicit none
       ! Arguments
       class(encounter_snapshot),      intent(in)    :: self  !! Swiftest encounter structure
-      class(encounter_io_parameters), intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
+      class(encounter_io_parameters), intent(inout) :: nc   !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),     intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B)           :: i, tslot, idslot, old_mode, npl, ntp
       character(len=NAMELEN) :: charstring
 
       tslot = param%ioutput
-
-      call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "encounter_io_write_frame nf90_set_fill"  )
-
-      call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_write_frame nf90_put_var time_varid"  )
-      call check( nf90_put_var(nc%id, nc%loop_varid, int(self%iloop,kind=I4B), start=[tslot]), "encounter_io_write_frame nf90_put_var pl loop_varid"  )
-
       associate(pl => self%pl, tp => self%tp)
+
+         call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "encounter_io_write_frame nf90_set_fill"  )
+   
+         call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_write_frame nf90_put_var time_varid"  )
+         call check( nf90_put_var(nc%id, nc%loop_varid, int(self%iloop,kind=I4B), start=[tslot]), "encounter_io_write_frame nf90_put_var pl loop_varid"  )
+
          npl = pl%nbody
          do i = 1, npl
             idslot = pl%id(i)
@@ -198,9 +197,9 @@ contains
             charstring = trim(adjustl(tp%info(i)%particle_type))
             call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_write_frame nf90_put_var tp particle_type_varid"  )
          end do
-      end associate
 
-      call check( nf90_set_fill(nc%id, old_mode, old_mode) )
+         call check( nf90_set_fill(nc%id, old_mode, old_mode) )
+      end associate
 
       return
    end subroutine encounter_io_write_frame

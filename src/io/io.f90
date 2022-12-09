@@ -253,7 +253,7 @@ contains
       call dump_param%dump(param_file_name)
 
       dump_param%out_form = "XV"
-      dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
+      dump_param%nc%file_name = trim(adjustl(DUMP_NC_FILE(idx)))
       dump_param%ioutput = 1 
       call dump_param%nc%initialize(dump_param)
       call self%write_frame(dump_param%nc, dump_param)
@@ -1312,7 +1312,7 @@ contains
          self%Euntracked = param%Euntracked
       else
          allocate(tmp_param, source=param)
-         tmp_param%outfile = param%in_netcdf
+         tmp_param%nc%file_name = param%in_netcdf
          tmp_param%out_form = param%in_form
          if (.not. param%lrestart) then
             ! Turn off energy computation so we don't have to feed it into the initial conditions
@@ -1549,6 +1549,7 @@ contains
 
       param%nc%id_chunk = self%pl%nbody + self%tp%nbody
       param%nc%time_chunk = max(param%dump_cadence / param%istep_out, 1)
+      param%nc%file_name = param%outfile
       if (lfirst) then
          inquire(file=param%outfile, exist=fileExists)
          

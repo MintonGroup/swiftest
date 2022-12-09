@@ -20,6 +20,7 @@ module swiftest_classes
 
    !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as the base class defined in swiftest_classes
    type :: netcdf_variables
+      character(STRMAX)  :: file_name                                   !! Name of the output file
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B)       :: id                                          !! ID for the output file
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard

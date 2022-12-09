@@ -56,7 +56,6 @@ module encounter_classes
    !> NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: encounter_io_parameters
       integer(I4B)       :: ienc_frame    = 1        !! Current frame number for the encounter history
-      character(STRMAX)  :: enc_file                 !! Encounter output file name
       character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
       integer(I4B)       :: loop_varid               !! ID for the recursion level variable
       integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
@@ -68,7 +67,8 @@ module encounter_classes
 
    !> A class that that is used to store simulation history data between file output
    type, extends(swiftest_storage) :: encounter_storage
-      class(encounter_io_parameters), allocatable :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
+      class(encounter_io_parameters), allocatable :: nce  !! NetCDF parameter object containing the details about the encounter file attached to this storage object
+      class(encounter_io_parameters), allocatable :: ncc  !! NetCDF parameter object containing the details about the collision file attached to this storage object
    contains
       procedure :: dump   => encounter_io_dump !! Dumps contents of encounter history to file
       final     ::           encounter_util_final_storage
@@ -221,7 +221,7 @@ module encounter_classes
       module subroutine encounter_io_write_frame(self, nc, param)
          implicit none
          class(encounter_snapshot),      intent(in)    :: self   !! Swiftest encounter structure
-         class(encounter_io_parameters), intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(encounter_io_parameters), intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),     intent(inout) :: param  !! Current run configuration parameters
       end subroutine encounter_io_write_frame
 

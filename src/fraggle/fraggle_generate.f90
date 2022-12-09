@@ -151,7 +151,6 @@ contains
          else
             call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation succeeded after " // &
                                                        trim(adjustl(message)) // " tries")
-            call fraggle_io_log_generate(frag)
          end if
 
          call frag%set_original_scale(colliders)

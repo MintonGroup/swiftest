@@ -2505,7 +2505,8 @@ class Simulation:
         if "id" not in self.data.dims:
             if len(np.unique(dsnew['name'])) == len(dsnew['name']):
                dsnew = dsnew.swap_dims({"id" : "name"})
-               dsnew = dsnew.reset_coords("id")
+               if "id" in dsnew:
+                   dsnew = dsnew.reset_coords("id")
             else:
                 msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
                 msg +="\nConsider using unique names instead."

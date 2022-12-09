@@ -172,14 +172,14 @@ contains
          end select
 
          ! Check if the file exists, and if it does, delete it
-         inquire(file=param%outfile, exist=fileExists)
+         inquire(file=nc%file_name, exist=fileExists)
          if (fileExists) then
-            open(unit=LUN, file=param%outfile, status="old", err=667, iomsg=errmsg)
+            open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
             close(unit=LUN, status="delete")
          end if
 
          ! Create the file
-         call check( nf90_create(param%outfile, NF90_NETCDF4, nc%id), "netcdf_initialize_output nf90_create" )
+         call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "netcdf_initialize_output nf90_create" )
 
          ! Dimensions
          call check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
@@ -324,8 +324,8 @@ contains
 
       associate(nc => self)
 
-         write(errmsg,*) "netcdf_open nf90_open ",trim(adjustl(param%outfile))
-         call check( nf90_open(param%outfile, mode, nc%id), errmsg)
+         write(errmsg,*) "netcdf_open nf90_open ",trim(adjustl(nc%file_name))
+         call check( nf90_open(nc%file_name, mode, nc%id), errmsg)
 
          ! Dimensions
          call check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
@@ -824,6 +824,9 @@ contains
          cb%id = itemp(1)
          pl%id(:) = pack(itemp, plmask)
          tp%id(:) = pack(itemp, tpmask)
+         cb%id = 0
+         pl%id(:) = pack([(i,i=1,idmax)],plmask)
+         tp%id(:) = pack([(i,i=1,idmax)],tpmask)
 
          call check( nf90_get_var(nc%id, nc%name_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar name_varid"  )
          call cb%info%set_value(name=ctemp(1))

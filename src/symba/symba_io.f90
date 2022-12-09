@@ -22,18 +22,23 @@ contains
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
 
       if (self%encounter_history%iframe == 0) return ! No enounters in this interval
-      self%encounter_history%nc%file_number = self%encounter_history%nc%file_number + 1 
-      ! Create and save the output file for this encounter
-      self%encounter_history%nc%time_dimsize = maxval(self%encounter_history%tslot(:))
-      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') self%encounter_history%nc%file_number
-      select type(nc => self%encounter_history%nc)
-      class is (fraggle_io_parameters)
-         write(nc%frag_file, '("fragmentation_",I0.6,".nc")') nc%file_number
-      end select
-      call self%encounter_history%nc%initialize(param)
-      call self%encounter_history%dump(param)
-      call self%encounter_history%nc%close()
-      call self%encounter_history%reset()
+
+      associate(encounter_history => self%encounter_history, nce => self%encounter_history%nce, ncc => self%encounter_history%ncc, iframe => self%encounter_history%iframe)
+
+         ! Create and save the output files for this encounter and fragmentation
+         nce%file_number = nce%file_number + 1 
+         ncc%file_number = ncc%file_number + 1 
+         nce%time_dimsize = maxval(encounter_history%tslot(:))
+         ncc%time_dimsize = maxval(encounter_history%tslot(:))
+         write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
+         write(ncc%file_name, '("fragmentation_",I0.6,".nc")') ncc%file_number
+         call nce%initialize(param)
+         call ncc%initialize(param)
+         call encounter_history%dump(param)
+         call nce%close()
+         call ncc%close()
+         call encounter_history%reset()
+      end associate
 
       return
    end subroutine symba_io_dump_encounter

@@ -16,7 +16,7 @@ module symba_classes
    use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, swiftest_storage, netcdf_parameters
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use fraggle_classes,   only : fraggle_colliders, fraggle_fragments
-   use encounter_classes, only : encounter_list, encounter_storage, encounter_snapshot
+   use encounter_classes, only : encounter_list, encounter_snapshot, encounter_storage
    implicit none
    public
 
@@ -184,13 +184,13 @@ module symba_classes
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_merger),            allocatable :: pl_adds            !! List of added bodies in mergers or collisions
-      class(symba_pltpenc),           allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
-      class(symba_plplenc),           allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
-      class(symba_plplenc),           allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
-      integer(I4B)                                :: irec               !! System recursion level
-      type(fraggle_colliders)                     :: colliders          !! Fraggle colliders object
-      type(fraggle_fragments)                     :: fragments          !! Fraggle fragmentation system object
+      class(symba_merger),            allocatable     :: pl_adds            !! List of added bodies in mergers or collisions
+      class(symba_pltpenc),           allocatable     :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
+      class(symba_plplenc),           allocatable     :: plplenc_list       !! List of massive body-massive body encounters in a single step
+      class(symba_plplenc),           allocatable     :: plplcollision_list !! List of massive body-massive body collisions in a single step
+      integer(I4B)                                    :: irec               !! System recursion level
+      type(fraggle_colliders)                         :: colliders          !! Fraggle colliders object
+      type(fraggle_fragments)                         :: fragments          !! Fraggle fragmentation system object
       type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
