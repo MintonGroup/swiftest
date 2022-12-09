@@ -55,7 +55,6 @@ module encounter_classes
 
    !> NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: encounter_io_parameters
-      integer(I4B)       :: ienc_frame    = 1        !! Current frame number for the encounter history
       character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
       integer(I4B)       :: loop_varid               !! ID for the recursion level variable
       integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
