@@ -111,15 +111,19 @@ module fraggle_classes
 
    !! NetCDF dimension and variable names for the enounter save object
    type, extends(encounter_io_parameters) :: fraggle_io_parameters
-      integer(I4B)       :: stage_dimid                                     !! ID for the name variable  
-      integer(I4B)       :: stage_varid                                     !! ID for the name variable  
+      integer(I4B)       :: stage_dimid                                     !! ID for the stage dimension
+      integer(I4B)       :: stage_varid                                     !! ID for the stage variable  
       character(NAMELEN) :: stage_dimname            = "stage"              !! name of the stage dimension (before/after)
       character(len=6), dimension(2) :: stage_coords = ["before", "after "] !! The stage coordinate labels
 
-      character(NAMELEN) :: Qloss_varname  = "Qloss"  !! name of the energy loss variable
-      integer(I4B)       :: Qloss_varid               !! ID for the energy loss variable 
-      character(NAMELEN) :: regime_varname = "regime" !! name of the collision regime variable
-      integer(I4B)       :: regime_varid              !! ID for the collision regime variable 
+      character(NAMELEN) :: event_dimname = "collision" !! Name of collision event dimension
+      integer(I4B)       :: event_dimid                 !! ID for the collision event dimension       
+      integer(I4B)       :: event_varid                 !! ID for the collision event variable
+
+      character(NAMELEN) :: Qloss_varname  = "Qloss"   !! name of the energy loss variable
+      integer(I4B)       :: Qloss_varid                !! ID for the energy loss variable 
+      character(NAMELEN) :: regime_varname = "regime"  !! name of the collision regime variable
+      integer(I4B)       :: regime_varid               !! ID for the collision regime variable
 
    contains
       procedure :: initialize => fraggle_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
