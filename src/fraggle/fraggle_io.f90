@@ -172,7 +172,7 @@ contains
             call check( nf90_put_var(nc%id, nc%regime_varid, REGIME_NAMES(fragments%regime) , start=[eslot]), "fraggle_io_write_frame nf90_put_var pl loop_varid" )
 
             ! Stage 1: The Colliders
-            npl = size(colliders%idx)
+            npl = pl%nbody
             do j = 1, npl
                i = colliders%idx(j)
                idslot = pl%id(i)
@@ -181,7 +181,6 @@ contains
                call check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot], count=[NAMELEN, 1]), "fraggle_io_write_frame nf90_put_var pl name_varid"  )
                charstring = trim(adjustl(pl%info(i)%particle_type))
                call check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot], count=[NAMELEN, 1]), "fraggle_io_write_frame nf90_put_var pl particle_type_varid"  )
-            end do
 
                call check( nf90_put_var(nc%id, nc%rh_varid,     pl%rh(:,i),   start=[1, idslot, 1, eslot], count=[NDIM,1,1,1]), "fraggle_io_write_frame nf90_put_var pl rh_varid"  )
                call check( nf90_put_var(nc%id, nc%vh_varid,     pl%vh(:,i),   start=[1, idslot, 1, eslot], count=[NDIM,1,1,1]), "fraggle_io_write_frame nf90_put_var pl vh_varid"  )
@@ -190,6 +189,7 @@ contains
                call check( nf90_put_var(nc%id, nc%Ip_varid,     pl%Ip(:,i),   start=[1, idslot, 1, eslot], count=[NDIM,1,1,1]), "fraggle_io_write_frame nf90_put_var pl Ip_varid"  )
                call check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i),  start=[1, idslot, 1, eslot], count=[NDIM,1,1,1]), "fraggle_io_write_frame nf90_put_var pl rotx_varid"  )
 
+            end do
 
             call check( nf90_set_fill(nc%id, old_mode, old_mode) )
          end select
