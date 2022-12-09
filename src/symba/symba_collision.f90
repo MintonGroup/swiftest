@@ -885,7 +885,7 @@ contains
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
 
-      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, colliders => system%colliders, fragments => system%fragments)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, colliders => system%colliders, fragments => system%fragments, t => system%t)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
@@ -897,7 +897,8 @@ contains
                   if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLISION)) cycle
 
                   call colliders%regime(fragments, system, param)
-   
+
+                  if (param%lencounter_save) call system%collision_snap(param, t, "before") 
                   select case (fragments%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                      plplcollision_list%status(i) = symba_collision_casedisruption(system, param)
@@ -909,6 +910,7 @@ contains
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
                   end select
+                  if (param%lencounter_save) call system%collision_snap(param, t, "after") 
                end do
             end select
          end select

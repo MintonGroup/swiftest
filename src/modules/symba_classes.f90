@@ -31,7 +31,7 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: seed                         !! Random seeds
       logical                                 :: lfragmentation     = .false. !! Do fragmentation modeling instead of simple merger.
       character(STRMAX)                       :: encounter_save     = "NONE"  !! Indicate if and how encounter data should be saved
-      character(STRMAX)                       :: fragmentation_save = "NONE"  !! Indicate if and how fragmentation data should be saved
+      character(STRMAX)                       :: collision_save = "NONE"  !! Indicate if and how fragmentation data should be saved
       logical                                 :: lencounter_save    = .false. !! Turns on encounter saving
    contains
       procedure :: reader => symba_io_param_reader
@@ -200,7 +200,8 @@ module symba_classes
       procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
-      procedure :: snapshot         => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
+      procedure :: encounter_snap   => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
+      procedure :: collision_snap   => symba_util_take_collision_snapshot !! Take a minimal snapshot of the system before and after a collision
       procedure :: dump_encounter   => symba_io_dump_encounter            !! Saves the encounter and/or fragmentation data to file(s)   
       final     ::                     symba_util_final_system            !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
@@ -370,6 +371,14 @@ module symba_classes
          class(symba_pl), intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    intent(in)    :: scale !! Current recursion depth
       end subroutine symba_util_set_renc
+
+      module subroutine symba_util_take_collision_snapshot(self, param, t, stage)
+         implicit none
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t     !! current time
+         character(*),               intent(in)    :: stage !! Either before or afte
+      end subroutine symba_util_take_collision_snapshot
 
       module subroutine symba_util_take_encounter_snapshot(self, param, t)
          use swiftest_classes, only : swiftest_parameters

@@ -1287,6 +1287,30 @@ contains
    end subroutine symba_util_spill_tp
 
 
+   module subroutine symba_util_take_collision_snapshot(self, param, t, stage)
+      !! author: David A. Minton
+      !!
+      !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
+      !! can be played back through the encounter
+      implicit none
+      ! Internals
+      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     !! current time
+      character(*),               intent(in)    :: stage !! Either before or after
+      ! Arguments
+      class(fraggle_collision_snapshot), allocatable :: snapshot
+
+      select case(stage)
+      case("before")
+
+      case("after")
+
+      end select
+
+      return
+   end subroutine symba_util_take_collision_snapshot
+
    module subroutine symba_util_take_encounter_snapshot(self, param, t)
       !! author: David A. Minton
       !!
@@ -1304,7 +1328,7 @@ contains
       associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
 
          if (self%plplenc_list%lcollision) then
-            allocate(fraggle_encounter_snapshot :: snapshot)
+            allocate(fraggle_collision_snapshot :: snapshot)
          else
             allocate(encounter_snapshot :: snapshot)
          end if
@@ -1388,7 +1412,7 @@ contains
                end select
 
                select type(snapshot)
-               class is (fraggle_encounter_snapshot)
+               class is (fraggle_collision_snapshot)
                   allocate(snapshot%colliders, source=self%colliders)
                   allocate(snapshot%fragments, source=self%fragments)
                end select

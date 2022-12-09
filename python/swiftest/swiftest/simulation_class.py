@@ -227,7 +227,7 @@ class Simulation:
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
             Parameter input file equivalent: `FRAGMENTATION`
-        fragmentation_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+        collision_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
             Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
             trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
             at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
@@ -794,7 +794,7 @@ class Simulation:
             "ephemeris_date": "MBCL",
             "restart": False,
             "encounter_save" : "NONE",
-            "fragmentation_save" : "NONE"
+            "collision_save" : "NONE"
         }
         param_file = kwargs.pop("param_file",None)
 
@@ -1031,7 +1031,7 @@ class Simulation:
                     interaction_loops: Literal["TRIANGULAR", "FLAT", "ADAPTIVE"] | None = None,
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
                     encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
-                    fragmentation_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
+                    collision_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
                     verbose: bool | None = None,
                     **kwargs: Any
                     ):
@@ -1053,7 +1053,7 @@ class Simulation:
         fragmentation : bool, optional
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
-        fragmentation_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
+        collision_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
             Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
             trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
             at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
@@ -1226,18 +1226,18 @@ class Simulation:
                 update_list.append("encounter_save")
 
 
-        if fragmentation_save is not None:
-            fragmentation_save = fragmentation_save.upper()
+        if collision_save is not None:
+            collision_save = collision_save.upper()
             valid_vals = ["NONE", "TRAJECTORY", "CLOSEST"]
-            if fragmentation_save not in valid_vals:
-                msg = f"{fragmentation_save} is not a valid option for fragmentation_save."
+            if collision_save not in valid_vals:
+                msg = f"{collision_save} is not a valid option for collision_save."
                 msg += f"\nMust be one of {valid_vals}"
                 warnings.warn(msg,stacklevel=2)
                 if "FRAGMENTATION_SAVE" not in self.param:
                     self.param["FRAGMENTATION_SAVE"] = valid_vals[0]
             else:
-                self.param["FRAGMENTATION_SAVE"] = fragmentation_save
-                update_list.append("fragmentation_save")
+                self.param["FRAGMENTATION_SAVE"] = collision_save
+                update_list.append("collision_save")
 
         self.param["TIDES"] = False
 
@@ -1271,7 +1271,7 @@ class Simulation:
         valid_var = {"close_encounter_check": "CHK_CLOSE",
                      "fragmentation": "FRAGMENTATION",
                      "encounter_save": "ENCOUNTER_SAVE",
-                     "fragmentation_save": "FRAGMENTATION_SAVE",
+                     "collision_save": "FRAGMENTATION_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
                      "rotation": "ROTATION",
                      "general_relativity": "GR",

@@ -28,7 +28,7 @@ contains
             param%ioutput = self%tslot(i)
 
             select type(snapshot => self%frame(i)%item)
-            class is (fraggle_encounter_snapshot)
+            class is (fraggle_collision_snapshot)
                call snapshot%write_frame(self%ncc,param)
                call snapshot%encounter_snapshot%write_frame(self%nce,param)
             class is (encounter_snapshot)

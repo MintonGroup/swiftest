@@ -130,14 +130,14 @@ module fraggle_classes
       procedure :: initialize => fraggle_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
    end type fraggle_io_parameters
 
-   type, extends(encounter_snapshot)  :: fraggle_encounter_snapshot
+   type, extends(encounter_snapshot)  :: fraggle_collision_snapshot
       logical                               :: lcollision !! Indicates that this snapshot contains at least one collision
       class(fraggle_colliders), allocatable :: colliders  !! Colliders object at this snapshot
       class(fraggle_fragments), allocatable :: fragments  !! Fragments object at this snapshot
    contains
       procedure :: write_frame => fraggle_io_write_frame !! Writes a frame of encounter data to file 
       final     ::                fraggle_util_final_snapshot
-   end type fraggle_encounter_snapshot
+   end type fraggle_collision_snapshot
 
    interface
       module subroutine fraggle_generate_fragments(self, colliders, system, param, lfailure)
@@ -158,7 +158,7 @@ module fraggle_classes
    
       module subroutine fraggle_io_write_frame(self, nc, param)
          implicit none
-         class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
+         class(fraggle_collision_snapshot), intent(in)    :: self   !! Swiftest encounter structure
          class(encounter_io_parameters),    intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
       end subroutine fraggle_io_write_frame
@@ -293,7 +293,7 @@ module fraggle_classes
 
       module subroutine fraggle_util_final_snapshot(self)
          implicit none
-         type(fraggle_encounter_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+         type(fraggle_collision_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
       end subroutine fraggle_util_final_snapshot
 
       module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)

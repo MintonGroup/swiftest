@@ -154,7 +154,7 @@ contains
       use netcdf
       implicit none
       ! Arguments
-      class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
+      class(fraggle_collision_snapshot), intent(in)    :: self   !! Swiftest encounter structure
       class(encounter_io_parameters),    intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
       ! Internals

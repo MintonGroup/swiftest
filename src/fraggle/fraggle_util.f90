@@ -174,7 +174,7 @@ contains
       !! Finalizer will deallocate all allocatables
       implicit none
       ! Arguments
-      type(fraggle_encounter_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+      type(fraggle_collision_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
 
       call encounter_util_final_snapshot(self%encounter_snapshot)
 

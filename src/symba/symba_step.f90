@@ -37,9 +37,9 @@ contains
                call self%reset(param)
                lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                if (lencounter) then
-                  if (param%lencounter_save) call self%snapshot(param, t) 
+                  if (param%lencounter_save) call self%encounter_snap(param, t) 
                   call self%interp(param, t, dt)
-                  if (param%lencounter_save) call self%snapshot(param, t+dt) 
+                  if (param%lencounter_save) call self%encounter_snap(param, t+dt) 
                else
                   self%irec = -1
                   call helio_step_system(self, param, t, dt)
@@ -244,7 +244,7 @@ contains
                         if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                         if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                      end if
-                     if (param%lencounter_save) call system%snapshot(param, t+dtl)
+                     if (param%lencounter_save) call system%encounter_snap(param, t+dtl)
 
                      call self%set_recur_levels(ireci)
 
