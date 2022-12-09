@@ -903,6 +903,7 @@ contains
          tmp%tslot(1:nold) = system%encounter_history%tslot(1:nold)
          tmp%tslot(nold+1:nbig) = 0
          tmp%iframe = system%encounter_history%iframe
+         call move_alloc(system%encounter_history%nc, tmp%nc)
 
          do i = 1, nold
             if (allocated(system%encounter_history%frame(i)%item)) call move_alloc(system%encounter_history%frame(i)%item, tmp%frame(i)%item)

@@ -73,6 +73,7 @@ contains
             class is (symba_parameters)
                if (param%lencounter_save) then
                   if (.not. allocated(system%encounter_history)) allocate(encounter_storage :: system%encounter_history)
+                  allocate(fraggle_io_parameters :: system%encounter_history%nc)
                   call system%encounter_history%reset()
                   system%encounter_history%nc%file_number = param%iloop / param%dump_cadence
                end if

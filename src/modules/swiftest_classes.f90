@@ -45,7 +45,7 @@ module swiftest_classes
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable
       integer(I4B)       :: ptype_varid                                 !! ID for the particle type variable
       character(NAMELEN) :: name_varname            = "name"            !! name of the particle name variable
-      integer(I4B)       :: name_varid                                  !! ID for the namevariable 
+      integer(I4B)       :: name_varid                                  !! ID for the name variable 
       character(NAMELEN) :: npl_varname             = "npl"             !! name of the number of active massive bodies variable
       integer(I4B)       :: npl_varid                                   !! ID for the number of active massive bodies variable
       character(NAMELEN) :: ntp_varname             = "ntp"             !! name of the number of active test particles variable

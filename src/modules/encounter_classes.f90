@@ -68,7 +68,7 @@ module encounter_classes
 
    !> A class that that is used to store simulation history data between file output
    type, extends(swiftest_storage) :: encounter_storage
-      type(encounter_io_parameters) :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
+      class(encounter_io_parameters), allocatable :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
    contains
       procedure :: dump   => encounter_io_dump !! Dumps contents of encounter history to file
       final     ::           encounter_util_final_storage

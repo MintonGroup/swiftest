@@ -110,17 +110,28 @@ module fraggle_classes
    end type fraggle_fragments
 
    !! NetCDF dimension and variable names for the enounter save object
-   type, extends(encounter_io_parameters) :: fraggle_io_encounter_parameters
+   type, extends(encounter_io_parameters) :: fraggle_io_parameters
+      character(STRMAX)  :: frag_file                 !! Encounter output file name
+      integer(I4B)       :: stage_dimid                                     !! ID for the name variable  
+      integer(I4B)       :: stage_varid                                     !! ID for the name variable  
+      character(NAMELEN) :: stage_dimname            = "stage"              !! name of the stage dimension (before/after)
+      character(len=6), dimension(2) :: stage_coords = ["before", "after "] !! The stage coordinate labels
+
+      character(NAMELEN) :: Qloss_varname  = "Qloss"  !! name of the energy loss variable
+      integer(I4B)       :: Qloss_varid               !! ID for the energy loss variable 
+      character(NAMELEN) :: regime_varname = "regime" !! name of the collision regime variable
+      integer(I4B)       :: regime_varid              !! ID for the collision regime variable 
+
    contains
-      procedure :: initialize => fraggle_io_encounter_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-   end type fraggle_io_encounter_parameters
+      procedure :: initialize => fraggle_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+   end type fraggle_io_parameters
 
    type, extends(encounter_snapshot)  :: fraggle_encounter_snapshot
       logical                               :: lcollision !! Indicates that this snapshot contains at least one collision
       class(fraggle_colliders), allocatable :: colliders  !! Colliders object at this snapshot
       class(fraggle_fragments), allocatable :: fragments  !! Fragments object at this snapshot
    contains
-      procedure :: write_frame => fraggle_io_encounter_write_frame !! Writes a frame of encounter data to file 
+      procedure :: write_frame => fraggle_io_write_frame !! Writes a frame of encounter data to file 
       final     ::                fraggle_util_final_snapshot
    end type fraggle_encounter_snapshot
 
@@ -135,18 +146,18 @@ module fraggle_classes
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
 
-      module subroutine fraggle_io_encounter_initialize_output(self, param)
+      module subroutine fraggle_io_initialize_output(self, param)
          implicit none
-         class(fraggle_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(fraggle_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),             intent(in)    :: param   
-      end subroutine fraggle_io_encounter_initialize_output
+      end subroutine fraggle_io_initialize_output
    
-      module subroutine fraggle_io_encounter_write_frame(self, nc, param)
+      module subroutine fraggle_io_write_frame(self, nc, param)
          implicit none
          class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
          class(encounter_io_parameters),    intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
-      end subroutine fraggle_io_encounter_write_frame
+      end subroutine fraggle_io_write_frame
 
       module subroutine fraggle_io_log_generate(frag)
          implicit none

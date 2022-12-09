@@ -26,6 +26,10 @@ contains
       ! Create and save the output file for this encounter
       self%encounter_history%nc%time_dimsize = maxval(self%encounter_history%tslot(:))
       write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') self%encounter_history%nc%file_number
+      select type(nc => self%encounter_history%nc)
+      class is (fraggle_io_parameters)
+         write(nc%frag_file, '("fragmentation_",I0.6,".nc")') nc%file_number
+      end select
       call self%encounter_history%nc%initialize(param)
       call self%encounter_history%dump(param)
       call self%encounter_history%nc%close()
