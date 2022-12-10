@@ -66,6 +66,7 @@ module fraggle_classes
       real(DP), dimension(:),   allocatable  :: rotmag      !! Array of rotation magnitudes of individual fragments 
       real(DP), dimension(:),   allocatable  :: v_r_mag     !! Array of radial direction velocity magnitudes of individual fragments 
       real(DP), dimension(:),   allocatable  :: v_t_mag     !! Array of tangential direction velocity magnitudes of individual fragments
+      class(swiftest_pl), allocatable        :: pl          !! A snapshot of the fragments created in the collision
 
       ! Energy and momentum book-keeping variables that characterize the whole system of fragments
       real(DP)                  :: ke_orbit  !! Current orbital kinetic energy of the system of fragments in the collisional frame

@@ -1323,12 +1323,12 @@ contains
          end associate
 
       case("after")
-
+          allocate(snapshot%fragments, source=self%fragments)
       end select
 
 
-      ! Save the self
-      call symba_util_save_storage(self,snapshot,t)
+      ! Save the snapshot
+      !call symba_util_save_storage(self,snapshot,t)
       return
    end subroutine symba_util_take_collision_snapshot
 

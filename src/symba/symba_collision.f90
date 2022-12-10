@@ -831,6 +831,7 @@ contains
 
                ! Log the properties of the new bodies
                call fraggle_io_log_pl(plnew, param)
+               allocate(system%fragments%pl, source=plnew)
    
                ! Append the new merged body to the list 
                nstart = pl_adds%nbody + 1
