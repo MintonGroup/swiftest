@@ -192,6 +192,7 @@ module symba_classes
       class(fraggle_colliders), allocatable           :: colliders          !! Fraggle colliders object
       class(fraggle_fragments), allocatable           :: fragments          !! Fraggle fragmentation system object
       type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      type(encounter_storage(nframes=:)), allocatable :: collision_history  !! Stores encounter history for later retrieval and saving to file
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps

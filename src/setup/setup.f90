@@ -74,16 +74,21 @@ contains
                if (param%lencounter_save) then
                   allocate(encounter_storage :: system%encounter_history)
                   associate (encounter_history => system%encounter_history)
-                     allocate(encounter_io_parameters :: encounter_history%nce)
+                     allocate(encounter_io_parameters :: encounter_history%nc)
                      call encounter_history%reset()
-                     select type(nce => encounter_history%nce)
+                     select type(nc => encounter_history%nc)
                      class is (encounter_io_parameters)
-                        nce%file_number = param%iloop / param%dump_cadence
+                        nc%file_number = param%iloop / param%dump_cadence
                      end select
-                     allocate(fraggle_io_parameters :: encounter_history%ncc)
-                     select type(ncc => encounter_history%ncc)
+                  end associate
+
+                  allocate(encounter_storage :: system%collision_history)
+                  associate (collision_history => system%collision_history)
+                     allocate(fraggle_io_parameters :: collision_history%nc)
+                     call collision_history%reset()
+                     select type(nc => collision_history%nc)
                      class is (fraggle_io_parameters)
-                        ncc%file_number = param%iloop / param%dump_cadence
+                        nc%file_number = param%iloop / param%dump_cadence
                      end select
                   end associate
                end if

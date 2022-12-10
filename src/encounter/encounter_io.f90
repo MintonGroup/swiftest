@@ -29,10 +29,10 @@ contains
 
             select type(snapshot => self%frame(i)%item)
             class is (fraggle_collision_snapshot)
-               call snapshot%write_frame(self%ncc,param)
-               call snapshot%encounter_snapshot%write_frame(self%nce,param)
+               call snapshot%write_frame(self%nc,param)
+               call snapshot%encounter_snapshot%write_frame(self%nc,param)
             class is (encounter_snapshot)
-               call snapshot%write_frame(self%nce,param)
+               call snapshot%write_frame(self%nc,param)
             end select
          else
             exit

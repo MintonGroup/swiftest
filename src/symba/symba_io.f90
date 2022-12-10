@@ -23,21 +23,25 @@ contains
 
       if (self%encounter_history%iframe == 0) return ! No enounters in this interval
 
-      associate(encounter_history => self%encounter_history, nce => self%encounter_history%nce, ncc => self%encounter_history%ncc, iframe => self%encounter_history%iframe)
+      associate(encounter_history => self%encounter_history, nce => self%encounter_history%nc, eframe => self%encounter_history%iframe,&
+                collision_history => self%collision_history, ncc => self%collision_history%nc, cframe => self%collision_history%iframe)
 
          ! Create and save the output files for this encounter and fragmentation
          nce%file_number = nce%file_number + 1 
-         ncc%file_number = ncc%file_number + 1 
          nce%time_dimsize = maxval(encounter_history%tslot(:))
-         ncc%time_dimsize = maxval(encounter_history%tslot(:))
          write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
-         write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
          call nce%initialize(param)
-         call ncc%initialize(param)
          call encounter_history%dump(param)
          call nce%close()
-         call ncc%close()
          call encounter_history%reset()
+
+         ncc%file_number = ncc%file_number + 1 
+         write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
+         ncc%time_dimsize = maxval(collision_history%tslot(:))
+         call ncc%initialize(param)
+         call collision_history%dump(param)
+         call ncc%close()
+         call collision_history%reset()
       end associate
 
       return
