@@ -22,29 +22,35 @@ contains
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
 
 
-      associate(encounter_history => self%encounter_history, nce => self%encounter_history%nc, eframe => self%encounter_history%iframe,&
-                collision_history => self%collision_history, ncc => self%collision_history%nc, cframe => self%collision_history%iframe)
+      associate(encounter_history => self%encounter_history, num_enc_frames => self%encounter_history%iframe,&
+                collision_history => self%collision_history, num_coll_frames => self%collision_history%iframe)
 
-         if (encounter_history%iframe > 0) then
-            ! Create and save the output files for this encounter and fragmentation
-            nce%file_number = nce%file_number + 1 
-            nce%time_dimsize = maxval(encounter_history%tslot(:))
-            write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
-            call nce%initialize(param)
-            call encounter_history%dump(param)
-            call nce%close()
-            call encounter_history%reset()
-         end if
+         select type(nce => self%encounter_history%nc)
+         class is (encounter_io_parameters)
+            if (num_enc_frames > 0) then
+               ! Create and save the output files for this encounter and fragmentation
+               nce%file_number = nce%file_number + 1 
+               nce%time_dimsize = maxval(encounter_history%tslot(:))
+               write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
+               call nce%initialize(param)
+               call encounter_history%dump(param)
+               call nce%close()
+               call encounter_history%reset()
+            end if
+         end select
 
-         if (collision_history%iframe > 0) then
-            ncc%file_number = ncc%file_number + 1 
-            write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
-            ncc%time_dimsize = maxval(collision_history%tslot(:))
-            call ncc%initialize(param)
-            call collision_history%dump(param)
-            call ncc%close()
-            call collision_history%reset()
-         end if
+         select type(ncc => self%collision_history%nc)
+         class is (fraggle_io_parameters)
+            if (num_coll_frames > 0) then
+               ncc%file_number = ncc%file_number + 1 
+               ncc%event_dimsize = num_coll_frames
+               write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
+               call ncc%initialize(param)
+               call collision_history%dump(param)
+               call ncc%close()
+               call collision_history%reset()
+            end if
+         end select
       end associate
 
       return

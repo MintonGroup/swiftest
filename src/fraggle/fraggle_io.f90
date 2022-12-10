@@ -52,11 +52,11 @@ contains
          call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "fraggle_io_initialize nf90_create" )
 
          ! Dimensions
-         call check( nf90_def_dim(nc%id, nc%event_dimname, NF90_UNLIMITED, nc%event_dimid), "fraggle_io_initialize nf90_def_dim event_dimid"  ) ! Dimension to store individual collision events
-         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM,           nc%space_dimid), "fraggle_io_initialize nf90_def_dim space_dimid" )  ! 3D space dimension
-         call check( nf90_def_dim(nc%id, nc%id_dimname,    param%maxid+1,  nc%id_dimid),    "fraggle_io_initialize nf90_def_dim id_dimid" )     ! Dimension to store particle id numbers
-         call check( nf90_def_dim(nc%id, nc%str_dimname,   NAMELEN,        nc%str_dimid),   "fraggle_io_initialize nf90_def_dim str_dimid"  )   ! Dimension for string variables (aka character arrays)
-         call check( nf90_def_dim(nc%id, nc%stage_dimname, 2,              nc%stage_dimid), "fraggle_io_initialize nf90_def_dim stage_dimid"  ) ! Dimension for stage variables (aka "before" vs. "after"
+         call check( nf90_def_dim(nc%id, nc%event_dimname, nc%event_dimsize, nc%event_dimid), "fraggle_io_initialize nf90_def_dim event_dimid"  ) ! Dimension to store individual collision events
+         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM,             nc%space_dimid), "fraggle_io_initialize nf90_def_dim space_dimid" )  ! 3D space dimension
+         call check( nf90_def_dim(nc%id, nc%id_dimname,    param%maxid+1,    nc%id_dimid),    "fraggle_io_initialize nf90_def_dim id_dimid" )     ! Dimension to store particle id numbers
+         call check( nf90_def_dim(nc%id, nc%str_dimname,   NAMELEN,          nc%str_dimid),   "fraggle_io_initialize nf90_def_dim str_dimid"  )   ! Dimension for string variables (aka character arrays)
+         call check( nf90_def_dim(nc%id, nc%stage_dimname, 2,                nc%stage_dimid), "fraggle_io_initialize nf90_def_dim stage_dimid"  ) ! Dimension for stage variables (aka "before" vs. "after"
 
          ! Dimension coordinates
          call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR,  nc%space_dimid, nc%space_varid), "fraggle_io_initialize nf90_def_var space_varid"  )
@@ -68,8 +68,8 @@ contains
                                                                               nc%event_dimid, nc%time_varid),    "fraggle_io_initialize nf90_def_var time_varid"  )
          call check( nf90_def_var(nc%id, nc%regime_varname,  NF90_CHAR,  &
             [nc%str_dimid,                                                    nc%event_dimid], nc%regime_varid), "fraggle_io_initialize nf90_def_var regime_varid")
-         call check( nf90_def_var(nc%id, nc%Qloss_varname,   NF90_CHAR,  &
-            [                                                                 nc%event_dimid], nc%regime_varid), "fraggle_io_initialize nf90_def_var regime_varid")
+         call check( nf90_def_var(nc%id, nc%Qloss_varname,  nc%out_type,  &
+            [                                                                 nc%event_dimid], nc%Qloss_varid),  "fraggle_io_initialize nf90_def_var Qloss_varid")
          call check( nf90_def_var(nc%id, nc%name_varname,    NF90_CHAR,  &
             [nc%str_dimid,                   nc%id_dimid                                    ], nc%name_varid),   "fraggle_io_initialize nf90_def_var name_varid")
          
@@ -175,6 +175,7 @@ contains
 
             charstring = trim(adjustl(REGIME_NAMES(fragments%regime)))
             call check( nf90_put_var(nc%id, nc%regime_varid, charstring,             start=[1, eslot], count=[len(charstring), 1]), "fraggle_io_write_frame nf90_put_var regime_varid" )
+            call check( nf90_put_var(nc%id, nc%Qloss_varid, fragments%Qloss,         start=[eslot] ), "fraggle_io_write_frame nf90_put_var Qloss_varid" )
 
             do stage = 1,2
                if (allocated(pl)) deallocate(pl)
@@ -204,10 +205,10 @@ contains
             call check( nf90_put_var(nc%id, nc%ke_orb_varid, fragments%ke_orbit_after,   start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var ke_orb_varid after" )
             call check( nf90_put_var(nc%id, nc%pe_varid,     fragments%pe_before,        start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid before" )
             call check( nf90_put_var(nc%id, nc%pe_varid,     fragments%pe_after,         start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid after" )
-            call check( nf90_put_var(nc%id, nc%L_orb_varid,  fragments%Lorbit_before(:), start=[1, 1, eslot], count=[NDIM, 1, eslot]), "fraggle_io_write_frame nf90_put_var L_orb_varid before" )
-            call check( nf90_put_var(nc%id, nc%L_orb_varid,  fragments%Lorbit_after(:),  start=[1, 2, eslot], count=[NDIM, 1, eslot]), "fraggle_io_write_frame nf90_put_var L_orb_varid after" )
-            call check( nf90_put_var(nc%id, nc%L_spin_varid, fragments%Lspin_before(:),  start=[1, 1, eslot], count=[NDIM, 1, eslot]), "fraggle_io_write_frame nf90_put_var L_spin_varid before" )
-            call check( nf90_put_var(nc%id, nc%L_spin_varid, fragments%Lspin_after(:),   start=[1, 2, eslot], count=[NDIM, 1, eslot]), "fraggle_io_write_frame nf90_put_var L_spin_varid after" )
+            call check( nf90_put_var(nc%id, nc%L_orb_varid,  fragments%Lorbit_before(:), start=[1, 1, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_orb_varid before" )
+            call check( nf90_put_var(nc%id, nc%L_orb_varid,  fragments%Lorbit_after(:),  start=[1, 2, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_orb_varid after" )
+            call check( nf90_put_var(nc%id, nc%L_spin_varid, fragments%Lspin_before(:),  start=[1, 1, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_spin_varid before" )
+            call check( nf90_put_var(nc%id, nc%L_spin_varid, fragments%Lspin_after(:),   start=[1, 2, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_spin_varid after" )
       
             call check( nf90_set_fill(nc%id, old_mode, old_mode) )
          end select

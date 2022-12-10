@@ -121,6 +121,7 @@ module fraggle_classes
       character(NAMELEN) :: event_dimname = "collision" !! Name of collision event dimension
       integer(I4B)       :: event_dimid                 !! ID for the collision event dimension       
       integer(I4B)       :: event_varid                 !! ID for the collision event variable
+      integer(I4B)       :: event_dimsize = 0           !! Number of events
 
       character(NAMELEN) :: Qloss_varname  = "Qloss"   !! name of the energy loss variable
       integer(I4B)       :: Qloss_varid                !! ID for the energy loss variable 
