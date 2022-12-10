@@ -84,7 +84,7 @@ contains
          ! Dimensions
          call check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "encounter_io_initialize nf90_def_dim time_dimid" ) ! Simulation time dimension
          call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM , nc%space_dimid), "encounter_io_initialize nf90_def_dim space_dimid" )           ! 3D space dimension
-         call check( nf90_def_dim(nc%id, nc%id_dimname, param%maxid, nc%id_dimid), "encounter_io_initialize nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
+         call check( nf90_def_dim(nc%id, nc%id_dimname, param%maxid+1, nc%id_dimid), "encounter_io_initialize nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
          call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "encounter_io_initialize nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
 
          ! Dimension coordinates
@@ -129,7 +129,7 @@ contains
          call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "encounter_io_initialize nf90_put_var space"  )
 
          ! Pre-fill name slots with ids 
-         call check( nf90_put_var(nc%id, nc%id_varid, [(-1,i=1,param%maxid)], start=[1], count=[param%maxid]), "encounter_io_initialize nf90_put_var pl id_varid"  )
+         call check( nf90_put_var(nc%id, nc%id_varid, [(-1,i=1,param%maxid+1)], start=[1], count=[param%maxid+1]), "encounter_io_initialize nf90_put_var pl id_varid"  )
       end associate
 
       return
