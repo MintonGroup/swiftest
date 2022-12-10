@@ -1299,16 +1299,14 @@ contains
       real(DP),                   intent(in)    :: t     !! current time
       character(*),               intent(in)    :: stage !! Either before or after
       ! Arguments
-      class(fraggle_collision_snapshot), allocatable :: snapshot
+      class(fraggle_collision_snapshot), allocatable:: snapshot
       integer(I4B) :: i,j
 
       select case(stage)
       case("before")
          associate (idx => self%colliders%idx, ncoll => self%colliders%ncoll)
-            allocate(fraggle_collision_snapshot :: snapshot)
-            allocate(snapshot%colliders, source=self%colliders) 
-            allocate(symba_pl :: snapshot%colliders%pl)
-            select type(pl => snapshot%colliders%pl)
+            allocate(symba_pl :: self%colliders%pl)
+            select type(pl => self%colliders%pl)
             class is (symba_pl)
                call pl%setup(ncoll, param)
                pl%id(:) = self%pl%id(idx(:))
@@ -1321,14 +1319,14 @@ contains
                pl%info(:) = self%pl%info(idx(:))
             end select
          end associate
-
       case("after")
-          allocate(snapshot%fragments, source=self%fragments)
+         allocate(fraggle_collision_snapshot :: snapshot)
+         allocate(snapshot%colliders, source=self%colliders) 
+         allocate(snapshot%fragments, source=self%fragments)
+         !call symba_util_save_storage(self,snapshot,t)
+         deallocate(snapshot)
       end select
 
-
-      ! Save the snapshot
-      !call symba_util_save_storage(self,snapshot,t)
       return
    end subroutine symba_util_take_collision_snapshot
 
