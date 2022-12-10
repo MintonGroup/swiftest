@@ -116,7 +116,7 @@ module fraggle_classes
       integer(I4B)       :: stage_dimid                                     !! ID for the stage dimension
       integer(I4B)       :: stage_varid                                     !! ID for the stage variable  
       character(NAMELEN) :: stage_dimname            = "stage"              !! name of the stage dimension (before/after)
-      character(len=6), dimension(2) :: stage_coords = ["before", "after "] !! The stage coordinate labels
+      character(len=6), dimension(2) :: stage_coords = ["before", "after"] !! The stage coordinate labels
 
       character(NAMELEN) :: event_dimname = "collision" !! Name of collision event dimension
       integer(I4B)       :: event_dimid                 !! ID for the collision event dimension       

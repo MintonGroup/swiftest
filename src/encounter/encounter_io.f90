@@ -60,7 +60,6 @@ contains
       logical :: fileExists
       character(len=STRMAX) :: errmsg
       integer(I4B) :: ndims, i
-      character(len=NAMELEN) :: charstring
 
       associate(nc => self)
          dfill = ieee_value(dfill, IEEE_QUIET_NAN)
@@ -153,7 +152,7 @@ contains
       class(swiftest_parameters),     intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B)           :: i, tslot, idslot, old_mode, npl, ntp
-      character(len=NAMELEN) :: charstring
+      character(len=:), allocatable :: charstring
 
       tslot = param%ioutput
       associate(pl => self%pl, tp => self%tp)
@@ -179,9 +178,9 @@ contains
             end if
 
             charstring = trim(adjustl(pl%info(i)%name))
-            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_write_frame nf90_put_var pl name_varid"  )
+            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var pl name_varid"  )
             charstring = trim(adjustl(pl%info(i)%particle_type))
-            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_write_frame nf90_put_var pl particle_type_varid"  )
+            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var pl particle_type_varid"  )
          end do
 
          ntp = tp%nbody
@@ -192,9 +191,9 @@ contains
             call check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var tp vh_varid"  )
 
             charstring = trim(adjustl(tp%info(i)%name))
-            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_write_frame nf90_put_var tp name_varid"  )
+            call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var tp name_varid"  )
             charstring = trim(adjustl(tp%info(i)%particle_type))
-            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_write_frame nf90_put_var tp particle_type_varid"  )
+            call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var tp particle_type_varid"  )
          end do
 
          call check( nf90_set_fill(nc%id, old_mode, old_mode) )

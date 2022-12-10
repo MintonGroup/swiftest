@@ -21,27 +21,30 @@ contains
       class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
       class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
 
-      if (self%encounter_history%iframe == 0) return ! No enounters in this interval
 
       associate(encounter_history => self%encounter_history, nce => self%encounter_history%nc, eframe => self%encounter_history%iframe,&
                 collision_history => self%collision_history, ncc => self%collision_history%nc, cframe => self%collision_history%iframe)
 
-         ! Create and save the output files for this encounter and fragmentation
-         nce%file_number = nce%file_number + 1 
-         nce%time_dimsize = maxval(encounter_history%tslot(:))
-         write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
-         call nce%initialize(param)
-         call encounter_history%dump(param)
-         call nce%close()
-         call encounter_history%reset()
+         if (encounter_history%iframe > 0) then
+            ! Create and save the output files for this encounter and fragmentation
+            nce%file_number = nce%file_number + 1 
+            nce%time_dimsize = maxval(encounter_history%tslot(:))
+            write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
+            call nce%initialize(param)
+            call encounter_history%dump(param)
+            call nce%close()
+            call encounter_history%reset()
+         end if
 
-         ncc%file_number = ncc%file_number + 1 
-         write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
-         ncc%time_dimsize = maxval(collision_history%tslot(:))
-         call ncc%initialize(param)
-         call collision_history%dump(param)
-         call ncc%close()
-         call collision_history%reset()
+         if (collision_history%iframe > 0) then
+            ncc%file_number = ncc%file_number + 1 
+            write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
+            ncc%time_dimsize = maxval(collision_history%tslot(:))
+            call ncc%initialize(param)
+            call collision_history%dump(param)
+            call ncc%close()
+            call collision_history%reset()
+         end if
       end associate
 
       return

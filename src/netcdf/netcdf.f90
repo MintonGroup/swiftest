@@ -1163,7 +1163,7 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
-      character(len=NAMELEN)                    :: charstring
+      character(len=:), allocatable             :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_write_info_base nf90_set_fill nf90_nofill"  )
@@ -1180,14 +1180,14 @@ contains
                call check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), "netcdf_write_info_base nf90_put_var id_varid"  )
 
                charstring = trim(adjustl(self%info(j)%name))
-               call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var name_varid"  )
+               call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_write_info_base nf90_put_var name_varid"  )
 
                charstring = trim(adjustl(self%info(j)%particle_type))
-               call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var particle_type_varid"  )
+               call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_write_info_base nf90_put_var particle_type_varid"  )
 
                if (param%lclose) then
                   charstring = trim(adjustl(self%info(j)%origin_type))
-                  call check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var origin_type_varid"  )
+                  call check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_write_info_base nf90_put_var origin_type_varid"  )
                   call check( nf90_put_var(nc%id, nc%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]), "netcdf_write_info_base nf90_put_var origin_time_varid"  )
                   call check( nf90_put_var(nc%id, nc%origin_rh_varid,    self%info(j)%origin_rh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_write_info_base nf90_put_var origin_rh_varid"  )
                   call check( nf90_put_var(nc%id, nc%origin_vh_varid,    self%info(j)%origin_vh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_write_info_base nf90_put_var origin_vh_varid"  )
@@ -1206,14 +1206,14 @@ contains
          call check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_write_info_base nf90_put_var cb id_varid"  )
 
          charstring = trim(adjustl(self%info%name))
-         call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb name_varid"  )
+         call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_write_info_base nf90_put_var cb name_varid"  )
 
          charstring = trim(adjustl(self%info%particle_type))
-         call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb ptype_varid"  )
+         call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_write_info_base nf90_put_var cb ptype_varid"  )
 
          if (param%lclose) then
             charstring = trim(adjustl(self%info%origin_type))
-            call check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_write_info_base nf90_put_var cb origin_type_varid"  )
+            call check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_write_info_base nf90_put_var cb origin_type_varid"  )
 
             call check( nf90_put_var(nc%id, nc%origin_time_varid, self%info%origin_time, start=[idslot]), "netcdf_write_info_base nf90_put_var cb origin_time_varid"  )
             call check( nf90_put_var(nc%id, nc%origin_rh_varid, self%info%origin_rh(:), start=[1, idslot], count=[NDIM,1]), "netcdf_write_info_base nf90_put_var cb origin_rh_varid"  )

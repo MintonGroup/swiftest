@@ -2958,8 +2958,8 @@ class Simulation:
                      ]
         glob_files = [self.simdir.glob("**/dump_param?.in")] \
                      + [self.simdir.glob("**/dump_bin?.nc")] \
-                     + [self.simdir.glob("**/enc*.nc")] \
-                     + [self.simdir.glob("**/frag*.nc")]
+                     + [self.simdir.glob("**/encounter_*.nc")] \
+                     + [self.simdir.glob("**/collision_*.nc")]
 
         for f in old_files:
             if f.exists():

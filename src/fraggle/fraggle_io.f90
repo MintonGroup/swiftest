@@ -61,7 +61,7 @@ contains
          ! Dimension coordinates
          call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR,  nc%space_dimid, nc%space_varid), "fraggle_io_initialize nf90_def_var space_varid"  )
          call check( nf90_def_var(nc%id, nc%id_dimname,    NF90_INT,   nc%id_dimid,    nc%id_varid),    "fraggle_io_initialize nf90_def_var id_varid"  )
-         call check( nf90_def_var(nc%id, nc%stage_dimname, NF90_CHAR,  nc%stage_dimid, nc%stage_varid), "fraggle_io_initialize nf90_def_var stage_varid"  )
+         call check( nf90_def_var(nc%id, nc%stage_dimname, NF90_CHAR,  [nc%str_dimid, nc%stage_dimid], nc%stage_varid), "fraggle_io_initialize nf90_def_var stage_varid"  )
       
          ! Variables
          call check( nf90_def_var(nc%id, nc%time_dimname,    nc%out_type, &
@@ -134,7 +134,8 @@ contains
 
          ! Add in the space and stage dimension coordinates
          call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "fraggle_io_initialize nf90_put_var space"  )
-         call check( nf90_put_var(nc%id, nc%stage_varid, nc%stage_coords, start=[1], count=[2]), "fraggle_io_initialize nf90_put_var stage"  )
+         call check( nf90_put_var(nc%id, nc%stage_varid, nc%stage_coords(1), start=[1,1], count=[len(nc%stage_coords(1)),1]), "fraggle_io_initialize nf90_put_var stage 1"  )
+         call check( nf90_put_var(nc%id, nc%stage_varid, nc%stage_coords(2), start=[1,2], count=[len(nc%stage_coords(2)),1]), "fraggle_io_initialize nf90_put_var stage 2"  )
 
          ! Pre-fill id slots with ids
          call check( nf90_put_var(nc%id, nc%id_varid, [(-1,i=1,param%maxid)], start=[1], count=[param%maxid]), "fraggle_io_initialize nf90_put_varid_varid"  )
@@ -160,7 +161,7 @@ contains
       class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)           :: i, eslot, idslot, old_mode, npl
-      character(len=NAMELEN) :: charstring
+      character(len=:), allocatable :: charstring
 
       eslot = param%ioutput
       associate(pl => self%colliders%pl, colliders => self%colliders, fragments => self%fragments)
@@ -178,9 +179,9 @@ contains
                idslot = pl%id(i)
                call check( nf90_put_var(nc%id, nc%id_varid,     pl%id(i),     start=[   idslot         ]), "fraggle_io_write_frame nf90_put_var id_varid"  )
                charstring = trim(adjustl(pl%info(i)%name))
-               call check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot], count=[NAMELEN, 1]), "fraggle_io_write_frame nf90_put_var name_varid"  )
+               call check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot], count=[len(charstring), 1]), "fraggle_io_write_frame nf90_put_var name_varid"  )
                charstring = trim(adjustl(pl%info(i)%particle_type))
-               call check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot,    eslot], count=[NAMELEN, 1, 1]), "fraggle_io_write_frame nf90_put_var particle_type_varid"  )
+               call check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot,    eslot], count=[len(charstring), 1, 1]), "fraggle_io_write_frame nf90_put_var particle_type_varid"  )
 
                call check( nf90_put_var(nc%id, nc%rh_varid,     pl%rh(:,i),   start=[1, idslot, 1, eslot], count=[NDIM,1,1,1]), "fraggle_io_write_frame nf90_put_var rh_varid"  )
                call check( nf90_put_var(nc%id, nc%vh_varid,     pl%vh(:,i),   start=[1, idslot, 1, eslot], count=[NDIM,1,1,1]), "fraggle_io_write_frame nf90_put_var vh_varid"  )
