@@ -164,7 +164,7 @@ contains
 
          npl = pl%nbody
          do i = 1, npl
-            idslot = pl%id(i)
+            idslot = pl%id(i) + 1
             call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), "encounter_io_write_frame nf90_put_var pl id_varid"  )
             call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl rh_varid"  )
             call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl vh_varid"  )
@@ -185,7 +185,7 @@ contains
 
          ntp = tp%nbody
          do i = 1, ntp
-            idslot = tp%id(i)
+            idslot = tp%id(i) + 1
             call check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), "encounter_io_write_frame nf90_put_var tp id_varid"  )
             call check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var tp rh_varid"  )
             call check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var tp vh_varid"  )

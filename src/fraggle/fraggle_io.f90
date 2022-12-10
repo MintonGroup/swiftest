@@ -176,7 +176,7 @@ contains
             ! Stage 1: The Colliders
             npl = pl%nbody
             do i = 1, npl
-               idslot = pl%id(i)
+               idslot = pl%id(i) + 1
                call check( nf90_put_var(nc%id, nc%id_varid,     pl%id(i),     start=[   idslot         ]), "fraggle_io_write_frame nf90_put_var id_varid"  )
                charstring = trim(adjustl(pl%info(i)%name))
                call check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot], count=[len(charstring), 1]), "fraggle_io_write_frame nf90_put_var name_varid"  )
