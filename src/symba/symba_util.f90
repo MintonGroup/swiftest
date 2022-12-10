@@ -888,8 +888,8 @@ contains
       system%collision_history%iframe = system%collision_history%iframe + 1
 
       ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
-      nnew = system%encounter_history%iframe
-      nold = system%encounter_history%nframes
+      nnew = system%collision_history%iframe
+      nold = system%collision_history%nframes
 
       if (nnew > nold) then
          nbig = nold
@@ -897,18 +897,18 @@ contains
             nbig = nbig * 2
          end do
          allocate(encounter_storage(nbig) :: tmp) 
-         tmp%tvals(1:nold) = system%encounter_history%tvals(1:nold)
+         tmp%tvals(1:nold) = system%collision_history%tvals(1:nold)
          tmp%tvals(nold+1:nbig) = huge(1.0_DP)
-         tmp%tslot(1:nold) = system%encounter_history%tslot(1:nold)
+         tmp%tslot(1:nold) = system%collision_history%tslot(1:nold)
          tmp%tslot(nold+1:nbig) = 0
-         tmp%iframe = system%encounter_history%iframe
-         call move_alloc(system%encounter_history%nc, tmp%nc)
+         tmp%iframe = system%collision_history%iframe
+         call move_alloc(system%collision_history%nc, tmp%nc)
 
          do i = 1, nold
-            if (allocated(system%encounter_history%frame(i)%item)) call move_alloc(system%encounter_history%frame(i)%item, tmp%frame(i)%item)
+            if (allocated(system%collision_history%frame(i)%item)) call move_alloc(system%collision_history%frame(i)%item, tmp%frame(i)%item)
          end do
-         deallocate(system%encounter_history)
-         call move_alloc(tmp,system%encounter_history)
+         deallocate(system%collision_history)
+         call move_alloc(tmp,system%collision_history)
          nnew = nbig
       end if
 
