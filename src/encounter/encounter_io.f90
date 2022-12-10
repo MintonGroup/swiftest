@@ -25,13 +25,13 @@ contains
 
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
-            param%ioutput = self%tslot(i)
 
             select type(snapshot => self%frame(i)%item)
             class is (fraggle_collision_snapshot)
+               param%ioutput = i
                call snapshot%write_frame(self%nc,param)
-               call snapshot%encounter_snapshot%write_frame(self%nc,param)
             class is (encounter_snapshot)
+               param%ioutput = self%tslot(i)
                call snapshot%write_frame(self%nc,param)
             end select
          else

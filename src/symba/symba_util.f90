@@ -869,7 +869,56 @@ contains
    end subroutine symba_util_resize_pl
 
 
-   subroutine symba_util_save_storage(system, snapshot, t)
+   subroutine symba_util_save_collision(system, snapshot)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+      implicit none
+      ! Arguments
+      type(symba_nbody_system),  intent(inout) :: system   !! SyMBA nbody system object 
+      class(encounter_snapshot), intent(in)    :: snapshot !! Encounter snapshot object
+      ! Internals
+      type(encounter_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nnew, nold, nbig
+
+      ! Advance the snapshot frame counter
+      system%collision_history%iframe = system%collision_history%iframe + 1
+
+      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
+      nnew = system%encounter_history%iframe
+      nold = system%encounter_history%nframes
+
+      if (nnew > nold) then
+         nbig = nold
+         do while (nbig < nnew)
+            nbig = nbig * 2
+         end do
+         allocate(encounter_storage(nbig) :: tmp) 
+         tmp%tvals(1:nold) = system%encounter_history%tvals(1:nold)
+         tmp%tvals(nold+1:nbig) = huge(1.0_DP)
+         tmp%tslot(1:nold) = system%encounter_history%tslot(1:nold)
+         tmp%tslot(nold+1:nbig) = 0
+         tmp%iframe = system%encounter_history%iframe
+         call move_alloc(system%encounter_history%nc, tmp%nc)
+
+         do i = 1, nold
+            if (allocated(system%encounter_history%frame(i)%item)) call move_alloc(system%encounter_history%frame(i)%item, tmp%frame(i)%item)
+         end do
+         deallocate(system%encounter_history)
+         call move_alloc(tmp,system%encounter_history)
+         nnew = nbig
+      end if
+
+      system%collision_history%frame(nnew) = snapshot
+
+      return
+   end subroutine symba_util_save_collision
+
+
+   subroutine symba_util_save_encounter(system, snapshot, t)
       !! author: David A. Minton
       !!
       !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
@@ -925,7 +974,7 @@ contains
       end do
 
       return
-   end subroutine symba_util_save_storage
+   end subroutine symba_util_save_encounter
 
 
    module subroutine symba_util_resize_tp(self, nnew)
@@ -1323,7 +1372,7 @@ contains
          allocate(fraggle_collision_snapshot :: snapshot)
          allocate(snapshot%colliders, source=self%colliders) 
          allocate(snapshot%fragments, source=self%fragments)
-         !call symba_util_save_storage(self,snapshot,t)
+         call symba_util_save_collision(self,snapshot)
       end select
 
       return
@@ -1430,7 +1479,7 @@ contains
                end select
 
                ! Save the snapshot
-               call symba_util_save_storage(self,snapshot,t)
+               call symba_util_save_encounter(self,snapshot,t)
             end select
          end select
       end associate
