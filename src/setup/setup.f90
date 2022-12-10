@@ -73,11 +73,19 @@ contains
             class is (symba_parameters)
                if (param%lencounter_save) then
                   allocate(encounter_storage :: system%encounter_history)
-                  allocate(encounter_io_parameters :: system%encounter_history%nce)
-                  allocate(fraggle_io_parameters :: system%encounter_history%ncc)
-                  call system%encounter_history%reset()
-                  system%encounter_history%nce%file_number = param%iloop / param%dump_cadence
-                  system%encounter_history%ncc%file_number = param%iloop / param%dump_cadence
+                  associate (encounter_history => system%encounter_history)
+                     allocate(encounter_io_parameters :: encounter_history%nce)
+                     call encounter_history%reset()
+                     select type(nce => encounter_history%nce)
+                     class is (encounter_io_parameters)
+                        nce%file_number = param%iloop / param%dump_cadence
+                     end select
+                     allocate(fraggle_io_parameters :: encounter_history%ncc)
+                     select type(ncc => encounter_history%ncc)
+                     class is (fraggle_io_parameters)
+                        ncc%file_number = param%iloop / param%dump_cadence
+                     end select
+                  end associate
                end if
             end select
          end select
