@@ -1304,6 +1304,7 @@ contains
 
       select case(stage)
       case("before")
+         ! Saves the states of the bodies involved in the collision before the collision is resolved
          associate (idx => self%colliders%idx, ncoll => self%colliders%ncoll)
             allocate(symba_pl :: self%colliders%pl)
             select type(pl => self%colliders%pl)
@@ -1324,7 +1325,6 @@ contains
          allocate(snapshot%colliders, source=self%colliders) 
          allocate(snapshot%fragments, source=self%fragments)
          !call symba_util_save_storage(self,snapshot,t)
-         deallocate(snapshot)
       end select
 
       return
