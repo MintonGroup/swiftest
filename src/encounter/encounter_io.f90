@@ -25,7 +25,6 @@ contains
 
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
-
             select type(snapshot => self%frame(i)%item)
             class is (fraggle_collision_snapshot)
                param%ioutput = i

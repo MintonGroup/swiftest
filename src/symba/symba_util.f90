@@ -1394,11 +1394,7 @@ contains
 
       associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
 
-         if (self%plplenc_list%lcollision) then
-            allocate(fraggle_collision_snapshot :: snapshot)
-         else
-            allocate(encounter_snapshot :: snapshot)
-         end if
+         allocate(encounter_snapshot :: snapshot)
          snapshot%t = t
          snapshot%iloop = param%iloop
 
