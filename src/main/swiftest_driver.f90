@@ -89,13 +89,14 @@ program swiftest_driver
 
       associate (system_history => param%system_history)
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
-         if (param%lrestart) then
-            if (param%lenergy) call system%conservation_report(param, lterminal=.true.)
-         else
-            if (param%lenergy) call system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
-            call system_history%take_snapshot(param,system)
-            call system_history%dump(param)
+         if (param%lenergy) then
+            if (param%lrestart) then
+               call system%conservation_report(param, lterminal=.true.)
+            else
+               call system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
+            end if
          end if
+         call system_history%take_snapshot(param,system)
          call system%dump(param)
 
          write(display_unit, *) " *************** Main Loop *************** "

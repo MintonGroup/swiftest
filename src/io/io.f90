@@ -259,8 +259,6 @@ contains
          call nc%initialize(dump_param)
          call self%write_frame(nc, dump_param)
          call nc%close()
-         ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
-         call nc%flush(param)
       end associate
 
       idx = idx + 1
