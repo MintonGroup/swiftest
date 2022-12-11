@@ -162,6 +162,7 @@ module swiftest_classes
       integer(I4B)                                            :: nt             !! Number of unique time values in all saved snapshots
       real(DP),                     dimension(:), allocatable :: tvals          !! The set of unique time values contained in the snapshots
       integer(I4B),                 dimension(:), allocatable :: tmap           !! The t value -> index map
+      class(netcdf_parameters),                   allocatable :: nc             !! NetCDF object attached to this storage object
    contains
       procedure :: dump           => io_dump_storage        !! Dumps storage object contents to file
       procedure :: make_index_map => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
@@ -255,8 +256,7 @@ module swiftest_classes
       logical :: lgr = .false.               !! Turn on GR
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
-
-      type(netcdf_parameters) :: nc   !! Object containing NetCDF parameters
+      type(swiftest_storage(nframes=:)), allocatable :: system_history
    contains
       procedure :: reader      => io_param_reader
       procedure :: writer      => io_param_writer
@@ -1692,10 +1692,13 @@ module swiftest_classes
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill_approximate
 
-      module subroutine util_snapshot_system(self, system)
+      module subroutine util_snapshot_system(self, param, system, t, arg)
          implicit none
-         class(swiftest_storage(*)),      intent(inout) :: self  !! Swiftest storage object
-         class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object to store
+         class(swiftest_storage(*)),   intent(inout)        :: self   !! Swiftest storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
+         class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
+         real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
+         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       end subroutine util_snapshot_system
    end interface
 

@@ -160,9 +160,9 @@ module fraggle_classes
    
       module subroutine fraggle_io_write_frame(self, nc, param)
          implicit none
-         class(fraggle_collision_snapshot), intent(in)    :: self   !! Swiftest encounter structure
-         class(encounter_io_parameters),    intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
-         class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
+         class(fraggle_collision_snapshot), intent(in)    :: self  !! Swiftest encounter structure
+         class(netcdf_parameters),          intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine fraggle_io_write_frame
 
       module subroutine fraggle_io_log_pl(pl, param)

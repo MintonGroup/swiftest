@@ -34,17 +34,19 @@ contains
          class is (symba_tp)
             select type(param)
             class is (symba_parameters)
-               call self%reset(param)
-               lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
-               if (lencounter) then
-                  if (param%lencounter_save) call self%encounter_snap(param, t) 
-                  call self%interp(param, t, dt)
-                  if (param%lencounter_save) call self%encounter_snap(param, t+dt) 
-               else
-                  self%irec = -1
-                  call helio_step_system(self, param, t, dt)
-               end if
-               param%lfirstkick = pl%lfirst
+               associate(encounter_history => param%encounter_history)
+                  call self%reset(param)
+                  lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
+                  if (lencounter) then
+                     if (param%lencounter_save) call encounter_history%take_snapshot(param, self, t) 
+                     call self%interp(param, t, dt)
+                     if (param%lencounter_save) call encounter_history%take_snapshot(param, self, t+dt) 
+                  else
+                     self%irec = -1
+                     call helio_step_system(self, param, t, dt)
+                  end if
+                  param%lfirstkick = pl%lfirst
+               end associate
             end select
          end select
       end select
@@ -180,14 +182,15 @@ contains
       real(DP) :: dtl, dth
       logical :: lencounter
 
-      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, &
-         lplpl_collision => self%plplenc_list%lcollision, lpltp_collision => self%pltpenc_list%lcollision)
-         select type(param)
-         class is (symba_parameters)
-            select type(pl => self%pl)
-            class is (symba_pl)
-               select type(tp => self%tp)
-               class is (symba_tp)
+      select type(param)
+      class is (symba_parameters)
+         select type(pl => self%pl)
+         class is (symba_pl)
+            select type(tp => self%tp)
+            class is (symba_tp)
+               associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, &
+                        lplpl_collision => self%plplenc_list%lcollision, lpltp_collision => self%pltpenc_list%lcollision, &
+                        encounter_history => param%encounter_history)
                   system%irec = ireci
                   dtl = param%dt / (NTENC**ireci)
                   dth = 0.5_DP * dtl
@@ -244,15 +247,15 @@ contains
                         if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                         if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                      end if
-                     if (param%lencounter_save) call system%encounter_snap(param, t+dtl)
+                     if (param%lencounter_save) call encounter_history%take_snapshot(param, self, t+dtl) 
 
                      call self%set_recur_levels(ireci)
 
                   end do
-               end select
+               end associate
             end select
          end select
-      end associate
+      end select
 
       return
    end subroutine symba_step_recur_system

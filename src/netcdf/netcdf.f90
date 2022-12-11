@@ -80,63 +80,65 @@ contains
       real(DP), dimension(NDIM)                 :: rot0, Ip0, Lnow
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig
 
-      call param%nc%open(param)
-      call check( nf90_inquire_dimension(param%nc%id, param%nc%time_dimid, len=itmax), "netcdf_get_old_t_final_system time_dimid" )
-      call check( nf90_inquire_dimension(param%nc%id, param%nc%id_dimid, len=idmax), "netcdf_get_old_t_final_system id_dimid" )
-      allocate(vals(idmax))
-      call check( nf90_get_var(param%nc%id, param%nc%time_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system time_varid" )
+      associate (nc => param%system_history%nc)
+         call nc%open(param)
+         call check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_get_old_t_final_system time_dimid" )
+         call check( nf90_inquire_dimension(nc%id, nc%id_dimid, len=idmax), "netcdf_get_old_t_final_system id_dimid" )
+         allocate(vals(idmax))
+         call check( nf90_get_var(nc%id, nc%time_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system time_varid" )
 
-      !old_t_final = rtemp(1)
-      old_t_final = param%t0 ! For NetCDF it is safe to overwrite the final t value on a restart
+         !old_t_final = rtemp(1)
+         old_t_final = param%t0 ! For NetCDF it is safe to overwrite the final t value on a restart
 
-      if (param%lenergy) then
-         call check( nf90_get_var(param%nc%id, param%nc%KE_orb_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system KE_orb_varid" )
-         KE_orb_orig = rtemp(1)
+         if (param%lenergy) then
+            call check( nf90_get_var(nc%id, nc%KE_orb_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system KE_orb_varid" )
+            KE_orb_orig = rtemp(1)
 
-         call check( nf90_get_var(param%nc%id, param%nc%KE_spin_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system KE_spin_varid" )
-         KE_spin_orig = rtemp(1)
+            call check( nf90_get_var(nc%id, nc%KE_spin_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system KE_spin_varid" )
+            KE_spin_orig = rtemp(1)
 
-         call check( nf90_get_var(param%nc%id, param%nc%PE_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system PE_varid" )
-         PE_orig = rtemp(1)
+            call check( nf90_get_var(nc%id, nc%PE_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system PE_varid" )
+            PE_orig = rtemp(1)
 
-         call check( nf90_get_var(param%nc%id, param%nc%Ecollisions_varid, self%Ecollisions, start=[1]), "netcdf_get_old_t_final_system Ecollisions_varid" )
-         call check( nf90_get_var(param%nc%id, param%nc%Euntracked_varid,  self%Euntracked,  start=[1]), "netcdf_get_old_t_final_system Euntracked_varid" )
+            call check( nf90_get_var(nc%id, nc%Ecollisions_varid, self%Ecollisions, start=[1]), "netcdf_get_old_t_final_system Ecollisions_varid" )
+            call check( nf90_get_var(nc%id, nc%Euntracked_varid,  self%Euntracked,  start=[1]), "netcdf_get_old_t_final_system Euntracked_varid" )
 
-         self%Eorbit_orig = KE_orb_orig + KE_spin_orig + PE_orig + self%Ecollisions + self%Euntracked
+            self%Eorbit_orig = KE_orb_orig + KE_spin_orig + PE_orig + self%Ecollisions + self%Euntracked
 
-         call check( nf90_get_var(param%nc%id, param%nc%L_orb_varid, self%Lorbit_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_get_old_t_final_system L_orb_varid" )
-         call check( nf90_get_var(param%nc%id, param%nc%L_spin_varid, self%Lspin_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_get_old_t_final_system L_spin_varid" )
-         call check( nf90_get_var(param%nc%id, param%nc%L_escape_varid, self%Lescape(:),  start=[1,1], count=[NDIM,1]), "netcdf_get_old_t_final_system L_escape_varid" )
+            call check( nf90_get_var(nc%id, nc%L_orb_varid, self%Lorbit_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_get_old_t_final_system L_orb_varid" )
+            call check( nf90_get_var(nc%id, nc%L_spin_varid, self%Lspin_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_get_old_t_final_system L_spin_varid" )
+            call check( nf90_get_var(nc%id, nc%L_escape_varid, self%Lescape(:),  start=[1,1], count=[NDIM,1]), "netcdf_get_old_t_final_system L_escape_varid" )
 
-         self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:) + self%Lescape(:)
+            self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:) + self%Lescape(:)
 
-         call check( nf90_get_var(param%nc%id, param%nc%Gmass_varid, vals, start=[1,1], count=[idmax,1]), "netcdf_get_old_t_final_system Gmass_varid" )
-         call check( nf90_get_var(param%nc%id, param%nc%GMescape_varid,    self%GMescape,    start=[1]), "netcdf_get_old_t_final_system GMescape_varid" )
-         self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax)) + self%GMescape
+            call check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,1], count=[idmax,1]), "netcdf_get_old_t_final_system Gmass_varid" )
+            call check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[1]), "netcdf_get_old_t_final_system GMescape_varid" )
+            self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax)) + self%GMescape
 
-         select type(cb => self%cb)
-         class is (symba_cb)
-            cb%GM0 = vals(1)
-            cb%dGM = cb%Gmass - cb%GM0
+            select type(cb => self%cb)
+            class is (symba_cb)
+               cb%GM0 = vals(1)
+               cb%dGM = cb%Gmass - cb%GM0
 
-            call check( nf90_get_var(param%nc%id, param%nc%radius_varid, rtemp, start=[1,1], count=[1,1]), "netcdf_get_old_t_final_system radius_varid" )
-            cb%R0 = rtemp(1) 
+               call check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1,1], count=[1,1]), "netcdf_get_old_t_final_system radius_varid" )
+               cb%R0 = rtemp(1) 
 
-            if (param%lrotation) then
+               if (param%lrotation) then
 
-               call check( nf90_get_var(param%nc%id, param%nc%rot_varid, rot0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_get_old_t_final_system rot_varid" )
-               call check( nf90_get_var(param%nc%id, param%nc%Ip_varid, Ip0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_get_old_t_final_system Ip_varid" )
+                  call check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_get_old_t_final_system rot_varid" )
+                  call check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_get_old_t_final_system Ip_varid" )
 
-               cb%L0(:) = Ip0(3) * cb%GM0 * cb%R0**2 * rot0(:)
+                  cb%L0(:) = Ip0(3) * cb%GM0 * cb%R0**2 * rot0(:)
 
-               Lnow(:) = cb%Ip(3) * cb%Gmass * cb%radius**2 * cb%rot(:)
-               cb%dL(:) = Lnow(:) - cb%L0(:)
-            end if
-         end select
+                  Lnow(:) = cb%Ip(3) * cb%Gmass * cb%radius**2 * cb%rot(:)
+                  cb%dL(:) = Lnow(:) - cb%L0(:)
+               end if
+            end select
 
-      end if
+         end if
 
-      deallocate(vals)
+         deallocate(vals)
+      end associate
       
       return
    end function netcdf_get_old_t_final_system

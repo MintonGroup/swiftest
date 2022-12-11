@@ -33,6 +33,8 @@ module symba_classes
       character(STRMAX)                       :: encounter_save     = "NONE"  !! Indicate if and how encounter data should be saved
       character(STRMAX)                       :: collision_save = "NONE"  !! Indicate if and how fragmentation data should be saved
       logical                                 :: lencounter_save    = .false. !! Turns on encounter saving
+      type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      type(collision_storage(nframes=:)), allocatable :: collision_history  !! Stores encounter history for later retrieval and saving to file
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
@@ -191,8 +193,6 @@ module symba_classes
       integer(I4B)                                    :: irec               !! System recursion level
       class(fraggle_colliders), allocatable           :: colliders          !! Fraggle colliders object
       class(fraggle_fragments), allocatable           :: fragments          !! Fraggle fragmentation system object
-      type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
-      type(collision_storage(nframes=:)), allocatable :: collision_history  !! Stores encounter history for later retrieval and saving to file
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
@@ -201,9 +201,6 @@ module symba_classes
       procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
-      procedure :: encounter_snap   => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
-      procedure :: collision_snap   => symba_util_take_collision_snapshot !! Take a minimal snapshot of the system before and after a collision
-      procedure :: dump_encounter   => symba_io_dump_encounter            !! Saves the encounter and/or fragmentation data to file(s)   
       final     ::                     symba_util_final_system            !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
@@ -373,22 +370,6 @@ module symba_classes
          integer(I4B),    intent(in)    :: scale !! Current recursion depth
       end subroutine symba_util_set_renc
 
-      module subroutine symba_util_take_collision_snapshot(self, param, t, stage)
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t     !! current time
-         character(*),               intent(in)    :: stage !! Either before or afte
-      end subroutine symba_util_take_collision_snapshot
-
-      module subroutine symba_util_take_encounter_snapshot(self, param, t)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self   !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t      !! current time
-      end subroutine symba_util_take_encounter_snapshot
-
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
          class(symba_parameters), intent(inout) :: self       !! Current run configuration parameters with SyMBA additionss
@@ -410,12 +391,6 @@ module symba_classes
          integer,                intent(out)   :: iostat    !! IO status code
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
-
-      module subroutine symba_io_dump_encounter(self, param)
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-      end subroutine symba_io_dump_encounter
 
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters

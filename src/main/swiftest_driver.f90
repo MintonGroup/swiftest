@@ -21,7 +21,7 @@ program swiftest_driver
    class(swiftest_nbody_system), allocatable      :: system           !! Polymorphic object containing the nbody system to be integrated
    class(swiftest_parameters),   allocatable      :: param             !! Run configuration parameters
    character(len=:), allocatable                  :: integrator        !! Integrator type code (see swiftest_globals for symbolic names)
-   character(len=:),allocatable                   :: param_file_name   !! Name of the file containing user-defined parameters
+   character(len=:), allocatable                  :: param_file_name   !! Name of the file containing user-defined parameters
    character(len=:), allocatable                  :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
    integer(I8B)                                   :: istart            !! Starting index for loop counter
    integer(I8B)                                   :: nloops            !! Number of steps to take in the simulation
@@ -38,7 +38,7 @@ program swiftest_driver
    character(len=64)                              :: pbarmessage
 
    character(*), parameter                        :: symbacompactfmt = '(";NPLM",ES22.15,$)'
-   type(swiftest_storage(nframes=:)), allocatable :: system_history
+   !type(swiftest_storage(nframes=:)), allocatable :: system_history
 
    call io_get_args(integrator, param_file_name, display_style)
 
@@ -73,7 +73,6 @@ program swiftest_driver
 
       ! Set up system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
-      allocate(swiftest_storage(dump_cadence) :: system_history)
 
       ! Construct the main n-body system using the user-input integrator to choose the type of system
       call setup_construct_system(system, param)
@@ -88,84 +87,86 @@ program swiftest_driver
 
       call system%initialize(param)
 
-      ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
-      if (param%lrestart) then
-         if (param%lenergy) call system%conservation_report(param, lterminal=.true.)
-      else
-         if (param%lenergy) call system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
-         call system_history%take_snapshot(system)
-         call system_history%dump(param)
-      end if
-      call system%dump(param)
+      associate (system_history => param%system_history)
+         ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
+         if (param%lrestart) then
+            if (param%lenergy) call system%conservation_report(param, lterminal=.true.)
+         else
+            if (param%lenergy) call system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
+            call system_history%take_snapshot(param,system)
+            call system_history%dump(param)
+         end if
+         call system%dump(param)
 
-      write(display_unit, *) " *************** Main Loop *************** "
+         write(display_unit, *) " *************** Main Loop *************** "
 
-      if (display_style == "PROGRESS") then
-         call pbar%reset(nloops)
-         write(pbarmessage,fmt=pbarfmt) t0, tstop
-         call pbar%update(1,message=pbarmessage)
-      else if (display_style == "COMPACT") then
-         write(*,*) "SWIFTEST START " // param%integrator
-         call system%compact_output(param,integration_timer)
-      end if
-
-      iout = 0
-      idump = 0
-      system%t = tstart
-      do iloop = istart, nloops
-         !> Step the system forward in time
-         call integration_timer%start()
-         call system%step(param, system%t, dt)
-         call integration_timer%stop()
-
-         system%t = t0 + iloop * dt
-
-         !> Evaluate any discards or collisional outcomes
-         call system%discard(param)
-         if (display_style == "PROGRESS") call pbar%update(iloop)
-
-         !> If the loop counter is at the output cadence value, append the data file with a single frame
-         if (istep_out > 0) then
-            iout = iout + 1
-            if (iout == istep_out) then
-               iout = 0
-               idump = idump + 1
-               call system_history%take_snapshot(system)
-
-               if (idump == dump_cadence) then
-                  idump = 0
-                  call system%dump(param)
-                  call system_history%dump(param)
-               end if
-
-               tfrac = (system%t - t0) / (tstop - t0)
-
-               select type(pl => system%pl)
-               class is (symba_pl)
-                  write(display_unit, symbastatfmt) system%t, tfrac, pl%nplm, pl%nbody, system%tp%nbody
-               class default
-                  write(display_unit, statusfmt) system%t, tfrac, pl%nbody, system%tp%nbody
-               end select
-               if (param%lenergy) call system%conservation_report(param, lterminal=.true.)
-               call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
-
-               if (display_style == "PROGRESS") then
-                  write(pbarmessage,fmt=pbarfmt) system%t, tstop
-                  call pbar%update(1,message=pbarmessage)
-               else if (display_style == "COMPACT") then
-                  call system%compact_output(param,integration_timer)
-               end if
-
-               call integration_timer%reset()
-
-            end if
+         if (display_style == "PROGRESS") then
+            call pbar%reset(nloops)
+            write(pbarmessage,fmt=pbarfmt) t0, tstop
+            call pbar%update(1,message=pbarmessage)
+         else if (display_style == "COMPACT") then
+            write(*,*) "SWIFTEST START " // param%integrator
+            call system%compact_output(param,integration_timer)
          end if
 
-      end do
-      ! Dump any remaining history if it exists
-      call system%dump(param)
-      call system_history%dump(param)
-      if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // param%integrator
+         iout = 0
+         idump = 0
+         system%t = tstart
+         do iloop = istart, nloops
+            !> Step the system forward in time
+            call integration_timer%start()
+            call system%step(param, system%t, dt)
+            call integration_timer%stop()
+
+            system%t = t0 + iloop * dt
+
+            !> Evaluate any discards or collisional outcomes
+            call system%discard(param)
+            if (display_style == "PROGRESS") call pbar%update(iloop)
+
+            !> If the loop counter is at the output cadence value, append the data file with a single frame
+            if (istep_out > 0) then
+               iout = iout + 1
+               if (iout == istep_out) then
+                  iout = 0
+                  idump = idump + 1
+                  call system_history%take_snapshot(param,system)
+
+                  if (idump == dump_cadence) then
+                     idump = 0
+                     call system%dump(param)
+
+                  end if
+
+                  tfrac = (system%t - t0) / (tstop - t0)
+
+                  select type(pl => system%pl)
+                  class is (symba_pl)
+                     write(display_unit, symbastatfmt) system%t, tfrac, pl%nplm, pl%nbody, system%tp%nbody
+                  class default
+                     write(display_unit, statusfmt) system%t, tfrac, pl%nbody, system%tp%nbody
+                  end select
+                  if (param%lenergy) call system%conservation_report(param, lterminal=.true.)
+                  call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
+
+                  if (display_style == "PROGRESS") then
+                     write(pbarmessage,fmt=pbarfmt) system%t, tstop
+                     call pbar%update(1,message=pbarmessage)
+                  else if (display_style == "COMPACT") then
+                     call system%compact_output(param,integration_timer)
+                  end if
+
+                  call integration_timer%reset()
+
+               end if
+            end if
+
+         end do
+         ! Dump any remaining history if it exists
+         call system%dump(param)
+         call system_history%dump(param)
+         if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // param%integrator
+      end associate
    end associate
 
    call util_exit(SUCCESS)

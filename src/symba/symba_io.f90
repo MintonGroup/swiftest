@@ -12,51 +12,6 @@ submodule (symba_classes) s_symba_io
 contains
 
 
-   module subroutine symba_io_dump_encounter(self, param)
-      !! author: David A. Minton
-      !!
-      !! Saves the encounter and/or fragmentation data to file with the name of the current output interval number attached
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-
-
-      associate(encounter_history => self%encounter_history, num_enc_frames => self%encounter_history%iframe,&
-                collision_history => self%collision_history, num_coll_frames => self%collision_history%iframe)
-
-         select type(nce => self%encounter_history%nc)
-         class is (encounter_io_parameters)
-            if (num_enc_frames > 0) then
-               ! Create and save the output files for this encounter and fragmentation
-               nce%file_number = nce%file_number + 1 
-               call encounter_history%make_index_map()
-               write(nce%file_name, '("encounter_",I0.6,".nc")') nce%file_number
-               call nce%initialize(param)
-               call encounter_history%dump(param)
-               call nce%close()
-               call encounter_history%reset()
-            end if
-         end select
-
-         select type(ncc => self%collision_history%nc)
-         class is (fraggle_io_parameters)
-            if (num_coll_frames > 0) then
-               ncc%file_number = ncc%file_number + 1 
-               ncc%event_dimsize = num_coll_frames
-               call collision_history%make_index_map()
-               write(ncc%file_name, '("collision_",I0.6,".nc")') ncc%file_number
-               call ncc%initialize(param)
-               call collision_history%dump(param)
-               call ncc%close()
-               call collision_history%reset()
-            end if
-         end select
-      end associate
-
-      return
-   end subroutine symba_io_dump_encounter
-
 
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -246,12 +201,12 @@ contains
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
 
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nc, param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%system_history%nc, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
 
-            call pl_discards%write_info(param%nc, param)
+            call pl_discards%write_info(param%system_history%nc, param)
          end select
       end associate
 

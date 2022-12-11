@@ -21,6 +21,10 @@ contains
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
       class(swiftest_parameters),                  intent(inout) :: param     !! Swiftest parameters
 
+      allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
+      allocate(netcdf_parameters :: param%system_history%nc)
+      call param%system_history%reset()
+
       select case(param%integrator)
       case (BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
@@ -72,8 +76,8 @@ contains
             select type(param)
             class is (symba_parameters)
                if (param%lencounter_save) then
-                  allocate(encounter_storage :: system%encounter_history)
-                  associate (encounter_history => system%encounter_history)
+                  allocate(encounter_storage :: param%encounter_history)
+                  associate (encounter_history => param%encounter_history)
                      allocate(encounter_io_parameters :: encounter_history%nc)
                      call encounter_history%reset()
                      select type(nc => encounter_history%nc)
@@ -81,9 +85,9 @@ contains
                         nc%file_number = param%iloop / param%dump_cadence
                      end select
                   end associate
-
-                  allocate(collision_storage :: system%collision_history)
-                  associate (collision_history => system%collision_history)
+      
+                  allocate(collision_storage :: param%collision_history)
+                  associate (collision_history => param%collision_history)
                      allocate(fraggle_io_parameters :: collision_history%nc)
                      call collision_history%reset()
                      select type(nc => collision_history%nc)
@@ -93,6 +97,8 @@ contains
                   end associate
                end if
             end select
+
+
          end select
       case (RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
@@ -100,6 +106,10 @@ contains
          write(*,*) 'Unkown integrator',param%integrator
          call util_exit(FAILURE)
       end select
+
+
+
+
 
       return
    end subroutine setup_construct_system
@@ -116,7 +126,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
       associate(system => self)
-         call param%nc%close()
+         call param%system_history%nc%close()
       end associate
 
       return

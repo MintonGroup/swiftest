@@ -11,14 +11,17 @@ submodule(swiftest_classes) s_util_snapshot
    use swiftest
 contains
 
-   module subroutine util_snapshot_system(self, system)
+   module subroutine util_snapshot_system(self, param, system, t, arg)
       !! author: David A. Minton
       !!
       !! Takes a snapshot of the system for later file storage
       implicit none
       ! Arguments
-      class(swiftest_storage(*)),      intent(inout) :: self  !! Swiftest storage object
-      class(swiftest_nbody_system), intent(in) :: system !! Swiftest nbody system object to store
+      class(swiftest_storage(*)),   intent(inout) :: self   !! Swiftest storage object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object to store
+      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
+      character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
 
       self%iframe = self%iframe + 1
       self%nt = self%iframe
