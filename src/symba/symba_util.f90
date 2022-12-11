@@ -881,7 +881,7 @@ contains
       type(symba_nbody_system),  intent(inout) :: system   !! SyMBA nbody system object 
       class(encounter_snapshot), intent(in)    :: snapshot !! Encounter snapshot object
       ! Internals
-      type(encounter_storage(nframes=:)), allocatable :: tmp
+      type(collision_storage(nframes=:)), allocatable :: tmp
       integer(I4B) :: i, nnew, nold, nbig
 
       ! Advance the snapshot frame counter
@@ -896,7 +896,7 @@ contains
          do while (nbig < nnew)
             nbig = nbig * 2
          end do
-         allocate(encounter_storage(nbig) :: tmp) 
+         allocate(collision_storage(nbig) :: tmp) 
          tmp%tvals(1:nold) = system%collision_history%tvals(1:nold)
          tmp%tvals(nold+1:nbig) = huge(1.0_DP)
          tmp%tslot(1:nold) = system%collision_history%tslot(1:nold)
@@ -1347,26 +1347,28 @@ contains
       real(DP),                   intent(in)    :: t     !! current time
       character(*),               intent(in)    :: stage !! Either before or after
       ! Arguments
-      class(fraggle_collision_snapshot), allocatable:: snapshot
+      class(fraggle_collision_snapshot), allocatable :: snapshot
+      type(symba_pl)                                 :: pl
       integer(I4B) :: i,j
 
       select case(stage)
       case("before")
          ! Saves the states of the bodies involved in the collision before the collision is resolved
          associate (idx => self%colliders%idx, ncoll => self%colliders%ncoll)
-            allocate(symba_pl :: self%colliders%pl)
-            select type(pl => self%colliders%pl)
-            class is (symba_pl)
-               call pl%setup(ncoll, param)
-               pl%id(:) = self%pl%id(idx(:))
-               pl%Gmass(:) = self%pl%Gmass(idx(:))
-               pl%radius(:) = self%pl%radius(idx(:))
-               pl%rot(:,:) = self%pl%rot(:,idx(:))
-               pl%Ip(:,:) = self%pl%Ip(:,idx(:))
-               pl%rh(:,:) = self%pl%rh(:,idx(:))
-               pl%vh(:,:) = self%pl%vh(:,idx(:))
-               pl%info(:) = self%pl%info(idx(:))
-            end select
+            !allocate(symba_pl :: self%colliders%pl)
+            !select type(pl => self%colliders%pl)
+            !class is (symba_pl)
+            call pl%setup(ncoll, param)
+            pl%id(:) = self%pl%id(idx(:))
+            pl%Gmass(:) = self%pl%Gmass(idx(:))
+            pl%radius(:) = self%pl%radius(idx(:))
+            pl%rot(:,:) = self%pl%rot(:,idx(:))
+            pl%Ip(:,:) = self%pl%Ip(:,idx(:))
+            pl%rh(:,:) = self%pl%rh(:,idx(:))
+            pl%vh(:,:) = self%pl%vh(:,idx(:))
+            pl%info(:) = self%pl%info(idx(:))
+            !end select
+            allocate(self%colliders%pl, source=pl)
          end associate
       case("after")
          allocate(fraggle_collision_snapshot :: snapshot)

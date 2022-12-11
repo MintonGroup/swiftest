@@ -44,4 +44,17 @@ contains
       return
    end subroutine util_index_array
 
+
+   module subroutine util_index_map_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      implicit none
+      ! Arguments
+      class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+      ! Internals
+
+      return
+   end subroutine util_index_map_storage
+
 end submodule s_util_index_array

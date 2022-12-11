@@ -494,7 +494,6 @@ contains
          associate(idx_arr => parent_child_index_array(j)%idx, &
                    id_arr => parent_child_index_array(j)%id, &
                    ncj => nchild(j), &
-                   pl => pl, &
                    plkinj => pl%kin(idx_parent(j)))
             idx_arr(1) = idx_parent(j)
             if (ncj > 0) idx_arr(2:ncj + 1) = plkinj%child(1:ncj)

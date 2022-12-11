@@ -82,7 +82,7 @@ contains
                      end select
                   end associate
 
-                  allocate(encounter_storage :: system%collision_history)
+                  allocate(collision_storage :: system%collision_history)
                   associate (collision_history => system%collision_history)
                      allocate(fraggle_io_parameters :: collision_history%nc)
                      call collision_history%reset()

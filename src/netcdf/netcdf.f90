@@ -808,7 +808,7 @@ contains
                call pl%info(i)%set_value(status="ACTIVE")
             end do
             allocate(plind(npl))
-            plind(:) = pack([(i, i = 0, idmax-1)], plmask(:))
+            plind(:) = pack([(i, i = 1, idmax)], plmask(:))
          end if
          if (ntp > 0) then
             tp%status(:) = ACTIVE
@@ -817,7 +817,7 @@ contains
                call tp%info(i)%set_value(status="ACTIVE")
             end do
             allocate(tpind(ntp))
-            tpind(:) = pack([(i, i = 0, idmax-1)], tpmask(:))
+            tpind(:) = pack([(i, i = 1, idmax)], tpmask(:))
          end if
 
          call check( nf90_get_var(nc%id, nc%id_varid, itemp), "netcdf_read_particle_info_system nf90_getvar id_varid"  )
@@ -825,8 +825,8 @@ contains
          pl%id(:) = pack(itemp, plmask)
          tp%id(:) = pack(itemp, tpmask)
          cb%id = 0
-         pl%id(:) = pack([(i,i=0,idmax-1)],plmask)
-         tp%id(:) = pack([(i,i=0,idmax-1)],tpmask)
+         pl%id(:) = pack([(i,i=1,idmax)],plmask)
+         tp%id(:) = pack([(i,i=1,idmax)],tpmask)
 
          call check( nf90_get_var(nc%id, nc%name_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar name_varid"  )
          call cb%info%set_value(name=ctemp(1))

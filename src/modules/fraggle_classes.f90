@@ -285,17 +285,17 @@ module fraggle_classes
 
       module subroutine fraggle_util_final_colliders(self)
          implicit none
-         type(fraggle_colliders),  intent(inout) :: self !! Fraggle encountar storage object
+         type(fraggle_colliders),  intent(inout) :: self !! Fraggle colliders object
       end subroutine fraggle_util_final_colliders
 
       module subroutine fraggle_util_final_fragments(self)
          implicit none
-         type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
+         type(fraggle_fragments),  intent(inout) :: self !! Fraggle frgments object
       end subroutine fraggle_util_final_fragments
 
       module subroutine fraggle_util_final_snapshot(self)
          implicit none
-         type(fraggle_collision_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+         type(fraggle_collision_snapshot),  intent(inout) :: self !! Fraggle storage snapshot object
       end subroutine fraggle_util_final_snapshot
 
       module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)

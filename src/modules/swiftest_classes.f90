@@ -153,14 +153,16 @@ module swiftest_classes
 
    type :: swiftest_storage(nframes)
       !! An class that establishes the pattern for various storage objects
-      integer(I4B), len                                :: nframes = 4096 !! Total number of frames that can be stored
-      type(swiftest_storage_frame), dimension(nframes) :: frame          !! Array of stored frames
-      integer(I4B)                                     :: iframe = 0     !! Index of the last frame stored in the system
-      integer(I4B),                 dimension(nframes) :: tslot          !! The value of the time dimension index associated with each frame
-      real(DP),                     dimension(nframes) :: tvals          !! Stored time values for snapshots
+      integer(I4B), len                                       :: nframes = 4096 !! Total number of frames that can be stored
+      type(swiftest_storage_frame), dimension(nframes)        :: frame          !! Array of stored frames
+      integer(I4B)                                            :: iframe = 0     !! Index of the last frame stored in the system
+      integer(I4B),                 dimension(nframes)        :: tslot          !! The value of the time dimension index associated with each frame
+      real(DP),                     dimension(nframes)        :: tvals          !! Stored time values for snapshots
+      integer(I4B),                 dimension(:), allocatable :: idmap          !! The id value -> index map  
    contains
-      procedure :: dump   => io_dump_storage     !! Dumps storage object contents to file
-      procedure :: reset  => util_reset_storage  !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      procedure :: dump  => io_dump_storage        !! Dumps storage object contents to file
+      procedure :: mapid => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: reset => util_reset_storage     !! Resets a storage object by deallocating all items and resetting the frame counter to 0
       final     :: util_final_storage
    end type swiftest_storage
 
@@ -1514,6 +1516,11 @@ module swiftest_classes
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
          integer(I4B),                            intent(in)    :: n       !! The new size of the index array
       end subroutine util_index_array
+
+      module subroutine util_index_map_storage(self)
+         implicit none
+         class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+      end subroutine util_index_map_storage
 
       module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function

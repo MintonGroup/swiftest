@@ -68,9 +68,19 @@ module encounter_classes
    type, extends(swiftest_storage) :: encounter_storage
       class(encounter_io_parameters), allocatable :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
    contains
-      procedure :: dump   => encounter_io_dump !! Dumps contents of encounter history to file
-      final     ::           encounter_util_final_storage
+      procedure :: dump  => encounter_io_dump_storage        !! Dumps contents of encounter history to file
+      procedure :: mapid => encounter_util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      final     ::          encounter_util_final_storage
    end type encounter_storage
+
+   !> A class that that is used to store simulation history data between file output
+   type, extends(swiftest_storage) :: collision_storage
+      class(encounter_io_parameters), allocatable :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
+   contains
+      procedure :: dump  => encounter_io_dump_collision_storage        !! Dumps contents of encounter history to file
+      procedure :: mapid => encounter_util_index_map_collision_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      final     ::          encounter_util_final_collision_storage
+   end type collision_storage
 
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
@@ -204,11 +214,17 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_io_dump(self, param)
+      module subroutine encounter_io_dump_collision_storage(self, param)
+         implicit none
+         class(collision_storage(*)), intent(inout) :: self    !! Collision storage object
+         class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
+      end subroutine encounter_io_dump_collision_storage
+
+      module subroutine encounter_io_dump_storage(self, param)
          implicit none
          class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
          class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine encounter_io_dump
+      end subroutine encounter_io_dump_storage
 
       module subroutine encounter_io_initialize(self, param)
          implicit none
@@ -264,6 +280,11 @@ module encounter_classes
          type(encounter_bounding_box_1D), intent(inout) :: self !!Bounding box structure along a single dimension
       end subroutine encounter_util_final_aabb
 
+      module subroutine encounter_util_final_collision_storage(self)
+         implicit none
+         type(collision_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
+      end subroutine encounter_util_final_collision_storage
+
       module subroutine encounter_util_final_list(self)
          implicit none
          type(encounter_list), intent(inout) :: self !! Swiftest encounter list object
@@ -278,6 +299,16 @@ module encounter_classes
          implicit none
          type(encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
       end subroutine encounter_util_final_storage
+
+      module subroutine encounter_util_index_map_collision_storage(self)
+         implicit none
+         class(collision_storage(*)), intent(inout) :: self !! E
+      end subroutine encounter_util_index_map_collision_storage
+
+      module subroutine encounter_util_index_map_storage(self)
+         implicit none
+         class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
+      end subroutine encounter_util_index_map_storage
 
       module subroutine encounter_util_resize_list(self, nnew)
          implicit none

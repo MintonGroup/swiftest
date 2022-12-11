@@ -12,7 +12,34 @@ submodule (encounter_classes) s_encounter_io
 contains
 
 
-   module subroutine encounter_io_dump(self, param)
+   module subroutine encounter_io_dump_collision_storage(self, param)
+      !! author: David A. Minton
+      !!
+      !! Dumps the time history of an encounter to file.
+      implicit none
+      ! Arguments
+      class(collision_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+      class(swiftest_parameters), intent(inout)        :: param  !! Current run configuration parameters 
+      ! Internals
+      integer(I4B) :: i
+
+      do i = 1, self%nframes
+         if (allocated(self%frame(i)%item)) then
+            select type(snapshot => self%frame(i)%item)
+            class is (fraggle_collision_snapshot)
+               param%ioutput = i
+               call snapshot%write_frame(self%nc,param)
+            end select
+         else
+            exit
+         end if
+      end do
+
+      return
+   end subroutine encounter_io_dump_collision_storage
+
+
+   module subroutine encounter_io_dump_storage(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the time history of an encounter to file.
@@ -26,9 +53,6 @@ contains
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
             select type(snapshot => self%frame(i)%item)
-            class is (fraggle_collision_snapshot)
-               param%ioutput = i
-               call snapshot%write_frame(self%nc,param)
             class is (encounter_snapshot)
                param%ioutput = self%tslot(i)
                call snapshot%write_frame(self%nc,param)
@@ -40,7 +64,7 @@ contains
 
 
       return
-   end subroutine encounter_io_dump
+   end subroutine encounter_io_dump_storage
 
 
    module subroutine encounter_io_initialize(self, param)

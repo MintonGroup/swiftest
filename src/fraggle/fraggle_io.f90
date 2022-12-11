@@ -12,7 +12,6 @@ submodule(fraggle_classes) s_fraggle_io
 
 contains
 
-
    module subroutine fraggle_io_initialize_output(self, param)
       !! author: David A. Minton
       !!

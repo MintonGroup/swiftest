@@ -152,6 +152,20 @@ contains
    end subroutine encounter_util_final_snapshot
 
 
+   module subroutine encounter_util_final_collision_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      type(collision_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
+
+      call util_final_storage(self%swiftest_storage)
+
+      return
+   end subroutine encounter_util_final_collision_storage
+
+
    module subroutine encounter_util_final_storage(self)
       !! author: David A. Minton
       !!
@@ -164,6 +178,33 @@ contains
 
       return
    end subroutine encounter_util_final_storage
+
+
+   module subroutine encounter_util_index_map_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      implicit none
+      ! Arguments
+      class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
+      ! Internals
+
+      return
+   end subroutine encounter_util_index_map_storage
+
+
+
+   module subroutine encounter_util_index_map_collision_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      implicit none
+      ! Arguments
+      class(collision_storage(*)), intent(inout) :: self !! Swiftest storage object
+      ! Internals
+
+      return
+   end subroutine encounter_util_index_map_collision_storage
 
 
    module subroutine encounter_util_resize_list(self, nnew)
