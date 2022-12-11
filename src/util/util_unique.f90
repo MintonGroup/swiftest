@@ -7,30 +7,35 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest_classes) s_util_reset
+submodule (swiftest_classes) s_util_unique
    use swiftest
 contains
 
-   module subroutine util_reset_storage(self)
+   module subroutine util_unique(input_array, output_array)
       !! author: David A. Minton
       !!
-      !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      !! Takes an input unsorted integer array and returns a new array of sorted, unique values
       implicit none
       ! Arguments
-      class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+      integer(I4B), dimension(:),              intent(in)  :: input_array
+      integer(I4B), dimension(:), allocatable, intent(out) :: output_array
       ! Internals
-      integer(I4B) :: i
+      integer(I4B), dimension(:), allocatable :: unique_array
+      integer(I4B) :: n, lo, hi
 
-      do i = 1, self%nframes
-         if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-      end do
-      self%tslot(:) = 0
-      self%tvals(:) = huge(1.0_DP)
-      self%iframe = 0
-      if (allocated(self%idmap)) deallocate(self%idmap)
-      self%nid = 0
+      allocate(unique_array, mold=input_array)
+      lo = minval(input_array) - 1
+      hi = maxval(input_array)
+
+      n = 0
+      do while (lo < hi)
+         n = n + 1
+         lo = minval(input_array, mask=input_array > lo)
+         unique_array(n) = lo
+      enddo
+      allocate(output_array(n), source=unique_array(1:n)) 
 
       return
-   end subroutine util_reset_storage
+   end subroutine util_unique
 
-end submodule s_util_reset
+end submodule s_util_unique

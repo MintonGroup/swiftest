@@ -50,6 +50,7 @@ contains
       ! Internals
       integer(I4B) :: i
 
+      call self%mapid()
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
             select type(snapshot => self%frame(i)%item)
@@ -61,7 +62,6 @@ contains
             exit
          end if
       end do
-
 
       return
    end subroutine encounter_io_dump_storage

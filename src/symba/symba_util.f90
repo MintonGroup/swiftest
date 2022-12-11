@@ -1380,6 +1380,7 @@ contains
       return
    end subroutine symba_util_take_collision_snapshot
 
+
    module subroutine symba_util_take_encounter_snapshot(self, param, t)
       !! author: David A. Minton
       !!
@@ -1477,6 +1478,7 @@ contains
                end select
 
                ! Save the snapshot
+               self%encounter_history%nid = self%encounter_history%nid + ntp_snap + npl_snap
                call symba_util_save_encounter(self,snapshot,t)
             end select
          end select

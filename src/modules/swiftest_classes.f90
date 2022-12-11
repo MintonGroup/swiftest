@@ -159,6 +159,7 @@ module swiftest_classes
       integer(I4B),                 dimension(nframes)        :: tslot          !! The value of the time dimension index associated with each frame
       real(DP),                     dimension(nframes)        :: tvals          !! Stored time values for snapshots
       integer(I4B),                 dimension(:), allocatable :: idmap          !! The id value -> index map  
+      integer(I4B)                                            :: nid            !! Number of unique id values in all saved snapshots
    contains
       procedure :: dump  => io_dump_storage        !! Dumps storage object contents to file
       procedure :: mapid => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
@@ -1955,6 +1956,12 @@ module swiftest_classes
          logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_tp
+
+      module subroutine util_unique(input_array, output_array)
+         implicit none
+         integer(I4B), dimension(:),              intent(in)  :: input_array
+         integer(I4B), dimension(:), allocatable, intent(out) :: output_array
+      end subroutine util_unique
 
       module subroutine util_valid_id_system(self, param)
          implicit none

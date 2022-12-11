@@ -183,11 +183,41 @@ contains
    module subroutine encounter_util_index_map_storage(self)
       !! author: David A. Minton
       !!
-      !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id.
+      !! Basically this will make a unique list of ids that exist in all of the saved snapshots
       implicit none
       ! Arguments
       class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
       ! Internals
+      integer(I4B) :: i, n, nold
+      integer(I4B), dimension(:), allocatable :: idlist
+
+      if (self%nid == 0) return
+      allocate(idlist(self%nid))
+
+      n = 0
+      nold = 1
+      do i = 1, self%nframes
+         if (allocated(self%frame(i)%item)) then
+            select type(snapshot => self%frame(i)%item)
+            class is (encounter_snapshot)
+               if (allocated(snapshot%pl)) then
+                  n = n + snapshot%pl%nbody
+                  idlist(nold:n) = snapshot%pl%id(:)
+                  nold = n+1
+               end if  
+               if (allocated(snapshot%tp)) then
+                  n = n + snapshot%tp%nbody
+                  idlist(nold:n) = snapshot%tp%id(:)
+                  nold = n+1
+               end if
+            end select
+         else
+            exit
+         end if
+      end do
+
+      call util_unique(idlist,self%idmap)
 
       return
    end subroutine encounter_util_index_map_storage

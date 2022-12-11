@@ -88,6 +88,7 @@ SET(FAST_MATH_FILES
             ${SRC}/util/util_solve.f90
             ${SRC}/util/util_sort.f90
             ${SRC}/util/util_spill.f90
+            ${SRC}/util/util_unique.f90
             ${SRC}/util/util_valid.f90
             ${SRC}/util/util_version.f90
             ${SRC}/walltime/walltime.f90
