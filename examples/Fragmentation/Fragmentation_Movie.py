@@ -90,7 +90,7 @@ def encounter_combiner(sim):
     # Only keep a minimal subset of necessary data from the simulation and encounter datasets
     keep_vars = ['rh','Gmass','radius']
     data = sim.data[keep_vars]
-    enc = sim.enc[keep_vars].load()
+    enc = sim.encounters[keep_vars].load()
 
     # Remove any encounter data at the same time steps that appear in the data to prevent duplicates
     t_not_duplicate = ~enc['time'].isin(data['time'])

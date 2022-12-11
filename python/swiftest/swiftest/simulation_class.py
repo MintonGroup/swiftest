@@ -319,7 +319,8 @@ class Simulation:
         self.param = {}
         self.data = xr.Dataset()
         self.ic = xr.Dataset()
-        self.enc = xr.Dataset()
+        self.encounters = xr.Dataset()
+        self.collision = xr.Dataset()
 
         self.simdir = Path(simdir)
         if self.simdir.exists():
@@ -2735,9 +2736,9 @@ class Simulation:
         # results
 
         if "ENCOUNTER_SAVE" in self.param or "FRAGMENTATION_SAVE" in self.param:
-            read_encounter = self.param["ENCOUNTER_SAVE"] != "NONE" or self.param["FRAGMENTATION_SAVE"] != "NONE"
+            read_encounters = self.param["ENCOUNTER_SAVE"] != "NONE" or self.param["FRAGMENTATION_SAVE"] != "NONE"
         else:
-            read_encounter = False
+            read_encounters = False
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
@@ -2752,8 +2753,8 @@ class Simulation:
                     self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
                 else:
                     self.ic = self.data.isel(time=0)
-            if read_encounter:
-                self.read_encounter()
+            if read_encounters:
+                self.read_encounters()
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
@@ -2764,9 +2765,9 @@ class Simulation:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
-    def read_encounter(self):
+    def read_encounters(self):
         if self.verbose:
-            print("Reading encounter history file as .enc")
+            print("Reading encounter history file as .encounters")
         enc_files = glob(f"{self.simdir}{os.path.sep}encounter_*.nc")
         enc_files.sort()
 
@@ -2775,16 +2776,16 @@ class Simulation:
             return io.process_netcdf_input(ds,param)
         partial_func = partial(_preprocess, param=self.param)
 
-        self.enc = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
-        self.enc = io.process_netcdf_input(self.enc, self.param)
+        self.encounters = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
+        self.encounters = io.process_netcdf_input(self.encounters, self.param)
         # Remove any overlapping time values
-        tgood,tid = np.unique(self.enc.time,return_index=True)
-        self.enc = self.enc.isel(time=tid)
+        tgood,tid = np.unique(self.encounters.time,return_index=True)
+        self.encounters = self.encounters.isel(time=tid)
 
         # Reduce the dimensionality of variables that got expanded in the combine process
-        self.enc['loopnum'] = self.enc['loopnum'].max(dim="name")
-        self.enc['id'] = self.enc['id'].max(dim="time")
-        self.enc['particle_type'] = self.enc['particle_type'].max(dim="time")
+        self.encounters['loopnum'] = self.encounters['loopnum'].max(dim="name")
+        self.encounters['id'] = self.encounters['id'].max(dim="time")
+        self.encounters['particle_type'] = self.encounters['particle_type'].max(dim="time")
 
         return
 
