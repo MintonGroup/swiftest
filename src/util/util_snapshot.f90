@@ -7,31 +7,27 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest_classes) s_util_reset
+submodule(swiftest_classes) s_util_snapshot
    use swiftest
 contains
 
-   module subroutine util_reset_storage(self)
+   module subroutine util_snapshot_system(self, system)
       !! author: David A. Minton
       !!
-      !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      !! Takes a snapshot of the system for later file storage
       implicit none
       ! Arguments
-      class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
-      ! Internals
-      integer(I4B) :: i
+      class(swiftest_storage(*)),      intent(inout) :: self  !! Swiftest storage object
+      class(swiftest_nbody_system), intent(in) :: system !! Swiftest nbody system object to store
 
-      do i = 1, self%nframes
-         if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-      end do
-
-      if (allocated(self%idmap)) deallocate(self%idmap)
-      if (allocated(self%tmap)) deallocate(self%tmap)
-      self%nid = 0
-      self%nt = 0
-      self%iframe = 0
+      self%iframe = self%iframe + 1
+      self%nt = self%iframe
+      self%frame(self%iframe) = system ! Store a snapshot of the system for posterity
+      self%nid = self%nid + 1 ! Central body
+      if (allocated(system%pl)) self%nid = self%nid + system%pl%nbody
+      if (allocated(system%tp)) self%nid = self%nid + system%tp%nbody
 
       return
-   end subroutine util_reset_storage
+   end subroutine util_snapshot_system
 
-end submodule s_util_reset
+end submodule s_util_snapshot

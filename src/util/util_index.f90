@@ -53,6 +53,48 @@ contains
       ! Arguments
       class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
       ! Internals
+      integer(I4B) :: i, n, nold, nt
+      integer(I4B), dimension(:), allocatable :: idvals
+      real(DP), dimension(:), allocatable :: tvals
+
+      if (self%nid == 0) return
+      allocate(idvals(self%nid))
+      allocate(tvals(self%nframes))
+
+      n = 0
+      nold = 1
+      nt = 0
+      do i = 1, self%nframes
+         if (allocated(self%frame(i)%item)) then
+            nt = i
+            select type(snapshot => self%frame(i)%item)
+            class is (swiftest_nbody_system)
+               tvals(i) = snapshot%t
+               ! Central body
+               n = n + 1
+               idvals(n) = snapshot%cb%id
+               nold = n + 1
+               if (allocated(snapshot%pl)) then
+                  n = n + snapshot%pl%nbody
+                  idvals(nold:n) = snapshot%pl%id(:)
+                  nold = n+1
+               end if 
+               if (allocated(snapshot%tp)) then
+                  n = n + snapshot%tp%nbody
+                  idvals(nold:n) = snapshot%tp%id(:)
+                  nold = n+1
+               end if
+            end select
+         else
+            exit
+         end if
+      end do
+
+      call util_unique(idvals,self%idvals,self%idmap)
+      self%nid = size(self%idvals)
+
+      call util_unique(tvals(1:nt),self%tvals,self%tmap)
+      self%nt = size(self%tvals)
 
       return
    end subroutine util_index_map_storage

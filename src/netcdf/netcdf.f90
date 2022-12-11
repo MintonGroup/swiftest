@@ -825,8 +825,8 @@ contains
          pl%id(:) = pack(itemp, plmask)
          tp%id(:) = pack(itemp, tpmask)
          cb%id = 0
-         pl%id(:) = pack([(i,i=1,idmax)],plmask)
-         tp%id(:) = pack([(i,i=1,idmax)],tpmask)
+         pl%id(:) = pack([(i,i=0,idmax-1)],plmask)
+         tp%id(:) = pack([(i,i=0,idmax-1)],tpmask)
 
          call check( nf90_get_var(nc%id, nc%name_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_read_particle_info_system nf90_getvar name_varid"  )
          call cb%info%set_value(name=ctemp(1))

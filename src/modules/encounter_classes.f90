@@ -68,18 +68,18 @@ module encounter_classes
    type, extends(swiftest_storage) :: encounter_storage
       class(encounter_io_parameters), allocatable :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
    contains
-      procedure :: dump  => encounter_io_dump_storage        !! Dumps contents of encounter history to file
-      procedure :: mapid => encounter_util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      final     ::          encounter_util_final_storage
+      procedure :: dump           => encounter_io_dump_storage        !! Dumps contents of encounter history to file
+      procedure :: make_index_map => encounter_util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      final     ::                   encounter_util_final_storage
    end type encounter_storage
 
    !> A class that that is used to store simulation history data between file output
    type, extends(swiftest_storage) :: collision_storage
       class(encounter_io_parameters), allocatable :: nc  !! NetCDF parameter object containing the details about the file attached to this storage object
    contains
-      procedure :: dump  => encounter_io_dump_collision_storage        !! Dumps contents of encounter history to file
-      procedure :: mapid => encounter_util_index_map_collision_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      final     ::          encounter_util_final_collision_storage
+      procedure :: dump           => encounter_io_dump_collision_storage        !! Dumps contents of encounter history to file
+      procedure :: make_index_map => encounter_util_index_map_collision_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      final     ::                   encounter_util_final_collision_storage
    end type collision_storage
 
    type encounter_bounding_box_1D

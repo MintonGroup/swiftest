@@ -148,7 +148,7 @@ module swiftest_classes
    contains
       procedure :: store         => util_copy_store !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
       generic   :: assignment(=) => store
-      final     :: util_final_storage_frame
+      final     ::                  util_final_storage_frame
    end type
 
    type :: swiftest_storage(nframes)
@@ -156,15 +156,18 @@ module swiftest_classes
       integer(I4B), len                                       :: nframes = 4096 !! Total number of frames that can be stored
       type(swiftest_storage_frame), dimension(nframes)        :: frame          !! Array of stored frames
       integer(I4B)                                            :: iframe = 0     !! Index of the last frame stored in the system
-      integer(I4B),                 dimension(nframes)        :: tslot          !! The value of the time dimension index associated with each frame
-      real(DP),                     dimension(nframes)        :: tvals          !! Stored time values for snapshots
-      integer(I4B),                 dimension(:), allocatable :: idmap          !! The id value -> index map  
       integer(I4B)                                            :: nid            !! Number of unique id values in all saved snapshots
+      integer(I4B),                 dimension(:), allocatable :: idvals         !! The set of unique id values contained in the snapshots
+      integer(I4B),                 dimension(:), allocatable :: idmap          !! The id value -> index map  
+      integer(I4B)                                            :: nt             !! Number of unique time values in all saved snapshots
+      real(DP),                     dimension(:), allocatable :: tvals          !! The set of unique time values contained in the snapshots
+      integer(I4B),                 dimension(:), allocatable :: tmap           !! The t value -> index map
    contains
-      procedure :: dump  => io_dump_storage        !! Dumps storage object contents to file
-      procedure :: mapid => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: reset => util_reset_storage     !! Resets a storage object by deallocating all items and resetting the frame counter to 0
-      final     :: util_final_storage
+      procedure :: dump           => io_dump_storage        !! Dumps storage object contents to file
+      procedure :: make_index_map => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: reset          => util_reset_storage     !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      procedure :: take_snapshot  => util_snapshot_system   !! Takes a snapshot of the system for later file storage
+      final     ::                   util_final_storage
    end type swiftest_storage
 
    !********************************************************************************************************************************
@@ -550,7 +553,7 @@ module swiftest_classes
       procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
-      ! procedure :: step_spin               => tides_step_spin_system               !! Steps the spins of the massive & central bodies due to tides.
+    ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
@@ -611,11 +614,9 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t     !! Simulation time
          real(DP),                     intent(in)    :: dt    !! Current stepsize
       end subroutine abstract_step_system
-
    end interface
 
    interface
-
       module subroutine check(status, call_identifier)
          implicit none
          integer, intent (in) :: status !! The status code returned by a NetCDF function
@@ -1690,6 +1691,12 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill_approximate
+
+      module subroutine util_snapshot_system(self, system)
+         implicit none
+         class(swiftest_storage(*)),      intent(inout) :: self  !! Swiftest storage object
+         class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object to store
+      end subroutine util_snapshot_system
    end interface
 
    interface util_solve_linear_system
@@ -1957,12 +1964,25 @@ module swiftest_classes
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_tp
 
-      module subroutine util_unique(input_array, output_array)
-         implicit none
-         integer(I4B), dimension(:),              intent(in)  :: input_array
-         integer(I4B), dimension(:), allocatable, intent(out) :: output_array
-      end subroutine util_unique
+   end interface
 
+   interface util_unique
+      module subroutine util_unique_DP(input_array, output_array, index_map)
+         implicit none
+         real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array
+         real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
+      end subroutine util_unique_DP
+
+      module subroutine util_unique_I4B(input_array, output_array, index_map)
+         implicit none
+         integer(I4B), dimension(:),              intent(in)  :: input_array  !! Unsorted input array
+         integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
+      end subroutine util_unique_I4B
+   end interface util_unique
+
+   interface
       module subroutine util_valid_id_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object

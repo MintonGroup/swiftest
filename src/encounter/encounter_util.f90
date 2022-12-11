@@ -189,11 +189,14 @@ contains
       ! Arguments
       class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
       ! Internals
-      integer(I4B) :: i, n, nold
-      integer(I4B), dimension(:), allocatable :: idlist
+      ! Internals
+      integer(I4B) :: i, n, nold, nt
+      integer(I4B), dimension(:), allocatable :: idvals
+      real(DP), dimension(:), allocatable :: tvals
 
       if (self%nid == 0) return
-      allocate(idlist(self%nid))
+      allocate(idvals(self%nid))
+      allocate(tvals(self%nframes))
 
       n = 0
       nold = 1
@@ -201,23 +204,29 @@ contains
          if (allocated(self%frame(i)%item)) then
             select type(snapshot => self%frame(i)%item)
             class is (encounter_snapshot)
+               tvals(i) = snapshot%t
                if (allocated(snapshot%pl)) then
                   n = n + snapshot%pl%nbody
-                  idlist(nold:n) = snapshot%pl%id(:)
+                  idvals(nold:n) = snapshot%pl%id(:)
                   nold = n+1
-               end if  
+               end if 
                if (allocated(snapshot%tp)) then
                   n = n + snapshot%tp%nbody
-                  idlist(nold:n) = snapshot%tp%id(:)
+                  idvals(nold:n) = snapshot%tp%id(:)
                   nold = n+1
                end if
             end select
          else
+            nt = i-1
             exit
          end if
       end do
 
-      call util_unique(idlist,self%idmap)
+      call util_unique(idvals,self%idvals,self%idmap)
+      self%nid = size(self%idvals)
+
+      call util_unique(tvals(1:nt),self%tvals,self%tmap)
+      self%nt = size(self%tvals)
 
       return
    end subroutine encounter_util_index_map_storage

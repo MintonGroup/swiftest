@@ -50,12 +50,11 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      call self%mapid()
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) then
             select type(snapshot => self%frame(i)%item)
             class is (encounter_snapshot)
-               param%ioutput = self%tslot(i)
+               param%ioutput = self%tmap(i)
                call snapshot%write_frame(self%nc,param)
             end select
          else

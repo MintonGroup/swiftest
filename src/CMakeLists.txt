@@ -85,6 +85,7 @@ SET(FAST_MATH_FILES
             ${SRC}/util/util_reset.f90
             ${SRC}/util/util_resize.f90
             ${SRC}/util/util_set.f90
+            ${SRC}/util/util_snapshot.f90
             ${SRC}/util/util_solve.f90
             ${SRC}/util/util_sort.f90
             ${SRC}/util/util_spill.f90

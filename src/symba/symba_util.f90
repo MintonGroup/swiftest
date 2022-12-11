@@ -897,10 +897,6 @@ contains
             nbig = nbig * 2
          end do
          allocate(collision_storage(nbig) :: tmp) 
-         tmp%tvals(1:nold) = system%collision_history%tvals(1:nold)
-         tmp%tvals(nold+1:nbig) = huge(1.0_DP)
-         tmp%tslot(1:nold) = system%collision_history%tslot(1:nold)
-         tmp%tslot(nold+1:nbig) = 0
          tmp%iframe = system%collision_history%iframe
          call move_alloc(system%collision_history%nc, tmp%nc)
 
@@ -947,10 +943,6 @@ contains
             nbig = nbig * 2
          end do
          allocate(encounter_storage(nbig) :: tmp) 
-         tmp%tvals(1:nold) = system%encounter_history%tvals(1:nold)
-         tmp%tvals(nold+1:nbig) = huge(1.0_DP)
-         tmp%tslot(1:nold) = system%encounter_history%tslot(1:nold)
-         tmp%tslot(nold+1:nbig) = 0
          tmp%iframe = system%encounter_history%iframe
          call move_alloc(system%encounter_history%nc, tmp%nc)
 
@@ -964,14 +956,7 @@ contains
 
       ! Find out which time slot this belongs in by searching for an existing slot
       ! with the same value of time or the first available one
-      do i = 1, nnew
-         if (t <= system%encounter_history%tvals(i)) then
-            system%encounter_history%tvals(i) = t
-            system%encounter_history%tslot(nnew) = i
-            system%encounter_history%frame(nnew) = snapshot
-            exit
-         end if
-      end do
+      system%encounter_history%frame(nnew) = snapshot
 
       return
    end subroutine symba_util_save_encounter
