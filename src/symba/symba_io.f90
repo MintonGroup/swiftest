@@ -68,7 +68,7 @@ contains
                case ("ENCOUNTER_SAVE")
                   call io_toupper(param_value)
                   read(param_value, *) param%encounter_save
-               case ("FRAGMENTATION_SAVE")
+               case ("COLLISION_SAVE")
                   call io_toupper(param_value)
                   read(param_value, *) param%collision_save
                case("SEED")

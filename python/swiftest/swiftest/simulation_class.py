@@ -320,7 +320,7 @@ class Simulation:
         self.data = xr.Dataset()
         self.ic = xr.Dataset()
         self.encounters = xr.Dataset()
-        self.collision = xr.Dataset()
+        self.collisions = xr.Dataset()
 
         self.simdir = Path(simdir)
         if self.simdir.exists():
@@ -1234,10 +1234,10 @@ class Simulation:
                 msg = f"{collision_save} is not a valid option for collision_save."
                 msg += f"\nMust be one of {valid_vals}"
                 warnings.warn(msg,stacklevel=2)
-                if "FRAGMENTATION_SAVE" not in self.param:
-                    self.param["FRAGMENTATION_SAVE"] = valid_vals[0]
+                if "COLLISION_SAVE" not in self.param:
+                    self.param["COLLISION_SAVE"] = valid_vals[0]
             else:
-                self.param["FRAGMENTATION_SAVE"] = collision_save
+                self.param["COLLISION_SAVE"] = collision_save
                 update_list.append("collision_save")
 
         self.param["TIDES"] = False
@@ -1272,7 +1272,7 @@ class Simulation:
         valid_var = {"close_encounter_check": "CHK_CLOSE",
                      "fragmentation": "FRAGMENTATION",
                      "encounter_save": "ENCOUNTER_SAVE",
-                     "collision_save": "FRAGMENTATION_SAVE",
+                     "collision_save": "COLLISION_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
                      "rotation": "ROTATION",
                      "general_relativity": "GR",
@@ -2735,10 +2735,16 @@ class Simulation:
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
 
-        if "ENCOUNTER_SAVE" in self.param or "FRAGMENTATION_SAVE" in self.param:
-            read_encounters = self.param["ENCOUNTER_SAVE"] != "NONE" or self.param["FRAGMENTATION_SAVE"] != "NONE"
+        if "ENCOUNTER_SAVE" in self.param:
+            read_encounters = self.param["ENCOUNTER_SAVE"] != "NONE"
         else:
             read_encounters = False
+
+        if "COLLISION_SAVE" in self.param:
+            read_collisions = self.param["COLLISION_SAVE"] != "NONE"
+        else:
+            read_collisions = False
+
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
@@ -2755,6 +2761,8 @@ class Simulation:
                     self.ic = self.data.isel(time=0)
             if read_encounters:
                 self.read_encounters()
+            if read_collisions:
+                self.read_collisions()
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
@@ -2786,6 +2794,28 @@ class Simulation:
         self.encounters['loopnum'] = self.encounters['loopnum'].max(dim="name")
         self.encounters['id'] = self.encounters['id'].max(dim="time")
         self.encounters['particle_type'] = self.encounters['particle_type'].max(dim="time")
+
+        return
+
+
+    def read_collisions(self):
+        if self.verbose:
+                print("Reading collision history file as .collisions")
+        col_files = glob(f"{self.simdir}{os.path.sep}collision_*.nc")
+        col_files.sort()
+
+        # This is needed in order to pass the param argument down to the io.process_netcdf_input function
+        def _preprocess(ds, param):
+            return io.process_netcdf_input(ds,param)
+        partial_func = partial(_preprocess, param=self.param)
+
+        self.collisions = xr.open_mfdataset(col_files,parallel=True,combine="nested",concat_dim="collision",join="left",preprocess=partial_func,mask_and_scale=True)
+        self.collisions = io.process_netcdf_input(self.collisions, self.param)
+
+        # # Reduce the dimensionality of variables that got expanded in the combine process
+        # self.encounters['loopnum'] = self.encounters['loopnum'].max(dim="name")
+        # self.encounters['id'] = self.encounters['id'].max(dim="time")
+        # self.encounters['particle_type'] = self.encounters['particle_type'].max(dim="time")
 
         return
 

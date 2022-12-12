@@ -33,7 +33,7 @@ newfeaturelist = ("RESTART",
                   "TSTART",
                   "DUMP_CADENCE",
                   "ENCOUNTER_SAVE",
-                  "FRAGMENTATION_SAVE")
+                  "COLLISION_SAVE")
 
 
 
@@ -55,14 +55,14 @@ int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
 float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
                "TU2S", "MIN_GMFRAG", "GMTINY"]
 
-upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE","FRAGMENTATION_SAVE", "CHK_QMIN_COORD"]
+upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE","COLLISION_SAVE", "CHK_QMIN_COORD"]
 lower_str_param = ["NC_IN", "PL_IN", "TP_IN", "CB_IN", "CHK_QMIN_RANGE"]
 
 param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_str_param+ bool_param
 
 # This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
-string_varnames = ["name", "particle_type", "status", "origin_type"]
+string_varnames = ["name", "particle_type", "status", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
 int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "loopnum"]
 
