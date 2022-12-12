@@ -68,7 +68,7 @@ module encounter_classes
    type, extends(swiftest_storage) :: collision_storage
    contains
       procedure :: dump           => encounter_io_dump_collision        !! Dumps contents of encounter history to file
-      procedure :: make_index_map => encounter_util_index_map_collision_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: make_index_map => encounter_util_index_map_collision !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: take_snapshot  => encounter_util_snapshot_collision !! Take a minimal snapshot of the system through an encounter
       final     ::                   encounter_util_final_collision_storage
    end type collision_storage
@@ -77,7 +77,7 @@ module encounter_classes
    type, extends(swiftest_storage) :: encounter_storage
    contains
       procedure :: dump           => encounter_io_dump_encounter         !! Dumps contents of encounter history to file
-      procedure :: make_index_map => encounter_util_index_map_storage  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: make_index_map => encounter_util_index_map_encounter  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: take_snapshot  => encounter_util_snapshot_encounter !! Take a minimal snapshot of the system through an encounter
       final     ::                   encounter_util_final_storage
    end type encounter_storage
@@ -300,15 +300,15 @@ module encounter_classes
          type(encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
       end subroutine encounter_util_final_storage
 
-      module subroutine encounter_util_index_map_collision_storage(self)
+      module subroutine encounter_util_index_map_collision(self)
          implicit none
          class(collision_storage(*)), intent(inout) :: self !! E
-      end subroutine encounter_util_index_map_collision_storage
+      end subroutine encounter_util_index_map_collision
 
-      module subroutine encounter_util_index_map_storage(self)
+      module subroutine encounter_util_index_map_encounter(self)
          implicit none
          class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
-      end subroutine encounter_util_index_map_storage
+      end subroutine encounter_util_index_map_encounter
 
       module subroutine encounter_util_resize_list(self, nnew)
          implicit none

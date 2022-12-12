@@ -180,7 +180,7 @@ contains
    end subroutine encounter_util_final_storage
 
 
-   module subroutine encounter_util_index_map_storage(self)
+   module subroutine encounter_util_index_map_encounter(self)
       !! author: David A. Minton
       !!
       !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id.
@@ -229,11 +229,11 @@ contains
       self%nt = size(self%tvals)
 
       return
-   end subroutine encounter_util_index_map_storage
+   end subroutine encounter_util_index_map_encounter
 
 
 
-   module subroutine encounter_util_index_map_collision_storage(self)
+   module subroutine encounter_util_index_map_collision(self)
       !! author: David A. Minton
       !!
       !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
@@ -243,7 +243,7 @@ contains
       ! Internals
 
       return
-   end subroutine encounter_util_index_map_collision_storage
+   end subroutine encounter_util_index_map_collision
 
 
    module subroutine encounter_util_resize_list(self, nnew)
