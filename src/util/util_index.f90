@@ -45,55 +45,113 @@ contains
    end subroutine util_index_array
 
 
+   module subroutine util_get_idvalues_system(self, idvals)
+      !! author: David A. Minton
+      !!
+      !! Returns an array of all id values saved in this snapshot
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system),            intent(in)  :: self   !! Encounter snapshot object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      ! Internals
+      integer(I4B) :: npl, ntp
+
+      if (allocated(self%pl)) then
+         npl = self%pl%nbody
+      else
+         npl = 0
+      end if 
+      if (allocated(self%tp)) then
+         ntp = self%tp%nbody
+      else
+         ntp = 0
+      end if
+
+      allocate(idvals(1 + npl+ntp))
+
+      idvals(1) = self%cb%id
+      if (npl > 0) idvals(2:npl+1) = self%pl%id(:)
+      if (ntp > 0) idvals(npl+2:npl+ntp+1) = self%tp%id(:)
+
+      return
+
+   end subroutine util_get_idvalues_system
+
+
+   subroutine util_get_vals_storage(storage, idvals, tvals)
+      !! author: David A. Minton
+      !!
+      !! Gets the id values in a storage object, regardless of whether it is encounter of collision
+      ! Argument
+      class(swiftest_storage(*)), intent(in)               :: storage !! Swiftest storage object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals  !! Array of all id values in all snapshots
+      real(DP),     dimension(:), allocatable, intent(out) :: tvals   !! Array of all time values in all snapshots
+      ! Internals
+      integer(I4B) :: i, n, nlo, nhi, ntotal
+      integer(I4B), dimension(:), allocatable :: itmp
+
+      associate(nsnaps => storage%iframe)
+
+         allocate(tvals(nsnaps))
+         tvals(:) = 0.0_DP
+
+         ! First pass to get total number of ids
+         ntotal = 0
+         do i = 1, nsnaps
+            if (allocated(storage%frame(i)%item)) then
+               select type(snapshot => storage%frame(i)%item)
+               class is (swiftest_nbody_system)
+                  tvals(i) = snapshot%t
+                  call snapshot%get_idvals(itmp)
+                  if (allocated(itmp)) then
+                     n = size(itmp)
+                     ntotal = ntotal + n
+                  end if
+               end select
+            end if
+         end do
+
+         allocate(idvals(ntotal))
+         nlo = 1
+         ! Second pass to store all ids get all of the ids stored
+         do i = 1, nsnaps
+            if (allocated(storage%frame(i)%item)) then
+               select type(snapshot => storage%frame(i)%item)
+               class is (swiftest_nbody_system)
+                  tvals(i) = snapshot%t
+                  call snapshot%get_idvals(itmp)
+                  if (allocated(itmp)) then
+                     n = size(itmp)
+                     nhi = nlo + n - 1
+                     idvals(nlo:nhi) = itmp(1:n)
+                     nlo = nhi + 1 
+                  end if
+               end select
+            end if
+         end do
+
+      end associate 
+      return
+   end subroutine util_get_vals_storage
+
+
    module subroutine util_index_map_storage(self)
       !! author: David A. Minton
       !!
       !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       implicit none
       ! Arguments
-      class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+      class(swiftest_storage(*)), intent(inout) :: self  !! Swiftest storage object
       ! Internals
-      integer(I4B) :: i, n, nold, nt
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
-
-      if (self%nid == 0) return
-      allocate(idvals(self%nid))
-      allocate(tvals(self%nframes))
-
-      n = 0
-      nold = 1
-      nt = 0
-      do i = 1, self%nframes
-         if (allocated(self%frame(i)%item)) then
-            nt = i
-            select type(snapshot => self%frame(i)%item)
-            class is (swiftest_nbody_system)
-               tvals(i) = snapshot%t
-               ! Central body
-               n = n + 1
-               idvals(n) = snapshot%cb%id
-               nold = n + 1
-               if (allocated(snapshot%pl)) then
-                  n = n + snapshot%pl%nbody
-                  idvals(nold:n) = snapshot%pl%id(:)
-                  nold = n+1
-               end if 
-               if (allocated(snapshot%tp)) then
-                  n = n + snapshot%tp%nbody
-                  idvals(nold:n) = snapshot%tp%id(:)
-                  nold = n+1
-               end if
-            end select
-         else
-            exit
-         end if
-      end do
+ 
+      call util_get_vals_storage(self, idvals, tvals)
 
       call util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
-      call util_unique(tvals(1:nt),self%tvals,self%tmap)
+      call util_unique(tvals,self%tvals,self%tmap)
       self%nt = size(self%tvals)
 
       return

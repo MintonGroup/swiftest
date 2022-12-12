@@ -556,6 +556,7 @@ module swiftest_classes
     ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
+      procedure :: get_idvals              => util_get_idvalues_system               !! Returns an array of all id values in use in the system
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
       generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
@@ -1619,6 +1620,12 @@ module swiftest_classes
          class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       end subroutine util_get_energy_momentum_system
+
+      module subroutine util_get_idvalues_system(self, idvals)
+         implicit none
+         class(swiftest_nbody_system),            intent(in)  :: self   !! Encounter snapshot object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      end subroutine util_get_idvalues_system
 
       module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
          implicit none

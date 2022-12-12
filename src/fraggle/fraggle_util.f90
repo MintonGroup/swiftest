@@ -174,7 +174,7 @@ contains
       !! Finalizer will deallocate all allocatables
       implicit none
       ! Arguments
-      type(fraggle_collision_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+      type(fraggle_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
 
       call encounter_util_final_snapshot(self%encounter_snapshot)
 
@@ -255,6 +255,40 @@ contains
 
       return
    end subroutine fraggle_util_get_energy_momentum
+
+
+   module subroutine fraggle_util_get_idvalues_snapshot(self, idvals)
+      !! author: David A. Minton
+      !!
+      !! Returns an array of all id values saved in this snapshot
+      implicit none
+      ! Arguments
+      class(fraggle_snapshot),                 intent(in)  :: self   !! Fraggle snapshot object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      ! Internals
+      integer(I4B) :: ncoll, nfrag
+
+      if (allocated(self%colliders)) then
+         ncoll = self%colliders%pl%nbody
+      else
+         ncoll = 0
+      end if 
+
+      if (allocated(self%fragments)) then
+         nfrag = self%fragments%pl%nbody
+      else
+         nfrag = 0
+      end if
+
+      if (ncoll + nfrag == 0) return
+      allocate(idvals(ncoll+nfrag))
+
+      if (ncoll > 0) idvals(1:ncoll) = self%colliders%pl%id(:)
+      if (nfrag > 0) idvals(ncoll+1:ncoll+nfrag) = self%fragments%pl%id(:)
+
+      return
+
+   end subroutine fraggle_util_get_idvalues_snapshot
 
 
    module subroutine fraggle_util_restructure(self, colliders, try, f_spin, r_max_start)

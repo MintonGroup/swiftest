@@ -30,115 +30,116 @@ contains
       character(len=STRMAX) :: errmsg
       integer(I4B) :: i, ndims
 
-      associate(nc => self)
-         dfill = ieee_value(dfill, IEEE_QUIET_NAN)
-         sfill = ieee_value(sfill, IEEE_QUIET_NAN)
+      select type(param)
+      class is (symba_parameters)
+         associate(nc => self, collision_history => param%collision_history)
+            dfill = ieee_value(dfill, IEEE_QUIET_NAN)
+            sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
-         select case (param%out_type)
-         case("NETCDF_FLOAT")
-            self%out_type = NF90_FLOAT
-         case("NETCDF_DOUBLE")
-            self%out_type = NF90_DOUBLE
-         end select
-
-         ! Check if the file exists, and if it does, delete it
-         inquire(file=nc%file_name, exist=fileExists)
-         if (fileExists) then
-            open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
-            close(unit=LUN, status="delete")
-         end if
-
-         call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "fraggle_io_initialize nf90_create" )
-
-         ! Dimensions
-         call check( nf90_def_dim(nc%id, nc%event_dimname, nc%event_dimsize, nc%event_dimid), "fraggle_io_initialize nf90_def_dim event_dimid"  ) ! Dimension to store individual collision events
-         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM,             nc%space_dimid), "fraggle_io_initialize nf90_def_dim space_dimid" )  ! 3D space dimension
-         call check( nf90_def_dim(nc%id, nc%id_dimname,    param%maxid+1,    nc%id_dimid),    "fraggle_io_initialize nf90_def_dim id_dimid" )     ! Dimension to store particle id numbers
-         call check( nf90_def_dim(nc%id, nc%str_dimname,   NAMELEN,          nc%str_dimid),   "fraggle_io_initialize nf90_def_dim str_dimid"  )   ! Dimension for string variables (aka character arrays)
-         call check( nf90_def_dim(nc%id, nc%stage_dimname, 2,                nc%stage_dimid), "fraggle_io_initialize nf90_def_dim stage_dimid"  ) ! Dimension for stage variables (aka "before" vs. "after"
-
-         ! Dimension coordinates
-         call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR,  nc%space_dimid, nc%space_varid), "fraggle_io_initialize nf90_def_var space_varid"  )
-         call check( nf90_def_var(nc%id, nc%id_dimname,    NF90_INT,   nc%id_dimid,    nc%id_varid),    "fraggle_io_initialize nf90_def_var id_varid"  )
-         call check( nf90_def_var(nc%id, nc%stage_dimname, NF90_CHAR,  [nc%str_dimid, nc%stage_dimid], nc%stage_varid), "fraggle_io_initialize nf90_def_var stage_varid"  )
-      
-         ! Variables
-         call check( nf90_def_var(nc%id, nc%time_dimname,    nc%out_type, &
-                                                                              nc%event_dimid, nc%time_varid),    "fraggle_io_initialize nf90_def_var time_varid"  )
-         call check( nf90_def_var(nc%id, nc%regime_varname,  NF90_CHAR,  &
-            [nc%str_dimid,                                                    nc%event_dimid], nc%regime_varid), "fraggle_io_initialize nf90_def_var regime_varid")
-         call check( nf90_def_var(nc%id, nc%Qloss_varname,  nc%out_type,  &
-            [                                                                 nc%event_dimid], nc%Qloss_varid),  "fraggle_io_initialize nf90_def_var Qloss_varid")
-         call check( nf90_def_var(nc%id, nc%name_varname,    NF90_CHAR,  &
-            [nc%str_dimid,                   nc%id_dimid                                    ], nc%name_varid),   "fraggle_io_initialize nf90_def_var name_varid")
-         
-         call check( nf90_def_var(nc%id, nc%ptype_varname,   NF90_CHAR,  &
-            [nc%str_dimid,                   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%ptype_varid),  "fraggle_io_initialize nf90_def_var ptype_varid")
-
-         call check( nf90_def_var(nc%id, nc%loop_varname,    NF90_INT, &
-            [                                                                 nc%event_dimid], nc%loop_varid),   "fraggle_io_initialize nf90_def_var loop_varid")   
-
-         call check( nf90_def_var(nc%id, nc%rh_varname,      nc%out_type,&
-            [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%rh_varid),     "fraggle_io_initialize nf90_def_var rh_varid")
-
-         call check( nf90_def_var(nc%id, nc%vh_varname,      nc%out_type,&
-            [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%vh_varid),     "fraggle_io_initialize nf90_def_var vh_varid")
-
-         call check( nf90_def_var(nc%id, nc%Gmass_varname,   nc%out_type,&
-            [                                nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%Gmass_varid),  "fraggle_io_initialize nf90_def_var Gmass_varid")
-
-
-         call check( nf90_def_var(nc%id, nc%radius_varname,  nc%out_type,&
-            [                                nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%radius_varid), "fraggle_io_initialize nf90_def_var radius_varid")
-
-         call check( nf90_def_var(nc%id, nc%Ip_varname,      nc%out_type,&
-            [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%Ip_varid),     "fraggle_io_initialize nf90_def_var Ip_varid")
-
-         call check( nf90_def_var(nc%id, nc%rot_varname,     nc%out_type,&
-            [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%rot_varid),    "fraggle_io_initialize nf90_def_var rot_varid")
-
-         call check( nf90_def_var(nc%id, nc%ke_orb_varname,  nc%out_type,&
-            [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_orb_varid), "fraggle_io_initialize_output nf90_def_var KE_orb_varid")
-
-         call check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type,&
-            [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_spin_varid), "fraggle_io_initialize_output nf90_def_var KE_spin_varid"  )
-
-         call check( nf90_def_var(nc%id, nc%pe_varname,      nc%out_type,&
-            [                                                nc%stage_dimid,  nc%event_dimid], nc%PE_varid),      "fraggle_io_initialize_output nf90_def_var PE_varid"  )
-
-         call check( nf90_def_var(nc%id, nc%L_orb_varname,   nc%out_type, &
-            [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_orb_varid),   "fraggle_io_initialize_output nf90_def_var L_orb_varid"  )
-
-         call check( nf90_def_var(nc%id, nc%L_spin_varname,  nc%out_type,&
-            [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_spin_varid),  "fraggle_io_initialize_output nf90_def_var L_spin_varid"  )
-
-
-
-         call check( nf90_inquire(nc%id, nVariables=nvar), "fraggle_io_initialize nf90_inquire nVariables"  )
-         do varid = 1, nvar
-            call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "fraggle_io_initialize nf90_inquire_variable"  )
-            select case(vartype)
-            case(NF90_INT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "fraggle_io_initialize nf90_def_var_fill NF90_INT"  )
-            case(NF90_FLOAT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "fraggle_io_initialize nf90_def_var_fill NF90_FLOAT"  )
-            case(NF90_DOUBLE)
-               call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "fraggle_io_initialize nf90_def_var_fill NF90_DOUBLE"  )
-            case(NF90_CHAR)
-               call check( nf90_def_var_fill(nc%id, varid, 0, 0), "fraggle_io_initialize nf90_def_var_fill NF90_CHAR"  )
+            select case (param%out_type)
+            case("NETCDF_FLOAT")
+               self%out_type = NF90_FLOAT
+            case("NETCDF_DOUBLE")
+               self%out_type = NF90_DOUBLE
             end select
-         end do
-         ! Take the file out of define mode
-         call check( nf90_enddef(nc%id), "fraggle_io_initialize nf90_enddef"  )
 
-         ! Add in the space and stage dimension coordinates
-         call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "fraggle_io_initialize nf90_put_var space"  )
-         call check( nf90_put_var(nc%id, nc%stage_varid, nc%stage_coords(1), start=[1,1], count=[len(nc%stage_coords(1)),1]), "fraggle_io_initialize nf90_put_var stage 1"  )
-         call check( nf90_put_var(nc%id, nc%stage_varid, nc%stage_coords(2), start=[1,2], count=[len(nc%stage_coords(2)),1]), "fraggle_io_initialize nf90_put_var stage 2"  )
+            ! Check if the file exists, and if it does, delete it
+            inquire(file=nc%file_name, exist=fileExists)
+            if (fileExists) then
+               open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
+               close(unit=LUN, status="delete")
+            end if
 
-         ! Pre-fill id slots with ids
-         call check( nf90_put_var(nc%id, nc%id_varid, [(-1,i=1,param%maxid+1)], start=[1], count=[param%maxid+1]), "fraggle_io_initialize nf90_put_varid_varid"  )
-      end associate
+            call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "fraggle_io_initialize nf90_create" )
+
+            ! Dimensions
+            call check( nf90_def_dim(nc%id, nc%event_dimname, nc%event_dimsize, nc%event_dimid), "fraggle_io_initialize nf90_def_dim event_dimid"  ) ! Dimension to store individual collision events
+            call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM,             nc%space_dimid), "fraggle_io_initialize nf90_def_dim space_dimid" )  ! 3D space dimension
+            call check( nf90_def_dim(nc%id, nc%id_dimname,    nc%id_dimsize,    nc%id_dimid),    "fraggle_io_initialize nf90_def_dim id_dimid" )     ! Dimension to store particle id numbers
+            call check( nf90_def_dim(nc%id, nc%str_dimname,   NAMELEN,          nc%str_dimid),   "fraggle_io_initialize nf90_def_dim str_dimid"  )   ! Dimension for string variables (aka character arrays)
+            call check( nf90_def_dim(nc%id, nc%stage_dimname, 2,                nc%stage_dimid), "fraggle_io_initialize nf90_def_dim stage_dimid"  ) ! Dimension for stage variables (aka "before" vs. "after"
+
+            ! Dimension coordinates
+            call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR,  nc%space_dimid, nc%space_varid), "fraggle_io_initialize nf90_def_var space_varid"  )
+            call check( nf90_def_var(nc%id, nc%id_dimname,    NF90_INT,   nc%id_dimid,    nc%id_varid),    "fraggle_io_initialize nf90_def_var id_varid"  )
+            call check( nf90_def_var(nc%id, nc%stage_dimname, NF90_CHAR,  [nc%str_dimid, nc%stage_dimid], nc%stage_varid), "fraggle_io_initialize nf90_def_var stage_varid"  )
+         
+            ! Variables
+            call check( nf90_def_var(nc%id, nc%time_dimname,    nc%out_type, &
+                                                                                 nc%event_dimid, nc%time_varid),    "fraggle_io_initialize nf90_def_var time_varid"  )
+            call check( nf90_def_var(nc%id, nc%regime_varname,  NF90_CHAR,  &
+               [nc%str_dimid,                                                    nc%event_dimid], nc%regime_varid), "fraggle_io_initialize nf90_def_var regime_varid")
+            call check( nf90_def_var(nc%id, nc%Qloss_varname,  nc%out_type,  &
+               [                                                                 nc%event_dimid], nc%Qloss_varid),  "fraggle_io_initialize nf90_def_var Qloss_varid")
+            call check( nf90_def_var(nc%id, nc%name_varname,    NF90_CHAR,  &
+               [nc%str_dimid,                   nc%id_dimid                                    ], nc%name_varid),   "fraggle_io_initialize nf90_def_var name_varid")
+            
+            call check( nf90_def_var(nc%id, nc%ptype_varname,   NF90_CHAR,  &
+               [nc%str_dimid,                   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%ptype_varid),  "fraggle_io_initialize nf90_def_var ptype_varid")
+
+            call check( nf90_def_var(nc%id, nc%loop_varname,    NF90_INT, &
+               [                                                                 nc%event_dimid], nc%loop_varid),   "fraggle_io_initialize nf90_def_var loop_varid")   
+
+            call check( nf90_def_var(nc%id, nc%rh_varname,      nc%out_type,&
+               [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%rh_varid),     "fraggle_io_initialize nf90_def_var rh_varid")
+
+            call check( nf90_def_var(nc%id, nc%vh_varname,      nc%out_type,&
+               [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%vh_varid),     "fraggle_io_initialize nf90_def_var vh_varid")
+
+            call check( nf90_def_var(nc%id, nc%Gmass_varname,   nc%out_type,&
+               [                                nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%Gmass_varid),  "fraggle_io_initialize nf90_def_var Gmass_varid")
+
+
+            call check( nf90_def_var(nc%id, nc%radius_varname,  nc%out_type,&
+               [                                nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%radius_varid), "fraggle_io_initialize nf90_def_var radius_varid")
+
+            call check( nf90_def_var(nc%id, nc%Ip_varname,      nc%out_type,&
+               [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%Ip_varid),     "fraggle_io_initialize nf90_def_var Ip_varid")
+
+            call check( nf90_def_var(nc%id, nc%rot_varname,     nc%out_type,&
+               [              nc%space_dimid,   nc%id_dimid,    nc%stage_dimid,  nc%event_dimid], nc%rot_varid),    "fraggle_io_initialize nf90_def_var rot_varid")
+
+            call check( nf90_def_var(nc%id, nc%ke_orb_varname,  nc%out_type,&
+               [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_orb_varid), "fraggle_io_initialize_output nf90_def_var KE_orb_varid")
+
+            call check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type,&
+               [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_spin_varid), "fraggle_io_initialize_output nf90_def_var KE_spin_varid"  )
+
+            call check( nf90_def_var(nc%id, nc%pe_varname,      nc%out_type,&
+               [                                                nc%stage_dimid,  nc%event_dimid], nc%PE_varid),      "fraggle_io_initialize_output nf90_def_var PE_varid"  )
+
+            call check( nf90_def_var(nc%id, nc%L_orb_varname,   nc%out_type, &
+               [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_orb_varid),   "fraggle_io_initialize_output nf90_def_var L_orb_varid"  )
+
+            call check( nf90_def_var(nc%id, nc%L_spin_varname,  nc%out_type,&
+               [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_spin_varid),  "fraggle_io_initialize_output nf90_def_var L_spin_varid"  )
+
+
+
+            call check( nf90_inquire(nc%id, nVariables=nvar), "fraggle_io_initialize nf90_inquire nVariables"  )
+            do varid = 1, nvar
+               call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "fraggle_io_initialize nf90_inquire_variable"  )
+               select case(vartype)
+               case(NF90_INT)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "fraggle_io_initialize nf90_def_var_fill NF90_INT"  )
+               case(NF90_FLOAT)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "fraggle_io_initialize nf90_def_var_fill NF90_FLOAT"  )
+               case(NF90_DOUBLE)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "fraggle_io_initialize nf90_def_var_fill NF90_DOUBLE"  )
+               case(NF90_CHAR)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, 0), "fraggle_io_initialize nf90_def_var_fill NF90_CHAR"  )
+               end select
+            end do
+            ! Take the file out of define mode
+            call check( nf90_enddef(nc%id), "fraggle_io_initialize nf90_enddef"  )
+
+            ! Add in the space and stage dimension coordinates
+            call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "fraggle_io_initialize nf90_put_var space"  )
+            call check( nf90_put_var(nc%id, nc%stage_varid, nc%stage_coords(1), start=[1,1], count=[len(nc%stage_coords(1)),1]), "fraggle_io_initialize nf90_put_var stage 1"  )
+            call check( nf90_put_var(nc%id, nc%stage_varid, nc%stage_coords(2), start=[1,2], count=[len(nc%stage_coords(2)),1]), "fraggle_io_initialize nf90_put_var stage 2"  )
+
+         end associate
+      end select
 
       return
 
@@ -155,20 +156,19 @@ contains
       use netcdf
       implicit none
       ! Arguments
-      class(fraggle_collision_snapshot), intent(in)    :: self  !! Swiftest encounter structure
+      class(fraggle_snapshot), intent(in)    :: self  !! Swiftest encounter structure
       class(netcdf_parameters),          intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B)           :: i, eslot, idslot, old_mode, npl, stage
+      integer(I4B)           :: i, idslot, old_mode, npl, stage
       character(len=:), allocatable :: charstring
       class(swiftest_pl), allocatable :: pl
 
-      associate(colliders => self%colliders, fragments => self%fragments)
-         select type(nc)
-         class is (encounter_io_parameters)
-            eslot = param%ioutput
-            select type(nc)
-            class is (fraggle_io_parameters)
+      select type(nc)
+      class is (fraggle_io_parameters)
+         select type (param)
+         class is (symba_parameters)
+            associate(colliders => self%colliders, fragments => self%fragments, collision_history => param%collision_history, eslot => param%ioutput)
                call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "fraggle_io_write_frame nf90_set_fill" )
 
                call check( nf90_put_var(nc%id, nc%time_varid, self%t,                   start=[eslot]), "fraggle_io_write_frame nf90_put_var time_varid" )
@@ -188,7 +188,7 @@ contains
                   end select
                   npl = pl%nbody
                   do i = 1, npl
-                     idslot = pl%id(i) + 1
+                     idslot = findloc(collision_history%idvals,pl%id(i),dim=1)
                      call check( nf90_put_var(nc%id, nc%id_varid,     pl%id(i),     start=[   idslot              ]), "fraggle_io_write_frame nf90_put_var id_varid"  )
                      charstring = trim(adjustl(pl%info(i)%name))
                      call check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], count=[len(charstring), 1]), "fraggle_io_write_frame nf90_put_var name_varid"  )
@@ -212,9 +212,9 @@ contains
                call check( nf90_put_var(nc%id, nc%L_spin_varid, fragments%Lspin_after(:),   start=[1, 2, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_spin_varid after" )
          
                call check( nf90_set_fill(nc%id, old_mode, old_mode) )
-            end select
+            end associate
          end select
-      end associate
+      end select
       return
    end subroutine fraggle_io_write_frame
 

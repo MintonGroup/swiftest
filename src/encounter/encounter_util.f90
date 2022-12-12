@@ -180,6 +180,97 @@ contains
    end subroutine encounter_util_final_storage
 
 
+   module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
+      !! author: David A. Minton
+      !!
+      !! Returns an array of all id values saved in this snapshot
+      implicit none
+      ! Arguments
+      class(encounter_snapshot),               intent(in)  :: self   !! Encounter snapshot object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      ! Internals
+      integer(I4B) :: npl, ntp
+
+      if (allocated(self%pl)) then
+         npl = self%pl%nbody
+      else
+         npl = 0
+      end if 
+      if (allocated(self%tp)) then
+         ntp = self%tp%nbody
+      else
+         ntp = 0
+      end if
+
+      if (npl + ntp == 0) return
+      allocate(idvals(npl+ntp))
+
+      if (npl > 0) idvals(1:npl) = self%pl%id(:)
+      if (ntp >0) idvals(npl+1:npl+ntp) = self%tp%id(:)
+
+      return
+
+   end subroutine encounter_util_get_idvalues_snapshot
+
+
+   subroutine encounter_util_get_vals_storage(storage, idvals, tvals)
+      !! author: David A. Minton
+      !!
+      !! Gets the id values in a storage object, regardless of whether it is encounter of collision
+      ! Argument
+      class(swiftest_storage(*)), intent(in)              :: storage !! Swiftest storage object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals  !! Array of all id values in all snapshots
+      real(DP),     dimension(:), allocatable, intent(out) :: tvals   !! Array of all time values in all snapshots
+      ! Internals
+      integer(I4B) :: i, n, nlo, nhi, ntotal
+      integer(I4B), dimension(:), allocatable :: itmp
+
+      associate(nsnaps => storage%iframe)
+
+         allocate(tvals(nsnaps))
+
+         tvals(:) = 0.0_DP
+
+         ! First pass to get total number of ids
+         ntotal = 0
+         do i = 1, nsnaps
+            if (allocated(storage%frame(i)%item)) then
+               select type(snapshot => storage%frame(i)%item)
+               class is (encounter_snapshot)
+                  tvals(i) = snapshot%t
+                  call snapshot%get_idvals(itmp)
+                  if (allocated(itmp)) then
+                     n = size(itmp)
+                     ntotal = ntotal + n
+                  end if
+               end select
+            end if
+         end do
+
+         allocate(idvals(ntotal))
+         nlo = 1
+         ! Second pass to store all ids get all of the ids stored
+         do i = 1, nsnaps
+            if (allocated(storage%frame(i)%item)) then
+               select type(snapshot => storage%frame(i)%item)
+               class is (encounter_snapshot)
+                  tvals(i) = snapshot%t
+                  call snapshot%get_idvals(itmp)
+                  if (allocated(itmp)) then
+                     n = size(itmp)
+                     nhi = nlo + n - 1
+                     idvals(nlo:nhi) = itmp(1:n)
+                     nlo = nhi + 1 
+                  end if
+               end select
+            end if
+         end do
+
+      end associate 
+      return
+   end subroutine encounter_util_get_vals_storage
+
+
    module subroutine encounter_util_index_map_encounter(self)
       !! author: David A. Minton
       !!
@@ -189,43 +280,17 @@ contains
       ! Arguments
       class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
       ! Internals
-      ! Internals
-      integer(I4B) :: i, n, nold, nt
-      integer(I4B), dimension(:), allocatable :: idvals, tmp
+      integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
 
-      if (self%nid == 0) return
-      allocate(idvals(self%nid))
-      allocate(tvals(self%nframes))
+      call encounter_util_get_vals_storage(self, idvals, tvals)
 
-      n = 0
-      nold = 1
-      do i = 1, self%nframes
-         if (allocated(self%frame(i)%item)) then
-            select type(snapshot => self%frame(i)%item)
-            class is (encounter_snapshot)
-               tvals(i) = snapshot%t
-               if (allocated(snapshot%pl)) then
-                  n = n + snapshot%pl%nbody
-                  idvals(nold:n) = snapshot%pl%id(:)
-                  nold = n+1
-               end if 
-               if (allocated(snapshot%tp)) then
-                  n = n + snapshot%tp%nbody
-                  idvals(nold:n) = snapshot%tp%id(:)
-                  nold = n+1
-               end if
-            end select
-         else
-            nt = i-1
-            exit
-         end if
-      end do
-
+      ! Consolidate ids to only unique values
       call util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
-      call util_unique(tvals(1:nt),self%tvals,self%tmap)
+      ! Consolidate time values to only unique values
+      call util_unique(tvals,self%tvals,self%tmap)
       self%nt = size(self%tvals)
 
       return
@@ -239,8 +304,19 @@ contains
       !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       implicit none
       ! Arguments
-      class(collision_storage(*)), intent(inout) :: self !! Swiftest storage object
+      class(collision_storage(*)), intent(inout) :: self  !! Swiftest storage object
       ! Internals
+      integer(I4B), dimension(:), allocatable :: idvals
+      real(DP), dimension(:), allocatable :: tvals
+
+      call encounter_util_get_vals_storage(self, idvals, tvals)
+
+      ! Consolidate ids to only unique values
+      call util_unique(idvals,self%idvals,self%idmap)
+      self%nid = size(self%idvals)
+
+      ! Don't consolidate time values (multiple collisions can happen in a single time step)
+      self%nt = size(self%tvals)
 
       return
    end subroutine encounter_util_index_map_collision
@@ -428,7 +504,7 @@ contains
       real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
-      class(fraggle_collision_snapshot), allocatable :: snapshot
+      class(fraggle_snapshot), allocatable :: snapshot
       type(symba_pl)                                 :: pl
       character(len=:), allocatable :: stage
       integer(I4B) :: i,j
@@ -460,7 +536,7 @@ contains
                allocate(system%colliders%pl, source=pl)
             end associate
          case("after")
-            allocate(fraggle_collision_snapshot :: snapshot)
+            allocate(fraggle_snapshot :: snapshot)
             allocate(snapshot%colliders, source=system%colliders) 
             allocate(snapshot%fragments, source=system%fragments)
             select type (param)

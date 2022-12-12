@@ -49,7 +49,8 @@ module encounter_classes
       real(DP)                        :: t     !! Simulation time when snapshot was taken
       integer(I8B)                    :: iloop !! Loop number at time of snapshot
    contains
-      procedure :: write_frame => encounter_io_write_frame !! Writes a frame of encounter data to file 
+      procedure :: write_frame => encounter_io_write_frame             !! Writes a frame of encounter data to file 
+      procedure :: get_idvals  => encounter_util_get_idvalues_snapshot !! Gets an array of all id values saved in this snapshot
       final     ::                encounter_util_final_snapshot
    end type encounter_snapshot
 
@@ -68,8 +69,8 @@ module encounter_classes
    type, extends(swiftest_storage) :: collision_storage
    contains
       procedure :: dump           => encounter_io_dump_collision        !! Dumps contents of encounter history to file
-      procedure :: make_index_map => encounter_util_index_map_collision !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: take_snapshot  => encounter_util_snapshot_collision !! Take a minimal snapshot of the system through an encounter
+      procedure :: take_snapshot  => encounter_util_snapshot_collision  !! Take a minimal snapshot of the system through an encounter
+      procedure :: make_index_map => encounter_util_index_map_collision  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       final     ::                   encounter_util_final_collision_storage
    end type collision_storage
 
@@ -300,14 +301,20 @@ module encounter_classes
          type(encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
       end subroutine encounter_util_final_storage
 
+      module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
+         implicit none
+         class(encounter_snapshot),               intent(in)  :: self   !! Encounter snapshot object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      end subroutine encounter_util_get_idvalues_snapshot
+
       module subroutine encounter_util_index_map_collision(self)
          implicit none
-         class(collision_storage(*)), intent(inout) :: self !! E
+         class(collision_storage(*)), intent(inout) :: self  !! Collision storage object 
       end subroutine encounter_util_index_map_collision
 
       module subroutine encounter_util_index_map_encounter(self)
          implicit none
-         class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
+         class(encounter_storage(*)), intent(inout) :: self  !! Encounter storage object
       end subroutine encounter_util_index_map_encounter
 
       module subroutine encounter_util_resize_list(self, nnew)

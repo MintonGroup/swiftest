@@ -132,14 +132,15 @@ module fraggle_classes
       procedure :: initialize => fraggle_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
    end type fraggle_io_parameters
 
-   type, extends(encounter_snapshot)  :: fraggle_collision_snapshot
+   type, extends(encounter_snapshot)  :: fraggle_snapshot
       logical                               :: lcollision !! Indicates that this snapshot contains at least one collision
       class(fraggle_colliders), allocatable :: colliders  !! Colliders object at this snapshot
       class(fraggle_fragments), allocatable :: fragments  !! Fragments object at this snapshot
    contains
       procedure :: write_frame => fraggle_io_write_frame !! Writes a frame of encounter data to file 
+      procedure :: get_idvals  => fraggle_util_get_idvalues_snapshot !! Gets an array of all id values saved in this snapshot
       final     ::                fraggle_util_final_snapshot
-   end type fraggle_collision_snapshot
+   end type fraggle_snapshot
 
    interface
       module subroutine fraggle_generate_fragments(self, colliders, system, param, lfailure)
@@ -160,7 +161,7 @@ module fraggle_classes
    
       module subroutine fraggle_io_write_frame(self, nc, param)
          implicit none
-         class(fraggle_collision_snapshot), intent(in)    :: self  !! Swiftest encounter structure
+         class(fraggle_snapshot), intent(in)    :: self  !! Swiftest encounter structure
          class(netcdf_parameters),          intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine fraggle_io_write_frame
@@ -295,7 +296,7 @@ module fraggle_classes
 
       module subroutine fraggle_util_final_snapshot(self)
          implicit none
-         type(fraggle_collision_snapshot),  intent(inout) :: self !! Fraggle storage snapshot object
+         type(fraggle_snapshot),  intent(inout) :: self !! Fraggle storage snapshot object
       end subroutine fraggle_util_final_snapshot
 
       module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)
@@ -307,6 +308,12 @@ module fraggle_classes
          class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
          logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
       end subroutine fraggle_util_get_energy_momentum
+
+      module subroutine fraggle_util_get_idvalues_snapshot(self, idvals)
+         implicit none
+         class(fraggle_snapshot),                 intent(in)  :: self   !! Fraggle snapshot object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      end subroutine fraggle_util_get_idvalues_snapshot
 
       module subroutine fraggle_util_restructure(self, colliders, try, f_spin, r_max_start)
          implicit none
