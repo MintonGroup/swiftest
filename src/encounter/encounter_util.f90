@@ -191,7 +191,7 @@ contains
       ! Internals
       ! Internals
       integer(I4B) :: i, n, nold, nt
-      integer(I4B), dimension(:), allocatable :: idvals
+      integer(I4B), dimension(:), allocatable :: idvals, tmp
       real(DP), dimension(:), allocatable :: tvals
 
       if (self%nid == 0) return

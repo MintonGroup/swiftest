@@ -113,74 +113,77 @@ contains
       integer(I4B) :: ndims, i
 
       associate(nc => self)
-         dfill = ieee_value(dfill, IEEE_QUIET_NAN)
-         sfill = ieee_value(sfill, IEEE_QUIET_NAN)
+         select type(param)
+         class is (symba_parameters)
+            dfill = ieee_value(dfill, IEEE_QUIET_NAN)
+            sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
-         select case (param%out_type)
-         case("NETCDF_FLOAT")
-            self%out_type = NF90_FLOAT
-         case("NETCDF_DOUBLE")
-            self%out_type = NF90_DOUBLE
-         end select
-
-         ! Check if the file exists, and if it does, delete it
-         inquire(file=nc%file_name, exist=fileExists)
-         if (fileExists) then
-            open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
-            close(unit=LUN, status="delete")
-         end if
-
-         call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "encounter_io_initialize nf90_create" )
-
-         ! Dimensions
-         call check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "encounter_io_initialize nf90_def_dim time_dimid" ) ! Simulation time dimension
-         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM , nc%space_dimid), "encounter_io_initialize nf90_def_dim space_dimid" )           ! 3D space dimension
-         call check( nf90_def_dim(nc%id, nc%id_dimname, param%maxid+1, nc%id_dimid), "encounter_io_initialize nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
-         call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "encounter_io_initialize nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
-
-         ! Dimension coordinates
-         call check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "encounter_io_initialize nf90_def_var time_varid"  )
-         call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "encounter_io_initialize nf90_def_var space_varid"  )
-         call check( nf90_def_var(nc%id, nc%id_dimname, NF90_INT, nc%id_dimid, nc%id_varid), "encounter_io_initialize nf90_def_var id_varid"  )
-      
-         ! Variables
-         call check( nf90_def_var(nc%id, nc%name_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%name_varid), "encounter_io_initialize nf90_def_var name_varid"  )
-         call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%ptype_varid), "encounter_io_initialize nf90_def_var ptype_varid"  )
-         call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "encounter_io_initialize nf90_def_var rh_varid"  )
-         call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "encounter_io_initialize nf90_def_var vh_varid"  )
-         call check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "encounter_io_initialize nf90_def_var Gmass_varid"  )
-         call check( nf90_def_var(nc%id, nc%loop_varname, NF90_INT, [nc%time_dimid], nc%loop_varid), "encounter_io_initialize nf90_def_var loop_varid"  )
-         if (param%lclose) then
-            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "encounter_io_initialize nf90_def_var radius_varid"  )
-         end if
-         if (param%lrotation) then
-            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "encounter_io_initialize nf90_def_var Ip_varid"  )
-            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "encounter_io_initialize nf90_def_var rot_varid"  )
-         end if
-
-         call check( nf90_inquire(nc%id, nVariables=nvar), "encounter_io_initialize nf90_inquire nVariables"  )
-         do varid = 1, nvar
-            call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "encounter_io_initialize nf90_inquire_variable"  )
-            select case(vartype)
-            case(NF90_INT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "encounter_io_initialize nf90_def_var_fill NF90_INT"  )
-            case(NF90_FLOAT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "encounter_io_initialize nf90_def_var_fill NF90_FLOAT"  )
-            case(NF90_DOUBLE)
-               call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "encounter_io_initialize nf90_def_var_fill NF90_DOUBLE"  )
-            case(NF90_CHAR)
-               call check( nf90_def_var_fill(nc%id, varid, 0, 0), "encounter_io_initialize nf90_def_var_fill NF90_CHAR"  )
+            select case (param%out_type)
+            case("NETCDF_FLOAT")
+               self%out_type = NF90_FLOAT
+            case("NETCDF_DOUBLE")
+               self%out_type = NF90_DOUBLE
             end select
-         end do
 
-         ! Take the file out of define mode
-         call check( nf90_enddef(nc%id), "encounter_io_initialize nf90_enddef"  )
+            ! Check if the file exists, and if it does, delete it
+            inquire(file=nc%file_name, exist=fileExists)
+            if (fileExists) then
+               open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
+               close(unit=LUN, status="delete")
+            end if
 
-         ! Add in the space dimension coordinates
-         call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "encounter_io_initialize nf90_put_var space"  )
+            call check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "encounter_io_initialize nf90_create" )
 
-         ! Pre-fill name slots with ids 
-         call check( nf90_put_var(nc%id, nc%id_varid, [(-1,i=1,param%maxid+1)], start=[1], count=[param%maxid+1]), "encounter_io_initialize nf90_put_var pl id_varid"  )
+            ! Dimensions
+            call check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "encounter_io_initialize nf90_def_dim time_dimid" ) ! Simulation time dimension
+            call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM , nc%space_dimid), "encounter_io_initialize nf90_def_dim space_dimid" )           ! 3D space dimension
+            call check( nf90_def_dim(nc%id, nc%id_dimname, param%encounter_history%nid, nc%id_dimid), "encounter_io_initialize nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
+            call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "encounter_io_initialize nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
+
+            ! Dimension coordinates
+            call check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "encounter_io_initialize nf90_def_var time_varid"  )
+            call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "encounter_io_initialize nf90_def_var space_varid"  )
+            call check( nf90_def_var(nc%id, nc%id_dimname, NF90_INT, nc%id_dimid, nc%id_varid), "encounter_io_initialize nf90_def_var id_varid"  )
+         
+            ! Variables
+            call check( nf90_def_var(nc%id, nc%name_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%name_varid), "encounter_io_initialize nf90_def_var name_varid"  )
+            call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%ptype_varid), "encounter_io_initialize nf90_def_var ptype_varid"  )
+            call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "encounter_io_initialize nf90_def_var rh_varid"  )
+            call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "encounter_io_initialize nf90_def_var vh_varid"  )
+            call check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "encounter_io_initialize nf90_def_var Gmass_varid"  )
+            call check( nf90_def_var(nc%id, nc%loop_varname, NF90_INT, [nc%time_dimid], nc%loop_varid), "encounter_io_initialize nf90_def_var loop_varid"  )
+            if (param%lclose) then
+               call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "encounter_io_initialize nf90_def_var radius_varid"  )
+            end if
+            if (param%lrotation) then
+               call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "encounter_io_initialize nf90_def_var Ip_varid"  )
+               call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "encounter_io_initialize nf90_def_var rot_varid"  )
+            end if
+
+            call check( nf90_inquire(nc%id, nVariables=nvar), "encounter_io_initialize nf90_inquire nVariables"  )
+            do varid = 1, nvar
+               call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "encounter_io_initialize nf90_inquire_variable"  )
+               select case(vartype)
+               case(NF90_INT)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "encounter_io_initialize nf90_def_var_fill NF90_INT"  )
+               case(NF90_FLOAT)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "encounter_io_initialize nf90_def_var_fill NF90_FLOAT"  )
+               case(NF90_DOUBLE)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "encounter_io_initialize nf90_def_var_fill NF90_DOUBLE"  )
+               case(NF90_CHAR)
+                  call check( nf90_def_var_fill(nc%id, varid, 0, 0), "encounter_io_initialize nf90_def_var_fill NF90_CHAR"  )
+               end select
+            end do
+
+            ! Take the file out of define mode
+            call check( nf90_enddef(nc%id), "encounter_io_initialize nf90_enddef"  )
+
+            ! Add in the space dimension coordinates
+            call check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "encounter_io_initialize nf90_put_var space"  )
+
+            ! Pre-fill name slots with ids 
+            !call check( nf90_put_var(nc%id, nc%id_varid, [(-1,i=1,param%maxid+1)], start=[1], count=[param%maxid+1]), "encounter_io_initialize nf90_put_var pl id_varid"  )
+         end select
       end associate
 
       return
@@ -220,7 +223,7 @@ contains
                npl = pl%nbody
                do i = 1, npl
                   idslot = pl%id(i) + 1
-                  idslot = param%encounter_history%idmap(pl%id(i))
+                  idslot = findloc(param%encounter_history%idvals,pl%id(i),dim=1)
                   call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), "encounter_io_write_frame nf90_put_var pl id_varid"  )
                   call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl rh_varid"  )
                   call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl vh_varid"  )
