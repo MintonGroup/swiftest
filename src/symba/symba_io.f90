@@ -118,15 +118,18 @@ contains
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
          call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
 
-         if ((param%encounter_save /= "NONE") .and. (param%encounter_save /= "TRAJECTORY") .and. (param%encounter_save /= "CLOSEST")) then
+         if ((param%encounter_save /= "NONE")       .and. &
+             (param%encounter_save /= "TRAJECTORY") .and. &
+             (param%encounter_save /= "CLOSEST")    .and. &
+             (param%encounter_save /= "BOTH")) then
             write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
-            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
+            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, CLOSEST, or BOTH'
             iostat = -1
             return
          end if
 
-         param%lenc_save_trajectory = (param%encounter_save == "TRAJECTORY") 
-         param%lenc_save_closest = (param%encounter_save == "CLOSEST") .or. param%lenc_save_trajectory ! Closest approaches are always saved when trajectories are saved
+         param%lenc_save_trajectory = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "BOTH")
+         param%lenc_save_closest = (param%encounter_save == "CLOSEST") .or. (param%encounter_save == "BOTH")
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 

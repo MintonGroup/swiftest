@@ -570,9 +570,9 @@ contains
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
       class(encounter_snapshot), allocatable :: snapshot
-      integer(I4B) :: i, j, k, npl_snap, ntp_snap
+      integer(I4B) :: i, j, k, npl_snap, ntp_snap, iflag
       real(DP), dimension(NDIM) :: rrel, vrel, rcom, vcom
-      real(DP) :: mu, a, q, capm, tperi
+      real(DP) :: Gmtot, a, q, capm, tperi
       real(DP), dimension(NDIM,2) :: rb,vb
 
       if (.not.present(t)) then
@@ -620,6 +620,8 @@ contains
                                  tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == system%irec
                                  ntp_snap = count(tp%lmask(1:ntp))
                               end if
+
+                              if (npl_snap + ntp_snap == 0) return ! Nothing to snapshot
 
                               pl_snap%nbody = npl_snap
 
@@ -674,7 +676,7 @@ contains
                                           pl_snap%id(:) = pl%id([i,j])
                                           pl_snap%info(:) = pl%info([i,j])
                                           pl_snap%Gmass(:) = pl%Gmass([i,j])
-                                          mu = sum(pl_snap%Gmass(:))
+                                          Gmtot = sum(pl_snap%Gmass(:))
                                           if (param%lclose) pl_snap%radius(:) = pl%radius([i,j])
                                           if (param%lrotation) then
                                              do i = 1, NDIM
@@ -686,15 +688,36 @@ contains
                                           ! Compute pericenter passage time to get the closest approach parameters
                                           rrel(:) = plplenc_list%r2(:,k) - plplenc_list%r1(:,k)
                                           vrel(:) = plplenc_list%v2(:,k) - plplenc_list%v1(:,k)
-                                          call orbel_xv2aqt(mu, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
+                                          call orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
                                           snapshot%t = t + tperi
 
                                           ! Computer the center mass of the pair
+                                          rcom(:) = (plplenc_list%r1(:,k) * pl_snap%Gmass(1) + plplenc_list%r2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                          vcom(:) = (plplenc_list%v1(:,k) * pl_snap%Gmass(1) + plplenc_list%v2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                          rb(:,1) = plplenc_list%r1(:,k) - rcom(:)
+                                          rb(:,2) = plplenc_list%r2(:,k) - rcom(:)
+                                          vb(:,1) = plplenc_list%v1(:,k) - vcom(:)
+                                          vb(:,2) = plplenc_list%v2(:,k) - vcom(:)
 
-                                          ! do i = 1, NDIM
-                                          !    pl_snap%rh(i,:) = pl%rh(i,[i,j])
-                                          !    pl_snap%vh(i,:) = pl%vb(i,1:npl), pl%lmask(1:npl))
-                                          ! end do
+                                          ! Drift the relative orbit to get the new relative position and velocity
+                                          call drift_one(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), tperi, iflag)
+                                          if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. Closest approach positions and vectors may not be accurate."
+
+                                          ! Get the new position and velocity vectors
+                                          rb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * rrel(:)
+                                          rb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * rrel(:)
+
+                                          vb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * vrel(:)
+                                          vb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * vrel(:)
+
+                                          ! Move the CoM assuming constant velocity over the time it takes to reach periapsis
+                                          !rcom(:) = rcom(:) + vcom(:) * tperi
+
+                                          ! Compute the heliocentric position and velocity vector at periapsis
+                                          pl_snap%rh(:,1) = rb(:,1) + rcom(:)
+                                          pl_snap%rh(:,2) = rb(:,2) + rcom(:)
+                                          pl_snap%vh(:,1) = vb(:,1) + vcom(:)
+                                          pl_snap%vh(:,2) = vb(:,2) + vcom(:)
 
                                           call pl_snap%sort("id", ascending=.true.)
                                           call encounter_util_save_encounter(param%encounter_history,snapshot,snapshot%t)

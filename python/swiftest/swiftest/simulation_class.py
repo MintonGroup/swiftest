@@ -214,10 +214,12 @@ class Simulation:
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
             Parameter input file equivalent: `CHK_CLOSE`
-        encounter_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
-            Indicate if and how encounter data should be saved. If set to "TRAJECTORY" the full close encounter
-            trajectories are saved to file. If set to "CLOSEST" only the trajectories at the time of closest approach
-            are saved. If set to "NONE" no trajectory information is saved.
+        encounter_save : {"NONE","TRAJECTORY","CLOSEST", "BOTH"}, default "NONE"
+            Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
+            of all bodies undergoing close encounters are saved at each intermediate step to the encounter files.
+            If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
+            computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
+            in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
             *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, default True
             Include the post-Newtonian correction in acceleration calculations.
@@ -1023,7 +1025,7 @@ class Simulation:
                     tides: bool | None = None,
                     interaction_loops: Literal["TRIANGULAR", "FLAT", "ADAPTIVE"] | None = None,
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
-                    encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
+                    encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST", "BOTH"] | None = None,
                     verbose: bool | None = None,
                     **kwargs: Any
                     ):
@@ -1035,10 +1037,12 @@ class Simulation:
         close_encounter_check : bool, optional
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
-        encounter_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
-            Indicate if and how encounter data should be saved. If set to "TRAJECTORY" the full close encounter
-            trajectories are saved to file. If set to "CLOSEST" only the trajectories at the time of closest approach
-            are saved. If set to "NONE" no trajectory information is saved.
+        encounter_save : {"NONE","TRAJECTORY","CLOSEST","BOTH"}, default "NONE"
+            Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
+            of all bodies undergoing close encounters are saved at each intermediate step to the encounter files.
+            If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
+            computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
+            in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
             *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, optional
             Include the post-Newtonian correction in acceleration calculations.
@@ -1199,7 +1203,7 @@ class Simulation:
                 update_list.append("encounter_check_loops")
 
         if encounter_save is not None:
-            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST"]
+            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST", "BOTH"]
             encounter_save = encounter_save.upper()
             if encounter_save not in valid_vals:
                 msg = f"{encounter_save} is not a valid option for encounter_save."
