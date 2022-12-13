@@ -279,9 +279,9 @@ contains
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level
       ! Result
-      logical                                   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
+      logical                                   :: lany_collision, lany_closest !! Returns true if cany pair of encounters resulted in a collision 
       ! Internals
-      logical, dimension(:), allocatable        :: lcollision, lmask
+      logical, dimension(:), allocatable        :: lcollision, lclosest, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
       integer(I4B)                              :: i, j, k, nenc
       real(DP)                                  :: rlim, Gmtot
@@ -290,6 +290,7 @@ contains
       class(symba_encounter), allocatable       :: tmp       
 
       lany_collision = .false.
+      lany_closest = .false.
       if (self%nenc == 0) return
 
       select type(self)
@@ -315,6 +316,8 @@ contains
 
             allocate(lcollision(nenc))
             lcollision(:) = .false.
+            allocate(lclosest(nenc))
+            lclosest(:) = .false.
 
             if (isplpl) then
                do concurrent(k = 1:nenc, lmask(k))
@@ -324,8 +327,7 @@ contains
                   vr(:) = pl%vb(:, i) - pl%vb(:, j)
                   rlim = pl%radius(i) + pl%radius(j)
                   Gmtot = pl%Gmass(i) + pl%Gmass(j)
-                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), &
-                                                            Gmtot, rlim, dt, self%lvdotr(k))
+                  call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k), lcollision(k), lclosest(k))
                end do
             else
                do concurrent(k = 1:nenc, lmask(k))
@@ -333,12 +335,13 @@ contains
                   j = self%index2(k)
                   xr(:) = pl%rh(:, i) - tp%rh(:, j) 
                   vr(:) = pl%vb(:, i) - tp%vb(:, j)
-                  lcollision(k) = symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), &
-                                                            pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k))
+                  call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k), lcollision(k), lclosest(k))
                end do
             end if
 
             lany_collision = any(lcollision(:))
+            lany_closest = any(lclosest(:))
+
             if (lany_collision) then
                call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
                do k = 1, nenc
@@ -379,6 +382,7 @@ contains
                   end if
                end do
             end if
+
          end select
       end select
 
@@ -397,7 +401,7 @@ contains
    end function symba_collision_check_encounter
 
 
-   pure elemental function symba_collision_check_one(xr, yr, zr, vxr, vyr, vzr, Gmtot, rlim, dt, lvdotr) result(lcollision)
+   pure elemental subroutine symba_collision_check_one(xr, yr, zr, vxr, vyr, vzr, Gmtot, rlim, dt, lvdotr, lcollision, lclosest)
       !! author: David A. Minton
       !! 
       !! Check for a merger between a single pair of particles
@@ -413,14 +417,14 @@ contains
       real(DP), intent(in) :: rlim          !! Collision limit - Typically the sum of the radii of colliding bodies
       real(DP), intent(in) :: dt            !! Step size
       logical,  intent(in) :: lvdotr        !! Logical flag indicating that these two bodies are approaching in the current substep
-      ! Result
-      logical              :: lcollision    !! Logical flag indicating whether these two bodies will collide or not
+      logical, intent(out) :: lcollision    !! Logical flag indicating whether these two bodies will collide or not
+      logical, intent(out) :: lclosest      !! Logical flag indicating that, while not a collision, this is the closest approach for this pair of bodies
       ! Internals
       real(DP) :: r2, rlim2, a, e, q, vdotr, tcr2, dt2
 
       r2 = xr**2 + yr**2 + zr**2
       rlim2 = rlim**2
-   
+      lclosest = .false. 
       if (r2 <= rlim2) then ! checks if bodies are actively colliding in this time step
          lcollision = .true.
       else ! if they are not actively colliding in  this time step, checks if they are going to collide next time step based on velocities and q 
@@ -432,12 +436,13 @@ contains
             if (tcr2 <= dt2) then
                call orbel_xv2aeq(Gmtot, xr, yr, zr, vxr, vyr, vzr, a, e, q)
                lcollision = (q < rlim) 
+               lclosest = .not. lcollision
             end if
          end if
       end if
 
       return
-   end function symba_collision_check_one
+   end subroutine symba_collision_check_one
 
 
    function symba_collision_consolidate_colliders(pl, cb, param, idx_parent, colliders) result(lflag)
