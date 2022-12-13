@@ -414,6 +414,15 @@ Swiftest generates between 1 and 6 output files, depending on the input paramete
 - **interaction_timer.log** - The log containing the interaction loop timer for each interacting pair of bodies, only if ```INTERACTION_LOOPS``` is ```ADAPTIVE```, ASCII file format only
 - **swiftest.log** - A log containing the input parameters and a brief updated on the status of the run. Only generated if Swiftest is run through the Python package. If Swiftest is run through the terminal, these updates are output directly to the terminal.
 
+To read in a Swiftest output file, simply create a new Python script in the simulation directory.
+
+```
+import swiftest                                            
+sim = swiftest.Simulation(param_file="PATH/TO/param.in") 
+```
+
+All Swiftest data is now stored in the Xarray dataset ```sim.data``` and is easily processed, manipulated, and analyzed.
+
 Regardless of whether the status outputs are recorded in the **swiftest.log** or in the terminal, the output format is the same. Below is an example of a single status output:
 
 ``````
@@ -456,14 +465,13 @@ To restart Swiftest from a dump file, simply follow the instructions detailed in
 
 ---
 
-**NOTHING IS CHECKED BELOW HERE**
 #### Updates to Swifter Included in Swiftest
 
 **Fraggle**
 
-To activate the Fraggle algorithm, set ```FRAGMENTATION``` in the **<span>param.in</span>** to ```YES```. When resolving a close encounter that results in a collision, Fraggle determines the regime of the collision as well as the mass, number, position, velocity, and rotation of all resulting bodies. This is distinct from Swiftest SyMBA's predecessor, Swifter SyMBA, which assumes that all collisions result in perfect mergers. 
+To activate the Fraggle algorithm, set ```FRAGMENTATION```/```fragmentation``` to ```YES```/```True```, depending on the mode in which Swiftest is being run. When resolving a close encounter that results in a collision, Fraggle determines the regime of the collision as well as the mass, number, position, velocity, and rotation of all resulting bodies. This is distinct from Swiftest SyMBA's predecessor, Swifter SyMBA, which assumes that all collisions result in perfect mergers. 
 
-Fraggle distinguishes the following collisional regimes: (1) perfect merging, which includes the cratering, partial accretion, and graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption, which includes the partial erosion regime of Leinhardt & Stewart 2012, (3) super-catastrophic disruption, and (4) hit-and-run events which can be either ‘pure’ or ‘disruptive’. For more details on the collisional regimes used in Fraggle, please see Wishard et al. 2023 (in preparation). 
+Fraggle distinguishes the following collisional regimes: (1) perfect merging, which includes the cratering, partial accretion, and graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption, which includes the partial erosion regime of Leinhardt & Stewart 2012, (3) super-catastrophic disruption, and (4) hit-and-run events which can be either ‘pure’ or ‘disruptive’.
 
 For every collision throughout the course of a simulation, Fraggle writes all details of the collision to the **fraggle.log** output file. An example of a collision, stored in the **fraggle.log** output file, is as follows:
 
@@ -651,101 +659,7 @@ Together, adaptive interaction calculations and encounter checking are idea for 
 The NetCDF (Network Common Data Form) file format is a cross-platform method of creating, accessing, and sharing data. Due to its self-describing nature, NetCDF is ideal for archiving multidimensional scientific data. NetCDF files are also appendable, allowing for data to be added to a file after creation, making the NetCDF file format well suited for handling simulation output. NetCDF is maintained by the University Corporation for Atmospheric Research (UCAR) and is a standard file format across much of the atmospheric modeling community. 
 
 In Swifter SyMBA, simulation outputs were stored in a flat binary file. These binary files could only be easily accessed through [SwiftVis](https://cs.trinity.edu/~mlewis/SwiftVis/), a data analysis and visualization software package designed to process Swifter data. In accordance with modern data management practices and industry standards, Swiftest incorporates a NetCDF output file format for all simulation types. NetCDF is compatible with many of today's most widely-used programming languages including Fortran, Python, Java, C++, and more. By writing simulation data to a NetCDF output file, Swiftest provides the user with the flexibility to analyze and visualize data in any language they choose. The NetCDF file format is also adaptable such that any future additions to Swiftest can be seamlessly incorporated into the output file. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-To read in a Swiftest output file, create a new Python script in the simulation directory. We recommend using [Xarray](https://docs.xarray.dev/en/stable/index.html) to manage and process output files.
-
-```
-import swiftest                                             # Importing Swiftest
-import xarray as xr                                         # Importing Xarray
-ds = swiftest.Simulation(param_file="PATH/TO/param.in").ds  # Storing all simulation data to an Xarray dataset.
-```
-
-All Swiftest data is now stored in the Xarray dataset ```ds``` and is easily processed, manipulated, and analyzed. The NetCDF output file stores data in two dimensions: simulation time (```time```) and particle ID (```id```). The NetCDF output file contains a maximum of 60 data variables. Below is a list of all data variables and their associated dimension.
-
-| Data Variable Name     | Data Variable Description                                                                                                                                  | Data Variable Dimension | 
-|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
-| ```npl```              | Number of massive bodies                                                                                                                                   | time                    | 
-| ```ntp```              | Number of test particles                                                                                                                                   | time                    | 
-| ```nplm```              | Number of massive bodies above the ```GMTINY``` cutoff value                                                                                                                                   | time                    | 
-| ```name```             | Name of particle                                                                                                                                           | id                      | 
-| ```particle_type```    | Particle type (Central Body, Massive Body, or Test Particle)                                                                                               | id                      | 
-| ```status```           | Particle status (Active, collisional regime, discard fate etc.)                                                                                            | id                      |
-| ```xhx```              | Heliocentric x-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                |
-| ```xhy```              | Heliocentric y-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                |
-| ```xhz```              | Heliocentric z-coordinate of position in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL```          | time, id                |
-| ```vhx```              | Heliocentric x-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                |
-| ```vhy```              | Heliocentric y-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                | 
-| ```vhz```              | Heliocentric z-coordinate of velocity in distance and time units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```XV``` or ```XVEL``` | time, id                |
-| ```a```                | Semi-major axis in distance units, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                | time, id                | 
-| ```e```                | Eccentricity, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                                     | time, id                |
-| ```inc```              | Inclination in degrees, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                           | time, id                | 
-| ```capom```            | Longitude of ascending node, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                      | time, id                | 
-| ```omega```            | Argument of pericenter, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                           | time, id                |
-| ```capm```             | Mean anomaly, only if ```OUT_FORM``` in the **<span>param.in</span>** is set to ```EL``` or ```XVEL```                                                     | time, id                |
-| ```Gmass```            | G * mass in mass units                                                                                                                                     | time, id                |
-| ```rhill```            | Hill Radius in distance units                                                                                                                              | time, id                |
-| ```radius```           | Radius in distance units                                                                                                                                   | time, id                |
-| ```origin_time```      | Time of particle creation in simulation time in time units                                                                                                 | id                      |
-| ```origin_type```      | Type of creation (Initial conditions, Hit and run fragment etc.)                                                                                           | id                      |
-| ```origin_xhx```       | Heliocentric x-coordinate of origin position in distance units                                                                                             | id                      | 
-| ```origin_xhy```       | Heliocentric y-coordinate of origin position in distance units                                                                                             | id                      |
-| ```origin_xhz```       | Heliocentric z-coordinate of origin position in distance units                                                                                             | id                      |
-| ```origin_vhx```       | Heliocentric x-coordinate of origin velocity in distance units                                                                                             | id                      | 
-| ```origin_vhy```       | Heliocentric y-coordinate of origin velocity in distance units                                                                                             | id                      | 
-| ```origin_vhz```       | Heliocentric z-coordinate of origin velocity in distance units                                                                                             | id                      |
-| ```collision_id```     | Collision number in which particle was formed                                                                                                              | id                      | 
-| ```discard_time```     | Time of particle discard in simulation time in time units                                                                                                  | id                      |
-| ```discard_xhx```      | Heliocentric x-coordinate of discard position in distance units                                                                                            | id                      | 
-| ```discard_xhy```      | Heliocentric y-coordinate of discard position in distance units                                                                                            | id                      |
-| ```discard_xhz```      | Heliocentric z-coordinate of discard position in distance units                                                                                            | id                      | 
-| ```discard_vhx```      | Heliocentric x-coordinate of discard velocity in distance units                                                                                            | id                      | 
-| ```discard_vhy```      | Heliocentric y-coordinate of discard velocity in distance units                                                                                            | id                      |
-| ```discard_vhz```      | Heliocentric z-coordinate of discard velocity in distance units                                                                                            | id                      |
-| ```discard_body_id```  | ID of the other body involved in the discard, 0 if no other body involved                                                | id                      | 
-| ```Ip1```              | Principal moment of inertia axis 1, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
-| ```Ip2```              | Principal moment of inertia axis 2, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
-| ```Ip3```              | Principal moment of inertia axis 3, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                                            | time, id                | 
-| ```rotx```             | X-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                |
-| ```roty```             | Y-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                |
-| ```rotz```             | Z-coordinate of particle rotation in radians / second, only if ```ROTATION``` in the **<span>param.in</span>** is set to ```YES```                         | time, id                |
-| ```KE_orb```           | Orbital kinetic energy of the system                                                                                                                       | time                    | 
-| ```KE_spin```          | Rotational kinetic energy of the system                                                                                                                    | time                    |
-| ```PE```               | Potential energy of the system                                                                                                                             | time                    | 
-| ```L_orbx```           | Heliocentric x-coordinate of orbital angular momentum of the system                                                                                        | time                    | 
-| ```L_orby```           | Heliocentric y-coordinate of orbital angular momentum of the system                                                                                        | time                    |
-| ```L_orbz```           | Heliocentric z-coordinate of orbital angular momentum of the system                                                                                        | time                    |
-| ```L_spinx```          | Heliocentric x-coordinate of rotational angular momentum of the system                                                                                     | time                    | 
-| ```L_spiny```          | Heliocentric y-coordinate of rotational angular momentum of the system                                                                                     | time                    |
-| ```L_spinz```          | Heliocentric z-coordinate of rotational angular momentum of the system                                                                                     | time                    |
-| ```L_escapex```        | Heliocentric x-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    | 
-| ```L_escapey```        | Heliocentric y-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    | 
-| ```L_escapez```        | Heliocentric z-coordinate of orbital angular momentum of bodies that were discarded from the system due to being too far from the central body             | time                    |
-| ```Ecollisions```      | Energy lost due to collisions                                                                                                                              | time                    | 
-| ```Euntracked```       | Energy of bodies that were discarded from the system due to being too far from the central body, untracked potential energy due to merging bodies          | time                    | 
-| ```GMescape```         | G * mass of particles that were discarded from the system due to being too far from the central body                                                       | time                    |
-| ```j2rp2```            | The J2 / R^2 term of the central body                                                              | time                    |
-| ```j4rp4```            | The J4 / R^2 term of the central body                                                              | time                    | 
-
+                                                    
 **Object-Oriented Programming**
 
 The 2003 version of Fortran introduced object-oriented programming, with Fortran 2008 providing further updates. Swiftest is written in modern Fortran and takes advantage of many of the object-oriented programming features included in Fortran 2003. In doing so, Swiftest is a complete restructure of its predecessor, Swifter. The reusability and simplification of code in Swiftest through object-oriented programming is a modern and flexible approach that allows for future enhancements and additions to the Swiftest package.
@@ -755,6 +669,8 @@ The 2003 version of Fortran introduced object-oriented programming, with Fortran
 Parallelization using OpenMP is still under development in Swiftest. For preliminary results, see **Figure 3**.
 
 ---
+
+**NOTHING IS CHECKED BELOW HERE**
 
 #### Examples
 
