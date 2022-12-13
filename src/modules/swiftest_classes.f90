@@ -1705,7 +1705,7 @@ module swiftest_classes
          class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
          class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
          real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
-         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in encounter snapshots)
       end subroutine util_snapshot_system
    end interface
 

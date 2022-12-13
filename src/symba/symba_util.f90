@@ -204,6 +204,8 @@ contains
       if (allocated(self%level)) deallocate(self%level)
       if (allocated(self%tcollision)) deallocate(self%tcollision)
 
+      call self%encounter_list%dealloc()
+
       return
    end subroutine symba_util_dealloc_encounter_list
 
@@ -232,7 +234,7 @@ contains
 
       if (allocated(self%ncomp)) deallocate(self%ncomp)
 
-      call symba_util_dealloc_pl(self)
+      call self%symba_pl%dealloc()
 
       return
    end subroutine symba_util_dealloc_merger
@@ -266,7 +268,7 @@ contains
          deallocate(self%kin)
       end if
 
-      call util_dealloc_pl(self)
+      call self%helio_pl%dealloc()
 
       return
    end subroutine symba_util_dealloc_pl
@@ -284,7 +286,7 @@ contains
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
 
-      call util_dealloc_tp(self)
+      call self%helio_tp%dealloc() 
 
       return
    end subroutine symba_util_dealloc_tp
@@ -712,6 +714,7 @@ contains
                if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
                   ! This is an encounter we already know about, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%lclosest(k) = plplenc_old%lclosest(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
@@ -722,6 +725,7 @@ contains
                else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
                   ! This is an encounter we already know about, but with the order reversed, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%lclosest(k) = plplenc_old%lclosest(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
                   system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
                   system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
@@ -749,6 +753,7 @@ contains
                system%plplenc_list%id1(1:nencmin) = pack(system%plplenc_list%id1(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%lclosest(1:nencmin) = pack(system%plplenc_list%lclosest(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%tcollision(1:nencmin) = pack(system%plplenc_list%tcollision(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))

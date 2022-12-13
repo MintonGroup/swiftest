@@ -125,8 +125,8 @@ contains
             return
          end if
 
-         param%lenc_trajectory_save = (param%encounter_save == "TRAJECTORY") 
-         param%lenc_closest_save = (param%encounter_save == "CLOSEST") .or. param%lenc_trajectory_save ! Closest approaches are always saved when trajectories are saved
+         param%lenc_save_trajectory = (param%encounter_save == "TRAJECTORY") 
+         param%lenc_save_closest = (param%encounter_save == "CLOSEST") .or. param%lenc_save_trajectory ! Closest approaches are always saved when trajectories are saved
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 

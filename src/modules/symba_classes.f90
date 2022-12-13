@@ -16,7 +16,7 @@ module symba_classes
    use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, swiftest_storage, netcdf_parameters
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use fraggle_classes,   only : fraggle_colliders, fraggle_fragments
-   use encounter_classes, only : encounter_list, encounter_snapshot, encounter_storage, collision_storage
+   use encounter_classes, only : encounter_list, encounter_storage, collision_storage
    implicit none
    public
 
@@ -31,8 +31,8 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: seed                           !! Random seeds for fragmentation modeling
       logical                                 :: lfragmentation       = .false. !! Do fragmentation modeling instead of simple merger.
       character(STRMAX)                       :: encounter_save       = "NONE"  !! Indicate if and how encounter data should be saved
-      logical                                 :: lenc_trajectory_save = .false. !! Indicates that when encounters are saved, the full trajectory through recursion steps are saved
-      logical                                 :: lenc_closest_save    = .false. !! Indicates that when encounters are saved, the closest approach distance between pairs of bodies is saved
+      logical                                 :: lenc_save_trajectory = .false. !! Indicates that when encounters are saved, the full trajectory through recursion steps are saved
+      logical                                 :: lenc_save_closest    = .false. !! Indicates that when encounters are saved, the closest approach distance between pairs of bodies is saved
       type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
       type(collision_storage(nframes=:)), allocatable :: collision_history  !! Stores encounter history for later retrieval and saving to file
    contains
@@ -212,7 +212,7 @@ module symba_classes
          implicit none
          class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param          !! Current run configuration parameters 
+         class(swiftest_parameters), intent(inout) :: param          !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t              !! current time
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level

@@ -75,7 +75,7 @@ contains
 
             select type(param)
             class is (symba_parameters)
-               if (param%lenc_trajectory_save .or. param%lenc_closest_save) then
+               if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
                   allocate(encounter_storage :: param%encounter_history)
                   associate (encounter_history => param%encounter_history)
                      allocate(encounter_io_parameters :: encounter_history%nc)

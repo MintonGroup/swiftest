@@ -22,6 +22,7 @@ module encounter_classes
       integer(I8B)                                    :: nenc = 0   !! Total number of encounters
       logical                                         :: lcollision !! Indicates if the encounter resulted in at least one collision
       real(DP)                                        :: t          !! Time of encounter
+      logical,            dimension(:),   allocatable :: lclosest   !! indicates that thie pair of bodies is in currently at its closest approach point
       logical,            dimension(:),   allocatable :: lvdotr     !! relative vdotr flag
       integer(I4B),       dimension(:),   allocatable :: status     !! status of the interaction
       integer(I4B),       dimension(:),   allocatable :: index1     !! position of the first body in the encounter
@@ -329,7 +330,7 @@ module encounter_classes
          class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
          class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
          real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
-         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+         character(*),                 intent(in), optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
       end subroutine encounter_util_snapshot_collision
 
       module subroutine encounter_util_snapshot_encounter(self, param, system, t, arg)

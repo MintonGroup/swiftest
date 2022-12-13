@@ -38,9 +38,9 @@ contains
                   call self%reset(param)
                   lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                   if (lencounter) then
-                     if (param%lenc_trajectory_save) call encounter_history%take_snapshot(param, self, t) 
+                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t, "trajectory") 
                      call self%interp(param, t, dt)
-                     if (param%lenc_trajectory_save) call encounter_history%take_snapshot(param, self, t+dt) 
+                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+dt, "trajectory") 
                   else
                      self%irec = -1
                      call helio_step_system(self, param, t, dt)
@@ -247,7 +247,7 @@ contains
                         if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                         if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                      end if
-                     if (param%lenc_trajectory_save) call encounter_history%take_snapshot(param, self, t+dtl) 
+                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+dtl, "trajectory") 
 
                      call self%set_recur_levels(ireci)
 

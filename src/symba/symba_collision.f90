@@ -274,7 +274,7 @@ contains
       ! Arguments
       class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
       class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
-      class(swiftest_parameters), intent(in)    :: param          !! Current run configuration parameters 
+      class(swiftest_parameters), intent(inout) :: param          !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t              !! current time
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level
@@ -302,97 +302,99 @@ contains
       class is (symba_pl)
          select type(tp => system%tp)
          class is (symba_tp)
-            nenc = self%nenc
-            allocate(lmask(nenc))
-            lmask(:) = ((self%status(1:nenc) == ACTIVE) .and. (pl%levelg(self%index1(1:nenc)) >= irec))
-            if (isplpl) then
-               lmask(:) = lmask(:) .and. (pl%levelg(self%index2(1:nenc)) >= irec)
-            else
-               lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
-            end if
-            if (.not.any(lmask(:))) return
+            select type (param)
+            class is (symba_parameters)
+               nenc = self%nenc
+               allocate(lmask(nenc))
+               lmask(:) = ((self%status(1:nenc) == ACTIVE) .and. (pl%levelg(self%index1(1:nenc)) >= irec))
+               if (isplpl) then
+                  lmask(:) = lmask(:) .and. (pl%levelg(self%index2(1:nenc)) >= irec)
+               else
+                  lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
+               end if
+               if (.not.any(lmask(:))) return
 
-            allocate(lcollision(nenc))
-            lcollision(:) = .false.
-            allocate(lclosest(nenc))
-            lclosest(:) = .false.
+               allocate(lcollision(nenc))
+               lcollision(:) = .false.
+               allocate(lclosest(nenc))
+               lclosest(:) = .false.
 
-            if (isplpl) then
-               do concurrent(k = 1:nenc, lmask(k))
-                  i = self%index1(k)
-                  j = self%index2(k)
-                  xr(:) = pl%rh(:, i) - pl%rh(:, j) 
-                  vr(:) = pl%vb(:, i) - pl%vb(:, j)
-                  rlim = pl%radius(i) + pl%radius(j)
-                  Gmtot = pl%Gmass(i) + pl%Gmass(j)
-                  call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k), lcollision(k), lclosest(k))
-               end do
-            else
-               do concurrent(k = 1:nenc, lmask(k))
-                  i = self%index1(k)
-                  j = self%index2(k)
-                  xr(:) = pl%rh(:, i) - tp%rh(:, j) 
-                  vr(:) = pl%vb(:, i) - tp%vb(:, j)
-                  call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k), lcollision(k), lclosest(k))
-               end do
-            end if
+               if (isplpl) then
+                  do concurrent(k = 1:nenc, lmask(k))
+                     i = self%index1(k)
+                     j = self%index2(k)
+                     xr(:) = pl%rh(:, i) - pl%rh(:, j) 
+                     vr(:) = pl%vb(:, i) - pl%vb(:, j)
+                     rlim = pl%radius(i) + pl%radius(j)
+                     Gmtot = pl%Gmass(i) + pl%Gmass(j)
+                     call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k), lcollision(k), lclosest(k))
+                  end do
+               else
+                  do concurrent(k = 1:nenc, lmask(k))
+                     i = self%index1(k)
+                     j = self%index2(k)
+                     xr(:) = pl%rh(:, i) - tp%rh(:, j) 
+                     vr(:) = pl%vb(:, i) - tp%vb(:, j)
+                     call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k), lcollision(k), lclosest(k))
+                  end do
+               end if
 
-            lany_collision = any(lcollision(:))
+               lany_collision = any(lcollision(:))
 
-            if (lany_collision) then
-               call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
-               do k = 1, nenc
-                  i = self%index1(k)
-                  j = self%index2(k)
-                  if (lcollision(k)) self%status(k) = COLLISION
-                  self%tcollision(k) = t
-                  self%x1(:,k) = pl%rh(:,i) + system%cb%rb(:)
-                  self%v1(:,k) = pl%vb(:,i) 
-                  if (isplpl) then
-                     self%x2(:,k) = pl%rh(:,j) + system%cb%rb(:)
-                     self%v2(:,k) = pl%vb(:,j) 
-                     if (lcollision(k)) then
-                        ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional colliders%idx
-                        if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_colliders([i,j])
-   
-                        ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
-                        pl%lcollision([i, j]) = .true.
-                        pl%status([i, j]) = COLLISION
-                        call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i))
-                        call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,j), discard_vh=pl%vh(:,j))
+               if (lany_collision) then
+                  call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+                  do k = 1, nenc
+                     i = self%index1(k)
+                     j = self%index2(k)
+                     if (lcollision(k)) self%status(k) = COLLISION
+                     self%tcollision(k) = t
+                     self%x1(:,k) = pl%rh(:,i) + system%cb%rb(:)
+                     self%v1(:,k) = pl%vb(:,i) 
+                     if (isplpl) then
+                        self%x2(:,k) = pl%rh(:,j) + system%cb%rb(:)
+                        self%v2(:,k) = pl%vb(:,j) 
+                        if (lcollision(k)) then
+                           ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collider pair
+                           if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_colliders([i,j])
+      
+                           ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
+                           pl%lcollision([i, j]) = .true.
+                           pl%status([i, j]) = COLLISION
+                           call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i))
+                           call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,j), discard_vh=pl%vh(:,j))
+                        end if
+                     else
+                        self%x2(:,k) = tp%rh(:,j) + system%cb%rb(:)
+                        self%v2(:,k) = tp%vb(:,j) 
+                        if (lcollision(k)) then
+                           tp%status(j) = DISCARDED_PLR
+                           tp%ldiscard(j) = .true.
+                           write(idstri, *) pl%id(i)
+                           write(idstrj, *) tp%id(j)
+                           write(timestr, *) t
+                           call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_rh=tp%rh(:,j), discard_vh=tp%vh(:,j))
+                           write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
+                                 //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
+                                 //  " at t = " // trim(adjustl(timestr))
+                           call io_log_one_message(FRAGGLE_LOG_OUT, message)
+                        end if
                      end if
-                  else
-                     self%x2(:,k) = tp%rh(:,j) + system%cb%rb(:)
-                     self%v2(:,k) = tp%vb(:,j) 
-                     if (lcollision(k)) then
-                        tp%status(j) = DISCARDED_PLR
-                        tp%ldiscard(j) = .true.
-                        write(idstri, *) pl%id(i)
-                        write(idstrj, *) tp%id(j)
-                        write(timestr, *) t
-                        call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_rh=tp%rh(:,j), discard_vh=tp%vh(:,j))
-                        write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
-                              //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
-                              //  " at t = " // trim(adjustl(timestr))
-                        call io_log_one_message(FRAGGLE_LOG_OUT, message)
-                     end if
-                  end if
-               end do
+                  end do
 
-               ! Extract the pl-pl or pl-tp encounter list and return the pl-pl or pl-tp collision_list
-               select type(self)
-               class is (symba_plplenc)
-                  call self%extract_collisions(system, param)
-               class is (symba_pltpenc) 
-                  allocate(tmp, mold=self)
-                  call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
-               end select
-            end if
+                  ! Extract the pl-pl or pl-tp encounter list and return the pl-pl or pl-tp collision_list
+                  select type(self)
+                  class is (symba_plplenc)
+                     call self%extract_collisions(system, param)
+                  class is (symba_pltpenc) 
+                     allocate(tmp, mold=self)
+                     call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
+                  end select
+               end if
 
-            ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
-            if (any(lclosest(:))) then
+               ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
+               if (param%lenc_save_closest .and. any(lclosest(:))) call param%encounter_history%take_snapshot(param, system, t, "closest") 
 
-            end if
+            end select
 
          end select
       end select
@@ -905,7 +907,7 @@ contains
 
                   call system%colliders%regime(system%fragments, system, param)
 
-                  if (param%lenc_trajectory_save) call collision_history%take_snapshot(param,system, t, "before") 
+                  if (param%lenc_save_trajectory) call collision_history%take_snapshot(param,system, t, "before") 
                   select case (system%fragments%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                      plplcollision_list%status(i) = symba_collision_casedisruption(system, param)
@@ -917,7 +919,7 @@ contains
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
                   end select
-                  if (param%lenc_trajectory_save) call collision_history%take_snapshot(param,system, t, "after") 
+                  if (param%lenc_save_trajectory) call collision_history%take_snapshot(param,system, t, "after") 
                   deallocate(system%colliders,system%fragments)
                end do
             end select

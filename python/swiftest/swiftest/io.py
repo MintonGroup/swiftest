@@ -900,15 +900,14 @@ def string_converter(da):
     -------
     da : xarray dataset with the strings cleaned up
     """
-    if da.dtype == np.dtype(object):
-        da = da.astype('<U32')
-        da = xstrip_str(da)
-    elif type(da.values[0]) != np.str_:
-        da = xstrip_nonstr(da)
+
+    da = da.astype('<U32')
+    da = xstrip_str(da)
+
     return da
 
 def char_converter(da):
-    """
+    """`
     Converts a string to a unicode string
 
     Parameters
