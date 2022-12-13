@@ -133,6 +133,20 @@ $ ipython kernel install --user --name EnvName --display-name "Swiftest Kernel"
 
 Swiftest is built to make running a Swiftest simulation a streamlined and user friendly experience, even for a new user. As a result, Swiftest is highly flexible and a simulation can be created, run, and processed in a number of different ways. The first choice the user must make is if they would prefer ASCII input files or NetCDF input files. We recommend NetCDF input files, however we include documentation for ASCII input files for completeness.
 
+**Brief Outline**
+To create and run a Swiftest simulation using the Swiftest Python package, follow the general script below. For more details on the input files and user options, continue reading this section.
+
+```
+import swiftest                       # Import the Swiftest Python package
+sim = swiftest.Simulation(**kwargs)   # Initialize a Swiftest simulation
+sim.add_solar_system_body(**kwargs)   # Add any desired named Solar System bodies
+sim.add_body(**kwargs)                # Add any desired user defined bodies
+sim.get_parameter(**kwargs)           # View the default simulation parameters
+sim.set_parameter(**kwargs)           # Set any desired simulation parameters
+sim.write_param(**kwargs)             # Write simulation parameters to the param.in
+sim.run(**kwargs)                     # Run the simulation (ignore if running from the terminal)
+```
+
 **NetCDF Input Files (Recommended)**
 
 Swiftest accepts a single NetCDF input file. This file can be created using the Swiftest Python Package through a few simple steps.
