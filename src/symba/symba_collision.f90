@@ -381,21 +381,19 @@ contains
                      end if
                   end if
                end do
+
+               ! Extract the pl-pl or pl-tp encounter list and return the pl-pl or pl-tp collision_list
+               select type(self)
+               class is (symba_plplenc)
+                  call self%extract_collisions(system, param)
+               class is (symba_pltpenc) 
+                  allocate(tmp, mold=self)
+                  call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
+               end select
             end if
 
          end select
       end select
-
-      ! Extract the pl-pl or pl-tp encounter list and return the pl-pl or pl-tp collision_list
-      if (lany_collision) then
-         select type(self)
-         class is (symba_plplenc)
-            call self%extract_collisions(system, param)
-         class default
-            allocate(tmp, mold=self)
-            call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
-         end select
-      end if
 
       return 
    end function symba_collision_check_encounter
