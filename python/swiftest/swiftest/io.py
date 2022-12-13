@@ -32,8 +32,7 @@ newfeaturelist = ("RESTART",
                   "ENCOUNTER_CHECK",
                   "TSTART",
                   "DUMP_CADENCE",
-                  "ENCOUNTER_SAVE",
-                  "COLLISION_SAVE")
+                  "ENCOUNTER_SAVE")
 
 
 
@@ -55,7 +54,7 @@ int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
 float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
                "TU2S", "MIN_GMFRAG", "GMTINY"]
 
-upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE","COLLISION_SAVE", "CHK_QMIN_COORD"]
+upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE", "CHK_QMIN_COORD"]
 lower_str_param = ["NC_IN", "PL_IN", "TP_IN", "CB_IN", "CHK_QMIN_RANGE"]
 
 param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_str_param+ bool_param

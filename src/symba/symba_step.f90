@@ -180,7 +180,7 @@ contains
       ! Internals
       integer(I4B) :: j, irecp, nloops
       real(DP) :: dtl, dth
-      logical :: lencounter, lplpl_closest, lpltp_closest
+      logical :: lencounter
 
       select type(param)
       class is (symba_parameters)
@@ -241,8 +241,8 @@ contains
                      end if
 
                      if (param%lclose) then
-                        call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci, lplpl_collision, lplpl_closest) 
-                        call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci, lpltp_collision, lpltp_closest) 
+                        call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci, lplpl_collision) 
+                        call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci, lpltp_collision) 
 
                         if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
                         if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)

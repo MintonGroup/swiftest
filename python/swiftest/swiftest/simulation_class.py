@@ -43,7 +43,7 @@ class Simulation:
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = False, read_old_output_file: bool = False, simdir: os.PathLike | str = "simdata", **kwargs: Any):
+    def __init__(self,read_param: bool = False, read_old_output: bool = False, simdir: os.PathLike | str = "simdata", **kwargs: Any):
         """
 
         Parameters
@@ -65,7 +65,7 @@ class Simulation:
                   inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
-        read_old_output_file : bool, default False
+        read_old_output : bool, default False
             If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
             Parameter input file equivalent: None
         simdir : PathLike, default `"simdir"`
@@ -227,12 +227,6 @@ class Simulation:
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
             Parameter input file equivalent: `FRAGMENTATION`
-        collision_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
-            Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
-            trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
-            at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
-            details are still logged fraggle.log).
-            *WARNING*: Enabling this feature could lead to very large files.
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
@@ -329,7 +323,7 @@ class Simulation:
                 msg += "\nDelete the file or change the location of param_file"
                 raise NotADirectoryError(msg)
         else:
-            if read_old_output_file or read_param:
+            if read_old_output or read_param:
                 raise NotADirectoryError(f"Cannot find directory {self.simdir.resolve()} ")
             else:
                 self.simdir.mkdir(parents=True, exist_ok=False)
@@ -354,8 +348,8 @@ class Simulation:
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
         param_file_found = False
-        if read_param or read_old_output_file:
-            if self.read_param(read_init_cond = not read_old_output_file):
+        if read_param or read_old_output:
+            if self.read_param(read_init_cond = not read_old_output):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
@@ -375,7 +369,7 @@ class Simulation:
             self.write_param()
 
         # Read in an old simulation file if requested
-        if read_old_output_file:
+        if read_old_output:
             binpath = os.path.join(self.simdir, self.param['BIN_OUT'])
             if os.path.exists(binpath):
                 self.read_output_file()
@@ -762,7 +756,7 @@ class Simulation:
             "init_cond_file_type": "NETCDF_DOUBLE",
             "init_cond_file_name": None,
             "init_cond_format": "EL",
-            "read_old_output_file": False,
+            "read_old_output": False,
             "output_file_type": "NETCDF_DOUBLE",
             "output_file_name": None,
             "output_format": "XVEL",
@@ -794,8 +788,7 @@ class Simulation:
             "encounter_check_loops": "TRIANGULAR",
             "ephemeris_date": "MBCL",
             "restart": False,
-            "encounter_save" : "NONE",
-            "collision_save" : "NONE"
+            "encounter_save" : "NONE"
         }
         param_file = kwargs.pop("param_file",None)
 
@@ -1032,7 +1025,6 @@ class Simulation:
                     interaction_loops: Literal["TRIANGULAR", "FLAT", "ADAPTIVE"] | None = None,
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
                     encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
-                    collision_save: Literal["NONE", "TRAJECTORY", "CLOSEST"] | None = None,
                     verbose: bool | None = None,
                     **kwargs: Any
                     ):
@@ -1054,12 +1046,6 @@ class Simulation:
         fragmentation : bool, optional
             If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
-        collision_save : {"NONE","TRAJECTORY","CLOSEST"}, default "NONE"
-            Indicate if and how fragmentation data should be saved. If set to "TRAJECTORY" the full close encounter
-            trajectories associated with each collision are saved to file. If set to "CLOSEST" only the trajectories
-            at a the time the collision occurs are saved. If set to "NONE" no trajectory information is saved (collision
-            details are still logged fraggle.log).
-            *WARNING*: Enabling this feature could lead to very large files.
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
@@ -1226,20 +1212,6 @@ class Simulation:
                 self.param["ENCOUNTER_SAVE"] = encounter_save
                 update_list.append("encounter_save")
 
-
-        if collision_save is not None:
-            collision_save = collision_save.upper()
-            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST"]
-            if collision_save not in valid_vals:
-                msg = f"{collision_save} is not a valid option for collision_save."
-                msg += f"\nMust be one of {valid_vals}"
-                warnings.warn(msg,stacklevel=2)
-                if "COLLISION_SAVE" not in self.param:
-                    self.param["COLLISION_SAVE"] = valid_vals[0]
-            else:
-                self.param["COLLISION_SAVE"] = collision_save
-                update_list.append("collision_save")
-
         self.param["TIDES"] = False
 
         feature_dict = self.get_feature(update_list, verbose)
@@ -1272,7 +1244,6 @@ class Simulation:
         valid_var = {"close_encounter_check": "CHK_CLOSE",
                      "fragmentation": "FRAGMENTATION",
                      "encounter_save": "ENCOUNTER_SAVE",
-                     "collision_save": "COLLISION_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
                      "rotation": "ROTATION",
                      "general_relativity": "GR",
@@ -2739,11 +2710,6 @@ class Simulation:
             read_encounters = self.param["ENCOUNTER_SAVE"] != "NONE"
         else:
             read_encounters = False
-
-        if "COLLISION_SAVE" in self.param:
-            read_collisions = self.param["COLLISION_SAVE"] != "NONE"
-        else:
-            read_collisions = False
 
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])

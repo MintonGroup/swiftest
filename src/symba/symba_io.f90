@@ -68,9 +68,6 @@ contains
                case ("ENCOUNTER_SAVE")
                   call io_toupper(param_value)
                   read(param_value, *) param%encounter_save
-               case ("COLLISION_SAVE")
-                  call io_toupper(param_value)
-                  read(param_value, *) param%collision_save
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -128,14 +125,7 @@ contains
             return
          end if
 
-         if ((param%collision_save /= "NONE") .and. (param%collision_save /= "TRAJECTORY") .and. (param%collision_save /= "CLOSEST")) then
-            write(iomsg,*) 'Invalid collision_save parameter: ',trim(adjustl(param%out_type))
-            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
-            iostat = -1
-            return
-         end if
-         param%lencounter_save = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "CLOSEST") .or. &
-                                 (param%collision_save == "TRAJECTORY") .or. (param%collision_save == "CLOSEST") 
+         param%lencounter_save = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "CLOSEST")
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 

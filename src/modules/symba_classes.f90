@@ -31,8 +31,7 @@ module symba_classes
       integer(I4B), dimension(:), allocatable :: seed                         !! Random seeds
       logical                                 :: lfragmentation     = .false. !! Do fragmentation modeling instead of simple merger.
       character(STRMAX)                       :: encounter_save     = "NONE"  !! Indicate if and how encounter data should be saved
-      character(STRMAX)                       :: collision_save = "NONE"  !! Indicate if and how fragmentation data should be saved
-      logical                                 :: lencounter_save    = .false. !! Turns on encounter saving
+      logical                                 :: lencounter_save   
       type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
       type(collision_storage(nframes=:)), allocatable :: collision_history  !! Stores encounter history for later retrieval and saving to file
    contains
@@ -175,7 +174,7 @@ module symba_classes
    !> SyMBA class for tracking pl-pl close encounters in a step
    type, extends(symba_encounter) :: symba_plplenc
    contains
-      procedure :: extract_collisions     => symba_collision_encounter_extract_collisions !! Processes the pl-pl encounter list remove only those encounters that led to a collision
+      procedure :: extract_collisions     => symba_collision_extract_collisions_from_encounters !! Processes the pl-pl encounter list remove only those encounters that led to a collision
       procedure :: resolve_fragmentations => symba_resolve_collision_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
       procedure :: resolve_mergers        => symba_resolve_collision_mergers              !! Process list of collisions and merge colliding bodies together
       procedure :: resolve_collision      => symba_resolve_collision_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
@@ -207,7 +206,7 @@ module symba_classes
 
    interface
 
-      module subroutine symba_collision_check_encounter(self, system, param, t, dt, irec, lany_collision, lany_closest)
+      module subroutine symba_collision_check_encounter(self, system, param, t, dt, irec, lany_collision)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
@@ -217,10 +216,9 @@ module symba_classes
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
          logical,                    intent(out)   :: lany_collision !! Returns true if any pair of encounters resulted in a collision 
-         logical,                    intent(out)   :: lany_closest   !! Returns true if any pair of encounters reached their closest approach without colliding
       end subroutine symba_collision_check_encounter
 
-      module subroutine symba_collision_encounter_extract_collisions(self, system, param)
+      module subroutine symba_collision_extract_collisions_from_encounters(self, system, param)
          implicit none
          class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object

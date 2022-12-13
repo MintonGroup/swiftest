@@ -262,7 +262,7 @@ contains
    end subroutine symba_collision_collider_message
 
 
-   module subroutine symba_collision_check_encounter(self, system, param, t, dt, irec, lany_collision, lany_closest)
+   module subroutine symba_collision_check_encounter(self, system, param, t, dt, irec, lany_collision)
       !! author: David A. Minton
       !!
       !! Check for merger between massive bodies and test particles in SyMBA
@@ -278,7 +278,7 @@ contains
       real(DP),                   intent(in)    :: t              !! current time
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level
-      logical,                    intent(out)   :: lany_collision, lany_closest !! Returns true if cany pair of encounters resulted in a collision 
+      logical,                    intent(out)   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lclosest, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
@@ -289,7 +289,6 @@ contains
       class(symba_encounter), allocatable       :: tmp       
 
       lany_collision = .false.
-      lany_closest = .false.
       if (self%nenc == 0) return
 
       select type(self)
@@ -339,7 +338,6 @@ contains
             end if
 
             lany_collision = any(lcollision(:))
-            lany_closest = any(lclosest(:))
 
             if (lany_collision) then
                call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
@@ -389,6 +387,11 @@ contains
                   allocate(tmp, mold=self)
                   call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
                end select
+            end if
+
+            ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
+            if (any(lclosest(:))) then
+
             end if
 
          end select
@@ -580,7 +583,7 @@ contains
    end function symba_collision_consolidate_colliders
 
 
-   module subroutine symba_collision_encounter_extract_collisions(self, system, param)
+   module subroutine symba_collision_extract_collisions_from_encounters(self, system, param)
       !! author: David A. Minton
       !! 
       !! Processes the pl-pl encounter list remove only those encounters that led to a collision
@@ -646,7 +649,7 @@ contains
       end select
 
       return
-   end subroutine symba_collision_encounter_extract_collisions
+   end subroutine symba_collision_extract_collisions_from_encounters
 
 
    module subroutine symba_collision_make_colliders_pl(self, idx)
@@ -984,7 +987,7 @@ contains
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
       real(DP) :: Eorbit_before, Eorbit_after
-      logical :: lplpl_collision, lplpl_closest
+      logical :: lplpl_collision
       character(len=STRMAX) :: timestr
       class(symba_parameters), allocatable :: tmp_param
    
@@ -1037,7 +1040,7 @@ contains
                   deallocate(tmp_param)
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plplcollision_list 
-                  call plplenc_list%collision_check(system, param, t, dt, irec, lplpl_collision, lplpl_closest)
+                  call plplenc_list%collision_check(system, param, t, dt, irec, lplpl_collision)
 
                   if (.not.lplpl_collision) exit
                end do
