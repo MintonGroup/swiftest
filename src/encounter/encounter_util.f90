@@ -570,7 +570,7 @@ contains
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
       class(encounter_snapshot), allocatable :: snapshot
-      integer(I4B) :: i, j, k, npl_snap, ntp_snap, iflag
+      integer(I4B) :: i, pi, pj, k, npl_snap, ntp_snap, iflag
       real(DP), dimension(NDIM) :: rrel, vrel, rcom, vcom
       real(DP) :: Gmtot, a, q, capm, tperi
       real(DP), dimension(NDIM,2) :: rb,vb
@@ -670,18 +670,18 @@ contains
                                     call pl_snap%setup(2, param)
                                     do k = 1, plplenc_list%nenc
                                        if (plplenc_list%lclosest(k)) then
-                                          i = plplenc_list%index1(k)
-                                          j = plplenc_list%index2(k)
-                                          pl_snap%levelg(:) = pl%levelg([i,j])
-                                          pl_snap%id(:) = pl%id([i,j])
-                                          pl_snap%info(:) = pl%info([i,j])
-                                          pl_snap%Gmass(:) = pl%Gmass([i,j])
+                                          pi = plplenc_list%index1(k)
+                                          pj = plplenc_list%index2(k)
+                                          pl_snap%levelg(:) = pl%levelg([pi,pj])
+                                          pl_snap%id(:) = pl%id([pi,pj])
+                                          pl_snap%info(:) = pl%info([pi,pj])
+                                          pl_snap%Gmass(:) = pl%Gmass([pi,pj])
                                           Gmtot = sum(pl_snap%Gmass(:))
-                                          if (param%lclose) pl_snap%radius(:) = pl%radius([i,j])
+                                          if (param%lclose) pl_snap%radius(:) = pl%radius([pi,pj])
                                           if (param%lrotation) then
                                              do i = 1, NDIM
-                                                pl_snap%Ip(i,:) = pl%Ip(i,[i,j])
-                                                pl_snap%rot(i,:) = pl%rot(i,[i,j])
+                                                pl_snap%Ip(i,:) = pl%Ip(i,[pi,pj])
+                                                pl_snap%rot(i,:) = pl%rot(i,[pi,pj])
                                              end do
                                           end if
 

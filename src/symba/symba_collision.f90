@@ -442,8 +442,8 @@ contains
             if (tcr2 <= dt2) then
                call orbel_xv2aeq(Gmtot, xr, yr, zr, vxr, vyr, vzr, a, e, q)
                lcollision = (q < rlim) 
-               lclosest = .not. lcollision
             end if
+            lclosest = .not. lcollision
          end if
       end if
 
