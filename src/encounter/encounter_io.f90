@@ -29,7 +29,7 @@ contains
             nc%file_number = nc%file_number + 1 
             call self%make_index_map()
             nc%event_dimsize = self%nt
-            nc%id_dimsize = self%nid
+            nc%name_dimsize = self%nid
 
             write(nc%file_name, '("collision_",I0.6,".nc")') nc%file_number
             call nc%initialize(param)
@@ -73,7 +73,7 @@ contains
             nc%file_number = nc%file_number + 1 
             call self%make_index_map()
             nc%time_dimsize = self%nt
-            nc%id_dimsize = self%nid
+            nc%name_dimsize = self%nid
             write(nc%file_name, '("encounter_",I0.6,".nc")') nc%file_number
             call nc%initialize(param)
 
@@ -138,28 +138,28 @@ contains
 
          ! Dimensions
          call check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "encounter_io_initialize nf90_def_dim time_dimid" ) ! Simulation time dimension
-         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM , nc%space_dimid), "encounter_io_initialize nf90_def_dim space_dimid" )           ! 3D space dimension
-         call check( nf90_def_dim(nc%id, nc%id_dimname, nc%id_dimsize, nc%id_dimid), "encounter_io_initialize nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
+         call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "encounter_io_initialize nf90_def_dim space_dimid" )           ! 3D space dimension
+         call check( nf90_def_dim(nc%id, nc%name_dimname, nc%name_dimsize, nc%name_dimid), "encounter_io_initialize nf90_def_dim name_dimid" )       ! dimension to store particle id numbers
          call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "encounter_io_initialize nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
 
          ! Dimension coordinates
          call check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "encounter_io_initialize nf90_def_var time_varid"  )
          call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "encounter_io_initialize nf90_def_var space_varid"  )
-         call check( nf90_def_var(nc%id, nc%id_dimname, NF90_INT, nc%id_dimid, nc%id_varid), "encounter_io_initialize nf90_def_var id_varid"  )
+         call check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), "encounter_io_initialize nf90_def_var id_varid"  )
       
          ! Variables
-         call check( nf90_def_var(nc%id, nc%name_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%name_varid), "encounter_io_initialize nf90_def_var name_varid"  )
-         call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%ptype_varid), "encounter_io_initialize nf90_def_var ptype_varid"  )
-         call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "encounter_io_initialize nf90_def_var rh_varid"  )
-         call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "encounter_io_initialize nf90_def_var vh_varid"  )
-         call check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "encounter_io_initialize nf90_def_var Gmass_varid"  )
+         call check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), "encounter_io_initialize nf90_def_var id_varid"  )
+         call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%ptype_varid), "encounter_io_initialize nf90_def_var ptype_varid"  )
+         call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rh_varid), "encounter_io_initialize nf90_def_var rh_varid"  )
+         call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%vh_varid), "encounter_io_initialize nf90_def_var vh_varid"  )
+         call check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), "encounter_io_initialize nf90_def_var Gmass_varid"  )
          call check( nf90_def_var(nc%id, nc%loop_varname, NF90_INT, [nc%time_dimid], nc%loop_varid), "encounter_io_initialize nf90_def_var loop_varid"  )
          if (param%lclose) then
-            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "encounter_io_initialize nf90_def_var radius_varid"  )
+            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%radius_varid), "encounter_io_initialize nf90_def_var radius_varid"  )
          end if
          if (param%lrotation) then
-            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "encounter_io_initialize nf90_def_var Ip_varid"  )
-            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "encounter_io_initialize nf90_def_var rot_varid"  )
+            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%Ip_varid), "encounter_io_initialize nf90_def_var Ip_varid"  )
+            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rot_varid), "encounter_io_initialize nf90_def_var rot_varid"  )
          end if
 
          call check( nf90_inquire(nc%id, nVariables=nvar), "encounter_io_initialize nf90_inquire nVariables"  )

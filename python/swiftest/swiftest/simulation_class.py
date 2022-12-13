@@ -2790,11 +2790,6 @@ class Simulation:
         tgood,tid = np.unique(self.encounters.time,return_index=True)
         self.encounters = self.encounters.isel(time=tid)
 
-        # Reduce the dimensionality of variables that got expanded in the combine process
-        self.encounters['loopnum'] = self.encounters['loopnum'].max(dim="name")
-        self.encounters['id'] = self.encounters['id'].max(dim="time")
-        self.encounters['particle_type'] = self.encounters['particle_type'].max(dim="time")
-
         return
 
 
@@ -2809,13 +2804,8 @@ class Simulation:
             return io.process_netcdf_input(ds,param)
         partial_func = partial(_preprocess, param=self.param)
 
-        self.collisions = xr.open_mfdataset(col_files,parallel=True,combine="nested",concat_dim="collision",join="left",preprocess=partial_func,mask_and_scale=True)
+        self.collisions = xr.open_mfdataset(col_files,parallel=True, coords=["collision"], join="inner", preprocess=partial_func,mask_and_scale=True)
         self.collisions = io.process_netcdf_input(self.collisions, self.param)
-
-        # # Reduce the dimensionality of variables that got expanded in the combine process
-        # self.encounters['loopnum'] = self.encounters['loopnum'].max(dim="name")
-        # self.encounters['id'] = self.encounters['id'].max(dim="time")
-        # self.encounters['particle_type'] = self.encounters['particle_type'].max(dim="time")
 
         return
 

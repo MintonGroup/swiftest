@@ -59,7 +59,7 @@ module encounter_classes
       character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
       integer(I4B)       :: loop_varid               !! ID for the recursion level variable
       integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
-      integer(I4B)       :: id_dimsize   = 0         !! Number of potential id values in snapshot
+      integer(I4B)       :: name_dimsize   = 0         !! Number of potential id values in snapshot
       integer(I4B)       :: file_number  = 1         !! The number to append on the output file
    contains
       procedure :: initialize => encounter_io_initialize !! Initialize a set of parameters used to identify a NetCDF output object

@@ -34,9 +34,9 @@ module swiftest_classes
       character(NAMELEN) :: time_dimname            = "time"            !! name of the time dimension 
       integer(I4B)       :: time_dimid                                  !! ID for the time dimension 
       integer(I4B)       :: time_varid                                  !! ID for the time variable
-      character(NAMELEN) :: id_dimname              = "id"              !! name of the particle id dimension
-      integer(I4B)       :: id_dimid                                    !! ID for the particle id dimension
-      integer(I4B)       :: id_varid                                    !! ID for the particle name variable
+      character(NAMELEN) :: name_dimname            = "name"            !! name of the particle name dimension
+      integer(I4B)       :: name_dimid                                  !! ID for the particle name dimension
+      integer(I4B)       :: name_varid                                  !! ID for the particle name variable
       character(NAMELEN) :: space_dimname           = "space"           !! name of the space dimension
       integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
@@ -45,8 +45,8 @@ module swiftest_classes
       ! Non-dimension ids and variable names
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable
       integer(I4B)       :: ptype_varid                                 !! ID for the particle type variable
-      character(NAMELEN) :: name_varname            = "name"            !! name of the particle name variable
-      integer(I4B)       :: name_varid                                  !! ID for the name variable 
+      character(NAMELEN) :: id_varname              = "id"              !! name of the particle id variable
+      integer(I4B)       :: id_varid                                    !! ID for the id variable 
       character(NAMELEN) :: npl_varname             = "npl"             !! name of the number of active massive bodies variable
       integer(I4B)       :: npl_varid                                   !! ID for the number of active massive bodies variable
       character(NAMELEN) :: ntp_varname             = "ntp"             !! name of the number of active test particles variable

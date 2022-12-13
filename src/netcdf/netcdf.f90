@@ -83,7 +83,7 @@ contains
       associate (nc => param%system_history%nc)
          call nc%open(param)
          call check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_get_old_t_final_system time_dimid" )
-         call check( nf90_inquire_dimension(nc%id, nc%id_dimid, len=idmax), "netcdf_get_old_t_final_system id_dimid" )
+         call check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_get_old_t_final_system name_dimid" )
          allocate(vals(idmax))
          call check( nf90_get_var(nc%id, nc%time_varid, rtemp, start=[1], count=[1]), "netcdf_get_old_t_final_system time_varid" )
 
@@ -186,77 +186,77 @@ contains
          ! Dimensions
          call check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "netcdf_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
          call check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "netcdf_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
-         call check( nf90_def_dim(nc%id, nc%id_dimname, NF90_UNLIMITED, nc%id_dimid), "netcdf_initialize_output nf90_def_dim id_dimid" )       ! dimension to store particle id numbers
+         call check( nf90_def_dim(nc%id, nc%name_dimname, NF90_UNLIMITED, nc%name_dimid), "netcdf_initialize_output nf90_def_dim name_dimid" )       ! dimension to store particle id numbers
          call check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "netcdf_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
 
          ! Dimension coordinates
          call check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "netcdf_initialize_output nf90_def_var time_varid"  )
          call check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "netcdf_initialize_output nf90_def_var space_varid"  )
-         call check( nf90_def_var(nc%id, nc%id_dimname, NF90_INT, nc%id_dimid, nc%id_varid), "netcdf_initialize_output nf90_def_var id_varid"  )
+         call check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), "netcdf_initialize_output nf90_def_var name_varid"  )
 
          ! Variables
+         call check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), "netcdf_initialize_output nf90_def_var id_varid"  )
          call check( nf90_def_var(nc%id, nc%npl_varname, NF90_INT, nc%time_dimid, nc%npl_varid), "netcdf_initialize_output nf90_def_var npl_varid"  )
          call check( nf90_def_var(nc%id, nc%ntp_varname, NF90_INT, nc%time_dimid, nc%ntp_varid), "netcdf_initialize_output nf90_def_var ntp_varid"  )
          if (param%integrator == SYMBA) call check( nf90_def_var(nc%id, nc%nplm_varname, NF90_INT, nc%time_dimid, nc%nplm_varid), "netcdf_initialize_output nf90_def_var nplm_varid"  )
-         call check( nf90_def_var(nc%id, nc%name_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%name_varid), "netcdf_initialize_output nf90_def_var name_varid"  )
-         call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], nc%ptype_varid), "netcdf_initialize_output nf90_def_var ptype_varid"  )
+         call check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%ptype_varid), "netcdf_initialize_output nf90_def_var ptype_varid"  )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
-            call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rh_varid), "netcdf_initialize_output nf90_def_var rh_varid"  )
-            call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%vh_varid), "netcdf_initialize_output nf90_def_var vh_varid"  )
+            call check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rh_varid), "netcdf_initialize_output nf90_def_var rh_varid"  )
+            call check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%vh_varid), "netcdf_initialize_output nf90_def_var vh_varid"  )
 
             !! When GR is enabled, we need to save the pseudovelocity vectors in addition to the true heliocentric velocity vectors, otherwise
             !! we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors during the conversion.
             if (param%lgr) then
-               call check( nf90_def_var(nc%id, nc%gr_pseudo_vh_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%gr_pseudo_vh_varid), "netcdf_initialize_output nf90_def_var gr_psuedo_vh_varid"  )
+               call check( nf90_def_var(nc%id, nc%gr_pseudo_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%gr_pseudo_vh_varid), "netcdf_initialize_output nf90_def_var gr_psuedo_vh_varid"  )
                nc%lpseudo_vel_exists = .true.
             end if
 
          end if
       
          if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
-            call check( nf90_def_var(nc%id, nc%a_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%a_varid), "netcdf_initialize_output nf90_def_var a_varid"  )
-            call check( nf90_def_var(nc%id, nc%e_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%e_varid), "netcdf_initialize_output nf90_def_var e_varid"  )
-            call check( nf90_def_var(nc%id, nc%inc_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%inc_varid), "netcdf_initialize_output nf90_def_var inc_varid"  )
-            call check( nf90_def_var(nc%id, nc%capom_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%capom_varid), "netcdf_initialize_output nf90_def_var capom_varid"  )
-            call check( nf90_def_var(nc%id, nc%omega_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%omega_varid), "netcdf_initialize_output nf90_def_var omega_varid"  )
-            call check( nf90_def_var(nc%id, nc%capm_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%capm_varid), "netcdf_initialize_output nf90_def_var capm_varid"  )
-            call check( nf90_def_var(nc%id, nc%varpi_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%varpi_varid), "netcdf_initialize_output nf90_def_var varpi_varid"  )
-            call check( nf90_def_var(nc%id, nc%lam_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%lam_varid), "netcdf_initialize_output nf90_def_var lam_varid"  )
-            call check( nf90_def_var(nc%id, nc%f_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%f_varid), "netcdf_initialize_output nf90_def_var f_varid"  )
-            call check( nf90_def_var(nc%id, nc%cape_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%cape_varid), "netcdf_initialize_output nf90_def_var cape_varid"  )
+            call check( nf90_def_var(nc%id, nc%a_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%a_varid), "netcdf_initialize_output nf90_def_var a_varid"  )
+            call check( nf90_def_var(nc%id, nc%e_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%e_varid), "netcdf_initialize_output nf90_def_var e_varid"  )
+            call check( nf90_def_var(nc%id, nc%inc_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%inc_varid), "netcdf_initialize_output nf90_def_var inc_varid"  )
+            call check( nf90_def_var(nc%id, nc%capom_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%capom_varid), "netcdf_initialize_output nf90_def_var capom_varid"  )
+            call check( nf90_def_var(nc%id, nc%omega_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%omega_varid), "netcdf_initialize_output nf90_def_var omega_varid"  )
+            call check( nf90_def_var(nc%id, nc%capm_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%capm_varid), "netcdf_initialize_output nf90_def_var capm_varid"  )
+            call check( nf90_def_var(nc%id, nc%varpi_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%varpi_varid), "netcdf_initialize_output nf90_def_var varpi_varid"  )
+            call check( nf90_def_var(nc%id, nc%lam_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%lam_varid), "netcdf_initialize_output nf90_def_var lam_varid"  )
+            call check( nf90_def_var(nc%id, nc%f_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%f_varid), "netcdf_initialize_output nf90_def_var f_varid"  )
+            call check( nf90_def_var(nc%id, nc%cape_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%cape_varid), "netcdf_initialize_output nf90_def_var cape_varid"  )
          end if
 
-         call check( nf90_def_var(nc%id, nc%gmass_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Gmass_varid), "netcdf_initialize_output nf90_def_var Gmass_varid"  )
+         call check( nf90_def_var(nc%id, nc%gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), "netcdf_initialize_output nf90_def_var Gmass_varid"  )
 
          if (param%lrhill_present) then
-            call check( nf90_def_var(nc%id, nc%rhill_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%rhill_varid), "netcdf_initialize_output nf90_def_var rhill_varid"  )
+            call check( nf90_def_var(nc%id, nc%rhill_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%rhill_varid), "netcdf_initialize_output nf90_def_var rhill_varid"  )
          end if
 
          if (param%lclose) then
-            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%radius_varid), "netcdf_initialize_output nf90_def_var radius_varid"  )
+            call check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%radius_varid), "netcdf_initialize_output nf90_def_var radius_varid"  )
 
-            call check( nf90_def_var(nc%id, nc%origin_time_varname, nc%out_type, nc%id_dimid, nc%origin_time_varid), "netcdf_initialize_output nf90_def_var origin_time_varid"  )
-            call check( nf90_def_var(nc%id, nc%origin_type_varname, NF90_CHAR, [nc%str_dimid, nc%id_dimid], &
+            call check( nf90_def_var(nc%id, nc%origin_time_varname, nc%out_type, nc%name_dimid, nc%origin_time_varid), "netcdf_initialize_output nf90_def_var origin_time_varid"  )
+            call check( nf90_def_var(nc%id, nc%origin_type_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], &
                                     nc%origin_type_varid), "netcdf_initialize_output nf90_create"  )
-            call check( nf90_def_var(nc%id, nc%origin_rh_varname, nc%out_type, [nc%space_dimid, nc%id_dimid], nc%origin_rh_varid), "netcdf_initialize_output nf90_def_var origin_rh_varid"  )
-            call check( nf90_def_var(nc%id, nc%origin_vh_varname, nc%out_type, [nc%space_dimid, nc%id_dimid], nc%origin_vh_varid), "netcdf_initialize_output nf90_def_var origin_vh_varid"  )
+            call check( nf90_def_var(nc%id, nc%origin_rh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%origin_rh_varid), "netcdf_initialize_output nf90_def_var origin_rh_varid"  )
+            call check( nf90_def_var(nc%id, nc%origin_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%origin_vh_varid), "netcdf_initialize_output nf90_def_var origin_vh_varid"  )
 
-            call check( nf90_def_var(nc%id, nc%collision_id_varname, NF90_INT, nc%id_dimid, nc%collision_id_varid), "netcdf_initialize_output nf90_def_var collision_id_varid"  )
-            call check( nf90_def_var(nc%id, nc%discard_time_varname, nc%out_type, nc%id_dimid, nc%discard_time_varid), "netcdf_initialize_output nf90_def_var discard_time_varid"  )
-            call check( nf90_def_var(nc%id, nc%discard_rh_varname, nc%out_type, [nc%space_dimid, nc%id_dimid], nc%discard_rh_varid), "netcdf_initialize_output nf90_def_var discard_rh_varid"  )
-            call check( nf90_def_var(nc%id, nc%discard_vh_varname, nc%out_type, [nc%space_dimid, nc%id_dimid], nc%discard_vh_varid), "netcdf_initialize_output nf90_def_var discard_vh_varid"  )
-            call check( nf90_def_var(nc%id, nc%discard_body_id_varname, NF90_INT, nc%id_dimid, nc%discard_body_id_varid), "netcdf_initialize_output nf90_def_var discard_body_id_varid"  )
+            call check( nf90_def_var(nc%id, nc%collision_id_varname, NF90_INT, nc%name_dimid, nc%collision_id_varid), "netcdf_initialize_output nf90_def_var collision_id_varid"  )
+            call check( nf90_def_var(nc%id, nc%discard_time_varname, nc%out_type, nc%name_dimid, nc%discard_time_varid), "netcdf_initialize_output nf90_def_var discard_time_varid"  )
+            call check( nf90_def_var(nc%id, nc%discard_rh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%discard_rh_varid), "netcdf_initialize_output nf90_def_var discard_rh_varid"  )
+            call check( nf90_def_var(nc%id, nc%discard_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%discard_vh_varid), "netcdf_initialize_output nf90_def_var discard_vh_varid"  )
+            call check( nf90_def_var(nc%id, nc%discard_body_id_varname, NF90_INT, nc%name_dimid, nc%discard_body_id_varid), "netcdf_initialize_output nf90_def_var discard_body_id_varid"  )
          end if
 
          if (param%lrotation) then
-            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%Ip_varid), "netcdf_initialize_output nf90_def_var Ip_varid"  )
-            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%id_dimid, nc%time_dimid], nc%rot_varid), "netcdf_initialize_output nf90_def_var rot_varid"  )
+            call check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%Ip_varid), "netcdf_initialize_output nf90_def_var Ip_varid"  )
+            call check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rot_varid), "netcdf_initialize_output nf90_def_var rot_varid"  )
          end if
 
          ! if (param%ltides) then
-         !    call check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%k2_varid), "netcdf_initialize_output nf90_def_var k2_varid"  )
-         !    call check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%id_dimid, nc%time_dimid], nc%Q_varid), "netcdf_initialize_output nf90_def_var Q_varid"  )
+         !    call check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), "netcdf_initialize_output nf90_def_var k2_varid"  )
+         !    call check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Q_varid), "netcdf_initialize_output nf90_def_var Q_varid"  )
          ! end if
 
          if (param%lenergy) then
@@ -332,16 +332,16 @@ contains
          ! Dimensions
          call check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), "netcdf_open nf90_inq_dimid time_dimid"  )
          call check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), "netcdf_open nf90_inq_dimid space_dimid"  )
-         call check( nf90_inq_dimid(nc%id, nc%id_dimname, nc%id_dimid), "netcdf_open nf90_inq_dimid id_dimid"  )
+         call check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), "netcdf_open nf90_inq_dimid name_dimid"  )
          call check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), "netcdf_open nf90_inq_dimid str_dimid"  )
 
          ! Dimension coordinates
          call check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), "netcdf_open nf90_inq_varid time_varid" )
          call check( nf90_inq_varid(nc%id, nc%space_dimname, nc%space_varid), "netcdf_open nf90_inq_varid space_varid" )
-         call check( nf90_inq_varid(nc%id, nc%id_dimname, nc%id_varid), "netcdf_open nf90_inq_varid id_varid" )
+         call check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), "netcdf_open nf90_inq_varid name_varid" )
 
          ! Required Variables
-         call check( nf90_inq_varid(nc%id, nc%name_varname, nc%name_varid), "netcdf_open nf90_inq_varid name_varid" )
+         call check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), "netcdf_open nf90_inq_varid name_varid" )
          call check( nf90_inq_varid(nc%id, nc%gmass_varname, nc%Gmass_varid), "netcdf_open nf90_inq_varid Gmass_varid" )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
@@ -461,7 +461,7 @@ contains
          call pl%setup(npl, param)
          call tp%setup(ntp, param)
 
-         call check( nf90_inquire_dimension(nc%id, nc%id_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension id_dimid"  )
+         call check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_read_frame_system nf90_inquire_dimension name_dimid"  )
          allocate(rtemp(idmax))
          allocate(vectemp(NDIM,idmax))
          allocate(itemp(idmax))
@@ -703,7 +703,7 @@ contains
 
 
       tslot = param%ioutput
-      call check( nf90_inquire_dimension(nc%id, nc%id_dimid, len=idmax), "netcdf_read_hdr_system nf90_inquire_dimension id_dimid"  )
+      call check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_read_hdr_system nf90_inquire_dimension name_dimid"  )
       call check( nf90_get_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_read_hdr_system nf90_getvar time_varid"  )
 
       allocate(gmtemp(idmax))

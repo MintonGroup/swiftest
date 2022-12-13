@@ -817,18 +817,18 @@ def process_netcdf_input(ds, param):
     ds : xarray dataset
     """
     #
-    ds = ds.where(ds.id >=0,drop=True)
+    #ds = ds.where(ds.id >=0,drop=True)
     if param['OUT_TYPE'] == "NETCDF_DOUBLE":
         ds = fix_types(ds,ftype=np.float64)
     elif param['OUT_TYPE'] == "NETCDF_FLOAT":
         ds = fix_types(ds,ftype=np.float32)
 
-    # Check if the name variable contains unique values. If so, make name the dimension instead of id
-    if "id" in ds.dims:
-        if len(np.unique(ds['name'])) == len(ds['name']):
-            ds = ds.swap_dims({"id" : "name"})
-            if "id" in ds:
-                ds = ds.reset_coords("id")
+    # # Check if the name variable contains unique values. If so, make name the dimension instead of id
+    # if "id" in ds.dims:
+    #     if len(np.unique(ds['name'])) == len(ds['name']):
+    #         ds = ds.swap_dims({"id" : "name"})
+    #         if "id" in ds:
+    #             ds = ds.reset_coords("id")
 
     return ds
 
@@ -1127,9 +1127,6 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     param_tmp['OUT_FORM'] = param['IN_FORM']
     frame = select_active_from_frame(ds, param_tmp, framenum)
 
-    if "name" in frame.dims:
-        frame = frame.swap_dims({"name" : "id"})
-        frame = frame.reset_coords("name")
 
     if in_type == "NETCDF_DOUBLE" or in_type == "NETCDF_FLOAT":
         # Convert strings back to byte form and save the NetCDF file
@@ -1146,8 +1143,8 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         return frame
 
     # All other file types need seperate files for each of the inputs
-    cb = frame.where(frame.id == 0, drop=True)
-    pl = frame.where(frame.id > 0, drop=True)
+    cb = frame.isel(name=0)
+    pl = frame.where(name != cb.name)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j2rp2'],errors="ignore")
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'],errors="ignore")
     
