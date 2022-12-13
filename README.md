@@ -670,13 +670,11 @@ Parallelization using OpenMP is still under development in Swiftest. For prelimi
 
 ---
 
-**NOTHING IS CHECKED BELOW HERE**
-
 #### Examples
 
-All examples are included in the ```/swiftest/examples/``` directory. To run the initial conditions, follow the steps included in the **Usage** section. See the **README.txt** included in each example directory for more details.
+All examples are included in the ```/swiftest/examples/``` directory. Simply run the script(s) included in the directory as you would normally run a Python script. See the **README.txt** included in each example directory for more details.
 
-**Standard Simulation Setup**
+**Basic_Simulation**
 
 This example walks through how to set up a standard solar system simulation. It can be found in the ```/swiftest/examples/Basic_Simulation``` directory. It is intended to be run using the SyMBA integrator. It contains three classes of bodies:
 - Fully-Interacting Massive Bodies - Gravitational affect and are affected by other massive bodies.
@@ -693,7 +691,9 @@ This example highlights the functionality of the Fraggle algorithm. It can be fo
 - An Off-Axis Supercatastrophic Disruptive Collision
 - A Disruptive Hit and Run Collision
 
-For more details on the collisional regimes used in Fraggle, please see Wishard et al. 2023 (in preparation). 
+To generate a movide depicting the collision and results of each test case, run the Python script titled **Fragmentation_Movie.py**.
+
+**NOTHING IS CHECKED BELOW HERE**
 
 **Comparison with Swifter SyMBA**
 
