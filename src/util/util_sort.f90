@@ -51,7 +51,7 @@ contains
             call util_sort(direction * body%capom(1:n), ind)
          case("mu")
             call util_sort(direction * body%mu(1:n), ind)
-         case("lfirst", "nbody", "ldiscard", "rh", "vh", "xb", "vb", "ah", "aobl", "atide", "agr")
+         case("lfirst", "nbody", "ldiscard", "rh", "vh", "rb", "vb", "ah", "aobl", "atide", "agr")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not found!'
@@ -687,7 +687,7 @@ contains
             call util_sort(direction * pl%Q(1:npl), ind)
          case("tlag")
             call util_sort(direction * pl%tlag(1:npl), ind)
-         case("xbeg", "xend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
+         case("rbeg", "xend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
             call util_sort_body(pl, sortby, ascending)
@@ -762,7 +762,7 @@ contains
          call util_sort_rearrange(self%ldiscard, ind, n)
          call util_sort_rearrange(self%rh,       ind, n)
          call util_sort_rearrange(self%vh,       ind, n)
-         call util_sort_rearrange(self%xb,       ind, n)
+         call util_sort_rearrange(self%rb,       ind, n)
          call util_sort_rearrange(self%vb,       ind, n)
          call util_sort_rearrange(self%ah,       ind, n)
          call util_sort_rearrange(self%ir3h,     ind, n)
@@ -964,7 +964,7 @@ contains
          call util_sort_rearrange(pl%mass,    ind, npl)
          call util_sort_rearrange(pl%Gmass,   ind, npl)
          call util_sort_rearrange(pl%rhill,   ind, npl)
-         call util_sort_rearrange(pl%xbeg,    ind, npl)
+         call util_sort_rearrange(pl%rbeg,    ind, npl)
          call util_sort_rearrange(pl%vbeg,    ind, npl)
          call util_sort_rearrange(pl%radius,  ind, npl)
          call util_sort_rearrange(pl%density, ind, npl)

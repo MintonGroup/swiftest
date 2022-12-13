@@ -532,7 +532,7 @@ contains
             else
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
+                     vdotr = dot_product(pl%rb(:,i), pl%vb(:,i))
                      if (vdotr > 0.0_DP) then
                         pl%isperi(i) = 1
                      else
@@ -564,11 +564,11 @@ contains
             else
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
+                     vdotr = dot_product(pl%rb(:,i), pl%vb(:,i))
                      if (pl%isperi(i) == -1) then
                         if (vdotr >= 0.0_DP) then
                            pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),&
+                           CALL orbel_xv2aeq(system%Gmtot, pl%rb(1,i), pl%rb(2,i), pl%rb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),&
                                              pl%atp(i), e, pl%peri(i))
                         end if
                      else
@@ -612,7 +612,7 @@ contains
          nadd = pl_adds%nbody
          if (npl == 0) return
          ! Deallocate any temporary variables
-         if (allocated(pl%xbeg)) deallocate(pl%xbeg)
+         if (allocated(pl%rbeg)) deallocate(pl%rbeg)
          if (allocated(pl%xend)) deallocate(pl%xend)
 
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere

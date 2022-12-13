@@ -42,7 +42,7 @@ contains
          cb%mass = cb%mass / mscale
          cb%Gmass = param%GU * cb%mass 
          cb%radius = cb%radius / dscale
-         cb%xb(:) = cb%xb(:) / dscale
+         cb%rb(:) = cb%rb(:) / dscale
          cb%vb(:) = cb%vb(:) / vscale
          cb%rot(:) = cb%rot(:) * tscale
          pl%mass(1:npl) = pl%mass(1:npl) / mscale
@@ -50,7 +50,7 @@ contains
          pl%radius(1:npl) = pl%radius(1:npl) / dscale
          pl%rh(:,1:npl) = pl%rh(:,1:npl) / dscale
          pl%vh(:,1:npl) = pl%vh(:,1:npl) / vscale
-         pl%xb(:,1:npl) = pl%xb(:,1:npl) / dscale
+         pl%rb(:,1:npl) = pl%rb(:,1:npl) / dscale
          pl%vb(:,1:npl) = pl%vb(:,1:npl) / vscale
          pl%rot(:,1:npl) = pl%rot(:,1:npl) * tscale
 

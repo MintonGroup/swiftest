@@ -27,7 +27,7 @@ contains
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       class(swiftest_parameters), allocatable   :: param_planetocen
-      real(DP), dimension(:, :), allocatable    :: xh_original
+      real(DP), dimension(:, :), allocatable    :: rh_original
       real(DP)                                  :: GMcb_original
       integer(I4B)                              :: i
 
@@ -46,7 +46,7 @@ contains
                         system_planetocen%lbeg = lbeg
 
                         ! Save the original heliocentric position for later
-                        allocate(xh_original, source=tp%rh)
+                        allocate(rh_original, source=tp%rh)
 
                         ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter using a copy of the parameter list with all of the heliocentric-specific acceleration terms turned off
                         allocate(param_planetocen, source=param)
@@ -60,17 +60,17 @@ contains
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
                            do concurrent(i = 1:ntp, tp%lmask(i))
-                              tp%xheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index - 1)%x(:,1)
+                              tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index - 1)%x(:,1)
                            end do
                         else
                            do concurrent(i = 1:ntp, tp%lmask(i))
-                              tp%xheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index    )%x(:,1)
+                              tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index    )%x(:,1)
                            end do
                         end if
 
                         ! Swap the planetocentric and heliocentric position vectors and central body masses
                         do concurrent(i = 1:ntp, tp%lmask(i))
-                           tp%rh(:, i) = tp%xheliocentric(:, i)
+                           tp%rh(:, i) = tp%rheliocentric(:, i)
                         end do
                         GMcb_original = cb%Gmass
                         cb%Gmass = tp%cb_heliocentric%Gmass
@@ -81,7 +81,7 @@ contains
                         if (param%lgr) call tp%accel_gr(param)
 
                         ! Put everything back the way we found it
-                        call move_alloc(xh_original, tp%rh)
+                        call move_alloc(rh_original, tp%rh)
                         cb%Gmass = GMcb_original
 
                      end associate

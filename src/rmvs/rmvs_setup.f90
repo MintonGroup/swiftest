@@ -156,7 +156,7 @@ contains
       allocate(self%plperP(n))
       allocate(self%plencP(n))
 
-      if (self%lplanetocentric) allocate(self%xheliocentric(NDIM, n))
+      if (self%lplanetocentric) allocate(self%rheliocentric(NDIM, n))
 
       self%lperi(:)  = .false.
 

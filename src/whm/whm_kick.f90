@@ -90,11 +90,11 @@ contains
          system%lbeg = lbeg
 
          if (lbeg) then
-            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%xbeg(:, 1:npl), npl)
+            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%xbeg(:, 1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
          else
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
             do concurrent(i = 1:ntp, tp%lmask(i))
@@ -112,14 +112,14 @@ contains
    end subroutine whm_kick_getacch_tp
 
 
-   function whm_kick_getacch_ah0(mu, xhp, n) result(ah0)
+   function whm_kick_getacch_ah0(mu, rhp, n) result(ah0)
       !! author: David A. Minton
       !!
       !! Compute zeroth term heliocentric accelerations of planets 
       implicit none
       ! Arguments
       real(DP), dimension(:),   intent(in)         :: mu
-      real(DP), dimension(:,:), intent(in)         :: xhp
+      real(DP), dimension(:,:), intent(in)         :: rhp
       integer(I4B),             intent(in)         :: n
       ! Result
       real(DP), dimension(NDIM)                    :: ah0
@@ -129,11 +129,11 @@ contains
 
       ah0(:) = 0.0_DP
       do i = 1, n
-         r2 = dot_product(xhp(:, i), xhp(:, i))
+         r2 = dot_product(rhp(:, i), rhp(:, i))
          irh = 1.0_DP / sqrt(r2)
          ir3h = irh / r2
          fac = mu(i) * ir3h 
-         ah0(:) = ah0(:) - fac * xhp(:, i)
+         ah0(:) = ah0(:) - fac * rhp(:, i)
       end do
 
       return
@@ -227,7 +227,7 @@ contains
                call pl%accel(system, param, t, lbeg)
                pl%lfirst = .false.
             end if
-            call pl%set_beg_end(xbeg = pl%rh)
+            call pl%set_beg_end(rbeg = pl%rh)
          else
             pl%ah(:, 1:npl) = 0.0_DP
             call pl%accel(system, param, t, lbeg)

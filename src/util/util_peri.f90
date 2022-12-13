@@ -51,11 +51,11 @@ contains
             end do
          else
             do i = 1, ntp
-               vdotr(i) = dot_product(tp%xb(:, i), tp%vb(:, i))
+               vdotr(i) = dot_product(tp%rb(:, i), tp%vb(:, i))
                if (tp%isperi(i) == -1) then
                   if (vdotr(i) >= 0.0_DP) then
                      tp%isperi(i) = 0
-                     call orbel_xv2aeq(system%Gmtot, tp%xb(1,i), tp%xb(2,i), tp%xb(3,i), tp%vb(1,i), tp%vb(2,i), tp%vb(3,i), &
+                     call orbel_xv2aeq(system%Gmtot, tp%rb(1,i), tp%rb(2,i), tp%rb(3,i), tp%vb(1,i), tp%vb(2,i), tp%vb(3,i), &
                                        tp%atp(i), e, tp%peri(i))
                   end if
                else

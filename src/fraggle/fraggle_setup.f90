@@ -19,7 +19,7 @@ contains
       ! Arguments
       class(fraggle_fragments), intent(inout) :: self
 
-      self%xb(:,:) = 0.0_DP
+      self%rb(:,:) = 0.0_DP
       self%vb(:,:) = 0.0_DP
       self%rot(:,:) = 0.0_DP
       self%x_coll(:,:) = 0.0_DP

@@ -177,7 +177,7 @@ contains
       associate(frag => self, nfrag => self%nbody)
          delta_v(:) = colliders%vb(:, 2) - colliders%vb(:, 1)
          v_col_norm = .mag. delta_v(:)
-         delta_r(:) = colliders%xb(:, 2) - colliders%xb(:, 1)
+         delta_r(:) = colliders%rb(:, 2) - colliders%rb(:, 1)
          r_col_norm = .mag. delta_r(:)
    
          ! We will initialize fragments on a plane defined by the pre-impact system, with the z-axis aligned with the angular momentum vector
@@ -234,9 +234,9 @@ contains
          frag%Lscale = frag%mscale * frag%dscale * frag%vscale
 
          ! Scale all dimensioned quantities of colliders and fragments
-         frag%xbcom(:) = frag%xbcom(:) / frag%dscale
+         frag%rbcom(:) = frag%rbcom(:) / frag%dscale
          frag%vbcom(:) = frag%vbcom(:) / frag%vscale
-         colliders%xb(:,:) = colliders%xb(:,:) / frag%dscale
+         colliders%rb(:,:) = colliders%rb(:,:) / frag%dscale
          colliders%vb(:,:) = colliders%vb(:,:) / frag%vscale
          colliders%mass(:) = colliders%mass(:) / frag%mscale
          colliders%radius(:) = colliders%radius(:) / frag%dscale
@@ -276,12 +276,12 @@ contains
       associate(frag => self)
 
          ! Restore scale factors
-         frag%xbcom(:) = frag%xbcom(:) * frag%dscale
+         frag%rbcom(:) = frag%rbcom(:) * frag%dscale
          frag%vbcom(:) = frag%vbcom(:) * frag%vscale
    
          colliders%mass = colliders%mass * frag%mscale
          colliders%radius = colliders%radius * frag%dscale
-         colliders%xb = colliders%xb * frag%dscale
+         colliders%rb = colliders%rb * frag%dscale
          colliders%vb = colliders%vb * frag%vscale
          colliders%L_spin = colliders%L_spin * frag%Lscale
          do i = 1, 2
@@ -297,7 +297,7 @@ contains
          frag%v_coll = frag%v_coll * frag%vscale
    
          do i = 1, frag%nbody
-            frag%xb(:, i) = frag%x_coll(:, i) + frag%xbcom(:)
+            frag%rb(:, i) = frag%x_coll(:, i) + frag%rbcom(:)
             frag%vb(:, i) = frag%v_coll(:, i) + frag%vbcom(:)
          end do
    

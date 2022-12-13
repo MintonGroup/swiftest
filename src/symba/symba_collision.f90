@@ -184,7 +184,7 @@ contains
             call fragments%set_mass_dist(colliders, param)
             ibiggest = colliders%idx(maxloc(pl%Gmass(colliders%idx(:)), dim=1))
             fragments%id(1) = pl%id(ibiggest)
-            fragments%xb(:,1) = fragments%xbcom(:)
+            fragments%rb(:,1) = fragments%rbcom(:)
             fragments%vb(:,1) = fragments%vbcom(:)
 
             if (param%lrotation) then
@@ -201,7 +201,7 @@ contains
             pe = 0.0_DP
             do j = 1, colliders%ncoll
                do i = j + 1, colliders%ncoll
-                  pe = pe - pl%Gmass(i) * pl%mass(j) / norm2(pl%xb(:, i) - pl%xb(:, j))
+                  pe = pe - pl%Gmass(i) * pl%mass(j) / norm2(pl%rb(:, i) - pl%rb(:, j))
                end do
             end do
             system%Ecollisions = system%Ecollisions + pe 
@@ -340,16 +340,16 @@ contains
 
             lany_collision = any(lcollision(:))
             if (lany_collision) then
-               call pl%xh2xb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+               call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
                do k = 1, nenc
                   i = self%index1(k)
                   j = self%index2(k)
                   if (lcollision(k)) self%status(k) = COLLISION
                   self%tcollision(k) = t
-                  self%x1(:,k) = pl%rh(:,i) + system%cb%xb(:)
+                  self%x1(:,k) = pl%rh(:,i) + system%cb%rb(:)
                   self%v1(:,k) = pl%vb(:,i) 
                   if (isplpl) then
-                     self%x2(:,k) = pl%rh(:,j) + system%cb%xb(:)
+                     self%x2(:,k) = pl%rh(:,j) + system%cb%rb(:)
                      self%v2(:,k) = pl%vb(:,j) 
                      if (lcollision(k)) then
                         ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collisional colliders%idx
@@ -362,7 +362,7 @@ contains
                         call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,j), discard_vh=pl%vh(:,j))
                      end if
                   else
-                     self%x2(:,k) = tp%rh(:,j) + system%cb%xb(:)
+                     self%x2(:,k) = tp%rh(:,j) + system%cb%rb(:)
                      self%v2(:,k) = tp%vb(:,j) 
                      if (lcollision(k)) then
                         tp%status(j) = DISCARDED_PLR
@@ -513,7 +513,7 @@ contains
 
       ! Find the barycenter of each body along with its children, if it has any
       do j = 1, 2
-         colliders%xb(:, j)  = pl%rh(:, idx_parent(j)) + cb%xb(:)
+         colliders%rb(:, j)  = pl%rh(:, idx_parent(j)) + cb%rb(:)
          colliders%vb(:, j)  = pl%vb(:, idx_parent(j))
          ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
          if (param%lrotation) then
@@ -526,16 +526,16 @@ contains
                idx_child = parent_child_index_array(j)%idx(i + 1)
                if (.not. pl%lcollision(idx_child)) cycle
                mchild = pl%mass(idx_child)
-               xchild(:) = pl%rh(:, idx_child) + cb%xb(:)
+               xchild(:) = pl%rh(:, idx_child) + cb%rb(:)
                vchild(:) = pl%vb(:, idx_child)
                volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
                volume(j) = volume(j) + volchild
                ! Get angular momentum of the child-parent pair and add that to the spin
                ! Add the child's spin
                if (param%lrotation) then
-                  xcom(:) = (colliders%mass(j) * colliders%xb(:,j) + mchild * xchild(:)) / (colliders%mass(j) + mchild)
+                  xcom(:) = (colliders%mass(j) * colliders%rb(:,j) + mchild * xchild(:)) / (colliders%mass(j) + mchild)
                   vcom(:) = (colliders%mass(j) * colliders%vb(:,j) + mchild * vchild(:)) / (colliders%mass(j) + mchild)
-                  xc(:) = colliders%xb(:, j) - xcom(:)
+                  xc(:) = colliders%rb(:, j) - xcom(:)
                   vc(:) = colliders%vb(:, j) - vcom(:)
                   xcrossv(:) = xc(:) .cross. vc(:) 
                   colliders%L_spin(:, j) = colliders%L_spin(:, j) + colliders%mass(j) * xcrossv(:)
@@ -553,7 +553,7 @@ contains
 
                ! Merge the child and parent
                colliders%mass(j) = colliders%mass(j) + mchild
-               colliders%xb(:, j) = xcom(:)
+               colliders%rb(:, j) = xcom(:)
                colliders%vb(:, j) = vcom(:)
             end do
          end if
@@ -563,10 +563,10 @@ contains
       end do
       lflag = .true.
 
-      xcom(:) = (colliders%mass(1) * colliders%xb(:, 1) + colliders%mass(2) * colliders%xb(:, 2)) / sum(colliders%mass(:))
+      xcom(:) = (colliders%mass(1) * colliders%rb(:, 1) + colliders%mass(2) * colliders%rb(:, 2)) / sum(colliders%mass(:))
       vcom(:) = (colliders%mass(1) * colliders%vb(:, 1) + colliders%mass(2) * colliders%vb(:, 2)) / sum(colliders%mass(:))
-      mxc(:, 1) = colliders%mass(1) * (colliders%xb(:, 1) - xcom(:))
-      mxc(:, 2) = colliders%mass(2) * (colliders%xb(:, 2) - xcom(:))
+      mxc(:, 1) = colliders%mass(1) * (colliders%rb(:, 1) - xcom(:))
+      mxc(:, 2) = colliders%mass(2) * (colliders%rb(:, 2) - xcom(:))
       vcc(:, 1) = colliders%vb(:, 1) - vcom(:)
       vcc(:, 2) = colliders%vb(:, 2) - vcom(:)
       colliders%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
@@ -745,12 +745,12 @@ contains
 
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(1:nfrag) = fragments%id(1:nfrag) 
-               plnew%xb(:, 1:nfrag) = fragments%xb(:, 1:nfrag) 
+               plnew%rb(:, 1:nfrag) = fragments%rb(:, 1:nfrag) 
                plnew%vb(:, 1:nfrag) = fragments%vb(:, 1:nfrag)
                call pl%vb2vh(cb)
-               call pl%xh2xb(cb)
+               call pl%rh2rb(cb)
                do i = 1, nfrag
-                  plnew%rh(:,i) = fragments%xb(:, i) - cb%xb(:)
+                  plnew%rh(:,i) = fragments%rb(:, i) - cb%rb(:)
                   plnew%vh(:,i) = fragments%vb(:, i) - cb%vb(:)
                end do
                plnew%mass(1:nfrag) = fragments%mass(1:nfrag)
@@ -955,7 +955,7 @@ contains
                   fragments%mass_dist(1) = fragments%mtot
                   fragments%mass_dist(2) = 0.0_DP
                   fragments%mass_dist(3) = 0.0_DP
-                  fragments%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / fragments%mtot 
+                  fragments%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / fragments%mtot 
                   fragments%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / fragments%mtot
                   plplcollision_list%status(i) = symba_collision_casemerge(system, param)
                end do
@@ -994,7 +994,7 @@ contains
                if (plplcollision_list%nenc == 0) return ! No collisions to resolve
                ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
                call pl%vb2vh(system%cb) 
-               call pl%xh2xb(system%cb)
+               call pl%rh2rb(system%cb)
    
                ! Get the energy before the collision is resolved
                if (param%lenergy) then

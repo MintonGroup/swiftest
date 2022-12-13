@@ -77,7 +77,7 @@ module rmvs_classes
 
       ! The following are used to correctly set the oblateness values of the acceleration during an inner encounter with a planet
       type(rmvs_cb)                             :: cb_heliocentric !! Copy of original central body object passed to close encounter (used for oblateness acceleration during planetocentric encoountters)
-      real(DP),     dimension(:,:), allocatable :: xheliocentric   !! original heliocentric position (used for oblateness calculation during close encounters)
+      real(DP),     dimension(:,:), allocatable :: rheliocentric   !! original heliocentric position (used for oblateness calculation during close encounters)
       integer(I4B)                              :: index           !!  inner substep number within current set
       integer(I4B)                              :: ipleP           !!  index value of encountering planet
       logical                                   :: lplanetocentric = .false.  !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations

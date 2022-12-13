@@ -320,7 +320,7 @@ module swiftest_classes
       real(DP), dimension(NDIM)                  :: aoblend  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
       real(DP), dimension(NDIM)                  :: atidebeg = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
       real(DP), dimension(NDIM)                  :: atideend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
-      real(DP), dimension(NDIM)                  :: xb       = 0.0_DP !! Barycentric position (units DU)
+      real(DP), dimension(NDIM)                  :: rb       = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM)                  :: vb       = 0.0_DP !! Barycentric velocity (units DU / TU)
       real(DP), dimension(NDIM)                  :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
       real(DP), dimension(NDIM)                  :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
@@ -349,7 +349,7 @@ module swiftest_classes
       real(DP),                     dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
       real(DP),                     dimension(:,:), allocatable :: rh              !! Swiftestcentric position
       real(DP),                     dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
-      real(DP),                     dimension(:,:), allocatable :: xb              !! Barycentric position
+      real(DP),                     dimension(:,:), allocatable :: rb              !! Barycentric position
       real(DP),                     dimension(:,:), allocatable :: vb              !! Barycentric velocity
       real(DP),                     dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
       real(DP),                     dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
@@ -402,7 +402,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: rhill   !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: renc    !! Critical radius for close encounters
       real(DP),     dimension(:),   allocatable :: radius  !! Body radius (units DU)
-      real(DP),     dimension(:,:), allocatable :: xbeg    !! Position at beginning of step
+      real(DP),     dimension(:,:), allocatable :: rbeg    !! Position at beginning of step
       real(DP),     dimension(:,:), allocatable :: xend    !! Position at end of step
       real(DP),     dimension(:,:), allocatable :: vbeg    !! Velocity at beginning of step
       real(DP),     dimension(:),   allocatable :: density !! Body mass density - calculated internally (units MU / DU**3)
@@ -429,7 +429,7 @@ module swiftest_classes
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vh2vb        => util_coord_vh2vb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure :: vb2vh        => util_coord_vb2vh_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure :: xh2xb        => util_coord_rh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
+      procedure :: rh2rb        => util_coord_rh2rb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc      => util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -469,7 +469,7 @@ module swiftest_classes
       procedure :: b2h       => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure :: xh2xb     => util_coord_rh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
+      procedure :: rh2rb     => util_coord_rh2rb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc   => util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
@@ -928,12 +928,12 @@ module swiftest_classes
          class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       end subroutine kick_getacch_int_pl
 
-      module subroutine kick_getacch_int_tp(self, param, GMpl, xhp, npl)
+      module subroutine kick_getacch_int_tp(self, param, GMpl, rhp, npl)
          implicit none
          class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
          class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
          real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
-         real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
+         real(DP), dimension(:,:),   intent(in)    :: rhp   !! Massive body position vectors
          integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
       end subroutine kick_getacch_int_tp
 
@@ -1350,17 +1350,17 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
       end subroutine util_coord_vh2vb_tp
 
-      module subroutine util_coord_rh2xb_pl(self, cb)
+      module subroutine util_coord_rh2rb_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine util_coord_rh2xb_pl
+      end subroutine util_coord_rh2rb_pl
 
-      module subroutine util_coord_rh2xb_tp(self, cb)
+      module subroutine util_coord_rh2rb_tp(self, cb)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
-      end subroutine util_coord_rh2xb_tp
+      end subroutine util_coord_rh2rb_tp
 
       module subroutine util_copy_particle_info(self, source)
          implicit none
@@ -1627,10 +1627,10 @@ module swiftest_classes
          integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
       end subroutine util_get_idvalues_system
 
-      module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
+      module subroutine util_set_beg_end_pl(self, rbeg, xend, vbeg)
          implicit none
          class(swiftest_pl),       intent(inout)          :: self !! Swiftest massive body object
-         real(DP), dimension(:,:), intent(in),   optional :: xbeg !! Position vectors at beginning of step
+         real(DP), dimension(:,:), intent(in),   optional :: rbeg !! Position vectors at beginning of step
          real(DP), dimension(:,:), intent(in),   optional :: xend !! Positions vectors at end of step
          real(DP), dimension(:,:), intent(in),   optional :: vbeg !! vbeg is an unused variable to keep this method forward compatible with RMVS
       end subroutine util_set_beg_end_pl

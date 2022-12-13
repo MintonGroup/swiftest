@@ -129,7 +129,7 @@ contains
                j = pltpenc_list%index2(k)
                if (tp%lmask(j)) then
                   if (lbeg) then
-                     dx(:) = tp%rh(:,j) - pl%xbeg(:,i)
+                     dx(:) = tp%rh(:,j) - pl%rbeg(:,i)
                   else
                      dx(:) = tp%rh(:,j) - pl%xend(:,i)
                   end if

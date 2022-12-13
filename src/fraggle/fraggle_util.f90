@@ -35,9 +35,9 @@ contains
          pl%Gmass(npl_before+1:npl_after) = frag%mass(1:nfrag) * param%GU
          pl%radius(npl_before+1:npl_after) = frag%radius(1:nfrag)
          do concurrent (i = 1:nfrag)
-            pl%xb(:,npl_before+i) =  frag%xb(:,i) 
+            pl%rb(:,npl_before+i) =  frag%rb(:,i) 
             pl%vb(:,npl_before+i) =  frag%vb(:,i) 
-            pl%rh(:,npl_before+i) =  frag%xb(:,i) - cb%xb(:)
+            pl%rh(:,npl_before+i) =  frag%rb(:,i) - cb%rb(:)
             pl%vh(:,npl_before+i) =  frag%vb(:,i) - cb%vb(:)
          end do
          if (param%lrotation) then

@@ -63,7 +63,7 @@ contains
    end subroutine kick_getacch_int_pl
 
 
-   module subroutine kick_getacch_int_tp(self, param, GMpl, xhp, npl)
+   module subroutine kick_getacch_int_tp(self, param, GMpl, rhp, npl)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
@@ -75,12 +75,12 @@ contains
       class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
       class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
-      real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
+      real(DP), dimension(:,:),   intent(in)    :: rhp   !! Massive body position vectors
       integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
 
       if ((self%nbody == 0) .or. (npl == 0)) return
 
-      call kick_getacch_int_all_tp(self%nbody, npl, self%rh, xhp, GMpl, self%lmask, self%ah)
+      call kick_getacch_int_all_tp(self%nbody, npl, self%rh, rhp, GMpl, self%lmask, self%ah)
       
       return
    end subroutine kick_getacch_int_tp

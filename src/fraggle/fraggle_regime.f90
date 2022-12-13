@@ -42,9 +42,9 @@ contains
          mass_si(:)    = colliders%mass([jtarg, jproj]) * param%MU2KG         !! The two-body equivalent masses of the collider system
          radius_si(:)  = colliders%radius([jtarg, jproj]) * param%DU2M        !! The two-body equivalent radii of the collider system
          density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The two-body equivalent density of the collider system
-         x1_si(:)      = colliders%xb(:,jtarg) * param%DU2M                   !! The first body of the two-body equivalent position vector the collider system
+         x1_si(:)      = colliders%rb(:,jtarg) * param%DU2M                   !! The first body of the two-body equivalent position vector the collider system
          v1_si(:)      = colliders%vb(:,jtarg) * param%DU2M / param%TU2S      !! The first body of the two-body equivalent velocity vector the collider system
-         x2_si(:)      = colliders%xb(:,jproj) * param%DU2M                   !! The second body of the two-body equivalent position vector the collider system
+         x2_si(:)      = colliders%rb(:,jproj) * param%DU2M                   !! The second body of the two-body equivalent position vector the collider system
          v2_si(:)      = colliders%vb(:,jproj) * param%DU2M / param%TU2S      !! The second body of the two-body equivalent velocity vector the collider system
          Mcb_si        = system%cb%mass * param%MU2KG                         !! The central body mass of the system
          select type(param)
@@ -68,7 +68,7 @@ contains
 
          ! Find the center of mass of the collisional system	
          frag%mtot = sum(colliders%mass(:))
-         frag%xbcom(:) = (colliders%mass(1) * colliders%xb(:,1) + colliders%mass(2) * colliders%xb(:,2)) / frag%mtot 
+         frag%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / frag%mtot 
          frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
 
          ! Convert quantities back to the system units and save them into the fragment system
@@ -82,7 +82,7 @@ contains
    end subroutine fraggle_regime_colliders
 
 
-   subroutine fraggle_regime_collresolve(Mcb, m1, m2, rad1, rad2, xh1, xh2, vb1, vb2, den1, den2, min_mfrag, &
+   subroutine fraggle_regime_collresolve(Mcb, m1, m2, rad1, rad2, rh1, rh2, vb1, vb2, den1, den2, min_mfrag, &
                                          regime, Mlr, Mslr, Qloss)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
@@ -103,7 +103,7 @@ contains
       implicit none
       ! Arguments
       real(DP), intent(in)           :: Mcb, m1, m2, rad1, rad2, den1, den2, min_mfrag 
-      real(DP), dimension(:), intent(in)  :: xh1, xh2, vb1, vb2
+      real(DP), dimension(:), intent(in)  :: rh1, rh2, vb1, vb2
       integer(I4B), intent(out)         :: regime
       real(DP), intent(out)          :: Mlr, Mslr
       real(DP), intent(out)          :: Qloss !! The residual energy after the collision 
@@ -130,9 +130,9 @@ contains
       real(DP)           :: U_binding
 
       Vimp = norm2(vb2(:) - vb1(:))
-      b = calc_b(xh2, vb2, xh1, vb1)
+      b = calc_b(rh2, vb2, rh1, vb1)
       l = (rad1 + rad2) * (1 - b)
-      egy = 0.5_DP * dot_product(vb1, vb1) - GC * Mcb / norm2(xh1)
+      egy = 0.5_DP * dot_product(vb1, vb1) - GC * Mcb / norm2(rh1)
       a1 = - GC * Mcb / 2.0_DP / egy
       Mtot = m1 + m2 
       mu = (m1 * m2) / Mtot

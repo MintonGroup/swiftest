@@ -230,7 +230,7 @@ contains
       allocate(self%mu(n))
       allocate(self%rh(NDIM, n))
       allocate(self%vh(NDIM, n))
-      allocate(self%xb(NDIM, n))
+      allocate(self%rb(NDIM, n))
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
@@ -260,7 +260,7 @@ contains
       self%mu(:)     = 0.0_DP
       self%rh(:,:)   = 0.0_DP
       self%vh(:,:)   = 0.0_DP
-      self%xb(:,:)   = 0.0_DP
+      self%rb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
       self%ir3h(:)   = 0.0_DP

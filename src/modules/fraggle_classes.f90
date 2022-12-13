@@ -27,7 +27,7 @@ module fraggle_classes
    type :: fraggle_colliders
       integer(I4B)                                 :: ncoll   !! Number of bodies involved in the collision
       integer(I4B), dimension(:),      allocatable :: idx     !! Index of bodies involved in the collision
-      real(DP),     dimension(NDIM,2)              :: xb      !! Two-body equivalent position vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: rb      !! Two-body equivalent position vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: vb      !! Two-body equivalent velocity vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: rot     !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: L_spin  !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
@@ -52,7 +52,7 @@ module fraggle_classes
       integer(I4B)                            :: regime    !! Collresolve regime code for this collision
 
       ! Values in a coordinate frame centered on the collider barycenter and collisional system unit vectors (these are used internally by the fragment generation subroutine)
-      real(DP), dimension(NDIM)              :: xbcom       !! Center of mass position vector of the collider system in system barycentric coordinates
+      real(DP), dimension(NDIM)              :: rbcom       !! Center of mass position vector of the collider system in system barycentric coordinates
       real(DP), dimension(NDIM)              :: vbcom       !! Velocity vector of the center of mass of the collider system in system barycentric coordinates
       real(DP), dimension(NDIM)              :: x_coll_unit !! x-direction unit vector of collisional system
       real(DP), dimension(NDIM)              :: y_coll_unit !! y-direction unit vector of collisional system

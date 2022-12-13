@@ -26,7 +26,7 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsiz
       ! Internals
       logical :: lencounter, lfirstpl
-      real(DP), dimension(:,:), allocatable :: xbeg, xend, vbeg
+      real(DP), dimension(:,:), allocatable :: rbeg, xend, vbeg
 
       if (self%tp%nbody == 0) then
          call whm_step_system(self, param, t, dt)
@@ -38,15 +38,15 @@ contains
                select type(tp => self%tp)
                class is (rmvs_tp)
                   associate(system => self, ntp => tp%nbody, npl => pl%nbody)
-                     allocate(xbeg, source=pl%rh)
+                     allocate(rbeg, source=pl%rh)
                      allocate(vbeg, source=pl%vh)
-                     call pl%set_beg_end(xbeg = xbeg, vbeg = vbeg)
+                     call pl%set_beg_end(rbeg = rbeg, vbeg = vbeg)
                      ! ****** Check for close encounters ***** !
                      call pl%set_renc(RHSCALE)
                      lencounter = tp%encounter_check(param, system, dt)
                      if (lencounter) then
                         lfirstpl = pl%lfirst
-                        pl%outer(0)%x(:, 1:npl) = xbeg(:, 1:npl)
+                        pl%outer(0)%x(:, 1:npl) = rbeg(:, 1:npl)
                         pl%outer(0)%v(:, 1:npl) = vbeg(:, 1:npl)
                         call pl%step(system, param, t, dt) 
                         pl%outer(NTENC)%x(:, 1:npl) = pl%rh(:, 1:npl)
@@ -54,7 +54,7 @@ contains
                         call rmvs_interp_out(cb, pl, dt)
                         call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
                         tp%lmask(1:ntp) = .not. tp%lmask(1:ntp)
-                        call pl%set_beg_end(xbeg = xbeg, xend = xend)
+                        call pl%set_beg_end(rbeg = rbeg, xend = xend)
                         tp%lfirst = .true.
                         call tp%step(system, param, t, dt)
                         tp%lmask(1:ntp) = .true.
@@ -185,7 +185,7 @@ contains
          call pl%set_renc(RHPSCALE)
          do outer_index = 1, NTENC
             outer_time = t + (outer_index - 1) * dto
-            call pl%set_beg_end(xbeg = pl%outer(outer_index - 1)%x(:, 1:npl), &
+            call pl%set_beg_end(rbeg = pl%outer(outer_index - 1)%x(:, 1:npl), &
                                 vbeg = pl%outer(outer_index - 1)%v(:, 1:npl), &
                                 xend = pl%outer(outer_index    )%x(:, 1:npl))
             lencounter = tp%encounter_check(param, system, dto) 
@@ -234,7 +234,7 @@ contains
       ! Internals
       integer(I4B)                              :: i, inner_index
       real(DP)                                  :: frac, dntphenc
-      real(DP),     dimension(:,:), allocatable :: xtmp, vtmp, xh_original, ah_original
+      real(DP),     dimension(:,:), allocatable :: xtmp, vtmp, rh_original, ah_original
       real(DP),     dimension(:),   allocatable :: GMcb, dti
       integer(I4B), dimension(:),   allocatable :: iflag
 
@@ -258,7 +258,7 @@ contains
          vtmp(:, 1:npl) = pl%inner(0)%v(:, 1:npl)
 
          if ((param%loblatecb) .or. (param%ltides)) then
-            allocate(xh_original, source=pl%rh)
+            allocate(rh_original, source=pl%rh)
             allocate(ah_original, source=pl%ah)
             pl%rh(:, 1:npl) = xtmp(:, 1:npl) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
          end if
@@ -339,7 +339,7 @@ contains
          !    pl%inner(NTPHENC)%atide(:, 1:npl) = pl%atide(:, 1:npl) 
          ! end if
          ! Put the planet positions and accelerations back into place 
-         if (allocated(xh_original)) call move_alloc(xh_original, pl%rh)
+         if (allocated(rh_original)) call move_alloc(rh_original, pl%rh)
          if (allocated(ah_original)) call move_alloc(ah_original, pl%ah)
       end associate
       return
@@ -389,7 +389,7 @@ contains
                            lfirsttp = .true.
                            do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                               plenci%rh(:, 1:npl) = plenci%inner(inner_index - 1)%x(:, 1:npl)
-                              call plenci%set_beg_end(xbeg = plenci%inner(inner_index - 1)%x, &
+                              call plenci%set_beg_end(rbeg = plenci%inner(inner_index - 1)%x, &
                                                       xend = plenci%inner(inner_index)%x)
 
                               if (param%loblatecb) then
@@ -403,7 +403,7 @@ contains
 
                               call tpenci%step(planetocen_system, param, inner_time, dti)
                               do j = 1, pl%nenc(i)
-                                 tpenci%xheliocentric(:, j) = tpenci%rh(:, j) + pl%inner(inner_index)%x(:,i)
+                                 tpenci%rheliocentric(:, j) = tpenci%rh(:, j) + pl%inner(inner_index)%x(:,i)
                               end do
                               inner_time = outer_time + j * dti
                               call rmvs_peri_tp(tpenci, pl, inner_time, dti, .false., inner_index, i, param) 
@@ -464,8 +464,8 @@ contains
                         ! Grab all the encountering test particles and convert them to a planetocentric frame
                         tpenci%id(1:nenci) = pack(tp%id(1:ntp), encmask(1:ntp)) 
                         do j = 1, NDIM 
-                           tpenci%xheliocentric(j, 1:nenci) = pack(tp%rh(j,1:ntp), encmask(:)) 
-                           tpenci%rh(j, 1:nenci) = tpenci%xheliocentric(j, 1:nenci) - pl%inner(0)%x(j, i)
+                           tpenci%rheliocentric(j, 1:nenci) = pack(tp%rh(j,1:ntp), encmask(:)) 
+                           tpenci%rh(j, 1:nenci) = tpenci%rheliocentric(j, 1:nenci) - pl%inner(0)%x(j, i)
                            tpenci%vh(j, 1:nenci) = pack(tp%vh(j, 1:ntp), encmask(1:ntp)) - pl%inner(0)%v(j, i)
                         end do
                         tpenci%lperi(1:nenci) = pack(tp%lperi(1:ntp), encmask(1:ntp)) 
@@ -534,7 +534,7 @@ contains
       ! Internals
       integer(I4B)              :: i, id1, id2
       real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
-      real(DP), dimension(NDIM) :: xh1, xh2, vh1, vh2
+      real(DP), dimension(NDIM) :: rh1, rh2, vh1, vh2
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)

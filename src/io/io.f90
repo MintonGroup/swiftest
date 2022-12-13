@@ -133,7 +133,7 @@ contains
       associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => param%system_history%nc)
 
          call pl%vb2vh(cb)
-         call pl%xh2xb(cb)
+         call pl%rh2rb(cb)
 
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit

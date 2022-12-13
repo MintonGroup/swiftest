@@ -153,7 +153,7 @@ contains
                   call tp%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_rh=tp%rh(:,i), &
                                             discard_vh=tp%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
-                  rb2 = dot_product(tp%xb(:, i),  tp%xb(:, i))
+                  rb2 = dot_product(tp%rb(:, i),  tp%rb(:, i))
                   vb2 = dot_product(tp%vb(:, i), tp%vb(:, i))
                   energy = 0.5_DP * vb2 - Gmtot / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
