@@ -33,8 +33,8 @@ contains
       call util_append(self%index2, source%index2, nold, nsrc, lsource_mask)
       call util_append(self%id1, source%id1, nold, nsrc, lsource_mask)
       call util_append(self%id2, source%id2, nold, nsrc, lsource_mask)
-      call util_append(self%x1, source%x1, nold, nsrc, lsource_mask)
-      call util_append(self%x2, source%x2, nold, nsrc, lsource_mask)
+      call util_append(self%r1, source%r1, nold, nsrc, lsource_mask)
+      call util_append(self%r2, source%r2, nold, nsrc, lsource_mask)
       call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
       call util_append(self%v2, source%v2, nold, nsrc, lsource_mask)
       self%nenc = nold + count(lsource_mask(1:nsrc))
@@ -62,8 +62,8 @@ contains
          self%index2(1:n) = source%index2(1:n)
          self%id1(1:n) = source%id1(1:n)
          self%id2(1:n) = source%id2(1:n)
-         self%x1(:,1:n) = source%x1(:,1:n)
-         self%x2(:,1:n) = source%x2(:,1:n)
+         self%r1(:,1:n) = source%r1(:,1:n)
+         self%r2(:,1:n) = source%r2(:,1:n)
          self%v1(:,1:n) = source%v1(:,1:n)
          self%v2(:,1:n) = source%v2(:,1:n)
       end associate
@@ -103,8 +103,8 @@ contains
       if (allocated(self%index2)) deallocate(self%index2)
       if (allocated(self%id1)) deallocate(self%id1)
       if (allocated(self%id2)) deallocate(self%id2)
-      if (allocated(self%x1)) deallocate(self%x1)
-      if (allocated(self%x2)) deallocate(self%x2)
+      if (allocated(self%r1)) deallocate(self%r1)
+      if (allocated(self%r2)) deallocate(self%r2)
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
 
@@ -385,8 +385,8 @@ contains
          call util_spill(keeps%index2, discards%index2, lspill_list, ldestructive)
          call util_spill(keeps%id1, discards%id1, lspill_list, ldestructive)
          call util_spill(keeps%id2, discards%id2, lspill_list, ldestructive)
-         call util_spill(keeps%x1, discards%x1, lspill_list, ldestructive)
-         call util_spill(keeps%x2, discards%x2, lspill_list, ldestructive)
+         call util_spill(keeps%r1, discards%r1, lspill_list, ldestructive)
+         call util_spill(keeps%r2, discards%r2, lspill_list, ldestructive)
          call util_spill(keeps%v1, discards%v1, lspill_list, ldestructive)
          call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
 
@@ -570,7 +570,10 @@ contains
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
       class(encounter_snapshot), allocatable :: snapshot
-      integer(I4B) :: i, npl_snap, ntp_snap
+      integer(I4B) :: i, j, k, npl_snap, ntp_snap
+      real(DP), dimension(NDIM) :: rrel, vrel, rcom, vcom
+      real(DP) :: mu, a, q, capm, tperi
+      real(DP), dimension(NDIM,2) :: rb,vb
 
       if (.not.present(t)) then
          write(*,*) "encounter_util_snapshot_encounter requires `t` to be passed"
@@ -582,91 +585,139 @@ contains
          return
       end if
 
-      select type (system)
-      class is (symba_nbody_system)
-         select case(arg)
-         case("trajectory")
+      select type(param)
+      class is (symba_parameters)
+         select type (system)
+         class is (symba_nbody_system)
             select type(pl => system%pl)
             class is (symba_pl)
                select type (tp => system%tp)
                class is (symba_tp)
                   associate(npl => pl%nbody,  ntp => tp%nbody)
-                     allocate(encounter_snapshot :: snapshot)
-                     snapshot%t = t
-                     snapshot%iloop = param%iloop
-      
                      if (npl + ntp == 0) return
-                     npl_snap = npl
-                     ntp_snap = ntp
-
+                     allocate(encounter_snapshot :: snapshot)
                      allocate(snapshot%pl, mold=pl)
                      allocate(snapshot%tp, mold=tp)
-                     select type(pl_snap => snapshot%pl)
-                     class is (symba_pl)
-                        if (npl > 0) then
-                           pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
-                           npl_snap = count(pl%lmask(1:npl))
-                        end if
-                        if (ntp > 0) then
-                           tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == system%irec
-                           ntp_snap = count(tp%lmask(1:ntp))
-                        end if
-                        pl_snap%nbody = npl_snap
-                     end select
+                     snapshot%iloop = param%iloop
 
                      select type(pl_snap => snapshot%pl)
                      class is (symba_pl)
-                        ! Take snapshot of the currently encountering massive bodies
-                        if (npl_snap > 0) then
-                           call pl_snap%setup(npl_snap, param)
-                           pl_snap%levelg(:) = pack(pl%levelg(1:npl), pl%lmask(1:npl))
-                           pl_snap%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
-                           pl_snap%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
-                           pl_snap%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
-                           do i = 1, NDIM
-                              pl_snap%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
-                              pl_snap%vh(i,:) = pack(pl%vb(i,1:npl), pl%lmask(1:npl))
-                           end do
-                           if (param%lclose) then
-                              pl_snap%radius(:) = pack(pl%radius(1:npl), pl%lmask(1:npl))
-                           end if
+                        select type(tp_snap => snapshot%tp)
+                        class is (symba_tp)
 
-                           if (param%lrotation) then
-                              do i = 1, NDIM
-                                 pl_snap%Ip(i,:) = pack(pl%Ip(i,1:npl), pl%lmask(1:npl))
-                                 pl_snap%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
-                              end do
-                           end if
-                           call pl_snap%sort("id", ascending=.true.)
-                        end if
-                     end select
+                           select case(arg)
+                           case("trajectory")
+                              snapshot%t = t
+         
+                              npl_snap = npl
+                              ntp_snap = ntp
+   
+                              if (npl > 0) then
+                                 pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
+                                 npl_snap = count(pl%lmask(1:npl))
+                              end if
+                              if (ntp > 0) then
+                                 tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == system%irec
+                                 ntp_snap = count(tp%lmask(1:ntp))
+                              end if
 
-                     select type(tp_snap => snapshot%tp)
-                     class is (symba_tp)
-                        ! Take snapshot of the currently encountering test particles
-                        tp_snap%nbody = ntp_snap
-                        if (ntp_snap > 0) then
-                           call tp_snap%setup(ntp_snap, param)
-                           tp_snap%id(:) = pack(tp%id(1:ntp), tp%lmask(1:ntp))
-                           tp_snap%info(:) = pack(tp%info(1:ntp), tp%lmask(1:ntp))
-                           do i = 1, NDIM
-                              tp_snap%rh(i,:) = pack(tp%rh(i,1:ntp), tp%lmask(1:ntp))
-                              tp_snap%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
-                           end do
-                        end if
+                              pl_snap%nbody = npl_snap
+
+                              ! Take snapshot of the currently encountering massive bodies
+                              if (npl_snap > 0) then
+                                 call pl_snap%setup(npl_snap, param)
+                                 pl_snap%levelg(:) = pack(pl%levelg(1:npl), pl%lmask(1:npl))
+                                 pl_snap%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
+                                 pl_snap%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
+                                 pl_snap%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
+                                 do i = 1, NDIM
+                                    pl_snap%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
+                                    pl_snap%vh(i,:) = pack(pl%vb(i,1:npl), pl%lmask(1:npl))
+                                 end do
+                                 if (param%lclose) then
+                                    pl_snap%radius(:) = pack(pl%radius(1:npl), pl%lmask(1:npl))
+                                 end if
+
+                                 if (param%lrotation) then
+                                    do i = 1, NDIM
+                                       pl_snap%Ip(i,:) = pack(pl%Ip(i,1:npl), pl%lmask(1:npl))
+                                       pl_snap%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
+                                    end do
+                                 end if
+                                 call pl_snap%sort("id", ascending=.true.)
+                              end if
+
+                              ! Take snapshot of the currently encountering test particles
+                              tp_snap%nbody = ntp_snap
+                              if (ntp_snap > 0) then
+                                 call tp_snap%setup(ntp_snap, param)
+                                 tp_snap%id(:) = pack(tp%id(1:ntp), tp%lmask(1:ntp))
+                                 tp_snap%info(:) = pack(tp%info(1:ntp), tp%lmask(1:ntp))
+                                 do i = 1, NDIM
+                                    tp_snap%rh(i,:) = pack(tp%rh(i,1:ntp), tp%lmask(1:ntp))
+                                    tp_snap%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
+                                 end do
+                              end if
+
+                              ! Save the snapshot
+                              param%encounter_history%nid = param%encounter_history%nid + ntp_snap + npl_snap
+                              call encounter_util_save_encounter(param%encounter_history,snapshot,t)
+                           case("closest")
+                              associate(plplenc_list => system%plplenc_list, pltpenc_list => system%pltpenc_list)
+                                 if (any(plplenc_list%lclosest(:))) then
+                                    call pl_snap%setup(2, param)
+                                    do k = 1, plplenc_list%nenc
+                                       if (plplenc_list%lclosest(k)) then
+                                          i = plplenc_list%index1(k)
+                                          j = plplenc_list%index2(k)
+                                          pl_snap%levelg(:) = pl%levelg([i,j])
+                                          pl_snap%id(:) = pl%id([i,j])
+                                          pl_snap%info(:) = pl%info([i,j])
+                                          pl_snap%Gmass(:) = pl%Gmass([i,j])
+                                          mu = sum(pl_snap%Gmass(:))
+                                          if (param%lclose) pl_snap%radius(:) = pl%radius([i,j])
+                                          if (param%lrotation) then
+                                             do i = 1, NDIM
+                                                pl_snap%Ip(i,:) = pl%Ip(i,[i,j])
+                                                pl_snap%rot(i,:) = pl%rot(i,[i,j])
+                                             end do
+                                          end if
+
+                                          ! Compute pericenter passage time to get the closest approach parameters
+                                          rrel(:) = plplenc_list%r2(:,k) - plplenc_list%r1(:,k)
+                                          vrel(:) = plplenc_list%v2(:,k) - plplenc_list%v1(:,k)
+                                          call orbel_xv2aqt(mu, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
+                                          snapshot%t = t + tperi
+
+                                          ! Computer the center mass of the pair
+
+                                          ! do i = 1, NDIM
+                                          !    pl_snap%rh(i,:) = pl%rh(i,[i,j])
+                                          !    pl_snap%vh(i,:) = pl%vb(i,1:npl), pl%lmask(1:npl))
+                                          ! end do
+
+                                          call pl_snap%sort("id", ascending=.true.)
+                                          call encounter_util_save_encounter(param%encounter_history,snapshot,snapshot%t)
+                                       end if
+                                    end do
+
+                                    plplenc_list%lclosest(:) = .false.
+                                 end if
+
+                                 if (any(pltpenc_list%lclosest(:))) then
+                                    do k = 1, pltpenc_list%nenc
+                                    end do
+                                    pltpenc_list%lclosest(:) = .false.
+                                 end if
+                              end associate
+                           case default
+                              write(*,*) "encounter_util_snapshot_encounter requires `arg` to be either `trajectory` or `closest`"
+                           end select
+                        end select
                      end select
                   end associate
-                  ! Save the snapshot
-                  select type(param)
-                  class is (symba_parameters)
-                     param%encounter_history%nid = param%encounter_history%nid + ntp_snap + npl_snap
-                     call encounter_util_save_encounter(param%encounter_history,snapshot,t)
-                  end select
                end select
             end select
-         case("closest")
-         case default
-            write(*,*) "encounter_util_snapshot_encounter requires `arg` to be either `trajectory` or `closest`"
          end select
       end select
 

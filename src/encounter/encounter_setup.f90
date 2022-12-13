@@ -79,8 +79,8 @@ contains
       allocate(self%index2(n))
       allocate(self%id1(n))
       allocate(self%id2(n))
-      allocate(self%x1(NDIM,n))
-      allocate(self%x2(NDIM,n))
+      allocate(self%r1(NDIM,n))
+      allocate(self%r2(NDIM,n))
       allocate(self%v1(NDIM,n))
       allocate(self%v2(NDIM,n))
 
@@ -91,8 +91,8 @@ contains
       self%index2(:) = 0
       self%id1(:) = 0
       self%id2(:) = 0
-      self%x1(:,:) = 0.0_DP
-      self%x2(:,:) = 0.0_DP
+      self%r1(:,:) = 0.0_DP
+      self%r2(:,:) = 0.0_DP
       self%v1(:,:) = 0.0_DP
       self%v2(:,:) = 0.0_DP
 

@@ -65,8 +65,8 @@ contains
                plplenc_list%id2(k) = pl%id(j)
                plplenc_list%status(k) = ACTIVE
                plplenc_list%level(k) = irec
-               plplenc_list%x1(:,k) = pl%rh(:,i)
-               plplenc_list%x2(:,k) = pl%rh(:,j)
+               plplenc_list%r1(:,k) = pl%rh(:,i)
+               plplenc_list%r2(:,k) = pl%rh(:,j)
                plplenc_list%v1(:,k) = pl%vb(:,i) - cb%vb(:)
                plplenc_list%v2(:,k) = pl%vb(:,j) - cb%vb(:)
                pl%lencounter(i) = .true.

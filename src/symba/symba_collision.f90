@@ -280,11 +280,11 @@ contains
       integer(I4B),               intent(in)    :: irec           !! Current recursion level
       logical,                    intent(out)   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
       ! Internals
-      logical, dimension(:), allocatable        :: lcollision, lclosest, lmask
+      logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
       integer(I4B)                              :: i, j, k, nenc
       real(DP)                                  :: rlim, Gmtot
-      logical                                   :: isplpl
+      logical                                   :: isplpl, lany_closest
       character(len=STRMAX)                     :: timestr, idstri, idstrj, message
       class(symba_encounter), allocatable       :: tmp       
 
@@ -316,8 +316,7 @@ contains
 
                allocate(lcollision(nenc))
                lcollision(:) = .false.
-               allocate(lclosest(nenc))
-               lclosest(:) = .false.
+               self%lclosest(:) = .false.
 
                if (isplpl) then
                   do concurrent(k = 1:nenc, lmask(k))
@@ -327,7 +326,7 @@ contains
                      vr(:) = pl%vb(:, i) - pl%vb(:, j)
                      rlim = pl%radius(i) + pl%radius(j)
                      Gmtot = pl%Gmass(i) + pl%Gmass(j)
-                     call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k), lcollision(k), lclosest(k))
+                     call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k), lcollision(k), self%lclosest(k))
                   end do
                else
                   do concurrent(k = 1:nenc, lmask(k))
@@ -335,23 +334,28 @@ contains
                      j = self%index2(k)
                      xr(:) = pl%rh(:, i) - tp%rh(:, j) 
                      vr(:) = pl%vb(:, i) - tp%vb(:, j)
-                     call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k), lcollision(k), lclosest(k))
+                     call symba_collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k), lcollision(k), self%lclosest(k))
                   end do
                end if
 
                lany_collision = any(lcollision(:))
+               lany_closest = (param%lenc_save_closest .and. any(self%lclosest(:)))
 
-               if (lany_collision) then
+
+               if (lany_collision .or. lany_closest) then
                   call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
                   do k = 1, nenc
+                     if (.not.lcollision(k) .and. .not. self%lclosest(k)) cycle
                      i = self%index1(k)
                      j = self%index2(k)
-                     if (lcollision(k)) self%status(k) = COLLISION
-                     self%tcollision(k) = t
-                     self%x1(:,k) = pl%rh(:,i) + system%cb%rb(:)
+                     self%r1(:,k) = pl%rh(:,i) + system%cb%rb(:)
                      self%v1(:,k) = pl%vb(:,i) 
+                     if (lcollision(k)) then
+                        self%status(k) = COLLISION
+                        self%tcollision(k) = t
+                     end if
                      if (isplpl) then
-                        self%x2(:,k) = pl%rh(:,j) + system%cb%rb(:)
+                        self%r2(:,k) = pl%rh(:,j) + system%cb%rb(:)
                         self%v2(:,k) = pl%vb(:,j) 
                         if (lcollision(k)) then
                            ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collider pair
@@ -364,7 +368,7 @@ contains
                            call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,j), discard_vh=pl%vh(:,j))
                         end if
                      else
-                        self%x2(:,k) = tp%rh(:,j) + system%cb%rb(:)
+                        self%r2(:,k) = tp%rh(:,j) + system%cb%rb(:)
                         self%v2(:,k) = tp%vb(:,j) 
                         if (lcollision(k)) then
                            tp%status(j) = DISCARDED_PLR
@@ -392,7 +396,7 @@ contains
                end if
 
                ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
-               if (param%lenc_save_closest .and. any(lclosest(:))) call param%encounter_history%take_snapshot(param, system, t, "closest") 
+               if (lany_closest) call param%encounter_history%take_snapshot(param, system, t, "closest") 
 
             end select
 

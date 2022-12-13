@@ -29,8 +29,8 @@ module encounter_classes
       integer(I4B),       dimension(:),   allocatable :: index2     !! position of the second body in the encounter
       integer(I4B),       dimension(:),   allocatable :: id1        !! id of the first body in the encounter
       integer(I4B),       dimension(:),   allocatable :: id2        !! id of the second body in the encounter
-      real(DP),           dimension(:,:), allocatable :: x1         !! the position of body 1 in the encounter
-      real(DP),           dimension(:,:), allocatable :: x2         !! the position of body 2 in the encounter
+      real(DP),           dimension(:,:), allocatable :: r1         !! the position of body 1 in the encounter
+      real(DP),           dimension(:,:), allocatable :: r2         !! the position of body 2 in the encounter
       real(DP),           dimension(:,:), allocatable :: v1         !! the velocity of body 1 in the encounter
       real(DP),           dimension(:,:), allocatable :: v2         !! the velocity of body 2 in the encounter
    contains
@@ -186,14 +186,14 @@ module encounter_classes
          real(DP), dimension(:),           intent(in)    :: extent_arr !! Array of extents of size 2*n
       end subroutine encounter_check_sort_aabb_1D
 
-      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, &
+      module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, r1, v1, r2, v2, renc1, renc2, dt, &
                                                                nenc, index1, index2, lvdotr)
          implicit none
          class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
          integer(I4B),                            intent(in)    :: n1         !! Number of bodies 1
          integer(I4B),                            intent(in)    :: n2         !! Number of bodies 2
-         real(DP),     dimension(:,:),            intent(in)    :: x1, v1     !! Array of indices of bodies 1
-         real(DP),     dimension(:,:),            intent(in)    :: x2, v2     !! Array of indices of bodies 2
+         real(DP),     dimension(:,:),            intent(in)    :: r1, v1     !! Array of indices of bodies 1
+         real(DP),     dimension(:,:),            intent(in)    :: r2, v2     !! Array of indices of bodies 2
          real(DP),     dimension(:),              intent(in)    :: renc1      !! Radius of encounter regions of bodies 1
          real(DP),     dimension(:),              intent(in)    :: renc2      !! Radius of encounter regions of bodies 2
          real(DP),                                intent(in)    :: dt         !! Step size
