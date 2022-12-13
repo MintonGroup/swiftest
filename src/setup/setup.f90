@@ -75,7 +75,7 @@ contains
 
             select type(param)
             class is (symba_parameters)
-               if (param%lencounter_save) then
+               if (param%lenc_trajectory_save .or. param%lenc_closest_save) then
                   allocate(encounter_storage :: param%encounter_history)
                   associate (encounter_history => param%encounter_history)
                      allocate(encounter_io_parameters :: encounter_history%nc)
@@ -85,7 +85,9 @@ contains
                         nc%file_number = param%iloop / param%dump_cadence
                      end select
                   end associate
-      
+               end if
+               
+               if (param%lclose) then
                   allocate(collision_storage :: param%collision_history)
                   associate (collision_history => param%collision_history)
                      allocate(fraggle_io_parameters :: collision_history%nc)
@@ -97,7 +99,6 @@ contains
                   end associate
                end if
             end select
-
 
          end select
       case (RINGMOONS)

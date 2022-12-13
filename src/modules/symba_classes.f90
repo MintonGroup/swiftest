@@ -26,12 +26,13 @@ module symba_classes
    real(DP),     private, parameter :: RSHELL  = 0.48075_DP
 
    type, extends(swiftest_parameters) :: symba_parameters
-      real(DP)                                :: GMTINY             = -1.0_DP !! Smallest G*mass that is fully gravitating
-      real(DP)                                :: min_GMfrag         = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
-      integer(I4B), dimension(:), allocatable :: seed                         !! Random seeds
-      logical                                 :: lfragmentation     = .false. !! Do fragmentation modeling instead of simple merger.
-      character(STRMAX)                       :: encounter_save     = "NONE"  !! Indicate if and how encounter data should be saved
-      logical                                 :: lencounter_save   
+      real(DP)                                :: GMTINY               = -1.0_DP !! Smallest G*mass that is fully gravitating
+      real(DP)                                :: min_GMfrag           = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
+      integer(I4B), dimension(:), allocatable :: seed                           !! Random seeds for fragmentation modeling
+      logical                                 :: lfragmentation       = .false. !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: encounter_save       = "NONE"  !! Indicate if and how encounter data should be saved
+      logical                                 :: lenc_trajectory_save = .false. !! Indicates that when encounters are saved, the full trajectory through recursion steps are saved
+      logical                                 :: lenc_closest_save    = .false. !! Indicates that when encounters are saved, the closest approach distance between pairs of bodies is saved
       type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
       type(collision_storage(nframes=:)), allocatable :: collision_history  !! Stores encounter history for later retrieval and saving to file
    contains
