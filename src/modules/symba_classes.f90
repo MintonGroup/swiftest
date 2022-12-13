@@ -207,7 +207,7 @@ module symba_classes
 
    interface
 
-      module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
+      module subroutine symba_collision_check_encounter(self, system, param, t, dt, irec, lany_collision, lany_closest)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
@@ -216,8 +216,9 @@ module symba_classes
          real(DP),                   intent(in)    :: t              !! current time
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
-         logical                                   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision n
-      end function symba_collision_check_encounter
+         logical,                    intent(out)   :: lany_collision !! Returns true if any pair of encounters resulted in a collision 
+         logical,                    intent(out)   :: lany_closest   !! Returns true if any pair of encounters reached their closest approach without colliding
+      end subroutine symba_collision_check_encounter
 
       module subroutine symba_collision_encounter_extract_collisions(self, system, param)
          implicit none

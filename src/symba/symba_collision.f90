@@ -262,7 +262,7 @@ contains
    end subroutine symba_collision_collider_message
 
 
-   module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
+   module subroutine symba_collision_check_encounter(self, system, param, t, dt, irec, lany_collision, lany_closest)
       !! author: David A. Minton
       !!
       !! Check for merger between massive bodies and test particles in SyMBA
@@ -278,8 +278,7 @@ contains
       real(DP),                   intent(in)    :: t              !! current time
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level
-      ! Result
-      logical                                   :: lany_collision, lany_closest !! Returns true if cany pair of encounters resulted in a collision 
+      logical,                    intent(out)   :: lany_collision, lany_closest !! Returns true if cany pair of encounters resulted in a collision 
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lclosest, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
@@ -396,7 +395,7 @@ contains
       end select
 
       return 
-   end function symba_collision_check_encounter
+   end subroutine symba_collision_check_encounter
 
 
    pure elemental subroutine symba_collision_check_one(xr, yr, zr, vxr, vyr, vzr, Gmtot, rlim, dt, lvdotr, lcollision, lclosest)
@@ -985,7 +984,7 @@ contains
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
       real(DP) :: Eorbit_before, Eorbit_after
-      logical :: lplpl_collision
+      logical :: lplpl_collision, lplpl_closest
       character(len=STRMAX) :: timestr
       class(symba_parameters), allocatable :: tmp_param
    
@@ -1038,7 +1037,7 @@ contains
                   deallocate(tmp_param)
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plplcollision_list 
-                  lplpl_collision = plplenc_list%collision_check(system, param, t, dt, irec)
+                  call plplenc_list%collision_check(system, param, t, dt, irec, lplpl_collision, lplpl_closest)
 
                   if (.not.lplpl_collision) exit
                end do
