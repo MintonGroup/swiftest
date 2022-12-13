@@ -424,13 +424,27 @@ Integration steps: Total wall time:  2.99848E+02; Interval wall time:  9.36192E+
 
 The first line includes the simulation time, the fraction of the simulation that is complete relative to ```tstop```, the number of fully-interactive massive bodies (```plm```) (SyMBA only), the total number of massive bodies (```pl```) including fully-interactive and semi-interactive bodies, and the number of test particles (```tp```) remaining in the system at that time. The second line includes the angular momentum error, the change in energy as a result of collisions only, the total change in energy, and the change in mass up to this point in the simulation (error analysis included only if ```ENERGY```/```compute_conservation_values``` is set to ```YES```/```True```). The third line contains the total wall time elapsed since the start of the simulation, the wall time elapsed since the start of the last step, and the average wall time per step since the start of the simulation.
 
-**NOTHING IS CHECKED BELOW HERE**
-
 **Restarting a Simulation From t $\neq$ 0**
 
-Just like Swiftest allows the user to run a simulation through the terminal or through Python, Swiftest also allows the user to restart a simulation in the same two manners. 
+Just like Swiftest allows the user to run a simulation through the terminal or through Python, Swiftest also allows the user to restart a simulation from t $\neq$ 0 in the same two manners. This can be useful in the case of an accidental termination of a simulation, such as through a power outage or computer failure. In many cases, it is also necessary to run a simulation to a new end point, past the original ```TSTOP```.
 
-In case of accidental termination of a simulation, such as through a power outage or computer failure, Swiftest generates a series of dump files. Every ```ISTEP_DUMP``` timesteps, Swiftest dumps all simulation information to the dump files. Every ```ISTEP_DUMP``` timestep, Swiftest alternates which set of dump files to dump to (either set "1" or set "2"). This way, even if Swiftest is terminated during the writing stage, at least one set of dump files is preserved and the information is not lost. When Swiftest is restarted from a dump file, it automatically determines which set of dump files has proceeded further in simulation time, and picks up from that point. 
+**Restarting via Python**
+
+To restart a Swiftest simulation via the Swiftest Python package, follow the outline below:
+
+```
+import swiftest
+sim = swiftest.Simulation(read_param=True, param_file='path/to/param.in')
+sim.set_parameter(tstop=VAL)  # Set a new stop time
+sim.write_param()             # Write simulation parameters to the param.in
+sim.run()
+```
+
+Note that Swiftest will look in the ```/simdata``` subdirectory for the initial conditions by default. You may set a new path to the initial conditions using the ```param_file``` keyword argument.
+
+**Restarting via a Terminal**
+
+Every ```DUMP_CADENCE``` X ```ISTEP_OUT``` timesteps, Swiftest writes all simulation information from memory to the output files. At the same time, Swiftest also writes all simulation information to one of two sets of dump files, alternating between sets at each subsequent dump. This way, even if Swiftest is terminated during the writing stage, at least one set of dump files is preserved and the information is not lost. When Swiftest is restarted from a dump file, it automatically determines which set of dump files has proceeded further in simulation time, and picks up from that point. 
 
 The Dump Files:
 - **dump_param1.in** - The file storing all simulation parameters for set 1 of the dump files, ASCII file format only
@@ -438,26 +452,11 @@ The Dump Files:
 - **dump_bin1.nc** or **dump_bin1.dat** - The file storing all simulation information for set 1 of the dump files, NetCDF file format 
 - **dump_bin2.nc** or **dump_bin2.dat** - The file storing all simulation information for set 2 of the dump files, NetCDF file format 
 
-To run Swiftest from a dump file, simply type the following command into the terminal: 
-
-```
-$ ./swiftest_driver INTEGRATOR DUMP_PARAM
-```
-
-Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs```, ```helio```, or ```symba```, and ```DUMP_PARAM``` is either **dump_param1.in** or **dump_param2.in**. The option of specifying **dump_param1.in** or **dump_param2.in** is included for backwards compatibility. Swiftest will still automatically check which dump file has progressed further and select that dump file, regardless of your choice of dump parameter file. If you would like to force Swiftest to select one dump parameter file over the other, simply delete the set of dump files that you do not want. 
-
-While the dump files allow the user to restart only from the last recorded step, Swiftest also allows the user to restart a run from an earlier point. This can be useful if the user wishes to clone the number of test particles in a simulation at a certain time or isolate a particular event. To generate a new set of initial conditions from a set time in a preexisting run, use the Swiftest Python package to read in the **<span>out.nc</span>** output file (see the **Swiftest Python Package** section for more details). Next, use the ```initial_conditions_from_bin``` method, part of the ```swiftest.Simulation``` class. This method takes the frame number from which to generate a set of initial conditions as the sole argument. An example of this process is shown below:
-
-```
-import swiftest                                   # Import the Swiftest Python package.
-sim = swiftest.Simulation(param_file="param.in")  # Read in the output of a past simulation and store it in the sim object.
-sim.initial_conditions_from_bin(framenum=3)      # Generate a new set of initial conditions from frame 3 of the past simulation stored in sim.
-```
-
-To calculate the frame number that correlates to a particular time in a simulation, the simulation's output cadence (```ISTEP_OUT```) and timestep (```DT```) must be considered. New initial conditions can only be generated from old output frames, so if the desired time falls between output steps, it is necessary to generate initial conditions from the previous output step. For example, a simulation that ran from 0 to 100 years, where ```DT``` = 1 year and ```ISTEP_OUT``` = 10, will output every 10 timesteps, or every 10 years. If the user wishes to generate new initial conditions at 34 years, it is necessary to select frame number 3, which correlates to 30 years. The new simulation can then be run with shorter a output cadence and/or timestep if desired. 
+To restart Swiftest from a dump file, simply follow the instructions detailed in the **Running via a Terminal** section, replacing ```PARAM``` with either **dump_param1.in** or **dump_param2.in**. The option of specifying **dump_param1.in** or **dump_param2.in** is included for backwards compatibility. Swiftest will still automatically check which dump file has progressed further and select that dump file, regardless of your choice of dump parameter file. If you would like to force Swiftest to select one dump parameter file over the other, simply delete the set of dump files that you do not want. 
 
 ---
 
+**NOTHING IS CHECKED BELOW HERE**
 #### Updates to Swifter Included in Swiftest
 
 **Fraggle**
