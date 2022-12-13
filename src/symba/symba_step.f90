@@ -225,7 +225,7 @@ contains
                      call pl%drift(system, param, dtl)
                      call tp%drift(system, param, dtl)
 
-                     if (lencounter) call system%recursive_step(param, t+dth,irecp)
+                     if (lencounter) call system%recursive_step(param, t + (j-1)*dtl, irecp)
                      system%irec = ireci
 
                      if (param%lgr) then
@@ -241,13 +241,13 @@ contains
                      end if
 
                      if (param%lclose) then
-                        call plplenc_list%collision_check(system, param, t+dtl, dtl, ireci, lplpl_collision) 
-                        call pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci, lpltp_collision) 
+                        call plplenc_list%collision_check(system, param, t+j*dtl, dtl, ireci, lplpl_collision) 
+                        call pltpenc_list%collision_check(system, param, t+j*dtl, dtl, ireci, lpltp_collision) 
 
-                        if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
-                        if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
+                        if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+j*dtl, dtl, ireci)
+                        if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+j*dtl, dtl, ireci)
                      end if
-                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+dtl, "trajectory") 
+                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+j*dtl, "trajectory") 
 
                      call self%set_recur_levels(ireci)
 

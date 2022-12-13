@@ -148,20 +148,18 @@ class AnimatedScatter(object):
         ax.set_title(self.title)
         fig.add_axes(ax)
 
-        self.scatter_artist = ax.scatter([], [], animated=True)
+        self.scatter_artist = ax.scatter([], [], animated=True, c='k', edgecolors='face')
         return fig, ax
 
     def update_plot(self, frame):
         # Define a function to calculate the center of mass of the system.
         def center(Gmass, x, y):
-            x = x[~np.isnan(x)]
-            y = y[~np.isnan(y)]
-            Gmass = Gmass[~np.isnan(Gmass)]
             x_com = np.sum(Gmass * x) / np.sum(Gmass)
             y_com = np.sum(Gmass * y) / np.sum(Gmass)
             return x_com, y_com
 
         Gmass, rh, point_rad = next(self.data_stream(frame))
+        point_rad*=2
         x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
         self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_com, rh[:,1] - y_com])
         self.scatter_artist.set_sizes(point_rad**2)

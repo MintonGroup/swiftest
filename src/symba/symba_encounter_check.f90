@@ -59,6 +59,7 @@ contains
 
          if (lany_encounter) then
             do k = 1_I8B, nenc
+               plplenc_list%t = system%t
                i = plplenc_list%index1(k)
                j = plplenc_list%index2(k)
                plplenc_list%id1(k) = pl%id(i)
