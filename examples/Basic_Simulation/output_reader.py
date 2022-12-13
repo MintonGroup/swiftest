@@ -15,7 +15,7 @@ Reads and processes a Swiftest output file.
 
 Input
 ------
-bin.nc     : A NetCDF file containing the simulation output.
+data.nc     : A NetCDF file containing the simulation output.
 
 Output
 ------

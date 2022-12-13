@@ -21,7 +21,7 @@ None.
 
 Output
 ------
-disruption/bin.nc         : A NetCDF file containing the simulation output.
+disruption/data.nc         : A NetCDF file containing the simulation output.
 disruption/dump_bin1.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 disruption/dump_bin2.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 disruption/dump_param1.in : An ASCII file containing the necessary parameters to restart a simulation.
@@ -30,7 +30,7 @@ disruption/fraggle.log    : An ASCII file containing the information of any coll
 disruption/init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
 disruption/param.in       : An ASCII file containing the parameters for the simulation.
 disruption/swiftest.log   : An ASCII file containing the information on the status of the simulation as it runs.
-hitandrun/bin.nc          : A NetCDF file containing the simulation output.
+hitandrun/data.nc          : A NetCDF file containing the simulation output.
 hitandrun/dump_bin1.nc    : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 hitandrun/dump_bin2.nc    : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 hitandrun/dump_param1.in  : An ASCII file containing the necessary parameters to restart a simulation.
@@ -39,7 +39,7 @@ hitandrun/fraggle.log     : An ASCII file containing the information of any coll
 hitandrun/init_cond.nc    : A NetCDF file containing the initial conditions for the simulation.
 hitandrun/param.in        : An ASCII file containing the parameters for the simulation.
 hitandrun/swiftest.log    : An ASCII file containing the information on the status of the simulation as it runs.
-supercat/bin.nc           : A NetCDF file containing the simulation output.
+supercat/data.nc           : A NetCDF file containing the simulation output.
 supercat/dump_bin1.nc     : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 supercat/dump_bin2.nc     : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 supercat/dump_param1.in   : An ASCII file containing the necessary parameters to restart a simulation.

@@ -141,8 +141,7 @@ class Simulation:
             Parameter input file equivalent: `OUT_TYPE`
         output_file_name : str or path-like, optional
             Name of output file to generate. If not supplied, then one of the default file names are used, depending on
-            the value passed to `output_file_type`. If one of the NetCDF types are used, the default is "bin.nc".
-            Otherwise, the default is "bin.dat".
+            the value passed to `output_file_type`. The default is "data.nc".
             Parameter input file equivalent: `BIN_OUT`
         output_format : {"XV","XVEL"}, default "XVEL"
             Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
@@ -312,7 +311,7 @@ class Simulation:
 
         self.param = {}
         self.data = xr.Dataset()
-        self.ic = xr.Dataset()
+        self.init_cond = xr.Dataset()
         self.encounters = xr.Dataset()
         self.collisions = xr.Dataset()
 
@@ -1508,7 +1507,7 @@ class Simulation:
             * Swift: Only "REAL4" supported.
         output_file_name : str or path-like, optional
             Name of output file to generate. If not supplied, then one of the default file names are used, depending on
-            the value passed to `output_file_type`. If one of the NetCDF types are used, the default is "bin.nc".
+            the value passed to `output_file_type`. If one of the NetCDF types are used, the default is "data.nc".
             Otherwise, the default is "bin.dat".
         output_format : {"XV","XVEL"}, optional
             Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
@@ -1568,7 +1567,7 @@ class Simulation:
         self.param['OUT_TYPE'] = output_file_type
         if output_file_name is None:
             if output_file_type in ["NETCDF_DOUBLE", "NETCDF_FLOAT"]:
-                self.param['BIN_OUT'] = "bin.nc"
+                self.param['BIN_OUT'] = "data.nc"
             else:
                 self.param['BIN_OUT'] = "bin.dat"
         else:
@@ -2157,7 +2156,7 @@ class Simulation:
         if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
            self.save(verbose=False)
 
-        self.ic = self.data.copy(deep=True)
+        self.init_cond = self.data.copy(deep=True)
 
         return
 
@@ -2456,7 +2455,7 @@ class Simulation:
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)
-        self.ic = self.data.copy(deep=True)
+        self.init_cond = self.data.copy(deep=True)
 
         return
 
@@ -2563,7 +2562,7 @@ class Simulation:
                        param_tmp = self.param.copy()
                        param_tmp['BIN_OUT'] = init_cond_file
                        self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
-                       self.ic = self.data.copy(deep=True)
+                       self.init_cond = self.data.copy(deep=True)
                    else:
                        warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
                 else:
@@ -2706,11 +2705,6 @@ class Simulation:
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
 
-        if "ENCOUNTER_SAVE" in self.param:
-            read_encounters = self.param["ENCOUNTER_SAVE"] != "NONE"
-        else:
-            read_encounters = False
-
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
@@ -2718,17 +2712,15 @@ class Simulation:
             if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
             if read_init_cond:
                 if self.verbose:
-                    print("Reading initial conditions file as .ic")
+                    print("Reading initial conditions file as .init_cond")
                 if "NETCDF" in self.param['IN_TYPE']:
                     param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
-
-                    self.ic = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                    self.init_cond = io.swiftest2xr(param_tmp, verbose=False)
                 else:
-                    self.ic = self.data.isel(time=0)
-            if read_encounters:
-                self.read_encounters()
-            if read_collisions:
-                self.read_collisions()
+                    self.init_cond = self.data.isel(time=0)
+
+            self.read_encounters()
+            self.read_collisions()
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
@@ -2740,9 +2732,13 @@ class Simulation:
         return
 
     def read_encounters(self):
+        enc_files = glob(f"{self.simdir}{os.path.sep}encounter_*.nc")
+        if len(enc_files) == 0:
+            return
+
         if self.verbose:
             print("Reading encounter history file as .encounters")
-        enc_files = glob(f"{self.simdir}{os.path.sep}encounter_*.nc")
+
         enc_files.sort()
 
         # This is needed in order to pass the param argument down to the io.process_netcdf_input function
@@ -2760,10 +2756,13 @@ class Simulation:
 
 
     def read_collisions(self):
+        col_files = glob(f"{self.simdir}{os.path.sep}collision_*.nc")
+        if len(col_files) == 0:
+            return
+
+        col_files.sort()
         if self.verbose:
                 print("Reading collision history file as .collisions")
-        col_files = glob(f"{self.simdir}{os.path.sep}collision_*.nc")
-        col_files.sort()
 
         # This is needed in order to pass the param argument down to the io.process_netcdf_input function
         def _preprocess(ds, param):
