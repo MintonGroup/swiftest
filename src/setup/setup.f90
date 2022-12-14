@@ -87,17 +87,15 @@ contains
                   end associate
                end if
                
-               if (param%lclose) then
-                  allocate(collision_storage :: param%collision_history)
-                  associate (collision_history => param%collision_history)
-                     allocate(fraggle_io_parameters :: collision_history%nc)
-                     call collision_history%reset()
-                     select type(nc => collision_history%nc)
-                     class is (fraggle_io_parameters)
-                        nc%file_number = param%iloop / param%dump_cadence
-                     end select
-                  end associate
-               end if
+               allocate(collision_storage :: param%collision_history)
+               associate (collision_history => param%collision_history)
+                  allocate(fraggle_io_parameters :: collision_history%nc)
+                  call collision_history%reset()
+                  select type(nc => collision_history%nc)
+                  class is (fraggle_io_parameters)
+                     nc%file_number = param%iloop / param%dump_cadence
+                  end select
+               end associate
             end select
 
          end select
