@@ -16,7 +16,7 @@ module symba_classes
    use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, swiftest_storage, netcdf_parameters
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use fraggle_classes,   only : fraggle_colliders, fraggle_fragments
-   use encounter_classes, only : encounter_list, encounter_storage, encounter_snapshot
+   use encounter_classes, only : encounter_list, encounter_storage, collision_storage
    implicit none
    public
 
@@ -26,13 +26,15 @@ module symba_classes
    real(DP),     private, parameter :: RSHELL  = 0.48075_DP
 
    type, extends(swiftest_parameters) :: symba_parameters
-      real(DP)                                :: GMTINY             = -1.0_DP !! Smallest G*mass that is fully gravitating
-      real(DP)                                :: min_GMfrag         = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
-      integer(I4B), dimension(:), allocatable :: seed                         !! Random seeds
-      logical                                 :: lfragmentation     = .false. !! Do fragmentation modeling instead of simple merger.
-      character(STRMAX)                       :: encounter_save     = "NONE"  !! Indicate if and how encounter data should be saved
-      character(STRMAX)                       :: fragmentation_save = "NONE"  !! Indicate if and how fragmentation data should be saved
-      logical                                 :: lencounter_save    = .false. !! Turns on encounter saving
+      real(DP)                                :: GMTINY               = -1.0_DP !! Smallest G*mass that is fully gravitating
+      real(DP)                                :: min_GMfrag           = -1.0_DP !! Smallest G*mass that can be produced in a fragmentation event
+      integer(I4B), dimension(:), allocatable :: seed                           !! Random seeds for fragmentation modeling
+      logical                                 :: lfragmentation       = .false. !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: encounter_save       = "NONE"  !! Indicate if and how encounter data should be saved
+      logical                                 :: lenc_save_trajectory = .false. !! Indicates that when encounters are saved, the full trajectory through recursion steps are saved
+      logical                                 :: lenc_save_closest    = .false. !! Indicates that when encounters are saved, the closest approach distance between pairs of bodies is saved
+      type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      type(collision_storage(nframes=:)), allocatable :: collision_history  !! Stores encounter history for later retrieval and saving to file
    contains
       procedure :: reader => symba_io_param_reader
       procedure :: writer => symba_io_param_writer
@@ -164,7 +166,7 @@ module symba_classes
    !> SyMBA class for tracking pl-tp close encounters in a step
    type, extends(symba_encounter) :: symba_pltpenc
    contains
-      procedure :: resolve_collision => symba_collision_resolve_pltpenc !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the c
+      procedure :: resolve_collision => symba_resolve_collision_pltpenc !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_pltpenc
 
    !********************************************************************************************************************************
@@ -173,10 +175,10 @@ module symba_classes
    !> SyMBA class for tracking pl-pl close encounters in a step
    type, extends(symba_encounter) :: symba_plplenc
    contains
-      procedure :: extract_collisions     => symba_collision_encounter_extract_collisions !! Processes the pl-pl encounter list remove only those encounters that led to a collision
-      procedure :: resolve_fragmentations => symba_collision_resolve_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
-      procedure :: resolve_mergers        => symba_collision_resolve_mergers              !! Process list of collisions and merge colliding bodies together
-      procedure :: resolve_collision      => symba_collision_resolve_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
+      procedure :: extract_collisions     => symba_collision_extract_collisions_from_encounters !! Processes the pl-pl encounter list remove only those encounters that led to a collision
+      procedure :: resolve_fragmentations => symba_resolve_collision_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
+      procedure :: resolve_mergers        => symba_resolve_collision_mergers              !! Process list of collisions and merge colliding bodies together
+      procedure :: resolve_collision      => symba_resolve_collision_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_plplenc
 
 
@@ -184,12 +186,13 @@ module symba_classes
    !  symba_nbody_system class definitions and method interfaces
    !********************************************************************************************************************************
    type, extends(helio_nbody_system) :: symba_nbody_system
-      class(symba_merger),            allocatable :: pl_adds            !! List of added bodies in mergers or collisions
-      class(symba_pltpenc),           allocatable :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
-      class(symba_plplenc),           allocatable :: plplenc_list       !! List of massive body-massive body encounters in a single step
-      class(symba_plplenc),           allocatable :: plplcollision_list !! List of massive body-massive body collisions in a single step
-      integer(I4B)                                :: irec               !! System recursion level
-      type(encounter_storage(nframes=:)), allocatable :: encounter_history  !! Stores encounter history for later retrieval and saving to file
+      class(symba_merger),            allocatable     :: pl_adds            !! List of added bodies in mergers or collisions
+      class(symba_pltpenc),           allocatable     :: pltpenc_list       !! List of massive body-test particle encounters in a single step 
+      class(symba_plplenc),           allocatable     :: plplenc_list       !! List of massive body-massive body encounters in a single step
+      class(symba_plplenc),           allocatable     :: plplcollision_list !! List of massive body-massive body collisions in a single step
+      integer(I4B)                                    :: irec               !! System recursion level
+      class(fraggle_colliders), allocatable           :: colliders          !! Fraggle colliders object
+      class(fraggle_fragments), allocatable           :: fragments          !! Fraggle fragmentation system object
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
@@ -198,28 +201,25 @@ module symba_classes
       procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
-      procedure :: snapshot         => symba_util_take_encounter_snapshot !! Take a minimal snapshot of the system through an encounter
-      procedure :: start_encounter  => symba_io_start_encounter           !! Initializes the new encounter history
-      procedure :: stop_encounter   => symba_io_stop_encounter            !! Saves the encounter and/or fragmentation data to file(s)   
       final     ::                     symba_util_final_system            !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
 
    interface
 
-      module function symba_collision_check_encounter(self, system, param, t, dt, irec) result(lany_collision)
+      module subroutine symba_collision_check_encounter(self, system, param, t, dt, irec, lany_collision)
          use swiftest_classes, only : swiftest_parameters
          implicit none
          class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param          !! Current run configuration parameters 
+         class(swiftest_parameters), intent(inout) :: param          !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t              !! current time
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
-         logical                                   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision n
-      end function symba_collision_check_encounter
+         logical,                    intent(out)   :: lany_collision !! Returns true if any pair of encounters resulted in a collision 
+      end subroutine symba_collision_check_encounter
 
-      module subroutine symba_collision_encounter_extract_collisions(self, system, param)
+      module subroutine symba_collision_extract_collisions_from_encounters(self, system, param)
          implicit none
          class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
@@ -232,21 +232,21 @@ module symba_classes
          integer(I4B), dimension(2), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
       end subroutine symba_collision_make_colliders_pl
 
-      module subroutine symba_collision_resolve_fragmentations(self, system, param)
+      module subroutine symba_resolve_collision_fragmentations(self, system, param)
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-      end subroutine symba_collision_resolve_fragmentations
+      end subroutine symba_resolve_collision_fragmentations
    
-      module subroutine symba_collision_resolve_mergers(self, system, param)
+      module subroutine symba_resolve_collision_mergers(self, system, param)
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-      end subroutine symba_collision_resolve_mergers
+      end subroutine symba_resolve_collision_mergers
 
-      module subroutine symba_collision_resolve_plplenc(self, system, param, t, dt, irec)
+      module subroutine symba_resolve_collision_plplenc(self, system, param, t, dt, irec)
          implicit none
          class(symba_plplenc),       intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
@@ -254,9 +254,9 @@ module symba_classes
          real(DP),                   intent(in)    :: t      !! Current simulation time
          real(DP),                   intent(in)    :: dt     !! Current simulation step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      end subroutine symba_collision_resolve_plplenc
+      end subroutine symba_resolve_collision_plplenc
    
-      module subroutine symba_collision_resolve_pltpenc(self, system, param, t, dt, irec)
+      module subroutine symba_resolve_collision_pltpenc(self, system, param, t, dt, irec)
          implicit none
          class(symba_pltpenc),       intent(inout) :: self   !! SyMBA pl-tp encounter list
          class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
@@ -264,7 +264,7 @@ module symba_classes
          real(DP),                   intent(in)    :: t      !! Current simulation time
          real(DP),                   intent(in)    :: dt     !! Current simulation step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
-      end subroutine symba_collision_resolve_pltpenc
+      end subroutine symba_resolve_collision_pltpenc
 
       module subroutine symba_discard_pl(self, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
@@ -343,33 +343,24 @@ module symba_classes
          real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine symba_gr_p4_tp
 
-      module function symba_collision_casedisruption(system, param, colliders, frag) result(status)
-         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
+      module function symba_collision_casedisruption(system, param) result(status)
          implicit none
          class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casedisruption
    
-      module function symba_collision_casehitandrun(system, param, colliders, frag) result(status)
-         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
+      module function symba_collision_casehitandrun(system, param) result(status)
          implicit none
          class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casehitandrun
 
-      module function symba_collision_casemerge(system, param, colliders, frag) result(status)
-         use fraggle_classes, only : fraggle_colliders, fraggle_fragments
+      module function symba_collision_casemerge(system, param) result(status)
          implicit none
          class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         class(fraggle_colliders),  intent(inout) :: colliders !! Fraggle colliders object        
-         class(fraggle_fragments),  intent(inout) :: frag      !! Fraggle fragmentation system object 
          integer(I4B)                             :: status    !! Status flag assigned to this outcome
       end function symba_collision_casemerge
 
@@ -378,14 +369,6 @@ module symba_classes
          class(symba_pl), intent(inout) :: self !! SyMBA massive body object
          integer(I4B),    intent(in)    :: scale !! Current recursion depth
       end subroutine symba_util_set_renc
-
-      module subroutine symba_util_take_encounter_snapshot(self, param, t)
-         use swiftest_classes, only : swiftest_parameters
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self   !! SyMBA nbody system object
-         class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t      !! current time
-      end subroutine symba_util_take_encounter_snapshot
 
       module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -408,20 +391,6 @@ module symba_classes
          integer,                intent(out)   :: iostat    !! IO status code
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
       end subroutine symba_io_param_writer
-
-      module subroutine symba_io_start_encounter(self, param, t)
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t     !! Current simulation time
-      end subroutine symba_io_start_encounter
-
-      module subroutine symba_io_stop_encounter(self, param, t)
-         implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t     !! Current simulation time
-      end subroutine symba_io_stop_encounter
 
       module subroutine symba_io_write_discard(self, param)
          use swiftest_classes, only : swiftest_parameters

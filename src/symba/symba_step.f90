@@ -34,17 +34,19 @@ contains
          class is (symba_tp)
             select type(param)
             class is (symba_parameters)
-               call self%reset(param)
-               lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
-               if (lencounter) then
-                  if (param%lencounter_save) call self%start_encounter(param, t)
-                  call self%interp(param, t, dt)
-                  if (param%lencounter_save) call self%stop_encounter(param, t+dt)
-               else
-                  self%irec = -1
-                  call helio_step_system(self, param, t, dt)
-               end if
-               param%lfirstkick = pl%lfirst
+               associate(encounter_history => param%encounter_history)
+                  call self%reset(param)
+                  lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
+                  if (lencounter) then
+                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t, "trajectory") 
+                     call self%interp(param, t, dt)
+                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+dt, "trajectory") 
+                  else
+                     self%irec = -1
+                     call helio_step_system(self, param, t, dt)
+                  end if
+                  param%lfirstkick = pl%lfirst
+               end associate
             end select
          end select
       end select
@@ -178,15 +180,17 @@ contains
       ! Internals
       integer(I4B) :: j, irecp, nloops
       real(DP) :: dtl, dth
-      logical :: lencounter, lplpl_collision, lpltp_collision
+      logical :: lencounter
 
-      associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list)
-         select type(param)
-         class is (symba_parameters)
-            select type(pl => self%pl)
-            class is (symba_pl)
-               select type(tp => self%tp)
-               class is (symba_tp)
+      select type(param)
+      class is (symba_parameters)
+         select type(pl => self%pl)
+         class is (symba_pl)
+            select type(tp => self%tp)
+            class is (symba_tp)
+               associate(system => self, plplenc_list => self%plplenc_list, pltpenc_list => self%pltpenc_list, &
+                        lplpl_collision => self%plplenc_list%lcollision, lpltp_collision => self%pltpenc_list%lcollision, &
+                        encounter_history => param%encounter_history)
                   system%irec = ireci
                   dtl = param%dt / (NTENC**ireci)
                   dth = 0.5_DP * dtl
@@ -221,7 +225,7 @@ contains
                      call pl%drift(system, param, dtl)
                      call tp%drift(system, param, dtl)
 
-                     if (lencounter) call system%recursive_step(param, t+dth,irecp)
+                     if (lencounter) call system%recursive_step(param, t+(j-1)*dtl, irecp)
                      system%irec = ireci
 
                      if (param%lgr) then
@@ -237,21 +241,21 @@ contains
                      end if
 
                      if (param%lclose) then
-                        lplpl_collision = plplenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
-                        lpltp_collision = pltpenc_list%collision_check(system, param, t+dtl, dtl, ireci) 
+                        call plplenc_list%collision_check(system, param, t+j*dtl, dtl, ireci, lplpl_collision) 
+                        call pltpenc_list%collision_check(system, param, t+j*dtl, dtl, ireci, lpltp_collision) 
 
-                        if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
-                        if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+dtl, dtl, ireci)
+                        if (lplpl_collision) call plplenc_list%resolve_collision(system, param, t+j*dtl, dtl, ireci)
+                        if (lpltp_collision) call pltpenc_list%resolve_collision(system, param, t+j*dtl, dtl, ireci)
                      end if
-                     if (param%lencounter_save) call system%snapshot(param, t+dtl)
+                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+j*dtl, "trajectory") 
 
                      call self%set_recur_levels(ireci)
 
                   end do
-               end select
+               end associate
             end select
          end select
-      end associate
+      end select
 
       return
    end subroutine symba_step_recur_system
@@ -295,6 +299,7 @@ contains
                      call pl%set_renc(0)
                      call system%plplenc_list%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
                      system%plplenc_list%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+                     system%plplenc_list%lcollision = .false.
                   end if
             
                   nenc_old = system%pltpenc_list%nenc
@@ -307,6 +312,7 @@ contains
                      tp%ldiscard(1:ntp) = .false.
                      call system%pltpenc_list%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
                      system%pltpenc_list%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+                     system%pltpenc_list%lcollision = .false.
                   end if
 
                   call system%pl_adds%setup(0, param)

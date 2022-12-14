@@ -204,6 +204,8 @@ contains
       if (allocated(self%level)) deallocate(self%level)
       if (allocated(self%tcollision)) deallocate(self%tcollision)
 
+      call self%encounter_list%dealloc()
+
       return
    end subroutine symba_util_dealloc_encounter_list
 
@@ -232,7 +234,7 @@ contains
 
       if (allocated(self%ncomp)) deallocate(self%ncomp)
 
-      call symba_util_dealloc_pl(self)
+      call self%symba_pl%dealloc()
 
       return
    end subroutine symba_util_dealloc_merger
@@ -266,7 +268,7 @@ contains
          deallocate(self%kin)
       end if
 
-      call util_dealloc_pl(self)
+      call self%helio_pl%dealloc()
 
       return
    end subroutine symba_util_dealloc_pl
@@ -284,7 +286,7 @@ contains
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
 
-      call util_dealloc_tp(self)
+      call self%helio_tp%dealloc() 
 
       return
    end subroutine symba_util_dealloc_tp
@@ -532,7 +534,7 @@ contains
             else
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
+                     vdotr = dot_product(pl%rb(:,i), pl%vb(:,i))
                      if (vdotr > 0.0_DP) then
                         pl%isperi(i) = 1
                      else
@@ -564,11 +566,11 @@ contains
             else
                do i = 1, npl
                   if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
+                     vdotr = dot_product(pl%rb(:,i), pl%vb(:,i))
                      if (pl%isperi(i) == -1) then
                         if (vdotr >= 0.0_DP) then
                            pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),&
+                           CALL orbel_xv2aeq(system%Gmtot, pl%rb(1,i), pl%rb(2,i), pl%rb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),&
                                              pl%atp(i), e, pl%peri(i))
                         end if
                      else
@@ -612,7 +614,7 @@ contains
          nadd = pl_adds%nbody
          if (npl == 0) return
          ! Deallocate any temporary variables
-         if (allocated(pl%xbeg)) deallocate(pl%xbeg)
+         if (allocated(pl%rbeg)) deallocate(pl%rbeg)
          if (allocated(pl%xend)) deallocate(pl%xend)
 
          ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
@@ -667,7 +669,7 @@ contains
             end where
          end select
 
-         call pl%write_info(param%nc, param)
+         call pl%write_info(param%system_history%nc, param)
          deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 
@@ -712,9 +714,10 @@ contains
                if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
                   ! This is an encounter we already know about, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%lclosest(k) = plplenc_old%lclosest(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
-                  system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
+                  system%plplenc_list%r1(:,k) = plplenc_old%r1(:,k)
+                  system%plplenc_list%r2(:,k) = plplenc_old%r2(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
                   system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
                   system%plplenc_list%tcollision(k) = plplenc_old%tcollision(k)
@@ -722,9 +725,10 @@ contains
                else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
                   ! This is an encounter we already know about, but with the order reversed, so save the old information
                   system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  system%plplenc_list%lclosest(k) = plplenc_old%lclosest(k) 
                   system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
-                  system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
+                  system%plplenc_list%r1(:,k) = plplenc_old%r2(:,k)
+                  system%plplenc_list%r2(:,k) = plplenc_old%r1(:,k)
                   system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
                   system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
                   system%plplenc_list%tcollision(k) = plplenc_old%tcollision(k)
@@ -749,12 +753,13 @@ contains
                system%plplenc_list%id1(1:nencmin) = pack(system%plplenc_list%id1(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
+               system%plplenc_list%lclosest(1:nencmin) = pack(system%plplenc_list%lclosest(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%tcollision(1:nencmin) = pack(system%plplenc_list%tcollision(1:nenc_old), lmask(1:nenc_old))
                system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))
                do i = 1, NDIM
-                  system%plplenc_list%x1(i, 1:nencmin) = pack(system%plplenc_list%x1(i, 1:nenc_old), lmask(1:nenc_old))
-                  system%plplenc_list%x2(i, 1:nencmin) = pack(system%plplenc_list%x2(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%r1(i, 1:nencmin) = pack(system%plplenc_list%r1(i, 1:nenc_old), lmask(1:nenc_old))
+                  system%plplenc_list%r2(i, 1:nencmin) = pack(system%plplenc_list%r2(i, 1:nenc_old), lmask(1:nenc_old))
                   system%plplenc_list%v1(i, 1:nencmin) = pack(system%plplenc_list%v1(i, 1:nenc_old), lmask(1:nenc_old))
                   system%plplenc_list%v2(i, 1:nencmin) = pack(system%plplenc_list%v2(i, 1:nenc_old), lmask(1:nenc_old))
                end do
@@ -867,65 +872,6 @@ contains
 
       return
    end subroutine symba_util_resize_pl
-
-
-   subroutine symba_util_save_storage(system, snapshot, t)
-      !! author: David A. Minton
-      !!
-      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
-      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
-      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
-      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
-      implicit none
-      ! Arguments
-      type(symba_nbody_system),  intent(inout) :: system   !! SyMBA nbody system object 
-      class(encounter_snapshot), intent(in)    :: snapshot !! Encounter snapshot object
-      real(DP),                  intent(in)    :: t        !! The time of the snapshot
-      ! Internals
-      type(encounter_storage(nframes=:)), allocatable :: tmp
-      integer(I4B) :: i, nnew, nold, nbig
-
-      ! Advance the snapshot frame counter
-      system%encounter_history%iframe = system%encounter_history%iframe + 1
-
-      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
-      nnew = system%encounter_history%iframe
-      nold = system%encounter_history%nframes
-
-      if (nnew > nold) then
-         nbig = nold
-         do while (nbig < nnew)
-            nbig = nbig * 2
-         end do
-         allocate(encounter_storage(nbig) :: tmp) 
-         tmp%tvals(1:nold) = system%encounter_history%tvals(1:nold)
-         tmp%tvals(nold+1:nbig) = huge(1.0_DP)
-         tmp%tslot(1:nold) = system%encounter_history%tslot(1:nold)
-         tmp%tslot(nold+1:nbig) = 0
-         tmp%iframe = system%encounter_history%iframe
-
-         do i = 1, nold
-            if (allocated(system%encounter_history%frame(i)%item)) call move_alloc(system%encounter_history%frame(i)%item, tmp%frame(i)%item)
-         end do
-         deallocate(system%encounter_history)
-         call move_alloc(tmp,system%encounter_history)
-         nnew = nbig
-      end if
-
-      ! Find out which time slot this belongs in by searching for an existing slot
-      ! with the same value of time or the first available one
-      do i = 1, nnew
-         if (t <= system%encounter_history%tvals(i)) then
-            system%encounter_history%tvals(i) = t
-            system%encounter_history%tslot(nnew) = i
-            system%encounter_history%frame(nnew) = snapshot
-            exit
-         end if
-      end do
-
-      return
-   end subroutine symba_util_save_storage
-
 
    module subroutine symba_util_resize_tp(self, nnew)
       !! author: David A. Minton
@@ -1285,108 +1231,5 @@ contains
    end subroutine symba_util_spill_tp
 
 
-   module subroutine symba_util_take_encounter_snapshot(self, param, t)
-      !! author: David A. Minton
-      !!
-      !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
-      !! can be played back through the encounter
-      implicit none
-      ! Internals
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! current time
-      ! Arguments
-      type(encounter_snapshot) :: snapshot
-      integer(I4B) :: i, npl_snap, ntp_snap
-
-      associate(npl => self%pl%nbody,  ntp => self%tp%nbody)
-
-         snapshot%t = t
-
-         if (npl + ntp == 0) return
-         npl_snap = npl
-         ntp_snap = ntp
-
-         select type (pl => self%pl)
-         class is (symba_pl)
-            select type (tp => self%tp)
-            class is (symba_tp)
-               allocate(symba_pl :: snapshot%pl)
-               allocate(symba_tp :: snapshot%tp)
-
-               select type(pl_snap => snapshot%pl)
-               class is (symba_pl)
-                  select type(tp_snap => snapshot%tp)
-                  class is (symba_tp)
-
-                     if (npl > 0) then
-                        pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == self%irec
-                        npl_snap = count(pl%lmask(1:npl))
-                     end if
-                     if (ntp > 0) then
-                        tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == self%irec
-                        ntp_snap = count(tp%lmask(1:ntp))
-                     end if
-                     pl_snap%nbody = npl_snap
-
-                     ! Take snapshot of the currently encountering massive bodies
-                     if (npl_snap > 0) then
-                        allocate(pl_snap%id(npl_snap))
-                        allocate(pl_snap%info(npl_snap))
-                        allocate(pl_snap%Gmass(npl_snap))
-
-                        allocate(pl_snap%levelg(npl_snap))
-                        pl_snap%levelg(:) = pack(pl%levelg(1:npl), pl%lmask(1:npl))
-                        pl_snap%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
-                        pl_snap%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
-                        pl_snap%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
-                        allocate(pl_snap%rh(NDIM,npl_snap))
-                        allocate(pl_snap%vh(NDIM,npl_snap))
-                        do i = 1, NDIM
-                           pl_snap%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
-                           pl_snap%vh(i,:) = pack(pl%vb(i,1:npl), pl%lmask(1:npl))
-                        end do
-                        if (param%lclose) then
-                           allocate(pl_snap%radius(npl_snap))
-                           pl_snap%radius(:) = pack(pl%radius(1:npl), pl%lmask(1:npl))
-                        end if
-
-                        if (param%lrotation) then
-                           allocate(pl_snap%Ip(NDIM,npl_snap))
-                           allocate(pl_snap%rot(NDIM,npl_snap))
-                           do i = 1, NDIM
-                              pl_snap%Ip(i,:) = pack(pl%Ip(i,1:npl), pl%lmask(1:npl))
-                              pl_snap%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
-                           end do
-                        end if
-                        call pl_snap%sort("id", ascending=.true.)
-                     end if
-
-                     ! Take snapshot of the currently encountering test particles
-                     tp_snap%nbody = ntp_snap
-                     if (ntp_snap > 0) then
-                        allocate(tp_snap%id(ntp_snap))
-                        allocate(tp_snap%info(ntp_snap))
-                        tp_snap%id(:) = pack(tp%id(1:ntp), tp%lmask(1:ntp))
-                        tp_snap%info(:) = pack(tp%info(1:ntp), tp%lmask(1:ntp))
-                        allocate(tp_snap%rh(NDIM,ntp_snap))
-                        allocate(tp_snap%vh(NDIM,ntp_snap))
-                        do i = 1, NDIM
-                           tp_snap%rh(i,:) = pack(tp%rh(i,1:ntp), tp%lmask(1:ntp))
-                           tp_snap%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
-                        end do
-                     end if
-                  end select
-               end select
-
-
-               ! Save the snapshot
-               call symba_util_save_storage(self,snapshot,t)
-            end select
-         end select
-      end associate
-
-      return
-   end subroutine symba_util_take_encounter_snapshot
 
 end submodule s_symba_util

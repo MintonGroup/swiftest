@@ -20,7 +20,7 @@ None.
 
 Output
 ------
-bin.nc         : A NetCDF file containing the simulation output.
+data.nc         : A NetCDF file containing the simulation output.
 dump_bin1.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 dump_bin2.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 dump_param1.in : An ASCII file containing the necessary parameters to restart a simulation.

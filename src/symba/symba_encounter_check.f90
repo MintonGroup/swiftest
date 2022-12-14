@@ -59,14 +59,15 @@ contains
 
          if (lany_encounter) then
             do k = 1_I8B, nenc
+               plplenc_list%t = system%t
                i = plplenc_list%index1(k)
                j = plplenc_list%index2(k)
                plplenc_list%id1(k) = pl%id(i)
                plplenc_list%id2(k) = pl%id(j)
                plplenc_list%status(k) = ACTIVE
                plplenc_list%level(k) = irec
-               plplenc_list%x1(:,k) = pl%rh(:,i)
-               plplenc_list%x2(:,k) = pl%rh(:,j)
+               plplenc_list%r1(:,k) = pl%rh(:,i)
+               plplenc_list%r2(:,k) = pl%rh(:,j)
                plplenc_list%v1(:,k) = pl%vb(:,i) - cb%vb(:)
                plplenc_list%v2(:,k) = pl%vb(:,j) - cb%vb(:)
                pl%lencounter(i) = .true.

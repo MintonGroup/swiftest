@@ -72,7 +72,7 @@ contains
          call frag%get_energy_and_momentum(colliders, system, param, lbefore=.true.)
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
-         r_max_start = 1 * norm2(colliders%xb(:,2) - colliders%xb(:,1))
+         r_max_start = 1 * norm2(colliders%rb(:,2) - colliders%rb(:,1))
          lfailure = .false.
          try = 1
          do while (try < MAXTRY)
@@ -151,7 +151,6 @@ contains
          else
             call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation succeeded after " // &
                                                        trim(adjustl(message)) // " tries")
-            call fraggle_io_log_generate(frag)
          end if
 
          call frag%set_original_scale(colliders)
@@ -195,8 +194,8 @@ contains
          call random_number(frag%x_coll(:,3:nfrag))
          loverlap(:) = .true.
          do while (any(loverlap(3:nfrag)))
-            frag%x_coll(:, 1) = colliders%xb(:, 1) - frag%xbcom(:) 
-            frag%x_coll(:, 2) = colliders%xb(:, 2) - frag%xbcom(:)
+            frag%x_coll(:, 1) = colliders%rb(:, 1) - frag%rbcom(:) 
+            frag%x_coll(:, 2) = colliders%rb(:, 2) - frag%rbcom(:)
             r_max = r_max + 0.1_DP * rad
             do i = 3, nfrag
                if (loverlap(i)) then
@@ -216,14 +215,14 @@ contains
          call frag%set_coordinate_system(colliders)
 
          do i = 1, nfrag
-            frag%xb(:,i) = frag%x_coll(:,i) + frag%xbcom(:)
+            frag%rb(:,i) = frag%x_coll(:,i) + frag%rbcom(:)
          end do
 
-         frag%xbcom(:) = 0.0_DP
+         frag%rbcom(:) = 0.0_DP
          do i = 1, nfrag
-            frag%xbcom(:) = frag%xbcom(:) + frag%mass(i) * frag%xb(:,i) 
+            frag%rbcom(:) = frag%rbcom(:) + frag%mass(i) * frag%rb(:,i) 
          end do
-         frag%xbcom(:) = frag%xbcom(:) / frag%mtot
+         frag%rbcom(:) = frag%rbcom(:) / frag%mtot
       end associate
 
       return

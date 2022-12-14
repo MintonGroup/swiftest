@@ -90,7 +90,7 @@ def encounter_combiner(sim):
     # Only keep a minimal subset of necessary data from the simulation and encounter datasets
     keep_vars = ['rh','Gmass','radius']
     data = sim.data[keep_vars]
-    enc = sim.enc[keep_vars].load()
+    enc = sim.encounters[keep_vars].load()
 
     # Remove any encounter data at the same time steps that appear in the data to prevent duplicates
     t_not_duplicate = ~enc['time'].isin(data['time'])
@@ -148,7 +148,7 @@ class AnimatedScatter(object):
         ax.set_title(self.title)
         fig.add_axes(ax)
 
-        self.scatter_artist = ax.scatter([], [], animated=True)
+        self.scatter_artist = ax.scatter([], [], animated=True, c='k', edgecolors='face')
         return fig, ax
 
     def update_plot(self, frame):
@@ -174,7 +174,7 @@ class AnimatedScatter(object):
             radius = ds['radius'].values
             Gmass = ds['Gmass'].values
             rh = ds['rh'].values
-            point_rad = 2 * radius * self.ax_pt_size
+            point_rad = radius * self.ax_pt_size
             yield Gmass, rh, point_rad
 
 if __name__ == "__main__":
@@ -202,8 +202,8 @@ if __name__ == "__main__":
         # Set fragmentation parameters
         minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
         gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
-        sim.set_parameter(fragmentation=True, fragmentation_save="TRAJECTORY", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-        sim.run(dt=1e-4, tstop=1.0e-3, istep_out=1, dump_cadence=0)
+        sim.set_parameter(fragmentation=True, encounter_save="trajectory", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
+        sim.run(dt=1e-4, tstop=1.0e-3, istep_out=1, dump_cadence=1)
 
         print("Generating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)

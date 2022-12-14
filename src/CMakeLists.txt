@@ -78,16 +78,18 @@ SET(FAST_MATH_FILES
             ${SRC}/util/util_final.f90
             ${SRC}/util/util_flatten.f90
             ${SRC}/util/util_get_energy_momentum.f90
-            ${SRC}/util/util_index_array.f90
+            ${SRC}/util/util_index.f90
             ${SRC}/util/util_minimize_bfgs.f90
             ${SRC}/util/util_peri.f90
             ${SRC}/util/util_rescale.f90
             ${SRC}/util/util_reset.f90
             ${SRC}/util/util_resize.f90
             ${SRC}/util/util_set.f90
+            ${SRC}/util/util_snapshot.f90
             ${SRC}/util/util_solve.f90
             ${SRC}/util/util_sort.f90
             ${SRC}/util/util_spill.f90
+            ${SRC}/util/util_unique.f90
             ${SRC}/util/util_valid.f90
             ${SRC}/util/util_version.f90
             ${SRC}/walltime/walltime.f90

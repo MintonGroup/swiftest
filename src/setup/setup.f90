@@ -21,6 +21,10 @@ contains
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
       class(swiftest_parameters),                  intent(inout) :: param     !! Swiftest parameters
 
+      allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
+      allocate(netcdf_parameters :: param%system_history%nc)
+      call param%system_history%reset()
+
       select case(param%integrator)
       case (BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
@@ -68,6 +72,34 @@ contains
             allocate(symba_pltpenc :: system%pltpenc_list)
             allocate(symba_plplenc :: system%plplenc_list)
             allocate(symba_plplenc :: system%plplcollision_list)
+
+            select type(param)
+            class is (symba_parameters)
+               if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+                  allocate(encounter_storage :: param%encounter_history)
+                  associate (encounter_history => param%encounter_history)
+                     allocate(encounter_io_parameters :: encounter_history%nc)
+                     call encounter_history%reset()
+                     select type(nc => encounter_history%nc)
+                     class is (encounter_io_parameters)
+                        nc%file_number = param%iloop / param%dump_cadence
+                     end select
+                  end associate
+               end if
+               
+               if (param%lclose) then
+                  allocate(collision_storage :: param%collision_history)
+                  associate (collision_history => param%collision_history)
+                     allocate(fraggle_io_parameters :: collision_history%nc)
+                     call collision_history%reset()
+                     select type(nc => collision_history%nc)
+                     class is (fraggle_io_parameters)
+                        nc%file_number = param%iloop / param%dump_cadence
+                     end select
+                  end associate
+               end if
+            end select
+
          end select
       case (RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
@@ -75,6 +107,10 @@ contains
          write(*,*) 'Unkown integrator',param%integrator
          call util_exit(FAILURE)
       end select
+
+
+
+
 
       return
    end subroutine setup_construct_system
@@ -91,7 +127,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
       associate(system => self)
-         call param%nc%close()
+         call param%system_history%nc%close()
       end associate
 
       return
@@ -195,7 +231,7 @@ contains
       allocate(self%mu(n))
       allocate(self%rh(NDIM, n))
       allocate(self%vh(NDIM, n))
-      allocate(self%xb(NDIM, n))
+      allocate(self%rb(NDIM, n))
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
@@ -225,7 +261,7 @@ contains
       self%mu(:)     = 0.0_DP
       self%rh(:,:)   = 0.0_DP
       self%vh(:,:)   = 0.0_DP
-      self%xb(:,:)   = 0.0_DP
+      self%rb(:,:)   = 0.0_DP
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
       self%ir3h(:)   = 0.0_DP

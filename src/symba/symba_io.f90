@@ -11,6 +11,8 @@ submodule (symba_classes) s_symba_io
    use swiftest
 contains
 
+
+
    module subroutine symba_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -66,9 +68,6 @@ contains
                case ("ENCOUNTER_SAVE")
                   call io_toupper(param_value)
                   read(param_value, *) param%encounter_save
-               case ("FRAGMENTATION_SAVE")
-                  call io_toupper(param_value)
-                  read(param_value, *) param%fragmentation_save
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -119,21 +118,18 @@ contains
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
          call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
 
-         if ((param%encounter_save /= "NONE") .and. (param%encounter_save /= "TRAJECTORY") .and. (param%encounter_save /= "CLOSEST")) then
+         if ((param%encounter_save /= "NONE")       .and. &
+             (param%encounter_save /= "TRAJECTORY") .and. &
+             (param%encounter_save /= "CLOSEST")    .and. &
+             (param%encounter_save /= "BOTH")) then
             write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
-            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
+            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, CLOSEST, or BOTH'
             iostat = -1
             return
          end if
 
-         if ((param%fragmentation_save /= "NONE") .and. (param%fragmentation_save /= "TRAJECTORY") .and. (param%fragmentation_save /= "CLOSEST")) then
-            write(iomsg,*) 'Invalid fragmentation_save parameter: ',trim(adjustl(param%out_type))
-            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, or CLOSEST'
-            iostat = -1
-            return
-         end if
-         param%lencounter_save = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "CLOSEST") .or. &
-                                 (param%fragmentation_save == "TRAJECTORY") .or. (param%fragmentation_save == "CLOSEST") 
+         param%lenc_save_trajectory = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "BOTH")
+         param%lenc_save_closest = (param%encounter_save == "CLOSEST") .or. (param%encounter_save == "BOTH")
 
          ! Call the base method (which also prints the contents to screen)
          call io_param_reader(param, unit, iotype, v_list, iostat, iomsg) 
@@ -188,55 +184,6 @@ contains
    end subroutine symba_io_param_writer
 
 
-   module subroutine symba_io_start_encounter(self, param, t)
-      !! author: David A. Minton
-      !!
-      !! Initializes the new encounter and/or fragmentation history
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! Current simulation time
-
-      if (.not. allocated(self%encounter_history)) then
-         allocate(encounter_storage :: self%encounter_history)
-      end if
-      call self%encounter_history%reset()
-
-      ! Take the snapshot at the start of the encounter
-      call self%snapshot(param, t) 
-
-      return
-   end subroutine symba_io_start_encounter
-
-
-   module subroutine symba_io_stop_encounter(self, param, t)
-      !! author: David A. Minton
-      !!
-      !! Saves the encounter and/or fragmentation data to file(s)  
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(symba_parameters),    intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! Current simulation time
-      ! Internals
-      integer(I4B) :: i
-
-      ! Create and save the output file for this encounter
-      
-      self%encounter_history%nc%time_dimsize = maxval(self%encounter_history%tslot(:))
-
-      write(self%encounter_history%nc%enc_file, '("encounter_",I0.6,".nc")') param%iloop
-
-      call self%encounter_history%nc%initialize(param)
-      call self%encounter_history%dump(param)
-      call self%encounter_history%nc%close()
-      call self%encounter_history%reset()
-
-      return
-   end subroutine symba_io_stop_encounter
-
-
    module subroutine symba_io_write_discard(self, param)
       !! author: David A. Minton
       !!
@@ -248,12 +195,12 @@ contains
 
       associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
 
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%nc, param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%system_history%nc, param)
          select type(pl_discards => self%pl_discards)
          class is (symba_merger)
             if (pl_discards%nbody == 0) return
 
-            call pl_discards%write_info(param%nc, param)
+            call pl_discards%write_info(param%system_history%nc, param)
          end select
       end associate
 

@@ -74,7 +74,7 @@ contains
                   call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                             discard_vh=pl%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
-                  rb2 = dot_product(pl%xb(:,i), pl%xb(:,i))
+                  rb2 = dot_product(pl%rb(:,i), pl%rb(:,i))
                   vb2 = dot_product(pl%vb(:,i), pl%vb(:,i))
                   energy = 0.5_DP * vb2 - system%Gmtot / sqrt(rb2)
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
@@ -124,7 +124,7 @@ contains
       class is (symba_cb)
    
          ! Add the potential and kinetic energy of the lost body to the records
-         pe = -cb%Gmass * pl%mass(ipl) / norm2(pl%xb(:, ipl) - cb%xb(:))
+         pe = -cb%Gmass * pl%mass(ipl) / norm2(pl%rb(:, ipl) - cb%rb(:))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
             ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
@@ -138,15 +138,15 @@ contains
             system%GMescape = system%GMescape + pl%Gmass(ipl)
             do i = 1, pl%nbody
                if (i == ipl) cycle
-               pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%xb(:, ipl) - pl%xb(:, i))
+               pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%rb(:, ipl) - pl%rb(:, i))
             end do
    
             Ltot(:) = 0.0_DP
             do i = 1, pl%nbody
-               Lpl(:) = pL%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
+               Lpl(:) = pL%mass(i) * (pl%rb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) + Lpl(:)
             end do
-            Ltot(:) = Ltot(:) + cb%mass * (cb%xb(:) .cross. cb%vb(:))
+            Ltot(:) = Ltot(:) + cb%mass * (cb%rb(:) .cross. cb%vb(:))
             call pl%b2h(cb)
             oldstat = pl%status(ipl)
             pl%status(ipl) = INACTIVE
@@ -154,21 +154,21 @@ contains
             pl%status(ipl) = oldstat
             do i = 1, pl%nbody
                if (i == ipl) cycle
-               Lpl(:) = pl%mass(i) * (pl%xb(:,i) .cross. pl%vb(:, i))
+               Lpl(:) = pl%mass(i) * (pl%rb(:,i) .cross. pl%vb(:, i))
                Ltot(:) = Ltot(:) - Lpl(:) 
             end do 
-            Ltot(:) = Ltot(:) - cb%mass * (cb%xb(:) .cross. cb%vb(:))
+            Ltot(:) = Ltot(:) - cb%mass * (cb%rb(:) .cross. cb%vb(:))
             system%Lescape(:) = system%Lescape(:) + Ltot(:)
             if (param%lrotation) system%Lescape(:) = system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 &
                                                                     * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else
-            xcom(:) = (pl%mass(ipl) * pl%xb(:, ipl) + cb%mass * cb%xb(:)) / (cb%mass + pl%mass(ipl))
+            xcom(:) = (pl%mass(ipl) * pl%rb(:, ipl) + cb%mass * cb%rb(:)) / (cb%mass + pl%mass(ipl))
             vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
-            Lpl(:) = (pl%xb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
+            Lpl(:) = (pl%rb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
             if (param%lrotation) Lpl(:) = pl%mass(ipl) * (Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl))
      
-            Lcb(:) = cb%mass * ((cb%xb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
+            Lcb(:) = cb%mass * ((cb%rb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
             if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
@@ -186,7 +186,7 @@ contains
                cb%rot(:) = (cb%L0(:) + cb%dL(:)) / (cb%Ip(3) * cb%mass * cb%radius**2)        
                ke_spin  = ke_spin - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
             end if
-            cb%xb(:) = xcom(:)
+            cb%rb(:) = xcom(:)
             cb%vb(:) = vcom(:)
             ke_orbit = ke_orbit - 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
          end if
@@ -360,7 +360,7 @@ contains
          class is (symba_parameters)
             associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
                call pl%vb2vh(system%cb) 
-               call pl%xh2xb(system%cb)
+               call pl%rh2rb(system%cb)
                !call plplenc_list%write(pl, pl, param) TODO: write the encounter list writer for NetCDF
 
                call symba_discard_nonplpl(self, system, param)

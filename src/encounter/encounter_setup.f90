@@ -66,41 +66,33 @@ contains
       integer(I8B) :: i
 
       if (n < 0) return
-
-      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
-      if (allocated(self%status)) deallocate(self%status)
-      if (allocated(self%index1)) deallocate(self%index1)
-      if (allocated(self%index2)) deallocate(self%index2)
-      if (allocated(self%id1)) deallocate(self%id1)
-      if (allocated(self%id2)) deallocate(self%id2)
-      if (allocated(self%x1)) deallocate(self%x1)
-      if (allocated(self%x2)) deallocate(self%x2)
-      if (allocated(self%v1)) deallocate(self%v1)
-      if (allocated(self%v2)) deallocate(self%v2)
+      call self%dealloc()
 
       self%nenc = n
       if (n == 0_I8B) return
       self%t = 0.0_DP
 
       allocate(self%lvdotr(n))
+      allocate(self%lclosest(n))
       allocate(self%status(n))
       allocate(self%index1(n))
       allocate(self%index2(n))
       allocate(self%id1(n))
       allocate(self%id2(n))
-      allocate(self%x1(NDIM,n))
-      allocate(self%x2(NDIM,n))
+      allocate(self%r1(NDIM,n))
+      allocate(self%r2(NDIM,n))
       allocate(self%v1(NDIM,n))
       allocate(self%v2(NDIM,n))
 
       self%lvdotr(:) = .false.
+      self%lclosest(:) = .false.
       self%status(:) = INACTIVE
       self%index1(:) = 0
       self%index2(:) = 0
       self%id1(:) = 0
       self%id2(:) = 0
-      self%x1(:,:) = 0.0_DP
-      self%x2(:,:) = 0.0_DP
+      self%r1(:,:) = 0.0_DP
+      self%r2(:,:) = 0.0_DP
       self%v1(:,:) = 0.0_DP
       self%v2(:,:) = 0.0_DP
 

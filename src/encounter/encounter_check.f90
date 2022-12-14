@@ -891,7 +891,7 @@ contains
    end subroutine encounter_check_sort_aabb_1D 
 
 
-   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, x1, v1, x2, v2, renc1, renc2, dt, &
+   module subroutine encounter_check_sweep_aabb_double_list(self, n1, n2, r1, v1, r2, v2, renc1, renc2, dt, &
                                                             nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
@@ -902,8 +902,8 @@ contains
       class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
       integer(I4B),                            intent(in)    :: n1         !! Number of bodies 1
       integer(I4B),                            intent(in)    :: n2         !! Number of bodies 2
-      real(DP),     dimension(:,:),            intent(in)    :: x1, v1     !! Array of position and velocity vectorrs for bodies 1
-      real(DP),     dimension(:,:),            intent(in)    :: x2, v2     !! Array of position and velocity vectorrs for bodies 2
+      real(DP),     dimension(:,:),            intent(in)    :: r1, v1     !! Array of position and velocity vectorrs for bodies 1
+      real(DP),     dimension(:,:),            intent(in)    :: r2, v2     !! Array of position and velocity vectorrs for bodies 2
       real(DP),     dimension(:),              intent(in)    :: renc1      !! Radius of encounter regions of bodies 1
       real(DP),     dimension(:),              intent(in)    :: renc2      !! Radius of encounter regions of bodies 2
       real(DP),                                intent(in)    :: dt         !! Step size
@@ -943,17 +943,17 @@ contains
 
       dim = 1
       where(llist1(dim,:))
-         xind(:) = x1(1,ext_ind(dim,:))
-         yind(:) = x1(2,ext_ind(dim,:))
-         zind(:) = x1(3,ext_ind(dim,:))
+         xind(:) = r1(1,ext_ind(dim,:))
+         yind(:) = r1(2,ext_ind(dim,:))
+         zind(:) = r1(3,ext_ind(dim,:))
          vxind(:) = v1(1,ext_ind(dim,:))
          vyind(:) = v1(2,ext_ind(dim,:))
          vzind(:) = v1(3,ext_ind(dim,:))
          rencind(:) = renc1(ext_ind(dim,:))
       elsewhere
-         xind(:) = x2(1,ext_ind(dim,:))
-         yind(:) = x2(2,ext_ind(dim,:))
-         zind(:) = x2(3,ext_ind(dim,:))
+         xind(:) = r2(1,ext_ind(dim,:))
+         yind(:) = r2(2,ext_ind(dim,:))
+         zind(:) = r2(3,ext_ind(dim,:))
          vxind(:) = v2(1,ext_ind(dim,:))
          vyind(:) = v2(2,ext_ind(dim,:))
          vzind(:) = v2(3,ext_ind(dim,:))
@@ -962,7 +962,7 @@ contains
 
       where(.not.loverlap(:)) lenc(:)%nenc = 0
       !$omp parallel default(private) &
-      !$omp shared(self, ext_ind, lenc, loverlap, x1, v1, x2, v2, renc1, renc2, xind, yind, zind, vxind, vyind, vzind, rencind, llist1) &
+      !$omp shared(self, ext_ind, lenc, loverlap, r1, v1, r2, v2, renc1, renc2, xind, yind, zind, vxind, vyind, vzind, rencind, llist1) &
       !$omp firstprivate(ntot, n1, n2, dt, dim) 
      
       ! Do the first group of bodies (i is in list 1, all the others are from list 2)
@@ -972,7 +972,7 @@ contains
             ibeg =  self%aabb(dim)%ibeg(i) + 1_I8B
             iend =  self%aabb(dim)%iend(i) - 1_I8B
             nbox = iend - ibeg + 1
-            call encounter_check_all_sweep_one(i, nbox, x1(1,i), x1(2,i), x1(3,i), v1(1,i), v1(2,i), v1(3,i), &
+            call encounter_check_all_sweep_one(i, nbox, r1(1,i), r1(2,i), r1(3,i), v1(1,i), v1(2,i), v1(3,i), &
                                                          xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
                                                          vxind(ibeg:iend), vyind(ibeg:iend), vzind(ibeg:iend), &
                                                          renc1(i), rencind(ibeg:iend), dt, ext_ind(dim,ibeg:iend), &
@@ -989,7 +989,7 @@ contains
             iend =  self%aabb(dim)%iend(i) - 1_I8B
             nbox = iend - ibeg + 1
             ii = i - n1
-            call encounter_check_all_sweep_one(ii, nbox, x2(1,ii), x2(2,ii), x2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
+            call encounter_check_all_sweep_one(ii, nbox, r1(1,ii), r1(2,ii), r1(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
                                                           xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
                                                           vxind(ibeg:iend), vyind(ibeg:iend), vzind(ibeg:iend), &
                                                           renc2(ii), rencind(ibeg:iend), dt, ext_ind(dim,ibeg:iend), &

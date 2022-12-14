@@ -130,10 +130,10 @@ contains
                                                          "; D(Eorbit+Ecollisions)/|E0| = ", ES12.5, &
                                                          "; DM/M0 = ", ES12.5)'
 
-      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
+      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => param%system_history%nc)
 
          call pl%vb2vh(cb)
-         call pl%xh2xb(cb)
+         call pl%rh2rb(cb)
 
          call system%get_energy_and_momentum(param) 
          ke_orbit_now = system%ke_orbit
@@ -177,8 +177,8 @@ contains
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
                param%ioutput = param%ioutput + 1
-               call self%write_frame(param%nc, param)
-               call param%nc%close()
+               call self%write_frame(nc, param)
+               call nc%close()
                call util_exit(FAILURE)
             end if
          end if
@@ -246,23 +246,33 @@ contains
       dump_param%out_stat = 'APPEND'
       dump_param%in_type = "NETCDF_DOUBLE"
       dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
-      dump_param%nc%id_chunk = self%pl%nbody + self%tp%nbody
-      dump_param%nc%time_chunk = 1
-      dump_param%tstart = self%t
+      associate(nc => dump_param%system_history%nc)
+         nc%id_chunk = self%pl%nbody + self%tp%nbody
+         nc%time_chunk = 1
+         dump_param%tstart = self%t
 
-      call dump_param%dump(param_file_name)
+         call dump_param%dump(param_file_name)
 
-      dump_param%out_form = "XV"
-      dump_param%outfile = trim(adjustl(DUMP_NC_FILE(idx)))
-      dump_param%ioutput = 1 
-      call dump_param%nc%initialize(dump_param)
-      call self%write_frame(dump_param%nc, dump_param)
-      call dump_param%nc%close()
-      ! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
-      call param%nc%flush(param)
+         dump_param%out_form = "XV"
+         nc%file_name = trim(adjustl(DUMP_NC_FILE(idx)))
+         dump_param%ioutput = 1 
+         call nc%initialize(dump_param)
+         call self%write_frame(nc, dump_param)
+         call nc%close()
+      end associate
 
       idx = idx + 1
       if (idx > NDUMPFILES) idx = 1
+
+      ! Dump the encounter history if necessary
+      select type(param)
+      class is (symba_parameters)
+         call param%encounter_history%dump(param)
+         call param%collision_history%dump(param)
+      end select
+
+      ! Dump the system history to file
+      call param%system_history%dump(param)
 
       return
    end subroutine io_dump_system
@@ -283,9 +293,11 @@ contains
       integer(I4B) :: i
       integer(I8B) :: iloop_start
 
-      iloop_start = max(param%iloop - int(param%istep_out * param%dump_cadence, kind=I8B),1)
+      if (self%iframe == 0) return
+      iloop_start = param%iloop - int(param%istep_out * param%dump_cadence, kind=I8B) + 1
+      call self%make_index_map()
       do i = 1, param%dump_cadence
-         param%ioutput = max(int(iloop_start / param%istep_out, kind=I4B),1) + i
+         param%ioutput = iloop_start + self%tmap(i)
          if (allocated(self%frame(i)%item)) then
             select type(system => self%frame(i)%item)
             class is (swiftest_nbody_system)
@@ -294,7 +306,7 @@ contains
             deallocate(self%frame(i)%item)
          end if
       end do
-
+      call self%reset()
       return
    end subroutine io_dump_storage
 
@@ -670,7 +682,7 @@ contains
                      param%lrestart = .true.
                   end if 
                ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
-               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP", "ENCOUNTER_SAVE", "FRAGMENTATION_SAVE") 
+               case ("NPLMAX", "NTPMAX", "GMTINY", "MIN_GMFRAG", "FRAGMENTATION", "SEED", "YARKOVSKY", "YORP", "ENCOUNTER_SAVE") 
                case default
                   write(*,*) "Ignoring unknown parameter -> ",param_name
                end select
@@ -1301,13 +1313,13 @@ contains
          self%Euntracked = param%Euntracked
       else
          allocate(tmp_param, source=param)
-         tmp_param%outfile = param%in_netcdf
+         tmp_param%system_history%nc%file_name = param%in_netcdf
          tmp_param%out_form = param%in_form
          if (.not. param%lrestart) then
             ! Turn off energy computation so we don't have to feed it into the initial conditions
             tmp_param%lenergy = .false.
          end if
-         ierr = self%read_frame(tmp_param%nc, tmp_param)
+         ierr = self%read_frame(tmp_param%system_history%nc, tmp_param)
          deallocate(tmp_param)
          if (ierr /=0) call util_exit(FAILURE)
       end if
@@ -1536,31 +1548,34 @@ contains
       character(len=STRMAX)            :: errmsg
       logical                          :: fileExists
 
-      param%nc%id_chunk = self%pl%nbody + self%tp%nbody
-      param%nc%time_chunk = max(param%dump_cadence / param%istep_out, 1)
-      if (lfirst) then
-         inquire(file=param%outfile, exist=fileExists)
-         
-         select case(param%out_stat)
-         case('APPEND')
-            if (.not.fileExists) then
-               errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
-               goto 667
-            end if
-         case('NEW')
-            if (fileExists) then
-               errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
-               goto 667
-            end if
-            call param%nc%initialize(param)
-         case('REPLACE', 'UNKNOWN')
-            call param%nc%initialize(param)
-         end select
+      associate (nc => param%system_history%nc, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
+         nc%id_chunk = npl + ntp 
+         nc%time_chunk = max(param%dump_cadence / param%istep_out, 1)
+         nc%file_name = param%outfile
+         if (lfirst) then
+            inquire(file=param%outfile, exist=fileExists)
+            
+            select case(param%out_stat)
+            case('APPEND')
+               if (.not.fileExists) then
+                  errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
+                  goto 667
+               end if
+            case('NEW')
+               if (fileExists) then
+                  errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
+                  goto 667
+               end if
+               call nc%initialize(param)
+            case('REPLACE', 'UNKNOWN')
+               call nc%initialize(param)
+            end select
 
-         lfirst = .false.
-      end if
+            lfirst = .false.
+         end if
 
-      call self%write_frame(param%nc, param)
+         call self%write_frame(nc, param)
+      end associate
 
       return
 

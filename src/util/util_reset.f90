@@ -24,8 +24,11 @@ contains
       do i = 1, self%nframes
          if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
       end do
-      self%tslot(:) = 0
-      self%tvals(:) = huge(1.0_DP)
+
+      if (allocated(self%idmap)) deallocate(self%idmap)
+      if (allocated(self%tmap)) deallocate(self%tmap)
+      self%nid = 0
+      self%nt = 0
       self%iframe = 0
 
       return

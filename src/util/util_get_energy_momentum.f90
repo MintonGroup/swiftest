@@ -49,12 +49,12 @@ contains
 
          system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
-         Lcborbit(:) = cb%mass * (cb%xb(:) .cross. cb%vb(:))
+         Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
          do concurrent (i = 1:npl, pl%lmask(i))
-            hx = pl%xb(2,i) * pl%vb(3,i) - pl%xb(3,i) * pl%vb(2,i)
-            hy = pl%xb(3,i) * pl%vb(1,i) - pl%xb(1,i) * pl%vb(3,i)
-            hz = pl%xb(1,i) * pl%vb(2,i) - pl%xb(2,i) * pl%vb(1,i)
+            hx = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
+            hy = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
+            hz = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
 
             ! Angular momentum from orbit 
             Lplorbitx(i) = pl%mass(i) * hx
@@ -87,9 +87,9 @@ contains
          end if
   
          if (param%lflatten_interactions) then
-            call util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
+            call util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
          else
-            call util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%xb, system%pe)
+            call util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
          end if
 
          ! Potential energy from the oblateness term
@@ -119,7 +119,7 @@ contains
    end subroutine util_get_energy_momentum_system
 
 
-   subroutine util_get_energy_potential_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, xb, pe)
+   subroutine util_get_energy_potential_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
       !! Compute total system potential energy
@@ -132,7 +132,7 @@ contains
       real(DP),                     intent(in)  :: GMcb
       real(DP),     dimension(:),   intent(in)  :: Gmass
       real(DP),     dimension(:),   intent(in)  :: mass
-      real(DP),     dimension(:,:), intent(in)  :: xb
+      real(DP),     dimension(:,:), intent(in)  :: rb
       real(DP),                     intent(out) :: pe
       ! Internals
       integer(I4B) :: i, j
@@ -147,18 +147,18 @@ contains
       end where
 
       do concurrent(i = 1:npl, lmask(i))
-         pecb(i) = -GMcb * mass(i) / norm2(xb(:,i)) 
+         pecb(i) = -GMcb * mass(i) / norm2(rb(:,i)) 
       end do
 
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(k_plpl, xb, mass, Gmass, pepl, lstatpl, lmask) &
+      !$omp shared(k_plpl, rb, mass, Gmass, pepl, lstatpl, lmask) &
       !$omp firstprivate(nplpl)
       do k = 1, nplpl
          i = k_plpl(1,k)
          j = k_plpl(2,k)
          lstatpl(k) = (lmask(i) .and. lmask(j))
          if (lstatpl(k)) then
-            pepl(k) = -(Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+            pepl(k) = -(Gmass(i) * mass(j)) / norm2(rb(:, i) - rb(:, j))
          else
             pepl(k) = 0.0_DP
          end if
@@ -171,7 +171,7 @@ contains
    end subroutine util_get_energy_potential_flat
 
 
-   subroutine util_get_energy_potential_triangular(npl, lmask, GMcb, Gmass, mass, xb, pe)
+   subroutine util_get_energy_potential_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
       !! Compute total system potential energy
@@ -182,7 +182,7 @@ contains
       real(DP),                     intent(in)  :: GMcb
       real(DP),     dimension(:),   intent(in)  :: Gmass
       real(DP),     dimension(:),   intent(in)  :: mass
-      real(DP),     dimension(:,:), intent(in)  :: xb
+      real(DP),     dimension(:,:), intent(in)  :: rb
       real(DP),                     intent(out) :: pe
       ! Internals
       integer(I4B) :: i, j
@@ -194,18 +194,18 @@ contains
       end where
 
       do concurrent(i = 1:npl, lmask(i))
-         pecb(i) = -GMcb * mass(i) / norm2(xb(:,i)) 
+         pecb(i) = -GMcb * mass(i) / norm2(rb(:,i)) 
       end do
 
       pe = 0.0_DP
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(lmask, Gmass, mass, xb) &
+      !$omp shared(lmask, Gmass, mass, rb) &
       !$omp firstprivate(npl) &
       !$omp reduction(+:pe) 
       do i = 1, npl
          if (lmask(i)) then
             do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
-               pepl(j) = - (Gmass(i) * mass(j)) / norm2(xb(:, i) - xb(:, j))
+               pepl(j) = - (Gmass(i) * mass(j)) / norm2(rb(:, i) - rb(:, j))
             end do
             pe = pe + sum(pepl(i+1:npl), lmask(i+1:npl))
          end if

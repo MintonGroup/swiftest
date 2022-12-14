@@ -27,13 +27,14 @@ contains
       nold = self%nenc
       nsrc = source%nenc
       call util_append(self%lvdotr, source%lvdotr, nold, nsrc, lsource_mask)
+      call util_append(self%lclosest, source%lclosest, nold, nsrc, lsource_mask)
       call util_append(self%status, source%status, nold, nsrc, lsource_mask)
       call util_append(self%index1, source%index1, nold, nsrc, lsource_mask)
       call util_append(self%index2, source%index2, nold, nsrc, lsource_mask)
       call util_append(self%id1, source%id1, nold, nsrc, lsource_mask)
       call util_append(self%id2, source%id2, nold, nsrc, lsource_mask)
-      call util_append(self%x1, source%x1, nold, nsrc, lsource_mask)
-      call util_append(self%x2, source%x2, nold, nsrc, lsource_mask)
+      call util_append(self%r1, source%r1, nold, nsrc, lsource_mask)
+      call util_append(self%r2, source%r2, nold, nsrc, lsource_mask)
       call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
       call util_append(self%v2, source%v2, nold, nsrc, lsource_mask)
       self%nenc = nold + count(lsource_mask(1:nsrc))
@@ -55,19 +56,21 @@ contains
          self%nenc = n
          self%t = source%t
          self%lvdotr(1:n) = source%lvdotr(1:n) 
+         self%lclosest(1:n) = source%lclosest(1:n) 
          self%status(1:n) = source%status(1:n) 
          self%index1(1:n) = source%index1(1:n)
          self%index2(1:n) = source%index2(1:n)
          self%id1(1:n) = source%id1(1:n)
          self%id2(1:n) = source%id2(1:n)
-         self%x1(:,1:n) = source%x1(:,1:n)
-         self%x2(:,1:n) = source%x2(:,1:n)
+         self%r1(:,1:n) = source%r1(:,1:n)
+         self%r2(:,1:n) = source%r2(:,1:n)
          self%v1(:,1:n) = source%v1(:,1:n)
          self%v2(:,1:n) = source%v2(:,1:n)
       end associate
 
       return
    end subroutine encounter_util_copy_list
+
 
    module subroutine encounter_util_dealloc_aabb(self)
       !! author: David A. Minton
@@ -94,13 +97,14 @@ contains
       class(encounter_list), intent(inout) :: self
 
       if (allocated(self%lvdotr)) deallocate(self%lvdotr)
+      if (allocated(self%lclosest)) deallocate(self%lclosest)
       if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%index1)) deallocate(self%index1)
       if (allocated(self%index2)) deallocate(self%index2)
       if (allocated(self%id1)) deallocate(self%id1)
       if (allocated(self%id2)) deallocate(self%id2)
-      if (allocated(self%x1)) deallocate(self%x1)
-      if (allocated(self%x2)) deallocate(self%x2)
+      if (allocated(self%r1)) deallocate(self%r1)
+      if (allocated(self%r2)) deallocate(self%r2)
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
 
@@ -152,6 +156,20 @@ contains
    end subroutine encounter_util_final_snapshot
 
 
+   module subroutine encounter_util_final_collision_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      type(collision_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
+
+      call util_final_storage(self%swiftest_storage)
+
+      return
+   end subroutine encounter_util_final_collision_storage
+
+
    module subroutine encounter_util_final_storage(self)
       !! author: David A. Minton
       !!
@@ -164,6 +182,148 @@ contains
 
       return
    end subroutine encounter_util_final_storage
+
+
+   module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
+      !! author: David A. Minton
+      !!
+      !! Returns an array of all id values saved in this snapshot
+      implicit none
+      ! Arguments
+      class(encounter_snapshot),               intent(in)  :: self   !! Encounter snapshot object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      ! Internals
+      integer(I4B) :: npl, ntp
+
+      if (allocated(self%pl)) then
+         npl = self%pl%nbody
+      else
+         npl = 0
+      end if 
+      if (allocated(self%tp)) then
+         ntp = self%tp%nbody
+      else
+         ntp = 0
+      end if
+
+      if (npl + ntp == 0) return
+      allocate(idvals(npl+ntp))
+
+      if (npl > 0) idvals(1:npl) = self%pl%id(:)
+      if (ntp >0) idvals(npl+1:npl+ntp) = self%tp%id(:)
+
+      return
+
+   end subroutine encounter_util_get_idvalues_snapshot
+
+
+   subroutine encounter_util_get_vals_storage(storage, idvals, tvals)
+      !! author: David A. Minton
+      !!
+      !! Gets the id values in a storage object, regardless of whether it is encounter of collision
+      ! Argument
+      class(swiftest_storage(*)), intent(in)              :: storage !! Swiftest storage object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals  !! Array of all id values in all snapshots
+      real(DP),     dimension(:), allocatable, intent(out) :: tvals   !! Array of all time values in all snapshots
+      ! Internals
+      integer(I4B) :: i, n, nlo, nhi, ntotal
+      integer(I4B), dimension(:), allocatable :: itmp
+
+      associate(nsnaps => storage%iframe)
+
+         allocate(tvals(nsnaps))
+
+         tvals(:) = 0.0_DP
+
+         ! First pass to get total number of ids
+         ntotal = 0
+         do i = 1, nsnaps
+            if (allocated(storage%frame(i)%item)) then
+               select type(snapshot => storage%frame(i)%item)
+               class is (encounter_snapshot)
+                  tvals(i) = snapshot%t
+                  call snapshot%get_idvals(itmp)
+                  if (allocated(itmp)) then
+                     n = size(itmp)
+                     ntotal = ntotal + n
+                  end if
+               end select
+            end if
+         end do
+
+         allocate(idvals(ntotal))
+         nlo = 1
+         ! Second pass to store all ids get all of the ids stored
+         do i = 1, nsnaps
+            if (allocated(storage%frame(i)%item)) then
+               select type(snapshot => storage%frame(i)%item)
+               class is (encounter_snapshot)
+                  tvals(i) = snapshot%t
+                  call snapshot%get_idvals(itmp)
+                  if (allocated(itmp)) then
+                     n = size(itmp)
+                     nhi = nlo + n - 1
+                     idvals(nlo:nhi) = itmp(1:n)
+                     nlo = nhi + 1 
+                  end if
+               end select
+            end if
+         end do
+
+      end associate 
+      return
+   end subroutine encounter_util_get_vals_storage
+
+
+   module subroutine encounter_util_index_map_encounter(self)
+      !! author: David A. Minton
+      !!
+      !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id.
+      !! Basically this will make a unique list of ids that exist in all of the saved snapshots
+      implicit none
+      ! Arguments
+      class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
+      ! Internals
+      integer(I4B), dimension(:), allocatable :: idvals
+      real(DP), dimension(:), allocatable :: tvals
+
+      call encounter_util_get_vals_storage(self, idvals, tvals)
+
+      ! Consolidate ids to only unique values
+      call util_unique(idvals,self%idvals,self%idmap)
+      self%nid = size(self%idvals)
+
+      ! Consolidate time values to only unique values
+      call util_unique(tvals,self%tvals,self%tmap)
+      self%nt = size(self%tvals)
+
+      return
+   end subroutine encounter_util_index_map_encounter
+
+
+
+   module subroutine encounter_util_index_map_collision(self)
+      !! author: David A. Minton
+      !!
+      !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      implicit none
+      ! Arguments
+      class(collision_storage(*)), intent(inout) :: self  !! Swiftest storage object
+      ! Internals
+      integer(I4B), dimension(:), allocatable :: idvals
+      real(DP), dimension(:), allocatable :: tvals
+
+      call encounter_util_get_vals_storage(self, idvals, tvals)
+
+      ! Consolidate ids to only unique values
+      call util_unique(idvals,self%idvals,self%idmap)
+      self%nid = size(self%idvals)
+
+      ! Don't consolidate time values (multiple collisions can happen in a single time step)
+      self%nt = size(self%tvals)
+
+      return
+   end subroutine encounter_util_index_map_collision
 
 
    module subroutine encounter_util_resize_list(self, nnew)
@@ -219,13 +379,14 @@ contains
   
       associate(keeps => self)
          call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)
+         call util_spill(keeps%lclosest, discards%lclosest, lspill_list, ldestructive)
          call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
          call util_spill(keeps%index1, discards%index1, lspill_list, ldestructive)
          call util_spill(keeps%index2, discards%index2, lspill_list, ldestructive)
          call util_spill(keeps%id1, discards%id1, lspill_list, ldestructive)
          call util_spill(keeps%id2, discards%id2, lspill_list, ldestructive)
-         call util_spill(keeps%x1, discards%x1, lspill_list, ldestructive)
-         call util_spill(keeps%x2, discards%x2, lspill_list, ldestructive)
+         call util_spill(keeps%r1, discards%r1, lspill_list, ldestructive)
+         call util_spill(keeps%r2, discards%r2, lspill_list, ldestructive)
          call util_spill(keeps%v1, discards%v1, lspill_list, ldestructive)
          call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
 
@@ -239,5 +400,351 @@ contains
    
       return
    end subroutine encounter_util_spill_list
+
+
+
+   subroutine encounter_util_save_collision(collision_history, snapshot)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+      implicit none
+      ! Arguments
+      type(collision_storage(*)), allocatable, intent(inout) :: collision_history  !! Collision history object
+      class(encounter_snapshot),               intent(in)    :: snapshot           !! Encounter snapshot object
+      ! Internals
+      type(collision_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nnew, nold, nbig
+
+      ! Advance the snapshot frame counter
+      collision_history%iframe = collision_history%iframe + 1
+
+      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
+      nnew = collision_history%iframe
+      nold = collision_history%nframes
+
+      if (nnew > nold) then
+         nbig = nold
+         do while (nbig < nnew)
+            nbig = nbig * 2
+         end do
+         allocate(collision_storage(nbig) :: tmp) 
+         tmp%iframe = collision_history%iframe
+         call move_alloc(collision_history%nc, tmp%nc)
+
+         do i = 1, nold
+            if (allocated(collision_history%frame(i)%item)) call move_alloc(collision_history%frame(i)%item, tmp%frame(i)%item)
+         end do
+         deallocate(collision_history)
+         call move_alloc(tmp,collision_history)
+         nnew = nbig
+      end if
+
+      collision_history%frame(nnew) = snapshot
+
+      return
+   end subroutine encounter_util_save_collision
+
+
+   subroutine encounter_util_save_encounter(encounter_history, snapshot, t)
+      !! author: David A. Minton
+      !!
+      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+      implicit none
+      ! Arguments
+      type(encounter_storage(*)), allocatable, intent(inout) :: encounter_history !! SyMBA encounter storage object
+      class(encounter_snapshot),               intent(in)    :: snapshot          !! Encounter snapshot object
+      real(DP),                                intent(in)    :: t                 !! The time of the snapshot
+      ! Internals
+      type(encounter_storage(nframes=:)), allocatable :: tmp
+      integer(I4B) :: i, nnew, nold, nbig
+
+      ! Advance the snapshot frame counter
+      encounter_history%iframe = encounter_history%iframe + 1
+
+      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
+      nnew = encounter_history%iframe
+      nold = encounter_history%nframes
+
+      if (nnew > nold) then
+         nbig = nold
+         do while (nbig < nnew)
+            nbig = nbig * 2
+         end do
+         allocate(encounter_storage(nbig) :: tmp) 
+         tmp%iframe = encounter_history%iframe
+         call move_alloc(encounter_history%nc, tmp%nc)
+
+         do i = 1, nold
+            if (allocated(encounter_history%frame(i)%item)) call move_alloc(encounter_history%frame(i)%item, tmp%frame(i)%item)
+         end do
+         deallocate(encounter_history)
+         call move_alloc(tmp,encounter_history)
+         nnew = nbig
+      end if
+
+      ! Find out which time slot this belongs in by searching for an existing slot
+      ! with the same value of time or the first available one
+      encounter_history%frame(nnew) = snapshot
+
+      return
+   end subroutine encounter_util_save_encounter
+
+
+   module subroutine encounter_util_snapshot_collision(self, param, system, t, arg)
+      !! author: David A. Minton
+      !!
+      !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
+      !! can be played back through the encounter
+      implicit none
+      ! Internals
+      class(collision_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
+      class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
+      class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
+      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
+      character(*),                 intent(in), optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
+      ! Arguments
+      class(fraggle_snapshot), allocatable :: snapshot
+      type(symba_pl)                                 :: pl
+      character(len=:), allocatable :: stage
+
+      if (present(arg)) then
+         stage = arg
+      else
+         stage = ""
+      end if 
+
+      select type (system)
+      class is (symba_nbody_system)
+
+         select case(stage)
+         case("before")
+            ! Saves the states of the bodies involved in the collision before the collision is resolved
+            associate (idx => system%colliders%idx, ncoll => system%colliders%ncoll)
+               call pl%setup(ncoll, param)
+               pl%id(:) = system%pl%id(idx(:))
+               pl%Gmass(:) = system%pl%Gmass(idx(:))
+               pl%radius(:) = system%pl%radius(idx(:))
+               pl%rot(:,:) = system%pl%rot(:,idx(:))
+               pl%Ip(:,:) = system%pl%Ip(:,idx(:))
+               pl%rh(:,:) = system%pl%rh(:,idx(:))
+               pl%vh(:,:) = system%pl%vh(:,idx(:))
+               pl%info(:) = system%pl%info(idx(:))
+               !end select
+               allocate(system%colliders%pl, source=pl)
+            end associate
+         case("after")
+            allocate(fraggle_snapshot :: snapshot)
+            allocate(snapshot%colliders, source=system%colliders) 
+            allocate(snapshot%fragments, source=system%fragments)
+            select type(param)
+            class is (symba_parameters)
+               call encounter_util_save_collision(param%collision_history,snapshot)
+            end select
+         case default
+            write(*,*) "encounter_util_snapshot_collision requies either 'before' or 'after' passed to 'arg'"
+         end select
+
+      end select
+
+      return
+   end subroutine encounter_util_snapshot_collision
+
+
+   module subroutine encounter_util_snapshot_encounter(self, param, system, t, arg)
+      !! author: David A. Minton
+      !!
+      !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
+      !! can be played back through the encounter
+      implicit none
+      ! Internals
+      class(encounter_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
+      class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
+      class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
+      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
+      character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+      ! Arguments
+      class(encounter_snapshot), allocatable :: snapshot
+      integer(I4B) :: i, pi, pj, k, npl_snap, ntp_snap, iflag
+      real(DP), dimension(NDIM) :: rrel, vrel, rcom, vcom
+      real(DP) :: Gmtot, a, q, capm, tperi
+      real(DP), dimension(NDIM,2) :: rb,vb
+
+      if (.not.present(t)) then
+         write(*,*) "encounter_util_snapshot_encounter requires `t` to be passed"
+         return
+      end if
+
+      if (.not.present(arg)) then
+         write(*,*) "encounter_util_snapshot_encounter requires `arg` to be passed"
+         return
+      end if
+
+      select type(param)
+      class is (symba_parameters)
+         select type (system)
+         class is (symba_nbody_system)
+            select type(pl => system%pl)
+            class is (symba_pl)
+               select type (tp => system%tp)
+               class is (symba_tp)
+                  associate(npl => pl%nbody,  ntp => tp%nbody)
+                     if (npl + ntp == 0) return
+                     allocate(encounter_snapshot :: snapshot)
+                     allocate(snapshot%pl, mold=pl)
+                     allocate(snapshot%tp, mold=tp)
+                     snapshot%iloop = param%iloop
+
+                     select type(pl_snap => snapshot%pl)
+                     class is (symba_pl)
+                        select type(tp_snap => snapshot%tp)
+                        class is (symba_tp)
+
+                           select case(arg)
+                           case("trajectory")
+                              snapshot%t = t
+         
+                              npl_snap = npl
+                              ntp_snap = ntp
+   
+                              if (npl > 0) then
+                                 pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE .and. pl%levelg(1:npl) == system%irec
+                                 npl_snap = count(pl%lmask(1:npl))
+                              end if
+                              if (ntp > 0) then
+                                 tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE .and. tp%levelg(1:ntp) == system%irec
+                                 ntp_snap = count(tp%lmask(1:ntp))
+                              end if
+
+                              if (npl_snap + ntp_snap == 0) return ! Nothing to snapshot
+
+                              pl_snap%nbody = npl_snap
+
+                              ! Take snapshot of the currently encountering massive bodies
+                              if (npl_snap > 0) then
+                                 call pl_snap%setup(npl_snap, param)
+                                 pl_snap%levelg(:) = pack(pl%levelg(1:npl), pl%lmask(1:npl))
+                                 pl_snap%id(:) = pack(pl%id(1:npl), pl%lmask(1:npl))
+                                 pl_snap%info(:) = pack(pl%info(1:npl), pl%lmask(1:npl))
+                                 pl_snap%Gmass(:) = pack(pl%Gmass(1:npl), pl%lmask(1:npl))
+                                 do i = 1, NDIM
+                                    pl_snap%rh(i,:) = pack(pl%rh(i,1:npl), pl%lmask(1:npl))
+                                    pl_snap%vh(i,:) = pack(pl%vb(i,1:npl), pl%lmask(1:npl))
+                                 end do
+                                 if (param%lclose) then
+                                    pl_snap%radius(:) = pack(pl%radius(1:npl), pl%lmask(1:npl))
+                                 end if
+
+                                 if (param%lrotation) then
+                                    do i = 1, NDIM
+                                       pl_snap%Ip(i,:) = pack(pl%Ip(i,1:npl), pl%lmask(1:npl))
+                                       pl_snap%rot(i,:) = pack(pl%rot(i,1:npl), pl%lmask(1:npl))
+                                    end do
+                                 end if
+                                 call pl_snap%sort("id", ascending=.true.)
+                              end if
+
+                              ! Take snapshot of the currently encountering test particles
+                              tp_snap%nbody = ntp_snap
+                              if (ntp_snap > 0) then
+                                 call tp_snap%setup(ntp_snap, param)
+                                 tp_snap%id(:) = pack(tp%id(1:ntp), tp%lmask(1:ntp))
+                                 tp_snap%info(:) = pack(tp%info(1:ntp), tp%lmask(1:ntp))
+                                 do i = 1, NDIM
+                                    tp_snap%rh(i,:) = pack(tp%rh(i,1:ntp), tp%lmask(1:ntp))
+                                    tp_snap%vh(i,:) = pack(tp%vh(i,1:ntp), tp%lmask(1:ntp))
+                                 end do
+                              end if
+
+                              ! Save the snapshot
+                              param%encounter_history%nid = param%encounter_history%nid + ntp_snap + npl_snap
+                              call encounter_util_save_encounter(param%encounter_history,snapshot,t)
+                           case("closest")
+                              associate(plplenc_list => system%plplenc_list, pltpenc_list => system%pltpenc_list)
+                                 if (any(plplenc_list%lclosest(:))) then
+                                    call pl_snap%setup(2, param)
+                                    do k = 1, plplenc_list%nenc
+                                       if (plplenc_list%lclosest(k)) then
+                                          pi = plplenc_list%index1(k)
+                                          pj = plplenc_list%index2(k)
+                                          pl_snap%levelg(:) = pl%levelg([pi,pj])
+                                          pl_snap%id(:) = pl%id([pi,pj])
+                                          pl_snap%info(:) = pl%info([pi,pj])
+                                          pl_snap%Gmass(:) = pl%Gmass([pi,pj])
+                                          Gmtot = sum(pl_snap%Gmass(:))
+                                          if (param%lclose) pl_snap%radius(:) = pl%radius([pi,pj])
+                                          if (param%lrotation) then
+                                             do i = 1, NDIM
+                                                pl_snap%Ip(i,:) = pl%Ip(i,[pi,pj])
+                                                pl_snap%rot(i,:) = pl%rot(i,[pi,pj])
+                                             end do
+                                          end if
+
+                                          ! Compute pericenter passage time to get the closest approach parameters
+                                          rrel(:) = plplenc_list%r2(:,k) - plplenc_list%r1(:,k)
+                                          vrel(:) = plplenc_list%v2(:,k) - plplenc_list%v1(:,k)
+                                          call orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
+                                          snapshot%t = t + tperi
+
+                                          ! Computer the center mass of the pair
+                                          rcom(:) = (plplenc_list%r1(:,k) * pl_snap%Gmass(1) + plplenc_list%r2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                          vcom(:) = (plplenc_list%v1(:,k) * pl_snap%Gmass(1) + plplenc_list%v2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                          rb(:,1) = plplenc_list%r1(:,k) - rcom(:)
+                                          rb(:,2) = plplenc_list%r2(:,k) - rcom(:)
+                                          vb(:,1) = plplenc_list%v1(:,k) - vcom(:)
+                                          vb(:,2) = plplenc_list%v2(:,k) - vcom(:)
+
+                                          ! Drift the relative orbit to get the new relative position and velocity
+                                          call drift_one(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), tperi, iflag)
+                                          if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. Closest approach positions and vectors may not be accurate."
+
+                                          ! Get the new position and velocity vectors
+                                          rb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * rrel(:)
+                                          rb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * rrel(:)
+
+                                          vb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * vrel(:)
+                                          vb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * vrel(:)
+
+                                          ! Move the CoM assuming constant velocity over the time it takes to reach periapsis
+                                          rcom(:) = rcom(:) + vcom(:) * tperi
+
+                                          ! Compute the heliocentric position and velocity vector at periapsis
+                                          pl_snap%rh(:,1) = rb(:,1) + rcom(:)
+                                          pl_snap%rh(:,2) = rb(:,2) + rcom(:)
+                                          pl_snap%vh(:,1) = vb(:,1) + vcom(:)
+                                          pl_snap%vh(:,2) = vb(:,2) + vcom(:)
+
+                                          call pl_snap%sort("id", ascending=.true.)
+                                          call encounter_util_save_encounter(param%encounter_history,snapshot,snapshot%t)
+                                       end if
+                                    end do
+
+                                    plplenc_list%lclosest(:) = .false.
+                                 end if
+
+                                 if (any(pltpenc_list%lclosest(:))) then
+                                    do k = 1, pltpenc_list%nenc
+                                    end do
+                                    pltpenc_list%lclosest(:) = .false.
+                                 end if
+                              end associate
+                           case default
+                              write(*,*) "encounter_util_snapshot_encounter requires `arg` to be either `trajectory` or `closest`"
+                           end select
+                        end select
+                     end select
+                  end associate
+               end select
+            end select
+         end select
+      end select
+
+      return
+   end subroutine encounter_util_snapshot_encounter
 
 end submodule s_encounter_util

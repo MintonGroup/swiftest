@@ -24,7 +24,7 @@ Output
 helio_gr_mercury_precession.png : Portable Network Graphic file depicting the precession of Mercury's perihelion over time
                                   with data sourced from the JPL Horizons database, Swiftest run with general relativity, 
                                   and Swiftest run without general relativity.
-gr/bin.nc                       : A NetCDF file containing the simulation output.
+gr/data.nc                       : A NetCDF file containing the simulation output.
 gr/dump_bin1.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 gr/dump_bin2.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 gr/dump_param1.in               : An ASCII file containing the necessary parameters to restart a simulation.
@@ -32,7 +32,7 @@ gr/dump_param2.in               : An ASCII file containing the necessary paramet
 gr/init_cond.nc                 : A NetCDF file containing the initial conditions for the simulation.
 gr/param.in                     : An ASCII file containing the parameters for the simulation.
 gr/swiftest.log                 : An ASCII file containing the information on the status of the simulation as it runs.
-nogr/bin.nc                     : A NetCDF file containing the simulation output.
+nogr/data.nc                     : A NetCDF file containing the simulation output.
 nogr/dump_bin1.nc               : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 nogr/dump_bin2.nc               : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 nogr/dump_param1.in             : An ASCII file containing the necessary parameters to restart a simulation.

@@ -13,18 +13,18 @@ submodule(swiftest_classes) s_util_set
    use swiftest
 contains
 
-   module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
+   module subroutine util_set_beg_end_pl(self, rbeg, xend, vbeg)
       !! author: David A. Minton
       !! 
-      !! Sets one or more of the values of xbeg, xend, and vbeg
+      !! Sets one or more of the values of rbeg, xend, and vbeg
       implicit none
       ! Arguments
       class(swiftest_pl),       intent(inout)          :: self !! Swiftest massive body object
-      real(DP), dimension(:,:), intent(in),   optional :: xbeg, xend, vbeg
+      real(DP), dimension(:,:), intent(in),   optional :: rbeg, xend, vbeg
 
-      if (present(xbeg)) then
-         if (allocated(self%xbeg)) deallocate(self%xbeg)
-         allocate(self%xbeg, source=xbeg)
+      if (present(rbeg)) then
+         if (allocated(self%rbeg)) deallocate(self%rbeg)
+         allocate(self%rbeg, source=rbeg)
       end if
       if (present(xend)) then
          if (allocated(self%xend)) deallocate(self%xend)

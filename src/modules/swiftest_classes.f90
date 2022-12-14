@@ -20,6 +20,7 @@ module swiftest_classes
 
    !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as the base class defined in swiftest_classes
    type :: netcdf_variables
+      character(STRMAX)  :: file_name                                   !! Name of the output file
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B)       :: id                                          !! ID for the output file
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard
@@ -33,9 +34,9 @@ module swiftest_classes
       character(NAMELEN) :: time_dimname            = "time"            !! name of the time dimension 
       integer(I4B)       :: time_dimid                                  !! ID for the time dimension 
       integer(I4B)       :: time_varid                                  !! ID for the time variable
-      character(NAMELEN) :: id_dimname              = "id"              !! name of the particle id dimension
-      integer(I4B)       :: id_dimid                                    !! ID for the particle id dimension
-      integer(I4B)       :: id_varid                                    !! ID for the particle name variable
+      character(NAMELEN) :: name_dimname            = "name"            !! name of the particle name dimension
+      integer(I4B)       :: name_dimid                                  !! ID for the particle name dimension
+      integer(I4B)       :: name_varid                                  !! ID for the particle name variable
       character(NAMELEN) :: space_dimname           = "space"           !! name of the space dimension
       integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
@@ -44,8 +45,8 @@ module swiftest_classes
       ! Non-dimension ids and variable names
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable
       integer(I4B)       :: ptype_varid                                 !! ID for the particle type variable
-      character(NAMELEN) :: name_varname            = "name"            !! name of the particle name variable
-      integer(I4B)       :: name_varid                                  !! ID for the namevariable 
+      character(NAMELEN) :: id_varname              = "id"              !! name of the particle id variable
+      integer(I4B)       :: id_varid                                    !! ID for the id variable 
       character(NAMELEN) :: npl_varname             = "npl"             !! name of the number of active massive bodies variable
       integer(I4B)       :: npl_varid                                   !! ID for the number of active massive bodies variable
       character(NAMELEN) :: ntp_varname             = "ntp"             !! name of the number of active test particles variable
@@ -147,20 +148,27 @@ module swiftest_classes
    contains
       procedure :: store         => util_copy_store !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
       generic   :: assignment(=) => store
-      final     :: util_final_storage_frame
+      final     ::                  util_final_storage_frame
    end type
 
    type :: swiftest_storage(nframes)
       !! An class that establishes the pattern for various storage objects
-      integer(I4B), len                                :: nframes = 4096 !! Total number of frames that can be stored
-      type(swiftest_storage_frame), dimension(nframes) :: frame          !! Array of stored frames
-      integer(I4B)                                     :: iframe = 0     !! Index of the last frame stored in the system
-      integer(I4B),                 dimension(nframes) :: tslot          !! The value of the time dimension index associated with each frame
-      real(DP),                     dimension(nframes) :: tvals          !! Stored time values for snapshots
+      integer(I4B), len                                       :: nframes = 4096 !! Total number of frames that can be stored
+      type(swiftest_storage_frame), dimension(nframes)        :: frame          !! Array of stored frames
+      integer(I4B)                                            :: iframe = 0     !! Index of the last frame stored in the system
+      integer(I4B)                                            :: nid            !! Number of unique id values in all saved snapshots
+      integer(I4B),                 dimension(:), allocatable :: idvals         !! The set of unique id values contained in the snapshots
+      integer(I4B),                 dimension(:), allocatable :: idmap          !! The id value -> index map  
+      integer(I4B)                                            :: nt             !! Number of unique time values in all saved snapshots
+      real(DP),                     dimension(:), allocatable :: tvals          !! The set of unique time values contained in the snapshots
+      integer(I4B),                 dimension(:), allocatable :: tmap           !! The t value -> index map
+      class(netcdf_parameters),                   allocatable :: nc             !! NetCDF object attached to this storage object
    contains
-      procedure :: dump   => io_dump_storage     !! Dumps storage object contents to file
-      procedure :: reset  => util_reset_storage  !! Resets a storage object by deallocating all items and resetting the frame counter to 0
-      final     :: util_final_storage
+      procedure :: dump           => io_dump_storage        !! Dumps storage object contents to file
+      procedure :: make_index_map => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: reset          => util_reset_storage     !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      procedure :: take_snapshot  => util_snapshot_system   !! Takes a snapshot of the system for later file storage
+      final     ::                   util_final_storage
    end type swiftest_storage
 
    !********************************************************************************************************************************
@@ -248,8 +256,7 @@ module swiftest_classes
       logical :: lgr = .false.               !! Turn on GR
       logical :: lyarkovsky = .false.        !! Turn on Yarkovsky effect
       logical :: lyorp = .false.             !! Turn on YORP effect
-
-      type(netcdf_parameters) :: nc   !! Object containing NetCDF parameters
+      type(swiftest_storage(nframes=:)), allocatable :: system_history
    contains
       procedure :: reader      => io_param_reader
       procedure :: writer      => io_param_writer
@@ -313,7 +320,7 @@ module swiftest_classes
       real(DP), dimension(NDIM)                  :: aoblend  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
       real(DP), dimension(NDIM)                  :: atidebeg = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
       real(DP), dimension(NDIM)                  :: atideend = 0.0_DP !! Barycentric acceleration due to central body oblatenes at end of step
-      real(DP), dimension(NDIM)                  :: xb       = 0.0_DP !! Barycentric position (units DU)
+      real(DP), dimension(NDIM)                  :: rb       = 0.0_DP !! Barycentric position (units DU)
       real(DP), dimension(NDIM)                  :: vb       = 0.0_DP !! Barycentric velocity (units DU / TU)
       real(DP), dimension(NDIM)                  :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
       real(DP), dimension(NDIM)                  :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
@@ -342,7 +349,7 @@ module swiftest_classes
       real(DP),                     dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
       real(DP),                     dimension(:,:), allocatable :: rh              !! Swiftestcentric position
       real(DP),                     dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
-      real(DP),                     dimension(:,:), allocatable :: xb              !! Barycentric position
+      real(DP),                     dimension(:,:), allocatable :: rb              !! Barycentric position
       real(DP),                     dimension(:,:), allocatable :: vb              !! Barycentric velocity
       real(DP),                     dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
       real(DP),                     dimension(:,:), allocatable :: aobl            !! Barycentric accelerations of bodies due to central body oblatenes
@@ -395,7 +402,7 @@ module swiftest_classes
       real(DP),     dimension(:),   allocatable :: rhill   !! Body mass (units MU)
       real(DP),     dimension(:),   allocatable :: renc    !! Critical radius for close encounters
       real(DP),     dimension(:),   allocatable :: radius  !! Body radius (units DU)
-      real(DP),     dimension(:,:), allocatable :: xbeg    !! Position at beginning of step
+      real(DP),     dimension(:,:), allocatable :: rbeg    !! Position at beginning of step
       real(DP),     dimension(:,:), allocatable :: xend    !! Position at end of step
       real(DP),     dimension(:,:), allocatable :: vbeg    !! Velocity at beginning of step
       real(DP),     dimension(:),   allocatable :: density !! Body mass density - calculated internally (units MU / DU**3)
@@ -422,7 +429,7 @@ module swiftest_classes
       procedure :: b2h          => util_coord_b2h_pl      !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vh2vb        => util_coord_vh2vb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure :: vb2vh        => util_coord_vb2vh_pl    !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
-      procedure :: xh2xb        => util_coord_rh2xb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
+      procedure :: rh2rb        => util_coord_rh2rb_pl    !! Convert massive bodies from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc      => util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill         => util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: resize       => util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
@@ -462,7 +469,7 @@ module swiftest_classes
       procedure :: b2h       => util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vb2vh     => util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
       procedure :: vh2vb     => util_coord_vh2vb_tp    !! Convert test particles from heliocentric to barycentric coordinates (velocity only)
-      procedure :: xh2xb     => util_coord_rh2xb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
+      procedure :: rh2rb     => util_coord_rh2rb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc   => util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri  => util_peri_tp           !! Determine system pericenter passages for test particles 
@@ -546,9 +553,10 @@ module swiftest_classes
       procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
-      ! procedure :: step_spin               => tides_step_spin_system               !! Steps the spins of the massive & central bodies due to tides.
+    ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => util_set_msys                          !! Sets the value of msys from the masses of system bodies.
       procedure :: get_energy_and_momentum => util_get_energy_momentum_system        !! Calculates the total system energy and momentum
+      procedure :: get_idvals              => util_get_idvalues_system               !! Returns an array of all id values in use in the system
       procedure :: rescale                 => util_rescale_system                    !! Rescales the system into a new set of units
       procedure :: validate_ids            => util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
       generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
@@ -607,11 +615,9 @@ module swiftest_classes
          real(DP),                     intent(in)    :: t     !! Simulation time
          real(DP),                     intent(in)    :: dt    !! Current stepsize
       end subroutine abstract_step_system
-
    end interface
 
    interface
-
       module subroutine check(status, call_identifier)
          implicit none
          integer, intent (in) :: status !! The status code returned by a NetCDF function
@@ -922,12 +928,12 @@ module swiftest_classes
          class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       end subroutine kick_getacch_int_pl
 
-      module subroutine kick_getacch_int_tp(self, param, GMpl, xhp, npl)
+      module subroutine kick_getacch_int_tp(self, param, GMpl, rhp, npl)
          implicit none
          class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
          class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
          real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
-         real(DP), dimension(:,:),   intent(in)    :: xhp   !! Massive body position vectors
+         real(DP), dimension(:,:),   intent(in)    :: rhp   !! Massive body position vectors
          integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
       end subroutine kick_getacch_int_tp
 
@@ -1344,17 +1350,17 @@ module swiftest_classes
          real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
       end subroutine util_coord_vh2vb_tp
 
-      module subroutine util_coord_rh2xb_pl(self, cb)
+      module subroutine util_coord_rh2rb_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
-      end subroutine util_coord_rh2xb_pl
+      end subroutine util_coord_rh2rb_pl
 
-      module subroutine util_coord_rh2xb_tp(self, cb)
+      module subroutine util_coord_rh2rb_tp(self, cb)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
-      end subroutine util_coord_rh2xb_tp
+      end subroutine util_coord_rh2rb_tp
 
       module subroutine util_copy_particle_info(self, source)
          implicit none
@@ -1514,6 +1520,11 @@ module swiftest_classes
          integer(I4B),                            intent(in)    :: n       !! The new size of the index array
       end subroutine util_index_array
 
+      module subroutine util_index_map_storage(self)
+         implicit none
+         class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+      end subroutine util_index_map_storage
+
       module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
          use lambda_function
          implicit none
@@ -1610,10 +1621,16 @@ module swiftest_classes
          class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       end subroutine util_get_energy_momentum_system
 
-      module subroutine util_set_beg_end_pl(self, xbeg, xend, vbeg)
+      module subroutine util_get_idvalues_system(self, idvals)
+         implicit none
+         class(swiftest_nbody_system),            intent(in)  :: self   !! Encounter snapshot object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      end subroutine util_get_idvalues_system
+
+      module subroutine util_set_beg_end_pl(self, rbeg, xend, vbeg)
          implicit none
          class(swiftest_pl),       intent(inout)          :: self !! Swiftest massive body object
-         real(DP), dimension(:,:), intent(in),   optional :: xbeg !! Position vectors at beginning of step
+         real(DP), dimension(:,:), intent(in),   optional :: rbeg !! Position vectors at beginning of step
          real(DP), dimension(:,:), intent(in),   optional :: xend !! Positions vectors at end of step
          real(DP), dimension(:,:), intent(in),   optional :: vbeg !! vbeg is an unused variable to keep this method forward compatible with RMVS
       end subroutine util_set_beg_end_pl
@@ -1681,6 +1698,15 @@ module swiftest_classes
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine util_set_rhill_approximate
+
+      module subroutine util_snapshot_system(self, param, system, t, arg)
+         implicit none
+         class(swiftest_storage(*)),   intent(inout)        :: self   !! Swiftest storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
+         class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
+         real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
+         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in encounter snapshots)
+      end subroutine util_snapshot_system
    end interface
 
    interface util_solve_linear_system
@@ -1948,6 +1974,25 @@ module swiftest_classes
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine util_spill_tp
 
+   end interface
+
+   interface util_unique
+      module subroutine util_unique_DP(input_array, output_array, index_map)
+         implicit none
+         real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array
+         real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
+      end subroutine util_unique_DP
+
+      module subroutine util_unique_I4B(input_array, output_array, index_map)
+         implicit none
+         integer(I4B), dimension(:),              intent(in)  :: input_array  !! Unsorted input array
+         integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
+      end subroutine util_unique_I4B
+   end interface util_unique
+
+   interface
       module subroutine util_valid_id_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object

@@ -35,9 +35,9 @@ contains
          pl%Gmass(npl_before+1:npl_after) = frag%mass(1:nfrag) * param%GU
          pl%radius(npl_before+1:npl_after) = frag%radius(1:nfrag)
          do concurrent (i = 1:nfrag)
-            pl%xb(:,npl_before+i) =  frag%xb(:,i) 
+            pl%rb(:,npl_before+i) =  frag%rb(:,i) 
             pl%vb(:,npl_before+i) =  frag%vb(:,i) 
-            pl%rh(:,npl_before+i) =  frag%xb(:,i) - cb%xb(:)
+            pl%rh(:,npl_before+i) =  frag%rb(:,i) - cb%rb(:)
             pl%vh(:,npl_before+i) =  frag%vb(:,i) - cb%vb(:)
          end do
          if (param%lrotation) then
@@ -168,26 +168,13 @@ contains
    end subroutine fraggle_util_final_fragments
 
 
-   module subroutine fraggle_util_final_storage(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer will deallocate all allocatables
-      implicit none
-      ! Arguments
-      type(fraggle_storage(*)),  intent(inout) :: self !! Fraggle encountar storage object
-
-      call util_final_storage(self%swiftest_storage)
-
-      return
-   end subroutine fraggle_util_final_storage
-
    module subroutine fraggle_util_final_snapshot(self)
       !! author: David A. Minton
       !!
       !! Finalizer will deallocate all allocatables
       implicit none
       ! Arguments
-      type(fraggle_encounter_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+      type(fraggle_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
 
       call encounter_util_final_snapshot(self%encounter_snapshot)
 
@@ -268,6 +255,40 @@ contains
 
       return
    end subroutine fraggle_util_get_energy_momentum
+
+
+   module subroutine fraggle_util_get_idvalues_snapshot(self, idvals)
+      !! author: David A. Minton
+      !!
+      !! Returns an array of all id values saved in this snapshot
+      implicit none
+      ! Arguments
+      class(fraggle_snapshot),                 intent(in)  :: self   !! Fraggle snapshot object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      ! Internals
+      integer(I4B) :: ncoll, nfrag
+
+      if (allocated(self%colliders)) then
+         ncoll = self%colliders%pl%nbody
+      else
+         ncoll = 0
+      end if 
+
+      if (allocated(self%fragments)) then
+         nfrag = self%fragments%pl%nbody
+      else
+         nfrag = 0
+      end if
+
+      if (ncoll + nfrag == 0) return
+      allocate(idvals(ncoll+nfrag))
+
+      if (ncoll > 0) idvals(1:ncoll) = self%colliders%pl%id(:)
+      if (nfrag > 0) idvals(ncoll+1:ncoll+nfrag) = self%fragments%pl%id(:)
+
+      return
+
+   end subroutine fraggle_util_get_idvalues_snapshot
 
 
    module subroutine fraggle_util_restructure(self, colliders, try, f_spin, r_max_start)

@@ -137,7 +137,7 @@ contains
       if (allocated(self%lperi)) deallocate(self%lperi)
       if (allocated(self%plperP)) deallocate(self%plperP)
       if (allocated(self%plencP)) deallocate(self%plencP)
-      if (allocated(self%xheliocentric)) deallocate(self%xheliocentric)
+      if (allocated(self%rheliocentric)) deallocate(self%rheliocentric)
       call self%cb_heliocentric%dealloc()
 
       call util_dealloc_tp(self)
@@ -319,7 +319,7 @@ contains
       call util_resize(self%lperi, nnew)
       call util_resize(self%plperP, nnew)
       call util_resize(self%plencP, nnew)
-      call util_resize(self%xheliocentric, nnew)
+      call util_resize(self%rheliocentric, nnew)
 
       call util_resize_tp(self, nnew)
 
@@ -399,7 +399,7 @@ contains
             call util_sort(direction * tp%plperP(1:ntp), ind)
          case("plencP")
             call util_sort(direction * tp%plencP(1:ntp), ind)
-         case("lperi", "cb_heliocentric", "xheliocentric", "index", "ipleP", "lplanetocentric")
+         case("lperi", "cb_heliocentric", "rheliocentric", "index", "ipleP", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class (*NOTE whm_tp does not need its own sort method, so we go straight to the swiftest_tp method)
             call util_sort_tp(tp, sortby, ascending)
@@ -451,7 +451,7 @@ contains
          call util_sort_rearrange(tp%lperi, ind, ntp)
          call util_sort_rearrange(tp%plperP, ind, ntp)
          call util_sort_rearrange(tp%plencP, ind, ntp)
-         call util_sort_rearrange(tp%xheliocentric, ind, ntp)
+         call util_sort_rearrange(tp%rheliocentric, ind, ntp)
          call util_sort_rearrange_tp(tp,ind)
       end associate
 

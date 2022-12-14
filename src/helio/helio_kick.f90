@@ -75,7 +75,7 @@ contains
       associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
          system%lbeg = lbeg
          if (system%lbeg) then
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%xbeg(:,1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:,1:npl), npl)
          else
             call tp%accel_int(param, pl%Gmass(1:npl), pl%xend(:,1:npl), npl)
          end if
@@ -112,7 +112,7 @@ contains
          pl%ah(:, 1:npl) = 0.0_DP
          call pl%accel(system, param, t, lbeg)
          if (lbeg) then
-            call pl%set_beg_end(xbeg = pl%rh)
+            call pl%set_beg_end(rbeg = pl%rh)
          else
             call pl%set_beg_end(xend = pl%rh)
          end if

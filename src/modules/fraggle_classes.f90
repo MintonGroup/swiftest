@@ -10,10 +10,10 @@
 module fraggle_classes
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Definition of classes and methods specific to Fraggel: The Fragment Generation Model
+   !! Definition of classes and methods specific to Fraggle: *Frag*ment *g*eneration that conserves angular momentum (*L*) and energy (*E*)
    use swiftest_globals
    use swiftest_classes,  only : swiftest_parameters, swiftest_nbody_system, swiftest_cb, swiftest_pl, swiftest_storage, netcdf_parameters
-   use encounter_classes, only : encounter_snapshot, encounter_io_parameters
+   use encounter_classes, only : encounter_snapshot, encounter_io_parameters, encounter_storage
    implicit none
    public
 
@@ -27,7 +27,7 @@ module fraggle_classes
    type :: fraggle_colliders
       integer(I4B)                                 :: ncoll   !! Number of bodies involved in the collision
       integer(I4B), dimension(:),      allocatable :: idx     !! Index of bodies involved in the collision
-      real(DP),     dimension(NDIM,2)              :: xb      !! Two-body equivalent position vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: rb      !! Two-body equivalent position vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: vb      !! Two-body equivalent velocity vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: rot     !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: L_spin  !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
@@ -35,6 +35,7 @@ module fraggle_classes
       real(DP),     dimension(NDIM,2)              :: Ip      !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(2)                   :: mass    !! Two-body equivalent mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: radius  !! Two-body equivalent radii of the collider bodies prior to the collision
+      class(swiftest_pl), allocatable              :: pl      !! A snapshot of the planets involved in the collision
    contains
       procedure :: regime => fraggle_regime_colliders     !! Determine which fragmentation regime the set of colliders will be
       final     ::           fraggle_util_final_colliders !! Finalizer will deallocate all allocatables
@@ -51,7 +52,7 @@ module fraggle_classes
       integer(I4B)                            :: regime    !! Collresolve regime code for this collision
 
       ! Values in a coordinate frame centered on the collider barycenter and collisional system unit vectors (these are used internally by the fragment generation subroutine)
-      real(DP), dimension(NDIM)              :: xbcom       !! Center of mass position vector of the collider system in system barycentric coordinates
+      real(DP), dimension(NDIM)              :: rbcom       !! Center of mass position vector of the collider system in system barycentric coordinates
       real(DP), dimension(NDIM)              :: vbcom       !! Velocity vector of the center of mass of the collider system in system barycentric coordinates
       real(DP), dimension(NDIM)              :: x_coll_unit !! x-direction unit vector of collisional system
       real(DP), dimension(NDIM)              :: y_coll_unit !! y-direction unit vector of collisional system
@@ -65,6 +66,7 @@ module fraggle_classes
       real(DP), dimension(:),   allocatable  :: rotmag      !! Array of rotation magnitudes of individual fragments 
       real(DP), dimension(:),   allocatable  :: v_r_mag     !! Array of radial direction velocity magnitudes of individual fragments 
       real(DP), dimension(:),   allocatable  :: v_t_mag     !! Array of tangential direction velocity magnitudes of individual fragments
+      class(swiftest_pl), allocatable        :: pl          !! A snapshot of the fragments created in the collision
 
       ! Energy and momentum book-keeping variables that characterize the whole system of fragments
       real(DP)                  :: ke_orbit  !! Current orbital kinetic energy of the system of fragments in the collisional frame
@@ -110,23 +112,35 @@ module fraggle_classes
    end type fraggle_fragments
 
    !! NetCDF dimension and variable names for the enounter save object
-   type, extends(encounter_io_parameters) :: fraggle_io_encounter_parameters
-   contains
-      procedure :: initialize => fraggle_io_encounter_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-   end type fraggle_io_encounter_parameters
+   type, extends(encounter_io_parameters) :: fraggle_io_parameters
+      integer(I4B)       :: stage_dimid                                     !! ID for the stage dimension
+      integer(I4B)       :: stage_varid                                     !! ID for the stage variable  
+      character(NAMELEN) :: stage_dimname            = "stage"              !! name of the stage dimension (before/after)
+      character(len=6), dimension(2) :: stage_coords = ["before", "after"] !! The stage coordinate labels
 
-   !> A class that that is used to store fragmentation data between file output
-   type, extends(swiftest_storage) :: fraggle_storage
-   contains
-      procedure :: dump   => fraggle_io_encounter_dump !! Dumps contents of encounter history to file
-      final     ::           fraggle_util_final_storage
-   end type fraggle_storage
+      character(NAMELEN) :: event_dimname = "collision" !! Name of collision event dimension
+      integer(I4B)       :: event_dimid                 !! ID for the collision event dimension       
+      integer(I4B)       :: event_varid                 !! ID for the collision event variable
+      integer(I4B)       :: event_dimsize = 0           !! Number of events
 
-   type, extends(encounter_snapshot)  :: fraggle_encounter_snapshot
+      character(NAMELEN) :: Qloss_varname  = "Qloss"   !! name of the energy loss variable
+      integer(I4B)       :: Qloss_varid                !! ID for the energy loss variable 
+      character(NAMELEN) :: regime_varname = "regime"  !! name of the collision regime variable
+      integer(I4B)       :: regime_varid               !! ID for the collision regime variable
+
    contains
-      procedure :: write_frame => fraggle_io_encounter_write_frame !! Writes a frame of encounter data to file 
+      procedure :: initialize => fraggle_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+   end type fraggle_io_parameters
+
+   type, extends(encounter_snapshot)  :: fraggle_snapshot
+      logical                               :: lcollision !! Indicates that this snapshot contains at least one collision
+      class(fraggle_colliders), allocatable :: colliders  !! Colliders object at this snapshot
+      class(fraggle_fragments), allocatable :: fragments  !! Fragments object at this snapshot
+   contains
+      procedure :: write_frame => fraggle_io_write_frame !! Writes a frame of encounter data to file 
+      procedure :: get_idvals  => fraggle_util_get_idvalues_snapshot !! Gets an array of all id values saved in this snapshot
       final     ::                fraggle_util_final_snapshot
-   end type fraggle_encounter_snapshot
+   end type fraggle_snapshot
 
    interface
       module subroutine fraggle_generate_fragments(self, colliders, system, param, lfailure)
@@ -139,29 +153,18 @@ module fraggle_classes
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
 
-      module subroutine fraggle_io_encounter_dump(self, param)
+      module subroutine fraggle_io_initialize_output(self, param)
          implicit none
-         class(fraggle_storage(*)), intent(inout) :: self   !! Encounter storage object
-         class(swiftest_parameters),          intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine fraggle_io_encounter_dump
-   
-      module subroutine fraggle_io_encounter_initialize_output(self, param)
-         implicit none
-         class(fraggle_io_encounter_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(fraggle_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),             intent(in)    :: param   
-      end subroutine fraggle_io_encounter_initialize_output
+      end subroutine fraggle_io_initialize_output
    
-      module subroutine fraggle_io_encounter_write_frame(self, nc, param)
+      module subroutine fraggle_io_write_frame(self, nc, param)
          implicit none
-         class(fraggle_encounter_snapshot), intent(in)    :: self   !! Swiftest encounter structure
-         class(encounter_io_parameters),    intent(inout) :: nc     !! Parameters used to identify a particular encounter io NetCDF dataset
-         class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
-      end subroutine fraggle_io_encounter_write_frame
-
-      module subroutine fraggle_io_log_generate(frag)
-         implicit none
-         class(fraggle_fragments),   intent(in) :: frag
-      end subroutine fraggle_io_log_generate
+         class(fraggle_snapshot), intent(in)    :: self  !! Swiftest encounter structure
+         class(netcdf_parameters),          intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
+      end subroutine fraggle_io_write_frame
 
       module subroutine fraggle_io_log_pl(pl, param)
          implicit none
@@ -283,22 +286,17 @@ module fraggle_classes
 
       module subroutine fraggle_util_final_colliders(self)
          implicit none
-         type(fraggle_colliders),  intent(inout) :: self !! Fraggle encountar storage object
+         type(fraggle_colliders),  intent(inout) :: self !! Fraggle colliders object
       end subroutine fraggle_util_final_colliders
 
       module subroutine fraggle_util_final_fragments(self)
          implicit none
-         type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
+         type(fraggle_fragments),  intent(inout) :: self !! Fraggle frgments object
       end subroutine fraggle_util_final_fragments
-
-      module subroutine fraggle_util_final_storage(self)
-         implicit none
-         type(fraggle_storage(*)),  intent(inout) :: self !! Fraggle encountar storage object
-      end subroutine fraggle_util_final_storage
 
       module subroutine fraggle_util_final_snapshot(self)
          implicit none
-         type(fraggle_encounter_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+         type(fraggle_snapshot),  intent(inout) :: self !! Fraggle storage snapshot object
       end subroutine fraggle_util_final_snapshot
 
       module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)
@@ -310,6 +308,12 @@ module fraggle_classes
          class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
          logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
       end subroutine fraggle_util_get_energy_momentum
+
+      module subroutine fraggle_util_get_idvalues_snapshot(self, idvals)
+         implicit none
+         class(fraggle_snapshot),                 intent(in)  :: self   !! Fraggle snapshot object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      end subroutine fraggle_util_get_idvalues_snapshot
 
       module subroutine fraggle_util_restructure(self, colliders, try, f_spin, r_max_start)
          implicit none

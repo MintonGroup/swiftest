@@ -27,7 +27,7 @@ contains
       if (allocated(self%mu)) deallocate(self%mu)
       if (allocated(self%rh)) deallocate(self%rh)
       if (allocated(self%vh)) deallocate(self%vh)
-      if (allocated(self%xb)) deallocate(self%xb)
+      if (allocated(self%rb)) deallocate(self%rb)
       if (allocated(self%vb)) deallocate(self%vb)
       if (allocated(self%ah)) deallocate(self%ah)
       if (allocated(self%aobl)) deallocate(self%aobl)

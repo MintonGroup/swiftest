@@ -101,6 +101,7 @@ module swiftest_globals
    integer(I4B), parameter :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
    integer(I4B), parameter :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
    integer(I4B), parameter :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
+   character(len=*),dimension(5), parameter :: REGIME_NAMES = ["Merge", "Disruption", "Supercatastrophic", "Graze and Merge", "Hit and Run"] 
 
    !> String labels for body/particle addition/subtraction in discard file
    character(*), parameter :: ADD = '+1'
@@ -121,7 +122,7 @@ module swiftest_globals
    character(*), parameter :: PL_INFILE        = 'pl.in'
    character(*), parameter :: TP_INFILE        = 'tp.in'
    character(*), parameter :: NC_INFILE        = 'in.nc'
-   character(*), parameter :: BIN_OUTFILE      = 'bin.nc'
+   character(*), parameter :: BIN_OUTFILE      = 'data.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
    integer(I4B), parameter :: LUN              = 42 !! File unit number for files that are opened and closed within a single subroutine call, and therefore should not collide

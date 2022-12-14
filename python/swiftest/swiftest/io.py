@@ -32,8 +32,7 @@ newfeaturelist = ("RESTART",
                   "ENCOUNTER_CHECK",
                   "TSTART",
                   "DUMP_CADENCE",
-                  "ENCOUNTER_SAVE",
-                  "FRAGMENTATION_SAVE")
+                  "ENCOUNTER_SAVE")
 
 
 
@@ -55,16 +54,16 @@ int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
 float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
                "TU2S", "MIN_GMFRAG", "GMTINY"]
 
-upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE","FRAGMENTATION_SAVE", "CHK_QMIN_COORD"]
+upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE", "CHK_QMIN_COORD"]
 lower_str_param = ["NC_IN", "PL_IN", "TP_IN", "CB_IN", "CHK_QMIN_RANGE"]
 
 param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_str_param+ bool_param
 
 # This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
-string_varnames = ["name", "particle_type", "status", "origin_type"]
+string_varnames = ["name", "particle_type", "status", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
-int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id"]
+int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "loopnum"]
 
 def bool2yesno(boolval):
     """
@@ -816,18 +815,19 @@ def process_netcdf_input(ds, param):
     -------
     ds : xarray dataset
     """
-
-    ds = ds.where(~np.isnan(ds.id) ,drop=True)
+    #
+    #ds = ds.where(ds.id >=0,drop=True)
     if param['OUT_TYPE'] == "NETCDF_DOUBLE":
         ds = fix_types(ds,ftype=np.float64)
     elif param['OUT_TYPE'] == "NETCDF_FLOAT":
         ds = fix_types(ds,ftype=np.float32)
 
-    # Check if the name variable contains unique values. If so, make name the dimension instead of id
-    if "id" in ds.dims:
-        if len(np.unique(ds['name'])) == len(ds['name']):
-            ds = ds.swap_dims({"id" : "name"})
-            ds = ds.reset_coords("id")
+    # # Check if the name variable contains unique values. If so, make name the dimension instead of id
+    # if "id" in ds.dims:
+    #     if len(np.unique(ds['name'])) == len(ds['name']):
+    #         ds = ds.swap_dims({"id" : "name"})
+    #         if "id" in ds:
+    #             ds = ds.reset_coords("id")
 
     return ds
 
@@ -900,15 +900,14 @@ def string_converter(da):
     -------
     da : xarray dataset with the strings cleaned up
     """
-    if da.dtype == np.dtype(object):
-        da = da.astype('<U32')
-        da = xstrip_str(da)
-    elif type(da.values[0]) != np.str_:
-        da = xstrip_nonstr(da)
+
+    da = da.astype('<U32')
+    da = xstrip_str(da)
+
     return da
 
 def char_converter(da):
-    """
+    """`
     Converts a string to a unicode string
 
     Parameters
@@ -1126,9 +1125,6 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     param_tmp['OUT_FORM'] = param['IN_FORM']
     frame = select_active_from_frame(ds, param_tmp, framenum)
 
-    if "name" in frame.dims:
-        frame = frame.swap_dims({"name" : "id"})
-        frame = frame.reset_coords("name")
 
     if in_type == "NETCDF_DOUBLE" or in_type == "NETCDF_FLOAT":
         # Convert strings back to byte form and save the NetCDF file
@@ -1145,8 +1141,8 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         return frame
 
     # All other file types need seperate files for each of the inputs
-    cb = frame.where(frame.id == 0, drop=True)
-    pl = frame.where(frame.id > 0, drop=True)
+    cb = frame.isel(name=0)
+    pl = frame.where(name != cb.name)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j2rp2'],errors="ignore")
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'],errors="ignore")
     
