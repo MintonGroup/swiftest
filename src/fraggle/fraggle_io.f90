@@ -204,8 +204,8 @@ contains
                end do
                call check( nf90_put_var(nc%id, nc%ke_orb_varid,  fragments%ke_orbit_before,  start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var ke_orb_varid before" )
                call check( nf90_put_var(nc%id, nc%ke_orb_varid,  fragments%ke_orbit_after,   start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var ke_orb_varid after" )
-               call check( nf90_put_var(nc%id, nc%ke_spin_varid, fragments%ke_orbit_before,  start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var ke_spin_varid before" )
-               call check( nf90_put_var(nc%id, nc%ke_spin_varid, fragments%ke_orbit_after,   start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var ke_spin_varid after" )
+               call check( nf90_put_var(nc%id, nc%ke_spin_varid, fragments%ke_spin_before,  start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var ke_spin_varid before" )
+               call check( nf90_put_var(nc%id, nc%ke_spin_varid, fragments%ke_spin_after,   start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var ke_spin_varid after" )
                call check( nf90_put_var(nc%id, nc%pe_varid,      fragments%pe_before,        start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid before" )
                call check( nf90_put_var(nc%id, nc%pe_varid,      fragments%pe_after,         start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid after" )
                call check( nf90_put_var(nc%id, nc%L_orb_varid,   fragments%Lorbit_before(:), start=[1, 1, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_orb_varid before" )
