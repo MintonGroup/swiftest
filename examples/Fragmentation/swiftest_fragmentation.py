@@ -53,7 +53,7 @@ import swiftest
 import numpy as np
 from numpy.random import default_rng
 
-run_arguments = {"tstart": 0.0, "tstop":1e-5, "dt": 1e-5, "istep_out": 1, "fragmentation":True, "minimum_fragment_gmass":1.0e-11, "gmtiny":1.0e-11, "output_format":"XVEL", "init_cond_format":"XV"}
+run_arguments = {"tstart": 0.0, "tstop":1e-5, "dt": 1e-5, "istep_out": 1, "fragmentation":True, "encounter_save":"both", "minimum_fragment_gmass":1.0e-11, "gmtiny":1.0e-11, "output_format":"XVEL", "init_cond_format":"XV"}
 
 # Initialize the simulation object as a variable with arguments.
 sim_disruption = swiftest.Simulation(simdir="disruption", **run_arguments)
