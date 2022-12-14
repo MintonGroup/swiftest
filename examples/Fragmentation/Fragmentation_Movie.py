@@ -201,7 +201,7 @@ if __name__ == "__main__":
         # Pull in the Swiftest output data from the parameter file and store it as a Xarray dataset.
         sim = swiftest.Simulation(simdir=style, rotation=True, init_cond_format = "XV", compute_conservation_values=True)
         sim.add_solar_system_body("Sun")
-        sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style]) #, rot=rot_vectors[style])
+        sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
         # Set fragmentation parameters
         minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
