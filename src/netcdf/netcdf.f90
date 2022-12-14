@@ -157,6 +157,7 @@ contains
       integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
       real(SP) :: sfill
+      integer(I4B), parameter :: NO_FILL = 0
       logical :: fileExists
       character(len=STRMAX) :: errmsg
       integer(I4B) :: ndims
@@ -281,15 +282,23 @@ contains
             call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "netcdf_initialize_output nf90_inquire_variable"  )
             select case(vartype)
             case(NF90_INT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "netcdf_initialize_output nf90_def_var_fill NF90_INT"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), "netcdf_initialize_output nf90_def_var_fill NF90_INT"  )
             case(NF90_FLOAT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "netcdf_initialize_output nf90_def_var_fill NF90_FLOAT"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), "netcdf_initialize_output nf90_def_var_fill NF90_FLOAT"  )
             case(NF90_DOUBLE)
-               call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "netcdf_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, dfill), "netcdf_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
             case(NF90_CHAR)
-               call check( nf90_def_var_fill(nc%id, varid, 0, 0), "netcdf_initialize_output nf90_def_var_fill NF90_CHAR"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, 0), "netcdf_initialize_output nf90_def_var_fill NF90_CHAR"  )
             end select
          end do
+
+         ! Set special fill mode for discard time so that we can make use of it for non-discarded bodies.
+         select case (vartype)
+         case(NF90_FLOAT)
+            call check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_SP)), "netcdf_initialize_output nf90_def_var_fill discard_time NF90_FLOAT"  )
+         case(NF90_DOUBLE)
+            call check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_DP)), "netcdf_initialize_output nf90_def_var_fill discard_time NF90_DOUBLE"  )
+         end select
 
          ! Take the file out of define mode
          call check( nf90_enddef(nc%id), "netcdf_initialize_output nf90_enddef"  )
@@ -944,7 +953,7 @@ contains
             if (status == nf90_noerr) then
                call check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), "netcdf_read_particle_info_system nf90_getvar collision_id_varid"  )
             else
-               itemp = 0.0_DP
+               itemp = 0
             end if 
 
             do i = 1, npl
@@ -958,7 +967,12 @@ contains
             if (status == nf90_noerr) then
                call check( nf90_get_var(nc%id, nc%discard_time_varid, rtemp), "netcdf_read_particle_info_system nf90_getvar discard_time_varid"  )
             else
-               rtemp = 0.0_DP
+               select case (param%out_type)
+               case("NETCDF_FLOAT")
+                  rtemp(:) = huge(0.0_SP)
+               case("NETCDF_DOUBLE")
+                  rtemp(:) = huge(0.0_DP)
+               end select
             end if 
 
             call cb%info%set_value(discard_time=rtemp(1))

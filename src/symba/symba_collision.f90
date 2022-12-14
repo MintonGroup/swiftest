@@ -367,8 +367,8 @@ contains
                            ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                            pl%lcollision([i, j]) = .true.
                            pl%status([i, j]) = COLLISION
-                           call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i))
-                           call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,j), discard_vh=pl%vh(:,j))
+                           call pl%info(i)%set_value(status="COLLISION")
+                           call pl%info(j)%set_value(status="COLLISION")
                         end if
                      else
                         self%r2(:,k) = tp%rh(:,j) + system%cb%rb(:)
