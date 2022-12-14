@@ -219,24 +219,6 @@ contains
    end subroutine fraggle_io_write_frame
 
 
-   module subroutine fraggle_io_log_pl(pl, param)
-      !! author: David A. Minton
-      !!
-      !! Writes a single message to the fraggle log file
-      implicit none
-      ! Arguments
-      class(swiftest_pl),         intent(in) :: pl  !! Swiftest massive body object (only the new bodies generated in a collision)
-      class(swiftest_parameters), intent(in) :: param !! Current swiftest run configuration parameters
-      ! Internals
-      integer(I4B) :: i
-      character(STRMAX) :: errmsg
-
-      return
-      667 continue
-      write(*,*) "Error writing Fraggle message to log file: " // trim(adjustl(errmsg))
-   end subroutine fraggle_io_log_pl
-
-
    module subroutine fraggle_io_log_regime(colliders, frag)
       !! author: David A. Minton
       !!

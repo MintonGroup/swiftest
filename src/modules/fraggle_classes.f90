@@ -166,12 +166,6 @@ module fraggle_classes
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine fraggle_io_write_frame
 
-      module subroutine fraggle_io_log_pl(pl, param)
-         implicit none
-         class(swiftest_pl),         intent(in) :: pl    !! Swiftest massive body object (only the new bodies generated in a collision)
-         class(swiftest_parameters), intent(in) :: param !! Current swiftest run configuration parameters
-      end subroutine fraggle_io_log_pl
-
       module subroutine fraggle_io_log_regime(colliders, frag)
          implicit none
          class(fraggle_colliders),   intent(in) :: colliders

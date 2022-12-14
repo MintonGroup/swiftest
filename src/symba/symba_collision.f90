@@ -843,8 +843,14 @@ contains
                plnew%levelg(1:nfrag) = pl%levelg(ibiggest)
                plnew%levelm(1:nfrag) = pl%levelm(ibiggest)
 
+               plnew%lmtiny(1:nfrag) = plnew%Gmass(1:nfrag) < param%GMTINY
+               where(plnew%lmtiny(1:nfrag))
+                  plnew%info(1:nfrag)%particle_type = PL_TINY_TYPE_NAME 
+               elsewhere
+                  plnew%info(1:nfrag)%particle_type = PL_TYPE_NAME 
+               end where
+
                ! Log the properties of the new bodies
-               call fraggle_io_log_pl(plnew, param)
                allocate(system%fragments%pl, source=plnew)
    
                ! Append the new merged body to the list 
