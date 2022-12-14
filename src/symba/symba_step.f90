@@ -225,7 +225,7 @@ contains
                      call pl%drift(system, param, dtl)
                      call tp%drift(system, param, dtl)
 
-                     if (lencounter) call system%recursive_step(param, t + (j-1)*dtl, irecp)
+                     if (lencounter) call system%recursive_step(param, t+(j-1)*dtl, irecp)
                      system%irec = ireci
 
                      if (param%lgr) then

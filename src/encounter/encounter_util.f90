@@ -711,7 +711,7 @@ contains
                                           vb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * vrel(:)
 
                                           ! Move the CoM assuming constant velocity over the time it takes to reach periapsis
-                                          !rcom(:) = rcom(:) + vcom(:) * tperi
+                                          rcom(:) = rcom(:) + vcom(:) * tperi
 
                                           ! Compute the heliocentric position and velocity vector at periapsis
                                           pl_snap%rh(:,1) = rb(:,1) + rcom(:)
