@@ -287,7 +287,6 @@ contains
          do i = 1, 2
             colliders%rot(:,i) = colliders%L_spin(:,i) * (colliders%mass(i) * colliders%radius(i)**2 * colliders%Ip(3, i))
          end do
-         frag%Qloss = frag%Qloss * frag%Escale
    
          frag%mtot = frag%mtot * frag%mscale
          frag%mass = frag%mass * frag%mscale
@@ -300,7 +299,9 @@ contains
             frag%rb(:, i) = frag%x_coll(:, i) + frag%rbcom(:)
             frag%vb(:, i) = frag%v_coll(:, i) + frag%vbcom(:)
          end do
-         
+
+         frag%Qloss = frag%Qloss * frag%Escale
+
          frag%Lorbit_before(:) = frag%Lorbit_before * frag%Lscale
          frag%Lspin_before(:) = frag%Lspin_before * frag%Lscale
          frag%Ltot_before(:) = frag%Ltot_before * frag%Lscale

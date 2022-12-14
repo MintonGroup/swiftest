@@ -185,6 +185,10 @@ contains
          class is (symba_pl)
 
             call fragments%set_mass_dist(colliders, param)
+
+            ! Calculate the initial energy of the system without the collisional family
+            call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.true.)
+
             ibiggest = colliders%idx(maxloc(pl%Gmass(colliders%idx(:)), dim=1))
             fragments%id(1) = pl%id(ibiggest)
             fragments%rb(:,1) = fragments%rbcom(:)
@@ -197,18 +201,16 @@ contains
                ! Assume prinicpal axis rotation on 3rd Ip axis
                fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
             else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
-               param%Lescape(:) = param%Lescape(:) + colliders%L_orbit(:,1) + colliders%L_orbit(:,2) 
+               system%Lescape(:) = system%Lescape(:) + colliders%L_orbit(:,1) + colliders%L_orbit(:,2) 
             end if
 
             ! Keep track of the component of potential energy due to the pre-impact colliders%idx for book-keeping
-            pe = 0.0_DP
-            do j = 1, colliders%ncoll
-               do i = j + 1, colliders%ncoll
-                  pe = pe - pl%Gmass(i) * pl%mass(j) / norm2(pl%rb(:, i) - pl%rb(:, j))
-               end do
-            end do
-            system%Ecollisions = system%Ecollisions + pe 
-            system%Euntracked  = system%Euntracked - pe 
+            ! Get the energy of the system after the collision
+            call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
+            pe = fragments%pe_after - fragments%pe_before 
+            system%Ecollisions = system%Ecollisions - pe 
+            system%Euntracked  = system%Euntracked + pe 
+
 
             ! Update any encounter lists that have the removed bodies in them so that they instead point to the new 
             do k = 1, system%plplenc_list%nenc

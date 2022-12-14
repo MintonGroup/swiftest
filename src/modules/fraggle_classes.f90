@@ -86,12 +86,12 @@ module fraggle_classes
       real(DP)                  :: Etot_before, Etot_after         !! Before/after total system energy
 
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
-      real(DP) :: dscale !! Distance dimension scale factor
-      real(DP) :: mscale !! Mass scale factor
-      real(DP) :: tscale !! Time scale factor
-      real(DP) :: vscale !! Velocity scale factor (a convenience unit that is derived from dscale and tscale)
-      real(DP) :: Escale !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
-      real(DP) :: Lscale !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
+      real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
+      real(DP) :: mscale = 1.0_DP !! Mass scale factor
+      real(DP) :: tscale = 1.0_DP !! Time scale factor
+      real(DP) :: vscale = 1.0_DP !! Velocity scale factor (a convenience unit that is derived from dscale and tscale)
+      real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
+      real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
    contains
       procedure :: generate_fragments      => fraggle_generate_fragments         !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: accel                   => fraggle_placeholder_accel          !! Placeholder subroutine to fulfill requirement for an accel method
