@@ -690,6 +690,8 @@ contains
                                           vrel(:) = plplenc_list%v2(:,k) - plplenc_list%v1(:,k)
                                           call orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
                                           snapshot%t = t + tperi
+                                          if ((snapshot%t < maxval(pl_snap%info(:)%origin_time)) .or. &
+                                              (snapshot%t > minval(pl_snap%info(:)%discard_time))) cycle
 
                                           ! Computer the center mass of the pair
                                           rcom(:) = (plplenc_list%r1(:,k) * pl_snap%Gmass(1) + plplenc_list%r2(:,k) * pl_snap%Gmass(2)) / Gmtot

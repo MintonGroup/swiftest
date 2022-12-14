@@ -112,9 +112,10 @@ contains
       integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
       real(SP) :: sfill
+      integer(I4B), parameter :: NO_FILL = 0
       logical :: fileExists
       character(len=STRMAX) :: errmsg
-      integer(I4B) :: ndims, i
+      integer(I4B) :: ndims
 
       associate(nc => self)
          dfill = ieee_value(dfill, IEEE_QUIET_NAN)
@@ -167,13 +168,13 @@ contains
             call check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "encounter_io_initialize nf90_inquire_variable"  )
             select case(vartype)
             case(NF90_INT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, NF90_FILL_INT), "encounter_io_initialize nf90_def_var_fill NF90_INT"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), "encounter_io_initialize nf90_def_var_fill NF90_INT"  )
             case(NF90_FLOAT)
-               call check( nf90_def_var_fill(nc%id, varid, 0, sfill), "encounter_io_initialize nf90_def_var_fill NF90_FLOAT"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), "encounter_io_initialize nf90_def_var_fill NF90_FLOAT"  )
             case(NF90_DOUBLE)
-               call check( nf90_def_var_fill(nc%id, varid, 0, dfill), "encounter_io_initialize nf90_def_var_fill NF90_DOUBLE"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, dfill), "encounter_io_initialize nf90_def_var_fill NF90_DOUBLE"  )
             case(NF90_CHAR)
-               call check( nf90_def_var_fill(nc%id, varid, 0, 0), "encounter_io_initialize nf90_def_var_fill NF90_CHAR"  )
+               call check( nf90_def_var_fill(nc%id, varid, NO_FILL, 0), "encounter_io_initialize nf90_def_var_fill NF90_CHAR"  )
             end select
          end do
 

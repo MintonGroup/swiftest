@@ -248,7 +248,7 @@ contains
             origin_time = -huge(1.0_DP), & 
             origin_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
             origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
-            discard_time = -huge(1.0_DP), & 
+            discard_time = huge(1.0_DP), & 
             discard_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
             discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
             discard_body_id = -1  &

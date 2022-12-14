@@ -294,11 +294,11 @@ contains
       integer(I8B) :: iloop_start
 
       if (self%iframe == 0) return
-      iloop_start = param%iloop - int(param%istep_out * param%dump_cadence, kind=I8B) + 1
+      iloop_start = max(param%iloop - int(param%istep_out * param%dump_cadence, kind=I8B) + 1_I8B,0_I8B)
       call self%make_index_map()
-      do i = 1, param%dump_cadence
-         param%ioutput = iloop_start + self%tmap(i)
+      do i = 1, self%iframe
          if (allocated(self%frame(i)%item)) then
+            param%ioutput = iloop_start + self%tmap(i)
             select type(system => self%frame(i)%item)
             class is (swiftest_nbody_system)
                call system%write_frame(param)

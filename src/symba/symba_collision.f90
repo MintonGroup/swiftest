@@ -12,15 +12,16 @@ submodule (symba_classes) s_symba_collision
 
 contains
 
-   module function symba_collision_casedisruption(system, param)  result(status)
+   module function symba_collision_casedisruption(system, param, t)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Create the fragments resulting from a non-catastrophic disruption collision
       !! 
       implicit none
       ! Arguments
-      class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                  intent(in)    :: t      !! Time of collision
       ! Result
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
@@ -73,7 +74,7 @@ contains
                param%maxid = fragments%id(nfrag)
             end select
 
-            call symba_collision_mergeaddsub(system, param, status)
+            call symba_collision_mergeaddsub(system, param, t, status)
          end if
       end associate
 
@@ -81,15 +82,16 @@ contains
    end function symba_collision_casedisruption
 
 
-   module function symba_collision_casehitandrun(system, param)  result(status)
+   module function symba_collision_casehitandrun(system, param, t)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Create the fragments resulting from a non-catastrophic hit-and-run collision
       !! 
       implicit none
       ! Arguments
-      class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                  intent(in)    :: t      !! Time of collision
       ! Result
       integer(I4B)                             :: status    !! Status flag assigned to this outcom
       ! Internals
@@ -144,7 +146,7 @@ contains
             fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
             param%maxid = fragments%id(nfrag)
             status = HIT_AND_RUN_DISRUPT
-            call symba_collision_mergeaddsub(system, param, status)
+            call symba_collision_mergeaddsub(system, param, t, status)
          end if
 
       end associate
@@ -153,7 +155,7 @@ contains
    end function symba_collision_casehitandrun
 
 
-   module function symba_collision_casemerge(system, param)  result(status)
+   module function symba_collision_casemerge(system, param, t)  result(status)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Merge massive bodies.
@@ -163,8 +165,9 @@ contains
       !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
       implicit none
       ! Arguments
-      class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                  intent(in)    :: t      !! Time of collision
       ! Result
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
@@ -226,7 +229,7 @@ contains
 
             status = MERGED
             
-            call symba_collision_mergeaddsub(system, param, status) 
+            call symba_collision_mergeaddsub(system, param, t, status) 
 
          end select
       end associate
@@ -364,8 +367,8 @@ contains
                            ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                            pl%lcollision([i, j]) = .true.
                            pl%status([i, j]) = COLLISION
-                           call pl%info(i)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i))
-                           call pl%info(j)%set_value(status="COLLISION", discard_time=t, discard_rh=pl%rh(:,j), discard_vh=pl%vh(:,j))
+                           call pl%info(i)%set_value(status="COLLISION")
+                           call pl%info(j)%set_value(status="COLLISION")
                         end if
                      else
                         self%r2(:,k) = tp%rh(:,j) + system%cb%rb(:)
@@ -719,16 +722,17 @@ contains
    end subroutine symba_collision_make_colliders_pl
 
 
-   subroutine symba_collision_mergeaddsub(system, param, status)
+   subroutine symba_collision_mergeaddsub(system, param, t, status)
       !! author:  David A. Minton
       !!
       !! Fills the pl_discards and pl_adds with removed and added bodies
       !!  
       implicit none
       ! Arguments
-      class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-      integer(I4B),              intent(in)    :: status    !! Status flag to assign to adds
+      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                  intent(in)    :: t      !! Time of collision
+      integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
       ! Internals
       integer(I4B) :: i, ibiggest, ismallest, iother, nstart, nend, ncolliders, nfrag
       logical, dimension(system%pl%nbody)    :: lmask
@@ -775,7 +779,7 @@ contains
                   plnew%status(1:nfrag) = NEW_PARTICLE
                   do i = 1, nfrag
                      write(newname, FRAGFMT) fragments%id(i)
-                     call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=system%t, name=newname, &
+                     call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=t, name=newname, &
                                                   origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
                   end do
@@ -785,7 +789,7 @@ contains
                      else
                         iother = ibiggest
                      end if
-                     call pl%info(colliders%idx(i))%set_value(status="Supercatastrophic", discard_time=system%t, &
+                     call pl%info(colliders%idx(i))%set_value(status="Supercatastrophic", discard_time=t, &
                                                               discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do
@@ -799,14 +803,14 @@ contains
                   plnew%status(1) = OLD_PARTICLE
                   do i = 2, nfrag
                      write(newname, FRAGFMT) fragments%id(i)
-                     call plnew%info(i)%set_value(origin_type=origin_type, origin_time=system%t, name=newname, &
+                     call plnew%info(i)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
                                                   origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
                   end do
                   do i = 1, ncolliders
                      if (colliders%idx(i) == ibiggest) cycle
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status=origin_type, discard_time=system%t, &
+                     call pl%info(colliders%idx(i))%set_value(status=origin_type, discard_time=t, &
                                                               discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do 
@@ -817,7 +821,7 @@ contains
                      if (colliders%idx(i) == ibiggest) cycle
 
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status="MERGED", discard_time=system%t, discard_rh=pl%rh(:,i), &
+                     call pl%info(colliders%idx(i))%set_value(status="MERGED", discard_time=t, discard_rh=pl%rh(:,i), &
                                                               discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do 
                end select
@@ -880,7 +884,7 @@ contains
    end subroutine symba_collision_mergeaddsub
 
 
-   module subroutine symba_resolve_collision_fragmentations(self, system, param)
+   module subroutine symba_resolve_collision_fragmentations(self, system, param, t)
       !! author: David A. Minton
       !! 
       !! Process list of collisions, determine the collisional regime, and then create fragments.
@@ -890,13 +894,14 @@ contains
       class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                  intent(in)    :: t      !! Time of collision
       ! Internals
       ! Internals
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
 
-      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, t => system%t, collision_history => param%collision_history)
+      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, collision_history => param%collision_history)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
@@ -914,11 +919,11 @@ contains
                   if (param%lenc_save_trajectory) call collision_history%take_snapshot(param,system, t, "before") 
                   select case (system%fragments%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     plplcollision_list%status(i) = symba_collision_casedisruption(system, param)
+                     plplcollision_list%status(i) = symba_collision_casedisruption(system, param, t)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                     plplcollision_list%status(i) = symba_collision_casehitandrun(system, param)
+                     plplcollision_list%status(i) = symba_collision_casehitandrun(system, param, t)
                   case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                     plplcollision_list%status(i) = symba_collision_casemerge(system, param)
+                     plplcollision_list%status(i) = symba_collision_casemerge(system, param, t)
                   case default 
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
@@ -934,7 +939,7 @@ contains
    end subroutine symba_resolve_collision_fragmentations
 
 
-   module subroutine symba_resolve_collision_mergers(self, system, param)
+   module subroutine symba_resolve_collision_mergers(self, system, param, t)
       !! author: David A. Minton
       !! 
       !! Process list of collisions and merge colliding bodies together.
@@ -944,6 +949,7 @@ contains
       class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
       class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      real(DP),                  intent(in)    :: t      !! Time of collision
       ! Internals
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical                                     :: lgoodcollision
@@ -968,7 +974,7 @@ contains
                   fragments%mass_dist(3) = 0.0_DP
                   fragments%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / fragments%mtot 
                   fragments%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / fragments%mtot
-                  plplcollision_list%status(i) = symba_collision_casemerge(system, param)
+                  plplcollision_list%status(i) = symba_collision_casemerge(system, param, t)
                end do
             end select
          end select
@@ -1024,9 +1030,9 @@ contains
                                                            "***********************************************************")
                   allocate(tmp_param, source=param)
                   if (param%lfragmentation) then
-                     call plplcollision_list%resolve_fragmentations(system, param)
+                     call plplcollision_list%resolve_fragmentations(system, param, t)
                   else
-                     call plplcollision_list%resolve_mergers(system, param)
+                     call plplcollision_list%resolve_mergers(system, param, t)
                   end if
 
                   ! Destroy the collision list now that the collisions are resolved
