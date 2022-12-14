@@ -2407,6 +2407,8 @@ class Simulation:
                 elif n == 1:
                     if val.shape != (1,3) and val.shape != (3,):
                         raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,1)}. Got {val.shape} instead")
+                    elif val.shape == (3,):
+                        val = np.expand_dims(val,axis=0)
                 elif val.shape != (n,3) or val.shape != (3,n):
                     raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,n)}. Got {val.shape} instead")
                 elif val.shape == (3,n):
