@@ -816,18 +816,11 @@ def process_netcdf_input(ds, param):
     ds : xarray dataset
     """
     #
-    #ds = ds.where(ds.id >=0,drop=True)
+
     if param['OUT_TYPE'] == "NETCDF_DOUBLE":
         ds = fix_types(ds,ftype=np.float64)
     elif param['OUT_TYPE'] == "NETCDF_FLOAT":
         ds = fix_types(ds,ftype=np.float32)
-
-    # # Check if the name variable contains unique values. If so, make name the dimension instead of id
-    # if "id" in ds.dims:
-    #     if len(np.unique(ds['name'])) == len(ds['name']):
-    #         ds = ds.swap_dims({"id" : "name"})
-    #         if "id" in ds:
-    #             ds = ds.reset_coords("id")
 
     return ds
 
