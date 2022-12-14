@@ -890,24 +890,24 @@ contains
    end subroutine symba_collision_mergeaddsub
 
 
-   module subroutine symba_resolve_collision_fragmentations(self, system, param, t)
+   subroutine symba_resolve_collision(plplcollision_list , system, param, t)
       !! author: David A. Minton
       !! 
       !! Process list of collisions, determine the collisional regime, and then create fragments.
       !!
       implicit none
       ! Arguments
-      class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
-      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-      real(DP),                  intent(in)    :: t      !! Time of collision
+      class(symba_plplenc),      intent(inout) :: plplcollision_list !! SyMBA pl-pl encounter list
+      class(symba_nbody_system), intent(inout) :: system             !! SyMBA nbody system object
+      class(symba_parameters),   intent(inout) :: param              !! Current run configuration parameters with SyMBA additions
+      real(DP),                  intent(in)    :: t                  !! Time of collision
       ! Internals
       ! Internals
       integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
 
-      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, collision_history => param%collision_history)
+      associate(ncollisions => plplcollision_list%nenc, idx1 => plplcollision_list%index1, idx2 => plplcollision_list%index2, collision_history => param%collision_history)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
@@ -920,7 +920,19 @@ contains
                   lgoodcollision = symba_collision_consolidate_colliders(pl, cb, param, idx_parent, system%colliders) 
                   if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLISION)) cycle
 
-                  call system%colliders%regime(system%fragments, system, param)
+                  if (param%lfragmentation) then
+                     call system%colliders%regime(system%fragments, system, param)
+                  else
+                     associate(fragments => system%fragments, colliders => system%colliders)
+                        fragments%regime = COLLRESOLVE_REGIME_MERGE
+                        fragments%mtot = sum(colliders%mass(:))
+                        fragments%mass_dist(1) = fragments%mtot
+                        fragments%mass_dist(2) = 0.0_DP
+                        fragments%mass_dist(3) = 0.0_DP
+                        fragments%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / fragments%mtot 
+                        fragments%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / fragments%mtot
+                     end associate
+                  end if
 
                   if (param%lenc_save_trajectory) call collision_history%take_snapshot(param,system, t, "before") 
                   select case (system%fragments%regime)
@@ -942,52 +954,7 @@ contains
       end associate
 
       return
-   end subroutine symba_resolve_collision_fragmentations
-
-
-   module subroutine symba_resolve_collision_mergers(self, system, param, t)
-      !! author: David A. Minton
-      !! 
-      !! Process list of collisions and merge colliding bodies together.
-      !!
-      implicit none
-      ! Arguments
-      class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
-      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-      real(DP),                  intent(in)    :: t      !! Time of collision
-      ! Internals
-      integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      logical                                     :: lgoodcollision
-      integer(I4B)                                :: i
-
-      associate(plplcollision_list => self, ncollisions => self%nenc, idx1 => self%index1, idx2 => self%index2, fragments => system%fragments, colliders => system%colliders)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            select type(cb => system%cb)
-            class is (symba_cb)
-               do i = 1, ncollisions
-                  idx_parent(1) = pl%kin(idx1(i))%parent
-                  idx_parent(2) = pl%kin(idx2(i))%parent
-                  lgoodcollision = symba_collision_consolidate_colliders(pl, cb, param, idx_parent, colliders) 
-                  if (.not. lgoodcollision) cycle
-                  if (any(pl%status(idx_parent(:)) /= COLLISION)) cycle ! One of these two bodies has already been resolved
- 
-                  fragments%regime = COLLRESOLVE_REGIME_MERGE
-                  fragments%mtot = sum(colliders%mass(:))
-                  fragments%mass_dist(1) = fragments%mtot
-                  fragments%mass_dist(2) = 0.0_DP
-                  fragments%mass_dist(3) = 0.0_DP
-                  fragments%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / fragments%mtot 
-                  fragments%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / fragments%mtot
-                  plplcollision_list%status(i) = symba_collision_casemerge(system, param, t)
-               end do
-            end select
-         end select
-      end associate
-
-      return
-   end subroutine symba_resolve_collision_mergers
+   end subroutine symba_resolve_collision
 
 
    module subroutine symba_resolve_collision_plplenc(self, system, param, t, dt, irec)
@@ -1035,11 +1002,8 @@ contains
                   call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
                                                            "***********************************************************")
                   allocate(tmp_param, source=param)
-                  if (param%lfragmentation) then
-                     call plplcollision_list%resolve_fragmentations(system, param, t)
-                  else
-                     call plplcollision_list%resolve_mergers(system, param, t)
-                  end if
+
+                  call symba_resolve_collision(plplcollision_list, system, param, t)
 
                   ! Destroy the collision list now that the collisions are resolved
                   call plplcollision_list%setup(0_I8B)

@@ -176,8 +176,6 @@ module symba_classes
    type, extends(symba_encounter) :: symba_plplenc
    contains
       procedure :: extract_collisions     => symba_collision_extract_collisions_from_encounters !! Processes the pl-pl encounter list remove only those encounters that led to a collision
-      procedure :: resolve_fragmentations => symba_resolve_collision_fragmentations       !! Process list of collisions, determine the collisional regime, and then create fragments
-      procedure :: resolve_mergers        => symba_resolve_collision_mergers              !! Process list of collisions and merge colliding bodies together
       procedure :: resolve_collision      => symba_resolve_collision_plplenc              !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the c
    end type symba_plplenc
 
@@ -231,22 +229,6 @@ module symba_classes
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
          integer(I4B), dimension(2), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
       end subroutine symba_collision_make_colliders_pl
-
-      module subroutine symba_resolve_collision_fragmentations(self, system, param, t)
-         implicit none
-         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-         real(DP),                  intent(in)    :: t      !! Time of collision
-      end subroutine symba_resolve_collision_fragmentations
-   
-      module subroutine symba_resolve_collision_mergers(self, system, param, t)
-         implicit none
-         class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-         real(DP),                  intent(in)    :: t      !! Time of collision
-      end subroutine symba_resolve_collision_mergers
 
       module subroutine symba_resolve_collision_plplenc(self, system, param, t, dt, irec)
          implicit none
