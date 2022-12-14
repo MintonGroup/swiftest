@@ -232,18 +232,20 @@ module symba_classes
          integer(I4B), dimension(2), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
       end subroutine symba_collision_make_colliders_pl
 
-      module subroutine symba_resolve_collision_fragmentations(self, system, param)
+      module subroutine symba_resolve_collision_fragmentations(self, system, param, t)
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                  intent(in)    :: t      !! Time of collision
       end subroutine symba_resolve_collision_fragmentations
    
-      module subroutine symba_resolve_collision_mergers(self, system, param)
+      module subroutine symba_resolve_collision_mergers(self, system, param, t)
          implicit none
          class(symba_plplenc),      intent(inout) :: self   !! SyMBA pl-pl encounter list
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                  intent(in)    :: t      !! Time of collision
       end subroutine symba_resolve_collision_mergers
 
       module subroutine symba_resolve_collision_plplenc(self, system, param, t, dt, irec)
@@ -343,25 +345,28 @@ module symba_classes
          real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine symba_gr_p4_tp
 
-      module function symba_collision_casedisruption(system, param) result(status)
+      module function symba_collision_casedisruption(system, param, t) result(status)
          implicit none
-         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         integer(I4B)                             :: status    !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                  intent(in)    :: t      !! Time of collision
+         integer(I4B)                             :: status !! Status flag assigned to this outcome
       end function symba_collision_casedisruption
    
-      module function symba_collision_casehitandrun(system, param) result(status)
+      module function symba_collision_casehitandrun(system, param, t) result(status)
          implicit none
          class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         integer(I4B)                             :: status    !! Status flag assigned to this outcome
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                  intent(in)    :: t      !! Time of collision
+         integer(I4B)                             :: status !! Status flag assigned to this outcome
       end function symba_collision_casehitandrun
 
-      module function symba_collision_casemerge(system, param) result(status)
+      module function symba_collision_casemerge(system, param, t) result(status)
          implicit none
-         class(symba_nbody_system), intent(inout) :: system    !! SyMBA nbody system object
-         class(symba_parameters),   intent(inout) :: param     !! Current run configuration parameters with SyMBA additions
-         integer(I4B)                             :: status    !! Status flag assigned to this outcome
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         real(DP),                  intent(in)    :: t      !! Time of collision
+         integer(I4B)                             :: status !! Status flag assigned to this outcome
       end function symba_collision_casemerge
 
       module subroutine symba_util_set_renc(self, scale)
