@@ -53,31 +53,33 @@ import swiftest
 import numpy as np
 from numpy.random import default_rng
 
+run_arguments = {"tstart": 0.0, "tstop":1e-5, "dt": 1e-5, "istep_out": 1, "fragmentation":True, "minimum_fragment_gmass":1.0e-11, "gmtiny":1.0e-11, "output_format":"XVEL", "init_cond_format":"XV"}
+
 # Initialize the simulation object as a variable with arguments.
-sim_disruption = swiftest.Simulation(simdir="disruption", tstart=0.0, tstop=1.0e-5, dt=1.0e-8, istep_out=1.0, fragmentation=True, minimum_fragment_gmass=1.0e-11, gmtiny=1.0e-11, output_format="XVEL", init_cond_format="XV")
+sim_disruption = swiftest.Simulation(simdir="disruption", **run_arguments)
 # Add the Sun using the JPL Horizons Database.
 sim_disruption.add_solar_system_body(["Sun"])
 # Add a user-defined target body.
-sim_disruption.add_body(name="Target", rh=[[1.0, -1.807993e-05, 0.0]], vh=[[-2.562596e-04, 6.280005, 0.0]], Gmass=1e-7, radius=7e-6, rhill=9e-4, Ip=[[0.4, 0.4, 0.4]], rot=[[0.0, 0.0, 0.0]])
+sim_disruption.add_body(name="Target", rh=[1.0, -1.807993e-05, 0.0], vh=[-2.562596e-04, 6.280005, 0.0], Gmass=1e-7, radius=7e-6)
 # Add a user-defined projectile body.
-sim_disruption.add_body(name="Projectile", rh=[[1.0, 1.807993e-05, 0.0]], vh=[[-2.562596e-04, -6.280005, 0.0]], Gmass=7e-10, radius=3.25e-6, rhill=4e-4, Ip=[[0.4, 0.4, 0.4]], rot=[[0.0, 0.0, 0.0]])
+sim_disruption.add_body(name="Projectile", rh=[1.0, 1.807993e-05, 0.0], vh=[-2.562596e-04, -6.280005, 0.0], Gmass=7e-10, radius=3.25e-6)
 # Display the run configuration parameters.
 sim_disruption.get_parameter()
 # Run the simulation.
 sim_disruption.run()
 
 # Do the same as above for the hit and run case.
-sim_hitandrun = swiftest.Simulation(simdir="hitandrun", tstart=0.0, tstop=1.0e-5, dt=1.0e-8, istep_out=1.0, fragmentation=True, minimum_fragment_gmass=1.0e-11, gmtiny=1.0e-11, output_format="XVEL", init_cond_format="XV")
+sim_hitandrun = swiftest.Simulation(simdir="hitandrun", **run_arguments)
 sim_hitandrun.add_solar_system_body(["Sun"])
-sim_hitandrun.add_body(name="Target", rh=[[1.0, -4.2e-05, 0.0]], vh=[[0.0, 6.28, 0.0]], Gmass=1e-7, radius=7e-6, rhill=9e-4, Ip=[[0.4, 0.4, 0.4]], rot=[[0.0, 0.0, 6.0e4]])
-sim_hitandrun.add_body(name="Projectile", rh=[[1.0, 4.2e-05, 0.0]], vh=[[-1.5, -6.28, 0.0]], Gmass=7e-10, radius=3.25e-6, rhill=4e-4, Ip=[[0.4, 0.4, 0.4]], rot=[[0.0, 0.0, 1.0e5]])
+sim_hitandrun.add_body(name="Target", rh=[1.0, -4.2e-05, 0.0], vh=[[0.0, 6.28, 0.0]], Gmass=1e-7, radius=7e-6, rot=[0.0, 0.0, 6.0e4])
+sim_hitandrun.add_body(name="Projectile", rh=[1.0, 4.2e-05, 0.0], vh=[-1.5, -6.28, 0.0], Gmass=7e-10, radius=3.25e-6, rot=[0.0, 0.0, 1.0e5])
 sim_hitandrun.get_parameter()
 sim_hitandrun.run()
 
 # Do the same as above for the super-catastrophic disruption case.
-sim_supercat = swiftest.Simulation(simdir="supercat", tstart=0.0, tstop=1.0e-5, dt=1.0e-8, istep_out=1.0, fragmentation=True, minimum_fragment_gmass=1.0e-11, gmtiny=1.0e-11, output_format="XVEL", init_cond_format="XV")
+sim_supercat = swiftest.Simulation(simdir="supercat", **run_arguments)
 sim_supercat.add_solar_system_body(["Sun"])
-sim_supercat.add_body(name="Target", rh=[[1.0, -4.2e-05, 0.0]], vh=[[0.0, 6.28, 0.0]], Gmass=1e-7, radius=7e-6, rhill=9e-4, Ip=[[0.4, 0.4, 0.4]], rot=[[0.0, 0.0, -6.0e4]])
-sim_supercat.add_body(name="Projectile", rh=[[1.0, 4.2e-05, 0.0]], vh=[[1.0, -6.28, 0.0]], Gmass=1e-8, radius=3.25e-6, rhill=4e-4, Ip=[[0.4, 0.4, 0.4]], rot=[[0.0, 0.0, 1.0e5]])
+sim_supercat.add_body(name="Target", rh=[1.0, -4.2e-05, 0.0], vh=[0.0, 6.28, 0.0], Gmass=1e-7, radius=7e-6, rot=[0.0, 0.0, -6.0e4])
+sim_supercat.add_body(name="Projectile", rh=[1.0, 4.2e-05, 0.0], vh=[1.0, -6.28, 0.0], Gmass=1e-8, radius=3.25e-6, rot=[0.0, 0.0, 1.0e5])
 sim_supercat.get_parameter()
 sim_supercat.run()
