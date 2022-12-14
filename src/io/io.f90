@@ -267,8 +267,8 @@ contains
       ! Dump the encounter history if necessary
       select type(param)
       class is (symba_parameters)
-         call param%encounter_history%dump(param)
-         call param%collision_history%dump(param)
+         if (param%lenc_save_trajectory .or. param%lenc_save_closest) call param%encounter_history%dump(param)
+         if (param%lfragmentation) call param%collision_history%dump(param)
       end select
 
       ! Dump the system history to file
