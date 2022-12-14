@@ -936,7 +936,7 @@ contains
                      end associate
                   end if
 
-                  if (param%lenc_save_trajectory) call collision_history%take_snapshot(param,system, t, "before") 
+                  call collision_history%take_snapshot(param,system, t, "before") 
                   select case (system%fragments%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                      plplcollision_list%status(i) = symba_collision_casedisruption(system, param, t)
@@ -948,7 +948,7 @@ contains
                      write(*,*) "Error in symba_collision, unrecognized collision regime"
                      call util_exit(FAILURE)
                   end select
-                  if (param%lenc_save_trajectory) call collision_history%take_snapshot(param,system, t, "after") 
+                  call collision_history%take_snapshot(param,system, t, "after") 
                   deallocate(system%colliders,system%fragments)
                end do
             end select
