@@ -287,7 +287,6 @@ contains
          do i = 1, 2
             colliders%rot(:,i) = colliders%L_spin(:,i) * (colliders%mass(i) * colliders%radius(i)**2 * colliders%Ip(3, i))
          end do
-         frag%Qloss = frag%Qloss * frag%Escale
    
          frag%mtot = frag%mtot * frag%mscale
          frag%mass = frag%mass * frag%mscale
@@ -300,6 +299,24 @@ contains
             frag%rb(:, i) = frag%x_coll(:, i) + frag%rbcom(:)
             frag%vb(:, i) = frag%v_coll(:, i) + frag%vbcom(:)
          end do
+
+         frag%Qloss = frag%Qloss * frag%Escale
+
+         frag%Lorbit_before(:) = frag%Lorbit_before * frag%Lscale
+         frag%Lspin_before(:) = frag%Lspin_before * frag%Lscale
+         frag%Ltot_before(:) = frag%Ltot_before * frag%Lscale
+         frag%ke_orbit_before = frag%ke_orbit_before * frag%Escale
+         frag%ke_spin_before = frag%ke_spin_before * frag%Escale
+         frag%pe_before = frag%pe_before * frag%Escale
+         frag%Etot_before = frag%Etot_before * frag%Escale
+   
+         frag%Lorbit_after(:) = frag%Lorbit_after * frag%Lscale
+         frag%Lspin_after(:) = frag%Lspin_after * frag%Lscale
+         frag%Ltot_after(:) = frag%Ltot_after * frag%Lscale
+         frag%ke_orbit_after = frag%ke_orbit_after * frag%Escale
+         frag%ke_spin_after = frag%ke_spin_after * frag%Escale
+         frag%pe_after = frag%pe_after * frag%Escale
+         frag%Etot_after = frag%Etot_after * frag%Escale
    
          frag%mscale = 1.0_DP
          frag%dscale = 1.0_DP

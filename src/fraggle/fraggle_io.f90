@@ -98,23 +98,24 @@ contains
 
             call check( nf90_def_var(nc%id, nc%rot_varname,     nc%out_type,&
                [              nc%space_dimid,   nc%name_dimid,    nc%stage_dimid,  nc%event_dimid], nc%rot_varid),    "fraggle_io_initialize nf90_def_var rot_varid")
+            
+            if (param%lenergy) then
 
-            call check( nf90_def_var(nc%id, nc%ke_orb_varname,  nc%out_type,&
-               [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_orb_varid), "fraggle_io_initialize_output nf90_def_var KE_orb_varid")
+               call check( nf90_def_var(nc%id, nc%ke_orb_varname,  nc%out_type,&
+                  [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_orb_varid), "fraggle_io_initialize_output nf90_def_var KE_orb_varid")
 
-            call check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type,&
-               [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_spin_varid), "fraggle_io_initialize_output nf90_def_var KE_spin_varid"  )
+               call check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type,&
+                  [                                                nc%stage_dimid,  nc%event_dimid], nc%KE_spin_varid), "fraggle_io_initialize_output nf90_def_var KE_spin_varid"  )
 
-            call check( nf90_def_var(nc%id, nc%pe_varname,      nc%out_type,&
-               [                                                nc%stage_dimid,  nc%event_dimid], nc%PE_varid),      "fraggle_io_initialize_output nf90_def_var PE_varid"  )
+               call check( nf90_def_var(nc%id, nc%pe_varname,      nc%out_type,&
+                  [                                                nc%stage_dimid,  nc%event_dimid], nc%PE_varid),      "fraggle_io_initialize_output nf90_def_var PE_varid"  )
 
-            call check( nf90_def_var(nc%id, nc%L_orb_varname,   nc%out_type, &
-               [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_orb_varid),   "fraggle_io_initialize_output nf90_def_var L_orb_varid"  )
+               call check( nf90_def_var(nc%id, nc%L_orb_varname,   nc%out_type, &
+                  [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_orb_varid),   "fraggle_io_initialize_output nf90_def_var L_orb_varid"  )
 
-            call check( nf90_def_var(nc%id, nc%L_spin_varname,  nc%out_type,&
-               [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_spin_varid),  "fraggle_io_initialize_output nf90_def_var L_spin_varid"  )
-
-
+               call check( nf90_def_var(nc%id, nc%L_spin_varname,  nc%out_type,&
+                  [              nc%space_dimid,                   nc%stage_dimid,  nc%event_dimid], nc%L_spin_varid),  "fraggle_io_initialize_output nf90_def_var L_spin_varid"  )
+            end if 
 
             call check( nf90_inquire(nc%id, nVariables=nvar), "fraggle_io_initialize nf90_inquire nVariables"  )
             do varid = 1, nvar
@@ -202,14 +203,18 @@ contains
                      call check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i),  start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), "fraggle_io_write_frame nf90_put_var rotx_varid"  )
                   end do
                end do
-               call check( nf90_put_var(nc%id, nc%ke_orb_varid, fragments%ke_orbit_before,  start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var ke_orb_varid before" )
-               call check( nf90_put_var(nc%id, nc%ke_orb_varid, fragments%ke_orbit_after,   start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var ke_orb_varid after" )
-               call check( nf90_put_var(nc%id, nc%pe_varid,     fragments%pe_before,        start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid before" )
-               call check( nf90_put_var(nc%id, nc%pe_varid,     fragments%pe_after,         start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid after" )
-               call check( nf90_put_var(nc%id, nc%L_orb_varid,  fragments%Lorbit_before(:), start=[1, 1, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_orb_varid before" )
-               call check( nf90_put_var(nc%id, nc%L_orb_varid,  fragments%Lorbit_after(:),  start=[1, 2, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_orb_varid after" )
-               call check( nf90_put_var(nc%id, nc%L_spin_varid, fragments%Lspin_before(:),  start=[1, 1, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_spin_varid before" )
-               call check( nf90_put_var(nc%id, nc%L_spin_varid, fragments%Lspin_after(:),   start=[1, 2, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_spin_varid after" )
+               if (param%lenergy) then
+                  call check( nf90_put_var(nc%id, nc%ke_orb_varid,  fragments%ke_orbit_before,  start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var ke_orb_varid before" )
+                  call check( nf90_put_var(nc%id, nc%ke_orb_varid,  fragments%ke_orbit_after,   start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var ke_orb_varid after" )
+                  call check( nf90_put_var(nc%id, nc%ke_spin_varid, fragments%ke_spin_before,  start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var ke_spin_varid before" )
+                  call check( nf90_put_var(nc%id, nc%ke_spin_varid, fragments%ke_spin_after,   start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var ke_spin_varid after" )
+                  call check( nf90_put_var(nc%id, nc%pe_varid,      fragments%pe_before,        start=[   1, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid before" )
+                  call check( nf90_put_var(nc%id, nc%pe_varid,      fragments%pe_after,         start=[   2, eslot]), "fraggle_io_write_frame nf90_put_var pe_varid after" )
+                  call check( nf90_put_var(nc%id, nc%L_orb_varid,   fragments%Lorbit_before(:), start=[1, 1, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_orb_varid before" )
+                  call check( nf90_put_var(nc%id, nc%L_orb_varid,   fragments%Lorbit_after(:),  start=[1, 2, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_orb_varid after" )
+                  call check( nf90_put_var(nc%id, nc%L_spin_varid,  fragments%Lspin_before(:),  start=[1, 1, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_spin_varid before" )
+                  call check( nf90_put_var(nc%id, nc%L_spin_varid,  fragments%Lspin_after(:),   start=[1, 2, eslot], count=[NDIM, 1, 1]), "fraggle_io_write_frame nf90_put_var L_spin_varid after" )
+               end if
          
                call check( nf90_set_fill(nc%id, old_mode, old_mode) )
             end associate
@@ -217,24 +222,6 @@ contains
       end select
       return
    end subroutine fraggle_io_write_frame
-
-
-   module subroutine fraggle_io_log_pl(pl, param)
-      !! author: David A. Minton
-      !!
-      !! Writes a single message to the fraggle log file
-      implicit none
-      ! Arguments
-      class(swiftest_pl),         intent(in) :: pl  !! Swiftest massive body object (only the new bodies generated in a collision)
-      class(swiftest_parameters), intent(in) :: param !! Current swiftest run configuration parameters
-      ! Internals
-      integer(I4B) :: i
-      character(STRMAX) :: errmsg
-
-      return
-      667 continue
-      write(*,*) "Error writing Fraggle message to log file: " // trim(adjustl(errmsg))
-   end subroutine fraggle_io_log_pl
 
 
    module subroutine fraggle_io_log_regime(colliders, frag)

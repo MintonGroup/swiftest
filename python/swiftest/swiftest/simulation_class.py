@@ -2713,7 +2713,8 @@ class Simulation:
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
-            if self.verbose: print('Swiftest simulation data stored as xarray DataSet .data')
+            if self.verbose:
+                print('Swiftest simulation data stored as xarray DataSet .data')
             if read_init_cond:
                 if self.verbose:
                     print("Reading initial conditions file as .init_cond")
@@ -2725,6 +2726,8 @@ class Simulation:
 
             self.read_encounters()
             self.read_collisions()
+            if self.verbose:
+                print("Finished reading Swiftest dataset files.")
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)

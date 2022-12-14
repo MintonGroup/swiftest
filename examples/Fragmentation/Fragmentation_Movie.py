@@ -54,7 +54,7 @@ vel_vectors = {"disruption_headon"         : [np.array([-2.562596e-04,  6.280005
                "supercatastrophic_off_axis": [np.array([0.0,            6.28,     0.0]),
                                               np.array([0.5,           -6.28,     0.0])],
                "hitandrun"                 : [np.array([0.0,            6.28,     0.0]),
-                                              np.array([-0.1,          -6.28,     0.0])]
+                                              np.array([-0.9,          -6.28,     0.0])]
                }
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
@@ -67,7 +67,7 @@ rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
 
 body_Gmass = {"disruption_headon"        : [1e-7, 1e-10],
              "supercatastrophic_off_axis": [1e-7, 1e-8],
-             "hitandrun"                 : [1e-7, 7e-10]
+             "hitandrun"                 : [1e-7, 1e-10]
                }
 
 density = 3000 * swiftest.AU2M**3 / swiftest.MSun
@@ -139,7 +139,7 @@ class AnimatedScatter(object):
 
         scale_frame =   abs(rhy1) + abs(rhy2)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
-        self.ax_pt_size = self.figsize[0] * 0.8 *  72 / (np.sqrt(2)*scale_frame)
+        self.ax_pt_size = self.figsize[0] * 0.7 *  72 / scale_frame
         ax.set_xlim(-scale_frame, scale_frame)
         ax.set_ylim(-scale_frame, scale_frame)
         ax.set_xticks([])
@@ -203,8 +203,8 @@ if __name__ == "__main__":
         # Set fragmentation parameters
         minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
         gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
-        sim.set_parameter(fragmentation=True, encounter_save="trajectory", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-        sim.run(dt=1e-3, tstop=1.0e-3, istep_out=1, dump_cadence=1)
+        sim.set_parameter(fragmentation=True, encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
+        sim.run(dt=1e-3, tstop=1.0e-3, istep_out=1, dump_cadence=0)
 
         print("Generating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)
