@@ -448,7 +448,7 @@ contains
    end subroutine encounter_util_save_collision
 
 
-   subroutine encounter_util_save_encounter(encounter_history, snapshot, t)
+   subroutine encounter_util_save_encounter(encounter_history, snapshot)
       !! author: David A. Minton
       !!
       !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
@@ -459,7 +459,6 @@ contains
       ! Arguments
       type(encounter_storage(*)), allocatable, intent(inout) :: encounter_history !! SyMBA encounter storage object
       class(encounter_snapshot),               intent(in)    :: snapshot          !! Encounter snapshot object
-      real(DP),                                intent(in)    :: t                 !! The time of the snapshot
       ! Internals
       type(encounter_storage(nframes=:)), allocatable :: tmp
       integer(I4B) :: i, nnew, nold, nbig
@@ -542,6 +541,7 @@ contains
             allocate(fraggle_snapshot :: snapshot)
             allocate(snapshot%colliders, source=system%colliders) 
             allocate(snapshot%fragments, source=system%fragments)
+            snapshot%t = t
             select type(param)
             class is (symba_parameters)
                call encounter_util_save_collision(param%collision_history,snapshot)
@@ -663,7 +663,7 @@ contains
 
                               ! Save the snapshot
                               param%encounter_history%nid = param%encounter_history%nid + ntp_snap + npl_snap
-                              call encounter_util_save_encounter(param%encounter_history,snapshot,t)
+                              call encounter_util_save_encounter(param%encounter_history,snapshot)
                            case("closest")
                               associate(plplenc_list => system%plplenc_list, pltpenc_list => system%pltpenc_list)
                                  if (any(plplenc_list%lclosest(:))) then
@@ -722,7 +722,7 @@ contains
                                           pl_snap%vh(:,2) = vb(:,2) + vcom(:)
 
                                           call pl_snap%sort("id", ascending=.true.)
-                                          call encounter_util_save_encounter(param%encounter_history,snapshot,snapshot%t)
+                                          call encounter_util_save_encounter(param%encounter_history,snapshot)
                                        end if
                                     end do
 
