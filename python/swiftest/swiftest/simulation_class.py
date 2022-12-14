@@ -2259,14 +2259,14 @@ class Simulation:
         Parameters
         ----------
         arg_list: str | List[str]
-            A single string or list of strings containing the names of the the instance variable to get.
+        A single string or list of strings containing the names of the the instance variable to get.
         valid_arg: dict
-            A dictionary where the key is the parameter argument and the value is the equivalent instance variable value.
+        A dictionary where the key is the parameter argument and the value is the equivalent instance variable value.
         verbose: bool, optional
-            If passed, it will override the Simulation object's verbose flag
+        If passed, it will override the Simulation object's verbose flag
         **kwargs
-            A dictionary of additional keyword argument. This allows this method to be called by the more general
-            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+        A dictionary of additional keyword argument. This allows this method to be called by the more general
+        get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -2315,45 +2315,43 @@ class Simulation:
         Parameters
         ----------
         name : str or array-like of str, optional
-            Name or names of Bodies. If none passed, name will be "Body<idval>"
+        Name or names of Bodies. If none passed, name will be "Body<idval>"
         id : int or array-like of int, optional
-            Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
-            Dataset ids.
+        Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
+        Dataset ids.
         a : float or array-like of float, optional
-             semimajor axis for param['IN_FORM'] == "EL"
+        semimajor axis for param['IN_FORM'] == "EL"
         e : float or array-like of float, optional
-            eccentricity  for param['IN_FORM'] == "EL"
+        eccentricity  for param['IN_FORM'] == "EL"
         inc : float or array-like of float, optional
-            inclination for param['IN_FORM'] == "EL"
+        inclination for param['IN_FORM'] == "EL"
         capom : float or array-like of float, optional
-            longitude of ascending node for param['IN_FORM'] == "EL"
+        longitude of ascending node for param['IN_FORM'] == "EL"
         omega : float or array-like of float, optional
-            argument of periapsis for param['IN_FORM'] == "EL"
+        argument of periapsis for param['IN_FORM'] == "EL"
         capm : float or array-like of float, optional
-            mean anomaly for param['IN_FORM'] == "EL"
+        mean anomaly for param['IN_FORM'] == "EL"
         rh : (n,3) array-like of float, optional
-            Position vector array. This can be used instead of passing v1, v2, and v3 sepearately for "XV" input format
+        Position vector array.
         vh : (n,3) array-like of float, optional
-            Velocity vector array. This can be used instead of passing v4, v5, and v6 sepearately for "XV" input format
+        Velocity vector array.
         mass : float or array-like of float, optional
-            mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        mass values if these are massive bodies (only one of mass or Gmass can be passed)
         Gmass : float or array-like of float, optional
-            G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
         radius : float or array-like of float, optional
-            Radius values if these are massive bodies
+        Radius values if these are massive bodies
         rhill : float or array-like of float, optional
-            Hill's radius values if these are massive bodies
+        Hill's radius values if these are massive bodies
         rot: (3) or (n,3) array-like of float, optional
-            Rotation rate vectors if these are massive bodies with rotation enabled. This can be used instead of passing
-            rotx, roty, and rotz separately
+        Rotation rate vectors if these are massive bodies with rotation enabled.
         Ip: (3) or (n,3) array-like of flaot, optional
-            Principal axes moments of inertia vectors if these are massive bodies with rotation enabled. This can be used
-            instead of passing Ip1, Ip2, and Ip3 separately
+        Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
 
         Returns
         -------
         data : Xarray Dataset
-            Dasaset containing the body or bodies that were added
+        Dasaset containing the body or bodies that were added
 
         """
 
@@ -2395,18 +2393,25 @@ class Simulation:
                     val = np.array(val,dtype=np.float64)
                 except:
                     raise ValueError(f"{val} cannot be converted to a numpy array")
-            if n is None:
-                if val.dim > 2 or val.dim == 0:
-                    raise ValueError(f"Argument must be an (n,3) array. This one is {val.shape}")
-                else:
-                    if val.shape[-1] != 3:
-                        raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
-                    if val.dim == 1:
-                        n = 1
+                if n is None:
+                    ndims = len(val.shape)
+                    if ndims > 2 or ndims == 0:
+                        raise ValueError(f"Argument must be an (n,3) or (3,) array. This one is {val.shape}")
                     else:
-                        n = val.shape[0]
-            elif val.shape != (n,3):
-               raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)}. Got {val.shape} instead")
+                        if val.shape[-1] != 3:
+                            raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
+                        if val.dim == 1:
+                            n = 1
+                        else:
+                            n = val.shape[0]
+                elif n == 1:
+                    if val.shape != (1,3) and val.shape != (3,):
+                        raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,1)}. Got {val.shape} instead")
+                elif val.shape != (n,3) or val.shape != (3,n):
+                    raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,n)}. Got {val.shape} instead")
+                elif val.shape == (3,n):
+                    val = val.T
+
             return val, n
 
         nbodies = None
