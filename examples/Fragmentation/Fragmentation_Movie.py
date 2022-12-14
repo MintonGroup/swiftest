@@ -95,6 +95,8 @@ def encounter_combiner(sim):
     # Remove any encounter data at the same time steps that appear in the data to prevent duplicates
     t_not_duplicate = ~enc['time'].isin(data['time'])
     enc = enc.where(t_not_duplicate,drop=True)
+    tgood=enc.time.where(~np.isnan(enc.time),drop=True)
+    enc = enc.sel(time=tgood)
 
     # The following will combine the two datasets along the time dimension, sort the time dimension, and then fill in any time gaps with interpolation
     ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
@@ -107,7 +109,6 @@ class AnimatedScatter(object):
     def __init__(self, sim, animfile, title, style, nskip=1):
 
         self.ds = encounter_combiner(sim)
-
         nframes = int(self.ds['time'].size)
         self.sim = sim
         self.title = title
@@ -203,7 +204,7 @@ if __name__ == "__main__":
         minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
         gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
         sim.set_parameter(fragmentation=True, encounter_save="trajectory", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-        sim.run(dt=1e-4, tstop=1.0e-3, istep_out=1, dump_cadence=1)
+        sim.run(dt=1e-3, tstop=1.0e-3, istep_out=1, dump_cadence=1)
 
         print("Generating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)
