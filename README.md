@@ -356,133 +356,35 @@ To activate the Fraggle algorithm, set ```FRAGMENTATION```/```fragmentation``` t
 
 Fraggle distinguishes the following collisional regimes: (1) perfect merging, which includes the cratering, partial accretion, and graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption, which includes the partial erosion regime of Leinhardt & Stewart 2012, (3) super-catastrophic disruption, and (4) hit-and-run events which can be either ‘pure’ or ‘disruptive’.
 
-For every collision throughout the course of a simulation, Fraggle writes all details of the collision to the **fraggle.log** output file. An example of a collision, stored in the **fraggle.log** output file, is as follows:
+For every collision throughout the course of a simulation, Fraggle writes a brief description of the collision to the **fraggle.log** output file. An example of a collision, stored in the **fraggle.log** output file, is as follows:
 
 ```
 Fraggle logfile
 
- **********************************************************************************************************************
- Collision between massive bodies detected at time t = 53287.8837501905
+  **********************************************************************************************************************
+ Collision between massive bodies detected at time t = 2.063709800335315E-006
  **********************************************************************************************************************
 
  --------------------------------------------------------------------
             Fraggle collisional regime determination results
  --------------------------------------------------------------------
- ----------------------- Collider information -----------------------
- True number of colliders :            2             
- Index list of true colliders  :           46          59
- -------------------- Two-body equivalent values ---------------------
- mass1    :   7.279963439341357E-008
- radius1  :   1.509673399450197E-005
- xb1      :  -0.164526979999547       0.274220676062862      -1.874872430483121E-003
- vb1      :   -10.3604371489563       -6.86832326672301       0.784240412278650
- rot1     :   0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
- Ip1      :   0.400000000000000       0.400000000000000       0.400000000000000
- L_spin1  :   0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
- L_orbit1 :   2.025082559023084E-013 -4.805611941169830E-014  8.130853354510135E-014
- mass2    :   3.639981719670679E-008
- radius2  :   1.198228571207825E-005
- xb2      :  -0.164537935569248       0.274203936567747      -1.857479937042359E-003
- vb2      :   -9.62196685949397       -6.65749989216304      -0.930400979141005
- rot2     :   0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
- Ip2      :   0.400000000000000       0.400000000000000       0.400000000000000
- L_spin2  :   0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
- L_orbit2 :   4.050165118023079E-013 -9.611223882570558E-014  1.626170670889251E-013
- ------------------------------ Regime -----------------------------
- Supercatastrophic disruption
- ----------------------- Fragment information ----------------------
- Total mass of fragments      :   1.091994515901204E-007
- Largest fragment mass        :   6.712252746514322E-009
- Second-largest fragment mass :   2.697031548515946E-009
- Remaining fragment mass      :   9.979016729509007E-008
- Center of mass position      :  -0.164530631856114       0.274215096231157      -1.869074932669534E-003
- Center of mass velocity      :   -10.1142803858022       -6.79804880853635       0.212693281805431
- Energy loss                  :   4.042796382680678E-021
+ True number of colliders :            2
+ Index list of true colliders  :            1           2
+ Regime: Disruption
+ Energy loss                  :   2.298848838233116E-022
  --------------------------------------------------------------------
- Supercatastrophic disruption between Embryo_108 (17) and Planetesimal_165 (74)
- Fraggle generating 25 fragments.
+ Disruption between Target (1) and Projectile (2)
+ Fraggle generating 28 fragments.
  Fraggle try 1
- Fraggle failed due to high energy error: 2.228292487416184E-006   222.829248791199
- Fraggle try 1
- Fraggle fragment generation succeeded after 2 tries
-
- --------------------------------------------------------------------
-            Fraggle fragment generation results
- --------------------------------------------------------------------
- dL_tot should be very small
- dL_tot      | 4.7581E-18
- dE_tot should be negative and equal to Qloss
- dE_tot      |-6.4291E-16
- Qloss       |-1.4019E-18
- dE - Qloss  |-6.4151E-16
- -------------------------------------------------------------------------------------
- Individual fragment values (collisional system natural units)
- mass
-           1  6.146782468934672E-002
-            ...
-          25  9.385003231486798E-003
- x_coll
-           1  0.316962058114018      -3.455343819627035E-002 -0.300006155462737
-            ...
-          25 -0.815265667032389       0.366308046064501       -2.21749663921913
- v_coll
-           1  5.313828153210731E-002 -4.301810302840381E-003 -4.677161223686286E-002
-            ...
-          25 -6.377609897296144E-002  6.344417215259035E-002 -0.181654563778228
- xb
-           1  -6075.62794432757        10126.4434063427       -69.3229971249382
-            ...
-          25  -6076.76017205272        10126.8442678270       -71.2404876086946
- vb
-           1  -1.11732916805166      -0.791000868225230      -2.215784303111038E-002
-            ...
-          25  -1.23424354855673      -0.723254885769800      -0.157040794572475
- rot
-           1  1.524406714701067E-002 -3.617486407307866E-003  6.120533573657602E-003
-            ...
-          25  0.349507539640067      -8.293972741700310E-002  0.140328208343859
- Generating 25 fragments
-
- --------------------------------------------------------------------
-            Fraggle fragment final body properties
- --------------------------------------------------------------------
-  id, name
-           1         159                   Newbody0000159
-            ...
-          25         183                   Newbody0000183
- mass, Gmass
-           1  6.712252746514322E-009  2.649791077120669E-007
-            ...
-          25  1.024837206049866E-009  4.045742296433080E-008
- radius
-           1  6.820183146057143E-006
-            ...
-          25  3.645229682479472E-006
- xb
-           1 -0.164522048834296       0.274214160557923      -1.877198805265405E-003
-            ...
-          25 -0.164552708451177       0.274225015493955      -1.929122567862225E-003
- vb
-           1  -9.65510018491191       -6.83522174793328      -0.191471054783233
-            ...
-          25  -10.6653844315872       -6.24981301930138       -1.35702588643539
- xh
-           1 -0.163736684665089       0.275484908115360      -1.873622658345619E-003
-            ...
-          25 -0.163767344281971       0.275495763051392      -1.925546420942439E-003
-vh
-           1  -9.65588432804781       -6.83327438044371      -0.191474942854245
-            ...
-          25  -10.6661685747231       -6.24786565181180       -1.35702977450640
- rot
-           1   4864.55998519625       -1154.38219041380        1953.13379450074
-            ...
-          25   111531.940620641       -26467.0363417388        44780.3713090889
- Ip
-           1  0.400000000000000       0.400000000000000       0.400000000000000
-            ...
-          25  0.400000000000000       0.400000000000000       0.400000000000000
+ Fraggle fragment generation succeeded after 1 tries
+ Generating 28 fragments
 ```
+
+The details of the collision are stored in the simulation object (```sim.collisions```) which can be accessed using the Swiftest Python package.
+
+ --------------------------------------------------------------------
+
+ --------------------------------------------------------------------
 
 **General Relativity**
 
