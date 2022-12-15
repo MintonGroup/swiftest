@@ -9,6 +9,8 @@
 !*.cmake
 !CHANGELOG 
 !README.md
+!README_figs/**
+!README_tables/**
 !paper/paper.md
 !paper/paper.bib
 !README.swifter 

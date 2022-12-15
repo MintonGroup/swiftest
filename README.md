@@ -165,64 +165,7 @@ sim = swiftest.Simulation(**kwargs)
 
 The key word arguments available to the user, along with the default values for these arguments, are as follows:
 
-| Key Word Name                   | Key Word Description                                                                               | Options                                                                                            | Compatible Integrators |
-|---------------------------------|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|------------------------|
-|```simdir```                     | Path to subdirectory in which to store data. Default is ```/simdir```.                             | pathlike string (ex. ```path/to/directory```)                                                      | all
-|```read_param```                 | Read in a pre-existing parameter input file. Default is ```False```.                               | ```True```, ```False```                                                                            | all
-|```param_file```                 | Name of the pre-existing parameter input file. Only used if ```read_param``` is set to ```True```. | string (ex. ```param.in```)                                                                        | all
-|```read_old_output_file```       | Read in a pre-existing simulation output file. Default is ```False```.                             | ```True```, ```False```                                                                            | all
-|```codename```                   | Name of the N-body code to use. Default is ```Swiftest```.                                         | ```Swiftest```, ```Swifter```, ```Swift```                                                         | all
-|```integrator```                 | Name of the N-body integrator to use. Default is ```symba```.                                      | ```symba```, ```helio```, ```rmvs```, ```whm```                                                    | all
-|```t0```                         | The reference time for the start of the simulation in time units. Default is ```0.0```.            | floating point (ex. ```0.0```)                                                                     | all
-|```tstart```                     | Simulation start time for a restarted run in time units. Default is ```0.0```.                     | floating point (ex. ```0.0```)                                                                     | all
-|```tstop```                      | Simulation end time in time units. Must be greater than ```tstart```.                              | floating point (ex. ```100.0```)                                                                   | all
-|```dt```                         | Simulation step size in time units. Must be less than or equal to ```tstop```-```tstart```.        | floating point (ex. ```0.005```)                                                                   | all
-|```istep_out```                  | The number of time steps (```dt```) between output saves to memory. Either ```istep_out``` **OR** ```tstep_out``` may be set. Default is ```1```. | integer (ex. ```200```)                             | all
-|```dump_cadence```               | The number of output steps between when data saved to memory is written to file. Setting to ```0``` results in writing data to file only at the completion of the simulation. Default is ```10```. | integer (ex. ```10```) | all
-|```tstep_out```                  | The approximate time between when outputs saved in memory are written to file in time units. Either ```istep_out``` **OR** ```tstep_out``` may be set. | floating point (ex. ```10.0```) that calculates ```istep_out = floor(tstep_out / dt)``` | all
-|```init_cond_file_type```        | Input file format. Default is ```NETCDF_DOUBLE```.                                                 | ```NETCDF_DOUBLE```, ```NETCDF_FLOAT```, ```ASCII```                                               | all
-|```init_cond_file_name```        | Input file name(s). If ```init_cond_file_type``` is set to ```NETCDF_DOUBLE``` or ```NETCDF_FLOAT```, default is ```init_cond.nc```. If ```init_cond_file_type``` is set to ```ASCII```, default is a dictionary: ```{"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}```. | string (ex. ```my_init_cond.nc```) or dictionary ```{"CB" : "mycb.in", "PL" : "mypl.in", "TP" : "mytp.in"}``` | all
-|```init_cond_format```           | Input format. Default is ```EL```.                                                                 | ```EL```, ```XV```                                                                                 | all
-|```output_file_type```           | Output file format. Default is ```NETCDF_DOUBLE```. ```REAL4```, ```REAL8```, ```XDR4```, ```XDR8``` Swifter/Swift only. | ```NETCDF_DOUBLE```, ```NETCDF_FLOAT```, ```REAL4```, ```REAL8```, ```XDR4```, ```XDR8``` | all
-|```output_file_name```           | Output file name. Default is ```bin.nc```.                                                         | string (ex. ```mydata.nc```)                                                                       | all
-|```output_format```              | Output format. Default is ```XVEL```.                                                              | ```XV```, ```XVEL```                                                                               | all
-|```MU```                         | Mass unit system to use in the simulation. Default is ```Msun```.                                  | ```Msun```, ```Mearth```, ```kg```, ```g``` (case-insensitive)                                     | all                           
-|```DU```                         | Distance unit system to use in the simulation. Default is ```AU```.                                | ```AU```, ```Rearth```, ```m```, ```cm``` (case-insensitive)                                       | all
-|```TU```                         | Time unit system to use in the simulation. Default is ```Y```.                                     | ```Y```, ```YR```, ```DAY``` (Julian day), ```d``` (Julian day), ```JD``` (Julian day), ```s``` (case-insensitive) | all
-|```MU2KG```                      | Mass units to kilogram conversion factor. Overrides ```MU```.                                      | floating point (ex. ```1.988409870698051e+30```)                                                   | all
-|```DU2M```                       | Distance units to meters conversion factor. Overrides ```DU```.                                    | floating point (ex. ```31557600.0```)                                                              | all
-|```TU2S```                       | Time units to seconds conversion factor. Overrides ```TU```.                                       | floating point (ex. ```149597870700.0```)                                                          | all
-|```rmin```                       | Heliocentric distance at which a test particle is considered merged with the central body in distance units. Default is the radius of the central body in system units. | floating point (ex. ```0.3```) | all
-|```rmax```                       | Heliocentric distance at which a test particle is too distant from the central body in distance units. Default is ```10000.0 AU```. | floating point (ex. ```10000.0```)                                | all
-|```qmin_coord```                 | Coordinate frame used to check for minimum pericenter distance. Default is ```HELIO```.            | ```HELIO```, ```BARY```                                                                            | all
-|```mtiny```                      | Mass cutoff between fully and semi-interacting massive bodies in mass units. Either ```mtiny``` **OR** ```gmtiny``` may be set. | floating point (ex. ```1e23```)                                       | all
-|```gmtiny```                     | Mass cutoff between fully and semi-interacting massive bodies in gravitational mass units. Default is ```0.0```. Either ```mtiny``` **OR** ```gmtiny``` may be set. | floating point (ex. ```4e-6```)   | all
-|```close_encounter_check```      | Check for close encounters. Default is ```True```. Requires radius of massive bodies to be provided in initial conditions. | ```True```, ```False```                                                    | all
-|```general_relativity```         | General relativity. Default is ```True```.                                                         | ```True```, ```False```                                                                            | all
-|```fragmentation```              | Resolve collisions with fragmentation. Default is ```False```.                                     | ```True```, ```False```                                                                            | SyMBA
-|```minimum_fragment_gmass```     | Minimum fragment mass in gravitational mass units. Default is ```0.0```. Either ```minimum_fragment_gmass``` **OR** ```minimum_fragment_mass``` may be set. | floating point (ex. ```1e-9```)           | SyMBA
-|```minimum_fragment_mass```      | Minimum fragment mass in mass units. Either ```minimum_fragment_gmass``` **OR** ```minimum_fragment_mass``` may be set. | floating point (ex. ```1e20```)                                               | SyMBA
-|```rotation```                   | Rotation of massive bodies. Requires rotation vectors, radii, and moments of inertia to be provided in initial conditions. Default is ```False```. | ```True```, ```False```                            | SyMBA
-|```compute_conservation_values```| Track and report the total energy, angular momentum, and mass of the system. Default is ```False```. | ```True```, ```False```                                                                          | SyMBA
-|```rhill_present```              | Hill Radius present in massive body input file. Default is ```False```.                            | ```True```, ```False```                                                                            | SyMBA
-|```extra_force```                | Additional user defined force routines provided. Default is ```False```.                           | ```True```, ```False```                                                                            | all
-|```big_discard```                | Include data for all fully-interacting bodies (above GMTINY) in each discard. Swifter only. Default is ```False```. | ```True```, ```False```                                                           | all
-|```restart```                    | If ```True```, the simulation given by ```output_file_name``` will be restarted from ```t0```.  Default is ```False```. | ```True```, ```False```                                                       | all
-|```interaction_loops```          | Method for checking for interactions between bodies. Default is ```TRIANGULAR```.                  | ```TRIANGULAR```, ```FLAT```, ```ADAPTIVE```                                                       | all
-|```encounter_check_loops```      | Method for checking for close encounters between bodies. Default is ```TRIANGULAR```.              | ```TRIANGULAR```, ```SORTSWEEP```, ```ADAPTIVE```                                                  | all
-
-In the above list, the following are defined as:
-- ```HELIO``` - Use the heliocentric coordinate frame.
-- ```BARY``` - Use the barycentric coordinate frame.
-- ```XV``` - Heliocentric position and velocity components.
-- ```EL``` - Osculating orbital elements.
-- ```XVEL``` - Heliocentric position and velocity components and osculating orbital elements.
-- ```NETCDF_FLOAT``` - Single precision NetCDF format.
-- ```NETCDF_DOUBLE``` - Double precision NetCDF format.
-- ```REAL4``` - Single precision 4-byte native Fortran binary format (Swifter/Swift only)
-- ```REAL8``` - Double precision 8-byte native Fortran binary format (Swifter/Swift only)
-- ```XDR4``` - Single precision 4-byte XDR format (Swifter/Swift only)
-- ```XDR8``` - Double precision 8-byte XDR format (Swifter/Swift only)
+The key word arguments available to the user, along with the default values for these arguments, are described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
 After creating the simulation and defining all desired parameters as keyword arguments, it is time to add bodies to the simulation. The Swiftest Python package interfaces with the [NASA JPL Horizons database](https://ssd.jpl.nasa.gov/horizons/), allowing a user to easily import the initial conditions of known solar system bodies using the ```add_solar_system_body``` method.
 
@@ -236,28 +179,7 @@ User defined bodies can also be added to a Swiftest simulation through the Pytho
 sim.add_body(**kwargs**)
 ```
 
-The ```add_body``` method accepts the following keyword arguments:
-
-| Key Word Name   | Key Word Description                                                                                                                    | Options                        |
-|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------|
-| ```name```      | Name(s) of bodies.                                                                                                                      | string or array-like of strings
-| ```id```        | Unique identification value(s) of bodies.                                                                                               | float or array-like of floats
-| ```a```         | Semi-major axis value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                            | float or array-like of floats
-| ```e```         | Eccentricity value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                               | float or array-like of floats
-| ```inc```       | Inclination value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                                | float or array-like of floats
-| ```capom```     | Longitude of the ascending node value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                            | float or array-like of floats
-| ```omega```     | Argument of pericenter value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                     | float or array-like of floats
-| ```capm```      | Mean anomaly value(s) of bodies. Only used if  ```init_cond_format``` is set to ```EL```.                                               | float or array-like of floats
-| ```rh```        | Position vector(s) of bodies. Only used if  ```init_cond_format``` is set to ```XV```.                                                  | (n,3) array-like of floats
-| ```vh```        | Velocity vector(s) of bodies. Only used if  ```init_cond_format``` is set to ```XV```.                                                  | (n,3) array-like of floats
-| ```mass```      | Mass value(s) of bodies. Only for massive bodies. Only  ```mass``` **OR** ```Gmass``` may be set.                                       | float or array-like of floats
-| ```Gmass```     | Gravitational mass value(s) of bodies. Only for massive bodies. Only  ```mass``` **OR** ```Gmass``` may be set.                         | float or array-like of floats
-| ```radius```    | Radius value(s) of bodies. Only for massive bodies.                                                                                     | float or array-like of floats
-| ```rhill```     | Hill Radius value(s) of bodies. Only for massive bodies.                                                                                | float or array-like of floats
-| ```rot```       | Rotation rate vector(s) of bodies. Only for massive bodies. Only used if ```rotation``` is set to ```True```.                           | (n,3) array-like of floats
-| ```Ip```        | Principal axes moments of inertia vector(s) of bodies. Only for massive bodies. Only used if ```rotation``` is set to ```True```.       | (n,3) array-like of floats
-| ```J2```        | The J2 term of the central body.                                                                                                        | float or array-like of floats
-| ```J4```        | The J4 term of the central body.                                                                                                        | float or array-like of floats
+The key word arguments available to the user for the ```add_body``` method are described in [add_body_kwargs](README_tables/add_body_kwargs.md).
 
 All desired bodies and parameters are added to the simulation object and the information is saved to a NetCDF input file (**<span>init_cond.nc</span>**) and an ASCII parameter file (**<span>param.in</span>**) automatically. The parameter file is not necessary to run a Swiftest simulation, it is simply a convenient reference for the user. These files are stored in the ```/simdata``` subdirectory.
 
@@ -269,61 +191,7 @@ Swiftest accepts 4 ASCII input files. All four input files are necessary, howeve
 - **<span>pl.in</span>** - The massive body input file.
 - **<span>tp.in</span>** - The test particle input file.
 
-The parameter options used in the **<span>param.in</span>** are as follows:
-
-| Parameter Name          | Parameter Description                                                                                                        | Input Format                                                                                            | Compatible Integrators |
-|-------------------------|------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|------------------------|
-| ```T0```                | The reference time for the start of the simulation in time units.                                                            | floating point (ex. ```0.0```)                                                                          | all
-| ```TSTART```            | Simulation start time for a restarted run in time units.                                                                     | floating point (ex. ```0.0```)                                                                          | all
-| ```TSTOP```             | Simulation end time in time units. Must be greater than ```TSTART```.                                                        | floating point (ex. ```100.0```)                                                                        | all
-| ```DT```                | Simulation step size in time units. Must be less than or equal to ```TSTOP```-```TSTART```.                                  | floating point (ex. ```0.005```)                                                                        | all
-| ```ISTEP_OUT```         | The number of time steps (```DT```) between output saves to memory.                                                          | integer (ex. ```200```)                                                                                 | all
-| ```DUMP_CADENCE```      | The number of output steps between when data saved to memory is written to file. Setting to ```0``` results in writing data to file only at the completion of the simulation. | integer (ex. ```100```)                                | all
-| ```IN_TYPE```           | Input file format.                                                                                                           | ```ASCII```, ```NETCDF_FLOAT```, and ```NETCDF_DOUBLE```                                                | all
-| ```NC_IN```             | NetCDF input file name. Only if ```IN_TYPE``` is set to ```NETCDF_FLOAT``` or ```NETCDF_DOUBLE```.                           | string (ex. ```init_cond.nc```)                                                                         | all   
-| ```PL_IN```             | Massive body input file name. Only if ```IN_TYPE``` is set to ```ASCII```.                                                   | string (ex. ```pl.in```)                                                                                | all
-| ```TP_IN```             | Test particle input file name. Only if ```IN_TYPE``` is set to ```ASCII```.                                                  | string (ex. ```tp.in```)                                                                                | all
-| ```CB_IN ```            | Central body input file name. Only if ```IN_TYPE``` is set to ```ASCII```.                                                   | string (ex. ```cb.in```)                                                                                | all
-| ```IN_FORM```           | Input format.                                                                                                                | ```EL```, ```XV```                                                                                      | all
-| ```OUT_TYPE```          | Output file format.                                                                                                          | ```NETCDF_FLOAT```, ```NETCDF_DOUBLE```                                                                 | all
-| ```BIN_OUT```           | Output file name.                                                                                                            | string (ex. ```bin.nc```)                                                                               | all
-| ```OUT_FORM```          | Output format.                                                                                                               | ```XV```, ```XVEL```                                                                                    | all
-| ```OUT_STAT```          | Output status.                                                                                                               | ```NEW```, ```APPEND```, ```REPLACE```, ```UNKNOWN```                                                   | all
-| ```CHK_QMIN```          | Pericenter distance at which a test particle is too close to the pericenter of the system in distance units.                 | floating point, turn off using ```-1.0```                                                               | all
-| ```CHK_RMIN```          | Heliocentric distance at which a test particle is considered merged with the central body in distance units.                 | floating point, turn off using ```-1.0```                                                               | all
-| ```CHK_RMAX```          | Heliocentric distance at which a test particle is too distant from the central body in distance units.                       | floating point (ex. ```1000.0```)                                                                       | all
-| ```CHK_EJECT```         | Heliocentric distance at which an unbound test particle is too distant from the central body in distance units.              | floating point (ex. ```1000.0```)                                                                       | all
-| ```CHK_QMIN_COORD```    | Coordinate frame used to check for minimum pericenter distance.                                                              | ```HELIO```, ```BARY```                                                                                 | all
-| ```CHK_QMIN_RANGE```    | Upper and lower bounds of the semimajor axis range used to check the pericenter distance.                                    | two floating points, turn off using ```-1.0 -1.0```                                                     | all
-| ```EXTRA_FORCE```       | Additional user defined force routines provided.                                                                             | ```YES```, ```NO```                                                                                     | all
-| ```CHK_CLOSE```         | Check for close encounters. Requires radius of massive bodies to be provided in initial conditions.                          | ```YES```, ```NO```                                                                                     | all
-| ```INTERACTION_LOOPS``` | Method for checking for interactions between bodies.                                                                         | ```TRIANGULAR```, ```FLAT```, ```ADAPTIVE```                                                            | all
-| ```ENCOUNTER_CHECK```   | Method for checking for close encounters between bodies.                                                                     | ```TRIANGULAR```, ```SORTSWEEP```, ```ADAPTIVE```                                                       | all
-| ```MU2KG```             | Mass units to kilogram conversion factor.                                                                                    | floating point (ex. ```1.988409870698051e+30```)                                                        | all
-| ```TU2S```              | Time units to seconds conversion factor.                                                                                     | floating point (ex. ```31557600.0```)                                                                   | all
-| ```DU2M```              | Distance units to meters conversion factor.                                                                                  | floating point (ex. ```149597870700.0```)                                                               | all
-| ```BIG_DISCARD```       | Include data for all fully-interacting bodies (above GMTINY) in each discard. Swifter only.                                  | ```YES```, ```NO```                                                                                     | all
-| ```GR```                | General relativity.                                                                                                          | ```YES```, ```NO```                                                                                     | all
-| ```RHILL_PRESENT```     | Hill Radius present in massive body input file.                                                                              | ```YES```, ```NO```                                                                                     | SyMBA
-| ```ENERGY```            | Track and report the total energy, angular momentum, and mass of the system.                                                 | ```YES```, ```NO```                                                                                     | SyMBA
-| ```FRAGMENTATION```     | Resolve collisions with fragmentation.                                                                                       | ```YES```, ```NO```                                                                                     | SyMBA
-| ```ROTATION```          | Rotation of massive bodies. Requires rotation vectors, radii, and moments of inertia to be provided in initial conditions.   | ```YES```, ```NO```                                                                                     | SyMBA
-| ```GMTINY```            | Mass cutoff between fully and semi-interacting massive bodies in gravitational mass units.                                   | floating point (ex. ```4e-06```)                                                                        | SyMBA
-| ```MIN_GMFRAG```        | Minimum fragment mass in gravitational mass units.                                                                           | floating point (ex. ```1e-09```)                                                                        | SyMBA
-| ```TIDES```             | Tidal dissipation model.                                                                                                     | ```YES```, ```NO```                                                                                     | *(under development)*
-| ```YORP```              | YORP effect.                                                                                                                 | ```YES```, ```NO```                                                                                     | *(under development)*
-| ```YARKOVSKY```         | Yarkovsky effect.                                                                                                            | ```YES```, ```NO```                                                                                     | *(under development)*
-
-In the above list, the following are defined as:
-- ```HELIO``` - Use the heliocentric coordinate frame for ```CHK_QMIN```
-- ```BARY``` - Use the barycentric coordinate frame for ```CHK_QMIN```
-- ```XV``` - Heliocentric position and velocity components for ```IN_FORM``` and/or ```OUT_FORM```
-- ```EL``` - Osculating orbital elements for ```IN_FORM``` and/or ```OUT_FORM```
-- ```XVEL``` - Heliocentric position and velocity components and osculating orbital elements for ```OUT_FORM```
-- ```NETCDF_FLOAT``` - Single precision NetCDF format for ```OUT_TYPE```
-- ```NETCDF_DOUBLE``` - Double precision NetCDF format for ```OUT_TYPE```
-
-For more details on the ```INTERACTION_LOOPS``` and ```ENCOUNTER_CHECK``` options, see the **Updates to Swifter SyMBA** section below.
+The parameter options used in the parameter input file are as described in [param_options](README_tables/param_options.md).
 
 The **<span>cb.in</span>** includes all central body initial conditions. The structure of the **<span>cb.in</span>** is as follows:
 
