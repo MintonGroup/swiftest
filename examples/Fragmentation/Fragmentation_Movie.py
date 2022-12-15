@@ -55,7 +55,7 @@ vel_vectors = {"disruption_headon"         : [np.array([-2.562596e-04,  6.280005
                "supercatastrophic_off_axis": [np.array([0.0,            6.28,     0.0]),
                                               np.array([0.5,           -6.28,     0.0])],
                "hitandrun"                 : [np.array([0.0,            6.28,     0.0]),
-                                              np.array([-1.5,          -6.28,    0.00])]
+                                              np.array([-1.45,          -6.28,    0.00])]
                }
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
