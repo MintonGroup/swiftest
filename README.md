@@ -137,15 +137,27 @@ Swiftest is built to make running a Swiftest simulation a streamlined and user f
 To create and run a Swiftest simulation using the Swiftest Python package, follow the general script below. For more details on the input files and user options, continue reading this section.
 
 ```
-import swiftest                       # Import the Swiftest Python package
-sim = swiftest.Simulation(**kwargs)   # Initialize a Swiftest simulation
-sim.add_solar_system_body(**kwargs)   # Add any desired named Solar System bodies
-sim.add_body(**kwargs)                # Add any desired user defined bodies
-sim.get_parameter(**kwargs)           # View the default simulation parameters
-sim.set_parameter(**kwargs)           # Set any desired simulation parameters
-sim.write_param(**kwargs)             # Write simulation parameters to the param.in
-sim.run(**kwargs)                     # Run the simulation (ignore if running from the terminal)
+import swiftest                                                  # Import the Swiftest Python package
+sim = swiftest.Simulation(simdir = "directory_name", **kwargs)   # Initialize a Swiftest simulation
+sim.add_solar_system_body(**kwargs)                              # Add any desired named Solar System bodies
+sim.add_body(**kwargs)                                           # Add any desired user defined bodies
+sim.get_parameter(**kwargs)                                      # View the default simulation parameters
+sim.set_parameter(**kwargs)                                      # Set any desired simulation parameters
+sim.write_param(**kwargs)                                        # Write simulation parameters to the param.in
+sim.run(**kwargs)                                                # Run the simulation (ignore if running from the terminal)
 ```
+
+To read in a set of Swiftest output files using the Swiftest Python package, follow the general script below. For more details on the output files and user options, continue reading this section.
+
+```
+import swiftest                                                              # Import the Swiftest Python package
+sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True)   # Initialize a Swiftest simulation
+sim.data        # Body data over time
+sim.init_cond   # The initial conditions for the simulation
+sim.encounters  # Encounter data for all close encountering pairs
+sim.collisions  # Collision data for all colliders and collisional fragments
+```
+
 
 **NetCDF Input Files (Recommended)**
 
