@@ -172,10 +172,10 @@ import swiftest
 Next, we initialize the Swiftest simulation object. Various parameters can be provided to the simulation via key word arguments at this stage. 
 
 ```
-sim = swiftest.Simulation(**kwargs)   
+sim = swiftest.Simulation(simdir = "directory_name", **kwargs)   
 ```
 
-The key word arguments available to the user, along with the default values for these arguments, are as follows:
+The argument ```simdir``` is the name of the subdirectory in which to store all simulation data. This does not have to exist at the time the simulation object is initialized.
 
 The key word arguments available to the user, along with the default values for these arguments, are described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
@@ -264,7 +264,7 @@ sim.run()
 To run a previously created set of initial conditions, first read the old output file into Python, and then run it. Note that Swiftest will look in the ```/simdata``` subdirectory for the initial conditions by default. You may set a new path to the initial conditions using the ```param_file``` keyword argument.
 
 ```
-sim = swiftest.Simulation(read_param=True, param_file='path/to/param.in')
+sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True)
 sim.run()
 ```
 
@@ -298,7 +298,7 @@ To read in a Swiftest output file, simply create a new Python script in the simu
 
 ```
 import swiftest                                            
-sim = swiftest.Simulation(param_file="PATH/TO/param.in") 
+sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True) 
 ```
 
 All Swiftest data is now stored in the Xarray dataset ```sim.data``` and is easily processed, manipulated, and analyzed.
@@ -323,8 +323,8 @@ To restart a Swiftest simulation via the Swiftest Python package, follow the out
 
 ```
 import swiftest
-sim = swiftest.Simulation(read_param=True, param_file='path/to/param.in')
-sim.set_parameter(tstop=VAL)  # Set a new stop time
+sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True)
+sim.set_parameter(tstop=VAL)  # Set a new stop time if desired
 sim.write_param()             # Write simulation parameters to the param.in
 sim.run()
 ```
