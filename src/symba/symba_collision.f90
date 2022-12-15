@@ -150,6 +150,7 @@ contains
                pl%ldiscard(colliders%idx(:)) = .false.
                pl%lcollision(colliders%idx(:)) = .false.
             end select
+            allocate(system%fragments%pl, source=system%colliders%pl) ! Be sure to save the pl so that snapshots still work 
          else
             ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
             fragments%id(1) = system%pl%id(ibiggest)

@@ -72,7 +72,7 @@ sim_disruption.run()
 # Do the same as above for the hit and run case.
 sim_hitandrun = swiftest.Simulation(simdir="hitandrun", **run_arguments)
 sim_hitandrun.add_solar_system_body(["Sun"])
-sim_hitandrun.add_body(name="Target", rh=[1.0, -4.2e-05, 0.0], vh=[[0.0, 6.28, 0.0]], Gmass=1e-7, radius=7e-6, rot=[0.0, 0.0, 6.0e4])
+sim_hitandrun.add_body(name="Target", rh=[1.0, -4.2e-05, 0.0], vh=[0.0, 6.28, 0.0], Gmass=1e-7, radius=7e-6, rot=[0.0, 0.0, 6.0e4])
 sim_hitandrun.add_body(name="Projectile", rh=[1.0, 4.2e-05, 0.0], vh=[-1.5, -6.28, 0.0], Gmass=7e-10, radius=3.25e-6, rot=[0.0, 0.0, 1.0e5])
 sim_hitandrun.get_parameter()
 sim_hitandrun.run()
