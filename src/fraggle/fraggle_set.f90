@@ -185,10 +185,11 @@ contains
          Ltot = colliders%L_orbit(:,1) + colliders%L_orbit(:,2) + colliders%L_spin(:,1) + colliders%L_spin(:,2)
          frag%y_coll_unit(:) = delta_r(:) / r_col_norm 
          L_mag = .mag.Ltot(:)
-         if (L_mag > tiny(L_mag)) then
+         if (L_mag > sqrt(tiny(L_mag))) then
             frag%z_coll_unit(:) = Ltot(:) / L_mag
          else
-            frag%z_coll_unit(:) = 0.0_DP
+            call random_number(frag%z_coll_unit(:))
+            frag%z_coll_unit(:) = frag%z_coll_unit(:) / (.mag.frag%z_coll_unit(:))
          end if
          ! The cross product of the y- by z-axis will give us the x-axis
          frag%x_coll_unit(:) = frag%y_coll_unit(:) .cross. frag%z_coll_unit(:)
@@ -198,6 +199,7 @@ contains
    
          call random_number(L_sigma(:,:)) ! Randomize the tangential velocity direction. This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector,
                                           ! otherwise we can get an ill-conditioned system
+
          do concurrent(i = 1:nfrag, frag%rmag(i) > 0.0_DP)
             frag%v_r_unit(:, i) = frag%x_coll(:, i) / frag%rmag(i)
             frag%v_n_unit(:, i) = frag%z_coll_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
@@ -205,6 +207,7 @@ contains
             frag%v_t_unit(:, i) = frag%v_n_unit(:, i) .cross. frag%v_r_unit(:, i)
             frag%v_t_unit(:, i) = frag%v_t_unit(:, i) / (.mag. frag%v_t_unit(:, i))
          end do
+
       end associate
 
       return
@@ -236,6 +239,7 @@ contains
          ! Scale all dimensioned quantities of colliders and fragments
          frag%rbcom(:) = frag%rbcom(:) / frag%dscale
          frag%vbcom(:) = frag%vbcom(:) / frag%vscale
+         frag%rbimp(:) = frag%rbimp(:) / frag%dscale
          colliders%rb(:,:) = colliders%rb(:,:) / frag%dscale
          colliders%vb(:,:) = colliders%vb(:,:) / frag%vscale
          colliders%mass(:) = colliders%mass(:) / frag%mscale
@@ -278,6 +282,7 @@ contains
          ! Restore scale factors
          frag%rbcom(:) = frag%rbcom(:) * frag%dscale
          frag%vbcom(:) = frag%vbcom(:) * frag%vscale
+         frag%rbimp(:) = frag%rbimp(:) * frag%dscale
    
          colliders%mass = colliders%mass * frag%mscale
          colliders%radius = colliders%radius * frag%dscale

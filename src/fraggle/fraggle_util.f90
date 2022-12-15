@@ -241,7 +241,7 @@ contains
             frag%ke_orbit_before = tmpsys%ke_orbit
             frag%ke_spin_before = tmpsys%ke_spin
             frag%pe_before = tmpsys%pe
-            frag%Etot_before = tmpsys%te
+            frag%Etot_before = tmpsys%te 
          else
             frag%Lorbit_after(:) = tmpsys%Lorbit(:)
             frag%Lspin_after(:) = tmpsys%Lspin(:)
@@ -249,7 +249,7 @@ contains
             frag%ke_orbit_after = tmpsys%ke_orbit
             frag%ke_spin_after = tmpsys%ke_spin
             frag%pe_after = tmpsys%pe
-            frag%Etot_after = tmpsys%te
+            frag%Etot_after = tmpsys%te - (frag%pe_after - frag%pe_before) ! Gotta be careful with PE when number of bodies changes.
          end if
       end associate
 

@@ -72,7 +72,7 @@ contains
          call frag%get_energy_and_momentum(colliders, system, param, lbefore=.true.)
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
-         r_max_start = 1 * norm2(colliders%rb(:,2) - colliders%rb(:,1))
+         r_max_start = 2 * norm2(colliders%rb(:,2) - colliders%rb(:,1))
          lfailure = .false.
          try = 1
          do while (try < MAXTRY)
@@ -177,8 +177,10 @@ contains
       real(DP),                 intent(in)    :: r_max_start !! Initial guess for the starting maximum radial distance of fragments
       ! Internals
       real(DP)  :: dis, rad, r_max
+      real(DP), dimension(NDIM) :: runit
       logical, dimension(:), allocatable :: loverlap
       integer(I4B) :: i, j
+      logical :: lfixdir
 
       associate(nfrag => frag%nbody)
          allocate(loverlap(nfrag))
@@ -188,9 +190,13 @@ contains
          r_max = r_max_start
          rad = sum(colliders%radius(:))
 
+         lfixdir = (frag%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For this style of impact, make the fragments act like eject and point away from the impact point
+
+         runit(:) = colliders%rb(:,2) - colliders%rb(:,1)
+         runit(:) = runit(:) / (.mag. runit(:))
+
          ! We will treat the first two fragments of the list as special cases. They get initialized the maximum distances apart along the original impactor distance vector.
          ! This is done because in a regular disruption, the first body is the largest, the second the second largest, and the rest are smaller equal-mass fragments.
-
          call random_number(frag%x_coll(:,3:nfrag))
          loverlap(:) = .true.
          do while (any(loverlap(3:nfrag)))
@@ -201,6 +207,8 @@ contains
                if (loverlap(i)) then
                   call random_number(frag%x_coll(:,i))
                   frag%x_coll(:, i) = 2 * (frag%x_coll(:, i) - 0.5_DP) * r_max 
+                  frag%x_coll(:, i) = frag%x_coll(:, i) + (frag%rbimp(:) - frag%rbcom(:)) ! Shift the center of the fragment cloud to the impact point rather than the CoM
+                  if (lfixdir .and. dot_product(frag%x_coll(:,i), runit(:)) < 0.0_DP) frag%x_coll(:, i) = -frag%x_coll(:, i) ! Make sure the fragment cloud points away from the impact point
                end if
             end do
             loverlap(:) = .false.
@@ -214,12 +222,12 @@ contains
          call fraggle_util_shift_vector_to_origin(frag%mass, frag%x_coll)
          call frag%set_coordinate_system(colliders)
 
-         do i = 1, nfrag
+         do concurrent(i = 1:nfrag)
             frag%rb(:,i) = frag%x_coll(:,i) + frag%rbcom(:)
          end do
 
          frag%rbcom(:) = 0.0_DP
-         do i = 1, nfrag
+         do concurrent(i = 1:nfrag)
             frag%rbcom(:) = frag%rbcom(:) + frag%mass(i) * frag%rb(:,i) 
          end do
          frag%rbcom(:) = frag%rbcom(:) / frag%mtot

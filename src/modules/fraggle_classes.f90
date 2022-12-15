@@ -54,6 +54,7 @@ module fraggle_classes
       ! Values in a coordinate frame centered on the collider barycenter and collisional system unit vectors (these are used internally by the fragment generation subroutine)
       real(DP), dimension(NDIM)              :: rbcom       !! Center of mass position vector of the collider system in system barycentric coordinates
       real(DP), dimension(NDIM)              :: vbcom       !! Velocity vector of the center of mass of the collider system in system barycentric coordinates
+      real(DP), dimension(NDIM)              :: rbimp       !! Impact point position vector of the collider system in system barycentric coordinates
       real(DP), dimension(NDIM)              :: x_coll_unit !! x-direction unit vector of collisional system
       real(DP), dimension(NDIM)              :: y_coll_unit !! y-direction unit vector of collisional system
       real(DP), dimension(NDIM)              :: z_coll_unit !! z-direction unit vector of collisional system

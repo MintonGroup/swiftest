@@ -27,7 +27,7 @@ contains
       integer(I4B) :: jtarg, jproj
       real(DP), dimension(2) :: radius_si, mass_si, density_si
       real(DP) :: min_mfrag_si, Mcb_si
-      real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si
+      real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si, runit
       real(DP) :: mlr, mslr, mtot, dentot
         
       associate(colliders => self)
@@ -70,6 +70,11 @@ contains
          frag%mtot = sum(colliders%mass(:))
          frag%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / frag%mtot 
          frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
+
+         ! Find the point of impact between the two bodies
+         runit(:) = colliders%rb(:,2) - colliders%rb(:,1)
+         runit(:) = runit(:) / (.mag. runit(:))
+         frag%rbimp(:) = colliders%rb(:,1) + colliders%radius(1) * runit(:)
 
          ! Convert quantities back to the system units and save them into the fragment system
          frag%mass_dist(:) = (frag%mass_dist(:) / param%MU2KG) 

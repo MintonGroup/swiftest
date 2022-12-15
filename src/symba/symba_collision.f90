@@ -28,6 +28,7 @@ contains
       integer(I4B)          :: i, ibiggest, nfrag
       logical               :: lfailure
       character(len=STRMAX) :: message 
+      real(DP) :: dpe
 
       associate(colliders => system%colliders, fragments => system%fragments)
 
@@ -45,6 +46,10 @@ contains
 
          ! Generate the position and velocity distributions of the fragments
          call fragments%generate_fragments(colliders, system, param, lfailure)
+
+         dpe = fragments%pe_after - fragments%pe_before 
+         system%Ecollisions = system%Ecollisions - dpe 
+         system%Euntracked  = system%Euntracked + dpe 
 
          if (lfailure) then
             call io_log_one_message(FRAGGLE_LOG_OUT, "No fragment solution found, so treat as a pure hit-and-run")
@@ -98,6 +103,7 @@ contains
       integer(I4B)                            :: i, ibiggest, nfrag, jtarg, jproj
       logical                                 :: lpure 
       character(len=STRMAX) :: message
+      real(DP) :: dpe
 
       associate(colliders => system%colliders, fragments => system%fragments)
          message = "Hit and run between"
@@ -122,6 +128,10 @@ contains
 
             ! Generate the position and velocity distributions of the fragments
             call fragments%generate_fragments(colliders, system, param, lpure)
+
+            dpe = fragments%pe_after - fragments%pe_before 
+            system%Ecollisions = system%Ecollisions - dpe 
+            system%Euntracked  = system%Euntracked + dpe 
 
             if (lpure) then
                call io_log_one_message(FRAGGLE_LOG_OUT, "Should have been a pure hit and run instead")
@@ -172,8 +182,8 @@ contains
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
-      real(DP)                                  :: pe
       real(DP), dimension(NDIM)                 :: L_spin_new
+      real(DP)                                  :: dpe
       character(len=STRMAX) :: message
 
       associate(colliders => system%colliders, fragments => system%fragments)
@@ -207,9 +217,9 @@ contains
             ! Keep track of the component of potential energy due to the pre-impact colliders%idx for book-keeping
             ! Get the energy of the system after the collision
             call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
-            pe = fragments%pe_after - fragments%pe_before 
-            system%Ecollisions = system%Ecollisions - pe 
-            system%Euntracked  = system%Euntracked + pe 
+            dpe = fragments%pe_after - fragments%pe_before 
+            system%Ecollisions = system%Ecollisions - dpe 
+            system%Euntracked  = system%Euntracked + dpe 
 
 
             ! Update any encounter lists that have the removed bodies in them so that they instead point to the new 
