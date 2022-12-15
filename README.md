@@ -188,7 +188,7 @@ sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Sat
 User defined bodies can also be added to a Swiftest simulation through the Python package. Massive bodies and test particles can both be added using the ```add_body``` method. 
 
 ```
-sim.add_body(**kwargs**)
+sim.add_body(**kwargs)
 ```
 
 The key word arguments available to the user for the ```add_body``` method are described in [add_body_kwargs](README_tables/add_body_kwargs.md).
