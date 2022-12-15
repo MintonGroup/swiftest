@@ -382,9 +382,9 @@ Fraggle logfile
 
 The details of the collision are stored in the simulation object (```sim.collisions```) which can be accessed using the Swiftest Python package.
 
- --------------------------------------------------------------------
+**Encounter Trajectory Saving**
 
- --------------------------------------------------------------------
+DO THIS
 
 **General Relativity**
 
