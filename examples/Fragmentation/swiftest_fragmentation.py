@@ -21,33 +21,24 @@ None.
 
 Output
 ------
-disruption/data.nc         : A NetCDF file containing the simulation output.
-disruption/dump_bin1.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-disruption/dump_bin2.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-disruption/dump_param1.in : An ASCII file containing the necessary parameters to restart a simulation.
-disruption/dump_param2.in : An ASCII file containing the necessary parameters to restart a simulation.
-disruption/fraggle.log    : An ASCII file containing the information of any collisional events that occured.
-disruption/init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
-disruption/param.in       : An ASCII file containing the parameters for the simulation.
-disruption/swiftest.log   : An ASCII file containing the information on the status of the simulation as it runs.
-hitandrun/data.nc          : A NetCDF file containing the simulation output.
-hitandrun/dump_bin1.nc    : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-hitandrun/dump_bin2.nc    : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-hitandrun/dump_param1.in  : An ASCII file containing the necessary parameters to restart a simulation.
-hitandrun/dump_param2.in  : An ASCII file containing the necessary parameters to restart a simulation.
-hitandrun/fraggle.log     : An ASCII file containing the information of any collisional events that occured.
-hitandrun/init_cond.nc    : A NetCDF file containing the initial conditions for the simulation.
-hitandrun/param.in        : An ASCII file containing the parameters for the simulation.
-hitandrun/swiftest.log    : An ASCII file containing the information on the status of the simulation as it runs.
-supercat/data.nc           : A NetCDF file containing the simulation output.
-supercat/dump_bin1.nc     : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-supercat/dump_bin2.nc     : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-supercat/dump_param1.in   : An ASCII file containing the necessary parameters to restart a simulation.
-supercat/dump_param2.in   : An ASCII file containing the necessary parameters to restart a simulation.
-supercat/fraggle.log      : An ASCII file containing the information of any collisional events that occured.
-supercat/init_cond.nc     : A NetCDF file containing the initial conditions for the simulation.
-supercat/param.in         : An ASCII file containing the parameters for the simulation.
-supercat/swiftest.log     : An ASCII file containing the information on the status of the simulation as it runs.
+Three subdirectories:
+disruption/
+hitandrun/
+supercat/
+
+Each subdirectory contains:
+data.nc             : A NetCDF file containing the simulation output.
+init_cond.nc        : A NetCDF file containing the initial conditions for the simulation.
+collision_000001.nc : A NetCDF file containing the data for the collision.
+encounter_000001.nc : A NetCDF file containing the data for the close encounter.
+dump_bin1.nc        : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
+dump_bin2.nc        : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
+dump_param1.in      : An ASCII file containing the necessary parameters to restart a simulation.
+dump_param2.in      : An ASCII file containing the necessary parameters to restart a simulation.
+fraggle.log         : An ASCII file containing the information of any collisional events that occured.
+param.in            : An ASCII file containing the parameters for the simulation.
+swiftest.log        : An ASCII file containing the information on the status of the simulation as it runs.
+
 """
 import swiftest
 import numpy as np
@@ -66,6 +57,8 @@ sim_disruption.add_body(name="Target", rh=[1.0, -1.807993e-05, 0.0], vh=[-2.5625
 sim_disruption.add_body(name="Projectile", rh=[1.0, 1.807993e-05, 0.0], vh=[-2.562596e-04, -6.280005, 0.0], Gmass=7e-10, radius=3.25e-6)
 # Display the run configuration parameters.
 sim_disruption.get_parameter()
+# Write the parameters to the param.in
+sim_disruption.write_param()
 # Run the simulation.
 sim_disruption.run()
 
@@ -75,6 +68,7 @@ sim_hitandrun.add_solar_system_body(["Sun"])
 sim_hitandrun.add_body(name="Target", rh=[1.0, -4.2e-05, 0.0], vh=[0.0, 6.28, 0.0], Gmass=1e-7, radius=7e-6, rot=[0.0, 0.0, 6.0e4])
 sim_hitandrun.add_body(name="Projectile", rh=[1.0, 4.2e-05, 0.0], vh=[-1.5, -6.28, 0.0], Gmass=7e-10, radius=3.25e-6, rot=[0.0, 0.0, 1.0e5])
 sim_hitandrun.get_parameter()
+sim_hitandrun.write_param()
 sim_hitandrun.run()
 
 # Do the same as above for the super-catastrophic disruption case.
@@ -83,4 +77,5 @@ sim_supercat.add_solar_system_body(["Sun"])
 sim_supercat.add_body(name="Target", rh=[1.0, -4.2e-05, 0.0], vh=[0.0, 6.28, 0.0], Gmass=1e-7, radius=7e-6, rot=[0.0, 0.0, -6.0e4])
 sim_supercat.add_body(name="Projectile", rh=[1.0, 4.2e-05, 0.0], vh=[1.0, -6.28, 0.0], Gmass=1e-8, radius=3.25e-6, rot=[0.0, 0.0, 1.0e5])
 sim_supercat.get_parameter()
+sim_supercat.write_param()
 sim_supercat.run()

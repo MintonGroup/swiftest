@@ -24,22 +24,19 @@ Output
 helio_gr_mercury_precession.png : Portable Network Graphic file depicting the precession of Mercury's perihelion over time
                                   with data sourced from the JPL Horizons database, Swiftest run with general relativity, 
                                   and Swiftest run without general relativity.
-gr/data.nc                       : A NetCDF file containing the simulation output.
-gr/dump_bin1.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-gr/dump_bin2.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-gr/dump_param1.in               : An ASCII file containing the necessary parameters to restart a simulation.
-gr/dump_param2.in               : An ASCII file containing the necessary parameters to restart a simulation.
-gr/init_cond.nc                 : A NetCDF file containing the initial conditions for the simulation.
-gr/param.in                     : An ASCII file containing the parameters for the simulation.
-gr/swiftest.log                 : An ASCII file containing the information on the status of the simulation as it runs.
-nogr/data.nc                     : A NetCDF file containing the simulation output.
-nogr/dump_bin1.nc               : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-nogr/dump_bin2.nc               : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-nogr/dump_param1.in             : An ASCII file containing the necessary parameters to restart a simulation.
-nogr/dump_param2.in             : An ASCII file containing the necessary parameters to restart a simulation.
-nogr/init_cond.nc               : A NetCDF file containing the initial conditions for the simulation.
-nogr/param.in                   : An ASCII file containing the parameters for the simulation.
-nogr/swiftest.log               : An ASCII file containing the information on the status of the simulation as it runs.
+Two subdirectories:
+gr/
+nogr/
+
+Each subdirecotry contains:
+data.nc                      : A NetCDF file containing the simulation output.
+dump_bin1.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
+dump_bin2.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
+init_cond.nc                 : A NetCDF file containing the initial conditions for the simulation.
+dump_param1.in               : An ASCII file containing the necessary parameters to restart a simulation.
+dump_param2.in               : An ASCII file containing the necessary parameters to restart a simulation.
+param.in                     : An ASCII file containing the parameters for the simulation.
+swiftest.log                 : An ASCII file containing the information on the status of the simulation as it runs.
 """
 
 import swiftest
