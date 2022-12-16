@@ -102,11 +102,12 @@ module collision_classes
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: Etot     !! Before/after total system energy
    contains
-      procedure :: regime                  => collision_regime_system               !! Determine which fragmentation regime the set of impactors will be
-      procedure :: setup                   => collision_setup_system      !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
-      procedure :: get_energy_and_momentum => collision_util_get_energy_momentum    !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
-      procedure :: reset                   => collision_util_reset_system   !! Deallocates all allocatables
-      final     ::                            collision_util_final_system        !! Finalizer will deallocate all allocatables
+      procedure :: regime                  => collision_regime_system              !! Determine which fragmentation regime the set of impactors will be
+      procedure :: setup                   => collision_setup_system               !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
+      procedure :: get_energy_and_momentum => collision_util_get_energy_momentum   !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
+      procedure :: reset                   => collision_util_reset_system          !! Deallocates all allocatables
+      procedure :: set_coordinate_system   => collision_util_set_coordinate_system !! Sets the coordinate system of the collisional system
+      final     ::                            collision_util_final_system          !! Finalizer will deallocate all allocatables
    end type collision_system
 
    !! NetCDF dimension and variable names for the enounter save object
@@ -216,6 +217,12 @@ module collision_classes
          implicit none
          class(collision_fragments), intent(inout) :: self !! Fragment system object
       end subroutine collision_set_coordinate_fragments
+
+      module subroutine collision_util_set_coordinate_system(self)
+         implicit none
+         class(collision_system),    intent(inout) :: self      !! Collisional system
+      end subroutine collision_util_set_coordinate_system
+
 
       module subroutine collision_setup_fragments(self, n, param)
          implicit none

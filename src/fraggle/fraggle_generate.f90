@@ -45,7 +45,9 @@ contains
       fpe_quiet_modes(:) = .false.
       call ieee_set_halting_mode(IEEE_ALL,fpe_quiet_modes)
 
-      associate(fragments => self, nfrag => self%nbody, pl => system%pl)
+      select type(fragments => self%fragments)
+      class is (fraggle_fragments)
+      associate(collision => self, impactors => self%impactors, nfrag => fragments%nbody, pl => system%pl)
 
          write(message,*) nfrag
          call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle generating " // trim(adjustl(message)) // " fragments.")
@@ -72,7 +74,7 @@ contains
          call fragments%reset()
 
          ! Calculate the initial energy of the system without the collisional family
-         call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.true.)
+         call collision%get_energy_and_momentum(system, param, lbefore=.true.)
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
          r_max_start = 1.2_DP * .mag.(impactors%rb(:,2) - impactors%rb(:,1))
@@ -162,6 +164,7 @@ contains
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
       end associate
+      end select
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
       return 

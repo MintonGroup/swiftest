@@ -160,64 +160,6 @@ contains
    end subroutine fraggle_set_mass_dist_fragments
 
 
-   module subroutine encounter_set_coordinate_system(self, impactors)
-      !! author: David A. Minton
-      !!
-      !! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments.
-      implicit none
-      ! Arguments
-      class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
-      class(collision_impactors), intent(inout) :: impactors !! Fraggle collider system object
-      ! Internals
-      integer(I4B) :: i
-      real(DP), dimension(NDIM) ::  delta_r, delta_v, Ltot
-      real(DP)   ::  L_mag
-      real(DP), dimension(NDIM, self%nbody) :: L_sigma
-
-      associate(fragments => self, nfrag => self%nbody)
-         delta_v(:) = impactors%vb(:, 2) - impactors%vb(:, 1)
-         delta_r(:) = impactors%rb(:, 2) - impactors%rb(:, 1)
-   
-         ! We will initialize fragments on a plane defined by the pre-impact system, with the z-axis aligned with the angular momentum vector
-         ! and the y-axis aligned with the pre-impact distance vector.
-
-         ! y-axis is the separation distance
-         fragments%y_coll_unit(:) = .unit.delta_r(:) 
-         Ltot = impactors%Lorbit(:,1) + impactors%Lorbit(:,2) + impactors%Lspin(:,1) + impactors%Lspin(:,2)
-
-         L_mag = .mag.Ltot(:)
-         if (L_mag > sqrt(tiny(L_mag))) then
-            fragments%z_coll_unit(:) = .unit.Ltot(:) 
-         else ! Not enough angular momentum to determine a z-axis direction. We'll just pick a random direction
-            call random_number(fragments%z_coll_unit(:))
-            fragments%z_coll_unit(:) = .unit.fragments%z_coll_unit(:) 
-         end if
-
-         ! The cross product of the y- by z-axis will give us the x-axis
-         fragments%x_coll_unit(:) = fragments%y_coll_unit(:) .cross. fragments%z_coll_unit(:)
-
-         fragments%v_coll_unit(:) = .unit.delta_v(:)
-
-         if (.not.any(fragments%r_coll(:,:) > 0.0_DP)) return
-         fragments%rmag(:) = .mag. fragments%r_coll(:,:)
-  
-         ! Randomize the tangential velocity direction. 
-         ! This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector, otherwise we can get an ill-conditioned system
-         call random_number(L_sigma(:,:)) 
-         do concurrent(i = 1:nfrag, fragments%rmag(i) > 0.0_DP)
-            fragments%v_n_unit(:, i) = fragments%z_coll_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
-         end do
-
-         ! Define the radial, normal, and tangential unit vectors for each individual fragment
-         fragments%v_r_unit(:,:) = .unit. fragments%r_coll(:,:) 
-         fragments%v_n_unit(:,:) = .unit. fragments%v_n_unit(:,:) 
-         fragments%v_t_unit(:,:) = .unit. (fragments%v_n_unit(:,:) .cross. fragments%v_r_unit(:,:))
-
-      end associate
-
-      return
-   end subroutine encounter_set_coordinate_system
-
 
    module subroutine fraggle_set_natural_scale_factors(self, impactors)
       !! author: David A. Minton
