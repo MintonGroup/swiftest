@@ -12,6 +12,7 @@ submodule(swiftest_operators) s_operator_cross
    !! author: David A. Minton
    !!
    !! Contains implementations for the .cross. operator for all defined integer and real types
+   !! Computes the cross product of two (3) vectors or (3,:) arrays 
    !! Single vector implementations: C(1:3)   = A(1:3)   .cross. B(1:3) 
    !! Vector list implementations:   C(1:3, :) = A(1:3, :) .cross. B(1:3, :)
 contains

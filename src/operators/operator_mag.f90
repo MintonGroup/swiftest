@@ -11,6 +11,7 @@ submodule(swiftest_operators) s_operator_mag
    !! author: David A. Minton
    !!
    !! Contains implementations for the .mag. operator for all defined real types
+   !! Computes the magnitude of a vector or array of vectors using norm2
    !! Single vector implementations:  B   = .mag. A(1:3)
    !! Vector list implementations:   B(:) = .mag. A(1:3, :)
    contains

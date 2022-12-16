@@ -57,12 +57,6 @@ contains
             return
          end if
 
-         ! Get the unit vectors for the relative position and velocity vectors. These are used to shift the fragment cloud depending on the 
-         runit(:) = colliders%rb(:,2) - colliders%rb(:,1) 
-         runit(:) = runit(:) / (.mag. runit(:))
-
-         vunit(:) = colliders%vb(:,2) - colliders%vb(:,1) 
-         vunit(:) = vunit(:) / (.mag. vunit(:))
 
          ! This is a factor that will "distort" the shape of the frgment cloud in the direction of the impact velocity 
          f_spin= .mag. (runit(:) .cross. vunit(:)) 

@@ -50,6 +50,7 @@ SET(FAST_MATH_FILES
             ${SRC}/obl/obl.f90
             ${SRC}/operators/operator_cross.f90
             ${SRC}/operators/operator_mag.f90
+            ${SRC}/operators/operator_unit.f90
             ${SRC}/orbel/orbel.f90
             ${SRC}/rmvs/rmvs_discard.f90
             ${SRC}/rmvs/rmvs_encounter_check.f90

@@ -1,7 +1,7 @@
 !! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
 !! This file is part of Swiftest.
 !! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! as published by the Free Software Foundation, either version NDIM of the License, or (at your option) any later version.
 !! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
 !! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
@@ -11,15 +11,15 @@ module swiftest_operators
    !! author: David A. Minton
    !!
    !! Custom operators, including
-   !!   A .cross. B = Cross product of A(1:3) and B(1:3) 
+   !!   A .cross. B = Cross product of A(1:NDIM) and B(1:NDIM) 
    !!
-   !! Each operator can also do element-wise computation on arrays of the form .mag. A(1:3, 1:n)
+   !! Each operator can also do element-wise computation on arrays of the form .mag. A(1:NDIM, 1:n)
    use swiftest_globals
    implicit none
    public
 
    !********************************************************************************************************************************
-   ! Interfaces for .cross. operator
+   ! Interfaces for .cross. operator: Computes the cross product of two (NDIM) vectors or (NDIM,:) arrays 
    !********************************************************************************************************************************
 
    interface operator(.cross.)
@@ -27,49 +27,49 @@ module swiftest_operators
          !$omp declare simd(operator_cross_sp)
          implicit none
          real(SP), dimension(:), intent(in) :: A, B
-         real(SP), dimension(3) :: C
+         real(SP), dimension(NDIM) :: C
       end function operator_cross_sp
 
       pure module function operator_cross_dp(A, B) result(C)
          !$omp declare simd(operator_cross_dp)
          implicit none
          real(DP), dimension(:), intent(in) :: A, B
-         real(DP), dimension(3) :: C
+         real(DP), dimension(NDIM) :: C
       end function operator_cross_dp
 
       pure module function operator_cross_qp(A, B) result(C)
          !$omp declare simd(operator_cross_qp)
          implicit none
          real(QP), dimension(:), intent(in) :: A, B
-         real(QP), dimension(3) :: C
+         real(QP), dimension(NDIM) :: C
       end function operator_cross_qp
 
       pure module function operator_cross_i1b(A, B) result(C)
          !$omp declare simd(operator_cross_i1b)
          implicit none
          integer(I1B), dimension(:), intent(in) :: A, B
-         integer(I1B), dimension(3) :: C
+         integer(I1B), dimension(NDIM) :: C
       end function operator_cross_i1b
 
       pure module function operator_cross_i2b(A, B) result(C)
          !$omp declare simd(operator_cross_i2b)
          implicit none
          integer(I2B), dimension(:), intent(in) :: A, B
-         integer(I2B), dimension(3) :: C
+         integer(I2B), dimension(NDIM) :: C
       end function operator_cross_i2b
 
       pure module function operator_cross_i4b(A, B) result(C)
          !$omp declare simd(operator_cross_i4b)
          implicit none
          integer(I4B), dimension(:), intent(in) :: A, B
-         integer(I4B), dimension(3) :: C
+         integer(I4B), dimension(NDIM) :: C
       end function operator_cross_i4b
 
       pure module function operator_cross_i8b(A, B) result(C)
          !$omp declare simd(operator_cross_i8b)
          implicit none
          integer(I8B), dimension(:), intent(in) :: A, B
-         integer(I8B), dimension(3) :: C
+         integer(I8B), dimension(NDIM) :: C
       end function operator_cross_i8b
 
       pure module function operator_cross_el_sp(A, B) result(C)
@@ -116,7 +116,7 @@ module swiftest_operators
    end interface
 
    !********************************************************************************************************************************
-   ! Interfaces for .mag. operator
+   ! Interfaces for .mag. operator: Computes the magnitude of a vector or array of vectors using norm2
    !********************************************************************************************************************************
 
    interface operator(.mag.)
@@ -159,5 +159,52 @@ module swiftest_operators
          real(QP), dimension(:), allocatable  :: B
       end function operator_mag_el_qp
    end interface
+
+
+   !********************************************************************************************************************************
+   ! Interfaces for .unit. operator: Returns a unit vector or array of unit vectors from an input vector or array of vectors
+   !********************************************************************************************************************************
+
+   interface operator(.unit.)
+      pure module function operator_unit_sp(A) result(B)
+         !$omp declare simd(operator_unit_sp)
+         implicit none
+         real(SP), dimension(:), intent(in)  :: A
+         real(SP), dimension(NDIM)              :: B
+      end function operator_unit_sp
+
+      pure module function operator_unit_dp(A) result(B)
+         !$omp declare simd(operator_unit_dp)
+         implicit none
+         real(DP), dimension(:), intent(in)  :: A
+         real(DP), dimension(NDIM)              :: B
+      end function operator_unit_dp
+
+      pure module function operator_unit_qp(A) result(B)
+         !$omp declare simd(operator_unit_qp)
+         implicit none
+         real(QP), dimension(:), intent(in)  :: A
+         real(QP), dimension(NDIM)              :: B
+      end function operator_unit_qp
+
+      pure module function operator_unit_el_sp(A) result(B)
+         implicit none
+         real(SP), dimension(:,:), intent(in)  :: A
+         real(SP), dimension(:,:), allocatable :: B
+      end function operator_unit_el_sp
+
+      pure module function operator_unit_el_dp(A) result(B)
+         implicit none
+         real(DP), dimension(:,:), intent(in) :: A
+         real(DP), dimension(:,:), allocatable  :: B
+      end function operator_unit_el_dp
+
+      pure module function operator_unit_el_qp(A) result(B)
+         implicit none
+         real(QP), dimension(:,:), intent(in)  :: A
+         real(QP), dimension(:,:), allocatable :: B
+      end function operator_unit_el_qp
+   end interface
+
 
 end module swiftest_operators
