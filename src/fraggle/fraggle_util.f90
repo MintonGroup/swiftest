@@ -59,7 +59,7 @@ contains
    end subroutine fraggle_util_add_fragments_to_system
    
 
-   module subroutine fraggle_util_ang_mtm(self) 
+   module subroutine fraggle_util_get_angular_momentum(self) 
       !! Author: David A. Minton
       !!
       !! Calcualtes the current angular momentum of the fragments
@@ -70,17 +70,17 @@ contains
       integer(I4B) :: i
 
       associate(fragments => self, nfrag => self%nbody)
-         fragments%L_orbit(:) = 0.0_DP
-         fragments%L_spin(:) = 0.0_DP
+         fragments%Lorbit(:) = 0.0_DP
+         fragments%Lspin(:) = 0.0_DP
    
          do i = 1, nfrag
-            fragments%L_orbit(:) = fragments%L_orbit(:) + fragments%mass(i) * (fragments%r_coll(:, i) .cross. fragments%v_coll(:, i))
-            fragments%L_spin(:) = fragments%L_spin(:) + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:, i) * fragments%rot(:, i)
+            fragments%Lorbit(:) = fragments%Lorbit(:) + fragments%mass(i) * (fragments%rc(:, i) .cross. fragments%vc(:, i))
+            fragments%Lspin(:) = fragments%Lspin(:) + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:, i) * fragments%rot(:, i)
          end do
       end associate
 
       return
-   end subroutine fraggle_util_ang_mtm
+   end subroutine fraggle_util_get_angular_momentum
 
 
    module subroutine fraggle_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
@@ -131,6 +131,24 @@ contains
    end subroutine fraggle_util_construct_temporary_system
 
 
+   module subroutine fraggle_util_dealloc_fragments(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(fraggle_fragments),  intent(inout) :: self
+
+      call collision_util_deallocate_fragments(self)
+
+      if (allocated(self%v_r_mag)) deallocate(self%v_r_mag)
+      if (allocated(self%v_t_mag)) deallocate(self%v_t_mag)
+      if (allocated(self%v_n_mag)) deallocate(self%v_n_mag)
+
+      return
+   end subroutine fraggle_util_dealloc_fragments
+
+
 
    module subroutine fraggle_util_final_impactors(self)
       !! author: David A. Minton
@@ -154,18 +172,24 @@ contains
       ! Arguments
       type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
 
-      if (allocated(self%r_coll)) deallocate(self%r_coll)
-      if (allocated(self%v_coll)) deallocate(self%v_coll)
-      if (allocated(self%v_r_unit)) deallocate(self%v_r_unit)
-      if (allocated(self%v_t_unit)) deallocate(self%v_t_unit)
-      if (allocated(self%v_n_unit)) deallocate(self%v_n_unit)
-      if (allocated(self%rmag)) deallocate(self%rmag)
-      if (allocated(self%rotmag)) deallocate(self%rotmag)
-      if (allocated(self%v_r_mag)) deallocate(self%v_r_mag)
-      if (allocated(self%v_t_mag)) deallocate(self%v_t_mag)
+      call self%dealloc()
 
       return
    end subroutine fraggle_util_final_fragments
+
+
+   module subroutine fraggle_util_final_system(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      type(fraggle_system),  intent(inout) :: self !! Collision impactors storage object
+
+      call self%reset()
+
+      return
+   end subroutine fraggle_util_final_system
 
 
    module subroutine fraggle_util_restructure(self, impactors, try, f_spin, r_max_start)

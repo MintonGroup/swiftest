@@ -22,8 +22,6 @@ contains
       self%rb(:,:) = 0.0_DP
       self%vb(:,:) = 0.0_DP
       self%rot(:,:) = 0.0_DP
-      self%r_coll(:,:) = 0.0_DP
-      self%v_coll(:,:) = 0.0_DP
       self%v_r_unit(:,:) = 0.0_DP
       self%v_t_unit(:,:) = 0.0_DP
       self%v_n_unit(:,:) = 0.0_DP
@@ -32,11 +30,6 @@ contains
       self%rotmag(:) = 0.0_DP
       self%v_r_mag(:) = 0.0_DP
       self%v_t_mag(:) = 0.0_DP
-
-      self%ke_orbit = 0.0_DP
-      self%ke_spin = 0.0_DP
-      self%L_orbit(:) = 0.0_DP
-      self%L_spin(:) = 0.0_DP
 
       return
    end subroutine fraggle_setup_reset_fragments
@@ -52,7 +45,7 @@ contains
       integer(I4B),               intent(in)    :: n
       class(swiftest_parameters), intent(in) :: param
 
-      call self%collision_fragments%setup(n, param)
+      call collision_util_setup_fragments(n, param)
       if (n < 0) return
 
       if (allocated(self%v_r_mag)) deallocate(self%v_r_mag) 

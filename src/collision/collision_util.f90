@@ -7,9 +7,30 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (encounter_classes) s_encounter_util
+submodule (collision_classes) s_collision_util
    use swiftest
 contains
+
+   module subroutine collision_util_dealloc_fragments(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(collision_fragments),  intent(inout) :: self
+
+      call util_dealloc_pl(self)
+
+      if (allocated(self%rc)) deallocate(self%rc) 
+      if (allocated(self%vc)) deallocate(self%vc)
+      if (allocated(self%rmag)) deallocate(self%rmag)
+      if (allocated(self%rotmag)) deallocate(self%rotmag)
+      if (allocated(self%v_r_unit)) deallocate(self%v_r_unit)
+      if (allocated(self%v_t_unit)) deallocate(self%v_t_unit)
+      if (allocated(self%v_n_unit)) deallocate(self%v_n_unit)
+
+      return
+   end subroutine collision_util_dealloc_fragments
 
    module subroutine collision_util_final_impactors(self)
       !! author: David A. Minton
@@ -23,20 +44,6 @@ contains
 
       return
    end subroutine collision_util_final_impactors
-
-
-   module subroutine collision_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer will deallocate all allocatables
-      implicit none
-      ! Arguments
-      type(collision_system),  intent(inout) :: self !! Collision impactors storage object
-
-      call self%reset()
-
-      return
-   end subroutine collision_util_final_system
 
 
    module subroutine collision_util_final_snapshot(self)
@@ -78,7 +85,7 @@ contains
       call self%reset()
 
       return
-   end subroutine collision_util_final_storage
+   end subroutine collision_util_final_system
 
 
    module subroutine collision_util_get_idvalues_snapshot(self, idvals)
@@ -87,28 +94,41 @@ contains
       !! Returns an array of all id values saved in this snapshot
       implicit none
       ! Arguments
-      class(collision_snapshot),                 intent(in)  :: self   !! Fraggle snapshot object
+      class(collision_snapshot),               intent(in)  :: self   !! Fraggle snapshot object
       integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
       ! Internals
-      integer(I4B) :: ncoll, nfrag
+      integer(I4B) :: npl_before, ntp_before, npl_after, ntp_after, ntot, nlo, nhi
 
-      if (allocated(self%impactors)) then
-         ncoll = self%impactors%pl%nbody
-      else
-         ncoll = 0
+      npl_before = 0; ntp_before = 0; npl_after = 0; ntp_after = 0
+      if (allocated(self%collision_system%before%pl)) then
+         npl_before = self%collision_system%before%pl%nbody
+      endif
+
+      if (allocated(self%collision_system%before%tp)) then
+         ntp_before = self%collision_system%before%tp%nbody
       end if 
 
-      if (allocated(self%fragments)) then
-         nfrag = self%fragments%pl%nbody
-      else
-         nfrag = 0
+      if (allocated(self%collision_system%after%pl)) then
+         npl_after = self%collision_system%after%pl%nbody
       end if
 
-      if (ncoll + nfrag == 0) return
-      allocate(idvals(ncoll+nfrag))
+      if (allocated(self%collision_system%after%tp)) then
+         ntp_after = self%collision_system%after%tp%nbody
+      end if 
 
-      if (ncoll > 0) idvals(1:ncoll) = self%impactors%pl%id(:)
-      if (nfrag > 0) idvals(ncoll+1:ncoll+nfrag) = self%fragments%pl%id(:)
+      ntot = npl_before + ntp_before + npl_after + ntp_after
+      if (ntot == 0) return
+      allocate(idvals(ntot))
+
+      nlo = 1; nhi = npl_before
+      if (npl_before > 0) idvals(nlo:nhi) = self%collision_system%before%pl%id(1:npl_before)
+      nlo = nhi + 1; nhi = nhi + ntp_before
+      if (ntp_before > 0) idvals(nlo:nhi) = self%collision_system%before%tp%id(1:ntp_before)
+
+      nlo = nhi + 1; nhi = nhi + npl_after
+      if (npl_after > 0) idvals(nlo:nhi) = self%collision_system%after%pl%id(1:npl_after)
+      nlo = nhi + 1; nhi = nhi + ntp_after
+      if (ntp_after > 0) idvals(nlo:nhi) = self%collision_system%after%tp%id(1:ntp_after)
 
       return
 
@@ -124,14 +144,14 @@ contains
       !! This will temporarily expand the massive body object in a temporary system object called tmpsys to feed it into symba_energy
       implicit none
       ! Arguments
-      class(collision_system), intent(inout) :: self    !! Encounter collision system object
-      class(swiftest_nbody_system),      intent(inout) :: system  !! Swiftest nbody system object
-      class(swiftest_parameters),        intent(inout) :: param   !! Current swiftest run configuration parameters
-      logical,                           intent(in)    :: lbefore !! Flag indicating that this the "before" state of the system, with impactors included and fragments excluded or vice versa
+      class(collision_system),      intent(inout) :: self    !! Encounter collision system object
+      class(swiftest_nbody_system), intent(inout) :: system  !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param   !! Current swiftest run configuration parameters
+      logical,                      intent(in)    :: lbefore !! Flag indicating that this the "before" state of the system, with impactors included and fragments excluded or vice versa
       ! Internals
       class(swiftest_nbody_system), allocatable, save :: tmpsys
       class(swiftest_parameters), allocatable, save   :: tmpparam
-      integer(I4B)  :: npl_before, npl_after
+      integer(I4B)  :: npl_before, npl_after, stage
 
       associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => system%pl, cb => system%cb)
 
@@ -166,22 +186,18 @@ contains
 
          ! Calculate the current fragment energy and momentum balances
          if (lbefore) then
-            fragments%Lorbit_before(:) = tmpsys%Lorbit(:)
-            fragments%Lspin_before(:) = tmpsys%Lspin(:)
-            fragments%Ltot_before(:) = tmpsys%Ltot(:)
-            fragments%ke_orbit_before = tmpsys%ke_orbit
-            fragments%ke_spin_before = tmpsys%ke_spin
-            fragments%pe_before = tmpsys%pe
-            fragments%Etot_before = tmpsys%te 
+            stage = 1
          else
-            fragments%Lorbit_after(:) = tmpsys%Lorbit(:)
-            fragments%Lspin_after(:) = tmpsys%Lspin(:)
-            fragments%Ltot_after(:) = tmpsys%Ltot(:)
-            fragments%ke_orbit_after = tmpsys%ke_orbit
-            fragments%ke_spin_after = tmpsys%ke_spin
-            fragments%pe_after = tmpsys%pe
-            fragments%Etot_after = tmpsys%te - (fragments%pe_after - fragments%pe_before) ! Gotta be careful with PE when number of bodies changes.
+            stage = 2
          end if
+         self%Lorbit(:,stage) = tmpsys%Lorbit(:)
+         self%Lspin(:,stage) = tmpsys%Lspin(:)
+         self%Ltot(:,stage) = tmpsys%Ltot(:)
+         self%ke_orbit(stage) = tmpsys%ke_orbit
+         self%ke_spin(stage) = tmpsys%ke_spin
+         self%pe(stage) = tmpsys%pe
+         self%Etot(stage) = tmpsys%te 
+         if (stage == 2) self%Etot(stage) = self%Etot(stage) - (self%pe(2) - self%pe(1)) ! Gotta be careful with PE when number of bodies changes.
       end associate
 
       return
@@ -211,27 +227,42 @@ contains
       return
    end subroutine collision_util_index_map
 
-
-   module subroutine collision_util_reset_fragments(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatables
+   !> The following interfaces are placeholders intended to satisfy the required abstract methods given by the parent class
+   module subroutine collision_util_placeholder_accel(self, system, param, t, lbeg)
       implicit none
-      ! Arguments
-      class(collision_fragments),  intent(inout) :: self
-
-      call self%swiftest_pl%dealloc()
-
-      if (allocated(self%rc)) deallocate(self%rc) 
-      if (allocated(self%vc)) deallocate(self%vc)
-      if (allocated(self%rmag)) deallocate(self%rmag)
-      if (allocated(self%rotmag)) deallocate(self%rotmag)
-      if (allocated(self%v_r_unit)) deallocate(self%v_r_unit)
-      if (allocated(self%v_t_unit)) deallocate(self%v_t_unit)
-      if (allocated(self%v_n_unit)) deallocate(self%v_n_unit)
-
+      class(collision_fragments),     intent(inout) :: self   !! Fraggle fragment system object 
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      !! Current simulation time
+      logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
+      write(*,*) "The type-bound procedure 'accel' is not defined for the collision_fragments class"
       return
-   end subroutine collision_util_reset_fragments
+   end subroutine collision_util_placeholder_accel
+
+   module subroutine collision_util_placeholder_kick(self, system, param, t, dt, lbeg)
+      implicit none
+      class(collision_fragments),     intent(inout) :: self   !! Fraggle fragment system object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system objec
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      !! Current time
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+      logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+
+      write(*,*) "The type-bound procedure 'kick' is not defined for the collision_fragments class"
+      return
+   end subroutine collision_util_placeholder_kick
+
+   module subroutine collision_util_placeholder_step(self, system, param, t, dt)
+      implicit none
+      class(collision_fragments),     intent(inout) :: self   !! Swiftest body object
+      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      !! Simulation time
+      real(DP),                     intent(in)    :: dt     !! Current stepsize
+
+      write(*,*) "The type-bound procedure 'step' is not defined for the collision_fragments class"
+      return
+   end subroutine collision_util_placeholder_step
 
 
    module subroutine collision_util_reset_impactors(self)
@@ -244,25 +275,25 @@ contains
 
       if (allocated(self%idx)) deallocate(self%idx)
       if (allocated(self%mass_dist)) deallocate(self%mass_dist)
-      ncoll = 0
-      rb(:,:) = 0.0_DP
-      vb(:,:) = 0.0_DP
-      rot(:,:) = 0.0_DP
-      L_spin(:,:) = 0.0_DP
-      L_orbit(:,:) = 0.0_DP
-      Ip(:,:) = 0.0_DP
-      mass(:) = 0.0_DP
-      radius(:) = 0.0_DP
-      Qloss = 0.0_DP
-      regime = 0
+      self%ncoll = 0
+      self%rb(:,:) = 0.0_DP
+      self%vb(:,:) = 0.0_DP
+      self%rot(:,:) = 0.0_DP
+      self%Lspin(:,:) = 0.0_DP
+      self%Lorbit(:,:) = 0.0_DP
+      self%Ip(:,:) = 0.0_DP
+      self%mass(:) = 0.0_DP
+      self%radius(:) = 0.0_DP
+      self%Qloss = 0.0_DP
+      self%regime = 0
 
-      x_unit(:) = 0.0_DP
-      y_unit(:) = 0.0_DP
-      z_unit(:) = 0.0_DP
-      v_unit(:) = 0.0_DP
-      rbcom(:) = 0.0_DP
-      vbcom(:) = 0.0_DP
-      rbimp(:) = 0.0_DP
+      self%x_unit(:) = 0.0_DP
+      self%y_unit(:) = 0.0_DP
+      self%z_unit(:) = 0.0_DP
+      self%v_unit(:) = 0.0_DP
+      self%rbcom(:) = 0.0_DP
+      self%vbcom(:) = 0.0_DP
+      self%rbimp(:) = 0.0_DP
 
       return
    end subroutine collision_util_reset_impactors
@@ -281,16 +312,16 @@ contains
       if (allocated(self%before)) deallocate(self%before)
       if (allocated(self%after)) deallocate(self%after)
 
-      Lorbit(:,:) = 0.0_DP
-      Lspin(:,:) = 0.0_DP
-      Ltot(:,:) = 0.0_DP
-      ke_orbit(:) = 0.0_DP
-      ke_spin(:) = 0.0_DP
-      pe(:) = 0.0_DP
-      Etot(:) = 0.0_DP
+      self%Lorbit(:,:) = 0.0_DP
+      self%Lspin(:,:) = 0.0_DP
+      self%Ltot(:,:) = 0.0_DP
+      self%ke_orbit(:) = 0.0_DP
+      self%ke_spin(:) = 0.0_DP
+      self%pe(:) = 0.0_DP
+      self%Etot(:) = 0.0_DP
 
       return
-   end subroutine collision_util_reset_impactors
+   end subroutine collision_util_reset_system
 
 
    subroutine collision_util_save_snapshot(collision_history, snapshot)
@@ -338,4 +369,4 @@ contains
    end subroutine collision_util_save_snapshot
 
 
-end submodule s_encounter_util
+end submodule s_collision_util

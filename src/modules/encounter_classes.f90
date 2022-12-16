@@ -72,7 +72,7 @@ module encounter_classes
       integer(I4B)       :: name_dimsize   = 0         !! Number of potential id values in snapshot
       integer(I4B)       :: file_number  = 1         !! The number to append on the output file
    contains
-      procedure :: initialize => encounter_io_initialize !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
    end type encounter_io_parameters
 
    type encounter_bounding_box_1D
@@ -213,11 +213,11 @@ module encounter_classes
          class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
       end subroutine encounter_io_dump
 
-      module subroutine encounter_io_initialize(self, param)
+      module subroutine encounter_io_initialize_output(self, param)
          implicit none
          class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),     intent(in)    :: param   
-      end subroutine encounter_io_initialize
+      end subroutine encounter_io_initialize_output
 
       module subroutine encounter_io_write_frame_snapshot(self, nc, param)
          implicit none

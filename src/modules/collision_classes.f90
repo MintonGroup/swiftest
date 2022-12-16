@@ -36,8 +36,8 @@ module collision_classes
       real(DP),     dimension(NDIM,2)              :: rb        !! Two-body equivalent position vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: vb        !! Two-body equivalent velocity vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: rot       !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
-      real(DP),     dimension(NDIM,2)              :: L_spin    !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
-      real(DP),     dimension(NDIM,2)              :: L_orbit   !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: Lspin    !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: Lorbit   !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: Ip        !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(2)                   :: mass      !! Two-body equivalent mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: radius    !! Two-body equivalent radii of the collider bodies prior to the collision
@@ -77,12 +77,12 @@ module collision_classes
       real(DP), dimension(:,:), allocatable  :: v_n_unit !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
 
    contains
-      procedure :: accel                   => collision_placeholder_accel          !! Placeholder subroutine to fulfill requirement for an accel method
-      procedure :: kick                    => collision_placeholder_kick           !! Placeholder subroutine to fulfill requirement for a kick method
-      procedure :: step                    => collision_placeholder_step           !! Placeholder subroutine to fulfill requirement for a step method
-      procedure :: set_coordinate_system   => collision_set_coordinate_fragments   !! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments. 
-      procedure :: setup                   => collision_setup_fragments            !! Allocates arrays for n fragments in a Fraggle system. Passing n = 0 deallocates all arrays.
-      procedure :: reset                 => collision_util_reset_fragments     !! Deallocates all allocatable arrays
+      procedure :: accel                 => collision_util_placeholder_accel        !! Placeholder subroutine to fulfill requirement for an accel method
+      procedure :: kick                  => collision_util_placeholder_kick         !! Placeholder subroutine to fulfill requirement for a kick method
+      procedure :: step                  => collision_util_placeholder_step         !! Placeholder subroutine to fulfill requirement for a step method
+      procedure :: set_coordinate_system => collision_set_coordinate_fragments !! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments. 
+      procedure :: setup                 => collision_setup_fragments          !! Allocates arrays for n fragments in a Fraggle system. Passing n = 0 deallocates all arrays.
+      procedure :: dealloc               => collision_util_dealloc_fragments   !! Deallocates all allocatable arrays
    end type collision_fragments
 
    type :: collision_system
@@ -97,12 +97,11 @@ module collision_classes
       real(DP), dimension(NDIM,2) :: Lorbit   !! Before/after orbital angular momentum 
       real(DP), dimension(NDIM,2) :: Lspin    !! Before/after spin angular momentum 
       real(DP), dimension(NDIM,2) :: Ltot     !! Before/after total system angular momentum 
-      real(DP), dimension(2)    :: ke_orbit !! Before/after orbital kinetic energy
-      real(DP), dimension(2)    :: ke_spin  !! Before/after spin kinetic energy
-      real(DP), dimension(2)    :: pe       !! Before/after potential energy
-      real(DP), dimension(2)    :: Etot     !! Before/after total system energy
+      real(DP), dimension(2)      :: ke_orbit !! Before/after orbital kinetic energy
+      real(DP), dimension(2)      :: ke_spin  !! Before/after spin kinetic energy
+      real(DP), dimension(2)      :: pe       !! Before/after potential energy
+      real(DP), dimension(2)      :: Etot     !! Before/after total system energy
    contains
-      procedure :: generate_fragments      => collision_generate_fragment_system    !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: regime                  => collision_regime_system               !! Determine which fragmentation regime the set of impactors will be
       procedure :: setup                   => collision_setup_system      !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
       procedure :: get_energy_and_momentum => collision_util_get_energy_momentum    !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
@@ -110,11 +109,25 @@ module collision_classes
       final     ::                            collision_util_final_system        !! Finalizer will deallocate all allocatables
    end type collision_system
 
-
-   !> NetCDF dimension and variable names for the enounter save object
+   !! NetCDF dimension and variable names for the enounter save object
    type, extends(encounter_io_parameters) :: collision_io_parameters
+      integer(I4B)       :: stage_dimid                                    !! ID for the stage dimension
+      integer(I4B)       :: stage_varid                                    !! ID for the stage variable  
+      character(NAMELEN) :: stage_dimname            = "stage"             !! name of the stage dimension (before/after)
+      character(len=6), dimension(2) :: stage_coords = ["before", "after"] !! The stage coordinate labels
+
+      character(NAMELEN) :: event_dimname = "collision" !! Name of collision event dimension
+      integer(I4B)       :: event_dimid                 !! ID for the collision event dimension       
+      integer(I4B)       :: event_varid                 !! ID for the collision event variable
+      integer(I4B)       :: event_dimsize = 0           !! Number of events
+
+      character(NAMELEN) :: Qloss_varname  = "Qloss"   !! name of the energy loss variable
+      integer(I4B)       :: Qloss_varid                !! ID for the energy loss variable 
+      character(NAMELEN) :: regime_varname = "regime"  !! name of the collision regime variable
+      integer(I4B)       :: regime_varid               !! ID for the collision regime variable
+
    contains
-      procedure :: initialize => collision_io_initialize !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: initialize => collision_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
    end type collision_io_parameters
 
    type, extends(encounter_snapshot)  :: collision_snapshot
@@ -136,26 +149,17 @@ module collision_classes
    end type collision_storage
 
    interface
-      module subroutine collision_generate_fragment_system(self, system, param, lfailure)
-         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
-         implicit none
-         class(collision_system), intent(inout) :: self      !! Fraggle fragment system object 
-         class(swiftest_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
-         class(swiftest_parameters),        intent(inout) :: param     !! Current run configuration parameters 
-         logical,                           intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
-      end subroutine collision_generate_fragment_system
-
       module subroutine collision_io_dump(self, param)
          implicit none
          class(collision_storage(*)), intent(inout) :: self    !! Collision storage object
          class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
       end subroutine collision_io_dump
 
-      module subroutine collision_io_initialize(self, param)
+      module subroutine collision_io_initialize_output(self, param)
          implicit none
          class(collision_io_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters  
-      end subroutine collision_io_initialize
+      end subroutine collision_io_initialize_output
 
       module subroutine collision_io_write_frame_snapshot(self, nc, param)
          implicit none
@@ -165,7 +169,7 @@ module collision_classes
       end subroutine collision_io_write_frame_snapshot
 
       !> The following interfaces are placeholders intended to satisfy the required abstract methods given by the parent class
-      module subroutine collision_placeholder_accel(self, system, param, t, lbeg)
+      module subroutine collision_util_placeholder_accel(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(collision_fragments),     intent(inout) :: self   !! Fraggle fragment system object 
@@ -173,9 +177,9 @@ module collision_classes
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
-      end subroutine collision_placeholder_accel
+      end subroutine collision_util_placeholder_accel
 
-      module subroutine collision_placeholder_kick(self, system, param, t, dt, lbeg)
+      module subroutine collision_util_placeholder_kick(self, system, param, t, dt, lbeg)
          use swiftest_classes, only :  swiftest_nbody_system, swiftest_parameters
          implicit none
          class(collision_fragments),   intent(inout) :: self   !! Fraggle fragment system object
@@ -184,9 +188,9 @@ module collision_classes
          real(DP),                     intent(in)    :: t      !! Current time
          real(DP),                     intent(in)    :: dt     !! Stepsize
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
-      end subroutine collision_placeholder_kick
+      end subroutine collision_util_placeholder_kick
 
-      module subroutine collision_placeholder_step(self, system, param, t, dt)
+      module subroutine collision_util_placeholder_step(self, system, param, t, dt)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
          class(collision_fragments),   intent(inout) :: self   !! Helio massive body particle object
@@ -194,7 +198,7 @@ module collision_classes
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsiz
-      end subroutine collision_placeholder_step
+      end subroutine collision_util_placeholder_step
 
       module subroutine collision_regime_system(self, system, param)
          implicit none 
@@ -235,10 +239,10 @@ module collision_classes
          class(swiftest_parameters),        intent(inout) :: param     !! Current run configuration parameters 
       end subroutine collision_setup_system
 
-      module subroutine collision_util_reset_fragments(self)
+      module subroutine collision_util_dealloc_fragments(self)
          implicit none
          class(collision_fragments),  intent(inout) :: self
-      end subroutine collision_util_reset_fragments
+      end subroutine collision_util_dealloc_fragments
 
       module subroutine collision_util_final_impactors(self)
          implicit none
@@ -257,7 +261,7 @@ module collision_classes
 
       module subroutine collision_util_final_system(self)
          implicit none
-         type(collision_system),  intent(inout) :: self !!  Collision system object
+         type(collision_system), intent(inout) :: self !!  Collision system object
       end subroutine collision_util_final_system
 
       module subroutine collision_util_get_idvalues_snapshot(self, idvals)

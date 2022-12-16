@@ -34,22 +34,41 @@ contains
       ! Arguments
       class(collision_fragments),  intent(inout) :: self 
       integer(I4B),                intent(in)    :: n
-      class(swiftest_parameters),  intent(in) :: param
+      class(swiftest_parameters),  intent(in)    :: param
 
 
-      call self%swiftest_pl%setup(n, param)
       if (n < 0) return
 
       call self%dealloc()
 
       if (n == 0) return
 
-      ! allocate(self%rotmag(n)) 
-      ! allocate(self%v_r_mag(n)) 
-      ! allocate(self%v_t_mag(n)) 
-      ! allocate(self%v_n_mag(n)) 
+      self%mtot = 0.0_DP
+      allocate(self%status(n))
+      allocate(self%rb(NDIM,n))
+      allocate(self%vb(NDIM,n))
+      allocate(self%mass(n))
+      allocate(self%rot(NDIM,n))
+      allocate(self%Ip(NDIM,n))
 
-      call self%reset()
+      allocate(self%rc(NDIM,n))
+      allocate(self%vc(NDIM,n))
+      allocate(self%vmag(n)) 
+      allocate(self%rmag(n)) 
+      allocate(self%rotmag(n)) 
+      allocate(self%radius(n))
+      allocate(self%density(n))
+
+      self%status(:)  = INACTIVE
+      self%rb(:,:)    = 0.0_DP
+      self%vb(:,:)    = 0.0_DP
+      self%rc(:,:)    = 0.0_DP
+      self%vc(:,:)    = 0.0_DP
+      self%vmag(:)    = 0.0_DP
+      self%rmag(:)    = 0.0_DP
+      self%rotmag(:)  = 0.0_DP
+      self%radius(:)  = 0.0_DP
+      self%density(:) = 0.0_DP
 
       return
    end subroutine collision_setup_fragments

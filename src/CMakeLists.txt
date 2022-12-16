@@ -27,7 +27,6 @@ SET(FAST_MATH_FILES
             ${SRC}/modules/whm_classes.f90
             ${SRC}/modules/swiftest.f90
             ${SRC}/collision/collision_io.f90
-            ${SRC}/collision/collision_placeholder.f90
             ${SRC}/collision/collision_setup.f90
             ${SRC}/collision/collision_util.f90
             ${SRC}/discard/discard.f90

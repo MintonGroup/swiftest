@@ -27,10 +27,14 @@ module fraggle_classes
    !> Class definition for the variables that describe a collection of fragments by Fraggle barycentric coordinates
    type, extends(collision_fragments) :: fraggle_fragments
 
-      real(DP), dimension(:),   allocatable  :: v_r_mag  !! Array of radial direction velocity magnitudes of individual fragments 
-      real(DP), dimension(:),   allocatable  :: v_t_mag  !! Array of tangential direction velocity magnitudes of individual fragments
-      real(DP), dimension(:),   allocatable  :: v_n_mag  !! Array of normal direction velocity magnitudes of individual fragments
-
+      real(DP), dimension(:),   allocatable  :: v_r_mag   !! Array of radial direction velocity magnitudes of individual fragments 
+      real(DP), dimension(:),   allocatable  :: v_t_mag   !! Array of tangential direction velocity magnitudes of individual fragments
+      real(DP), dimension(:),   allocatable  :: v_n_mag   !! Array of normal direction velocity magnitudes of individual fragments
+      real(DP), dimension(NDIM)              :: Lorbit    !! Orbital angular momentum vector of all fragments
+      real(DP), dimension(NDIM)              :: Lspin     !! Spin angular momentum vector of all fragments
+      real(DP)                               :: ke_orbit  !! Orbital kinetic energy of all fragments
+      real(DP)                               :: ke_spin   !! Spin kinetic energy of all fragments
+      real(DP)                               :: ke_budget !! Kinetic energy budget for computing quanities
 
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
@@ -40,31 +44,35 @@ module fraggle_classes
       real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
       real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
    contains
-      procedure :: generate_fragments      => fraggle_generate_fragments         !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: set_budgets             => fraggle_set_budgets_fragments      !! Sets the energy and momentum budgets of the fragments based on the collider value
       procedure :: set_mass_dist           => fraggle_set_mass_dist_fragments    !! Sets the distribution of mass among the fragments depending on the regime type
       procedure :: set_natural_scale       => fraggle_set_natural_scale_factors  !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
       procedure :: set_original_scale      => fraggle_set_original_scale_factors !! Restores dimenional quantities back to the original system units
       procedure :: setup                   => fraggle_setup_fragments            !! Allocates arrays for n fragments in a Fraggle system. Passing n = 0 deallocates all arrays.
       procedure :: reset                   => fraggle_setup_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
-      procedure :: get_ang_mtm             => fraggle_util_ang_mtm               !! Calcualtes the current angular momentum of the fragments
+      procedure :: get_angular_momentum    => fraggle_util_get_angular_momentum  !! Calcualtes the current angular momentum of the fragments
+      procedure :: dealloc                 => fraggle_util_dealloc_fragments     !! Deallocates all allocatables
       procedure :: restructure             => fraggle_util_restructure           !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
       final     ::                            fraggle_util_final_fragments       !! Finalizer will deallocate all allocatables
 
    end type fraggle_fragments
 
+   type, extends(collision_system) :: fraggle_system
+   contains
+      procedure :: generate_fragments      => fraggle_generate_fragments  !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
+      final     ::                            fraggle_util_final_system   !! Finalizer will deallocate all allocatables
+   end type fraggle_system 
+
 
    interface
-      module subroutine fraggle_generate_fragments(self, colliders, system, param, lfailure)
+      module subroutine fraggle_generate_fragments(self, system, param, lfailure)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object 
-         class(collision_impactors),     intent(inout) :: colliders !! Fraggle colliders object containing the two-body equivalent values of the colliding bodies 
+         class(fraggle_system),        intent(inout) :: self      !! Fraggle fragment system object 
          class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       end subroutine fraggle_generate_fragments
-
 
       module subroutine fraggle_io_log_regime(impactors, fragments)
          implicit none
@@ -117,10 +125,10 @@ module fraggle_classes
          class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
       end subroutine fraggle_util_add_fragments_to_system
 
-      module subroutine fraggle_util_ang_mtm(self) 
+      module subroutine fraggle_util_get_angular_momentum(self) 
          implicit none
          class(fraggle_fragments), intent(inout) :: self !! Fraggle fragment system object
-      end subroutine fraggle_util_ang_mtm
+      end subroutine fraggle_util_get_angular_momentum
 
       module subroutine fraggle_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
@@ -132,6 +140,11 @@ module fraggle_classes
          class(swiftest_parameters),   allocatable,  intent(out) :: tmpparam !! Output temporary configuration run parameters
       end subroutine fraggle_util_construct_temporary_system
 
+      module subroutine fraggle_util_dealloc_fragments(self)
+         implicit none
+         class(fraggle_fragments),  intent(inout) :: self
+      end subroutine fraggle_util_dealloc_fragments
+
       module subroutine fraggle_util_final_impactors(self)
          implicit none
          type(collision_impactors),  intent(inout) :: self !! Fraggle impactors object
@@ -142,6 +155,10 @@ module fraggle_classes
          type(fraggle_fragments),  intent(inout) :: self !! Fraggle frgments object
       end subroutine fraggle_util_final_fragments
 
+      module subroutine fraggle_util_final_system(self)
+         implicit none
+         type(fraggle_system),  intent(inout) :: self !!  Collision system object
+      end subroutine fraggle_util_final_system
 
       module subroutine fraggle_util_restructure(self, impactors, try, f_spin, r_max_start)
          implicit none

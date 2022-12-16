@@ -30,7 +30,7 @@ contains
       write(LUN, *) "--------------------------------------------------------------------"
       write(LUN, *) "True number of impactors : ",impactors%ncoll
       write(LUN, *) "Index list of true impactors  : ",impactors%idx(1:impactors%ncoll)
-      select case(fragments%regime) 
+      select case(impactors%regime) 
       case(COLLRESOLVE_REGIME_MERGE)
          write(LUN, *) "Regime: Merge"
       case(COLLRESOLVE_REGIME_DISRUPTION)
@@ -42,7 +42,7 @@ contains
       case(COLLRESOLVE_REGIME_HIT_AND_RUN)
          write(LUN, *) "Regime: Hit and run"
       end select
-      write(LUN, *) "Energy loss                  : ", fragments%Qloss
+      write(LUN, *) "Energy loss                  : ", impactors%Qloss
       write(LUN, *) "--------------------------------------------------------------------"
       close(LUN)
 

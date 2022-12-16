@@ -105,8 +105,8 @@ module swiftest_classes
       integer(I4B)       :: PE_varid                                    !! ID for the system potential energy variable
       character(NAMELEN) :: L_orb_varname           = "L_orb"           !! name of the orbital angular momentum vector variable
       integer(I4B)       :: L_orb_varid                                 !! ID for the system orbital angular momentum vector variable
-      character(NAMELEN) :: L_spin_varname          = "L_spin"          !! name of the spin angular momentum vector variable
-      integer(I4B)       :: L_spin_varid                                !! ID for the system spin angular momentum vector variable
+      character(NAMELEN) :: Lspin_varname          = "Lspin"          !! name of the spin angular momentum vector variable
+      integer(I4B)       :: Lspin_varid                                !! ID for the system spin angular momentum vector variable
       character(NAMELEN) :: L_escape_varname        = "L_escape"        !! name of the escaped angular momentum vector variable
       integer(I4B)       :: L_escape_varid                              !! ID for the escaped angular momentum vector variable
       character(NAMELEN) :: Ecollisions_varname     = "Ecollisions"     !! name of the escaped angular momentum y variable                             

@@ -60,7 +60,7 @@ contains
          !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
          call encounter_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
                                          x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
-                                         min_mfrag_si, fragments%regime, mlr, mslr, fragments%Qloss)
+                                         min_mfrag_si, impactors%regime, mlr, mslr, impactors%Qloss)
 
          fragments%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
          fragments%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
@@ -78,7 +78,7 @@ contains
 
          ! Convert quantities back to the system units and save them into the fragment system
          fragments%mass_dist(:) = (fragments%mass_dist(:) / param%MU2KG) 
-         fragments%Qloss = fragments%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
+         impactors%Qloss = impactors%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
 
          call fraggle_io_log_regime(impactors, fragments)
       end associate

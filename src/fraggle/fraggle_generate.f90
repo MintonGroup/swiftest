@@ -17,15 +17,14 @@ submodule(fraggle_classes) s_fraggle_generate
 
 contains
 
-   module subroutine collision_generate_fragments(self, impactors, system, param, lfailure)
+   module subroutine fraggle_generate_fragments(self, system, param, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(fraggle_fragments),     intent(inout) :: self      !! Fraggle system object the outputs will be the fragmentation 
-      class(collision_impactors),     intent(inout) :: impactors !! Fraggle impactors object containing the two-body equivalent values of the colliding bodies 
+      class(fraggle_system),        intent(inout) :: self      !! Fraggle system object the outputs will be the fragmentation 
       class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
@@ -125,9 +124,9 @@ contains
             dLmag = .mag. (fragments%Ltot_after(:) - fragments%Ltot_before(:))
             exit
 
-            lfailure = ((abs(dEtot + fragments%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
+            lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
             if (lfailure) then
-               write(message, *) dEtot, abs(dEtot + fragments%Qloss) / FRAGGLE_ETOL
+               write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
                call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high energy error: " // &
                                                         trim(adjustl(message)))
                cycle
@@ -166,7 +165,7 @@ contains
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
       return 
-   end subroutine collision_generate_fragments
+   end subroutine fraggle_generate_fragments
 
 
    subroutine fraggle_generate_pos_vec(fragments, impactors, r_max_start)
@@ -190,8 +189,8 @@ contains
       associate(nfrag => fragments%nbody)
          allocate(loverlap(nfrag))
 
-         lnoncat = (fragments%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
-         lhitandrun = (fragments%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) ! Disruptive hit and runs have their own fragment distribution
+         lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
+         lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) ! Disruptive hit and runs have their own fragment distribution
 
          ! Place the fragments into a region that is big enough that we should usually not have overlapping bodies
          ! An overlapping bodies will collide in the next time step, so it's not a major problem if they do (it just slows the run down)
@@ -279,12 +278,12 @@ contains
          ke_remainder = fragments%ke_budget
 
          ! Add a fraction of the orbit angular momentum of the second body to the spin of the first body to kick things off
-         L(:) = impactors%L_spin(:,1) + f_spin * (impactors%L_orbit(:,2) + impactors%L_spin(:,2))
+         L(:) = impactors%Lspin(:,1) + f_spin * (impactors%Lorbit(:,2) + impactors%Lspin(:,2))
          fragments%rot(:,1) = L(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
          L_remainder(:) = L_remainder(:) - L(:)
 
          ! Partition the spin momentum of the second body into the spin of the fragments, with some random variation
-         L(:) = impactors%L_spin(:,2) / (nfrag - 1) 
+         L(:) = impactors%Lspin(:,2) / (nfrag - 1) 
 
          call random_number(frot_rand(:,2:nfrag))
          frot_rand(:,2:nfrag) = 2 * (frot_rand(:,2:nfrag) - 0.5_DP) * frot_rand_mag
@@ -425,8 +424,8 @@ contains
          if (lfailure) then
             call io_log_one_message(FRAGGLE_LOG_OUT, " ")
             call io_log_one_message(FRAGGLE_LOG_OUT, "Tangential velocity failure diagnostics")
-            call fragments%get_ang_mtm()
-            L_frag_tot = fragments%L_spin(:) + fragments%L_orbit(:)
+            call fragments%get_angular_momentum()
+            L_frag_tot = fragments%Lspin(:) + fragments%Lorbit(:)
             write(message, *) .mag.(fragments%L_budget(:) - L_frag_tot(:)) / (.mag.fragments%Ltot_before(:))
             call io_log_one_message(FRAGGLE_LOG_OUT, "|L_remainder| : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget
@@ -479,7 +478,7 @@ contains
                   end if
                end do
                b(1:3) = -L_lin_others(:)
-               b(4:6) = fragments%L_budget(:) - fragments%L_spin(:) - L_orb_others(:)
+               b(4:6) = fragments%L_budget(:) - fragments%Lspin(:) - L_orb_others(:)
                allocate(v_t_mag_output(nfrag))
                v_t_mag_output(1:6) = util_solve_linear_system(A, b, 6, lfailure)
                if (present(v_t_mag_input)) v_t_mag_output(7:nfrag) = v_t_mag_input(:)

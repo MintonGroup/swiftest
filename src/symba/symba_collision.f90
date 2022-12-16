@@ -32,7 +32,7 @@ contains
 
       associate(impactors => system%impactors, fragments => system%fragments)
 
-         select case(fragments%regime)
+         select case(impactors%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION)
             message = "Disruption between"
          case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
@@ -66,7 +66,7 @@ contains
             nfrag = fragments%nbody
             write(message, *) nfrag
             call io_log_one_message(FRAGGLE_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
-            select case(fragments%regime)
+            select case(impactors%regime)
             case(COLLRESOLVE_REGIME_DISRUPTION)
                status = DISRUPTION
                ibiggest = impactors%idx(maxloc(system%pl%Gmass(impactors%idx(:)), dim=1))
@@ -183,7 +183,7 @@ contains
       integer(I4B)                             :: status    !! Status flag assigned to this outcome
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
-      real(DP), dimension(NDIM)                 :: L_spin_new
+      real(DP), dimension(NDIM)                 :: Lspin_new
       real(DP)                                  :: dpe
       character(len=STRMAX) :: message
 
@@ -207,12 +207,12 @@ contains
 
             if (param%lrotation) then
                ! Conserve angular momentum by putting pre-impact orbital momentum into spin of the new body
-               L_spin_new(:) = impactors%L_orbit(:,1) + impactors%L_orbit(:,2) + impactors%L_spin(:,1) + impactors%L_spin(:,2)  
+               Lspin_new(:) = impactors%Lorbit(:,1) + impactors%Lorbit(:,2) + impactors%Lspin(:,1) + impactors%Lspin(:,2)  
 
                ! Assume prinicpal axis rotation on 3rd Ip axis
-               fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
+               fragments%rot(:,1) = Lspin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
             else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
-               system%Lescape(:) = system%Lescape(:) + impactors%L_orbit(:,1) + impactors%L_orbit(:,2) 
+               system%Lescape(:) = system%Lescape(:) + impactors%Lorbit(:,1) + impactors%Lorbit(:,2) 
             end if
 
             ! Keep track of the component of potential energy due to the pre-impact impactors%idx for book-keeping
@@ -471,7 +471,7 @@ contains
       !! author: David A. Minton
       !! 
       !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%idx members, 
-      !! and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the collisional outcome.
+      !! and pairs of quantities (x and v vectors, mass, radius, Lspin, and Ip) that can be used to resolve the collisional outcome.
       implicit none
       ! Arguments
       class(symba_pl),                                 intent(inout) :: pl               !! SyMBA massive body object
@@ -535,7 +535,7 @@ contains
 
       impactors%ncoll = count(pl%lcollision(impactors%idx(:)))
       impactors%idx = pack(impactors%idx(:), pl%lcollision(impactors%idx(:)))
-      impactors%L_spin(:,:) = 0.0_DP
+      impactors%Lspin(:,:) = 0.0_DP
       impactors%Ip(:,:) = 0.0_DP
 
       ! Find the barycenter of each body along with its children, if it has any
@@ -545,7 +545,7 @@ contains
          ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
          if (param%lrotation) then
             impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
-            impactors%L_spin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
+            impactors%Lspin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
          end if
 
          if (nchild(j) > 0) then
@@ -565,14 +565,14 @@ contains
                   xc(:) = impactors%rb(:, j) - xcom(:)
                   vc(:) = impactors%vb(:, j) - vcom(:)
                   xcrossv(:) = xc(:) .cross. vc(:) 
-                  impactors%L_spin(:, j) = impactors%L_spin(:, j) + impactors%mass(j) * xcrossv(:)
+                  impactors%Lspin(:, j) = impactors%Lspin(:, j) + impactors%mass(j) * xcrossv(:)
    
                   xc(:) = xchild(:) - xcom(:)
                   vc(:) = vchild(:) - vcom(:)
                   xcrossv(:) = xc(:) .cross. vc(:) 
-                  impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * xcrossv(:)
+                  impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * xcrossv(:)
 
-                  impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * pl%Ip(3, idx_child)  &
+                  impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * pl%Ip(3, idx_child)  &
                                                                            * pl%radius(idx_child)**2 &
                                                                            * pl%rot(:, idx_child)
                   impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
@@ -596,7 +596,7 @@ contains
       mxc(:, 2) = impactors%mass(2) * (impactors%rb(:, 2) - xcom(:))
       vcc(:, 1) = impactors%vb(:, 1) - vcom(:)
       vcc(:, 2) = impactors%vb(:, 2) - vcom(:)
-      impactors%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
+      impactors%Lorbit(:,:) = mxc(:,:) .cross. vcc(:,:)
 
       ! Destroy the kinship relationships for all members of this impactors%idx
       call pl%reset_kinship(impactors%idx(:))
@@ -937,7 +937,7 @@ contains
                      call system%impactors%regime(system%fragments, system, param)
                   else
                      associate(fragments => system%fragments, impactors => system%impactors)
-                        fragments%regime = COLLRESOLVE_REGIME_MERGE
+                        impactors%regime = COLLRESOLVE_REGIME_MERGE
                         fragments%mtot = sum(impactors%mass(:))
                         fragments%mass_dist(1) = fragments%mtot
                         fragments%mass_dist(2) = 0.0_DP
@@ -948,7 +948,7 @@ contains
                   end if
 
                   call collision_history%take_snapshot(param,system, t, "before") 
-                  select case (system%fragments%regime)
+                  select case (system%impactors%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                      plplcollision_list%status(i) = symba_collision_casedisruption(system, param, t)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)

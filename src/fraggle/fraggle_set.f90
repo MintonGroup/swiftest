@@ -17,18 +17,18 @@ contains
       !! Sets the energy and momentum budgets of the fragments based on the collider values and the before/after values of energy and momentum
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
+      class(collision_system), intent(inout) :: self      !! Fraggle fragment system object
       ! Internals
       real(DP) :: dEtot
       real(DP), dimension(NDIM) :: dL
 
-      associate(fragments => self)
+      associate(impactors => self%impactors, fragments => self%fragments)
 
-         dEtot = fragments%Etot_after - fragments%Etot_before 
-         dL(:) = fragments%Ltot_after(:) - fragments%Ltot_before(:)
+         dEtot = self%Etot(2) - self%Etot(1)
+         dL(:) = self%Ltot(:,2) - self%Ltot(:,1)
 
          fragments%L_budget(:) = -dL(:)
-         fragments%ke_budget = -(dEtot - 0.5_DP * fragments%mtot * dot_product(fragments%vbcom(:), fragments%vbcom(:))) - fragments%Qloss 
+         fragments%ke_budget = -(dEtot - 0.5_DP * fragments%mtot * dot_product(fragments%vbcom(:), fragments%vbcom(:))) - impactors%Qloss 
 
       end associate
       return
@@ -71,7 +71,7 @@ contains
             jproj = 1
          end if
   
-         select case(fragments%regime)
+         select case(impactors%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
             ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of encounter_regime.
             ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
@@ -110,7 +110,7 @@ contains
             if (param%lrotation) fragments%Ip(:, 1) = impactors%Ip(:,1)
             return
          case default
-            write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",fragments%regime
+            write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
          end select
 
          ! Make the first two bins the same as the Mlr and Mslr values that came from encounter_regime
@@ -139,7 +139,7 @@ contains
          fragments%mass(nfrag) = fragments%mass(nfrag) + mremaining
 
          ! Compute physical properties of the new fragments
-         select case(fragments%regime)
+         select case(impactors%regime)
          case(COLLRESOLVE_REGIME_HIT_AND_RUN)  ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical properties of the first fragment
             fragments%radius(1) = impactors%radius(jtarg)
             fragments%density(1) = fragments%mass_dist(iMlr) / volume(jtarg)
@@ -183,7 +183,7 @@ contains
 
          ! y-axis is the separation distance
          fragments%y_coll_unit(:) = .unit.delta_r(:) 
-         Ltot = impactors%L_orbit(:,1) + impactors%L_orbit(:,2) + impactors%L_spin(:,1) + impactors%L_spin(:,2)
+         Ltot = impactors%Lorbit(:,1) + impactors%Lorbit(:,2) + impactors%Lspin(:,1) + impactors%Lspin(:,2)
 
          L_mag = .mag.Ltot(:)
          if (L_mag > sqrt(tiny(L_mag))) then
@@ -249,24 +249,24 @@ contains
          impactors%vb(:,:) = impactors%vb(:,:) / fragments%vscale
          impactors%mass(:) = impactors%mass(:) / fragments%mscale
          impactors%radius(:) = impactors%radius(:) / fragments%dscale
-         impactors%L_spin(:,:) = impactors%L_spin(:,:) / fragments%Lscale
-         impactors%L_orbit(:,:) = impactors%L_orbit(:,:) / fragments%Lscale
+         impactors%Lspin(:,:) = impactors%Lspin(:,:) / fragments%Lscale
+         impactors%Lorbit(:,:) = impactors%Lorbit(:,:) / fragments%Lscale
 
          do i = 1, 2
-            impactors%rot(:,i) = impactors%L_spin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
+            impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
          end do
 
          fragments%mtot = fragments%mtot / fragments%mscale
          fragments%mass = fragments%mass / fragments%mscale
          fragments%radius = fragments%radius / fragments%dscale
-         fragments%Qloss = fragments%Qloss / fragments%Escale
+         impactors%Qloss = impactors%Qloss / fragments%Escale
       end associate
 
       return
    end subroutine fraggle_set_natural_scale_factors
 
 
-   module subroutine fraggle_set_original_scale_factors(self, impactors)
+   module subroutine fraggle_set_original_scale_factors(self)
       !! author: David A. Minton
       !!
       !! Restores dimenional quantities back to the system units
@@ -293,9 +293,9 @@ contains
          impactors%radius = impactors%radius * fragments%dscale
          impactors%rb = impactors%rb * fragments%dscale
          impactors%vb = impactors%vb * fragments%vscale
-         impactors%L_spin = impactors%L_spin * fragments%Lscale
+         impactors%Lspin = impactors%Lspin * fragments%Lscale
          do i = 1, 2
-            impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
+            impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
          end do
    
          fragments%mtot = fragments%mtot * fragments%mscale
@@ -310,7 +310,7 @@ contains
             fragments%vb(:, i) = fragments%v_coll(:, i) + fragments%vbcom(:)
          end do
 
-         fragments%Qloss = fragments%Qloss * fragments%Escale
+         impactors%Qloss = impactors%Qloss * fragments%Escale
 
          fragments%Lorbit_before(:) = fragments%Lorbit_before * fragments%Lscale
          fragments%Lspin_before(:) = fragments%Lspin_before * fragments%Lscale

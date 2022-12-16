@@ -16,7 +16,8 @@ module symba_classes
    use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, swiftest_storage, netcdf_parameters
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use fraggle_classes,   only : collision_impactors, fraggle_fragments
-   use encounter_classes, only : encounter_list, encounter_storage, collision_storage
+   use encounter_classes, only : encounter_list, encounter_storage
+   use collision_classes, only : collision_storage
    implicit none
    public
 
