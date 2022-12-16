@@ -64,6 +64,17 @@ module encounter_classes
       final     ::                   encounter_util_final_storage
    end type encounter_storage
 
+   !> NetCDF dimension and variable names for the enounter save object
+   type, extends(netcdf_parameters) :: encounter_io_parameters
+      character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
+      integer(I4B)       :: loop_varid               !! ID for the recursion level variable
+      integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
+      integer(I4B)       :: name_dimsize   = 0         !! Number of potential id values in snapshot
+      integer(I4B)       :: file_number  = 1         !! The number to append on the output file
+   contains
+      procedure :: initialize => encounter_io_initialize !! Initialize a set of parameters used to identify a NetCDF output object
+   end type encounter_io_parameters
+
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
       integer(I4B), dimension(:), allocatable :: ind  !! Sorted minimum/maximum extent indices (value > n indicates an ending index)
@@ -202,6 +213,12 @@ module encounter_classes
          class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
       end subroutine encounter_io_dump
 
+      module subroutine encounter_io_initialize(self, param)
+         implicit none
+         class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),     intent(in)    :: param   
+      end subroutine encounter_io_initialize
+
       module subroutine encounter_io_write_frame_snapshot(self, nc, param)
          implicit none
          class(encounter_snapshot),  intent(in)    :: self  !! Swiftest encounter structure
@@ -290,7 +307,6 @@ module encounter_classes
          real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
          character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       end subroutine encounter_util_snapshot
-
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
          implicit none

@@ -26,10 +26,10 @@ SET(FAST_MATH_FILES
             ${SRC}/modules/symba_classes.f90
             ${SRC}/modules/whm_classes.f90
             ${SRC}/modules/swiftest.f90
-            ${SRC}/fraggle/collision_io.f90
-            ${SRC}/fraggle/collision_placeholder.f90
-            ${SRC}/fraggle/collision_setup.f90
-            ${SRC}/fraggle/collision_util.f90
+            ${SRC}/collision/collision_io.f90
+            ${SRC}/collision/collision_placeholder.f90
+            ${SRC}/collision/collision_setup.f90
+            ${SRC}/collision/collision_util.f90
             ${SRC}/discard/discard.f90
             ${SRC}/drift/drift.f90
             ${SRC}/encounter/encounter_check.f90
