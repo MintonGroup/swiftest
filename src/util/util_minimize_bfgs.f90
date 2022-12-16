@@ -10,7 +10,7 @@
 submodule (swiftest_classes) s_util_minimize_bfgs
    use swiftest
 contains  
-   module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
+   module subroutine util_minimize_bfgs(f, N, x0, eps, maxloop, lerr, x1)
       !! author: David A. Minton
       !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
       !! This function implements the Broyden-Fletcher-Goldfarb-Shanno method to determine the minimum of a function of N variables.  
@@ -36,7 +36,7 @@ contains
       integer(I4B),           intent(in)    :: maxloop
       logical,                intent(out)   :: lerr
       ! Result
-      real(DP), dimension(:), allocatable :: x1
+      real(DP), dimension(:), intent(out), allocatable :: x1
       ! Internals
       integer(I4B) ::  i, j, k, l, conv
       real(DP), parameter     :: graddelta = 1e-4_DP !! Delta x for gradient calculations
@@ -227,6 +227,7 @@ contains
             call bracket(f, x0, S, N, gam, step, alo, ahi, lerr)
             if (lerr) then
                !write(*,*) "BFGS bracketing step failed!"
+               !write(*,*) "alo: ",alo, "ahi: ", ahi
                return 
             end if
             if (abs(alo - ahi) < eps) then
@@ -588,5 +589,5 @@ contains
             return 
          end subroutine quadfit
 
-   end function util_minimize_bfgs
+   end subroutine util_minimize_bfgs
 end submodule s_util_minimize_bfgs

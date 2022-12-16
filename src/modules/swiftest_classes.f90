@@ -1525,7 +1525,7 @@ module swiftest_classes
          class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
       end subroutine util_index_map_storage
 
-      module function util_minimize_bfgs(f, N, x0, eps, maxloop, lerr) result(x1)
+      module subroutine util_minimize_bfgs(f, N, x0, eps, maxloop, lerr, x1)
          use lambda_function
          implicit none
          integer(I4B),           intent(in)    :: N
@@ -1534,8 +1534,8 @@ module swiftest_classes
          real(DP),               intent(in)    :: eps
          logical,                intent(out)   :: lerr
          integer(I4B),           intent(in)    :: maxloop
-         real(DP), dimension(:), allocatable   :: x1
-      end function util_minimize_bfgs
+         real(DP), dimension(:), allocatable, intent(out)   :: x1
+      end subroutine util_minimize_bfgs
 
       module subroutine util_peri_tp(self, system, param) 
          implicit none

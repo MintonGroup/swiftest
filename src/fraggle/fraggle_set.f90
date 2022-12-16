@@ -22,13 +22,13 @@ contains
       real(DP) :: dEtot
       real(DP), dimension(NDIM) :: dL
 
-      associate(frag => self)
+      associate(fragments => self)
 
-         dEtot = frag%Etot_after - frag%Etot_before 
-         dL(:) = frag%Ltot_after(:) - frag%Ltot_before(:)
+         dEtot = fragments%Etot_after - fragments%Etot_before 
+         dL(:) = fragments%Ltot_after(:) - fragments%Ltot_before(:)
 
-         frag%L_budget(:) = -dL(:)
-         frag%ke_budget = -(dEtot - 0.5_DP * frag%mtot * dot_product(frag%vbcom(:), frag%vbcom(:))) - frag%Qloss 
+         fragments%L_budget(:) = -dL(:)
+         fragments%ke_budget = -(dEtot - 0.5_DP * fragments%mtot * dot_product(fragments%vbcom(:), fragments%vbcom(:))) - fragments%Qloss 
 
       end associate
       return
@@ -59,10 +59,10 @@ contains
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
      
-      associate(frag => self)
+      associate(fragments => self)
          ! Get mass weighted mean of Ip and density
          volume(1:2) = 4._DP / 3._DP * PI * colliders%radius(1:2)**3
-         Ip_avg(:) = (colliders%mass(1) * colliders%Ip(:,1) + colliders%mass(2) * colliders%Ip(:,2)) / frag%mtot
+         Ip_avg(:) = (colliders%mass(1) * colliders%Ip(:,1) + colliders%mass(2) * colliders%Ip(:,2)) / fragments%mtot
          if (colliders%mass(1) > colliders%mass(2)) then
             jtarg = 1
             jproj = 2
@@ -71,7 +71,7 @@ contains
             jproj = 1
          end if
   
-         select case(frag%regime)
+         select case(fragments%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
             ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of fraggle_regime.
             ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
@@ -84,7 +84,7 @@ contains
                ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
                ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
                ! code from getting an overwhelmingly large number of fragments
-               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(frag%mtot / min_mfrag))
+               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(fragments%mtot / min_mfrag))
                nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
             class default
                min_mfrag = 0.0_DP
@@ -92,36 +92,36 @@ contains
             end select
 
             i = iMrem
-            mremaining = frag%mass_dist(iMrem)
+            mremaining = fragments%mass_dist(iMrem)
             do while (i <= nfrag)
-               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * frag%mass_dist(iMslr)
+               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * fragments%mass_dist(iMslr)
                if (mremaining - mfrag < 0.0_DP) exit
                mremaining = mremaining - mfrag
                i = i + 1
             end do
             if (i < nfrag) nfrag = max(i, NFRAGMIN)  ! The sfd would actually give us fewer fragments than our maximum
     
-            call frag%setup(nfrag, param)
+            call fragments%setup(nfrag, param)
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
-            call frag%setup(1, param)
-            frag%mass(1) = frag%mass_dist(1)
-            frag%radius(1) = colliders%radius(jtarg)
-            frag%density(1) = frag%mass_dist(1) / volume(jtarg)
-            if (param%lrotation) frag%Ip(:, 1) = colliders%Ip(:,1)
+            call fragments%setup(1, param)
+            fragments%mass(1) = fragments%mass_dist(1)
+            fragments%radius(1) = colliders%radius(jtarg)
+            fragments%density(1) = fragments%mass_dist(1) / volume(jtarg)
+            if (param%lrotation) fragments%Ip(:, 1) = colliders%Ip(:,1)
             return
          case default
-            write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",frag%regime
+            write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",fragments%regime
          end select
 
          ! Make the first two bins the same as the Mlr and Mslr values that came from fraggle_regime
-         frag%mass(1) = frag%mass_dist(iMlr) 
-         frag%mass(2) = frag%mass_dist(iMslr) 
+         fragments%mass(1) = fragments%mass_dist(iMlr) 
+         fragments%mass(2) = fragments%mass_dist(iMslr) 
 
          ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
-         mremaining = frag%mass_dist(iMrem)
+         mremaining = fragments%mass_dist(iMrem)
          do i = iMrem, nfrag
-            mfrag = (1 + i - iMslr)**(-3._DP / BETA) * frag%mass_dist(iMslr)
-            frag%mass(i) = mfrag
+            mfrag = (1 + i - iMslr)**(-3._DP / BETA) * fragments%mass_dist(iMslr)
+            fragments%mass(i) = mfrag
             mremaining = mremaining - mfrag
          end do
 
@@ -131,27 +131,27 @@ contains
          else ! If the remainder is postiive, this means that the number of fragments required by the SFD is larger than our upper limit set by computational expediency. 
             istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment remains the second largest
          end if
-         mfrag = 1._DP + mremaining / sum(frag%mass(istart:nfrag))
-         frag%mass(istart:nfrag) = frag%mass(istart:nfrag) * mfrag
+         mfrag = 1._DP + mremaining / sum(fragments%mass(istart:nfrag))
+         fragments%mass(istart:nfrag) = fragments%mass(istart:nfrag) * mfrag
 
          ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
-         mremaining = frag%mtot - sum(frag%mass(1:nfrag))
-         frag%mass(nfrag) = frag%mass(nfrag) + mremaining
+         mremaining = fragments%mtot - sum(fragments%mass(1:nfrag))
+         fragments%mass(nfrag) = fragments%mass(nfrag) + mremaining
 
          ! Compute physical properties of the new fragments
-         select case(frag%regime)
+         select case(fragments%regime)
          case(COLLRESOLVE_REGIME_HIT_AND_RUN)  ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical properties of the first fragment
-            frag%radius(1) = colliders%radius(jtarg)
-            frag%density(1) = frag%mass_dist(iMlr) / volume(jtarg)
-            frag%Ip(:, 1) = colliders%Ip(:,1)
+            fragments%radius(1) = colliders%radius(jtarg)
+            fragments%density(1) = fragments%mass_dist(iMlr) / volume(jtarg)
+            fragments%Ip(:, 1) = colliders%Ip(:,1)
             istart = 2
          case default
             istart = 1
          end select
-         frag%density(istart:nfrag) = frag%mtot / sum(volume(:))
-         frag%radius(istart:nfrag) = (3 * frag%mass(istart:nfrag) / (4 * PI * frag%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
+         fragments%density(istart:nfrag) = fragments%mtot / sum(volume(:))
+         fragments%radius(istart:nfrag) = (3 * fragments%mass(istart:nfrag) / (4 * PI * fragments%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
          do i = istart, nfrag
-            frag%Ip(:, i) = Ip_avg(:)
+            fragments%Ip(:, i) = Ip_avg(:)
          end do
 
       end associate
@@ -174,7 +174,7 @@ contains
       real(DP)   :: r_col_norm, v_col_norm, L_mag
       real(DP), dimension(NDIM, self%nbody) :: L_sigma
 
-      associate(frag => self, nfrag => self%nbody)
+      associate(fragments => self, nfrag => self%nbody)
          delta_v(:) = colliders%vb(:, 2) - colliders%vb(:, 1)
          v_col_norm = .mag. delta_v(:)
          delta_r(:) = colliders%rb(:, 2) - colliders%rb(:, 1)
@@ -183,29 +183,29 @@ contains
          ! We will initialize fragments on a plane defined by the pre-impact system, with the z-axis aligned with the angular momentum vector
          ! and the y-axis aligned with the pre-impact distance vector.
          Ltot = colliders%L_orbit(:,1) + colliders%L_orbit(:,2) + colliders%L_spin(:,1) + colliders%L_spin(:,2)
-         frag%y_coll_unit(:) = delta_r(:) / r_col_norm 
+         fragments%y_coll_unit(:) = delta_r(:) / r_col_norm 
          L_mag = .mag.Ltot(:)
          if (L_mag > sqrt(tiny(L_mag))) then
-            frag%z_coll_unit(:) = Ltot(:) / L_mag
+            fragments%z_coll_unit(:) = Ltot(:) / L_mag
          else
-            call random_number(frag%z_coll_unit(:))
-            frag%z_coll_unit(:) = frag%z_coll_unit(:) / (.mag.frag%z_coll_unit(:))
+            call random_number(fragments%z_coll_unit(:))
+            fragments%z_coll_unit(:) = fragments%z_coll_unit(:) / (.mag.fragments%z_coll_unit(:))
          end if
          ! The cross product of the y- by z-axis will give us the x-axis
-         frag%x_coll_unit(:) = frag%y_coll_unit(:) .cross. frag%z_coll_unit(:)
+         fragments%x_coll_unit(:) = fragments%y_coll_unit(:) .cross. fragments%z_coll_unit(:)
    
-         if (.not.any(frag%x_coll(:,:) > 0.0_DP)) return
-         frag%rmag(:) = .mag. frag%x_coll(:,:)
+         if (.not.any(fragments%r_coll(:,:) > 0.0_DP)) return
+         fragments%rmag(:) = .mag. fragments%r_coll(:,:)
    
          call random_number(L_sigma(:,:)) ! Randomize the tangential velocity direction. This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector,
                                           ! otherwise we can get an ill-conditioned system
 
-         do concurrent(i = 1:nfrag, frag%rmag(i) > 0.0_DP)
-            frag%v_r_unit(:, i) = frag%x_coll(:, i) / frag%rmag(i)
-            frag%v_n_unit(:, i) = frag%z_coll_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
-            frag%v_n_unit(:, i) = frag%v_n_unit(:, i) / (.mag. frag%v_n_unit(:, i))
-            frag%v_t_unit(:, i) = frag%v_n_unit(:, i) .cross. frag%v_r_unit(:, i)
-            frag%v_t_unit(:, i) = frag%v_t_unit(:, i) / (.mag. frag%v_t_unit(:, i))
+         do concurrent(i = 1:nfrag, fragments%rmag(i) > 0.0_DP)
+            fragments%v_r_unit(:, i) = fragments%r_coll(:, i) / fragments%rmag(i)
+            fragments%v_n_unit(:, i) = fragments%z_coll_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
+            fragments%v_n_unit(:, i) = fragments%v_n_unit(:, i) / (.mag. fragments%v_n_unit(:, i))
+            fragments%v_t_unit(:, i) = fragments%v_n_unit(:, i) .cross. fragments%v_r_unit(:, i)
+            fragments%v_t_unit(:, i) = fragments%v_t_unit(:, i) / (.mag. fragments%v_t_unit(:, i))
          end do
 
       end associate
@@ -226,35 +226,35 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      associate(frag => self)
+      associate(fragments => self)
          ! Set scale factors
-         frag%Escale = 0.5_DP * (colliders%mass(1) * dot_product(colliders%vb(:,1), colliders%vb(:,1)) &
+         fragments%Escale = 0.5_DP * (colliders%mass(1) * dot_product(colliders%vb(:,1), colliders%vb(:,1)) &
                                + colliders%mass(2)  * dot_product(colliders%vb(:,2), colliders%vb(:,2)))
-         frag%dscale = sum(colliders%radius(:))
-         frag%mscale = frag%mtot 
-         frag%vscale = sqrt(frag%Escale / frag%mscale) 
-         frag%tscale = frag%dscale / frag%vscale 
-         frag%Lscale = frag%mscale * frag%dscale * frag%vscale
+         fragments%dscale = sum(colliders%radius(:))
+         fragments%mscale = fragments%mtot 
+         fragments%vscale = sqrt(fragments%Escale / fragments%mscale) 
+         fragments%tscale = fragments%dscale / fragments%vscale 
+         fragments%Lscale = fragments%mscale * fragments%dscale * fragments%vscale
 
          ! Scale all dimensioned quantities of colliders and fragments
-         frag%rbcom(:) = frag%rbcom(:) / frag%dscale
-         frag%vbcom(:) = frag%vbcom(:) / frag%vscale
-         frag%rbimp(:) = frag%rbimp(:) / frag%dscale
-         colliders%rb(:,:) = colliders%rb(:,:) / frag%dscale
-         colliders%vb(:,:) = colliders%vb(:,:) / frag%vscale
-         colliders%mass(:) = colliders%mass(:) / frag%mscale
-         colliders%radius(:) = colliders%radius(:) / frag%dscale
-         colliders%L_spin(:,:) = colliders%L_spin(:,:) / frag%Lscale
-         colliders%L_orbit(:,:) = colliders%L_orbit(:,:) / frag%Lscale
+         fragments%rbcom(:) = fragments%rbcom(:) / fragments%dscale
+         fragments%vbcom(:) = fragments%vbcom(:) / fragments%vscale
+         fragments%rbimp(:) = fragments%rbimp(:) / fragments%dscale
+         colliders%rb(:,:) = colliders%rb(:,:) / fragments%dscale
+         colliders%vb(:,:) = colliders%vb(:,:) / fragments%vscale
+         colliders%mass(:) = colliders%mass(:) / fragments%mscale
+         colliders%radius(:) = colliders%radius(:) / fragments%dscale
+         colliders%L_spin(:,:) = colliders%L_spin(:,:) / fragments%Lscale
+         colliders%L_orbit(:,:) = colliders%L_orbit(:,:) / fragments%Lscale
 
          do i = 1, 2
             colliders%rot(:,i) = colliders%L_spin(:,i) / (colliders%mass(i) * colliders%radius(i)**2 * colliders%Ip(3, i))
          end do
 
-         frag%mtot = frag%mtot / frag%mscale
-         frag%mass = frag%mass / frag%mscale
-         frag%radius = frag%radius / frag%dscale
-         frag%Qloss = frag%Qloss / frag%Escale
+         fragments%mtot = fragments%mtot / fragments%mscale
+         fragments%mass = fragments%mass / fragments%mscale
+         fragments%radius = fragments%radius / fragments%dscale
+         fragments%Qloss = fragments%Qloss / fragments%Escale
       end associate
 
       return
@@ -277,58 +277,58 @@ contains
       call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
       call ieee_set_halting_mode(IEEE_ALL,.false.)
 
-      associate(frag => self)
+      associate(fragments => self)
 
          ! Restore scale factors
-         frag%rbcom(:) = frag%rbcom(:) * frag%dscale
-         frag%vbcom(:) = frag%vbcom(:) * frag%vscale
-         frag%rbimp(:) = frag%rbimp(:) * frag%dscale
+         fragments%rbcom(:) = fragments%rbcom(:) * fragments%dscale
+         fragments%vbcom(:) = fragments%vbcom(:) * fragments%vscale
+         fragments%rbimp(:) = fragments%rbimp(:) * fragments%dscale
    
-         colliders%mass = colliders%mass * frag%mscale
-         colliders%radius = colliders%radius * frag%dscale
-         colliders%rb = colliders%rb * frag%dscale
-         colliders%vb = colliders%vb * frag%vscale
-         colliders%L_spin = colliders%L_spin * frag%Lscale
+         colliders%mass = colliders%mass * fragments%mscale
+         colliders%radius = colliders%radius * fragments%dscale
+         colliders%rb = colliders%rb * fragments%dscale
+         colliders%vb = colliders%vb * fragments%vscale
+         colliders%L_spin = colliders%L_spin * fragments%Lscale
          do i = 1, 2
             colliders%rot(:,i) = colliders%L_spin(:,i) * (colliders%mass(i) * colliders%radius(i)**2 * colliders%Ip(3, i))
          end do
    
-         frag%mtot = frag%mtot * frag%mscale
-         frag%mass = frag%mass * frag%mscale
-         frag%radius = frag%radius * frag%dscale
-         frag%rot = frag%rot / frag%tscale
-         frag%x_coll = frag%x_coll * frag%dscale
-         frag%v_coll = frag%v_coll * frag%vscale
+         fragments%mtot = fragments%mtot * fragments%mscale
+         fragments%mass = fragments%mass * fragments%mscale
+         fragments%radius = fragments%radius * fragments%dscale
+         fragments%rot = fragments%rot / fragments%tscale
+         fragments%r_coll = fragments%r_coll * fragments%dscale
+         fragments%v_coll = fragments%v_coll * fragments%vscale
    
-         do i = 1, frag%nbody
-            frag%rb(:, i) = frag%x_coll(:, i) + frag%rbcom(:)
-            frag%vb(:, i) = frag%v_coll(:, i) + frag%vbcom(:)
+         do i = 1, fragments%nbody
+            fragments%rb(:, i) = fragments%r_coll(:, i) + fragments%rbcom(:)
+            fragments%vb(:, i) = fragments%v_coll(:, i) + fragments%vbcom(:)
          end do
 
-         frag%Qloss = frag%Qloss * frag%Escale
+         fragments%Qloss = fragments%Qloss * fragments%Escale
 
-         frag%Lorbit_before(:) = frag%Lorbit_before * frag%Lscale
-         frag%Lspin_before(:) = frag%Lspin_before * frag%Lscale
-         frag%Ltot_before(:) = frag%Ltot_before * frag%Lscale
-         frag%ke_orbit_before = frag%ke_orbit_before * frag%Escale
-         frag%ke_spin_before = frag%ke_spin_before * frag%Escale
-         frag%pe_before = frag%pe_before * frag%Escale
-         frag%Etot_before = frag%Etot_before * frag%Escale
+         fragments%Lorbit_before(:) = fragments%Lorbit_before * fragments%Lscale
+         fragments%Lspin_before(:) = fragments%Lspin_before * fragments%Lscale
+         fragments%Ltot_before(:) = fragments%Ltot_before * fragments%Lscale
+         fragments%ke_orbit_before = fragments%ke_orbit_before * fragments%Escale
+         fragments%ke_spin_before = fragments%ke_spin_before * fragments%Escale
+         fragments%pe_before = fragments%pe_before * fragments%Escale
+         fragments%Etot_before = fragments%Etot_before * fragments%Escale
    
-         frag%Lorbit_after(:) = frag%Lorbit_after * frag%Lscale
-         frag%Lspin_after(:) = frag%Lspin_after * frag%Lscale
-         frag%Ltot_after(:) = frag%Ltot_after * frag%Lscale
-         frag%ke_orbit_after = frag%ke_orbit_after * frag%Escale
-         frag%ke_spin_after = frag%ke_spin_after * frag%Escale
-         frag%pe_after = frag%pe_after * frag%Escale
-         frag%Etot_after = frag%Etot_after * frag%Escale
+         fragments%Lorbit_after(:) = fragments%Lorbit_after * fragments%Lscale
+         fragments%Lspin_after(:) = fragments%Lspin_after * fragments%Lscale
+         fragments%Ltot_after(:) = fragments%Ltot_after * fragments%Lscale
+         fragments%ke_orbit_after = fragments%ke_orbit_after * fragments%Escale
+         fragments%ke_spin_after = fragments%ke_spin_after * fragments%Escale
+         fragments%pe_after = fragments%pe_after * fragments%Escale
+         fragments%Etot_after = fragments%Etot_after * fragments%Escale
    
-         frag%mscale = 1.0_DP
-         frag%dscale = 1.0_DP
-         frag%vscale = 1.0_DP
-         frag%tscale = 1.0_DP
-         frag%Lscale = 1.0_DP
-         frag%Escale = 1.0_DP
+         fragments%mscale = 1.0_DP
+         fragments%dscale = 1.0_DP
+         fragments%vscale = 1.0_DP
+         fragments%tscale = 1.0_DP
+         fragments%Lscale = 1.0_DP
+         fragments%Escale = 1.0_DP
       end associate
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
    

@@ -224,14 +224,14 @@ contains
    end subroutine fraggle_io_write_frame
 
 
-   module subroutine fraggle_io_log_regime(colliders, frag)
+   module subroutine fraggle_io_log_regime(colliders, fragments)
       !! author: David A. Minton
       !!
       !! Writes a log of the results of the collisional regime determination
       implicit none
       ! Arguments
       class(fraggle_colliders),   intent(in) :: colliders !! Fraggle collider system object
-      class(fraggle_fragments),   intent(in) :: frag      !! Fraggle fragment object
+      class(fraggle_fragments),   intent(in) :: fragments      !! Fraggle fragment object
       ! Internals
       character(STRMAX) :: errmsg
 
@@ -242,7 +242,7 @@ contains
       write(LUN, *) "--------------------------------------------------------------------"
       write(LUN, *) "True number of colliders : ",colliders%ncoll
       write(LUN, *) "Index list of true colliders  : ",colliders%idx(1:colliders%ncoll)
-      select case(frag%regime) 
+      select case(fragments%regime) 
       case(COLLRESOLVE_REGIME_MERGE)
          write(LUN, *) "Regime: Merge"
       case(COLLRESOLVE_REGIME_DISRUPTION)
@@ -254,7 +254,7 @@ contains
       case(COLLRESOLVE_REGIME_HIT_AND_RUN)
          write(LUN, *) "Regime: Hit and run"
       end select
-      write(LUN, *) "Energy loss                  : ", frag%Qloss
+      write(LUN, *) "Energy loss                  : ", fragments%Qloss
       write(LUN, *) "--------------------------------------------------------------------"
       close(LUN)
 

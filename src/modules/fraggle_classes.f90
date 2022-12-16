@@ -10,7 +10,7 @@
 module fraggle_classes
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
-   !! Definition of classes and methods specific to Fraggle: *Frag*ment *g*eneration that conserves angular momentum (*L*) and energy (*E*)
+   !! Definition of classes and methods specific to Fraggle: *Fragment* *g*eneration that conserves angular momentum (*L*) and energy (*E*)
    use swiftest_globals
    use swiftest_classes,  only : swiftest_parameters, swiftest_nbody_system, swiftest_cb, swiftest_pl, swiftest_storage, netcdf_parameters
    use encounter_classes, only : encounter_snapshot, encounter_io_parameters, encounter_storage
@@ -58,7 +58,7 @@ module fraggle_classes
       real(DP), dimension(NDIM)              :: x_coll_unit !! x-direction unit vector of collisional system
       real(DP), dimension(NDIM)              :: y_coll_unit !! y-direction unit vector of collisional system
       real(DP), dimension(NDIM)              :: z_coll_unit !! z-direction unit vector of collisional system
-      real(DP), dimension(:,:), allocatable  :: x_coll      !! Array of fragment position vectors in the collisional coordinate frame
+      real(DP), dimension(:,:), allocatable  :: r_coll      !! Array of fragment position vectors in the collisional coordinate frame
       real(DP), dimension(:,:), allocatable  :: v_coll      !! Array of fragment velocity vectors in the collisional coordinate frame
       real(DP), dimension(:,:), allocatable  :: v_r_unit    !! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame
       real(DP), dimension(:,:), allocatable  :: v_t_unit    !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
@@ -114,9 +114,9 @@ module fraggle_classes
 
    !! NetCDF dimension and variable names for the enounter save object
    type, extends(encounter_io_parameters) :: fraggle_io_parameters
-      integer(I4B)       :: stage_dimid                                     !! ID for the stage dimension
-      integer(I4B)       :: stage_varid                                     !! ID for the stage variable  
-      character(NAMELEN) :: stage_dimname            = "stage"              !! name of the stage dimension (before/after)
+      integer(I4B)       :: stage_dimid                                    !! ID for the stage dimension
+      integer(I4B)       :: stage_varid                                    !! ID for the stage variable  
+      character(NAMELEN) :: stage_dimname            = "stage"             !! name of the stage dimension (before/after)
       character(len=6), dimension(2) :: stage_coords = ["before", "after"] !! The stage coordinate labels
 
       character(NAMELEN) :: event_dimname = "collision" !! Name of collision event dimension
@@ -156,28 +156,28 @@ module fraggle_classes
 
       module subroutine fraggle_io_initialize_output(self, param)
          implicit none
-         class(fraggle_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),             intent(in)    :: param   
+         class(fraggle_io_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters  
       end subroutine fraggle_io_initialize_output
    
       module subroutine fraggle_io_write_frame(self, nc, param)
          implicit none
-         class(fraggle_snapshot), intent(in)    :: self  !! Swiftest encounter structure
+         class(fraggle_snapshot), intent(in)              :: self  !! Swiftest encounter structure
          class(netcdf_parameters),          intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine fraggle_io_write_frame
 
-      module subroutine fraggle_io_log_regime(colliders, frag)
+      module subroutine fraggle_io_log_regime(colliders, fragments)
          implicit none
          class(fraggle_colliders),   intent(in) :: colliders
-         class(fraggle_fragments),   intent(in) :: frag
+         class(fraggle_fragments),   intent(in) :: fragments
       end subroutine fraggle_io_log_regime
 
       !> The following interfaces are placeholders intended to satisfy the required abstract methods given by the parent class
       module subroutine fraggle_placeholder_accel(self, system, param, t, lbeg)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object 
+         class(fraggle_fragments),     intent(inout) :: self   !! Fraggle fragment system object 
          class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
@@ -205,17 +205,17 @@ module fraggle_classes
          real(DP),                     intent(in)    :: dt     !! Stepsiz
       end subroutine fraggle_placeholder_step
 
-      module subroutine fraggle_regime_colliders(self, frag, system, param)
+      module subroutine fraggle_regime_colliders(self, fragments, system, param)
          implicit none 
          class(fraggle_colliders),     intent(inout) :: self   !! Fraggle colliders object
-         class(fraggle_fragments),     intent(inout) :: frag   !! Fraggle fragment system object
+         class(fraggle_fragments),     intent(inout) :: fragments   !! Fraggle fragment system object
          class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
       end subroutine fraggle_regime_colliders
 
       module subroutine fraggle_set_budgets_fragments(self)
          implicit none
-         class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
+         class(fraggle_fragments), intent(inout) :: self !! Fraggle fragment system object
       end subroutine  fraggle_set_budgets_fragments
 
       module subroutine fraggle_set_coordinate_system(self, colliders)
@@ -255,10 +255,10 @@ module fraggle_classes
          class(fraggle_fragments), intent(inout) :: self
       end subroutine fraggle_setup_reset_fragments
 
-      module subroutine fraggle_util_add_fragments_to_system(frag, colliders, system, param)
+      module subroutine fraggle_util_add_fragments_to_system(fragments, colliders, system, param)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(fraggle_fragments),     intent(in)    :: frag      !! Fraggle fragment system object
+         class(fraggle_fragments),     intent(in)    :: fragments !! Fraggle fragment system object
          class(fraggle_colliders),     intent(in)    :: colliders !! Fraggle collider system object
          class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
@@ -269,10 +269,10 @@ module fraggle_classes
          class(fraggle_fragments), intent(inout) :: self !! Fraggle fragment system object
       end subroutine fraggle_util_ang_mtm
 
-      module subroutine fraggle_util_construct_temporary_system(frag, system, param, tmpsys, tmpparam)
+      module subroutine fraggle_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(fraggle_fragments),                   intent(in)  :: frag     !! Fraggle fragment system object
+         class(fraggle_fragments),                   intent(in)  :: fragments     !! Fraggle fragment system object
          class(swiftest_nbody_system),               intent(in)  :: system   !! Original swiftest nbody system object
          class(swiftest_parameters),                 intent(in)  :: param    !! Current swiftest run configuration parameters
          class(swiftest_nbody_system), allocatable,  intent(out) :: tmpsys   !! Output temporary swiftest nbody system object

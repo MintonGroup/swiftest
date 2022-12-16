@@ -12,7 +12,7 @@ submodule(fraggle_classes) s_fraggle_regime
 
 contains
 
-   module subroutine fraggle_regime_colliders(self, frag, system, param)
+   module subroutine fraggle_regime_colliders(self, fragments, system, param)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton 
       !!
       !! Determine which fragmentation regime the set of colliders will be. This subroutine is a wrapper for the non-polymorphic raggle_regime_collresolve subroutine.
@@ -20,7 +20,7 @@ contains
       implicit none 
       ! Arguments
       class(fraggle_colliders),     intent(inout) :: self   !! Fraggle colliders object
-      class(fraggle_fragments),     intent(inout) :: frag   !! Fraggle fragment system object
+      class(fraggle_fragments),     intent(inout) :: fragments   !! Fraggle fragment system object
       class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
       ! Internals
@@ -60,27 +60,27 @@ contains
          !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
          call fraggle_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
                                          x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
-                                         min_mfrag_si, frag%regime, mlr, mslr, frag%Qloss)
+                                         min_mfrag_si, fragments%regime, mlr, mslr, fragments%Qloss)
 
-         frag%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
-         frag%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
-         frag%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+         fragments%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
+         fragments%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
+         fragments%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
 
          ! Find the center of mass of the collisional system	
-         frag%mtot = sum(colliders%mass(:))
-         frag%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / frag%mtot 
-         frag%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / frag%mtot
+         fragments%mtot = sum(colliders%mass(:))
+         fragments%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / fragments%mtot 
+         fragments%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / fragments%mtot
 
          ! Find the point of impact between the two bodies
          runit(:) = colliders%rb(:,2) - colliders%rb(:,1)
          runit(:) = runit(:) / (.mag. runit(:))
-         frag%rbimp(:) = colliders%rb(:,1) + colliders%radius(1) * runit(:)
+         fragments%rbimp(:) = colliders%rb(:,1) + colliders%radius(1) * runit(:)
 
          ! Convert quantities back to the system units and save them into the fragment system
-         frag%mass_dist(:) = (frag%mass_dist(:) / param%MU2KG) 
-         frag%Qloss = frag%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
+         fragments%mass_dist(:) = (fragments%mass_dist(:) / param%MU2KG) 
+         fragments%Qloss = fragments%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
 
-         call fraggle_io_log_regime(colliders, frag)
+         call fraggle_io_log_regime(colliders, fragments)
       end associate
 
       return

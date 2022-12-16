@@ -22,7 +22,7 @@ contains
       self%rb(:,:) = 0.0_DP
       self%vb(:,:) = 0.0_DP
       self%rot(:,:) = 0.0_DP
-      self%x_coll(:,:) = 0.0_DP
+      self%r_coll(:,:) = 0.0_DP
       self%v_coll(:,:) = 0.0_DP
       self%v_r_unit(:,:) = 0.0_DP
       self%v_t_unit(:,:) = 0.0_DP
@@ -55,7 +55,7 @@ contains
       call setup_pl(self, n, param)
       if (n < 0) return
 
-      if (allocated(self%x_coll)) deallocate(self%x_coll)
+      if (allocated(self%r_coll)) deallocate(self%r_coll)
       if (allocated(self%v_coll)) deallocate(self%v_coll)
       if (allocated(self%v_r_unit)) deallocate(self%v_r_unit) 
       if (allocated(self%v_t_unit)) deallocate(self%v_t_unit) 
@@ -67,7 +67,7 @@ contains
 
       if (n == 0) return
 
-      allocate(self%x_coll(NDIM,n)) 
+      allocate(self%r_coll(NDIM,n)) 
       allocate(self%v_coll(NDIM,n)) 
       allocate(self%v_r_unit(NDIM,n)) 
       allocate(self%v_t_unit(NDIM,n)) 

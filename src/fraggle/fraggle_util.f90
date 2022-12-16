@@ -11,13 +11,13 @@ submodule(fraggle_classes) s_fraggle_util
    use swiftest
 contains
 
-   module subroutine fraggle_util_add_fragments_to_system(frag, colliders, system, param)
+   module subroutine fraggle_util_add_fragments_to_system(fragments, colliders, system, param)
       !! Author: David A. Minton
       !!
       !! Adds fragments to the temporary system pl object
       implicit none
       ! Arguments
-      class(fraggle_fragments),     intent(in)    :: frag      !! Fraggle fragment system object
+      class(fraggle_fragments),     intent(in)    :: fragments      !! Fraggle fragment system object
       class(fraggle_colliders),     intent(in)    :: colliders !! Fraggle collider system object
       class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
@@ -25,24 +25,24 @@ contains
       integer(I4B) :: i, npl_before, npl_after
       logical, dimension(:), allocatable :: lexclude
 
-      associate(nfrag => frag%nbody, pl => system%pl, cb => system%cb)
+      associate(nfrag => fragments%nbody, pl => system%pl, cb => system%cb)
          npl_after = pl%nbody
          npl_before = npl_after - nfrag
          allocate(lexclude(npl_after))
 
          pl%status(npl_before+1:npl_after) = ACTIVE
-         pl%mass(npl_before+1:npl_after) = frag%mass(1:nfrag)
-         pl%Gmass(npl_before+1:npl_after) = frag%mass(1:nfrag) * param%GU
-         pl%radius(npl_before+1:npl_after) = frag%radius(1:nfrag)
+         pl%mass(npl_before+1:npl_after) = fragments%mass(1:nfrag)
+         pl%Gmass(npl_before+1:npl_after) = fragments%mass(1:nfrag) * param%GU
+         pl%radius(npl_before+1:npl_after) = fragments%radius(1:nfrag)
          do concurrent (i = 1:nfrag)
-            pl%rb(:,npl_before+i) =  frag%rb(:,i) 
-            pl%vb(:,npl_before+i) =  frag%vb(:,i) 
-            pl%rh(:,npl_before+i) =  frag%rb(:,i) - cb%rb(:)
-            pl%vh(:,npl_before+i) =  frag%vb(:,i) - cb%vb(:)
+            pl%rb(:,npl_before+i) =  fragments%rb(:,i) 
+            pl%vb(:,npl_before+i) =  fragments%vb(:,i) 
+            pl%rh(:,npl_before+i) =  fragments%rb(:,i) - cb%rb(:)
+            pl%vh(:,npl_before+i) =  fragments%vb(:,i) - cb%vb(:)
          end do
          if (param%lrotation) then
-            pl%Ip(:,npl_before+1:npl_after) = frag%Ip(:,1:nfrag)
-            pl%rot(:,npl_before+1:npl_after) = frag%rot(:,1:nfrag)
+            pl%Ip(:,npl_before+1:npl_after) = fragments%Ip(:,1:nfrag)
+            pl%rot(:,npl_before+1:npl_after) = fragments%rot(:,1:nfrag)
          end if
          ! This will remove the colliders from the system since we've replaced them with fragments
          lexclude(1:npl_after) = .false.
@@ -69,13 +69,13 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      associate(frag => self, nfrag => self%nbody)
-         frag%L_orbit(:) = 0.0_DP
-         frag%L_spin(:) = 0.0_DP
+      associate(fragments => self, nfrag => self%nbody)
+         fragments%L_orbit(:) = 0.0_DP
+         fragments%L_spin(:) = 0.0_DP
    
          do i = 1, nfrag
-            frag%L_orbit(:) = frag%L_orbit(:) + frag%mass(i) * (frag%x_coll(:, i) .cross. frag%v_coll(:, i))
-            frag%L_spin(:) = frag%L_spin(:) + frag%mass(i) * frag%radius(i)**2 * frag%Ip(:, i) * frag%rot(:, i)
+            fragments%L_orbit(:) = fragments%L_orbit(:) + fragments%mass(i) * (fragments%r_coll(:, i) .cross. fragments%v_coll(:, i))
+            fragments%L_spin(:) = fragments%L_spin(:) + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:, i) * fragments%rot(:, i)
          end do
       end associate
 
@@ -83,13 +83,13 @@ contains
    end subroutine fraggle_util_ang_mtm
 
 
-   module subroutine fraggle_util_construct_temporary_system(frag, system, param, tmpsys, tmpparam)
+   module subroutine fraggle_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
       !! Author: David A. Minton
       !!
       !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
       implicit none
       ! Arguments
-      class(fraggle_fragments),                   intent(in)  :: frag     !! Fraggle fragment system object
+      class(fraggle_fragments),                   intent(in)  :: fragments     !! Fraggle fragment system object
       class(swiftest_nbody_system),               intent(in)  :: system   !! Original swiftest nbody system object
       class(swiftest_parameters),                 intent(in)  :: param    !! Current swiftest run configuration parameters
       class(swiftest_nbody_system), allocatable,  intent(out) :: tmpsys   !! Output temporary swiftest nbody system object
@@ -98,7 +98,7 @@ contains
       logical, dimension(:), allocatable :: linclude
       integer(I4B) :: npl_tot
 
-      associate(nfrag => frag%nbody, pl => system%pl, npl => system%pl%nbody, cb => system%cb)
+      associate(nfrag => fragments%nbody, pl => system%pl, npl => system%pl%nbody, cb => system%cb)
          ! Set up a new system based on the original
          if (allocated(tmpparam)) deallocate(tmpparam)
          if (allocated(tmpsys)) deallocate(tmpsys)
@@ -123,7 +123,7 @@ contains
          call tmpsys%pl%fill(pl, linclude)
 
          ! Scale the temporary system to the natural units of the current Fraggle calculation
-         call tmpsys%rescale(tmpparam, frag%mscale, frag%dscale, frag%tscale)
+         call tmpsys%rescale(tmpparam, fragments%mscale, fragments%dscale, fragments%tscale)
 
       end associate
 
@@ -154,7 +154,7 @@ contains
       ! Arguments
       type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
 
-      if (allocated(self%x_coll)) deallocate(self%x_coll)
+      if (allocated(self%r_coll)) deallocate(self%r_coll)
       if (allocated(self%v_coll)) deallocate(self%v_coll)
       if (allocated(self%v_r_unit)) deallocate(self%v_r_unit)
       if (allocated(self%v_t_unit)) deallocate(self%v_t_unit)
@@ -201,7 +201,7 @@ contains
       class(swiftest_parameters), allocatable, save   :: tmpparam
       integer(I4B)  :: npl_before, npl_after
 
-      associate(frag => self, nfrag => self%nbody, pl => system%pl, cb => system%cb)
+      associate(fragments => self, nfrag => self%nbody, pl => system%pl, cb => system%cb)
 
          ! Because we're making a copy of the massive body object with the excludes/fragments appended, we need to deallocate the
          ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
@@ -212,7 +212,7 @@ contains
          npl_after = npl_before + nfrag
 
          if (lbefore) then
-            call fraggle_util_construct_temporary_system(frag, system, param, tmpsys, tmpparam)
+            call fraggle_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
             ! Build the exluded body logical mask for the *before* case: Only the original bodies are used to compute energy and momentum
             tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = ACTIVE
             tmpsys%pl%status(npl_before+1:npl_after) = INACTIVE
@@ -223,7 +223,7 @@ contains
                call util_exit(FAILURE)
             end if
             ! Build the exluded body logical mask for the *after* case: Only the new bodies are used to compute energy and momentum
-            call fraggle_util_add_fragments_to_system(frag, colliders, tmpsys, tmpparam)
+            call fraggle_util_add_fragments_to_system(fragments, colliders, tmpsys, tmpparam)
             tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = INACTIVE
             tmpsys%pl%status(npl_before+1:npl_after) = ACTIVE
          end if 
@@ -235,21 +235,21 @@ contains
 
          ! Calculate the current fragment energy and momentum balances
          if (lbefore) then
-            frag%Lorbit_before(:) = tmpsys%Lorbit(:)
-            frag%Lspin_before(:) = tmpsys%Lspin(:)
-            frag%Ltot_before(:) = tmpsys%Ltot(:)
-            frag%ke_orbit_before = tmpsys%ke_orbit
-            frag%ke_spin_before = tmpsys%ke_spin
-            frag%pe_before = tmpsys%pe
-            frag%Etot_before = tmpsys%te 
+            fragments%Lorbit_before(:) = tmpsys%Lorbit(:)
+            fragments%Lspin_before(:) = tmpsys%Lspin(:)
+            fragments%Ltot_before(:) = tmpsys%Ltot(:)
+            fragments%ke_orbit_before = tmpsys%ke_orbit
+            fragments%ke_spin_before = tmpsys%ke_spin
+            fragments%pe_before = tmpsys%pe
+            fragments%Etot_before = tmpsys%te 
          else
-            frag%Lorbit_after(:) = tmpsys%Lorbit(:)
-            frag%Lspin_after(:) = tmpsys%Lspin(:)
-            frag%Ltot_after(:) = tmpsys%Ltot(:)
-            frag%ke_orbit_after = tmpsys%ke_orbit
-            frag%ke_spin_after = tmpsys%ke_spin
-            frag%pe_after = tmpsys%pe
-            frag%Etot_after = tmpsys%te - (frag%pe_after - frag%pe_before) ! Gotta be careful with PE when number of bodies changes.
+            fragments%Lorbit_after(:) = tmpsys%Lorbit(:)
+            fragments%Lspin_after(:) = tmpsys%Lspin(:)
+            fragments%Ltot_after(:) = tmpsys%Ltot(:)
+            fragments%ke_orbit_after = tmpsys%ke_orbit
+            fragments%ke_spin_after = tmpsys%ke_spin
+            fragments%pe_after = tmpsys%pe
+            fragments%Etot_after = tmpsys%te - (fragments%pe_after - fragments%pe_before) ! Gotta be careful with PE when number of bodies changes.
          end if
       end associate
 
@@ -308,16 +308,16 @@ contains
       real(DP), parameter :: ke_avg_deficit_target = 0.0_DP 
 
       ! Introduce a bit of noise in the radius determination so we don't just flip flop between similar failed positions
-      associate(frag => self)
+      associate(fragments => self)
          call random_number(delta_r_max)
          delta_r_max = sum(colliders%radius(:)) * (1.0_DP + 2e-1_DP * (delta_r_max - 0.5_DP))
          if (try == 1) then
-            ke_tot_deficit = - (frag%ke_budget - frag%ke_orbit - frag%ke_spin)
+            ke_tot_deficit = - (fragments%ke_budget - fragments%ke_orbit - fragments%ke_spin)
             ke_avg_deficit = ke_tot_deficit
             delta_r = delta_r_max
          else
             ! Linearly interpolate the last two failed solution ke deficits to find a new distance value to try
-            ke_tot_deficit = ke_tot_deficit - (frag%ke_budget - frag%ke_orbit - frag%ke_spin)
+            ke_tot_deficit = ke_tot_deficit - (fragments%ke_budget - fragments%ke_orbit - fragments%ke_spin)
             ke_avg_deficit = ke_tot_deficit / try
             delta_r = (r_max_start - r_max_start_old) * (ke_avg_deficit_target - ke_avg_deficit_old) &
                                                       / (ke_avg_deficit - ke_avg_deficit_old)
