@@ -30,7 +30,7 @@ contains
       character(len=STRMAX) :: message 
       real(DP) :: dpe
 
-      associate(colliders => system%colliders, fragments => system%fragments)
+      associate(impactors => system%impactors, fragments => system%fragments)
 
          select case(fragments%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION)
@@ -38,14 +38,14 @@ contains
          case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
             message = "Supercatastrophic disruption between"
          end select
-         call symba_collision_collider_message(system%pl, colliders%idx, message)
+         call symba_collision_collider_message(system%pl, impactors%idx, message)
          call io_log_one_message(FRAGGLE_LOG_OUT, message)
 
          ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
-         call fragments%set_mass_dist(colliders, param)
+         call fragments%set_mass_dist(impactors, param)
 
          ! Generate the position and velocity distributions of the fragments
-         call fragments%generate_fragments(colliders, system, param, lfailure)
+         call fragments%generate_fragments(impactors, system, param, lfailure)
 
          dpe = fragments%pe_after - fragments%pe_before 
          system%Ecollisions = system%Ecollisions - dpe 
@@ -57,9 +57,9 @@ contains
             nfrag = 0
             select type(pl => system%pl)
             class is (symba_pl)
-               pl%status(colliders%idx(:)) = status
-               pl%ldiscard(colliders%idx(:)) = .false.
-               pl%lcollision(colliders%idx(:)) = .false.
+               pl%status(impactors%idx(:)) = status
+               pl%ldiscard(impactors%idx(:)) = .false.
+               pl%lcollision(impactors%idx(:)) = .false.
             end select
          else
             ! Populate the list of new bodies
@@ -69,7 +69,7 @@ contains
             select case(fragments%regime)
             case(COLLRESOLVE_REGIME_DISRUPTION)
                status = DISRUPTION
-               ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
+               ibiggest = impactors%idx(maxloc(system%pl%Gmass(impactors%idx(:)), dim=1))
                fragments%id(1) = system%pl%id(ibiggest)
                fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
                param%maxid = fragments%id(nfrag)
@@ -105,12 +105,12 @@ contains
       character(len=STRMAX) :: message
       real(DP) :: dpe
 
-      associate(colliders => system%colliders, fragments => system%fragments)
+      associate(impactors => system%impactors, fragments => system%fragments)
          message = "Hit and run between"
-         call symba_collision_collider_message(system%pl, colliders%idx, message)
+         call symba_collision_collider_message(system%pl, impactors%idx, message)
          call io_log_one_message(FRAGGLE_LOG_OUT, trim(adjustl(message)))
 
-         if (colliders%mass(1) > colliders%mass(2)) then
+         if (impactors%mass(1) > impactors%mass(2)) then
             jtarg = 1
             jproj = 2
          else
@@ -118,16 +118,16 @@ contains
             jproj = 1
          end if
 
-         if (fragments%mass_dist(2) > 0.9_DP * colliders%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
+         if (fragments%mass_dist(2) > 0.9_DP * impactors%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
             call io_log_one_message(FRAGGLE_LOG_OUT, "Pure hit and run. No new fragments generated.")
             nfrag = 0
             lpure = .true.
          else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
             lpure = .false.
-            call fragments%set_mass_dist(colliders, param)
+            call fragments%set_mass_dist(impactors, param)
 
             ! Generate the position and velocity distributions of the fragments
-            call fragments%generate_fragments(colliders, system, param, lpure)
+            call fragments%generate_fragments(impactors, system, param, lpure)
 
             dpe = fragments%pe_after - fragments%pe_before 
             system%Ecollisions = system%Ecollisions - dpe 
@@ -146,13 +146,13 @@ contains
             status = HIT_AND_RUN_PURE
             select type(pl => system%pl)
             class is (symba_pl)
-               pl%status(colliders%idx(:)) = ACTIVE
-               pl%ldiscard(colliders%idx(:)) = .false.
-               pl%lcollision(colliders%idx(:)) = .false.
+               pl%status(impactors%idx(:)) = ACTIVE
+               pl%ldiscard(impactors%idx(:)) = .false.
+               pl%lcollision(impactors%idx(:)) = .false.
             end select
-            allocate(system%fragments%pl, source=system%colliders%pl) ! Be sure to save the pl so that snapshots still work 
+            allocate(system%fragments%pl, source=system%impactors%pl) ! Be sure to save the pl so that snapshots still work 
          else
-            ibiggest = colliders%idx(maxloc(system%pl%Gmass(colliders%idx(:)), dim=1))
+            ibiggest = impactors%idx(maxloc(system%pl%Gmass(impactors%idx(:)), dim=1))
             fragments%id(1) = system%pl%id(ibiggest)
             fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
             param%maxid = fragments%id(nfrag)
@@ -187,37 +187,37 @@ contains
       real(DP)                                  :: dpe
       character(len=STRMAX) :: message
 
-      associate(colliders => system%colliders, fragments => system%fragments)
+      associate(impactors => system%impactors, fragments => system%fragments)
          message = "Merging"
-         call symba_collision_collider_message(system%pl, colliders%idx, message)
+         call symba_collision_collider_message(system%pl, impactors%idx, message)
          call io_log_one_message(FRAGGLE_LOG_OUT, message)
 
          select type(pl => system%pl)
          class is (symba_pl)
 
-            call fragments%set_mass_dist(colliders, param)
+            call fragments%set_mass_dist(impactors, param)
 
             ! Calculate the initial energy of the system without the collisional family
-            call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.true.)
+            call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.true.)
 
-            ibiggest = colliders%idx(maxloc(pl%Gmass(colliders%idx(:)), dim=1))
+            ibiggest = impactors%idx(maxloc(pl%Gmass(impactors%idx(:)), dim=1))
             fragments%id(1) = pl%id(ibiggest)
             fragments%rb(:,1) = fragments%rbcom(:)
             fragments%vb(:,1) = fragments%vbcom(:)
 
             if (param%lrotation) then
                ! Conserve angular momentum by putting pre-impact orbital momentum into spin of the new body
-               L_spin_new(:) = colliders%L_orbit(:,1) + colliders%L_orbit(:,2) + colliders%L_spin(:,1) + colliders%L_spin(:,2)  
+               L_spin_new(:) = impactors%L_orbit(:,1) + impactors%L_orbit(:,2) + impactors%L_spin(:,1) + impactors%L_spin(:,2)  
 
                ! Assume prinicpal axis rotation on 3rd Ip axis
                fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
             else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
-               system%Lescape(:) = system%Lescape(:) + colliders%L_orbit(:,1) + colliders%L_orbit(:,2) 
+               system%Lescape(:) = system%Lescape(:) + impactors%L_orbit(:,1) + impactors%L_orbit(:,2) 
             end if
 
-            ! Keep track of the component of potential energy due to the pre-impact colliders%idx for book-keeping
+            ! Keep track of the component of potential energy due to the pre-impact impactors%idx for book-keeping
             ! Get the energy of the system after the collision
-            call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
+            call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.false.)
             dpe = fragments%pe_after - fragments%pe_before 
             system%Ecollisions = system%Ecollisions - dpe 
             system%Euntracked  = system%Euntracked + dpe 
@@ -225,8 +225,8 @@ contains
 
             ! Update any encounter lists that have the removed bodies in them so that they instead point to the new 
             do k = 1, system%plplenc_list%nenc
-               do j = 1, colliders%ncoll
-                  i = colliders%idx(j)
+               do j = 1, impactors%ncoll
+                  i = impactors%idx(j)
                   if (i == ibiggest) cycle
                   if (system%plplenc_list%id1(k) == pl%id(i)) then
                      system%plplenc_list%id1(k) = pl%id(ibiggest)
@@ -258,7 +258,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_pl),            intent(in)    :: pl            !! Swiftest massive body object
-      integer(I4B),    dimension(:), intent(in)    :: collidx           !! Index of collisional colliders%idx members
+      integer(I4B),    dimension(:), intent(in)    :: collidx           !! Index of collisional impactors%idx members
       character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
       ! Internals
       integer(I4B) :: i, n
@@ -375,7 +375,7 @@ contains
                         self%v2(:,k) = pl%vb(:,j) 
                         if (lcollision(k)) then
                            ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collider pair
-                           if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_colliders([i,j])
+                           if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_impactors([i,j])
       
                            ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
                            pl%lcollision([i, j]) = .true.
@@ -467,10 +467,10 @@ contains
    end subroutine symba_collision_check_one
 
 
-   function symba_collision_consolidate_colliders(pl, cb, param, idx_parent, colliders) result(lflag)
+   function symba_collision_consolidate_impactors(pl, cb, param, idx_parent, impactors) result(lflag)
       !! author: David A. Minton
       !! 
-      !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all colliders%idx members, 
+      !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%idx members, 
       !! and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the collisional outcome.
       implicit none
       ! Arguments
@@ -478,9 +478,9 @@ contains
       class(symba_cb),                                 intent(inout) :: cb               !! SyMBA central body object
       class(symba_parameters),                         intent(in)    :: param            !! Current run configuration parameters with SyMBA additions
       integer(I4B),    dimension(2),                   intent(inout) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      class(fraggle_colliders),                        intent(out)   :: colliders
+      class(collision_impactors),                        intent(out)   :: impactors
       ! Result
-      logical                                                        :: lflag            !! Logical flag indicating whether a colliders%idx was successfully created or not
+      logical                                                        :: lflag            !! Logical flag indicating whether a impactors%idx was successfully created or not
       ! Internals
       type collidx_array
          integer(I4B), dimension(:), allocatable :: id
@@ -488,7 +488,7 @@ contains
       end type collidx_array
       type(collidx_array), dimension(2) :: parent_child_index_array
       integer(I4B), dimension(2)       :: nchild
-      integer(I4B)                     :: i, j, ncolliders, idx_child
+      integer(I4B)                     :: i, j, nimpactors, idx_child
       real(DP), dimension(2)           :: volume, density
       real(DP)                         :: mchild, volchild
       real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv
@@ -510,9 +510,9 @@ contains
          pl%kin(idx_parent(2))%parent = idx_parent(1)
       end if
 
-      colliders%mass(:) = pl%mass(idx_parent(:)) ! Note: This is meant to mass, not G*mass, as the collisional regime determination uses mass values that will be converted to Si
-      colliders%radius(:) = pl%radius(idx_parent(:))
-      volume(:) =  (4.0_DP / 3.0_DP) * PI * colliders%radius(:)**3
+      impactors%mass(:) = pl%mass(idx_parent(:)) ! Note: This is meant to mass, not G*mass, as the collisional regime determination uses mass values that will be converted to Si
+      impactors%radius(:) = pl%radius(idx_parent(:))
+      volume(:) =  (4.0_DP / 3.0_DP) * PI * impactors%radius(:)**3
  
       ! Group together the ids and indexes of each collisional parent and its children
       do j = 1, 2
@@ -528,24 +528,24 @@ contains
          end associate
       end do
 
-      ! Consolidate the groups of collsional parents with any children they may have into a single "colliders%idx" index array
-      ncolliders = 2 + sum(nchild(:))
-      allocate(colliders%idx(ncolliders))
-      colliders%idx = [parent_child_index_array(1)%idx(:),parent_child_index_array(2)%idx(:)]
+      ! Consolidate the groups of collsional parents with any children they may have into a single "impactors%idx" index array
+      nimpactors = 2 + sum(nchild(:))
+      allocate(impactors%idx(nimpactors))
+      impactors%idx = [parent_child_index_array(1)%idx(:),parent_child_index_array(2)%idx(:)]
 
-      colliders%ncoll = count(pl%lcollision(colliders%idx(:)))
-      colliders%idx = pack(colliders%idx(:), pl%lcollision(colliders%idx(:)))
-      colliders%L_spin(:,:) = 0.0_DP
-      colliders%Ip(:,:) = 0.0_DP
+      impactors%ncoll = count(pl%lcollision(impactors%idx(:)))
+      impactors%idx = pack(impactors%idx(:), pl%lcollision(impactors%idx(:)))
+      impactors%L_spin(:,:) = 0.0_DP
+      impactors%Ip(:,:) = 0.0_DP
 
       ! Find the barycenter of each body along with its children, if it has any
       do j = 1, 2
-         colliders%rb(:, j)  = pl%rh(:, idx_parent(j)) + cb%rb(:)
-         colliders%vb(:, j)  = pl%vb(:, idx_parent(j))
+         impactors%rb(:, j)  = pl%rh(:, idx_parent(j)) + cb%rb(:)
+         impactors%vb(:, j)  = pl%vb(:, idx_parent(j))
          ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
          if (param%lrotation) then
-            colliders%Ip(:, j) = colliders%mass(j) * pl%Ip(:, idx_parent(j))
-            colliders%L_spin(:, j) = colliders%Ip(3, j) * colliders%radius(j)**2 * pl%rot(:, idx_parent(j))
+            impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
+            impactors%L_spin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
          end if
 
          if (nchild(j) > 0) then
@@ -560,49 +560,49 @@ contains
                ! Get angular momentum of the child-parent pair and add that to the spin
                ! Add the child's spin
                if (param%lrotation) then
-                  xcom(:) = (colliders%mass(j) * colliders%rb(:,j) + mchild * xchild(:)) / (colliders%mass(j) + mchild)
-                  vcom(:) = (colliders%mass(j) * colliders%vb(:,j) + mchild * vchild(:)) / (colliders%mass(j) + mchild)
-                  xc(:) = colliders%rb(:, j) - xcom(:)
-                  vc(:) = colliders%vb(:, j) - vcom(:)
+                  xcom(:) = (impactors%mass(j) * impactors%rb(:,j) + mchild * xchild(:)) / (impactors%mass(j) + mchild)
+                  vcom(:) = (impactors%mass(j) * impactors%vb(:,j) + mchild * vchild(:)) / (impactors%mass(j) + mchild)
+                  xc(:) = impactors%rb(:, j) - xcom(:)
+                  vc(:) = impactors%vb(:, j) - vcom(:)
                   xcrossv(:) = xc(:) .cross. vc(:) 
-                  colliders%L_spin(:, j) = colliders%L_spin(:, j) + colliders%mass(j) * xcrossv(:)
+                  impactors%L_spin(:, j) = impactors%L_spin(:, j) + impactors%mass(j) * xcrossv(:)
    
                   xc(:) = xchild(:) - xcom(:)
                   vc(:) = vchild(:) - vcom(:)
                   xcrossv(:) = xc(:) .cross. vc(:) 
-                  colliders%L_spin(:, j) = colliders%L_spin(:, j) + mchild * xcrossv(:)
+                  impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * xcrossv(:)
 
-                  colliders%L_spin(:, j) = colliders%L_spin(:, j) + mchild * pl%Ip(3, idx_child)  &
+                  impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * pl%Ip(3, idx_child)  &
                                                                            * pl%radius(idx_child)**2 &
                                                                            * pl%rot(:, idx_child)
-                  colliders%Ip(:, j) = colliders%Ip(:, j) + mchild * pl%Ip(:, idx_child)
+                  impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
                end if
 
                ! Merge the child and parent
-               colliders%mass(j) = colliders%mass(j) + mchild
-               colliders%rb(:, j) = xcom(:)
-               colliders%vb(:, j) = vcom(:)
+               impactors%mass(j) = impactors%mass(j) + mchild
+               impactors%rb(:, j) = xcom(:)
+               impactors%vb(:, j) = vcom(:)
             end do
          end if
-         density(j) = colliders%mass(j) / volume(j)
-         colliders%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
-         if (param%lrotation) colliders%Ip(:, j) = colliders%Ip(:, j) / colliders%mass(j)
+         density(j) = impactors%mass(j) / volume(j)
+         impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
+         if (param%lrotation) impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
       end do
       lflag = .true.
 
-      xcom(:) = (colliders%mass(1) * colliders%rb(:, 1) + colliders%mass(2) * colliders%rb(:, 2)) / sum(colliders%mass(:))
-      vcom(:) = (colliders%mass(1) * colliders%vb(:, 1) + colliders%mass(2) * colliders%vb(:, 2)) / sum(colliders%mass(:))
-      mxc(:, 1) = colliders%mass(1) * (colliders%rb(:, 1) - xcom(:))
-      mxc(:, 2) = colliders%mass(2) * (colliders%rb(:, 2) - xcom(:))
-      vcc(:, 1) = colliders%vb(:, 1) - vcom(:)
-      vcc(:, 2) = colliders%vb(:, 2) - vcom(:)
-      colliders%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
+      xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / sum(impactors%mass(:))
+      vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / sum(impactors%mass(:))
+      mxc(:, 1) = impactors%mass(1) * (impactors%rb(:, 1) - xcom(:))
+      mxc(:, 2) = impactors%mass(2) * (impactors%rb(:, 2) - xcom(:))
+      vcc(:, 1) = impactors%vb(:, 1) - vcom(:)
+      vcc(:, 2) = impactors%vb(:, 2) - vcom(:)
+      impactors%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
 
-      ! Destroy the kinship relationships for all members of this colliders%idx
-      call pl%reset_kinship(colliders%idx(:))
+      ! Destroy the kinship relationships for all members of this impactors%idx
+      call pl%reset_kinship(impactors%idx(:))
 
       return
-   end function symba_collision_consolidate_colliders
+   end function symba_collision_consolidate_impactors
 
 
    module subroutine symba_collision_extract_collisions_from_encounters(self, system, param)
@@ -674,10 +674,10 @@ contains
    end subroutine symba_collision_extract_collisions_from_encounters
 
 
-   module subroutine symba_collision_make_colliders_pl(self, idx)
+   module subroutine symba_collision_make_impactors_pl(self, idx)
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!
-      !! When a single body is involved in more than one collision in a single step, it becomes part of a colliders%idx.
+      !! When a single body is involved in more than one collision in a single step, it becomes part of a impactors%idx.
       !! The largest body involved in a multi-body collision is the "parent" and all bodies that collide with it are its "children,"
       !! including those that collide with the children.
       !! 
@@ -732,7 +732,7 @@ contains
       end associate
 
       return
-   end subroutine symba_collision_make_colliders_pl
+   end subroutine symba_collision_make_impactors_pl
 
 
    subroutine symba_collision_mergeaddsub(system, param, t, status)
@@ -747,7 +747,7 @@ contains
       real(DP),                  intent(in)    :: t      !! Time of collision
       integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
       ! Internals
-      integer(I4B) :: i, ibiggest, ismallest, iother, nstart, nend, ncolliders, nfrag
+      integer(I4B) :: i, ibiggest, ismallest, iother, nstart, nend, nimpactors, nfrag
       logical, dimension(system%pl%nbody)    :: lmask
       class(symba_pl), allocatable           :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
@@ -757,9 +757,9 @@ contains
       class is (symba_pl)
          select type(pl_discards => system%pl_discards)
          class is (symba_merger)
-            associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody, colliders => system%colliders, fragments => system%fragments)
-               ! Add the colliders%idx bodies to the subtraction list
-               ncolliders = colliders%ncoll
+            associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody, impactors => system%impactors, fragments => system%fragments)
+               ! Add the impactors%idx bodies to the subtraction list
+               nimpactors = impactors%ncoll
                nfrag = fragments%nbody
 
                param%maxid_collision = max(param%maxid_collision, maxval(system%pl%info(:)%collision_id))
@@ -768,8 +768,8 @@ contains
                ! Setup new bodies
                allocate(plnew, mold=pl)
                call plnew%setup(nfrag, param)
-               ibiggest  = colliders%idx(maxloc(pl%Gmass(colliders%idx(:)), dim=1))
-               ismallest = colliders%idx(minloc(pl%Gmass(colliders%idx(:)), dim=1))
+               ibiggest  = impactors%idx(maxloc(pl%Gmass(impactors%idx(:)), dim=1))
+               ismallest = impactors%idx(minloc(pl%Gmass(impactors%idx(:)), dim=1))
 
                ! Copy over identification, information, and physical properties of the new bodies from the fragment list
                plnew%id(1:nfrag) = fragments%id(1:nfrag) 
@@ -796,13 +796,13 @@ contains
                                                   origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
                   end do
-                  do i = 1, ncolliders
-                     if (colliders%idx(i) == ibiggest) then
+                  do i = 1, nimpactors
+                     if (impactors%idx(i) == ibiggest) then
                         iother = ismallest
                      else
                         iother = ibiggest
                      end if
-                     call pl%info(colliders%idx(i))%set_value(status="Supercatastrophic", discard_time=t, &
+                     call pl%info(impactors%idx(i))%set_value(status="Supercatastrophic", discard_time=t, &
                                                               discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do
@@ -820,21 +820,21 @@ contains
                                                   origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
                                                   collision_id=param%maxid_collision)
                   end do
-                  do i = 1, ncolliders
-                     if (colliders%idx(i) == ibiggest) cycle
+                  do i = 1, nimpactors
+                     if (impactors%idx(i) == ibiggest) cycle
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status=origin_type, discard_time=t, &
+                     call pl%info(impactors%idx(i))%set_value(status=origin_type, discard_time=t, &
                                                               discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), &
                                                               discard_body_id=iother)
                   end do 
                case(MERGED)
                   call plnew%info(1)%copy(pl%info(ibiggest))
                   plnew%status(1) = OLD_PARTICLE
-                  do i = 1, ncolliders
-                     if (colliders%idx(i) == ibiggest) cycle
+                  do i = 1, nimpactors
+                     if (impactors%idx(i) == ibiggest) cycle
 
                      iother = ibiggest
-                     call pl%info(colliders%idx(i))%set_value(status="MERGED", discard_time=t, discard_rh=pl%rh(:,i), &
+                     call pl%info(impactors%idx(i))%set_value(status="MERGED", discard_time=t, discard_rh=pl%rh(:,i), &
                                                               discard_vh=pl%vh(:,i), discard_body_id=iother)
                   end do 
                end select
@@ -874,11 +874,11 @@ contains
                pl_adds%ncomp(nstart:nend) = plnew%nbody
 
                ! Add the discarded bodies to the discard list
-               pl%status(colliders%idx(:)) = MERGED
-               pl%ldiscard(colliders%idx(:)) = .true.
-               pl%lcollision(colliders%idx(:)) = .true.
+               pl%status(impactors%idx(:)) = MERGED
+               pl%ldiscard(impactors%idx(:)) = .true.
+               pl%lcollision(impactors%idx(:)) = .true.
                lmask(:) = .false.
-               lmask(colliders%idx(:)) = .true.
+               lmask(impactors%idx(:)) = .true.
                
                call plnew%setup(0, param)
                deallocate(plnew)
@@ -887,11 +887,11 @@ contains
                call pl%spill(plsub, lmask, ldestructive=.false.)
    
                nstart = pl_discards%nbody + 1
-               nend = pl_discards%nbody + ncolliders
-               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, ncolliders)])
+               nend = pl_discards%nbody + nimpactors
+               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
 
                ! Record how many bodies were subtracted in this event
-               pl_discards%ncomp(nstart:nend) = ncolliders 
+               pl_discards%ncomp(nstart:nend) = nimpactors 
    
                call plsub%setup(0, param)
                deallocate(plsub)
@@ -926,24 +926,24 @@ contains
             select type (cb => system%cb)
             class is (symba_cb)
                do i = 1, ncollisions
-                  allocate(fraggle_colliders :: system%colliders)
+                  allocate(collision_impactors :: system%impactors)
                   allocate(fraggle_fragments :: system%fragments)
                   idx_parent(1) = pl%kin(idx1(i))%parent
                   idx_parent(2) = pl%kin(idx2(i))%parent
-                  lgoodcollision = symba_collision_consolidate_colliders(pl, cb, param, idx_parent, system%colliders) 
+                  lgoodcollision = symba_collision_consolidate_impactors(pl, cb, param, idx_parent, system%impactors) 
                   if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLISION)) cycle
 
                   if (param%lfragmentation) then
-                     call system%colliders%regime(system%fragments, system, param)
+                     call system%impactors%regime(system%fragments, system, param)
                   else
-                     associate(fragments => system%fragments, colliders => system%colliders)
+                     associate(fragments => system%fragments, impactors => system%impactors)
                         fragments%regime = COLLRESOLVE_REGIME_MERGE
-                        fragments%mtot = sum(colliders%mass(:))
+                        fragments%mtot = sum(impactors%mass(:))
                         fragments%mass_dist(1) = fragments%mtot
                         fragments%mass_dist(2) = 0.0_DP
                         fragments%mass_dist(3) = 0.0_DP
-                        fragments%rbcom(:) = (colliders%mass(1) * colliders%rb(:,1) + colliders%mass(2) * colliders%rb(:,2)) / fragments%mtot 
-                        fragments%vbcom(:) = (colliders%mass(1) * colliders%vb(:,1) + colliders%mass(2) * colliders%vb(:,2)) / fragments%mtot
+                        fragments%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
+                        fragments%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
                      end associate
                   end if
 
@@ -960,7 +960,7 @@ contains
                      call util_exit(FAILURE)
                   end select
                   call collision_history%take_snapshot(param,system, t, "after") 
-                  deallocate(system%colliders,system%fragments)
+                  deallocate(system%impactors,system%fragments)
                end do
             end select
          end select

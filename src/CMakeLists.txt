@@ -13,18 +13,23 @@
 
 # Add the source files
 SET(FAST_MATH_FILES
+            ${SRC}/modules/swiftest_globals.f90
+            ${SRC}/modules/lambda_function.f90
+            ${SRC}/modules/swiftest_operators.f90
+            ${SRC}/modules/walltime_classes.f90
+            ${SRC}/modules/swiftest_classes.f90
             ${SRC}/modules/encounter_classes.f90
+            ${SRC}/modules/collision_classes.f90
             ${SRC}/modules/fraggle_classes.f90
             ${SRC}/modules/helio_classes.f90
-            ${SRC}/modules/lambda_function.f90
             ${SRC}/modules/rmvs_classes.f90
-            ${SRC}/modules/swiftest_classes.f90
-            ${SRC}/modules/swiftest_globals.f90
-            ${SRC}/modules/swiftest_operators.f90
-            ${SRC}/modules/swiftest.f90
             ${SRC}/modules/symba_classes.f90
-            ${SRC}/modules/walltime_classes.f90
             ${SRC}/modules/whm_classes.f90
+            ${SRC}/modules/swiftest.f90
+            ${SRC}/fraggle/collision_io.f90
+            ${SRC}/fraggle/collision_placeholder.f90
+            ${SRC}/fraggle/collision_setup.f90
+            ${SRC}/fraggle/collision_util.f90
             ${SRC}/discard/discard.f90
             ${SRC}/drift/drift.f90
             ${SRC}/encounter/encounter_check.f90
@@ -33,7 +38,6 @@ SET(FAST_MATH_FILES
             ${SRC}/encounter/encounter_io.f90
             ${SRC}/fraggle/fraggle_generate.f90
             ${SRC}/fraggle/fraggle_io.f90
-            ${SRC}/fraggle/fraggle_placeholder.f90
             ${SRC}/fraggle/fraggle_regime.f90
             ${SRC}/fraggle/fraggle_set.f90
             ${SRC}/fraggle/fraggle_setup.f90

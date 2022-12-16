@@ -89,10 +89,10 @@ contains
                
                allocate(collision_storage :: param%collision_history)
                associate (collision_history => param%collision_history)
-                  allocate(fraggle_io_parameters :: collision_history%nc)
+                  allocate(collision_io_parameters :: collision_history%nc)
                   call collision_history%reset()
                   select type(nc => collision_history%nc)
-                  class is (fraggle_io_parameters)
+                  class is (collision_io_parameters)
                      nc%file_number = param%iloop / param%dump_cadence
                   end select
                end associate
@@ -106,30 +106,8 @@ contains
          call util_exit(FAILURE)
       end select
 
-
-
-
-
       return
    end subroutine setup_construct_system
-
-
-   module subroutine setup_finalize_system(self, param)
-      !! author: David A. Minton
-      !!
-      !! Runs any finalization subroutines when ending the simulation.
-      !!
-      implicit none
-      ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-
-      associate(system => self)
-         call param%system_history%nc%close()
-      end associate
-
-      return
-   end subroutine setup_finalize_system
 
 
    module subroutine setup_initialize_particle_info_system(self, param)

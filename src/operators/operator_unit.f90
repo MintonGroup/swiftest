@@ -20,12 +20,16 @@ submodule(swiftest_operators) s_operator_unit
       implicit none
       ! Arguments
       real(SP), dimension(:), intent(in) :: A
-      real(SP), dimension(NDIM)             :: B
+      real(SP), dimension(NDIM)          :: B
       ! Internals
       real(SP)  :: Amag
 
       Amag = norm2(A(:))
-      B(:) = A(:) / Amag
+      if (Amag > tiny(1._SP)) then
+         B(:) = A(:) / Amag
+      else
+         B(:) = 0.0_SP
+      end if
 
       return
    end function operator_unit_sp
@@ -40,7 +44,11 @@ submodule(swiftest_operators) s_operator_unit
       real(DP)  :: Amag
 
       Amag = norm2(A(:))
-      B(:) = A(:) / Amag
+      if (Amag > tiny(1._DP)) then
+         B(:) = A(:) / Amag
+      else
+         B(:) = 0.0_DP
+      end if
 
       return
    end function operator_unit_dp
@@ -55,7 +63,11 @@ submodule(swiftest_operators) s_operator_unit
       real(QP)  :: Amag
 
       Amag = norm2(A(:))
-      B(:) = A(:) / Amag
+      if (Amag > tiny(1._QP)) then
+         B(:) = A(:) / Amag
+      else
+         B(:) = 0.0_QP
+      end if
 
       return
    end function operator_unit_qp
@@ -67,7 +79,6 @@ submodule(swiftest_operators) s_operator_unit
       real(SP), dimension(:,:), intent(in)   :: A
       real(SP), dimension(:,:), allocatable  :: B
       ! Internals
-      real(SP)  :: Amag 
       integer(I4B)  :: i,n
 
       n = size(A, 2)
@@ -75,8 +86,7 @@ submodule(swiftest_operators) s_operator_unit
       allocate(B(NDIM,n))
 
       do concurrent (i=1:n)
-         Amag = norm2(A(:, i)) 
-         B(:,i) = A(:,i) / Amag
+         B(:,i) = operator_unit_sp(A(:,i))
       end do
 
       return
@@ -89,7 +99,6 @@ submodule(swiftest_operators) s_operator_unit
       real(DP), dimension(:,:), intent(in)   :: A
       real(DP), dimension(:,:), allocatable  :: B
       ! Internals
-      real(DP)  :: Amag 
       integer(I4B)  :: i,n
 
       n = size(A, 2)
@@ -97,8 +106,7 @@ submodule(swiftest_operators) s_operator_unit
       allocate(B(NDIM,n))
 
       do concurrent (i=1:n)
-         Amag = norm2(A(:, i)) 
-         B(:,i) = A(:,i) / Amag
+         B(:,i) = operator_unit_dp(A(:,i))
       end do
 
       return
@@ -110,7 +118,6 @@ submodule(swiftest_operators) s_operator_unit
       real(QP), dimension(:,:), intent(in)   :: A
       real(QP), dimension(:,:), allocatable  :: B
       ! Internals
-      real(QP)  :: Amag 
       integer(I4B)  :: i,n
 
       n = size(A, 2)
@@ -118,8 +125,7 @@ submodule(swiftest_operators) s_operator_unit
       allocate(B(NDIM,n))
 
       do concurrent (i=1:n)
-         Amag = norm2(A(:, i)) 
-         B(:,i) = A(:,i) / Amag
+         B(:,i) = operator_unit_qp(A(:,i))
       end do
 
       return 

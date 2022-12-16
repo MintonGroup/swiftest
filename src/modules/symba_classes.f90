@@ -15,7 +15,7 @@ module symba_classes
    use swiftest_globals
    use swiftest_classes,  only : swiftest_parameters, swiftest_base, swiftest_particle_info, swiftest_storage, netcdf_parameters
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
-   use fraggle_classes,   only : fraggle_colliders, fraggle_fragments
+   use fraggle_classes,   only : collision_impactors, fraggle_fragments
    use encounter_classes, only : encounter_list, encounter_storage, collision_storage
    implicit none
    public
@@ -84,7 +84,7 @@ module symba_classes
       real(DP),                  dimension(:), allocatable :: atp        !! semimajor axis following perihelion passage
       type(symba_kinship),       dimension(:), allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
    contains
-      procedure :: make_colliders  => symba_collision_make_colliders_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
+      procedure :: make_impactors  => symba_collision_make_impactors_pl !! When a single body is involved in more than one collision in a single step, it becomes part of a family
       procedure :: flatten         => symba_util_flatten_eucl_plpl      !! Sets up the (i, j) -> k indexing used for the single-loop blocking Euclidean distance matrix
       procedure :: discard         => symba_discard_pl                  !! Process massive body discards
       procedure :: drift           => symba_drift_pl                    !! Method for Danby drift in Democratic Heliocentric coordinates. Sets the mask to the current recursion level
@@ -189,7 +189,7 @@ module symba_classes
       class(symba_plplenc),           allocatable     :: plplenc_list       !! List of massive body-massive body encounters in a single step
       class(symba_plplenc),           allocatable     :: plplcollision_list !! List of massive body-massive body collisions in a single step
       integer(I4B)                                    :: irec               !! System recursion level
-      class(fraggle_colliders), allocatable           :: colliders          !! Fraggle colliders object
+      class(collision_impactors), allocatable           :: impactors          !! Fraggle impactors object
       class(fraggle_fragments), allocatable           :: fragments          !! Fraggle fragmentation system object
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
@@ -224,11 +224,11 @@ module symba_classes
          class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters
       end subroutine
 
-      module subroutine symba_collision_make_colliders_pl(self,idx)
+      module subroutine symba_collision_make_impactors_pl(self,idx)
          implicit none
          class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
          integer(I4B), dimension(2), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
-      end subroutine symba_collision_make_colliders_pl
+      end subroutine symba_collision_make_impactors_pl
 
       module subroutine symba_resolve_collision_plplenc(self, system, param, t, dt, irec)
          implicit none

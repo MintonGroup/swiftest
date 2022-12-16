@@ -347,8 +347,8 @@ module swiftest_classes
       logical,                      dimension(:),   allocatable :: ldiscard        !! Body should be discarded
       logical,                      dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       real(DP),                     dimension(:),   allocatable :: mu              !! G * (Mcb + [m])
-      real(DP),                     dimension(:,:), allocatable :: rh              !! Swiftestcentric position
-      real(DP),                     dimension(:,:), allocatable :: vh              !! Swiftestcentric velocity
+      real(DP),                     dimension(:,:), allocatable :: rh              !! Heliocentric position
+      real(DP),                     dimension(:,:), allocatable :: vh              !! Heliocentric velocity
       real(DP),                     dimension(:,:), allocatable :: rb              !! Barycentric position
       real(DP),                     dimension(:,:), allocatable :: vb              !! Barycentric velocity
       real(DP),                     dimension(:,:), allocatable :: ah              !! Total heliocentric acceleration
@@ -550,7 +550,6 @@ module swiftest_classes
       procedure :: read_in                 => io_read_in_system                      !! Reads the initial conditions for an nbody system
       procedure :: read_particle_info      => netcdf_read_particle_info_system       !! Read in particle metadata from file
       procedure :: obl_pot                 => obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-      procedure :: finalize                => setup_finalize_system                  !! Runs any finalization subroutines when ending the simulation.
       procedure :: initialize              => setup_initialize_system                !! Initialize the system from input files
       procedure :: init_particle_info      => setup_initialize_particle_info_system  !! Initialize the system from input files
     ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
@@ -1172,12 +1171,6 @@ module swiftest_classes
          class(swiftest_nbody_system),  allocatable, intent(inout) :: system !! Swiftest system object
          class(swiftest_parameters),                 intent(inout) :: param  !! Current run configuration parameters
       end subroutine setup_construct_system
-
-      module subroutine setup_finalize_system(self, param)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      end subroutine setup_finalize_system
 
       module subroutine setup_initialize_particle_info_system(self, param)
          implicit none

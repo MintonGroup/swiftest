@@ -11,14 +11,14 @@ submodule(fraggle_classes) s_fraggle_util
    use swiftest
 contains
 
-   module subroutine fraggle_util_add_fragments_to_system(fragments, colliders, system, param)
+   module subroutine fraggle_util_add_fragments_to_system(fragments, impactors, system, param)
       !! Author: David A. Minton
       !!
       !! Adds fragments to the temporary system pl object
       implicit none
       ! Arguments
       class(fraggle_fragments),     intent(in)    :: fragments      !! Fraggle fragment system object
-      class(fraggle_colliders),     intent(in)    :: colliders !! Fraggle collider system object
+      class(collision_impactors),     intent(in)    :: impactors !! Fraggle collider system object
       class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
       ! Internals
@@ -44,9 +44,9 @@ contains
             pl%Ip(:,npl_before+1:npl_after) = fragments%Ip(:,1:nfrag)
             pl%rot(:,npl_before+1:npl_after) = fragments%rot(:,1:nfrag)
          end if
-         ! This will remove the colliders from the system since we've replaced them with fragments
+         ! This will remove the impactors from the system since we've replaced them with fragments
          lexclude(1:npl_after) = .false.
-         lexclude(colliders%idx(1:colliders%ncoll)) = .true.
+         lexclude(impactors%idx(1:impactors%ncoll)) = .true.
          where(lexclude(1:npl_after)) 
             pl%status(1:npl_after) = INACTIVE
          elsewhere
@@ -132,18 +132,18 @@ contains
 
 
 
-   module subroutine fraggle_util_final_colliders(self)
+   module subroutine fraggle_util_final_impactors(self)
       !! author: David A. Minton
       !!
       !! Finalizer will deallocate all allocatables
       implicit none
       ! Arguments
-      type(fraggle_colliders),  intent(inout) :: self !! Fraggle encountar storage object
+      type(collision_impactors),  intent(inout) :: self !! Fraggle encountar storage object
 
       if (allocated(self%idx)) deallocate(self%idx)
 
       return
-   end subroutine fraggle_util_final_colliders
+   end subroutine fraggle_util_final_impactors
 
 
    module subroutine fraggle_util_final_fragments(self)
@@ -168,137 +168,14 @@ contains
    end subroutine fraggle_util_final_fragments
 
 
-   module subroutine fraggle_util_final_snapshot(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer will deallocate all allocatables
-      implicit none
-      ! Arguments
-      type(fraggle_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
-
-      call encounter_util_final_snapshot(self%encounter_snapshot)
-
-      return
-   end subroutine fraggle_util_final_snapshot
-
-
-   module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)
-      !! Author: David A. Minton
-      !!
-      !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
-      !! This subrourtine works by building a temporary internal massive body object out of the non-excluded bodies and optionally with fragments appended. 
-      !! This will get passed to the energy calculation subroutine so that energy is computed exactly the same way is it is in the main program. 
-      !! This will temporarily expand the massive body object in a temporary system object called tmpsys to feed it into symba_energy
-      implicit none
-      ! Arguments
-      class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
-      class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle collider system object
-      class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
-      logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
-      ! Internals
-      class(swiftest_nbody_system), allocatable, save :: tmpsys
-      class(swiftest_parameters), allocatable, save   :: tmpparam
-      integer(I4B)  :: npl_before, npl_after
-
-      associate(fragments => self, nfrag => self%nbody, pl => system%pl, cb => system%cb)
-
-         ! Because we're making a copy of the massive body object with the excludes/fragments appended, we need to deallocate the
-         ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
-         ! allocating two of these ginormous arrays simulteouously. This is not particularly efficient, but as this
-         ! subroutine should be called relatively infrequently, it shouldn't matter too much.
-
-         npl_before = pl%nbody
-         npl_after = npl_before + nfrag
-
-         if (lbefore) then
-            call fraggle_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
-            ! Build the exluded body logical mask for the *before* case: Only the original bodies are used to compute energy and momentum
-            tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = ACTIVE
-            tmpsys%pl%status(npl_before+1:npl_after) = INACTIVE
-         else
-            if (.not.allocated(tmpsys)) then
-               write(*,*) "Error in fraggle_util_get_energy_momentum. " // &
-                         " This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
-               call util_exit(FAILURE)
-            end if
-            ! Build the exluded body logical mask for the *after* case: Only the new bodies are used to compute energy and momentum
-            call fraggle_util_add_fragments_to_system(fragments, colliders, tmpsys, tmpparam)
-            tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = INACTIVE
-            tmpsys%pl%status(npl_before+1:npl_after) = ACTIVE
-         end if 
-
-         if (param%lflatten_interactions) call tmpsys%pl%flatten(param)
-
-         call tmpsys%get_energy_and_momentum(param) 
-
-
-         ! Calculate the current fragment energy and momentum balances
-         if (lbefore) then
-            fragments%Lorbit_before(:) = tmpsys%Lorbit(:)
-            fragments%Lspin_before(:) = tmpsys%Lspin(:)
-            fragments%Ltot_before(:) = tmpsys%Ltot(:)
-            fragments%ke_orbit_before = tmpsys%ke_orbit
-            fragments%ke_spin_before = tmpsys%ke_spin
-            fragments%pe_before = tmpsys%pe
-            fragments%Etot_before = tmpsys%te 
-         else
-            fragments%Lorbit_after(:) = tmpsys%Lorbit(:)
-            fragments%Lspin_after(:) = tmpsys%Lspin(:)
-            fragments%Ltot_after(:) = tmpsys%Ltot(:)
-            fragments%ke_orbit_after = tmpsys%ke_orbit
-            fragments%ke_spin_after = tmpsys%ke_spin
-            fragments%pe_after = tmpsys%pe
-            fragments%Etot_after = tmpsys%te - (fragments%pe_after - fragments%pe_before) ! Gotta be careful with PE when number of bodies changes.
-         end if
-      end associate
-
-      return
-   end subroutine fraggle_util_get_energy_momentum
-
-
-   module subroutine fraggle_util_get_idvalues_snapshot(self, idvals)
-      !! author: David A. Minton
-      !!
-      !! Returns an array of all id values saved in this snapshot
-      implicit none
-      ! Arguments
-      class(fraggle_snapshot),                 intent(in)  :: self   !! Fraggle snapshot object
-      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
-      ! Internals
-      integer(I4B) :: ncoll, nfrag
-
-      if (allocated(self%colliders)) then
-         ncoll = self%colliders%pl%nbody
-      else
-         ncoll = 0
-      end if 
-
-      if (allocated(self%fragments)) then
-         nfrag = self%fragments%pl%nbody
-      else
-         nfrag = 0
-      end if
-
-      if (ncoll + nfrag == 0) return
-      allocate(idvals(ncoll+nfrag))
-
-      if (ncoll > 0) idvals(1:ncoll) = self%colliders%pl%id(:)
-      if (nfrag > 0) idvals(ncoll+1:ncoll+nfrag) = self%fragments%pl%id(:)
-
-      return
-
-   end subroutine fraggle_util_get_idvalues_snapshot
-
-
-   module subroutine fraggle_util_restructure(self, colliders, try, f_spin, r_max_start)
+   module subroutine fraggle_util_restructure(self, impactors, try, f_spin, r_max_start)
       !! Author: David A. Minton
       !!
       !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: self        !! Fraggle fragment system object
-      class(fraggle_colliders), intent(in)    :: colliders   !! Fraggle collider system object
+      class(collision_impactors), intent(in)    :: impactors   !! Fraggle collider system object
       integer(I4B),             intent(in)    :: try         !! The current number of times Fraggle has tried to find a solution
       real(DP),                 intent(inout) :: f_spin      !! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt
       real(DP),                 intent(inout) :: r_max_start !! The maximum radial distance that the position calculation starts with. This increases after a failed attempt
@@ -310,7 +187,7 @@ contains
       ! Introduce a bit of noise in the radius determination so we don't just flip flop between similar failed positions
       associate(fragments => self)
          call random_number(delta_r_max)
-         delta_r_max = sum(colliders%radius(:)) * (1.0_DP + 2e-1_DP * (delta_r_max - 0.5_DP))
+         delta_r_max = sum(impactors%radius(:)) * (1.0_DP + 2e-1_DP * (delta_r_max - 0.5_DP))
          if (try == 1) then
             ke_tot_deficit = - (fragments%ke_budget - fragments%ke_orbit - fragments%ke_spin)
             ke_avg_deficit = ke_tot_deficit

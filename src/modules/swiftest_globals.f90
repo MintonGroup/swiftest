@@ -95,14 +95,6 @@ module swiftest_globals
    integer(I4B), parameter :: NEW_PARTICLE        = -15
    integer(I4B), parameter :: OLD_PARTICLE        = -16
 
-   !>Symbolic names for collisional outcomes from collresolve_resolve:
-   integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
-   integer(I4B), parameter :: COLLRESOLVE_REGIME_DISRUPTION         =  2
-   integer(I4B), parameter :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
-   integer(I4B), parameter :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
-   integer(I4B), parameter :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
-   character(len=*),dimension(5), parameter :: REGIME_NAMES = ["Merge", "Disruption", "Supercatastrophic", "Graze and Merge", "Hit and Run"] 
-
    !> String labels for body/particle addition/subtraction in discard file
    character(*), parameter :: ADD = '+1'
    character(*), parameter :: SUB = '-1'

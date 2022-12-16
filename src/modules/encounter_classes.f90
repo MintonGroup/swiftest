@@ -12,7 +12,7 @@ module encounter_classes
    !!
    !! Definition of classes and methods used to determine close encounters
    use swiftest_globals
-   use swiftest_classes
+   use swiftest_classes,  only : swiftest_parameters, swiftest_nbody_system, swiftest_cb, swiftest_tp, swiftest_pl, swiftest_storage, netcdf_parameters
    implicit none
    public
 
@@ -50,37 +50,17 @@ module encounter_classes
       real(DP)                        :: t     !! Simulation time when snapshot was taken
       integer(I8B)                    :: iloop !! Loop number at time of snapshot
    contains
-      procedure :: write_frame => encounter_io_write_frame             !! Writes a frame of encounter data to file 
-      procedure :: get_idvals  => encounter_util_get_idvalues_snapshot !! Gets an array of all id values saved in this snapshot
+      procedure :: write_frame => encounter_io_write_frame_snapshot !! Writes a frame of encounter data to file 
+      procedure :: get_idvals  => encounter_util_get_idvalues_snapshot         !! Gets an array of all id values saved in this snapshot
       final     ::                encounter_util_final_snapshot
    end type encounter_snapshot
-
-   !> NetCDF dimension and variable names for the enounter save object
-   type, extends(netcdf_parameters) :: encounter_io_parameters
-      character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
-      integer(I4B)       :: loop_varid               !! ID for the recursion level variable
-      integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
-      integer(I4B)       :: name_dimsize   = 0         !! Number of potential id values in snapshot
-      integer(I4B)       :: file_number  = 1         !! The number to append on the output file
-   contains
-      procedure :: initialize => encounter_io_initialize !! Initialize a set of parameters used to identify a NetCDF output object
-   end type encounter_io_parameters
-
-   !> A class that that is used to store simulation history data between file output
-   type, extends(swiftest_storage) :: collision_storage
-   contains
-      procedure :: dump           => encounter_io_dump_collision        !! Dumps contents of encounter history to file
-      procedure :: take_snapshot  => encounter_util_snapshot_collision  !! Take a minimal snapshot of the system through an encounter
-      procedure :: make_index_map => encounter_util_index_map_collision  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      final     ::                   encounter_util_final_collision_storage
-   end type collision_storage
 
    !> A class that that is used to store simulation history data between file output
    type, extends(swiftest_storage) :: encounter_storage
    contains
-      procedure :: dump           => encounter_io_dump_encounter         !! Dumps contents of encounter history to file
-      procedure :: make_index_map => encounter_util_index_map_encounter  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: take_snapshot  => encounter_util_snapshot_encounter !! Take a minimal snapshot of the system through an encounter
+      procedure :: dump           => encounter_io_dump        !! Dumps contents of encounter history to file
+      procedure :: make_index_map => encounter_util_index_map  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: take_snapshot  => encounter_util_snapshot !! Take a minimal snapshot of the system through an encounter
       final     ::                   encounter_util_final_storage
    end type encounter_storage
 
@@ -216,30 +196,18 @@ module encounter_classes
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_io_dump_collision(self, param)
+      module subroutine encounter_io_dump(self, param)
          implicit none
-         class(collision_storage(*)), intent(inout) :: self    !! Collision storage object
-         class(swiftest_parameters),  intent(inout) :: param !! Current run configuration parameters 
-      end subroutine encounter_io_dump_collision
+         class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      end subroutine encounter_io_dump
 
-      module subroutine encounter_io_dump_encounter(self, param)
-         implicit none
-         class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
-         class(swiftest_parameters),  intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine encounter_io_dump_encounter
-
-      module subroutine encounter_io_initialize(self, param)
-         implicit none
-         class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),     intent(in)    :: param   
-      end subroutine encounter_io_initialize
-
-      module subroutine encounter_io_write_frame(self, nc, param)
+      module subroutine encounter_io_write_frame_snapshot(self, nc, param)
          implicit none
          class(encounter_snapshot),  intent(in)    :: self  !! Swiftest encounter structure
          class(netcdf_parameters),   intent(inout) :: nc    !! Parameters used to identify a particular encounter io NetCDF dataset
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
-      end subroutine encounter_io_write_frame
+      end subroutine encounter_io_write_frame_snapshot
 
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none
@@ -282,11 +250,6 @@ module encounter_classes
          type(encounter_bounding_box_1D), intent(inout) :: self !!Bounding box structure along a single dimension
       end subroutine encounter_util_final_aabb
 
-      module subroutine encounter_util_final_collision_storage(self)
-         implicit none
-         type(collision_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
-      end subroutine encounter_util_final_collision_storage
-
       module subroutine encounter_util_final_list(self)
          implicit none
          type(encounter_list), intent(inout) :: self !! Swiftest encounter list object
@@ -308,15 +271,10 @@ module encounter_classes
          integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
       end subroutine encounter_util_get_idvalues_snapshot
 
-      module subroutine encounter_util_index_map_collision(self)
-         implicit none
-         class(collision_storage(*)), intent(inout) :: self  !! Collision storage object 
-      end subroutine encounter_util_index_map_collision
-
-      module subroutine encounter_util_index_map_encounter(self)
+      module subroutine encounter_util_index_map(self)
          implicit none
          class(encounter_storage(*)), intent(inout) :: self  !! Encounter storage object
-      end subroutine encounter_util_index_map_encounter
+      end subroutine encounter_util_index_map
 
       module subroutine encounter_util_resize_list(self, nnew)
          implicit none
@@ -324,23 +282,14 @@ module encounter_classes
          integer(I8B),          intent(in)    :: nnew !! New size of list needed
       end subroutine encounter_util_resize_list
 
-      module subroutine encounter_util_snapshot_collision(self, param, system, t, arg)
-         implicit none
-         class(collision_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
-         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
-         class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
-         real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
-         character(*),                 intent(in), optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
-      end subroutine encounter_util_snapshot_collision
-
-      module subroutine encounter_util_snapshot_encounter(self, param, system, t, arg)
+      module subroutine encounter_util_snapshot(self, param, system, t, arg)
          implicit none
          class(encounter_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
          class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
          class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
          real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
          character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
-      end subroutine encounter_util_snapshot_encounter
+      end subroutine encounter_util_snapshot
 
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)

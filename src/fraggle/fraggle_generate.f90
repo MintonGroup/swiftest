@@ -17,7 +17,7 @@ submodule(fraggle_classes) s_fraggle_generate
 
 contains
 
-   module subroutine fraggle_generate_fragments(self, colliders, system, param, lfailure)
+   module subroutine collision_generate_fragments(self, impactors, system, param, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
@@ -25,7 +25,7 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments),     intent(inout) :: self      !! Fraggle system object the outputs will be the fragmentation 
-      class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle colliders object containing the two-body equivalent values of the colliding bodies 
+      class(collision_impactors),     intent(inout) :: impactors !! Fraggle impactors object containing the two-body equivalent values of the colliding bodies 
       class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
@@ -68,22 +68,22 @@ contains
             lk_plpl = .false.
          end if
 
-         call fragments%set_natural_scale(colliders)
+         call fragments%set_natural_scale(impactors)
 
          call fragments%reset()
 
          ! Calculate the initial energy of the system without the collisional family
-         call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.true.)
+         call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.true.)
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
-         r_max_start = 1.2_DP * (norm2(colliders%rb(:,2) - colliders%rb(:,1)))
+         r_max_start = 1.2_DP * .mag.(impactors%rb(:,2) - impactors%rb(:,1))
          lfailure = .false.
          try = 1
          do while (try < MAXTRY)
             write(message,*) try
             call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
             if (lfailure) then
-               call fragments%restructure(colliders, try, f_spin, r_max_start)
+               call fragments%restructure(impactors, try, f_spin, r_max_start)
                call fragments%reset()
                try = try + 1
             end if
@@ -91,36 +91,36 @@ contains
             lfailure = .false.
             call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
-            call fraggle_generate_pos_vec(fragments, colliders, r_max_start)
-            call fragments%set_coordinate_system(colliders)
+            call fraggle_generate_pos_vec(fragments, impactors, r_max_start)
+            call fragments%set_coordinate_system(impactors)
 
             ! Initial velocity guess will be the barycentric velocity of the colliding system so that the budgets are based on the much smaller collisional-frame velocities
             do concurrent (i = 1:nfrag)
                fragments%vb(:, i) = fragments%vbcom(:)
             end do
 
-            call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
+            call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.false.)
             call fragments%set_budgets()
 
-            call fraggle_generate_spins(fragments, colliders, f_spin, lfailure)
+            call fraggle_generate_spins(fragments, impactors, f_spin, lfailure)
             if (lfailure) then
                call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find spins")
                cycle
             end if
 
-            call fraggle_generate_tan_vel(fragments, colliders, lfailure)
+            call fraggle_generate_tan_vel(fragments, impactors, lfailure)
             if (lfailure) then
                call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find tangential velocities")
                cycle
             end if
 
-            call fraggle_generate_rad_vel(fragments, colliders, lfailure)
+            call fraggle_generate_rad_vel(fragments, impactors, lfailure)
             if (lfailure) then
                call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find radial velocities")
                cycle
             end if
 
-            call fragments%get_energy_and_momentum(colliders, system, param, lbefore=.false.)
+            call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.false.)
             dEtot = fragments%Etot_after - fragments%Etot_before 
             dLmag = .mag. (fragments%Ltot_after(:) - fragments%Ltot_before(:))
             exit
@@ -158,7 +158,7 @@ contains
                                                        trim(adjustl(message)) // " tries")
          end if
 
-         call fragments%set_original_scale(colliders)
+         call fragments%set_original_scale(impactors)
 
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
@@ -166,10 +166,10 @@ contains
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
       return 
-   end subroutine fraggle_generate_fragments
+   end subroutine collision_generate_fragments
 
 
-   subroutine fraggle_generate_pos_vec(fragments, colliders, r_max_start)
+   subroutine fraggle_generate_pos_vec(fragments, impactors, r_max_start)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Initializes the orbits of the fragments around the center of mass. The fragments are initially placed on a plane defined by the 
@@ -178,7 +178,7 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: fragments        !! Fraggle fragment system object
-      class(fraggle_colliders), intent(inout) :: colliders   !! Fraggle collider system object
+      class(collision_impactors), intent(inout) :: impactors   !! Fraggle collider system object
       real(DP),                 intent(in)    :: r_max_start !! Initial guess for the starting maximum radial distance of fragments
       ! Internals
       real(DP)  :: dis, rad, r_max, fdistort
@@ -196,14 +196,14 @@ contains
          ! Place the fragments into a region that is big enough that we should usually not have overlapping bodies
          ! An overlapping bodies will collide in the next time step, so it's not a major problem if they do (it just slows the run down)
          r_max = r_max_start
-         rad = sum(colliders%radius(:))
+         rad = sum(impactors%radius(:))
 
 
          ! Get the unit vectors for the relative position and velocity vectors. These are used to shift the fragment cloud depending on the 
-         runit(:) = colliders%rb(:,2) - colliders%rb(:,1) 
+         runit(:) = impactors%rb(:,2) - impactors%rb(:,1) 
          runit(:) = runit(:) / (.mag. runit(:))
 
-         vunit(:) = colliders%vb(:,2) - colliders%vb(:,1) 
+         vunit(:) = impactors%vb(:,2) - impactors%vb(:,1) 
          vunit(:) = vunit(:) / (.mag. vunit(:))
 
          ! This is a factor that will "distort" the shape of the frgment cloud in the direction of the impact velocity 
@@ -214,8 +214,8 @@ contains
          call random_number(fragments%r_coll(:,3:nfrag))
          loverlap(:) = .true.
          do while (any(loverlap(3:nfrag)))
-            fragments%r_coll(:, 1) = colliders%rb(:, 1) - fragments%rbcom(:) 
-            fragments%r_coll(:, 2) = colliders%rb(:, 2) - fragments%rbcom(:)
+            fragments%r_coll(:, 1) = impactors%rb(:, 1) - fragments%rbcom(:) 
+            fragments%r_coll(:, 2) = impactors%rb(:, 2) - fragments%rbcom(:)
             r_max = r_max + 0.1_DP * rad
             do i = 3, nfrag
                if (loverlap(i)) then
@@ -230,13 +230,13 @@ contains
             loverlap(:) = .false.
             do j = 1, nfrag
                do i = j + 1, nfrag
-                  dis = norm2(fragments%r_coll(:,j) - fragments%r_coll(:,i))
+                  dis = .mag.(fragments%r_coll(:,j) - fragments%r_coll(:,i))
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
          end do
          call fraggle_util_shift_vector_to_origin(fragments%mass, fragments%r_coll)
-         call fragments%set_coordinate_system(colliders)
+         call fragments%set_coordinate_system(impactors)
 
          do concurrent(i = 1:nfrag)
             fragments%rb(:,i) = fragments%r_coll(:,i) + fragments%rbcom(:)
@@ -253,7 +253,7 @@ contains
    end subroutine fraggle_generate_pos_vec
 
 
-   subroutine fraggle_generate_spins(fragments, colliders, f_spin, lfailure)
+   subroutine fraggle_generate_spins(fragments, impactors, f_spin, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Calculates the spins of a collection of fragments such that they conserve angular momentum without blowing the fragment kinetic energy budget.
@@ -262,7 +262,7 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: fragments      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(inout) :: colliders   !! Fraggle collider system object
+      class(collision_impactors), intent(inout) :: impactors   !! Fraggle collider system object
       real(DP),                 intent(in)    :: f_spin    !! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
@@ -279,12 +279,12 @@ contains
          ke_remainder = fragments%ke_budget
 
          ! Add a fraction of the orbit angular momentum of the second body to the spin of the first body to kick things off
-         L(:) = colliders%L_spin(:,1) + f_spin * (colliders%L_orbit(:,2) + colliders%L_spin(:,2))
+         L(:) = impactors%L_spin(:,1) + f_spin * (impactors%L_orbit(:,2) + impactors%L_spin(:,2))
          fragments%rot(:,1) = L(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
          L_remainder(:) = L_remainder(:) - L(:)
 
          ! Partition the spin momentum of the second body into the spin of the fragments, with some random variation
-         L(:) = colliders%L_spin(:,2) / (nfrag - 1) 
+         L(:) = impactors%L_spin(:,2) / (nfrag - 1) 
 
          call random_number(frot_rand(:,2:nfrag))
          frot_rand(:,2:nfrag) = 2 * (frot_rand(:,2:nfrag) - 0.5_DP) * frot_rand_mag
@@ -297,17 +297,17 @@ contains
 
          ! Make sure we didn't blow our kinetic energy budget
          do i = 1, nfrag
-            ke_remainder = ke_remainder - 0.5_DP * fragments%mass(i) * fragments%Ip(3, i) * fragments%radius(i)**2 * norm2(fragments%rot(:, i))
+            ke_remainder = ke_remainder - 0.5_DP * fragments%mass(i) * fragments%Ip(3, i) * fragments%radius(i)**2 * .mag.(fragments%rot(:, i))
          end do
 
          ! Distributed most of the remaining angular momentum amongst all the particles
          fragments%ke_spin = 0.0_DP
-         if (norm2(L_remainder(:)) > FRAGGLE_LTOL) then 
+         if (.mag.(L_remainder(:)) > FRAGGLE_LTOL) then 
             do i = nfrag, 1, -1
                ! Convert a fraction (f_spin) of either the remaining angular momentum or kinetic energy budget into spin, whichever gives the smaller rotation so as not to blow any budgets
-               rot_ke(:) = sqrt(2 * f_spin * ke_remainder / (i * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3, i))) * L_remainder(:) / norm2(L_remainder(:))
+               rot_ke(:) = sqrt(2 * f_spin * ke_remainder / (i * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3, i))) * L_remainder(:) / .mag.(L_remainder(:))
                rot_L(:) = f_spin * L_remainder(:) / (i * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3, i))
-               if (norm2(rot_ke) < norm2(rot_L)) then
+               if (.mag.(rot_ke) < .mag.(rot_L)) then
                   fragments%rot(:,i) = fragments%rot(:,i) + rot_ke(:)
                else
                   fragments%rot(:, i) = fragments%rot(:,i) + rot_L(:)
@@ -341,7 +341,7 @@ contains
    end subroutine fraggle_generate_spins
 
 
-   subroutine fraggle_generate_tan_vel(fragments, colliders, lfailure)
+   subroutine fraggle_generate_tan_vel(fragments, impactors, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Adjusts the tangential velocities and spins of a collection of fragments such that they conserve angular momentum without blowing the fragment kinetic energy budget.
@@ -357,7 +357,7 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: fragments      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(inout) :: colliders   !! Fraggle collider system object
+      class(collision_impactors), intent(inout) :: impactors   !! Fraggle collider system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds
       ! Internals
       integer(I4B) :: i, try
@@ -379,9 +379,9 @@ contains
 
          allocate(v_t_initial, mold=fragments%v_t_mag)
          do try = 1, MAXTRY
-            v_t_initial(1) = dot_product(colliders%vb(:,1),fragments%v_t_unit(:,1))
+            v_t_initial(1) = dot_product(impactors%vb(:,1),fragments%v_t_unit(:,1))
             do i = 2, nfrag
-               v_t_initial(i) = dot_product(colliders%vb(:,2), fragments%v_t_unit(:,i)) 
+               v_t_initial(i) = dot_product(impactors%vb(:,2), fragments%v_t_unit(:,i)) 
             end do
             fragments%v_t_mag(:) = v_t_initial
 
@@ -525,7 +525,7 @@ contains
    end subroutine fraggle_generate_tan_vel
 
 
-   subroutine fraggle_generate_rad_vel(fragments, colliders, lfailure)
+   subroutine fraggle_generate_rad_vel(fragments, impactors, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! 
@@ -533,7 +533,7 @@ contains
       implicit none
       ! Arguments
       class(fraggle_fragments), intent(inout) :: fragments      !! Fraggle fragment system object
-      class(fraggle_colliders), intent(inout) :: colliders   !! Fraggle collider system object
+      class(collision_impactors), intent(inout) :: impactors   !! Fraggle collider system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
       real(DP), parameter                   :: TOL_MIN = FRAGGLE_ETOL   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
@@ -552,7 +552,7 @@ contains
          
          allocate(v_r_initial, source=fragments%v_r_mag)
          ! Initialize radial velocity magnitudes with a random value that related to equipartition of kinetic energy with some noise and scaled with respect to the initial distance
-         v_r_initial(1) = dot_product(colliders%vb(:,1),fragments%v_r_unit(:,1))
+         v_r_initial(1) = dot_product(impactors%vb(:,1),fragments%v_r_unit(:,1))
          fragments%ke_orbit = 0.5_DP * fragments%mass(1) * v_r_initial(1)**2
 
          ke_radial = fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit

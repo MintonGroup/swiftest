@@ -52,30 +52,19 @@ contains
       integer(I4B),               intent(in)    :: n
       class(swiftest_parameters), intent(in) :: param
 
-      call setup_pl(self, n, param)
+      call self%collision_fragments%setup(n, param)
       if (n < 0) return
 
-      if (allocated(self%r_coll)) deallocate(self%r_coll)
-      if (allocated(self%v_coll)) deallocate(self%v_coll)
-      if (allocated(self%v_r_unit)) deallocate(self%v_r_unit) 
-      if (allocated(self%v_t_unit)) deallocate(self%v_t_unit) 
-      if (allocated(self%v_n_unit)) deallocate(self%v_n_unit) 
-      if (allocated(self%rmag)) deallocate(self%rmag) 
-      if (allocated(self%rotmag)) deallocate(self%rotmag) 
       if (allocated(self%v_r_mag)) deallocate(self%v_r_mag) 
       if (allocated(self%v_t_mag)) deallocate(self%v_t_mag) 
+      if (allocated(self%v_n_mag)) deallocate(self%v_t_mag) 
 
       if (n == 0) return
 
-      allocate(self%r_coll(NDIM,n)) 
-      allocate(self%v_coll(NDIM,n)) 
-      allocate(self%v_r_unit(NDIM,n)) 
-      allocate(self%v_t_unit(NDIM,n)) 
-      allocate(self%v_n_unit(NDIM,n)) 
-      allocate(self%rmag(n)) 
       allocate(self%rotmag(n)) 
       allocate(self%v_r_mag(n)) 
       allocate(self%v_t_mag(n)) 
+      allocate(self%v_n_mag(n)) 
 
       call self%reset()
 

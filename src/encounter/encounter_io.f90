@@ -12,7 +12,7 @@ submodule (encounter_classes) s_encounter_io
 contains
 
 
-   module subroutine encounter_io_dump_collision(self, param)
+   module subroutine collision_io_dump(self, param)
       !! author: David A. Minton
       !!
       !! Dumps the time history of an encounter to file.
@@ -24,7 +24,7 @@ contains
       integer(I4B) :: i
 
       select type(nc => self%nc)
-      class is (fraggle_io_parameters)
+      class is (collision_io_parameters)
          if (self%iframe > 0) then
             nc%file_number = nc%file_number + 1 
             call self%make_index_map()
@@ -37,7 +37,7 @@ contains
             do i = 1, self%nframes
                if (allocated(self%frame(i)%item)) then
                   select type(snapshot => self%frame(i)%item)
-                  class is (fraggle_snapshot)
+                  class is (collision_snapshot)
                      param%ioutput = i
                      call snapshot%write_frame(nc,param)
                   end select
@@ -52,10 +52,10 @@ contains
       end select
 
       return
-   end subroutine encounter_io_dump_collision
+   end subroutine collision_io_dump
 
 
-   module subroutine encounter_io_dump_encounter(self, param)
+   module subroutine encounter_io_dump(self, param)
       ! author: David A. Minton
       !!
       !! Dumps the time history of an encounter to file.
@@ -95,7 +95,7 @@ contains
       end select
 
       return
-   end subroutine encounter_io_dump_encounter
+   end subroutine encounter_io_dump
 
 
    module subroutine encounter_io_initialize(self, param)
@@ -194,7 +194,7 @@ contains
    end subroutine encounter_io_initialize
 
 
-   module subroutine encounter_io_write_frame(self, nc, param)
+   module subroutine encounter_io_write_frame_snapshot(self, nc, param)
       !! author: David A. Minton
       !!
       !! Write a frame of output of an encounter trajectory.
@@ -213,43 +213,43 @@ contains
          select type (param)
          class is (symba_parameters)
             associate(pl => self%pl, tp => self%tp, encounter_history => param%encounter_history, tslot => param%ioutput)
-               call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "encounter_io_write_frame nf90_set_fill"  )
+               call check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "encounter_io_write_frame_snapshot nf90_set_fill"  )
          
-               call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_write_frame nf90_put_var time_varid"  )
-               call check( nf90_put_var(nc%id, nc%loop_varid, int(self%iloop,kind=I4B), start=[tslot]), "encounter_io_write_frame nf90_put_var pl loop_varid"  )
+               call check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_write_frame_snapshot nf90_put_var time_varid"  )
+               call check( nf90_put_var(nc%id, nc%loop_varid, int(self%iloop,kind=I4B), start=[tslot]), "encounter_io_write_frame_snapshot nf90_put_var pl loop_varid"  )
 
                npl = pl%nbody
                do i = 1, npl
                   idslot = findloc(encounter_history%idvals,pl%id(i),dim=1)
-                  call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), "encounter_io_write_frame nf90_put_var pl id_varid"  )
-                  call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl rh_varid"  )
-                  call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl vh_varid"  )
-                  call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "encounter_io_write_frame nf90_put_var pl Gmass_varid"  )
+                  call check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), "encounter_io_write_frame_snapshot nf90_put_var pl id_varid"  )
+                  call check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame_snapshot nf90_put_var pl rh_varid"  )
+                  call check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame_snapshot nf90_put_var pl vh_varid"  )
+                  call check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "encounter_io_write_frame_snapshot nf90_put_var pl Gmass_varid"  )
 
-                  if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "encounter_io_write_frame nf90_put_var pl radius_varid"  )
+                  if (param%lclose) call check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "encounter_io_write_frame_snapshot nf90_put_var pl radius_varid"  )
 
                   if (param%lrotation) then
-                     call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl Ip_varid"  )
-                     call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var pl rotx_varid"  )
+                     call check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame_snapshot nf90_put_var pl Ip_varid"  )
+                     call check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_write_frame_snapshot nf90_put_var pl rotx_varid"  )
                   end if
 
                   charstring = trim(adjustl(pl%info(i)%name))
-                  call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var pl name_varid"  )
+                  call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame_snapshot nf90_put_var pl name_varid"  )
                   charstring = trim(adjustl(pl%info(i)%particle_type))
-                  call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var pl particle_type_varid"  )
+                  call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame_snapshot nf90_put_var pl particle_type_varid"  )
                end do
 
                ntp = tp%nbody
                do i = 1, ntp
                   idslot = findloc(param%encounter_history%idvals,tp%id(i),dim=1)
-                  call check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), "encounter_io_write_frame nf90_put_var tp id_varid"  )
-                  call check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var tp rh_varid"  )
-                  call check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame nf90_put_var tp vh_varid"  )
+                  call check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), "encounter_io_write_frame_snapshot nf90_put_var tp id_varid"  )
+                  call check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame_snapshot nf90_put_var tp rh_varid"  )
+                  call check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_write_frame_snapshot nf90_put_var tp vh_varid"  )
 
                   charstring = trim(adjustl(tp%info(i)%name))
-                  call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var tp name_varid"  )
+                  call check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame_snapshot nf90_put_var tp name_varid"  )
                   charstring = trim(adjustl(tp%info(i)%particle_type))
-                  call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame nf90_put_var tp particle_type_varid"  )
+                  call check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
                end do
 
                call check( nf90_set_fill(nc%id, old_mode, old_mode) )
@@ -258,7 +258,7 @@ contains
       end select
 
       return
-   end subroutine encounter_io_write_frame
+   end subroutine encounter_io_write_frame_snapshot
 
 
 
