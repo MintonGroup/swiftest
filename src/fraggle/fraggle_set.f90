@@ -244,12 +244,12 @@ contains
          fragments%mass = fragments%mass * fragments%mscale
          fragments%radius = fragments%radius * fragments%dscale
          fragments%rot = fragments%rot / fragments%tscale
-         fragments%r_coll = fragments%r_coll * fragments%dscale
-         fragments%v_coll = fragments%v_coll * fragments%vscale
+         fragments%rc = fragments%rc * fragments%dscale
+         fragments%vc = fragments%vc * fragments%vscale
    
          do i = 1, fragments%nbody
-            fragments%rb(:, i) = fragments%r_coll(:, i) + fragments%rbcom(:)
-            fragments%vb(:, i) = fragments%v_coll(:, i) + fragments%vbcom(:)
+            fragments%rb(:, i) = fragments%rc(:, i) + fragments%rbcom(:)
+            fragments%vb(:, i) = fragments%vc(:, i) + fragments%vbcom(:)
          end do
 
          impactors%Qloss = impactors%Qloss * fragments%Escale

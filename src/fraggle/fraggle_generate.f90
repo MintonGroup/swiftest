@@ -213,35 +213,35 @@ contains
 
          ! We will treat the first two fragments of the list as special cases. They get initialized the maximum distances apart along the original impactor distance vector.
          ! This is done because in a regular disruption, the first body is the largest, the second the second largest, and the rest are smaller equal-mass fragments.
-         call random_number(fragments%r_coll(:,3:nfrag))
+         call random_number(fragments%rc(:,3:nfrag))
          loverlap(:) = .true.
          do while (any(loverlap(3:nfrag)))
-            fragments%r_coll(:, 1) = impactors%rb(:, 1) - fragments%rbcom(:) 
-            fragments%r_coll(:, 2) = impactors%rb(:, 2) - fragments%rbcom(:)
+            fragments%rc(:, 1) = impactors%rb(:, 1) - fragments%rbcom(:) 
+            fragments%rc(:, 2) = impactors%rb(:, 2) - fragments%rbcom(:)
             r_max = r_max + 0.1_DP * rad
             do i = 3, nfrag
                if (loverlap(i)) then
-                  call random_number(fragments%r_coll(:,i))
-                  fragments%r_coll(:,i) = 2 * (fragments%r_coll(:, i) - 0.5_DP)  
-                  fragments%r_coll(:, i) = fragments%r_coll(:,i) + fdistort * vunit(:) 
-                  fragments%r_coll(:, i) = r_max * fragments%r_coll(:, i) 
-                  fragments%r_coll(:, i) = fragments%r_coll(:, i) + (fragments%rbimp(:) - fragments%rbcom(:)) ! Shift the center of the fragment cloud to the impact point rather than the CoM
-                  !if (lnoncat .and. dot_product(fragments%r_coll(:,i), runit(:)) < 0.0_DP) fragments%r_coll(:, i) = -fragments%r_coll(:, i) ! Make sure the fragment cloud points away from the impact point
+                  call random_number(fragments%rc(:,i))
+                  fragments%rc(:,i) = 2 * (fragments%rc(:, i) - 0.5_DP)  
+                  fragments%rc(:, i) = fragments%rc(:,i) + fdistort * vunit(:) 
+                  fragments%rc(:, i) = r_max * fragments%rc(:, i) 
+                  fragments%rc(:, i) = fragments%rc(:, i) + (fragments%rbimp(:) - fragments%rbcom(:)) ! Shift the center of the fragment cloud to the impact point rather than the CoM
+                  !if (lnoncat .and. dot_product(fragments%rc(:,i), runit(:)) < 0.0_DP) fragments%rc(:, i) = -fragments%rc(:, i) ! Make sure the fragment cloud points away from the impact point
                end if
             end do
             loverlap(:) = .false.
             do j = 1, nfrag
                do i = j + 1, nfrag
-                  dis = .mag.(fragments%r_coll(:,j) - fragments%r_coll(:,i))
+                  dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
          end do
-         call fraggle_util_shift_vector_to_origin(fragments%mass, fragments%r_coll)
+         call fraggle_util_shift_vector_to_origin(fragments%mass, fragments%rc)
          call fragments%set_coordinate_system(impactors)
 
          do concurrent(i = 1:nfrag)
-            fragments%rb(:,i) = fragments%r_coll(:,i) + fragments%rbcom(:)
+            fragments%rb(:,i) = fragments%rc(:,i) + fragments%rbcom(:)
          end do
 
          fragments%rbcom(:) = 0.0_DP
@@ -408,7 +408,7 @@ contains
             fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), fragments%v_t_mag(1:nfrag), &
                                                          fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), fragments%vbcom(:)) 
             do concurrent (i = 1:nfrag)
-               fragments%v_coll(:,i) = fragments%vb(:,i) - fragments%vbcom(:)
+               fragments%vc(:,i) = fragments%vb(:,i) - fragments%vbcom(:)
             end do
 
             ! Now do a kinetic energy budget check to make sure we are still within the budget.
@@ -422,7 +422,7 @@ contains
             ke_diff = fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
             lfailure = ke_diff < 0.0_DP
             if (.not.lfailure) exit
-            fragments%r_coll(:,:) = fragments%r_coll(:,:) * 1.1_DP
+            fragments%rc(:,:) = fragments%rc(:,:) * 1.1_DP
          end do
          if (lfailure) then
             call io_log_one_message(FRAGGLE_LOG_OUT, " ")
@@ -476,7 +476,7 @@ contains
                   else if (present(v_t_mag_input)) then
                      vtmp(:) = v_t_mag_input(i - 6) * fragments%v_t_unit(:, i)
                      L_lin_others(:) = L_lin_others(:) + fragments%mass(i) * vtmp(:)
-                     L(:) = fragments%mass(i) * (fragments%r_coll(:, i) .cross. vtmp(:)) 
+                     L(:) = fragments%mass(i) * (fragments%rc(:, i) .cross. vtmp(:)) 
                      L_orb_others(:) = L_orb_others(:) + L(:)
                   end if
                end do
@@ -582,7 +582,7 @@ contains
          fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), &
                               fragments%v_t_mag(1:nfrag), fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), fragments%vbcom(:)) 
          do i = 1, nfrag
-            fragments%v_coll(:, i) = fragments%vb(:, i) - fragments%vbcom(:)
+            fragments%vc(:, i) = fragments%vb(:, i) - fragments%vbcom(:)
             fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * norm2(fragments%vb(:, i))
             fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * norm2(fragments%rot(:,i))
          end do
