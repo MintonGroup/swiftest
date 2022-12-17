@@ -517,7 +517,7 @@ contains
 
                               ! Save the snapshot
                               param%encounter_history%nid = param%encounter_history%nid + ntp_snap + npl_snap
-                              call encounter_util_save_encounter(param%encounter_history,snapshot)
+                              call encounter_util_save_snapshot(param%encounter_history,snapshot)
                            case("closest")
                               associate(plplenc_list => system%plplenc_list, pltpenc_list => system%pltpenc_list)
                                  if (any(plplenc_list%lclosest(:))) then
@@ -576,7 +576,7 @@ contains
                                           pl_snap%vh(:,2) = vb(:,2) + vcom(:)
 
                                           call pl_snap%sort("id", ascending=.true.)
-                                          call encounter_util_save_encounter(param%encounter_history,snapshot)
+                                          call encounter_util_save_snapshot(param%encounter_history,snapshot)
                                        end if
                                     end do
 
