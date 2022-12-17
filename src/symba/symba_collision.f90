@@ -30,8 +30,7 @@ contains
       character(len=STRMAX) :: message 
       real(DP) :: dpe
 
-      associate(impactors => system%impactors, fragments => system%fragments)
-
+      associate(collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments)
          select case(impactors%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION)
             message = "Disruption between"
@@ -42,12 +41,12 @@ contains
          call io_log_one_message(FRAGGLE_LOG_OUT, message)
 
          ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
-         call fragments%set_mass_dist(impactors, param)
+         call collision_system%set_mass_dist(param)
 
          ! Generate the position and velocity distributions of the fragments
-         call fragments%generate_fragments(impactors, system, param, lfailure)
+         call collision_system%generate_fragments(system, param, lfailure)
 
-         dpe = fragments%pe_after - fragments%pe_before 
+         dpe = collision_system%pe(2) - collision_system%pe(1) 
          system%Ecollisions = system%Ecollisions - dpe 
          system%Euntracked  = system%Euntracked + dpe 
 
@@ -105,7 +104,7 @@ contains
       character(len=STRMAX) :: message
       real(DP) :: dpe
 
-      associate(impactors => system%impactors, fragments => system%fragments)
+      associate(collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments)
          message = "Hit and run between"
          call symba_collision_collider_message(system%pl, impactors%idx, message)
          call io_log_one_message(FRAGGLE_LOG_OUT, trim(adjustl(message)))
@@ -124,12 +123,12 @@ contains
             lpure = .true.
          else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
             lpure = .false.
-            call fragments%set_mass_dist(impactors, param)
+            call collision_system%set_mass_dist(param)
 
             ! Generate the position and velocity distributions of the fragments
-            call fragments%generate_fragments(impactors, system, param, lpure)
+            call collision_system%generate_fragments(system, param, lpure)
 
-            dpe = fragments%pe_after - fragments%pe_before 
+            dpe = collision_system%pe(2) - collision_system%pe(1) 
             system%Ecollisions = system%Ecollisions - dpe 
             system%Euntracked  = system%Euntracked + dpe 
 
@@ -150,7 +149,7 @@ contains
                pl%ldiscard(impactors%idx(:)) = .false.
                pl%lcollision(impactors%idx(:)) = .false.
             end select
-            allocate(system%fragments%pl, source=system%impactors%pl) ! Be sure to save the pl so that snapshots still work 
+            allocate(collision_system%after%pl, source=collision_system%before%pl) ! Be sure to save the pl so that snapshots still work 
          else
             ibiggest = impactors%idx(maxloc(system%pl%Gmass(impactors%idx(:)), dim=1))
             fragments%id(1) = system%pl%id(ibiggest)
@@ -187,7 +186,7 @@ contains
       real(DP)                                  :: dpe
       character(len=STRMAX) :: message
 
-      associate(impactors => system%impactors, fragments => system%fragments)
+      associate(collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments)
          message = "Merging"
          call symba_collision_collider_message(system%pl, impactors%idx, message)
          call io_log_one_message(FRAGGLE_LOG_OUT, message)
@@ -195,10 +194,10 @@ contains
          select type(pl => system%pl)
          class is (symba_pl)
 
-            call fragments%set_mass_dist(impactors, param)
+            call collision_system%set_mass_dist(param)
 
             ! Calculate the initial energy of the system without the collisional family
-            call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.true.)
+            call collision_system%get_energy_and_momentum(system, param, lbefore=.true.)
 
             ibiggest = impactors%idx(maxloc(pl%Gmass(impactors%idx(:)), dim=1))
             fragments%id(1) = pl%id(ibiggest)
@@ -217,8 +216,8 @@ contains
 
             ! Keep track of the component of potential energy due to the pre-impact impactors%idx for book-keeping
             ! Get the energy of the system after the collision
-            call fragments%get_energy_and_momentum(impactors, system, param, lbefore=.false.)
-            dpe = fragments%pe_after - fragments%pe_before 
+            call collision_system%get_energy_and_momentum(system, param, lbefore=.false.)
+            dpe = collision_system%pe(2) - collision_system%pe(1) 
             system%Ecollisions = system%Ecollisions - dpe 
             system%Euntracked  = system%Euntracked + dpe 
 
@@ -757,7 +756,8 @@ contains
       class is (symba_pl)
          select type(pl_discards => system%pl_discards)
          class is (symba_merger)
-            associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody, impactors => system%impactors, fragments => system%fragments)
+            associate(info => pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody, &
+                      collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments)
                ! Add the impactors%idx bodies to the subtraction list
                nimpactors = impactors%ncoll
                nfrag = fragments%nbody
@@ -864,7 +864,7 @@ contains
                end where
 
                ! Log the properties of the new bodies
-               allocate(system%fragments%pl, source=plnew)
+               allocate(collision_system%after%pl, source=plnew)
    
                ! Append the new merged body to the list 
                nstart = pl_adds%nbody + 1
@@ -920,35 +920,32 @@ contains
       logical                                     :: lgoodcollision
       integer(I4B)                                :: i
 
-      associate(ncollisions => plplcollision_list%nenc, idx1 => plplcollision_list%index1, idx2 => plplcollision_list%index2, collision_history => param%collision_history)
+      associate(ncollisions => plplcollision_list%nenc, idx1 => plplcollision_list%index1, idx2 => plplcollision_list%index2, collision_history => param%collision_history, &
+                collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments)
          select type(pl => system%pl)
          class is (symba_pl)
             select type (cb => system%cb)
             class is (symba_cb)
                do i = 1, ncollisions
-                  allocate(collision_impactors :: system%impactors)
-                  allocate(fraggle_fragments :: system%fragments)
                   idx_parent(1) = pl%kin(idx1(i))%parent
                   idx_parent(2) = pl%kin(idx2(i))%parent
-                  lgoodcollision = symba_collision_consolidate_impactors(pl, cb, param, idx_parent, system%impactors) 
+                  lgoodcollision = symba_collision_consolidate_impactors(pl, cb, param, idx_parent, impactors) 
                   if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLISION)) cycle
 
                   if (param%lfragmentation) then
-                     call system%impactors%regime(system%fragments, system, param)
+                     call impactors%get_regime(system, param)
                   else
-                     associate(fragments => system%fragments, impactors => system%impactors)
-                        impactors%regime = COLLRESOLVE_REGIME_MERGE
-                        fragments%mtot = sum(impactors%mass(:))
-                        impactors%mass_dist(1) = fragments%mtot
-                        impactors%mass_dist(2) = 0.0_DP
-                        impactors%mass_dist(3) = 0.0_DP
-                        impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
-                        impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
-                     end associate
+                     impactors%regime = COLLRESOLVE_REGIME_MERGE
+                     fragments%mtot = sum(impactors%mass(:))
+                     impactors%mass_dist(1) = fragments%mtot
+                     impactors%mass_dist(2) = 0.0_DP
+                     impactors%mass_dist(3) = 0.0_DP
+                     impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
+                     impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
                   end if
 
                   call collision_history%take_snapshot(param,system, t, "before") 
-                  select case (system%impactors%regime)
+                  select case (impactors%regime)
                   case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                      plplcollision_list%status(i) = symba_collision_casedisruption(system, param, t)
                   case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -960,7 +957,7 @@ contains
                      call util_exit(FAILURE)
                   end select
                   call collision_history%take_snapshot(param,system, t, "after") 
-                  deallocate(system%impactors,system%fragments)
+                  call impactors%reset()
                end do
             end select
          end select

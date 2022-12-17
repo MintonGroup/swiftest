@@ -11,20 +11,24 @@ submodule (collision_classes) s_collision_setup
    use swiftest
 contains
 
-   module subroutine collision_setup_system(self, system, param)
+   module subroutine collision_setup_system(self, param)
       !! author: David A. Minton
       !!
       !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
       implicit none
       ! Arguments
-      class(collision_system), intent(inout) :: self      !! Encounter collision system object
-      class(swiftest_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
-      class(swiftest_parameters),        intent(inout) :: param     !! Current run configuration parameters 
+      class(collision_system),     intent(inout) :: self      !! Encounter collision system object
+      class(swiftest_parameters),  intent(inout) :: param     !! Current run configuration parameters 
       ! Internals
+
+      ! TODO: Check parameter file for fragmentation model in SyMBA
+      allocate(collision_impactors :: self%impactors)
+      allocate(fraggle_fragments :: self%fragments)
 
 
       return
    end subroutine collision_setup_system
+
 
    module subroutine collision_setup_fragments(self, n, param)
       !! author: David A. Minton

@@ -27,6 +27,7 @@ SET(FAST_MATH_FILES
             ${SRC}/modules/whm_classes.f90
             ${SRC}/modules/swiftest.f90
             ${SRC}/collision/collision_io.f90
+            ${SRC}/collision/collision_regime.f90
             ${SRC}/collision/collision_setup.f90
             ${SRC}/collision/collision_util.f90
             ${SRC}/discard/discard.f90
@@ -37,7 +38,6 @@ SET(FAST_MATH_FILES
             ${SRC}/encounter/encounter_io.f90
             ${SRC}/fraggle/fraggle_generate.f90
             ${SRC}/fraggle/fraggle_io.f90
-            ${SRC}/fraggle/fraggle_regime.f90
             ${SRC}/fraggle/fraggle_set.f90
             ${SRC}/fraggle/fraggle_setup.f90
             ${SRC}/fraggle/fraggle_util.f90

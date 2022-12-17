@@ -75,6 +75,15 @@ contains
 
             select type(param)
             class is (symba_parameters)
+
+               if (param%lfragmentation) then
+                  allocate(fraggle_system :: system%collision_system)
+                  call system%collision_system%setup(param)
+
+                  allocate(symba_nbody_system :: system%collision_system%before)
+                  allocate(symba_nbody_system :: system%collision_system%after)
+               end if
+
                if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
                   allocate(encounter_storage :: param%encounter_history)
                   associate (encounter_history => param%encounter_history)
@@ -97,6 +106,8 @@ contains
                   end select
                end associate
             end select
+
+
 
          end select
       case (RINGMOONS)

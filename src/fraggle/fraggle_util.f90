@@ -185,8 +185,12 @@ contains
       implicit none
       ! Arguments
       type(fraggle_system),  intent(inout) :: self !! Collision impactors storage object
+      ! Internals
+      type(swiftest_parameters) :: tmp_param
 
-      call self%reset()
+      call self%reset(tmp_param)
+      if (allocated(self%impactors)) deallocate(self%impactors)
+      if (allocated(self%fragments)) deallocate(self%fragments)
 
       return
    end subroutine fraggle_util_final_system

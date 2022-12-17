@@ -17,7 +17,7 @@ module symba_classes
    use helio_classes,     only : helio_cb, helio_pl, helio_tp, helio_nbody_system
    use fraggle_classes,   only : collision_impactors, fraggle_fragments
    use encounter_classes, only : encounter_list, encounter_storage
-   use collision_classes, only : collision_storage
+   use collision_classes, only : collision_storage, collision_system
    implicit none
    public
 
@@ -190,8 +190,7 @@ module symba_classes
       class(symba_plplenc),           allocatable     :: plplenc_list       !! List of massive body-massive body encounters in a single step
       class(symba_plplenc),           allocatable     :: plplcollision_list !! List of massive body-massive body collisions in a single step
       integer(I4B)                                    :: irec               !! System recursion level
-      class(collision_impactors), allocatable           :: impactors          !! Fraggle impactors object
-      class(fraggle_fragments), allocatable           :: fragments          !! Fraggle fragmentation system object
+      class(collision_system),        allocatable     :: collision_system   !! Collision system object
    contains
       procedure :: write_discard    => symba_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps

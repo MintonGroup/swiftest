@@ -7,20 +7,19 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(fraggle_classes) s_encounter_regime
+submodule(collision_classes) s_collision_regime
    use swiftest
 
 contains
 
-   module subroutine encounter_regime_impactors(self, fragments, system, param)
+   module subroutine collision_regime_impactors(self, system, param)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton 
       !!
       !! Determine which fragmentation regime the set of impactors will be. This subroutine is a wrapper for the non-polymorphic raggle_regime_collresolve subroutine.
       !! It converts to SI units prior to calling
       implicit none 
       ! Arguments
-      class(collision_impactors),     intent(inout) :: self   !! Fraggle impactors object
-      class(fraggle_fragments),     intent(inout) :: fragments   !! Fraggle fragment system object
+      class(collision_impactors),   intent(inout) :: self   !! Collision system impactors object
       class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
       ! Internals
@@ -58,7 +57,7 @@ contains
          dentot = sum(mass_si(:) * density_si(:)) / mtot 
 
          !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
-         call encounter_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
+         call collision_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
                                          x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
                                          min_mfrag_si, impactors%regime, mlr, mslr, impactors%Qloss)
 
@@ -67,9 +66,9 @@ contains
          impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
 
          ! Find the center of mass of the collisional system	
-         fragments%mtot = sum(impactors%mass(:))
-         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
-         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
+         mtot = sum(impactors%mass(:))
+         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot 
+         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
 
          ! Find the point of impact between the two bodies
          runit(:) = impactors%rb(:,2) - impactors%rb(:,1)
@@ -80,14 +79,14 @@ contains
          impactors%mass_dist(:) = (impactors%mass_dist(:) / param%MU2KG) 
          impactors%Qloss = impactors%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
 
-         call fraggle_io_log_regime(impactors, fragments)
+         !call fraggle_io_log_regime(impactors, fragments)
       end associate
 
       return
-   end subroutine encounter_regime_impactors
+   end subroutine collision_regime_impactors
 
 
-   subroutine encounter_regime_collresolve(Mcb, m1, m2, rad1, rad2, rh1, rh2, vb1, vb2, den1, den2, min_mfrag, &
+   subroutine collision_regime_collresolve(Mcb, m1, m2, rad1, rad2, rh1, rh2, vb1, vb2, den1, den2, min_mfrag, &
                                          regime, Mlr, Mslr, Qloss)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
@@ -379,6 +378,6 @@ contains
             return
          end function calc_c_star 
 
-   end subroutine encounter_regime_collresolve
+   end subroutine collision_regime_collresolve
 
-end submodule s_encounter_regime
+end submodule s_collision_regime

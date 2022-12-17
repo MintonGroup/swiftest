@@ -77,7 +77,7 @@ contains
   
          select case(impactors%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
-            ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of encounter_regime.
+            ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of collision_regime.
             ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
             ! the limits bracketed above and the model size distribution of fragments.
             ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
@@ -117,7 +117,7 @@ contains
             write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
          end select
 
-         ! Make the first two bins the same as the Mlr and Mslr values that came from encounter_regime
+         ! Make the first two bins the same as the Mlr and Mslr values that came from collision_regime
          fragments%mass(1) = impactors%mass_dist(iMlr) 
          fragments%mass(2) = impactors%mass_dist(iMslr) 
 

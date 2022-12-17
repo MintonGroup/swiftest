@@ -81,8 +81,12 @@ contains
       implicit none
       ! Arguments
       type(collision_system),  intent(inout) :: self !!  Collision system object
+      ! Internals
+      type(swiftest_parameters) :: tmp_param
 
-      call self%reset()
+      call self%reset(tmp_param)
+      if (allocated(self%impactors)) deallocate(self%impactors)
+      if (allocated(self%fragments)) deallocate(self%fragments)
 
       return
    end subroutine collision_util_final_system
@@ -298,17 +302,15 @@ contains
       return
    end subroutine collision_util_reset_impactors
 
-
-   module subroutine collision_util_reset_system(self)
+   module subroutine collision_util_reset_system(self, param)
       !! author: David A. Minton
       !!
       !! Resets the collider system and deallocates all allocatables
       implicit none
       ! Arguments
-      class(collision_system),  intent(inout) :: self
+      class(collision_system),    intent(inout) :: self  !! Collision system object
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
 
-      if (allocated(self%impactors)) deallocate(self%impactors)
-      if (allocated(self%fragments)) deallocate(self%fragments)
       if (allocated(self%before)) deallocate(self%before)
       if (allocated(self%after)) deallocate(self%after)
 
@@ -320,10 +322,11 @@ contains
       self%pe(:) = 0.0_DP
       self%Etot(:) = 0.0_DP
 
+      call self%impactors%reset()
+      call self%fragments%setup(0, param)
+
       return
    end subroutine collision_util_reset_system
-
-
 
 
    module subroutine collision_util_set_coordinate_system(self)
