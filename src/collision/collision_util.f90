@@ -386,7 +386,6 @@ contains
       return
    end subroutine collision_util_set_coordinate_system
 
-
    subroutine collision_util_save_snapshot(collision_history, snapshot)
       !! author: David A. Minton
       !!
@@ -430,6 +429,66 @@ contains
 
       return
    end subroutine collision_util_save_snapshot
+
+
+   module subroutine collision_util_snapshot(self, param, system, t, arg)
+      !! author: David A. Minton
+      !!
+      !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
+      !! can be played back through the encounter
+      implicit none
+      ! Internals
+      class(collision_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
+      class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
+      class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
+      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
+      character(*),                 intent(in), optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
+      ! Arguments
+      class(collision_snapshot), allocatable :: snapshot
+      type(symba_pl)                                 :: pl
+      character(len=:), allocatable :: stage
+
+      if (present(arg)) then
+         stage = arg
+      else
+         stage = ""
+      end if 
+
+      select type (system)
+      class is (symba_nbody_system)
+
+         select case(stage)
+         case("before")
+            ! Saves the states of the bodies involved in the collision before the collision is resolved
+            associate (idx => system%collision_system%impactors%idx, ncoll => system%collision_system%impactors%ncoll)
+               call pl%setup(ncoll, param)
+               pl%id(:) = system%pl%id(idx(:))
+               pl%Gmass(:) = system%pl%Gmass(idx(:))
+               pl%radius(:) = system%pl%radius(idx(:))
+               pl%rot(:,:) = system%pl%rot(:,idx(:))
+               pl%Ip(:,:) = system%pl%Ip(:,idx(:))
+               pl%rh(:,:) = system%pl%rh(:,idx(:))
+               pl%vh(:,:) = system%pl%vh(:,idx(:))
+               pl%info(:) = system%pl%info(idx(:))
+               !end select
+               allocate(system%collision_system%before%pl, source=pl)
+            end associate
+         case("after")
+            allocate(collision_snapshot :: snapshot)
+            allocate(snapshot%collision_system, source=system%collision_system) 
+            snapshot%t = t
+            select type(param)
+            class is (symba_parameters)
+               call collision_util_save_snapshot(param%collision_history,snapshot)
+            end select
+         case default
+            write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
+         end select
+
+      end select
+
+      return
+   end subroutine collision_util_snapshot
 
 
 end submodule s_collision_util

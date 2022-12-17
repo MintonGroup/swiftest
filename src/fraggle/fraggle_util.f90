@@ -139,7 +139,7 @@ contains
       ! Arguments
       class(fraggle_fragments),  intent(inout) :: self
 
-      call collision_util_deallocate_fragments(self)
+      call collision_util_dealloc_fragments(self)
 
       if (allocated(self%v_r_mag)) deallocate(self%v_r_mag)
       if (allocated(self%v_t_mag)) deallocate(self%v_t_mag)

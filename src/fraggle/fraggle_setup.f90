@@ -45,7 +45,7 @@ contains
       integer(I4B),               intent(in)    :: n
       class(swiftest_parameters), intent(in) :: param
 
-      call collision_util_setup_fragments(n, param)
+      call self%collision_fragments%setup(n, param) 
       if (n < 0) return
 
       if (allocated(self%v_r_mag)) deallocate(self%v_r_mag) 

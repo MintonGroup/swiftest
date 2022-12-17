@@ -81,7 +81,6 @@ module collision_classes
       procedure :: accel                 => collision_util_placeholder_accel        !! Placeholder subroutine to fulfill requirement for an accel method
       procedure :: kick                  => collision_util_placeholder_kick         !! Placeholder subroutine to fulfill requirement for a kick method
       procedure :: step                  => collision_util_placeholder_step         !! Placeholder subroutine to fulfill requirement for a step method
-      procedure :: set_coordinate_system => collision_set_coordinate_fragments !! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments. 
       procedure :: setup                 => collision_setup_fragments          !! Allocates arrays for n fragments in a Fraggle system. Passing n = 0 deallocates all arrays.
       procedure :: dealloc               => collision_util_dealloc_fragments   !! Deallocates all allocatable arrays
    end type collision_fragments
@@ -152,7 +151,7 @@ module collision_classes
    end type collision_io_parameters
 
    type, extends(encounter_snapshot)  :: collision_snapshot
-      logical                                        :: lcollision !! Indicates that this snapshot contains at least one collision
+      logical                         :: lcollision !! Indicates that this snapshot contains at least one collision
       class(collision_system), allocatable :: collision_system  !! impactors object at this snapshot
    contains
       procedure :: write_frame => collision_io_write_frame_snapshot    !! Writes a frame of encounter data to file 
@@ -232,11 +231,6 @@ module collision_classes
          implicit none
          class(collision_impactors), intent(inout) :: self !! Collider system object
       end subroutine collision_set_coordinate_impactors
-
-      module subroutine collision_set_coordinate_fragments(self)
-         implicit none
-         class(collision_fragments), intent(inout) :: self !! Fragment system object
-      end subroutine collision_set_coordinate_fragments
 
       module subroutine collision_util_set_coordinate_system(self)
          implicit none
