@@ -113,15 +113,6 @@ module fraggle_classes
          class(fraggle_fragments), intent(inout) :: self
       end subroutine fraggle_setup_reset_fragments
 
-      module subroutine fraggle_util_add_fragments_to_system(fragments, impactors, system, param)
-         use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
-         implicit none
-         class(fraggle_fragments),     intent(in)    :: fragments !! Fraggle fragment system object
-         class(collision_impactors),     intent(in)    :: impactors !! Fraggle collider system object
-         class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
-      end subroutine fraggle_util_add_fragments_to_system
-
       module subroutine fraggle_util_get_angular_momentum(self) 
          implicit none
          class(fraggle_fragments), intent(inout) :: self !! Fraggle fragment system object

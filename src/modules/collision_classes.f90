@@ -56,7 +56,6 @@ module collision_classes
 
    contains
       procedure :: get_regime             => collision_regime_impactors         !! Determine which fragmentation regime the set of impactors will be
-      procedure :: set_coordinate_system  => collision_set_coordinate_impactors !! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments. 
       procedure :: setup                  => collision_setup_impactors          !! Allocates arrays for n fragments in a fragment system. Passing n = 0 deallocates all arrays.
       procedure :: reset                  => collision_util_reset_impactors     !! Resets the collider object variables to 0 and deallocates the index and mass distributions
       final     ::                           collision_util_final_impactors     !! Finalizer will deallocate all allocatables
@@ -102,13 +101,14 @@ module collision_classes
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: Etot     !! Before/after total system energy
    contains
-      procedure :: generate_fragments      => abstract_generate_fragments          !! Generates a system of fragments 
-      procedure :: set_mass_dist           => abstract_set_mass_dist               !! Sets the distribution of mass among the fragments depending on the regime type
-      procedure :: setup                   => collision_setup_system               !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
-      procedure :: get_energy_and_momentum => collision_util_get_energy_momentum   !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
-      procedure :: reset                   => collision_util_reset_system          !! Deallocates all allocatables
-      procedure :: set_coordinate_system   => collision_util_set_coordinate_system !! Sets the coordinate system of the collisional system
-      final     ::                            collision_util_final_system          !! Finalizer will deallocate all allocatables
+      procedure :: generate_fragments      => abstract_generate_fragments           !! Generates a system of fragments 
+      procedure :: set_mass_dist           => abstract_set_mass_dist                !! Sets the distribution of mass among the fragments depending on the regime type
+      procedure :: setup                   => collision_setup_system                !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
+      procedure :: add_fragments           => collison_util_add_fragments_to_system !! Add fragments to system
+      procedure :: get_energy_and_momentum => collision_util_get_energy_momentum    !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
+      procedure :: reset                   => collision_util_reset_system           !! Deallocates all allocatables
+      procedure :: set_coordinate_system   => collision_util_set_coordinate_system  !! Sets the coordinate system of the collisional system
+      final     ::                            collision_util_final_system           !! Finalizer will deallocate all allocatables
    end type collision_system
 
    abstract interface 
@@ -227,11 +227,6 @@ module collision_classes
          class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
       end subroutine collision_regime_impactors
 
-      module subroutine collision_set_coordinate_impactors(self)
-         implicit none
-         class(collision_impactors), intent(inout) :: self !! Collider system object
-      end subroutine collision_set_coordinate_impactors
-
       module subroutine collision_util_set_coordinate_system(self)
          implicit none
          class(collision_system),    intent(inout) :: self      !! Collisional system
@@ -257,6 +252,13 @@ module collision_classes
          class(collision_system),       intent(inout) :: self   !! Collision system object
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine collision_setup_system
+
+      module subroutine collison_util_add_fragments_to_system(self, system, param)
+         implicit none
+         class(collision_system),      intent(in)    :: self      !! Collision system system object
+         class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+      end subroutine collison_util_add_fragments_to_system
 
       module subroutine collision_util_dealloc_fragments(self)
          implicit none

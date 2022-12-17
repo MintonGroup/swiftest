@@ -11,6 +11,52 @@ submodule (collision_classes) s_collision_util
    use swiftest
 contains
 
+   module subroutine collison_util_add_fragments_to_system(self, system, param)
+      !! Author: David A. Minton
+      !!
+      !! Adds fragments to the temporary system pl object
+      implicit none
+      ! Arguments
+      class(collision_system),      intent(in)    :: self      !! Collision system system object
+      class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+      ! Internals
+      integer(I4B) :: i, npl_before, npl_after
+      logical, dimension(:), allocatable :: lexclude
+
+      associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => system%pl, cb => system%cb)
+         npl_after = pl%nbody
+         npl_before = npl_after - nfrag
+         allocate(lexclude(npl_after))
+
+         pl%status(npl_before+1:npl_after) = ACTIVE
+         pl%mass(npl_before+1:npl_after) = fragments%mass(1:nfrag)
+         pl%Gmass(npl_before+1:npl_after) = fragments%mass(1:nfrag) * param%GU
+         pl%radius(npl_before+1:npl_after) = fragments%radius(1:nfrag)
+         do concurrent (i = 1:nfrag)
+            pl%rb(:,npl_before+i) =  fragments%rb(:,i) 
+            pl%vb(:,npl_before+i) =  fragments%vb(:,i) 
+            pl%rh(:,npl_before+i) =  fragments%rb(:,i) - cb%rb(:)
+            pl%vh(:,npl_before+i) =  fragments%vb(:,i) - cb%vb(:)
+         end do
+         if (param%lrotation) then
+            pl%Ip(:,npl_before+1:npl_after) = fragments%Ip(:,1:nfrag)
+            pl%rot(:,npl_before+1:npl_after) = fragments%rot(:,1:nfrag)
+         end if
+         ! This will remove the impactors from the system since we've replaced them with fragments
+         lexclude(1:npl_after) = .false.
+         lexclude(impactors%idx(1:impactors%ncoll)) = .true.
+         where(lexclude(1:npl_after)) 
+            pl%status(1:npl_after) = INACTIVE
+         elsewhere
+            pl%status(1:npl_after) = ACTIVE
+         endwhere
+
+      end associate
+
+      return
+   end subroutine collison_util_add_fragments_to_system
+
    module subroutine collision_util_dealloc_fragments(self)
       !! author: David A. Minton
       !!
@@ -179,7 +225,7 @@ contains
                call util_exit(FAILURE)
             end if
             ! Build the exluded body logical mask for the *after* case: Only the new bodies are used to compute energy and momentum
-            call encounter_util_add_fragments_to_system(fragments, impactors, tmpsys, tmpparam)
+            call self%add_fragments(tmpsys, tmpparam)
             tmpsys%pl%status(impactors%idx(1:impactors%ncoll)) = INACTIVE
             tmpsys%pl%status(npl_before+1:npl_after) = ACTIVE
          end if 
