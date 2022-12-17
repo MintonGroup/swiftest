@@ -62,22 +62,22 @@ contains
                                          x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
                                          min_mfrag_si, impactors%regime, mlr, mslr, impactors%Qloss)
 
-         fragments%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
-         fragments%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
-         fragments%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+         impactors%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
+         impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
+         impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
 
          ! Find the center of mass of the collisional system	
          fragments%mtot = sum(impactors%mass(:))
-         fragments%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
-         fragments%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
+         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
+         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
 
          ! Find the point of impact between the two bodies
          runit(:) = impactors%rb(:,2) - impactors%rb(:,1)
          runit(:) = runit(:) / (.mag. runit(:))
-         fragments%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * runit(:)
+         impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * runit(:)
 
          ! Convert quantities back to the system units and save them into the fragment system
-         fragments%mass_dist(:) = (fragments%mass_dist(:) / param%MU2KG) 
+         impactors%mass_dist(:) = (impactors%mass_dist(:) / param%MU2KG) 
          impactors%Qloss = impactors%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
 
          call fraggle_io_log_regime(impactors, fragments)

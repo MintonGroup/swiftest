@@ -118,7 +118,7 @@ contains
             jproj = 1
          end if
 
-         if (fragments%mass_dist(2) > 0.9_DP * impactors%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
+         if (impactors%mass_dist(2) > 0.9_DP * impactors%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
             call io_log_one_message(FRAGGLE_LOG_OUT, "Pure hit and run. No new fragments generated.")
             nfrag = 0
             lpure = .true.
@@ -202,8 +202,8 @@ contains
 
             ibiggest = impactors%idx(maxloc(pl%Gmass(impactors%idx(:)), dim=1))
             fragments%id(1) = pl%id(ibiggest)
-            fragments%rb(:,1) = fragments%rbcom(:)
-            fragments%vb(:,1) = fragments%vbcom(:)
+            fragments%rb(:,1) = impactors%rbcom(:)
+            fragments%vb(:,1) = impactors%vbcom(:)
 
             if (param%lrotation) then
                ! Conserve angular momentum by putting pre-impact orbital momentum into spin of the new body
@@ -939,11 +939,11 @@ contains
                      associate(fragments => system%fragments, impactors => system%impactors)
                         impactors%regime = COLLRESOLVE_REGIME_MERGE
                         fragments%mtot = sum(impactors%mass(:))
-                        fragments%mass_dist(1) = fragments%mtot
-                        fragments%mass_dist(2) = 0.0_DP
-                        fragments%mass_dist(3) = 0.0_DP
-                        fragments%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
-                        fragments%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
+                        impactors%mass_dist(1) = fragments%mtot
+                        impactors%mass_dist(2) = 0.0_DP
+                        impactors%mass_dist(3) = 0.0_DP
+                        impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
+                        impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
                      end associate
                   end if
 

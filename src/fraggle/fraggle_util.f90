@@ -83,22 +83,22 @@ contains
    end subroutine fraggle_util_get_angular_momentum
 
 
-   module subroutine fraggle_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
+   module subroutine fraggle_util_construct_temporary_system(collision_system, nbody_system, param, tmpsys, tmpparam)
       !! Author: David A. Minton
       !!
       !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
       implicit none
       ! Arguments
-      class(fraggle_fragments),                   intent(in)  :: fragments     !! Fraggle fragment system object
-      class(swiftest_nbody_system),               intent(in)  :: system   !! Original swiftest nbody system object
-      class(swiftest_parameters),                 intent(in)  :: param    !! Current swiftest run configuration parameters
-      class(swiftest_nbody_system), allocatable,  intent(out) :: tmpsys   !! Output temporary swiftest nbody system object
-      class(swiftest_parameters),   allocatable,  intent(out) :: tmpparam !! Output temporary configuration run parameters
+      class(fraggle_system),                      intent(inout) :: collision_system !! Fraggle collision system object
+      class(swiftest_nbody_system),               intent(in)    :: nbody_system     !! Original swiftest nbody system object
+      class(swiftest_parameters),                 intent(in)    :: param            !! Current swiftest run configuration parameters
+      class(swiftest_nbody_system), allocatable,  intent(out)   :: tmpsys           !! Output temporary swiftest nbody system object
+      class(swiftest_parameters),   allocatable,  intent(out)   :: tmpparam         !! Output temporary configuration run parameters
       ! Internals
       logical, dimension(:), allocatable :: linclude
       integer(I4B) :: npl_tot
 
-      associate(nfrag => fragments%nbody, pl => system%pl, npl => system%pl%nbody, cb => system%cb)
+      associate(fragments => collision_system%fragments, nfrag => collision_system%fragments%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, cb => nbody_system%cb)
          ! Set up a new system based on the original
          if (allocated(tmpparam)) deallocate(tmpparam)
          if (allocated(tmpsys)) deallocate(tmpsys)
@@ -123,7 +123,7 @@ contains
          call tmpsys%pl%fill(pl, linclude)
 
          ! Scale the temporary system to the natural units of the current Fraggle calculation
-         call tmpsys%rescale(tmpparam, fragments%mscale, fragments%dscale, fragments%tscale)
+         call tmpsys%rescale(tmpparam, collision_system%mscale, collision_system%dscale, collision_system%tscale)
 
       end associate
 

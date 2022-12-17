@@ -11,31 +11,34 @@ submodule(fraggle_classes) s_fraggle_set
    use swiftest
 contains
 
-   module subroutine fraggle_set_budgets_fragments(self)
+   module subroutine fraggle_set_budgets(self)
       !! author: David A. Minton
       !!
       !! Sets the energy and momentum budgets of the fragments based on the collider values and the before/after values of energy and momentum
       implicit none
       ! Arguments
-      class(collision_system), intent(inout) :: self      !! Fraggle fragment system object
+      class(fraggle_system), intent(inout) :: self !! Fraggle collision system object
       ! Internals
       real(DP) :: dEtot
       real(DP), dimension(NDIM) :: dL
 
-      associate(impactors => self%impactors, fragments => self%fragments)
+      associate(impactors => self%impactors)
+      select type(fragments => self%fragments)
+      class is (fraggle_fragments)
 
          dEtot = self%Etot(2) - self%Etot(1)
          dL(:) = self%Ltot(:,2) - self%Ltot(:,1)
 
          fragments%L_budget(:) = -dL(:)
-         fragments%ke_budget = -(dEtot - 0.5_DP * fragments%mtot * dot_product(fragments%vbcom(:), fragments%vbcom(:))) - impactors%Qloss 
+         fragments%ke_budget = -(dEtot - 0.5_DP * fragments%mtot * dot_product(impactors%vbcom(:), impactors%vbcom(:))) - impactors%Qloss 
 
+      end select
       end associate
       return
-   end subroutine fraggle_set_budgets_fragments
+   end subroutine fraggle_set_budgets
 
 
-   module subroutine fraggle_set_mass_dist_fragments(self, impactors, param)
+   module subroutine fraggle_set_mass_dist(self, param)
       !! author: David A. Minton
       !!
       !! Sets the mass of fragments based on the mass distribution returned by the regime calculation.
@@ -43,9 +46,8 @@ contains
       !!
       implicit none
       ! Arguments
-      class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
-      class(collision_impactors),     intent(inout) :: impactors !! Fraggle collider system object
-      class(swiftest_parameters),   intent(in)    :: param     !! Current Swiftest run configuration parameters
+      class(fraggle_system),        intent(inout) :: self  !! Fraggle collision system object
+      class(swiftest_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
       integer(I4B)              :: i, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
@@ -59,7 +61,9 @@ contains
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
      
-      associate(fragments => self)
+      associate(impactors => self%impactors)
+      select type(fragments => self%fragments)
+      class is (fraggle_fragments)
          ! Get mass weighted mean of Ip and density
          volume(1:2) = 4._DP / 3._DP * PI * impactors%radius(1:2)**3
          Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / fragments%mtot
@@ -92,9 +96,9 @@ contains
             end select
 
             i = iMrem
-            mremaining = fragments%mass_dist(iMrem)
+            mremaining = impactors%mass_dist(iMrem)
             do while (i <= nfrag)
-               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * fragments%mass_dist(iMslr)
+               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
                if (mremaining - mfrag < 0.0_DP) exit
                mremaining = mremaining - mfrag
                i = i + 1
@@ -104,9 +108,9 @@ contains
             call fragments%setup(nfrag, param)
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
             call fragments%setup(1, param)
-            fragments%mass(1) = fragments%mass_dist(1)
+            fragments%mass(1) = impactors%mass_dist(1)
             fragments%radius(1) = impactors%radius(jtarg)
-            fragments%density(1) = fragments%mass_dist(1) / volume(jtarg)
+            fragments%density(1) = impactors%mass_dist(1) / volume(jtarg)
             if (param%lrotation) fragments%Ip(:, 1) = impactors%Ip(:,1)
             return
          case default
@@ -114,13 +118,13 @@ contains
          end select
 
          ! Make the first two bins the same as the Mlr and Mslr values that came from encounter_regime
-         fragments%mass(1) = fragments%mass_dist(iMlr) 
-         fragments%mass(2) = fragments%mass_dist(iMslr) 
+         fragments%mass(1) = impactors%mass_dist(iMlr) 
+         fragments%mass(2) = impactors%mass_dist(iMslr) 
 
          ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
-         mremaining = fragments%mass_dist(iMrem)
+         mremaining = impactors%mass_dist(iMrem)
          do i = iMrem, nfrag
-            mfrag = (1 + i - iMslr)**(-3._DP / BETA) * fragments%mass_dist(iMslr)
+            mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
             fragments%mass(i) = mfrag
             mremaining = mremaining - mfrag
          end do
@@ -142,7 +146,7 @@ contains
          select case(impactors%regime)
          case(COLLRESOLVE_REGIME_HIT_AND_RUN)  ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical properties of the first fragment
             fragments%radius(1) = impactors%radius(jtarg)
-            fragments%density(1) = fragments%mass_dist(iMlr) / volume(jtarg)
+            fragments%density(1) = impactors%mass_dist(iMlr) / volume(jtarg)
             fragments%Ip(:, 1) = impactors%Ip(:,1)
             istart = 2
          case default
@@ -153,55 +157,53 @@ contains
          do i = istart, nfrag
             fragments%Ip(:, i) = Ip_avg(:)
          end do
-
+      end select
       end associate
 
       return
-   end subroutine fraggle_set_mass_dist_fragments
+   end subroutine fraggle_set_mass_dist
 
 
-
-   module subroutine fraggle_set_natural_scale_factors(self, impactors)
+   module subroutine fraggle_set_natural_scale_factors(self)
       !! author: David A. Minton
       !!
       !! Scales dimenional quantities to ~O(1) with respect to the collisional system. 
       !! This scaling makes it easier for the non-linear minimization to converge on a solution
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
-      class(collision_impactors), intent(inout) :: impactors !! Fraggle collider system object
+      class(fraggle_system), intent(inout) :: self  !! Fraggle collision system object
       ! Internals
       integer(I4B) :: i
 
-      associate(fragments => self)
+      associate(collision_system => self, fragments => self%fragments, impactors => self%impactors)
          ! Set scale factors
-         fragments%Escale = 0.5_DP * (impactors%mass(1) * dot_product(impactors%vb(:,1), impactors%vb(:,1)) &
-                               + impactors%mass(2)  * dot_product(impactors%vb(:,2), impactors%vb(:,2)))
-         fragments%dscale = sum(impactors%radius(:))
-         fragments%mscale = fragments%mtot 
-         fragments%vscale = sqrt(fragments%Escale / fragments%mscale) 
-         fragments%tscale = fragments%dscale / fragments%vscale 
-         fragments%Lscale = fragments%mscale * fragments%dscale * fragments%vscale
+         collision_system%Escale = 0.5_DP * ( impactors%mass(1) * dot_product(impactors%vb(:,1), impactors%vb(:,1)) &
+                                            + impactors%mass(2) * dot_product(impactors%vb(:,2), impactors%vb(:,2)))
+         collision_system%dscale = sum(impactors%radius(:))
+         collision_system%mscale = fragments%mtot 
+         collision_system%vscale = sqrt(collision_system%Escale / collision_system%mscale) 
+         collision_system%tscale = collision_system%dscale / collision_system%vscale 
+         collision_system%Lscale = collision_system%mscale * collision_system%dscale * collision_system%vscale
 
          ! Scale all dimensioned quantities of impactors and fragments
-         fragments%rbcom(:) = fragments%rbcom(:) / fragments%dscale
-         fragments%vbcom(:) = fragments%vbcom(:) / fragments%vscale
-         fragments%rbimp(:) = fragments%rbimp(:) / fragments%dscale
-         impactors%rb(:,:) = impactors%rb(:,:) / fragments%dscale
-         impactors%vb(:,:) = impactors%vb(:,:) / fragments%vscale
-         impactors%mass(:) = impactors%mass(:) / fragments%mscale
-         impactors%radius(:) = impactors%radius(:) / fragments%dscale
-         impactors%Lspin(:,:) = impactors%Lspin(:,:) / fragments%Lscale
-         impactors%Lorbit(:,:) = impactors%Lorbit(:,:) / fragments%Lscale
+         impactors%rbcom(:)    = impactors%rbcom(:)    / collision_system%dscale
+         impactors%vbcom(:)    = impactors%vbcom(:)    / collision_system%vscale
+         impactors%rbimp(:)    = impactors%rbimp(:)    / collision_system%dscale
+         impactors%rb(:,:)     = impactors%rb(:,:)     / collision_system%dscale
+         impactors%vb(:,:)     = impactors%vb(:,:)     / collision_system%vscale
+         impactors%mass(:)     = impactors%mass(:)     / collision_system%mscale
+         impactors%radius(:)   = impactors%radius(:)   / collision_system%dscale
+         impactors%Lspin(:,:)  = impactors%Lspin(:,:)  / collision_system%Lscale
+         impactors%Lorbit(:,:) = impactors%Lorbit(:,:) / collision_system%Lscale
 
          do i = 1, 2
             impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
          end do
 
-         fragments%mtot = fragments%mtot / fragments%mscale
-         fragments%mass = fragments%mass / fragments%mscale
-         fragments%radius = fragments%radius / fragments%dscale
-         impactors%Qloss = impactors%Qloss / fragments%Escale
+         fragments%mtot    = fragments%mtot   / collision_system%mscale
+         fragments%mass    = fragments%mass   / collision_system%mscale
+         fragments%radius  = fragments%radius / collision_system%dscale
+         impactors%Qloss   = impactors%Qloss  / collision_system%Escale
       end associate
 
       return
@@ -215,8 +217,7 @@ contains
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout) :: self      !! Fraggle fragment system object
-      class(collision_impactors), intent(inout) :: impactors !! Fraggle collider system object
+      class(fraggle_system),      intent(inout) :: self      !! Fraggle fragment system object
       ! Internals
       integer(I4B) :: i
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
@@ -224,58 +225,50 @@ contains
       call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
       call ieee_set_halting_mode(IEEE_ALL,.false.)
 
-      associate(fragments => self)
+      associate(collision_system => self, fragments => self%fragments, impactors => self%impactors)
 
          ! Restore scale factors
-         fragments%rbcom(:) = fragments%rbcom(:) * fragments%dscale
-         fragments%vbcom(:) = fragments%vbcom(:) * fragments%vscale
-         fragments%rbimp(:) = fragments%rbimp(:) * fragments%dscale
+         impactors%rbcom(:) = impactors%rbcom(:) * collision_system%dscale
+         impactors%vbcom(:) = impactors%vbcom(:) * collision_system%vscale
+         impactors%rbimp(:) = impactors%rbimp(:) * collision_system%dscale
    
-         impactors%mass = impactors%mass * fragments%mscale
-         impactors%radius = impactors%radius * fragments%dscale
-         impactors%rb = impactors%rb * fragments%dscale
-         impactors%vb = impactors%vb * fragments%vscale
-         impactors%Lspin = impactors%Lspin * fragments%Lscale
+         impactors%mass   = impactors%mass   * collision_system%mscale
+         impactors%radius = impactors%radius * collision_system%dscale
+         impactors%rb     = impactors%rb     * collision_system%dscale
+         impactors%vb     = impactors%vb     * collision_system%vscale
+         impactors%Lspin  = impactors%Lspin  * collision_system%Lscale
          do i = 1, 2
             impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
          end do
    
-         fragments%mtot = fragments%mtot * fragments%mscale
-         fragments%mass = fragments%mass * fragments%mscale
-         fragments%radius = fragments%radius * fragments%dscale
-         fragments%rot = fragments%rot / fragments%tscale
-         fragments%rc = fragments%rc * fragments%dscale
-         fragments%vc = fragments%vc * fragments%vscale
+         fragments%mtot   = fragments%mtot   * collision_system%mscale
+         fragments%mass   = fragments%mass   * collision_system%mscale
+         fragments%radius = fragments%radius * collision_system%dscale
+         fragments%rot    = fragments%rot    / collision_system%tscale
+         fragments%rc     = fragments%rc     * collision_system%dscale
+         fragments%vc     = fragments%vc     * collision_system%vscale
    
          do i = 1, fragments%nbody
-            fragments%rb(:, i) = fragments%rc(:, i) + fragments%rbcom(:)
-            fragments%vb(:, i) = fragments%vc(:, i) + fragments%vbcom(:)
+            fragments%rb(:, i) = fragments%rc(:, i) + impactors%rbcom(:)
+            fragments%vb(:, i) = fragments%vc(:, i) + impactors%vbcom(:)
          end do
 
-         impactors%Qloss = impactors%Qloss * fragments%Escale
+         impactors%Qloss = impactors%Qloss * collision_system%Escale
 
-         fragments%Lorbit_before(:) = fragments%Lorbit_before * fragments%Lscale
-         fragments%Lspin_before(:) = fragments%Lspin_before * fragments%Lscale
-         fragments%Ltot_before(:) = fragments%Ltot_before * fragments%Lscale
-         fragments%ke_orbit_before = fragments%ke_orbit_before * fragments%Escale
-         fragments%ke_spin_before = fragments%ke_spin_before * fragments%Escale
-         fragments%pe_before = fragments%pe_before * fragments%Escale
-         fragments%Etot_before = fragments%Etot_before * fragments%Escale
+         collision_system%Lorbit(:,:) = collision_system%Lorbit(:,:) * collision_system%Lscale
+         collision_system%Lspin(:,:)  = collision_system%Lspin(:,:)  * collision_system%Lscale
+         collision_system%Ltot(:,:)   = collision_system%Ltot(:,:)   * collision_system%Lscale
+         collision_system%ke_orbit(:) = collision_system%ke_orbit(:) * collision_system%Escale
+         collision_system%ke_spin(:)  = collision_system%ke_spin(:)  * collision_system%Escale
+         collision_system%pe(:)       = collision_system%pe(:)       * collision_system%Escale
+         collision_system%Etot(:)     = collision_system%Etot(:)     * collision_system%Escale
    
-         fragments%Lorbit_after(:) = fragments%Lorbit_after * fragments%Lscale
-         fragments%Lspin_after(:) = fragments%Lspin_after * fragments%Lscale
-         fragments%Ltot_after(:) = fragments%Ltot_after * fragments%Lscale
-         fragments%ke_orbit_after = fragments%ke_orbit_after * fragments%Escale
-         fragments%ke_spin_after = fragments%ke_spin_after * fragments%Escale
-         fragments%pe_after = fragments%pe_after * fragments%Escale
-         fragments%Etot_after = fragments%Etot_after * fragments%Escale
-   
-         fragments%mscale = 1.0_DP
-         fragments%dscale = 1.0_DP
-         fragments%vscale = 1.0_DP
-         fragments%tscale = 1.0_DP
-         fragments%Lscale = 1.0_DP
-         fragments%Escale = 1.0_DP
+         collision_system%mscale = 1.0_DP
+         collision_system%dscale = 1.0_DP
+         collision_system%vscale = 1.0_DP
+         collision_system%tscale = 1.0_DP
+         collision_system%Lscale = 1.0_DP
+         collision_system%Escale = 1.0_DP
       end associate
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
    
