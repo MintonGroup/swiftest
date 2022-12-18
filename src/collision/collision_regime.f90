@@ -61,6 +61,8 @@ contains
                                          x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
                                          min_mfrag_si, impactors%regime, mlr, mslr, impactors%Qloss)
 
+         if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
+         allocate(impactors%mass_dist(3))
          impactors%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
          impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
          impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)

@@ -52,7 +52,7 @@ contains
       integer(I4B)              :: i, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, min_mfrag
+      real(DP) :: mfrag, mremaining, min_mfrag, mtot
       real(DP), parameter :: BETA = 2.85_DP
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
@@ -66,7 +66,9 @@ contains
       class is (fraggle_fragments)
          ! Get mass weighted mean of Ip and density
          volume(1:2) = 4._DP / 3._DP * PI * impactors%radius(1:2)**3
-         Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / fragments%mtot
+         mtot = sum(impactors%mass(:))
+         Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / mtot
+
          if (impactors%mass(1) > impactors%mass(2)) then
             jtarg = 1
             jproj = 2
@@ -88,7 +90,7 @@ contains
                ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
                ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
                ! code from getting an overwhelmingly large number of fragments
-               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(fragments%mtot / min_mfrag))
+               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(mtot / min_mfrag))
                nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
             class default
                min_mfrag = 0.0_DP
@@ -116,6 +118,7 @@ contains
          case default
             write(*,*) "fraggle_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
          end select
+         fragments%mtot = mtot
 
          ! Make the first two bins the same as the Mlr and Mslr values that came from collision_regime
          fragments%mass(1) = impactors%mass_dist(iMlr) 

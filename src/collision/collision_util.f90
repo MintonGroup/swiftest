@@ -413,8 +413,8 @@ contains
       self%pe(:) = 0.0_DP
       self%Etot(:) = 0.0_DP
 
-      call self%impactors%reset()
-      call self%fragments%setup(0, param)
+      if (allocated(self%impactors)) call self%impactors%reset()
+      if (allocated(self%fragments)) call self%fragments%setup(0, param)
 
       return
    end subroutine collision_util_reset_system

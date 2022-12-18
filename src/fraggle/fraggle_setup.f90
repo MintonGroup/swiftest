@@ -48,6 +48,7 @@ contains
       call collision_setup_fragments(self, n, param) 
       if (n < 0) return
 
+      if (allocated(self%rotmag)) deallocate(self%rotmag) 
       if (allocated(self%v_r_mag)) deallocate(self%v_r_mag) 
       if (allocated(self%v_t_mag)) deallocate(self%v_t_mag) 
       if (allocated(self%v_n_mag)) deallocate(self%v_t_mag) 
