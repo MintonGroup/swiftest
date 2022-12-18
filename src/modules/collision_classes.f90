@@ -161,7 +161,7 @@ module collision_classes
    end type collision_snapshot
 
    !> A class that that is used to store simulation history data between file output
-   type, extends(swiftest_storage) :: collision_storage
+   type, extends(encounter_storage) :: collision_storage
    contains
       procedure :: dump           => collision_io_dump            !! Dumps contents of encounter history to file
       procedure :: take_snapshot  => collision_util_snapshot      !! Take a minimal snapshot of the system through an encounter

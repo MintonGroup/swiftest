@@ -310,7 +310,7 @@ contains
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
 
-      call encounter_util_get_vals_storage(self, idvals, tvals)
+      call self%get_index_values(idvals, tvals)
 
       ! Consolidate ids to only unique values
       call util_unique(idvals,self%idvals,self%idmap)

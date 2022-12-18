@@ -146,9 +146,9 @@ module swiftest_classes
    type swiftest_storage_frame
       class(*), allocatable :: item
    contains
-      procedure :: store         => util_copy_store !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
-      generic   :: assignment(=) => store
-      final     ::                  util_final_storage_frame
+      procedure :: store            => util_copy_store       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      generic   :: assignment(=)    => store
+      final     ::                     util_final_storage_frame
    end type
 
    type :: swiftest_storage(nframes)
@@ -164,11 +164,12 @@ module swiftest_classes
       integer(I4B),                 dimension(:), allocatable :: tmap           !! The t value -> index map
       class(netcdf_parameters),                   allocatable :: nc             !! NetCDF object attached to this storage object
    contains
-      procedure :: dump           => io_dump_storage        !! Dumps storage object contents to file
-      procedure :: make_index_map => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: reset          => util_reset_storage     !! Resets a storage object by deallocating all items and resetting the frame counter to 0
-      procedure :: take_snapshot  => util_snapshot_system   !! Takes a snapshot of the system for later file storage
-      final     ::                   util_final_storage
+      procedure :: dump             => io_dump_storage        !! Dumps storage object contents to file
+      procedure :: get_index_values => util_get_vals_storage !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
+      procedure :: make_index_map   => util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: reset            => util_reset_storage     !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      procedure :: take_snapshot    => util_snapshot_system   !! Takes a snapshot of the system for later file storage
+      final     ::                     util_final_storage
    end type swiftest_storage
 
    !********************************************************************************************************************************
@@ -1506,6 +1507,12 @@ module swiftest_classes
          class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
+
+      module subroutine util_get_vals_storage(self, idvals, tvals)
+         class(swiftest_storage(*)), intent(in)               :: self   !! Swiftest storage object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
+         real(DP),     dimension(:), allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
+      end subroutine util_get_vals_storage
 
       module subroutine util_index_array(ind_arr, n)
          implicit none

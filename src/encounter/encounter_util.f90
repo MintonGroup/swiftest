@@ -203,19 +203,19 @@ contains
    end subroutine encounter_util_get_idvalues_snapshot
 
 
-   subroutine encounter_util_get_vals_storage(storage, idvals, tvals)
+   module subroutine encounter_util_get_vals_storage(self, idvals, tvals)
       !! author: David A. Minton
       !!
-      !! Gets the id values in a storage object, regardless of whether it is encounter of collision
+      !! Gets the id values in a self object, regardless of whether it is encounter of collision
       ! Argument
-      class(swiftest_storage(*)), intent(in)              :: storage !! Swiftest storage object
-      integer(I4B), dimension(:), allocatable, intent(out) :: idvals  !! Array of all id values in all snapshots
-      real(DP),     dimension(:), allocatable, intent(out) :: tvals   !! Array of all time values in all snapshots
+      class(encounter_storage(*)), intent(in)               :: self   !! Encounter storages object
+      integer(I4B), dimension(:),  allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
+      real(DP),     dimension(:),  allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
       ! Internals
       integer(I4B) :: i, n, nlo, nhi, ntotal
       integer(I4B), dimension(:), allocatable :: itmp
 
-      associate(nsnaps => storage%iframe)
+      associate(nsnaps => self%iframe)
 
          allocate(tvals(nsnaps))
 
@@ -224,8 +224,8 @@ contains
          ! First pass to get total number of ids
          ntotal = 0
          do i = 1, nsnaps
-            if (allocated(storage%frame(i)%item)) then
-               select type(snapshot => storage%frame(i)%item)
+            if (allocated(self%frame(i)%item)) then
+               select type(snapshot => self%frame(i)%item)
                class is (encounter_snapshot)
                   tvals(i) = snapshot%t
                   call snapshot%get_idvals(itmp)
@@ -241,8 +241,8 @@ contains
          nlo = 1
          ! Second pass to store all ids get all of the ids stored
          do i = 1, nsnaps
-            if (allocated(storage%frame(i)%item)) then
-               select type(snapshot => storage%frame(i)%item)
+            if (allocated(self%frame(i)%item)) then
+               select type(snapshot => self%frame(i)%item)
                class is (encounter_snapshot)
                   tvals(i) = snapshot%t
                   call snapshot%get_idvals(itmp)

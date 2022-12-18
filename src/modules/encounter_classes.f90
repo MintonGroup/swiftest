@@ -58,10 +58,11 @@ module encounter_classes
    !> A class that that is used to store simulation history data between file output
    type, extends(swiftest_storage) :: encounter_storage
    contains
-      procedure :: dump           => encounter_io_dump        !! Dumps contents of encounter history to file
-      procedure :: make_index_map => encounter_util_index_map  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: take_snapshot  => encounter_util_snapshot !! Take a minimal snapshot of the system through an encounter
-      final     ::                   encounter_util_final_storage
+      procedure :: dump             => encounter_io_dump        !! Dumps contents of encounter history to file
+      procedure :: get_index_values => encounter_util_get_vals_storage !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
+      procedure :: make_index_map   => encounter_util_index_map  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: take_snapshot    => encounter_util_snapshot !! Take a minimal snapshot of the system through an encounter
+      final     ::                     encounter_util_final_storage
    end type encounter_storage
 
    !> NetCDF dimension and variable names for the enounter save object
@@ -287,6 +288,12 @@ module encounter_classes
          class(encounter_snapshot),               intent(in)  :: self   !! Encounter snapshot object
          integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
       end subroutine encounter_util_get_idvalues_snapshot
+
+      module subroutine encounter_util_get_vals_storage(self, idvals, tvals)
+         class(encounter_storage(*)), intent(in)               :: self   !! Encounter storages object
+         integer(I4B), dimension(:),  allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
+         real(DP),     dimension(:),  allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
+      end subroutine encounter_util_get_vals_storage 
 
       module subroutine encounter_util_index_map(self)
          implicit none

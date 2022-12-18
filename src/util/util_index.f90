@@ -78,19 +78,19 @@ contains
    end subroutine util_get_idvalues_system
 
 
-   subroutine util_get_vals_storage(storage, idvals, tvals)
+   module subroutine util_get_vals_storage(self, idvals, tvals)
       !! author: David A. Minton
       !!
       !! Gets the id values in a storage object, regardless of whether it is encounter of collision
       ! Argument
-      class(swiftest_storage(*)), intent(in)               :: storage !! Swiftest storage object
-      integer(I4B), dimension(:), allocatable, intent(out) :: idvals  !! Array of all id values in all snapshots
-      real(DP),     dimension(:), allocatable, intent(out) :: tvals   !! Array of all time values in all snapshots
+      class(swiftest_storage(*)), intent(in)               :: self   !! Swiftest storage object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
+      real(DP),     dimension(:), allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
       ! Internals
       integer(I4B) :: i, n, nlo, nhi, ntotal
       integer(I4B), dimension(:), allocatable :: itmp
 
-      associate(nsnaps => storage%iframe)
+      associate(nsnaps => self%iframe)
 
          allocate(tvals(nsnaps))
          tvals(:) = 0.0_DP
@@ -98,8 +98,8 @@ contains
          ! First pass to get total number of ids
          ntotal = 0
          do i = 1, nsnaps
-            if (allocated(storage%frame(i)%item)) then
-               select type(snapshot => storage%frame(i)%item)
+            if (allocated(self%frame(i)%item)) then
+               select type(snapshot => self%frame(i)%item)
                class is (swiftest_nbody_system)
                   tvals(i) = snapshot%t
                   call snapshot%get_idvals(itmp)
@@ -115,8 +115,8 @@ contains
          nlo = 1
          ! Second pass to store all ids get all of the ids stored
          do i = 1, nsnaps
-            if (allocated(storage%frame(i)%item)) then
-               select type(snapshot => storage%frame(i)%item)
+            if (allocated(self%frame(i)%item)) then
+               select type(snapshot => self%frame(i)%item)
                class is (swiftest_nbody_system)
                   tvals(i) = snapshot%t
                   call snapshot%get_idvals(itmp)
@@ -146,7 +146,7 @@ contains
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
  
-      call util_get_vals_storage(self, idvals, tvals)
+      call self%get_index_values(idvals, tvals)
 
       call util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
