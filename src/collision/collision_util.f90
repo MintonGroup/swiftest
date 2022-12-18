@@ -11,7 +11,7 @@ submodule (collision_classes) s_collision_util
    use swiftest
 contains
 
-   module subroutine collison_util_add_fragments_to_system(self, system, param)
+   module subroutine collision_util_add_fragments_to_system(self, system, param)
       !! Author: David A. Minton
       !!
       !! Adds fragments to the temporary system pl object
@@ -55,7 +55,52 @@ contains
       end associate
 
       return
-   end subroutine collison_util_add_fragments_to_system
+   end subroutine collision_util_add_fragments_to_system
+
+
+   module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
+      !! Author: David A. Minton
+      !!
+      !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
+      implicit none
+      ! Arguments
+      class(collision_system),                    intent(inout) :: self         !! Fraggle collision system object
+      class(swiftest_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
+      class(swiftest_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
+      class(swiftest_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
+      class(swiftest_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
+      ! Internals
+      logical, dimension(:), allocatable :: linclude
+      integer(I4B) :: npl_tot
+
+      associate(fragments => self%fragments, nfrag => self%fragments%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, cb => nbody_system%cb)
+         ! Set up a new system based on the original
+         if (allocated(tmpparam)) deallocate(tmpparam)
+         if (allocated(tmpsys)) deallocate(tmpsys)
+         allocate(tmpparam, source=param)
+         call setup_construct_system(tmpsys, tmpparam)
+
+         ! No test particles necessary for energy/momentum calcs
+         call tmpsys%tp%setup(0, param)
+
+         ! Replace the empty central body object with a copy of the original
+         deallocate(tmpsys%cb)
+         allocate(tmpsys%cb, source=cb)
+
+         ! Make space for the fragments
+         npl_tot = npl + nfrag
+         call tmpsys%pl%setup(npl_tot, tmpparam)
+         allocate(linclude(npl_tot))
+
+         ! Fill up the temporary system with all of the original bodies, leaving the spaces for fragments empty until we add them in later
+         linclude(1:npl) = .true.
+         linclude(npl+1:npl_tot) = .false.
+         call tmpsys%pl%fill(pl, linclude)
+
+      end associate
+
+      return
+   end subroutine collision_util_construct_temporary_system
 
    module subroutine collision_util_dealloc_fragments(self)
       !! author: David A. Minton
@@ -214,7 +259,7 @@ contains
          npl_after = npl_before + nfrag
 
          if (lbefore) then
-            call encounter_util_construct_temporary_system(fragments, system, param, tmpsys, tmpparam)
+            call self%construct_temporary_system(system, param, tmpsys, tmpparam)
             ! Build the exluded body logical mask for the *before* case: Only the original bodies are used to compute energy and momentum
             tmpsys%pl%status(impactors%idx(1:impactors%ncoll)) = ACTIVE
             tmpsys%pl%status(npl_before+1:npl_after) = INACTIVE

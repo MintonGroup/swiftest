@@ -56,13 +56,14 @@ module fraggle_classes
       real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
       real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
    contains
-      procedure :: generate_fragments      => fraggle_generate_fragments         !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
-      procedure :: set_budgets             => fraggle_set_budgets                !! Sets the energy and momentum budgets of the fragments based on the collider value
-      procedure :: set_mass_dist           => fraggle_set_mass_dist              !! Sets the distribution of mass among the fragments depending on the regime type
-      procedure :: set_natural_scale       => fraggle_set_natural_scale_factors  !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
-      procedure :: set_original_scale      => fraggle_set_original_scale_factors !! Restores dimenional quantities back to the original system units
-      final     ::                            fraggle_util_final_system          !! Finalizer will deallocate all allocatables
-   end type fraggle_system 
+      procedure :: generate_fragments         => fraggle_generate_fragments              !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
+      procedure :: set_budgets                => fraggle_set_budgets                     !! Sets the energy and momentum budgets of the fragments based on the collider value
+      procedure :: set_mass_dist              => fraggle_set_mass_dist                   !! Sets the distribution of mass among the fragments depending on the regime type
+      procedure :: set_natural_scale          => fraggle_set_natural_scale_factors       !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
+      procedure :: set_original_scale         => fraggle_set_original_scale_factors      !! Restores dimenional quantities back to the original system units
+      procedure :: construct_temporary_system => fraggle_util_construct_temporary_system !! Constructs temporary n-body system in order to compute pre- and post-impact energy and momentum
+      final     ::                               fraggle_util_final_system               !! Finalizer will deallocate all allocatables
+   end type fraggle_system  
 
 
    interface
@@ -118,14 +119,14 @@ module fraggle_classes
          class(fraggle_fragments), intent(inout) :: self !! Fraggle fragment system object
       end subroutine fraggle_util_get_angular_momentum
 
-      module subroutine fraggle_util_construct_temporary_system(collision_system, nbody_system, param, tmpsys, tmpparam)
+      module subroutine fraggle_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
          use swiftest_classes, only : swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(fraggle_system),                      intent(inout) :: collision_system !! Fraggle collision system object
-         class(swiftest_nbody_system),               intent(in)    :: nbody_system     !! Original swiftest nbody system object
-         class(swiftest_parameters),                 intent(in)    :: param            !! Current swiftest run configuration parameters
-         class(swiftest_nbody_system), allocatable,  intent(out)   :: tmpsys           !! Output temporary swiftest nbody system object
-         class(swiftest_parameters),   allocatable,  intent(out)   :: tmpparam         !! Output temporary configuration run parameters
+         class(fraggle_system),                      intent(inout) :: self         !! Fraggle collision system object
+         class(swiftest_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
+         class(swiftest_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
+         class(swiftest_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
+         class(swiftest_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
       end subroutine fraggle_util_construct_temporary_system
 
       module subroutine fraggle_util_dealloc_fragments(self)

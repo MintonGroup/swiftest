@@ -101,14 +101,15 @@ module collision_classes
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: Etot     !! Before/after total system energy
    contains
-      procedure :: generate_fragments      => abstract_generate_fragments           !! Generates a system of fragments 
-      procedure :: set_mass_dist           => abstract_set_mass_dist                !! Sets the distribution of mass among the fragments depending on the regime type
-      procedure :: setup                   => collision_setup_system                !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
-      procedure :: add_fragments           => collison_util_add_fragments_to_system !! Add fragments to system
-      procedure :: get_energy_and_momentum => collision_util_get_energy_momentum    !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
-      procedure :: reset                   => collision_util_reset_system           !! Deallocates all allocatables
-      procedure :: set_coordinate_system   => collision_util_set_coordinate_system  !! Sets the coordinate system of the collisional system
-      final     ::                            collision_util_final_system           !! Finalizer will deallocate all allocatables
+      procedure :: generate_fragments         => abstract_generate_fragments               !! Generates a system of fragments 
+      procedure :: set_mass_dist              => abstract_set_mass_dist                    !! Sets the distribution of mass among the fragments depending on the regime type
+      procedure :: setup                      => collision_setup_system                    !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
+      procedure :: add_fragments              => collision_util_add_fragments_to_system    !! Add fragments to system
+      procedure :: construct_temporary_system => collision_util_construct_temporary_system !! Constructs temporary n-body system in order to compute pre- and post-impact energy and momentum
+      procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
+      procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
+      procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate system of the collisional system
+      final     ::                               collision_util_final_system               !! Finalizer will deallocate all allocatables
    end type collision_system
 
    abstract interface 
@@ -253,12 +254,21 @@ module collision_classes
          class(swiftest_parameters),    intent(inout) :: param  !! Current run configuration parameters 
       end subroutine collision_setup_system
 
-      module subroutine collison_util_add_fragments_to_system(self, system, param)
+      module subroutine collision_util_add_fragments_to_system(self, system, param)
          implicit none
          class(collision_system),      intent(in)    :: self      !! Collision system system object
          class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
-      end subroutine collison_util_add_fragments_to_system
+      end subroutine collision_util_add_fragments_to_system
+
+      module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
+         implicit none
+         class(collision_system),                    intent(inout) :: self         !! Fraggle collision system object
+         class(swiftest_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
+         class(swiftest_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
+         class(swiftest_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
+         class(swiftest_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
+      end subroutine collision_util_construct_temporary_system 
 
       module subroutine collision_util_dealloc_fragments(self)
          implicit none
