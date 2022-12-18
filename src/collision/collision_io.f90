@@ -227,9 +227,9 @@ end subroutine collision_io_dump
                   if (allocated(pl)) deallocate(pl)
                   select case(stage)
                   case(1)
-                     allocate(pl, source=system%before%pl)
+                     allocate(pl, source=self%collision_system%before%pl)
                   case(2)
-                     allocate(pl, source=system%after%pl)
+                     allocate(pl, source=self%collision_system%after%pl)
                   end select
                   npl = pl%nbody
                   do i = 1, npl

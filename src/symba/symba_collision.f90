@@ -60,6 +60,7 @@ contains
                pl%ldiscard(impactors%idx(:)) = .false.
                pl%lcollision(impactors%idx(:)) = .false.
             end select
+            allocate(collision_system%after%pl, source=collision_system%before%pl) ! Be sure to save the pl so that snapshots still work 
          else
             ! Populate the list of new bodies
             nfrag = fragments%nbody
