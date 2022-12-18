@@ -146,9 +146,9 @@ module swiftest_classes
    type swiftest_storage_frame
       class(*), allocatable :: item
    contains
-      procedure :: store            => util_copy_store       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
-      generic   :: assignment(=)    => store
-      final     ::                     util_final_storage_frame
+      procedure :: store         => util_copy_store       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      generic   :: assignment(=) => store
+      final     ::                  util_final_storage_frame
    end type
 
    type :: swiftest_storage(nframes)
