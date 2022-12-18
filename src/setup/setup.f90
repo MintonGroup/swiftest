@@ -20,6 +20,9 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
       class(swiftest_parameters),                  intent(inout) :: param     !! Swiftest parameters
+      ! Internals
+      type(encounter_storage)  :: encounter_history
+      type(collision_storage)  :: collision_history
 
       allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
       allocate(netcdf_parameters :: param%system_history%nc)
@@ -85,26 +88,22 @@ contains
                end if
 
                if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
-                  allocate(encounter_storage :: param%encounter_history)
-                  associate (encounter_history => param%encounter_history)
-                     allocate(encounter_io_parameters :: encounter_history%nc)
-                     call encounter_history%reset()
-                     select type(nc => encounter_history%nc)
-                     class is (encounter_io_parameters)
-                        nc%file_number = param%iloop / param%dump_cadence
-                     end select
-                  end associate
-               end if
-               
-               allocate(collision_storage :: param%collision_history)
-               associate (collision_history => param%collision_history)
-                  allocate(collision_io_parameters :: collision_history%nc)
-                  call collision_history%reset()
-                  select type(nc => collision_history%nc)
-                  class is (collision_io_parameters)
+                  allocate(encounter_io_parameters :: encounter_history%nc)
+                  call encounter_history%reset()
+                  select type(nc => encounter_history%nc)
+                  class is (encounter_io_parameters)
                      nc%file_number = param%iloop / param%dump_cadence
                   end select
-               end associate
+                  allocate(param%encounter_history, source=encounter_history)
+               end if
+               
+               allocate(collision_io_parameters :: collision_history%nc)
+               call collision_history%reset()
+               select type(nc => collision_history%nc)
+               class is (collision_io_parameters)
+                  nc%file_number = param%iloop / param%dump_cadence
+               end select
+               allocate(param%collision_history, source=collision_history)
             end select
 
 
