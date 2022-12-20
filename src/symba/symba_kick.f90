@@ -42,9 +42,9 @@ contains
       end if
 
       if (param%lflatten_interactions) then
-         call kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
+         call swiftest_kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
       else
-         call kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%rh, self%Gmass, self%radius, self%ah)
+         call swiftest_kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%rh, self%Gmass, self%radius, self%ah)
       end if
 
       if (param%ladaptive_interactions .and. self%nplplm > 0) then 
@@ -87,7 +87,7 @@ contains
                allocate(k_plpl_enc(2,nplplenc))
                k_plpl_enc(1,1:nplplenc) = plpl_encounter%index1(1:nplplenc)
                k_plpl_enc(2,1:nplplenc) = plpl_encounter%index2(1:nplplenc)
-               call kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%radius, ah_enc)
+               call swiftest_kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
 

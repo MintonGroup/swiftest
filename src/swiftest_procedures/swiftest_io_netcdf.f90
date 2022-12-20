@@ -133,7 +133,7 @@ contains
          end if
 
          ! Create the file
-         call netcdf_check( nf90_create(nc%file_name, NF90io_netcdf4, nc%id), "swiftest_io_netcdf_initialize_output nf90_create" )
+         call netcdf_check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "swiftest_io_netcdf_initialize_output nf90_create" )
 
          ! Dimensions
          call netcdf_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "swiftest_io_netcdf_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
@@ -788,8 +788,7 @@ contains
             call cb%info%set_value(particle_type=CB_TYPE_NAME)
 
             ! Handle semi-interacting bodies in SyMBA
-            select type(pl)
-            class is (symba_pl)
+            if (param%integrator == INT_SYMBA) then
                select type (param)
                class is (swiftest_parameters)
                   do i = 1, npl
@@ -800,11 +799,11 @@ contains
                      end if
                   end do
                end select
-            class default ! Non-SyMBA massive bodies
+            else ! Non-SyMBA massive bodies
                do i = 1, npl
                   call pl%info(i)%set_value(particle_type=PL_TYPE_NAME)
                end do
-            end select
+            end if
             do i = 1, ntp
                call tp%info(i)%set_value(particle_type=TP_TYPE_NAME)
             end do
@@ -975,7 +974,9 @@ contains
 
       call netcdf_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "swiftest_io_netcdf_write_frame_body nf90_set_fill"  )
       select type(self)
-         class is (swiftest_body)
+      class is (swiftest_body)
+      select type (param)
+      class is (swiftest_parameters)
          associate(n => self%nbody)
             if (n == 0) return
 
@@ -1044,28 +1045,48 @@ contains
                end select
             end do
          end associate
-      class is (swiftest_cb)
-         idslot = self%id + 1
-         call netcdf_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb id_varid"  )
-
-         call netcdf_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb Gmass_varid"  )
-         if (param%lclose) call netcdf_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb radius_varid"  )
-         call netcdf_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb j2rp2_varid" )
-         call netcdf_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb j4rp4_varid" )
-         if (param%lrotation) then
-            call netcdf_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb Ip_varid"  )
-            call netcdf_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb rot_varid"  )
-         end if
-         ! if (param%ltides) then
-         !    call netcdf_check( nf90_put_var(nc%id, nc%k2_varid, self%k2, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb k2_varid"  )
-         !    call netcdf_check( nf90_put_var(nc%id, nc%Q_varid, self%Q, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_body nf90_put_var cb Q_varid"  )
-         ! end if
-
+      end select
       end select
       call netcdf_check( nf90_set_fill(nc%id, old_mode, old_mode), "swiftest_io_netcdf_write_frame_body nf90_set_fill old_mode"  )
 
       return
    end subroutine swiftest_io_netcdf_write_frame_body
+
+
+   module subroutine swiftest_io_netcdf_write_frame_cb(self, nc, param)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Write a frame of output of the central body
+      implicit none
+      ! Arguments
+      class(swiftest_cb),               intent(in)    :: self  !! Swiftest base object
+      class(base_io_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
+      class(base_parameters),           intent(inout) :: param !! Current run configuration parameters 
+      ! Internals
+      integer(I4B)                              :: i, j, tslot, idslot, old_mode
+
+      tslot = param%ioutput
+
+      call self%write_info(nc, param)
+
+      call netcdf_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "swiftest_io_netcdf_write_frame_cb nf90_set_fill"  )
+
+      idslot = self%id + 1
+      call netcdf_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
+
+      call netcdf_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Gmass_varid"  )
+      if (param%lclose) call netcdf_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb radius_varid"  )
+      call netcdf_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j2rp2_varid" )
+      call netcdf_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j4rp4_varid" )
+      if (param%lrotation) then
+         call netcdf_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Ip_varid"  )
+         call netcdf_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_cby nf90_put_var cb rot_varid"  )
+      end if
+
+      call netcdf_check( nf90_set_fill(nc%id, old_mode, old_mode), "swiftest_io_netcdf_write_frame_cb nf90_set_fill old_mode"  )
+
+      return
+   end subroutine swiftest_io_netcdf_write_frame_cb
 
 
    module subroutine swiftest_io_netcdf_write_frame_system(self, nc, param)
@@ -1087,7 +1108,6 @@ contains
    end subroutine swiftest_io_netcdf_write_frame_system
 
 
-
    module subroutine swiftest_io_netcdf_write_hdr_system(self, nc, param) 
       !! author: David A. Minton
       !!
@@ -1107,10 +1127,7 @@ contains
       call netcdf_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "swiftest_io_netcdf_write_hdr_system nf90_put_var time_varid"  )
       call netcdf_check( nf90_put_var(nc%id, nc%npl_varid, self%pl%nbody, start=[tslot]), "swiftest_io_netcdf_write_hdr_system nf90_put_var npl_varid"  )
       call netcdf_check( nf90_put_var(nc%id, nc%ntp_varid, self%tp%nbody, start=[tslot]), "swiftest_io_netcdf_write_hdr_system nf90_put_var ntp_varid"  )
-      select type(pl => self%pl)
-      class is (symba_pl)
-         call netcdf_check( nf90_put_var(nc%id, nc%nplm_varid, pl%nplm, start=[tslot]), "swiftest_io_netcdf_write_hdr_system nf90_put_var nplm_varid"  )
-      end select
+      if (param%integrator == INT_SYMBA) call netcdf_check( nf90_put_var(nc%id, nc%nplm_varid, self%pl%nplm, start=[tslot]), "swiftest_io_netcdf_write_hdr_system nf90_put_var nplm_varid"  )
 
       if (param%lenergy) then
          call netcdf_check( nf90_put_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), "swiftest_io_netcdf_write_hdr_system nf90_put_var KE_orb_varid"  )
@@ -1177,35 +1194,53 @@ contains
 
             end do
          end associate
-
-      class is (swiftest_cb)
-         idslot = self%id + 1
-         call netcdf_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb id_varid"  )
-
-         charstring = trim(adjustl(self%info%name))
-         call netcdf_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb name_varid"  )
-
-         charstring = trim(adjustl(self%info%particle_type))
-         call netcdf_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb ptype_varid"  )
-
-         if (param%lclose) then
-            charstring = trim(adjustl(self%info%origin_type))
-            call netcdf_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_type_varid"  )
-
-            call netcdf_check( nf90_put_var(nc%id, nc%origin_time_varid, self%info%origin_time, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_time_varid"  )
-            call netcdf_check( nf90_put_var(nc%id, nc%origin_rh_varid, self%info%origin_rh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_rh_varid"  )
-            call netcdf_check( nf90_put_var(nc%id, nc%origin_vh_varid, self%info%origin_vh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_vh_varid"  )
-   
-            call netcdf_check( nf90_put_var(nc%id, nc%collision_id_varid, self%info%collision_id, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb collision_id_varid"  )
-            call netcdf_check( nf90_put_var(nc%id, nc%discard_time_varid, self%info%discard_time, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb discard_time_varid"  )
-            call netcdf_check( nf90_put_var(nc%id, nc%discard_rh_varid, self%info%discard_rh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb discard_rh_varid"  )
-            call netcdf_check( nf90_put_var(nc%id, nc%discard_vh_varid, self%info%discard_vh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb discard_vh_varid"  )
-         end if
-
       end select
 
       call netcdf_check( nf90_set_fill(nc%id, old_mode, old_mode) )
       return
    end subroutine swiftest_io_netcdf_write_info_body
+
+
+   module subroutine swiftest_io_netcdf_write_info_cb(self, nc, param)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Write the central body info to file
+      implicit none
+      class(swiftest_cb),               intent(in)    :: self  !! Swiftest particle object
+      class(base_io_netcdf_parameters), intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
+      class(base_parameters),           intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      integer(I4B)                              :: idslot, old_mode
+      character(len=:), allocatable             :: charstring
+
+      ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
+      call netcdf_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "swiftest_io_netcdf_write_info_body nf90_set_fill nf90_nofill"  )
+
+      idslot = self%id + 1
+      call netcdf_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb id_varid"  )
+
+      charstring = trim(adjustl(self%info%name))
+      call netcdf_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb name_varid"  )
+
+      charstring = trim(adjustl(self%info%particle_type))
+      call netcdf_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb ptype_varid"  )
+
+      if (param%lclose) then
+         charstring = trim(adjustl(self%info%origin_type))
+         call netcdf_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_type_varid"  )
+
+         call netcdf_check( nf90_put_var(nc%id, nc%origin_time_varid, self%info%origin_time, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_time_varid"  )
+         call netcdf_check( nf90_put_var(nc%id, nc%origin_rh_varid, self%info%origin_rh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_rh_varid"  )
+         call netcdf_check( nf90_put_var(nc%id, nc%origin_vh_varid, self%info%origin_vh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb origin_vh_varid"  )
+
+         call netcdf_check( nf90_put_var(nc%id, nc%collision_id_varid, self%info%collision_id, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb collision_id_varid"  )
+         call netcdf_check( nf90_put_var(nc%id, nc%discard_time_varid, self%info%discard_time, start=[idslot]), "swiftest_io_netcdf_write_info_body nf90_put_var cb discard_time_varid"  )
+         call netcdf_check( nf90_put_var(nc%id, nc%discard_rh_varid, self%info%discard_rh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb discard_rh_varid"  )
+         call netcdf_check( nf90_put_var(nc%id, nc%discard_vh_varid, self%info%discard_vh(:), start=[1, idslot], count=[NDIM,1]), "swiftest_io_netcdf_write_info_body nf90_put_var cb discard_vh_varid"  )
+      end if
+      call netcdf_check( nf90_set_fill(nc%id, old_mode, old_mode) )
+
+      return
+   end subroutine swiftest_io_netcdf_write_info_cb
 
 end submodule s_io_netcdf

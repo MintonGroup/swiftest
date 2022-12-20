@@ -205,7 +205,9 @@ module swiftest
       real(DP)                                    :: R0       = 0.0_DP !! Initial radius of the central body
       real(DP)                                    :: dR       = 0.0_DP !! Change in the radius of the central body
    contains
-      procedure :: read_in => swiftest_io_read_in_cb !! Read in central body initial conditions from an ASCII file
+      procedure :: read_in => swiftest_io_read_in_cb     !! Read in central body initial conditions from an ASCII file
+      procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      procedure :: write_info   => swiftest_io_netcdf_write_info_cb  !! Dump contents of particle information metadata to file
    end type swiftest_cb
 
 
@@ -870,6 +872,13 @@ module swiftest
          class(base_parameters),           intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_write_frame_body
 
+      module subroutine swiftest_io_netcdf_write_frame_cb(self, nc, param)
+         implicit none
+         class(swiftest_cb),               intent(in)    :: self  !! Swiftest base object
+         class(base_io_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
+         class(base_parameters),           intent(inout) :: param !! Current run configuration parameters 
+      end subroutine swiftest_io_netcdf_write_frame_cb
+
       module subroutine swiftest_io_netcdf_write_frame_system(self, nc, param)
          implicit none
          class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest system object
@@ -890,6 +899,13 @@ module swiftest
          class(base_io_netcdf_parameters), intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),           intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_io_netcdf_write_info_body
+
+      module subroutine swiftest_io_netcdf_write_info_cb(self, nc, param)
+         implicit none
+         class(swiftest_cb),               intent(in)    :: self  !! Swiftest particle object
+         class(base_io_netcdf_parameters), intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
+         class(base_parameters),           intent(inout) :: param !! Current run configuration parameters
+      end subroutine swiftest_io_netcdf_write_info_cb
 
       module subroutine swiftest_io_write_discard(self, param)
          implicit none

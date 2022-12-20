@@ -275,7 +275,7 @@ contains
 
       !  normal return here, but check if capn was originally negative
       if(iflag == 1) then
-         swiftest_orbel_flon = -orbel_flon
+         swiftest_orbel_flon = -swiftest_orbel_flon
          capn = -capn
       end if
 
@@ -398,7 +398,7 @@ contains
       end if
 
       if(iflag == 1) then
-         swiftest_orbel_zget = -orbel_zget
+         swiftest_orbel_zget = -swiftest_orbel_zget
          q = -q
       end if
 

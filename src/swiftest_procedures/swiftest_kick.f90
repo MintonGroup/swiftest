@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(swiftets) s_kick
+submodule(swiftest) s_kick
 contains
    module subroutine swiftest_kick_getacch_int_pl(self, param)
       !! author: David A. Minton
@@ -21,41 +21,41 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       ! Internals
-      type(interaction_timer), save :: itimer
+     ! type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
 
-      if (param%ladaptive_interactions) then
-         if (self%nplpl > 0) then
-            if (lfirst) then
-               write(itimer%loopname, *) "kick_getacch_int_pl"
-               write(itimer%looptype, *) "INTERACTION"
-               call itimer%time_this_loop(param, self%nplpl, self)
-               lfirst = .false.
-            else
-               if (itimer%io_netcdf_check(param, self%nplpl)) call itimer%time_this_loop(param, self%nplpl, self)
-            end if
-         else
-            param%lflatten_interactions = .false.
-         end if
-      end if
+      ! if (param%ladaptive_interactions) then
+      !    if (self%nplpl > 0) then
+      !       if (lfirst) then
+      !          write(itimer%loopname, *) "kick_getacch_int_pl"
+      !          write(itimer%looptype, *) "INTERACTION"
+      !          call itimer%time_this_loop(param, self%nplpl, self)
+      !          lfirst = .false.
+      !       else
+      !          if (itimer%io_netcdf_check(param, self%nplpl)) call itimer%time_this_loop(param, self%nplpl, self)
+      !       end if
+      !    else
+      !       param%lflatten_interactions = .false.
+      !    end if
+      ! end if
 
-      if (param%lflatten_interactions) then
+      ! if (param%lflatten_interactions) then
+      !    if (param%lclose) then
+      !       call swiftest_kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
+      !    else
+      !       call swiftest_kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, acc=self%ah)
+      !    end if
+      ! else
          if (param%lclose) then
-            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
+            call swiftest_kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, self%radius, self%ah)
          else
-            call kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, acc=self%ah)
+            call swiftest_kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, acc=self%ah)
          end if
-      else
-         if (param%lclose) then
-            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, self%radius, self%ah)
-         else
-            call kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, acc=self%ah)
-         end if
-      end if
+      ! end if
 
-      if (param%ladaptive_interactions .and. self%nplpl > 0) then 
-         if (itimer%is_on) call itimer%adapt(param, self%nplpl, self)
-      end if
+      ! if (param%ladaptive_interactions .and. self%nplpl > 0) then 
+      !    if (itimer%is_on) call itimer%adapt(param, self%nplpl, self)
+      ! end if
 
       return
    end subroutine swiftest_kick_getacch_int_pl
@@ -78,7 +78,7 @@ contains
 
       if ((self%nbody == 0) .or. (npl == 0)) return
 
-      call kick_getacch_int_all_tp(self%nbody, npl, self%rh, rhp, GMpl, self%lmask, self%ah)
+      call swiftest_kick_getacch_int_all_tp(self%nbody, npl, self%rh, rhp, GMpl, self%lmask, self%ah)
       
       return
    end subroutine swiftest_kick_getacch_int_tp
@@ -124,7 +124,7 @@ contains
             zr = x(3, j) - x(3, i) 
             rji2 = xr**2 + yr**2 + zr**2
             rlim2 = (radius(i) + radius(j))**2
-            if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+            if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
                                     ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
          end do
          !$omp end parallel do 
@@ -141,7 +141,7 @@ contains
             yr = x(2, j) - x(2, i) 
             zr = x(3, j) - x(3, i) 
             rji2 = xr**2 + yr**2 + zr**2
-            call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+            call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
                                          ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
          end do
          !$omp end parallel do
@@ -190,7 +190,7 @@ contains
                zr = x(3, j) - x(3, i) 
                rji2 = xr**2 + yr**2 + zr**2
                rlim2 = (radius(i) + radius(j))**2
-               if (rji2 > rlim2) call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+               if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
                                        ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
             end do
          end do
@@ -207,7 +207,7 @@ contains
                yr = x(2, j) - x(2, i) 
                zr = x(3, j) - x(3, i) 
                rji2 = xr**2 + yr**2 + zr**2
-               call kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
+               call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
             end do
          end do
@@ -252,7 +252,7 @@ contains
                yr = xtp(2, i) - xpl(2, j)
                zr = xtp(3, i) - xpl(3, j)
                rji2 = xr**2 + yr**2 + zr**2
-               call kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl(j), acc(1,i), acc(2,i), acc(3,i))
+               call swiftest_kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl(j), acc(1,i), acc(2,i), acc(3,i))
             end do
          end if
       end do
