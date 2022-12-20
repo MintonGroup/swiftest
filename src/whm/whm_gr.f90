@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(whm_classes) s_whm_gr
+submodule(whm) s_whm_gr
    use swiftest
 contains
 
@@ -31,7 +31,7 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody, inv_c2 => param%inv_c2)
-         call gr_kick_getacch(pl%muj, pl%xj, pl%lmask, npl, param%inv_c2, pl%agr) 
+         call swiftest_gr_kick_getacch(pl%muj, pl%xj, pl%lmask, npl, param%inv_c2, pl%agr) 
          suma(:) = 0.0_DP
          pl%ah(:, 1) = pl%ah(:, 1) + pl%agr(:, 1)
          do i = 2, npl
@@ -62,7 +62,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, inv_c2 => param%inv_c2)
-         call gr_kick_getacch(tp%mu, tp%rh, tp%lmask, ntp, param%inv_c2, tp%agr) 
+         call swiftest_gr_kick_getacch(tp%mu, tp%rh, tp%lmask, ntp, param%inv_c2, tp%agr) 
          tp%ah(:,1:ntp) = tp%ah(:,1:ntp) + tp%agr(:,1:ntp)
       end associate
 
@@ -89,7 +89,7 @@ contains
       associate(pl => self, npl => self%nbody)
          if (npl == 0) return
          do concurrent(i = 1:npl, pl%lmask(i))
-            call gr_p4_pos_kick(param, pl%xj(:, i), pl%vj(:, i), dt)
+            call swiftest_gr_p4_pos_kick(param, pl%xj(:, i), pl%vj(:, i), dt)
          end do
       end associate
  
@@ -116,7 +116,7 @@ contains
       associate(tp => self, ntp => self%nbody)
          if (ntp == 0) return
          do concurrent(i = 1:ntp, tp%lmask(i))
-            call gr_p4_pos_kick(param, tp%rh(:, i), tp%vh(:, i), dt)
+            call swiftest_gr_p4_pos_kick(param, tp%rh(:, i), tp%vh(:, i), dt)
          end do
       end associate
  

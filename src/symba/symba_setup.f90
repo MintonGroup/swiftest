@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(symba_classes) s_symba_setup
+submodule(symba) s_symba_setup
    use swiftest
 contains
 
@@ -25,40 +25,13 @@ contains
       ! Call parent method
       associate(system => self)
          call helio_setup_initialize_system(system, param)
-         call system%pltpenc_list%setup(0_I8B)
-         call system%plplenc_list%setup(0_I8B)
-         call system%plplcollision_list%setup(0_I8B)
+         call system%pltp_encounter%setup(0_I8B)
+         call system%plpl_encounter%setup(0_I8B)
+         call system%plpl_collision%setup(0_I8B)
       end associate
 
       return
    end subroutine symba_setup_initialize_system
-
-
-   module subroutine symba_setup_merger(self, n, param)
-      !! author: David A. Minton
-      !!
-      !! Allocate SyMBA test particle structure
-      !!
-      !! Equivalent in functionality to David E. Kaufmann's Swifter routine symba_setup.f90
-      implicit none
-      ! Arguments
-      class(symba_merger),        intent(inout) :: self  !! SyMBA merger list object
-      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
-
-      !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
-      call symba_setup_pl(self, n, param) 
-      if (n < 0) return
-
-      if (allocated(self%ncomp)) deallocate(self%ncomp)
-
-      if (n == 0) return
-
-      allocate(self%ncomp(n))
-      self%ncomp(:) = 0
-
-      return
-   end subroutine symba_setup_merger
 
 
    module subroutine symba_setup_pl(self, n, param)
@@ -79,11 +52,6 @@ contains
       call setup_pl(self, n, param) 
       if (n == 0) return
 
-      allocate(self%lcollision(n))
-      allocate(self%lencounter(n))
-      allocate(self%lmtiny(n))
-      allocate(self%nplenc(n))
-      allocate(self%ntpenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
       allocate(self%isperi(n))
@@ -91,11 +59,7 @@ contains
       allocate(self%atp(n))
       allocate(self%kin(n))
 
-      self%lcollision(:) = .false.
-      self%lencounter(:) = .false.
-      self%lmtiny(:) = .false.
-      self%nplenc(:) = 0
-      self%ntpenc(:) = 0
+
       self%levelg(:) = -1
       self%levelm(:) = -1
       self%isperi(:) = 0
@@ -147,11 +111,9 @@ contains
       call setup_tp(self, n, param) 
       if (n == 0) return
 
-      allocate(self%nplenc(n))
       allocate(self%levelg(n))
       allocate(self%levelm(n))
 
-      self%nplenc(:) = 0
       self%levelg(:) = -1
       self%levelm(:) = -1
       

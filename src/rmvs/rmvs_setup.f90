@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(rmvs_classes) s_rmvs_setup
+submodule(rmvs) s_rmvs_setup
    use swiftest
 contains
 

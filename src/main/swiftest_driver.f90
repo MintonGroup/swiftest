@@ -20,7 +20,7 @@ program swiftest_driver
 
    class(swiftest_nbody_system), allocatable      :: system           !! Polymorphic object containing the nbody system to be integrated
    class(swiftest_parameters),   allocatable      :: param             !! Run configuration parameters
-   character(len=:), allocatable                  :: integrator        !! Integrator type code (see swiftest_globals for symbolic names)
+   character(len=:), allocatable                  :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable                  :: param_file_name   !! Name of the file containing user-defined parameters
    character(len=:), allocatable                  :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
    integer(I8B)                                   :: istart            !! Starting index for loop counter
@@ -29,7 +29,7 @@ program swiftest_driver
    integer(I4B)                                   :: idump             !! Dump cadence counter
    type(walltimer)                                :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                       :: tfrac             !! Fraction of total simulation time completed
-   type(progress_bar)                             :: pbar              !! Object used to print out a progress bar
+   type(pbar)                             :: pbar              !! Object used to print out a progress bar
    character(*), parameter                        :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                                                  '"; Number of active pl, tp = ", I6, ", ", I6)'
    character(*), parameter                        :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
@@ -38,16 +38,16 @@ program swiftest_driver
    character(len=64)                              :: pbarmessage
 
    character(*), parameter                        :: symbacompactfmt = '(";NPLM",ES22.15,$)'
-   !type(swiftest_storage(nframes=:)), allocatable :: system_history
+   !type(base_storage(nframes=:)), allocatable :: system_history
 
    call io_get_args(integrator, param_file_name, display_style)
 
    !> Read in the user-defined parameters file and the initial conditions of the system
    select case(integrator)
    case(symba)
-      allocate(symba_parameters :: param)
+      allocate(base_parameters :: param)
    case default
-      allocate(swiftest_parameters :: param)
+      allocate(base_parameters :: param)
    end select
    param%integrator = trim(adjustl(integrator))
    call param%set_display(display_style)

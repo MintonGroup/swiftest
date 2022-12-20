@@ -7,85 +7,10 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(collision_classes) s_collision_regime
+submodule(collision) s_collision_regime
    use swiftest
 
 contains
-
-   module subroutine collision_regime_impactors(self, system, param)
-      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton 
-      !!
-      !! Determine which fragmentation regime the set of impactors will be. This subroutine is a wrapper for the non-polymorphic raggle_regime_collresolve subroutine.
-      !! It converts to SI units prior to calling
-      implicit none 
-      ! Arguments
-      class(collision_impactors),   intent(inout) :: self   !! Collision system impactors object
-      class(swiftest_nbody_system), intent(in)    :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
-      ! Internals
-      integer(I4B) :: jtarg, jproj
-      real(DP), dimension(2) :: radius_si, mass_si, density_si
-      real(DP) :: min_mfrag_si, Mcb_si
-      real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si, runit
-      real(DP) :: mlr, mslr, mtot, dentot
-        
-      associate(impactors => self)
-         ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them to the regime determination subroutine
-         if (impactors%mass(1) > impactors%mass(2)) then
-            jtarg = 1
-            jproj = 2
-         else
-            jtarg = 2
-            jproj = 1
-         end if
-         mass_si(:)    = impactors%mass([jtarg, jproj]) * param%MU2KG         !! The two-body equivalent masses of the collider system
-         radius_si(:)  = impactors%radius([jtarg, jproj]) * param%DU2M        !! The two-body equivalent radii of the collider system
-         density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The two-body equivalent density of the collider system
-         x1_si(:)      = impactors%rb(:,jtarg) * param%DU2M                   !! The first body of the two-body equivalent position vector the collider system
-         v1_si(:)      = impactors%vb(:,jtarg) * param%DU2M / param%TU2S      !! The first body of the two-body equivalent velocity vector the collider system
-         x2_si(:)      = impactors%rb(:,jproj) * param%DU2M                   !! The second body of the two-body equivalent position vector the collider system
-         v2_si(:)      = impactors%vb(:,jproj) * param%DU2M / param%TU2S      !! The second body of the two-body equivalent velocity vector the collider system
-         Mcb_si        = system%cb%mass * param%MU2KG                         !! The central body mass of the system
-         select type(param)
-         class is (symba_parameters)
-            min_mfrag_si  = (param%min_GMfrag / param%GU) * param%MU2KG          !! The minimum fragment mass to generate. Collider systems that would otherwise generate less massive fragments than this value will be forced to merge instead
-         class default
-            min_mfrag_si = 0.0_DP
-         end select
-      
-         mtot = sum(mass_si(:)) 
-         dentot = sum(mass_si(:) * density_si(:)) / mtot 
-
-         !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
-         call collision_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
-                                         x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
-                                         min_mfrag_si, impactors%regime, mlr, mslr, impactors%Qloss)
-
-         if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
-         allocate(impactors%mass_dist(3))
-         impactors%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
-         impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
-         impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
-
-         ! Find the center of mass of the collisional system	
-         mtot = sum(impactors%mass(:))
-         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot 
-         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
-
-         ! Find the point of impact between the two bodies
-         runit(:) = impactors%rb(:,2) - impactors%rb(:,1)
-         runit(:) = runit(:) / (.mag. runit(:))
-         impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * runit(:)
-
-         ! Convert quantities back to the system units and save them into the fragment system
-         impactors%mass_dist(:) = (impactors%mass_dist(:) / param%MU2KG) 
-         impactors%Qloss = impactors%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
-
-         !call fraggle_io_log_regime(impactors, fragments)
-      end associate
-
-      return
-   end subroutine collision_regime_impactors
 
 
    subroutine collision_regime_collresolve(Mcb, m1, m2, rad1, rad2, rh1, rh2, vb1, vb2, den1, den2, min_mfrag, &
@@ -198,7 +123,7 @@ contains
          Mlr = Mtot
          Mslr = 0.0_DP
          Qloss = 0.0_DP
-         call io_log_one_message(FRAGGLE_LOG_OUT, &
+         call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, &
                                  "Fragments would have mass below the minimum. Converting this collision into a merger.")
       else 
          if( Vimp < Vescp) then
@@ -381,5 +306,88 @@ contains
          end function calc_c_star 
 
    end subroutine collision_regime_collresolve
+
+
+   module subroutine collision_regime_impactors(self, system, param)
+      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton 
+      !!
+      !! Determine which fragmentation regime the set of impactors will be. This subroutine is a wrapper for the non-polymorphic raggle_regime_collresolve subroutine.
+      !! It converts to SI units prior to calling
+      implicit none 
+      ! Arguments
+      class(collision_impactors),   intent(inout) :: self   !! Collision system impactors object
+      class(base_nbody_system), intent(in)    :: system !! Swiftest nbody system object
+      class(base_parameters),   intent(in)    :: param  !! Current Swiftest run configuration parameters
+      ! Internals
+      integer(I4B) :: jtarg, jproj
+      real(DP), dimension(2) :: radius_si, mass_si, density_si
+      real(DP) :: min_mfrag_si, Mcb_si
+      real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si, runit
+      real(DP) :: mlr, mslr, mtot, dentot
+        
+      associate(impactors => self)
+      select type (system)
+      class is (swiftest_nbody_system)
+         ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them to the regime determination subroutine
+         if (impactors%mass(1) > impactors%mass(2)) then
+            jtarg = 1
+            jproj = 2
+         else
+            jtarg = 2
+            jproj = 1
+         end if
+         mass_si(:)    = impactors%mass([jtarg, jproj]) * param%MU2KG         !! The two-body equivalent masses of the collider system
+         radius_si(:)  = impactors%radius([jtarg, jproj]) * param%DU2M        !! The two-body equivalent radii of the collider system
+         density_si(:) = mass_si(:) / (4.0_DP / 3._DP * PI * radius_si(:)**3) !! The two-body equivalent density of the collider system
+         x1_si(:)      = impactors%rb(:,jtarg) * param%DU2M                   !! The first body of the two-body equivalent position vector the collider system
+         v1_si(:)      = impactors%vb(:,jtarg) * param%DU2M / param%TU2S      !! The first body of the two-body equivalent velocity vector the collider system
+         x2_si(:)      = impactors%rb(:,jproj) * param%DU2M                   !! The second body of the two-body equivalent position vector the collider system
+         v2_si(:)      = impactors%vb(:,jproj) * param%DU2M / param%TU2S      !! The second body of the two-body equivalent velocity vector the collider system
+         Mcb_si        = system%cb%mass * param%MU2KG                         !! The central body mass of the system
+         select type(param)
+         class is (base_parameters)
+            min_mfrag_si  = (param%min_GMfrag / param%GU) * param%MU2KG          !! The minimum fragment mass to generate. Collider systems that would otherwise generate less massive fragments than this value will be forced to merge instead
+         class default
+            min_mfrag_si = 0.0_DP
+         end select
+      
+         mtot = sum(mass_si(:)) 
+         dentot = sum(mass_si(:) * density_si(:)) / mtot 
+
+         !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
+         call collision_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
+                                         x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
+                                         min_mfrag_si, impactors%regime, mlr, mslr, impactors%Qloss)
+
+         if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
+         allocate(impactors%mass_dist(3))
+         impactors%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
+         impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
+         impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+
+         ! Find the center of mass of the collisional system	
+         mtot = sum(impactors%mass(:))
+         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot 
+         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
+
+         ! Find the point of impact between the two bodies
+         runit(:) = impactors%rb(:,2) - impactors%rb(:,1)
+         runit(:) = runit(:) / (.mag. runit(:))
+         impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * runit(:)
+
+         ! Convert quantities back to the system units and save them into the fragment system
+         impactors%mass_dist(:) = (impactors%mass_dist(:) / param%MU2KG) 
+         impactors%Qloss = impactors%Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
+
+         !call fraggle_io_log_regime(impactors, fragments)
+      end select
+      end associate
+
+      return
+   end subroutine collision_regime_impactors
+
+   ! module subroutine collision_regime_resolve(self)
+   ! end subroutine collision_regime_resolve
+
 
 end submodule s_collision_regime

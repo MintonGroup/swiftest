@@ -7,64 +7,24 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (fraggle_classes) s_fraggle_setup
+submodule (fraggle) s_fraggle_setup
    use swiftest
+   use symba
 contains
 
-   module subroutine fraggle_setup_reset_fragments(self)
+   module subroutine fraggle_setup_fragments_system(self, nfrag)
       !! author: David A. Minton
       !!
-      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      !! Initializer for the fragments of the collision system. 
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout) :: self
+      class(fraggle_system), intent(inout) :: self  !! Encounter collision system object
+      integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
 
-      self%rb(:,:) = 0.0_DP
-      self%vb(:,:) = 0.0_DP
-      self%rot(:,:) = 0.0_DP
-      self%v_r_unit(:,:) = 0.0_DP
-      self%v_t_unit(:,:) = 0.0_DP
-      self%v_n_unit(:,:) = 0.0_DP
-
-      self%rmag(:) = 0.0_DP
-      self%rotmag(:) = 0.0_DP
-      self%v_r_mag(:) = 0.0_DP
-      self%v_t_mag(:) = 0.0_DP
+      if (allocated(self%fragments)) deallocate(self%fragments)
+      allocate(fraggle_fragments(nfrag) :: self%fragments)
 
       return
-   end subroutine fraggle_setup_reset_fragments
-
-
-   module subroutine fraggle_setup_fragments(self, n, param)
-      !! author: David A. Minton
-      !!
-      !! Allocates arrays for n fragments in a Fraggle system. Passing n = 0 deallocates all arrays.
-      implicit none
-      ! Arguments
-      class(fraggle_fragments),   intent(inout) :: self 
-      integer(I4B),               intent(in)    :: n
-      class(swiftest_parameters), intent(in) :: param
-
-      call collision_setup_fragments(self, n, param) 
-      if (n < 0) return
-
-      if (allocated(self%rotmag)) deallocate(self%rotmag) 
-      if (allocated(self%v_r_mag)) deallocate(self%v_r_mag) 
-      if (allocated(self%v_t_mag)) deallocate(self%v_t_mag) 
-      if (allocated(self%v_n_mag)) deallocate(self%v_t_mag) 
-
-      if (n == 0) return
-
-      allocate(self%rotmag(n)) 
-      allocate(self%v_r_mag(n)) 
-      allocate(self%v_t_mag(n)) 
-      allocate(self%v_n_mag(n)) 
-
-      call self%reset()
-
-      return
-   end subroutine fraggle_setup_fragments
-
-   
+   end subroutine fraggle_setup_fragments_system
 
 end submodule s_fraggle_setup

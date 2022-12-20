@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(whm_classes) s_whm_setup
+submodule(whm) s_whm_setup
    use swiftest
 contains
 

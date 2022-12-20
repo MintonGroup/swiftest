@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(helio_classes) s_helio_util
+submodule(helio) s_helio_util
    use swiftest
 contains
 

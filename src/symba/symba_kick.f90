@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(symba_classes) s_symba_kick
+submodule(symba) s_symba_kick
    use swiftest
 contains
 
@@ -34,7 +34,7 @@ contains
                call itimer%time_this_loop(param, self%nplplm, self)
                lfirst = .false.
             else
-               if (itimer%check(param, self%nplplm)) call itimer%time_this_loop(param, self%nplplm, self)
+               if (itimer%io_netcdf_check(param, self%nplplm)) call itimer%time_this_loop(param, self%nplplm, self)
             end if
          else
             param%lflatten_interactions = .false.
@@ -77,16 +77,16 @@ contains
       if (self%nbody == 0) return
       select type(system)
       class is (symba_nbody_system)
-         associate(pl => self, npl => self%nbody, nplm => self%nplm, plplenc_list => system%plplenc_list, radius => self%radius)
+         associate(pl => self, npl => self%nbody, nplm => self%nplm, plpl_encounter => system%plpl_encounter, radius => self%radius)
             ! Apply kicks to all bodies (including those in the encounter list)
             call helio_kick_getacch_pl(pl, system, param, t, lbeg)
-            if (plplenc_list%nenc > 0) then 
+            if (plpl_encounter%nenc > 0) then 
                ! Remove kicks from bodies involved currently in the encounter list, as these are dealt with separately.
                ah_enc(:,:) = 0.0_DP
-               nplplenc = int(plplenc_list%nenc, kind=I8B)
+               nplplenc = int(plpl_encounter%nenc, kind=I8B)
                allocate(k_plpl_enc(2,nplplenc))
-               k_plpl_enc(1,1:nplplenc) = plplenc_list%index1(1:nplplenc)
-               k_plpl_enc(2,1:nplplenc) = plplenc_list%index2(1:nplplenc)
+               k_plpl_enc(1,1:nplplenc) = plpl_encounter%index1(1:nplplenc)
+               k_plpl_enc(2,1:nplplenc) = plpl_encounter%index2(1:nplplenc)
                call kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
@@ -121,17 +121,17 @@ contains
       select type(system)
       class is (symba_nbody_system)
          associate(tp => self, cb => system%cb, pl => system%pl, &
-            pltpenc_list => system%pltpenc_list, npltpenc => system%pltpenc_list%nenc)
+            pltp_encounter => system%pltp_encounter, npltpenc => system%pltp_encounter%nenc)
             call helio_kick_getacch_tp(tp, system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
-               i = pltpenc_list%index1(k)
-               j = pltpenc_list%index2(k)
+               i = pltp_encounter%index1(k)
+               j = pltp_encounter%index2(k)
                if (tp%lmask(j)) then
                   if (lbeg) then
                      dx(:) = tp%rh(:,j) - pl%rbeg(:,i)
                   else
-                     dx(:) = tp%rh(:,j) - pl%xend(:,i)
+                     dx(:) = tp%rh(:,j) - pl%rend(:,i)
                   end if
                   rjj = dot_product(dx(:), dx(:))
                   fac = pl%Gmass(i) / (rjj * sqrt(rjj))
@@ -148,7 +148,7 @@ contains
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of massive bodies and ACTIVE test particles within SyMBA recursion.
-      !! Note: This method works for the polymorphic symba_pltpenc and symba_plplenc types
+      !! Note: This method works for the polymorphic pltp_encounter and plpl_encounter types
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: symba_kick.f90
       !! Adapted from Hal Levison's Swift routine symba5_kick.f
@@ -171,9 +171,9 @@ contains
       if (self%nenc == 0) return
 
       select type(self)
-      class is (symba_plplenc)
+      class is (plpl_encounter)
          isplpl = .true.
-      class is (symba_pltpenc)
+      class is (pltp_encounter)
          isplpl = .false.
       end select
       select type(pl => system%pl)

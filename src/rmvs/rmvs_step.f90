@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(rmvs_classes) s_rmvs_step
+submodule(rmvs) s_rmvs_step
    use swiftest
 contains
 
@@ -26,7 +26,7 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsiz
       ! Internals
       logical :: lencounter, lfirstpl
-      real(DP), dimension(:,:), allocatable :: rbeg, xend, vbeg
+      real(DP), dimension(:,:), allocatable :: rbeg, rend, vbeg
 
       if (self%tp%nbody == 0) then
          call whm_step_system(self, param, t, dt)
@@ -54,7 +54,7 @@ contains
                         call rmvs_interp_out(cb, pl, dt)
                         call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
                         tp%lmask(1:ntp) = .not. tp%lmask(1:ntp)
-                        call pl%set_beg_end(rbeg = rbeg, xend = xend)
+                        call pl%set_beg_end(rbeg = rbeg, rend = rend)
                         tp%lfirst = .true.
                         call tp%step(system, param, t, dt)
                         tp%lmask(1:ntp) = .true.
@@ -106,7 +106,7 @@ contains
          xtmp(:,1:npl) = pl%outer(0)%x(:, 1:npl)
          vtmp(:,1:npl) = pl%outer(0)%v(:, 1:npl)
          do outer_index = 1, NTENC - 1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                         dto(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -128,7 +128,7 @@ contains
          xtmp(:, 1:npl) = pl%outer(NTENC)%x(:, 1:npl)
          vtmp(:, 1:npl) = pl%outer(NTENC)%v(:, 1:npl)
          do outer_index = NTENC - 1, 1, -1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                        -dto(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -187,7 +187,7 @@ contains
             outer_time = t + (outer_index - 1) * dto
             call pl%set_beg_end(rbeg = pl%outer(outer_index - 1)%x(:, 1:npl), &
                                 vbeg = pl%outer(outer_index - 1)%v(:, 1:npl), &
-                                xend = pl%outer(outer_index    )%x(:, 1:npl))
+                                rend = pl%outer(outer_index    )%x(:, 1:npl))
             lencounter = tp%encounter_check(param, system, dto) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
@@ -273,7 +273,7 @@ contains
          ! end if
 
          do inner_index = 1, NTPHENC - 1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                         dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -297,7 +297,7 @@ contains
          vtmp(:, 1:npl) = pl%inner(NTPHENC)%v(:, 1:npl)
 
          do inner_index = NTPHENC - 1, 1, -1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                         -dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -390,7 +390,7 @@ contains
                            do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                               plenci%rh(:, 1:npl) = plenci%inner(inner_index - 1)%x(:, 1:npl)
                               call plenci%set_beg_end(rbeg = plenci%inner(inner_index - 1)%x, &
-                                                      xend = plenci%inner(inner_index)%x)
+                                                      rend = plenci%inner(inner_index)%x)
 
                               if (param%loblatecb) then
                                  cbenci%aoblbeg = cbenci%inner(inner_index - 1)%aobl(:, 1)
@@ -557,7 +557,7 @@ contains
                   if (tp%isperi(i) == -1) then
                      if (vdotr >= 0.0_DP) then
                         tp%isperi(i) = 0
-                        call orbel_xv2aqt(mu, xpc(1,i), xpc(2,i), xpc(3,i), vpc(1,i), vpc(2,i), vpc(3,i), &
+                        call swiftest_orbel_xv2aqt(mu, xpc(1,i), xpc(2,i), xpc(3,i), vpc(1,i), vpc(2,i), vpc(3,i), &
                                           a, peri, capm, tperi)
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)

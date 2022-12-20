@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(swiftest_operators) s_operator_cross
+submodule(operators) s_operator_cross
    use swiftest
    !! author: David A. Minton
    !!

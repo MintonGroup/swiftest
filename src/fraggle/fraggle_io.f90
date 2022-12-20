@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(fraggle_classes) s_fraggle_io
+submodule(fraggle) s_fraggle_io
    use swiftest
 
 contains
@@ -29,7 +29,7 @@ contains
          write(LUN, *) "           Fraggle collisional regime determination results"
          write(LUN, *) "--------------------------------------------------------------------"
          write(LUN, *) "True number of impactors : ",impactors%ncoll
-         write(LUN, *) "Index list of true impactors  : ",impactors%idx(1:impactors%ncoll)
+         write(LUN, *) "Index list of true impactors  : ",impactors%id(1:impactors%ncoll)
          select case(impactors%regime) 
          case(COLLRESOLVE_REGIME_MERGE)
             write(LUN, *) "Regime: Merge"

@@ -7,8 +7,9 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(fraggle_classes) s_fraggle_generate
+submodule(fraggle) s_fraggle_generate
    use swiftest
+   use symba
 
    integer(I4B), parameter :: NFRAG_MIN = 7 !! The minimum allowable number of fragments (set to 6 because that's how many unknowns are needed in the tangential velocity calculation)
    real(DP),     parameter :: F_SPIN_FIRST = 0.05_DP !! The initial try value of the fraction of energy or momenum in spin (whichever has the lowest kinetic energy)
@@ -24,10 +25,10 @@ contains
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(fraggle_system),        intent(inout) :: self      !! Fraggle system object the outputs will be the fragmentation 
-      class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param     !! Current run configuration parameters 
-      logical,                      intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
+      class(fraggle_system),    intent(inout) :: self      !! Fraggle system object the outputs will be the fragmentation 
+      class(base_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
+      logical,                  intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
       ! Internals
       integer(I4B)                         :: i
       integer(I4B)                         :: try
@@ -45,15 +46,19 @@ contains
       fpe_quiet_modes(:) = .false.
       call ieee_set_halting_mode(IEEE_ALL,fpe_quiet_modes)
 
+      select type(system)
+      class is (swiftest_nbody_system)
+      select type(param)
+      class is (swiftest_parameters)
       select type(fragments => self%fragments)
-      class is (fraggle_fragments)
+      class is (fraggle_fragments(*))
       associate(collision_system => self, impactors => self%impactors, nfrag => fragments%nbody, pl => system%pl)
 
          write(message,*) nfrag
-         call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle generating " // trim(adjustl(message)) // " fragments.")
+         call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle generating " // trim(adjustl(message)) // " fragments.")
          if (nfrag < NFRAG_MIN) then
             write(message,*) "Fraggle needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
-            call io_log_one_message(FRAGGLE_LOG_OUT, message)
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
             lfailure = .true.
             return
          end if
@@ -82,7 +87,7 @@ contains
          try = 1
          do while (try < MAXTRY)
             write(message,*) try
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
             if (lfailure) then
                call fragments%restructure(impactors, try, f_spin, r_max_start)
                call fragments%reset()
@@ -105,19 +110,19 @@ contains
 
             call fraggle_generate_spins(collision_system, f_spin, lfailure)
             if (lfailure) then
-               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find spins")
+               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find spins")
                cycle
             end if
 
             call fraggle_generate_tan_vel(collision_system, lfailure)
             if (lfailure) then
-               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find tangential velocities")
+               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find tangential velocities")
                cycle
             end if
 
             call fraggle_generate_rad_vel(collision_system, lfailure)
             if (lfailure) then
-               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find radial velocities")
+               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find radial velocities")
                cycle
             end if
 
@@ -129,7 +134,7 @@ contains
             lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
             if (lfailure) then
                write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
-               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high energy error: " // &
+               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high energy error: " // &
                                                         trim(adjustl(message)))
                cycle
             end if
@@ -137,7 +142,7 @@ contains
             lfailure = ((abs(dLmag) / (.mag.collision_system%Ltot(:,1))) > FRAGGLE_LTOL) 
             if (lfailure) then
                write(message,*) dLmag / (.mag.collision_system%Ltot(:,1))
-               call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
+               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
                                                         trim(adjustl(message)))
                cycle
             end if
@@ -147,15 +152,15 @@ contains
             lfailure = any(fpe_flag) 
             if (.not.lfailure) exit
             write(message,*) "Fraggle failed due to a floating point exception: ", fpe_flag
-            call io_log_one_message(FRAGGLE_LOG_OUT, message)
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
 
          end do
          write(message,*) try
          if (lfailure) then
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation failed after " // &
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation failed after " // &
                                                       trim(adjustl(message)) // " tries")
          else
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation succeeded after " // &
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation succeeded after " // &
                                                        trim(adjustl(message)) // " tries")
          end if
 
@@ -164,6 +169,8 @@ contains
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
       end associate
+      end select
+      end select
       end select
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
@@ -275,7 +282,7 @@ contains
 
       associate(impactors => collision_system%impactors, nfrag => collision_system%fragments%nbody)
       select type(fragments => collision_system%fragments)
-      class is (fraggle_fragments)
+      class is (fraggle_fragments(*))
          lfailure = .false.
          L_remainder(:) = fragments%L_budget(:)
          ke_remainder = fragments%ke_budget
@@ -325,16 +332,16 @@ contains
          lfailure = ((fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit) < 0.0_DP)
 
          if (lfailure) then
-            call io_log_one_message(FRAGGLE_LOG_OUT, " ")
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Spin failure diagnostics")
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, " ")
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Spin failure diagnostics")
             write(message, *) fragments%ke_budget
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
             write(message, *) fragments%ke_spin
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
             write(message, *) fragments%ke_orbit
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_orbit      : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_orbit      : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
          end if
 
       end select
@@ -378,7 +385,7 @@ contains
 
       associate(impactors => collision_system%impactors, nfrag => collision_system%fragments%nbody)
       select type(fragments => collision_system%fragments)
-      class is (fraggle_fragments)
+      class is (fraggle_fragments(*))
          lfailure = .false.
 
          allocate(v_t_initial, mold=fragments%v_t_mag)
@@ -427,20 +434,20 @@ contains
             fragments%rc(:,:) = fragments%rc(:,:) * 1.1_DP
          end do
          if (lfailure) then
-            call io_log_one_message(FRAGGLE_LOG_OUT, " ")
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Tangential velocity failure diagnostics")
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, " ")
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Tangential velocity failure diagnostics")
             call fragments%get_angular_momentum()
             L_frag_tot = fragments%Lspin(:) + fragments%Lorbit(:)
             write(message, *) .mag.(fragments%L_budget(:) - L_frag_tot(:)) / (.mag.collision_system%Ltot(:,1))
-            call io_log_one_message(FRAGGLE_LOG_OUT, "|L_remainder| : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "|L_remainder| : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
             write(message, *) fragments%ke_spin
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
             write(message, *) fragments%ke_orbit
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_tangential : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_tangential : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_radial     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_radial     : " // trim(adjustl(message)))
          end if
       end select
       end associate
@@ -466,7 +473,7 @@ contains
             real(DP), dimension(NDIM)               :: L_lin_others, L_orb_others, L, vtmp
      
             select type(fragments => collision_system%fragments)
-            class is (fraggle_fragments)
+            class is (fraggle_fragments(*))
             associate(nfrag => fragments%nbody)
                lfailure = .false.
                ! We have 6 constraint equations (2 vector constraints in 3 dimensions each)
@@ -513,7 +520,7 @@ contains
             real(DP) :: keo
      
             select type(fragments => collision_system%fragments)
-            class is (fraggle_fragments)
+            class is (fraggle_fragments(*))
             associate(impactors => collision_system%impactors, nfrag => fragments%nbody)
                lfailure = .false.
          
@@ -559,7 +566,7 @@ contains
 
       associate(impactors => collision_system%impactors, nfrag => collision_system%fragments%nbody)
       select type(fragments => collision_system%fragments)
-      class is (fraggle_fragments)
+      class is (fraggle_fragments(*))
          ! Set the "target" ke for the radial component
          
          allocate(v_r_initial, source=fragments%v_r_mag)
@@ -601,16 +608,16 @@ contains
 
          lfailure = abs((fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)) / fragments%ke_budget) > FRAGGLE_ETOL
          if (lfailure) then
-            call io_log_one_message(FRAGGLE_LOG_OUT, " ")
-            call io_log_one_message(FRAGGLE_LOG_OUT, "Radial velocity failure diagnostics")
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, " ")
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Radial velocity failure diagnostics")
             write(message, *) fragments%ke_budget
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
             write(message, *) fragments%ke_spin
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
             write(message, *) fragments%ke_orbit
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_orbit : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_orbit : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
-            call io_log_one_message(FRAGGLE_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
          end if
 
       end select
@@ -636,16 +643,14 @@ contains
      
             associate(impactors => collision_system%impactors, nfrag => collision_system%fragments%nbody)
             select type(fragments => collision_system%fragments)
-            class is (fraggle_fragments)
+            class is (fraggle_fragments(*))
                allocate(v_shift, mold=fragments%vb)
                v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, fragments%v_r_unit, fragments%v_t_mag, fragments%v_t_unit, fragments%mass, impactors%vbcom) 
-               !$omp do simd firstprivate(fragments)
                do i = 1,fragments%nbody
                   rotmag2 = fragments%rot(1,i)**2 + fragments%rot(2,i)**2 + fragments%rot(3,i)**2
                   vmag2 = v_shift(1,i)**2 + v_shift(2,i)**2 + v_shift(3,i)**2
                   kearr(i) = fragments%mass(i) * (fragments%Ip(3, i) * fragments%radius(i)**2 * rotmag2 + vmag2) 
                end do
-               !$omp end do simd
                keo = 2 * fragments%ke_budget - sum(kearr(:))
                ke_radial = fragments%ke_budget - fragments%ke_orbit - fragments%ke_spin
                ! The following ensures that fval = 0 is a local minimum, which is what the BFGS method is searching for

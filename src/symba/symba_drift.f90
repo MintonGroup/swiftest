@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-  submodule (symba_classes) s_symba_drift
+  submodule (symba) s_symba_drift
    use swiftest
 contains
 

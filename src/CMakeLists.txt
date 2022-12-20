@@ -13,55 +13,59 @@
 
 # Add the source files
 SET(FAST_MATH_FILES
-            ${SRC}/modules/swiftest_globals.f90
+            ${SRC}/modules/globals.f90
+            ${SRC}/modules/base.f90
+            ${SRC}/modules/encounter.f90
+            ${SRC}/modules/collision.f90
+            ${SRC}/modules/fraggle.f90
             ${SRC}/modules/lambda_function.f90
-            ${SRC}/modules/swiftest_operators.f90
-            ${SRC}/modules/walltime_classes.f90
-            ${SRC}/modules/swiftest_classes.f90
-            ${SRC}/modules/encounter_classes.f90
-            ${SRC}/modules/collision_classes.f90
-            ${SRC}/modules/fraggle_classes.f90
-            ${SRC}/modules/helio_classes.f90
-            ${SRC}/modules/rmvs_classes.f90
-            ${SRC}/modules/symba_classes.f90
-            ${SRC}/modules/whm_classes.f90
+            ${SRC}/modules/operators.f90
+            ${SRC}/modules/walltime.f90
+            ${SRC}/modules/io_progress_bar.f90
             ${SRC}/modules/swiftest.f90
-            ${SRC}/collision/collision_io.f90
-            ${SRC}/collision/collision_regime.f90
+            ${SRC}/modules/whm.f90
+            ${SRC}/modules/rmvs.f90
+            ${SRC}/modules/helio.f90
+            ${SRC}/modules/symba.f90
+            ${SRC}/swiftest_procedures/swiftest_discard.f90  
+            ${SRC}/swiftest_procedures/swiftest_io.f90         
+            ${SRC}/swiftest_procedures/swiftest_obl.f90    
+            ${SRC}/swiftest_procedures/swiftest_util.f90
+            ${SRC}/swiftest_procedures/swiftest_drift.f90    
+            ${SRC}/swiftest_procedures/swiftest_io_netcdf.f90  
+            ${SRC}/swiftest_procedures/swiftest_orbel.f90
+            ${SRC}/swiftest_procedures/swiftest_gr.f90       
+            ${SRC}/swiftest_procedures/swiftest_kick.f90       
+            ${SRC}/swiftest_procedures/swiftest_setup.f90
+            ${SRC}/collision/collision_check.f90  
+            ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_setup.f90
+            ${SRC}/collision/collision_io.f90     
+            ${SRC}/collision/collision_resolve.f90  
             ${SRC}/collision/collision_util.f90
-            ${SRC}/discard/discard.f90
-            ${SRC}/drift/drift.f90
             ${SRC}/encounter/encounter_check.f90
+            ${SRC}/encounter/encounter_io.f90
             ${SRC}/encounter/encounter_setup.f90
             ${SRC}/encounter/encounter_util.f90
-            ${SRC}/encounter/encounter_io.f90
             ${SRC}/fraggle/fraggle_generate.f90
             ${SRC}/fraggle/fraggle_io.f90
+            ${SRC}/fraggle/fraggle_resolve.f90
             ${SRC}/fraggle/fraggle_set.f90
             ${SRC}/fraggle/fraggle_setup.f90
             ${SRC}/fraggle/fraggle_util.f90
-            ${SRC}/gr/gr.f90
             ${SRC}/helio/helio_drift.f90
             ${SRC}/helio/helio_gr.f90
             ${SRC}/helio/helio_setup.f90
             ${SRC}/helio/helio_step.f90
             ${SRC}/helio/helio_util.f90
-            ${SRC}/io/io.f90
-            ${SRC}/io/io_progress_bar.f90
-            ${SRC}/netcdf/netcdf.f90
-            ${SRC}/obl/obl.f90
             ${SRC}/operators/operator_cross.f90
             ${SRC}/operators/operator_mag.f90
             ${SRC}/operators/operator_unit.f90
-            ${SRC}/orbel/orbel.f90
             ${SRC}/rmvs/rmvs_discard.f90
             ${SRC}/rmvs/rmvs_encounter_check.f90
             ${SRC}/rmvs/rmvs_setup.f90
             ${SRC}/rmvs/rmvs_step.f90
             ${SRC}/rmvs/rmvs_util.f90
-            ${SRC}/setup/setup.f90
-            ${SRC}/symba/symba_collision.f90
             ${SRC}/symba/symba_discard.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_encounter_check.f90
@@ -73,30 +77,7 @@ SET(FAST_MATH_FILES
             ${SRC}/tides/tides_getacch_pl.f90
             ${SRC}/tides/tides_spin_step.f90
             ${SRC}/user/user_getacch.f90
-            ${SRC}/util/util_append.f90
-            ${SRC}/util/util_coord.f90
-            ${SRC}/util/util_copy.f90
-            ${SRC}/util/util_dealloc.f90
-            ${SRC}/util/util_exit.f90
-            ${SRC}/util/util_fill.f90
-            ${SRC}/util/util_final.f90
-            ${SRC}/util/util_flatten.f90
-            ${SRC}/util/util_get_energy_momentum.f90
-            ${SRC}/util/util_index.f90
-            ${SRC}/util/util_minimize_bfgs.f90
-            ${SRC}/util/util_peri.f90
-            ${SRC}/util/util_rescale.f90
-            ${SRC}/util/util_reset.f90
-            ${SRC}/util/util_resize.f90
-            ${SRC}/util/util_set.f90
-            ${SRC}/util/util_snapshot.f90
-            ${SRC}/util/util_solve.f90
-            ${SRC}/util/util_sort.f90
-            ${SRC}/util/util_spill.f90
-            ${SRC}/util/util_unique.f90
-            ${SRC}/util/util_valid.f90
-            ${SRC}/util/util_version.f90
-            ${SRC}/walltime/walltime.f90
+            ${SRC}/walltime/walltime_implementations.f90
             ${SRC}/whm/whm_coord.f90
             ${SRC}/whm/whm_drift.f90
             ${SRC}/whm/whm_gr.f90
@@ -105,8 +86,9 @@ SET(FAST_MATH_FILES
             ${SRC}/whm/whm_util.f90
             ${SRC}/main/swiftest_driver.f90
 )
+
 SET(STRICT_MATH_FILES
-            ${SRC}/kick/kick.f90 
+            ${SRC}/swiftest_procedures/swiftest_kick.f90 
             ${SRC}/helio/helio_kick.f90
             ${SRC}/rmvs/rmvs_kick.f90
             ${SRC}/symba/symba_kick.f90

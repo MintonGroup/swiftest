@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (encounter_classes) s_encounter_setup
+submodule (encounter) s_encounter_setup
    use swiftest
 contains
 
@@ -72,6 +72,7 @@ contains
       if (n == 0_I8B) return
       self%t = 0.0_DP
 
+      allocate(self%tcollision(n))
       allocate(self%lvdotr(n))
       allocate(self%lclosest(n))
       allocate(self%status(n))
@@ -84,6 +85,7 @@ contains
       allocate(self%v1(NDIM,n))
       allocate(self%v2(NDIM,n))
 
+      self%tcollision(:) = 0.0_DP
       self%lvdotr(:) = .false.
       self%lclosest(:) = .false.
       self%status(:) = INACTIVE

@@ -7,89 +7,61 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (collision_classes) s_collision_setup
+submodule (collision) s_collision_setup
    use swiftest
 contains
 
-   module subroutine collision_setup_system(self, param)
+   module subroutine collision_setup_system(self, nbody_system)
       !! author: David A. Minton
       !!
-      !! Initializer for the encounter collision system. Allocates the collider and fragments classes and the before/after snapshots
+      !! Initializer for the encounter collision system. Sets up impactors and the before/after snapshots,
+      !! but not fragments. Those are setup later when the number of fragments is known.
       implicit none
       ! Arguments
-      class(collision_system),     intent(inout) :: self      !! Encounter collision system object
-      class(swiftest_parameters),  intent(inout) :: param     !! Current run configuration parameters 
-      ! Internals
+      class(collision_system),  intent(inout) :: self         !! Encounter collision system object
+      class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
 
-      ! TODO: Check parameter file for fragmentation model in SyMBA
-      allocate(collision_impactors :: self%impactors)
-      allocate(fraggle_fragments :: self%fragments)
+      call self%setup_impactors()
+      if (allocated(self%before)) deallocate(self%before)
+      if (allocated(self%after)) deallocate(self%after)
 
+      allocate(self%before, mold=nbody_system)
+      allocate(self%after,  mold=nbody_system)
 
       return
    end subroutine collision_setup_system
 
 
-   module subroutine collision_setup_fragments(self, n, param)
+   module subroutine collision_setup_impactors_system(self)
       !! author: David A. Minton
       !!
-      !! Allocates arrays for n fragments in a collision system. Passing n = 0 deallocates all arrays.
+      !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       implicit none
       ! Arguments
-      class(collision_fragments),  intent(inout) :: self 
-      integer(I4B),                intent(in)    :: n
-      class(swiftest_parameters),  intent(in)    :: param
+      class(collision_system), intent(inout) :: self   !! Encounter collision system object
 
-
-      if (n < 0) return
-
-      call self%dealloc()
-
-      if (n == 0) return
-
-      self%mtot = 0.0_DP
-      allocate(self%status(n))
-      allocate(self%rb(NDIM,n))
-      allocate(self%vb(NDIM,n))
-      allocate(self%mass(n))
-      allocate(self%rot(NDIM,n))
-      allocate(self%Ip(NDIM,n))
-
-      allocate(self%rc(NDIM,n))
-      allocate(self%vc(NDIM,n))
-      allocate(self%vmag(n)) 
-      allocate(self%rmag(n)) 
-      allocate(self%rotmag(n)) 
-      allocate(self%radius(n))
-      allocate(self%density(n))
-
-      self%status(:)  = INACTIVE
-      self%rb(:,:)    = 0.0_DP
-      self%vb(:,:)    = 0.0_DP
-      self%rc(:,:)    = 0.0_DP
-      self%vc(:,:)    = 0.0_DP
-      self%vmag(:)    = 0.0_DP
-      self%rmag(:)    = 0.0_DP
-      self%rotmag(:)  = 0.0_DP
-      self%radius(:)  = 0.0_DP
-      self%density(:) = 0.0_DP
+      if (allocated(self%impactors)) deallocate(self%impactors)
+      allocate(collision_impactors :: self%impactors)
 
       return
-   end subroutine collision_setup_fragments
+   end subroutine collision_setup_impactors_system
 
 
-   module subroutine collision_setup_impactors(self, system, param)
+   module subroutine collision_setup_fragments_system(self, nfrag)
       !! author: David A. Minton
       !!
-      !! Initializes a collider object
+      !! Initializer for the fragments of the collision system. 
       implicit none
       ! Arguments
-      class(collision_impactors),   intent(inout) :: self  !! Fragment system object
-      class(swiftest_nbody_system), intent(in)    :: system
-      class(swiftest_parameters),   intent(in)    :: param !! Current swiftest run configuration parameters
+      class(collision_system), intent(inout) :: self  !! Encounter collision system object
+      integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
+
+      if (allocated(self%fragments)) deallocate(self%fragments)
+      allocate(collision_fragments(nfrag) :: self%fragments)
 
       return
-   end subroutine collision_setup_impactors
+   end subroutine collision_setup_fragments_system
+
 
 end submodule s_collision_setup
 

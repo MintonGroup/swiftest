@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(whm_classes) s_whm_kick
+submodule(whm) s_whm_kick
    use swiftest
 contains
 
@@ -96,11 +96,11 @@ contains
             end do
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
          else
-            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
+            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%xend(:, 1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
          end if
 
          if (param%loblatecb) call tp%accel_obl(system)
@@ -231,7 +231,7 @@ contains
          else
             pl%ah(:, 1:npl) = 0.0_DP
             call pl%accel(system, param, t, lbeg)
-            call pl%set_beg_end(xend = pl%rh)
+            call pl%set_beg_end(rend = pl%rh)
          end if
          do concurrent(i = 1:npl, pl%lmask(i))
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt

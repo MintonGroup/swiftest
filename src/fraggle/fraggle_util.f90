@@ -7,11 +7,10 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(fraggle_classes) s_fraggle_util
+submodule(fraggle) s_fraggle_util
    use swiftest
+   use symba
 contains
-
-   
 
    module subroutine fraggle_util_get_angular_momentum(self) 
       !! Author: David A. Minton
@@ -19,7 +18,7 @@ contains
       !! Calcualtes the current angular momentum of the fragments
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout)  :: self !! Fraggle fragment system object
+      class(fraggle_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
       ! Internals
       integer(I4B) :: i
 
@@ -43,50 +42,24 @@ contains
       !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
       implicit none
       ! Arguments
-      class(fraggle_system),                      intent(inout) :: self         !! Fraggle collision system object
-      class(swiftest_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
-      class(swiftest_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
-      class(swiftest_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
-      class(swiftest_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
+      class(fraggle_system),                   intent(inout) :: self         !! Fraggle collision system object
+      class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
+      class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
+      class(base_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
+      class(base_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
 
       call self%collision_system%construct_temporary_system(nbody_system, param, tmpsys, tmpparam)
-      call tmpsys%rescale(tmpparam, self%mscale, self%dscale, self%tscale)
+
+      select type(tmpsys)
+      class is (swiftest_nbody_system)
+      select type(tmpparam)
+      class is (swiftest_parameters)
+         call tmpsys%rescale(tmpparam, self%mscale, self%dscale, self%tscale)
+      end select
+      end select
 
       return
    end subroutine fraggle_util_construct_temporary_system
-
-
-   module subroutine fraggle_util_dealloc_fragments(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatables
-      implicit none
-      ! Arguments
-      class(fraggle_fragments),  intent(inout) :: self
-
-      call collision_util_dealloc_fragments(self)
-
-      if (allocated(self%v_r_mag)) deallocate(self%v_r_mag)
-      if (allocated(self%v_t_mag)) deallocate(self%v_t_mag)
-      if (allocated(self%v_n_mag)) deallocate(self%v_n_mag)
-
-      return
-   end subroutine fraggle_util_dealloc_fragments
-
-
-
-   module subroutine fraggle_util_final_impactors(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer will deallocate all allocatables
-      implicit none
-      ! Arguments
-      type(collision_impactors),  intent(inout) :: self !! Fraggle encountar storage object
-
-      if (allocated(self%idx)) deallocate(self%idx)
-
-      return
-   end subroutine fraggle_util_final_impactors
 
 
    module subroutine fraggle_util_final_fragments(self)
@@ -95,9 +68,9 @@ contains
       !! Finalizer will deallocate all allocatables
       implicit none
       ! Arguments
-      type(fraggle_fragments),  intent(inout) :: self !! Fraggle encountar storage object
+      type(fraggle_fragments(*)),  intent(inout) :: self !! Fraggle encountar storage object
 
-      call self%dealloc()
+      call self%collision_fragments%reset()
 
       return
    end subroutine fraggle_util_final_fragments
@@ -110,15 +83,63 @@ contains
       implicit none
       ! Arguments
       type(fraggle_system),  intent(inout) :: self !! Collision impactors storage object
-      ! Internals
-      type(swiftest_parameters) :: tmp_param
 
-      call self%reset(tmp_param)
+      call self%reset()
       if (allocated(self%impactors)) deallocate(self%impactors)
       if (allocated(self%fragments)) deallocate(self%fragments)
 
       return
    end subroutine fraggle_util_final_system
+
+
+   module subroutine fraggle_util_reset_fragments(self)
+      !! author: David A. Minton
+      !!
+      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      implicit none
+      ! Arguments
+      class(fraggle_fragments(*)), intent(inout) :: self
+
+      self%rc(:,:) = 0.0_DP
+      self%vc(:,:) = 0.0_DP
+      self%rh(:,:) = 0.0_DP
+      self%vh(:,:) = 0.0_DP
+      self%rb(:,:) = 0.0_DP
+      self%vb(:,:) = 0.0_DP
+      self%rot(:,:) = 0.0_DP
+      self%v_r_unit(:,:) = 0.0_DP
+      self%v_t_unit(:,:) = 0.0_DP
+      self%v_n_unit(:,:) = 0.0_DP
+
+      self%rmag(:) = 0.0_DP
+      self%rotmag(:) = 0.0_DP
+      self%v_r_mag(:) = 0.0_DP
+      self%v_t_mag(:) = 0.0_DP
+      self%v_n_mag(:) = 0.0_DP
+
+      return
+   end subroutine fraggle_util_reset_fragments
+
+
+   module subroutine fraggle_util_reset_system(self)
+      !! author: David A. Minton
+      !!
+      !! Resets the collider system and deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(fraggle_system), intent(inout) :: self  !! Collision system object
+
+      self%dscale = 1.0_DP
+      self%mscale = 1.0_DP
+      self%tscale = 1.0_DP
+      self%vscale = 1.0_DP
+      self%Escale = 1.0_DP
+      self%Lscale = 1.0_DP
+
+      call self%collision_system%reset()
+
+      return
+   end subroutine fraggle_util_reset_system
 
 
    module subroutine fraggle_util_restructure(self, impactors, try, f_spin, r_max_start)
@@ -127,7 +148,7 @@ contains
       !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout) :: self        !! Fraggle fragment system object
+      class(fraggle_fragments(*)), intent(inout) :: self        !! Fraggle fragment system object
       class(collision_impactors), intent(in)    :: impactors   !! Fraggle collider system object
       integer(I4B),             intent(in)    :: try         !! The current number of times Fraggle has tried to find a solution
       real(DP),                 intent(inout) :: f_spin      !! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt

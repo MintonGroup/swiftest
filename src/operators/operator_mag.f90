@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(swiftest_operators) s_operator_mag
+submodule(operators) s_operator_mag
    !! author: David A. Minton
    !!
    !! Contains implementations for the .mag. operator for all defined real types

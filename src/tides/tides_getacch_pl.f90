@@ -1,4 +1,4 @@
-submodule(swiftest_classes) s_tides_kick_getacch
+submodule(base) s_tides_kick_getacch
    use swiftest
 contains
 
@@ -17,8 +17,8 @@ contains
       !!       Applications to Kepler-62. A&A 583, A116. https://doi.org/10.1051/0004-6361/201525909
       implicit none
       ! Arguments
-      class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(base_object),           intent(inout) :: self   !! Swiftest massive body object
+      class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
       ! Internals
       integer(I4B)                          :: i
       real(DP)                              :: rmag, vmag

@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (helio_classes) s_helio_drift
+submodule (helio) s_helio_drift
    use swiftest
 contains
 
@@ -36,7 +36,7 @@ contains
          iflag(:) = 0
          allocate(mu(n))
          mu(:) = system%cb%Gmass
-         call drift_all(mu, self%rh, self%vb, self%nbody, param, dt, self%lmask, iflag)
+         call swiftest_drift_all(mu, self%rh, self%vb, self%nbody, param, dt, self%lmask, iflag)
          if (any(iflag(1:n) /= 0)) then
             where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
             do i = 1, n

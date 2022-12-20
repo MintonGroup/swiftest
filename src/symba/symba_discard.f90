@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (symba_classes) s_symba_discard
+submodule (symba) s_symba_discard
    use swiftest
 contains
 
@@ -47,13 +47,13 @@ contains
                   write(timestr, *) system%t
                   write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // &
                                     " too far from the central body at t = " // trim(adjustl(timestr))
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
                                                            "***********************************************************")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, message)
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
                                                            "***********************************************************")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
                   call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                             discard_vh=pl%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
@@ -64,13 +64,13 @@ contains
                   write(timestr, *) system%t
                   write(message, *) trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                                     " too close to the central body at t = " // trim(adjustl(timestr))
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
                                                            "************************************************************")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, message)
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
                                                            "************************************************************")
-                  call io_log_one_message(FRAGGLE_LOG_OUT, "")
+                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
                   call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                             discard_vh=pl%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
@@ -85,13 +85,13 @@ contains
                      write(timestr, *) system%t
                      write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // &
                                        " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
-                     call io_log_one_message(FRAGGLE_LOG_OUT, "")
-                     call io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
+                     call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
+                     call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
                                                               "************************************************************")
-                     call io_log_one_message(FRAGGLE_LOG_OUT, message)
-                     call io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
+                     call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
+                     call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "************************************************************" // &
                                                               "************************************************************")
-                     call io_log_one_message(FRAGGLE_LOG_OUT, "")
+                     call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
                      call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=system%t, discard_rh=pl%rh(:,i), &
                                                discard_vh=pl%vh(:,i))
                   end if
@@ -112,7 +112,7 @@ contains
       ! Arguments
       class(symba_pl),           intent(inout) :: pl
       class(symba_nbody_system), intent(inout) :: system
-      class(symba_parameters),   intent(inout) :: param
+      class(swiftest_parameters),   intent(inout) :: param
       integer(I4B),              intent(in)    :: ipl
       logical,                   intent(in)         :: lescape_body
       ! Internals
@@ -243,8 +243,6 @@ contains
                nend = pl_discards%nbody + nsub
                call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
    
-               ! Record how many bodies were subtracted in this event
-               pl_discards%ncomp(nstart:nend) = nsub
             end if
          end select
       end associate
@@ -262,7 +260,7 @@ contains
       ! Arguments
       class(symba_pl),           intent(inout) :: pl     !! SyMBA test particle object
       class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B)                            :: i, ndiscard, dstat
       logical                                 :: lescape
@@ -357,11 +355,11 @@ contains
       select type(system)
       class is (symba_nbody_system)
          select type(param)
-         class is (symba_parameters)
-            associate(pl => self, plplenc_list => system%plplenc_list, plplcollision_list => system%plplcollision_list)
+         class is (swiftest_parameters)
+            associate(pl => self, plpl_encounter => system%plpl_encounter, plpl_collision => system%plpl_collision)
                call pl%vb2vh(system%cb) 
                call pl%rh2rb(system%cb)
-               !call plplenc_list%write(pl, pl, param) TODO: write the encounter list writer for NetCDF
+               !call plpl_encounter%write(pl, pl, param) TODO: write the encounter list writer for NetCDF
 
                call symba_discard_nonplpl(self, system, param)
 

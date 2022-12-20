@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (symba_classes) s_symba_encounter_check
+submodule (symba) s_symba_encounter_check
    use swiftest
 contains
 
@@ -34,7 +34,7 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(pl => self, plplenc_list => system%plplenc_list, cb => system%cb)
+      associate(pl => self, plpl_encounter => system%plpl_encounter, cb => system%cb)
 
          npl = pl%nbody
          nplm = pl%nplm
@@ -51,25 +51,25 @@ contains
          
          lany_encounter = nenc > 0_I8B
          if (lany_encounter) then
-            call plplenc_list%resize(nenc)
-            call move_alloc(lvdotr, plplenc_list%lvdotr)
-            call move_alloc(index1, plplenc_list%index1)
-            call move_alloc(index2, plplenc_list%index2)
+            call plpl_encounter%resize(nenc)
+            call move_alloc(lvdotr, plpl_encounter%lvdotr)
+            call move_alloc(index1, plpl_encounter%index1)
+            call move_alloc(index2, plpl_encounter%index2)
          end if
 
          if (lany_encounter) then
             do k = 1_I8B, nenc
-               plplenc_list%t = system%t
-               i = plplenc_list%index1(k)
-               j = plplenc_list%index2(k)
-               plplenc_list%id1(k) = pl%id(i)
-               plplenc_list%id2(k) = pl%id(j)
-               plplenc_list%status(k) = ACTIVE
-               plplenc_list%level(k) = irec
-               plplenc_list%r1(:,k) = pl%rh(:,i)
-               plplenc_list%r2(:,k) = pl%rh(:,j)
-               plplenc_list%v1(:,k) = pl%vb(:,i) - cb%vb(:)
-               plplenc_list%v2(:,k) = pl%vb(:,j) - cb%vb(:)
+               plpl_encounter%t = system%t
+               i = plpl_encounter%index1(k)
+               j = plpl_encounter%index2(k)
+               plpl_encounter%id1(k) = pl%id(i)
+               plpl_encounter%id2(k) = pl%id(j)
+               plpl_encounter%status(k) = ACTIVE
+               plpl_encounter%level(k) = irec
+               plpl_encounter%r1(:,k) = pl%rh(:,i)
+               plpl_encounter%r2(:,k) = pl%rh(:,j)
+               plpl_encounter%v1(:,k) = pl%vb(:,i) - cb%vb(:)
+               plpl_encounter%v2(:,k) = pl%vb(:,j) - cb%vb(:)
                pl%lencounter(i) = .true.
                pl%lencounter(j) = .true.
                pl%levelg(i) = irec
@@ -87,11 +87,11 @@ contains
    end function symba_encounter_check_pl
 
 
-   module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_io_netcdf_check(self, param, system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies in the plplenc and pltpenc list.
-      !! Note: This method works for the polymorphic symba_pltpenc and symba_plplenc types.
+      !! Note: This method works for the polymorphic pltp_encounter and plpl_encounter types.
       !!
       !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
       implicit none
@@ -114,9 +114,9 @@ contains
       if (self%nenc == 0) return
 
       select type(self)
-      class is (symba_plplenc)
+      class is (plpl_encounter)
          isplpl = .true.
-      class is (symba_pltpenc)
+      class is (pltp_encounter)
          isplpl = .false.
       end select
 
@@ -222,21 +222,21 @@ contains
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 
-            associate(pltpenc_list => system%pltpenc_list)
-               call pltpenc_list%resize(nenc)
-               pltpenc_list%status(1:nenc) = ACTIVE
-               pltpenc_list%level(1:nenc) = irec
-               call move_alloc(index1, pltpenc_list%index1)
-               call move_alloc(index2, pltpenc_list%index2)
-               call move_alloc(lvdotr, pltpenc_list%lvdotr)
-               pltpenc_list%id1(1:nenc) = pl%id(pltpenc_list%index1(1:nenc))
-               pltpenc_list%id2(1:nenc) = tp%id(pltpenc_list%index2(1:nenc))
+            associate(pltp_encounter => system%pltp_encounter)
+               call pltp_encounter%resize(nenc)
+               pltp_encounter%status(1:nenc) = ACTIVE
+               pltp_encounter%level(1:nenc) = irec
+               call move_alloc(index1, pltp_encounter%index1)
+               call move_alloc(index2, pltp_encounter%index2)
+               call move_alloc(lvdotr, pltp_encounter%lvdotr)
+               pltp_encounter%id1(1:nenc) = pl%id(pltp_encounter%index1(1:nenc))
+               pltp_encounter%id2(1:nenc) = tp%id(pltp_encounter%index2(1:nenc))
                select type(pl)
                class is (symba_pl)
                   pl%lencounter(1:npl) = .false.
                   do k = 1_I8B, nenc
-                     plind = pltpenc_list%index1(k)
-                     tpind = pltpenc_list%index2(k)
+                     plind = pltp_encounter%index1(k)
+                     tpind = pltp_encounter%index2(k)
                      pl%lencounter(plind) = .true.
                      pl%levelg(plind) = irec
                      pl%levelm(plind) = irec

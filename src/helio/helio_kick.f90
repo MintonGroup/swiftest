@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(helio_classes) s_helio_kick
+submodule(helio) s_helio_kick
    use swiftest
 contains
 
@@ -77,7 +77,7 @@ contains
          if (system%lbeg) then
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:,1:npl), npl)
          else
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%xend(:,1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:,1:npl), npl)
          end if
          if (param%loblatecb) call tp%accel_obl(system)
          if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
@@ -114,7 +114,7 @@ contains
          if (lbeg) then
             call pl%set_beg_end(rbeg = pl%rh)
          else
-            call pl%set_beg_end(xend = pl%rh)
+            call pl%set_beg_end(rend = pl%rh)
          end if
          do concurrent(i = 1:npl, pl%lmask(i)) 
             pl%vb(1, i) = pl%vb(1, i) + pl%ah(1, i) * dt
