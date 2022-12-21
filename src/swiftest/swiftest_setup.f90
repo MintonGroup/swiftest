@@ -113,6 +113,8 @@ contains
             write(*,*) 'Unkown integrator',param%integrator
             call util_exit(FAILURE)
          end select
+
+         allocate(swiftest_particle_info :: system%cb%info)
       end select
 
       return

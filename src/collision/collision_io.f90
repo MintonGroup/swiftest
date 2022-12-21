@@ -87,6 +87,8 @@ contains
                self%out_type = NF90_FLOAT
             case("NETCDF_DOUBLE")
                self%out_type = NF90_DOUBLE
+            case default
+               write(*,*) trim(adjustl(param%out_type)), " is an invalid OUT_TYPE"
             end select
 
             ! Check if the file exists, and if it does, delete it

@@ -599,10 +599,12 @@ contains
          sfill = ieee_value(sfill, IEEE_QUIET_NAN)
 
          select case (param%out_type)
-         case("netcdf_io_FLOAT")
+         case("NETCDF_FLOAT")
             nc%out_type = NF90_FLOAT
-         case("netcdf_io_DOUBLE")
+         case("NETCDF_DOUBLE")
             nc%out_type = NF90_DOUBLE
+         case default
+            write(*,*) trim(adjustl(param%out_type)), " is an invalid OUT_TYPE"
          end select
 
          ! Check if the file exists, and if it does, delete it
