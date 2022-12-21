@@ -67,7 +67,6 @@ module encounter
       integer(I4B)       :: file_number  = 1         !! The number to append on the output file
    contains
       procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-      procedure :: open => encounter_netcdf_io_open 
    end type encounter_netcdf_parameters
 
 
@@ -229,13 +228,6 @@ module encounter
          class(encounter_netcdf_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),     intent(in)    :: param   
       end subroutine encounter_io_initialize_output
-
-      module subroutine encounter_netcdf_io_open(self, param, readonly)
-         implicit none
-         class(encounter_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-         class(base_parameters),               intent(in)    :: param    !! Current run configuration parameters
-         logical, optional,                    intent(in)    :: readonly !! Logical flag indicating that this should be open read only
-      end subroutine encounter_netcdf_io_open
 
       module subroutine encounter_io_write_frame_snapshot(self, history, param)
          implicit none

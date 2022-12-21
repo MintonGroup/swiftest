@@ -24,7 +24,7 @@ contains
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
       !> Call allocation method for parent class
-      call setup_pl(self, n, param) 
+      call swiftest_setup_pl(self, n, param) 
       if (n == 0) return
 
       allocate(self%eta(n))
@@ -79,7 +79,7 @@ contains
       class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
-      call setup_initialize_system(self, param)
+      call swiftest_setup_initialize_system(self, param)
       ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
       call swiftest_util_set_ir3h(self%pl)
       call self%pl%sort("ir3h", ascending=.false.)

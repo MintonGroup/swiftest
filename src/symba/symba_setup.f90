@@ -48,8 +48,8 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      !> Call allocation method for parent class. In this case, helio_pl does not have its own setup method so we use the base method for swiftest_pl
-      call setup_pl(self, n, param) 
+      !> Call allocation method for parent class. 
+      call self%helio_pl%setup(n, param) 
       if (n == 0) return
 
       allocate(self%levelg(n))
@@ -82,8 +82,8 @@ contains
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
-      !> Call allocation method for parent class. In this case, helio_tp does not have its own setup method so we use the base method for swiftest_tp
-      call setup_tp(self, n, param) 
+      !> Call allocation method for parent class. 
+      call self%helio_tp%setup(n, param) 
       if (n == 0) return
 
       allocate(self%levelg(n))

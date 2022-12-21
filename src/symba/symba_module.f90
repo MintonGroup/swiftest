@@ -44,7 +44,6 @@ module symba
       procedure :: append          => symba_util_append_pl              !! Appends elements from one structure to another
       procedure :: dealloc         => symba_util_dealloc_pl             !! Deallocates all allocatable arrays
       procedure :: fill            => symba_util_fill_pl                !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
-      procedure :: get_peri        => symba_util_peri_pl                !! Determine system pericenter passages for massive bodies
       procedure :: resize          => symba_util_resize_pl              !! Checks the current size of a SyMBA massive body against the requested size and resizes it if it is too small.
       procedure :: set_renc_I4B    => symba_util_set_renc               !! Sets the critical radius for encounter given an input recursion depth
       procedure :: sort            => symba_util_sort_pl                !! Sorts body arrays by a sortable componen
@@ -371,13 +370,6 @@ module symba
          implicit none
          type(symba_tp),  intent(inout) :: self !! SyMBA test particle object
       end subroutine symba_util_final_tp
-
-      module subroutine symba_util_peri_pl(self, system, param)
-         implicit none
-         class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
-      end subroutine symba_util_peri_pl
 
    end interface
 

@@ -43,6 +43,8 @@ module swiftest
    use walltime
    use io_progress_bar
    use netcdf_io
+   use solver
+   use minimizer
    !use advisor_annotate
    !$ use omp_lib
    implicit none
@@ -279,7 +281,7 @@ module swiftest
       integer(I8B)                              :: npltp  !! Number of pl-tp comparisons in the flattened upper triangular matrix
       integer(I4B), dimension(:),   allocatable :: nplenc !! number of encounters with planets this time step
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as setup_tp and util_spill_tp
+      !!    component list, such as swiftest_setup_tp and util_spill_tp
    contains
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
@@ -588,12 +590,12 @@ module swiftest
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_io_dump_storage
 
-      module subroutine swiftest_swiftest_io_get_args(integrator, param_file_name, display_style) 
+      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style) 
          implicit none
          character(len=:), allocatable, intent(inout) :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable, intent(inout) :: param_file_name !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
-      end subroutine swiftest_swiftest_io_get_args
+      end subroutine swiftest_io_get_args
 
       module function swiftest_io_get_token(buffer, ifirst, ilast, ierr) result(token)
          implicit none
@@ -1371,18 +1373,6 @@ module swiftest
          class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
       end subroutine swiftest_util_index_map_storage
 
-      module subroutine swiftest_util_minimize_bfgs(f, N, x0, eps, maxloop, lerr, x1)
-         use lambda_function
-         implicit none
-         integer(I4B),           intent(in)    :: N
-         class(lambda_obj),      intent(inout) :: f
-         real(DP), dimension(:), intent(in)    :: x0
-         real(DP),               intent(in)    :: eps
-         logical,                intent(out)   :: lerr
-         integer(I4B),           intent(in)    :: maxloop
-         real(DP), dimension(:), allocatable, intent(out)   :: x1
-      end subroutine swiftest_util_minimize_bfgs
-
       module subroutine swiftest_util_peri_body(self, system, param)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! SyMBA massive body object
@@ -1581,39 +1571,6 @@ module swiftest
       end subroutine swiftest_util_snapshot_system
    end interface
 
-
-   interface swiftest_util_solve_linear_system
-      module function swiftest_util_solve_linear_system_d(A,b,n,lerr) result(x)
-         implicit none
-         integer(I4B),             intent(in)  :: n
-         real(DP), dimension(:,:), intent(in)  :: A
-         real(DP), dimension(:),   intent(in)  :: b
-         logical,                  intent(out) :: lerr
-         real(DP), dimension(n)                :: x
-      end function swiftest_util_solve_linear_system_d
-
-      module function swiftest_util_solve_linear_system_q(A,b,n,lerr) result(x)
-         implicit none
-         integer(I4B),             intent(in)  :: n
-         real(QP), dimension(:,:), intent(in)  :: A
-         real(QP), dimension(:),   intent(in)  :: b
-         logical,                  intent(out) :: lerr
-         real(QP), dimension(n)                :: x
-      end function swiftest_util_solve_linear_system_q
-   end interface
-
-   interface
-      module function swiftest_util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
-         use lambda_function
-         implicit none
-         class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
-         real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
-         real(DP),               intent(in)    :: t1   !! Final time
-         real(DP),               intent(in)    :: dt0  !! Initial step size guess
-         real(DP),               intent(in)    :: tol  !! Tolerance on solution
-         real(DP), dimension(:), allocatable   :: y1  !! Final result
-      end function swiftest_util_solve_rkf45
-   end interface
 
    interface swiftest_util_sort      
       pure module subroutine swiftest_util_sort_i4b(arr)
@@ -1822,8 +1779,8 @@ module swiftest
          implicit none
          type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
          type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,                 dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         logical,                dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                                           intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine swiftest_util_spill_arr_kin
 
       module subroutine swiftest_util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)

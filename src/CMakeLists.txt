@@ -27,6 +27,8 @@ SET(FAST_MATH_FILES
             ${SRC}/netcdf_io/netcdf_io_module.f90
             ${SRC}/misc/lambda_function_module.f90
             ${SRC}/misc/io_progress_bar_module.f90
+            ${SRC}/misc/solver_module.f90
+            ${SRC}/misc/minimizer_module.f90
             ${SRC}/encounter/encounter_module.f90
             ${SRC}/collision/collision_module.f90
             ${SRC}/fraggle/fraggle_module.f90

@@ -286,7 +286,7 @@ contains
 
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
-      call setup_body(self, n, param)
+      call swiftest_setup_body(self, n, param)
       if (n == 0) return
 
       allocate(self%mass(n))
@@ -352,7 +352,7 @@ contains
 
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
-      call setup_body(self, n, param)
+      call swiftest_setup_body(self, n, param)
       if (n == 0) return
 
       allocate(self%isperi(n))

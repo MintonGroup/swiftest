@@ -157,6 +157,34 @@ contains
    end subroutine swiftest_util_append_arr_info
 
 
+   module subroutine swiftest_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
+      !! author: David A. Minton
+      !!
+      !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+      implicit none
+      ! Arguments
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+      type(swiftest_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+      integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
+      logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      ! Internals
+      integer(I4B) :: nnew
+
+      if (.not. allocated(source)) return
+
+      nnew = count(lsource_mask(1:nsrc))
+      if (.not.allocated(arr)) then
+         allocate(arr(nold+nnew))
+      else
+         call util_resize(arr, nold + nnew)
+      end if
+
+      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+
+      return
+   end subroutine swiftest_util_append_arr_kin
+
+
    module subroutine swiftest_util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
       !! author: David A. Minton
       !!
@@ -851,6 +879,7 @@ contains
       return
    end subroutine swiftest_util_fill_arr_DP
 
+
    module subroutine swiftest_util_fill_arr_DPvec(keeps, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -873,6 +902,7 @@ contains
 
       return
    end subroutine swiftest_util_fill_arr_DPvec
+
 
    module subroutine swiftest_util_fill_arr_I4B(keeps, inserts, lfill_list)
       !! author: David A. Minton
@@ -940,6 +970,26 @@ contains
 
       return
    end subroutine swiftest_util_fill_arr_logical
+
+
+   module subroutine swiftest_util_fill_arr_kin(keeps, inserts, lfill_list)
+      !! author: David A. Minton
+      !!
+      !! Performs a fill operation on a single array of particle kinship types
+      !! This is the inverse of a spill operation   
+      implicit none
+      ! Arguments
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+      type(swiftest_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+      logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+
+      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+
+      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+      return
+   end subroutine swiftest_util_fill_arr_kin
 
 
    module subroutine swiftest_util_fill_body(self, inserts, lfill_list)
@@ -1588,587 +1638,6 @@ contains
       return
    end subroutine swiftest_util_index_map_storage
 
-   module subroutine swiftest_util_minimize_bfgs(f, N, x0, eps, maxloop, lerr, x1)
-      !! author: David A. Minton
-      !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
-      !! This function implements the Broyden-Fletcher-Goldfarb-Shanno method to determine the minimum of a function of N variables.  
-      !! It recieves as input:
-      !!   f%eval(x) : lambda function object containing the objective function as the eval metho
-      !!   N       : Number of variables of function f
-      !!   x0      : Initial starting value of x
-      !!   eps     : Accuracy of 1 - dimensional minimization at each step
-      !!   maxloop : Maximum number of loops to attempt to find a solution
-      !! The outputs include
-      !!   lerr :  Returns .true. if it could not find the minimum
-      !! Returns
-      !!   x1   :  Final minimum (all 0 if none found)
-      !!   0 = No miniumum found
-      !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
-      use, intrinsic :: ieee_exceptions
-      implicit none
-      ! Arguments
-      integer(I4B),           intent(in)    :: N
-      class(lambda_obj),      intent(inout) :: f
-      real(DP), dimension(:), intent(in)    :: x0
-      real(DP),               intent(in)    :: eps
-      integer(I4B),           intent(in)    :: maxloop
-      logical,                intent(out)   :: lerr
-      ! Result
-      real(DP), dimension(:), intent(out), allocatable :: x1
-      ! Internals
-      integer(I4B) ::  i, j, k, l, conv
-      real(DP), parameter     :: graddelta = 1e-4_DP !! Delta x for gradient calculations
-      real(DP), dimension(N) :: S               !! Direction vectors 
-      real(DP), dimension(N,N) :: H             !! Approximated inverse Hessian matrix 
-      real(DP), dimension(N) :: grad1           !! gradient of f 
-      real(DP), dimension(N) :: grad0           !! old value of gradient 
-      real(DP) :: astar                         !! 1D minimized value 
-      real(DP), dimension(N) :: y, P
-      real(DP), dimension(N,N) :: PP, PyH, HyP
-      real(DP), save :: yHy, Py
-      type(ieee_status_type) :: original_fpe_status
-      logical, dimension(:), allocatable :: fpe_flag 
-
-      call ieee_get_status(original_fpe_status) ! Save the original floating point exception status
-      call ieee_set_flag(ieee_all, .false.) ! Set all flags to quiet
-      allocate(fpe_flag(size(ieee_usual)))
-
-      lerr = .false.
-      allocate(x1, source=x0)
-      ! Initialize approximate Hessian with the identity matrix (i.e. begin with method of steepest descent) 
-      ! Get initial gradient and initialize arrays for updated values of gradient and x
-      H(:,:) = reshape([((0._DP, i=1, j-1), 1._DP, (0._DP, i=j+1, N), j=1, N)], [N,N])  
-      grad0 = gradf(f, N, x0(:), graddelta, lerr)
-      if (lerr) then
-         call ieee_set_status(original_fpe_status)
-         return
-      end if
-      grad1(:) = grad0(:)
-      do i = 1, maxloop 
-         !check for convergence
-         conv = count(abs(grad1(:)) > eps)
-         if (conv == 0) exit 
-         S(:) = -matmul(H(:,:), grad1(:))
-         astar = minimize1D(f, x1, S, N, graddelta, lerr)
-         if (lerr) exit
-         ! Get new x values 
-         P(:) = astar * S(:) 
-         x1(:) = x1(:) + P(:)
-         ! Calculate new gradient
-         grad0(:) = grad1(:)
-         grad1 = gradf(f, N, x1, graddelta, lerr)
-         y(:) = grad1(:) - grad0(:)
-         Py = sum(P(:) * y(:))
-         ! set up factors for H matrix update 
-         yHy = 0._DP
-         !$omp do simd schedule(static)&
-         !$omp firstprivate(N, y, H) &
-         !$omp reduction(+:yHy)
-         do k = 1, N 
-            do j = 1, N
-               yHy = yHy + y(j) * H(j,k) * y(k)
-            end do
-         end do
-         !$omp end do simd
-         ! prevent divide by zero (convergence) 
-         if (abs(Py) < tiny(Py)) exit
-         ! set up update 
-         PyH(:,:) = 0._DP
-         HyP(:,:) = 0._DP
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(N, PP, P, y, H) &
-         !$omp reduction(+:PyH, HyP)
-         do k = 1, N 
-            do j = 1, N
-               PP(j, k) = P(j) * P(k)
-               do l = 1, N
-                  PyH(j, k) = PyH(j, k) + P(j) * y(l) * H(l,k)
-                  HyP(j, k) = HyP(j, k) + P(k) * y(l) * H(j,l)
-               end do
-            end do
-         end do
-         !$omp end parallel do 
-         ! update H matrix 
-         H(:,:) = H(:,:) + ((1._DP - yHy / Py) * PP(:,:) - PyH(:,:) - HyP(:,:)) / Py
-         ! Normalize to prevent it from blowing up if it takes many iterations to find a solution
-         H(:,:) = H(:,:) / norm2(H(:,:))
-         ! Stop everything if there are any exceptions to allow the routine to fail gracefully
-         call ieee_get_flag(ieee_usual, fpe_flag)
-         if (any(fpe_flag)) exit 
-         if (i == maxloop) then
-            lerr = .true.
-         end if
-      end do
-      call ieee_get_flag(ieee_usual, fpe_flag)
-      lerr = lerr .or. any(fpe_flag)  
-      call ieee_set_status(original_fpe_status)
-
-      return 
-
-      contains
-
-         function gradf(f, N, x1, dx, lerr) result(grad)
-            !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
-            !! Purpose:  Estimates the gradient of a function using a central difference
-            !! approximation
-            !! Inputs:
-            !!   f%eval(x) : lambda function object containing the objective function as the eval metho
-            !!   N    :  number of variables N
-            !!   x1   :  x value array
-            !!   dx   :  step size to use when calculating derivatives
-            !! Outputs: 
-            !!   lerr : .true. if an error occurred. Otherwise returns .false.
-            !! Returns
-            !!   grad :  N sized array containing estimated gradient of f at x1
-            !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-            implicit none
-            ! Arguments
-            integer(I4B),           intent(in)    :: N
-            class(lambda_obj),      intent(inout) :: f
-            real(DP), dimension(:), intent(in)    :: x1
-            real(DP),               intent(in)    :: dx
-            logical,                intent(out)   :: lerr
-            ! Result
-            real(DP), dimension(N)                :: grad
-            ! Internals
-            integer(I4B) :: i, j
-            real(DP), dimension(N) :: xp, xm
-            real(DP) :: fp, fm
-            logical :: lerrp, lerrm
-
-            do i = 1, N
-               do j = 1, N
-                  if (j == i) then
-                     xp(j) = x1(j) + dx
-                     xm(j) = x1(j) - dx
-                  else
-                     xp(j) = x1(j)
-                     xm(j) = x1(j)
-                  end if
-               end do
-               select type (f)
-               class is (lambda_obj_err)
-                  fp = f%eval(xp)
-                  lerrp = f%lerr
-                  fm = f%eval(xm)
-                  lerrm = f%lerr
-                  lerr = lerrp .or. lerrm
-               class is (lambda_obj)
-                  fp = f%eval(xp)
-                  fm = f%eval(xm)
-                  lerr = .false.
-               end select
-               grad(i) = (fp - fm) / (2 * dx)
-               if (lerr) return
-            end do
-            return 
-         end function gradf
-
-
-         function minimize1D(f, x0, S, N, eps, lerr) result(astar)
-            !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
-            !! This program find the minimum of a function of N variables in a single direction
-            !! S using in sequence:
-            !!    1.  A Bracketing method
-            !!    2.  The golden section method
-            !!    3.  A quadratic polynomial fit
-            !! Inputs
-            !!   f%eval(x) : lambda function object containing the objective function as the eval metho
-            !!   x0   :  Array of size N of initial x values
-            !!   S    :  Array of size N that determines the direction of minimization
-            !!   N    :  Number of variables of function f
-            !!   eps  :  Accuracy of 1 - dimensional minimization at each step
-            !! Output
-            !!   lerr : .true. if an error occurred. Otherwise returns .false.
-            !! Returns
-            !!   astar      :  Final minimum along direction S
-            !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-            implicit none
-            ! Arguments
-            integer(I4B),           intent(in)  :: N
-            class(lambda_obj),      intent(inout)  :: f
-            real(DP), dimension(:), intent(in)  :: x0, S
-            real(DP),               intent(in)  :: eps
-            logical,                intent(out) :: lerr
-            ! Result
-            real(DP)                            :: astar
-            ! Internals
-            integer(I4B) :: num = 0
-            real(DP), parameter :: step = 0.7_DP     !! Bracketing method step size   
-            real(DP), parameter :: gam = 1.2_DP      !! Bracketing method expansion parameter   
-            real(DP), parameter :: greduce = 0.2_DP  !! Golden section method reduction factor   
-            real(DP), parameter :: greduce2 = 0.1_DP ! Secondary golden section method reduction factor   
-            real(DP) :: alo, ahi                     !! High and low values for 1 - D minimization routines   
-            real(DP), parameter :: a0 = epsilon(1.0_DP)       !! Initial guess of alpha   
-         
-            alo = a0
-            call bracket(f, x0, S, N, gam, step, alo, ahi, lerr)
-            if (lerr) then
-               !write(*,*) "BFGS bracketing step failed!"
-               !write(*,*) "alo: ",alo, "ahi: ", ahi
-               return 
-            end if
-            if (abs(alo - ahi) < eps) then
-               astar = alo
-               lerr = .false.
-               return 
-            end if
-            call golden(f, x0, S, N, greduce, alo, ahi, lerr)
-            if (lerr) then
-               !write(*,*) "BFGS golden section step failed!"
-               return 
-            end if
-            if (abs(alo - ahi) < eps) then
-               astar = alo
-               lerr = .false.
-               return 
-            end if
-            call quadfit(f, x0, S, N, eps, alo, ahi, lerr)
-            if (lerr) then
-               !write(*,*) "BFGS quadfit failed!"
-               return 
-            end if
-            if (abs(alo - ahi) < eps) then
-               astar = alo
-               lerr = .false.
-               return 
-            end if 
-            ! Quadratic fit method won't converge, so finish off with another golden section   
-            call golden(f, x0, S, N, greduce2, alo, ahi, lerr)
-            if (.not. lerr) astar = (alo + ahi) / 2.0_DP
-            return 
-         end function minimize1D
-
-
-         function n2one(f, x0, S, N, a, lerr) result(fnew)
-            implicit none
-            ! Arguments
-            integer(I4B),           intent(in) :: N
-            class(lambda_obj),      intent(inout) :: f
-            real(DP), dimension(:), intent(in) :: x0, S
-            real(DP),               intent(in) :: a
-            logical,                intent(out) :: lerr
-
-            ! Return
-            real(DP) :: fnew
-            ! Internals
-            real(DP), dimension(N) :: xnew
-            integer(I4B) :: i
-            
-            xnew(:) = x0(:) + a * S(:)
-            fnew = f%eval(xnew(:))
-            select type(f)
-            class is (lambda_obj_err)
-               lerr = f%lerr
-            class is (lambda_obj)
-               lerr = .false.
-            end select
-            return 
-         end function n2one
-
-         ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-         ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-
-         subroutine swiftest_bracket(f, x0, S, N, gam, step, lo, hi, lerr)
-            ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
-            !! This subroutine swiftest_brackets the minimum.  It recieves as input:
-            !!   f%eval(x) : lambda function object containing the objective function as the eval metho
-            !!   x0   :  Array of size N of initial x values
-            !!   S    :  Array of size N that determines the direction of minimization
-            !!   gam  :  expansion parameter
-            !!   step :  step size
-            !!   lo   :  initial guess of lo bracket value
-            !! The outputs include
-            !!   lo   :  lo bracket
-            !!   hi   :  hi bracket
-            !!   lerr : .true. if an error occurred. Otherwise returns .false.
-            !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-            implicit none
-            ! Arguments
-            integer(I4B),           intent(in)    :: N
-            class(lambda_obj),      intent(inout) :: f
-            real(DP), dimension(:), intent(in)    :: x0, S
-            real(DP),               intent(in)    :: gam, step
-            real(DP),               intent(inout) :: lo
-            real(DP),               intent(out)   :: hi
-            logical,                intent(out)   :: lerr
-            ! Internals
-            real(DP) :: a0, a1, a2, atmp, da
-            real(DP) :: f0, f1, f2
-            integer(I4B) :: i, j
-            integer(I4B), parameter :: MAXLOOP = 100 ! maximum number of loops before method is determined to have failed   
-            real(DP), parameter :: eps = epsilon(lo) ! small number precision to test floating point equality   
-
-            ! set up initial bracket points   
-            a0 =  lo
-            da = step
-            a1 = a0 + da
-            a2 = a0 + 2 * da
-            f0 = n2one(f, x0, S, N, a0, lerr)
-            if (lerr) return
-            f1 = n2one(f, x0, S, N, a1, lerr)
-            if (lerr) return
-            f2 = n2one(f, x0, S, N, a2, lerr)
-            if (lerr) return
-            ! loop over bracket method until either min is bracketed method fails   
-            do i = 1, MAXLOOP 
-               if ((f0 > f1) .and. (f1 < f2)) then  ! Minimum was found   
-                  lo = a0
-                  hi = a2
-                  return 
-               else if ((f0 >= f1) .and. (f1 > f2)) then ! Function appears to decrease   
-                  da = da * gam
-                  atmp = a2 + da
-                  a0 = a1
-                  a1 = a2
-                  a2 = atmp
-                  f0 = f1
-                  f1 = f2
-                  f2 = n2one(f, x0, S, N, a2, lerr)
-               else if ((f0 < f1) .and. (f1 <= f2)) then ! Function appears to increase   
-                  da = da * gam
-                  atmp = a0 - da
-                  a2 = a1
-                  a1 = a0
-                  a0 = atmp
-                  f2 = f1
-                  f0 = n2one(f, x0, S, N, a0, lerr)
-               else if ((f0 < f1) .and. (f1 > f2)) then ! We are at a peak. Pick the direction that descends the fastest
-                  da = da * gam
-                  if (f2 > f0) then ! LHS is lower than RHS
-                     atmp = a2 + da
-                     a0 = a1
-                     a1 = a2
-                     a2 = atmp
-                     f0 = f1
-                     f1 = f2
-                     f2 = n2one(f, x0, S, N, a2, lerr)
-                  else ! RHS is lower than LHS
-                     atmp = a0 - da
-                     a2 = a1
-                     a1 = a0
-                     a0 = atmp
-                     f2 = f1
-                     f1 = f2
-                     f0 = n2one(f, x0, S, N, a0, lerr)
-                  end if
-               else if ((f0 > f1) .and. (abs(f2 - f1) <= eps)) then ! Decrasging but RHS equal   
-                  da = da * gam
-                  atmp = a2 + da
-                  a2 = atmp
-                  f2 = n2one(f, x0, S, N, a2, lerr)
-               else if ((abs(f0 - f1) < eps) .and. (f1 < f2)) then ! Increasing but LHS equal   
-                  da = da * gam
-                  atmp = a0 - da
-                  a0 = atmp
-                  f0 = n2one(f, x0, S, N, a0, lerr)
-               else  ! all values equal. Expand in either direction and try again
-                  a0 = a0 - da
-                  a2 = a2 + da
-                  f0 = n2one(f, x0, S, N, a0, lerr)
-                  if (lerr) exit ! An error occurred while evaluating the function
-                  f2 = n2one(f, x0, S, N, a2, lerr)
-               end if
-               if (lerr) exit ! An error occurred while evaluating the function
-            end do
-            lerr = .true.
-            return ! no minimum found   
-         end subroutine swiftest_bracket
-
-         ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-         ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-
-         subroutine swiftest_golden(f, x0, S, N, eps, lo, hi, lerr) 
-            ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
-            !! This function uses the golden section method to reduce the starting interval lo, hi by some amount sigma.  
-            !! It recieves as input:
-            !!   f%eval(x) : lambda function object containing the objective function as the eval metho
-            !!   x0   :  Array of size N of initial x values
-            !!   S    :  Array of size N that determines the direction of minimization
-            !!   gam  :  expansion parameter
-            !!   eps  :  reduction interval in range (0 < sigma < 1) such that:
-            !!             hi(new) - lo(new) = eps * (hi(old) - lo(old))
-            !!   lo   :  initial guess of lo bracket value
-            !! The outputs include
-            !!   lo   :  lo bracket
-            !!   hi   :  hi bracket
-            !!   lerr : .true. if an error occurred. Otherwise returns .false.
-            !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-            implicit none
-            ! Arguments
-            integer(I4B),           intent(in)    :: N
-            class(lambda_obj),      intent(inout) :: f
-            real(DP), dimension(:), intent(in)    :: x0, S
-            real(DP),               intent(in)    :: eps
-            real(DP),               intent(inout) :: lo
-            real(DP),               intent(out)   :: hi
-            logical,                intent(out)   :: lerr
-            ! Internals 
-            real(DP), parameter :: tau = 0.5_DP * (sqrt(5.0_DP) - 1.0_DP)  ! Golden section constant   
-            integer(I4B), parameter :: MAXLOOP = 40 ! maximum number of loops before method is determined to have failed (unlikely, but could occur if no minimum exists between lo and hi)   
-            real(DP) :: i0 ! Initial interval value   
-            real(DP) :: a1, a2
-            real(DP) :: f1, f2
-            integer(I4B) :: i, j
-
-            i0 =  hi - lo
-            a1 =  hi - tau * i0
-            a2 =  lo + tau * i0
-            f1 = n2one(f, x0, S, N, a1, lerr)
-            if (lerr) return
-            f2 = n2one(f, x0, S, N, a2, lerr)
-            if (lerr) return
-            do i = 1, MAXLOOP 
-               if (abs((hi - lo) / i0) <= eps) return ! interval reduced to input amount   
-               if (f2 > f1) then
-                  hi = a2
-                  a2 = a1
-                  f2 = f1
-                  a1 = hi - tau * (hi - lo)
-                  f1 = n2one(f, x0, S, N, a1, lerr)
-               else 
-                  lo = a1
-                  a1 = a2
-                  f2 = f1
-                  a2 = hi - (1.0_DP - tau) * (hi - lo)
-                  f2 = n2one(f, x0, S, N, a2, lerr)
-               end if
-               if (lerr) exit
-            end do
-            lerr = .true.
-            return ! search took too many iterations - no minimum found   
-         end subroutine swiftest_golden
-
-         ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-         ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-
-         subroutine swiftest_quadfit(f, x0, S, N, eps, lo, hi, lerr) 
-            ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
-            !! This function uses a quadratic polynomial fit to locate the minimum of a function
-            !! to some accuracy eps.  It recieves as input:
-            !!   f%eval(x) : lambda function object containing the objective function as the eval metho
-            !!   lo    :  low bracket value
-            !!   hi    :  high bracket value
-            !!   eps   :  desired accuracy of final minimum location
-            !! The outputs include
-            !!   lo   :  final minimum location
-            !!   hi   :  final minimum location
-            !! Notes: Uses the ieee_exceptions intrinsic module to allow for graceful failure due to floating point exceptions, which won't terminate the run.
-            !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -   
-            implicit none
-            ! Arguments
-            integer(I4B),           intent(in)    :: N
-            class(lambda_obj),      intent(inout) :: f
-            real(DP), dimension(:), intent(in)    :: x0, S
-            real(DP),               intent(in)    :: eps
-            real(DP),               intent(inout) :: lo
-            real(DP),               intent(out)   :: hi
-            logical,                intent(out)   :: lerr
-            ! Internals 
-            integer(I4B), parameter :: MAXLOOP = 20 ! maximum number of loops before method is determined to have failed.   
-            real(DP) :: a1, a2, a3, astar   ! three points for the polynomial fit and polynomial minimum   
-            real(DP) :: f1, f2, f3, fstar   ! three function values for the polynomial and polynomial minimum   
-            real(DP), dimension(3) :: row_1, row_2, row_3, rhs, soln        ! matrix for 3 equation solver (gaussian elimination)   
-            real(DP), dimension(3,3) :: lhs
-            real(DP) :: d1, d2, d3, aold, denom, errval
-            integer(I4B) :: i
-
-            lerr = .false.
-            ! Get initial a1, a2, a3 values   
-            a1 =  lo
-            a2 =  lo + 0.5_DP * (hi - lo)
-            a3 =  hi
-            aold = a1
-            astar = a2
-            f1 = n2one(f, x0, S, N, a1, lerr)
-            if (lerr) return
-            f2 = n2one(f, x0, S, N, a2, lerr)
-            if (lerr) return
-            f3 = n2one(f, x0, S, N, a3, lerr)
-            if (lerr) return
-            do i = 1, MAXLOOP 
-               ! check to see if convergence is reached and exit   
-               errval = abs((astar - aold) / astar)
-               call ieee_get_flag(ieee_usual, fpe_flag)
-               if (any(fpe_flag)) then
-                  !write(*,*) 'quadfit fpe'
-                  !write(*,*) 'aold : ',aold
-                  !write(*,*) 'astar: ',astar
-                  lerr = .true.
-                  exit
-               end if
-               if (errval < eps) then
-                  lo = astar
-                  hi = astar
-                  exit
-               end if
-               ! Set up system for gaussian elimination equation solver   
-               row_1 = [1.0_DP, a1, a1**2]
-               row_2 = [1.0_DP, a2, a2**2]
-               row_3 = [1.0_DP, a3, a3**2]
-               rhs = [f1, f2, f3]
-               lhs(1, :) = row_1
-               lhs(2, :) = row_2
-               lhs(3, :) = row_3
-               ! Solve system of equations   
-               soln(:) = swiftest_util_solve_linear_system(lhs, rhs, 3, lerr)
-               call ieee_set_flag(ieee_all, .false.) ! Set all flags back to quiet
-               call ieee_set_halting_mode(ieee_divide_by_zero, .false.)
-               if (lerr) then
-                  !write(*,*) 'quadfit fpe:'
-                  !write(*,*) 'util_solve_linear_system failed'
-                  exit
-               end if
-               aold = astar
-               if (soln(2) == soln(3)) then ! Handles the case where they are both 0. 0/0 is an unhandled exception
-                  astar = -0.5_DP
-               else
-                  astar =  -soln(2) / (2 * soln(3))
-               end if
-               call ieee_get_flag(ieee_usual, fpe_flag)
-               if (any(fpe_flag)) then
-                  !write(*,*) 'quadfit fpe'
-                  !write(*,*) 'soln(2:3): ',soln(2:3)
-                  !write(*,*) 'a1, a2, a3'
-                  !write(*,*) a1, a2, a3
-                  !write(*,*) 'f1, f2, f3'
-                  !write(*,*) f1, f2, f3
-                  lerr = .true.
-                  exit
-               end if
-               fstar = n2one(f, x0, S, N, astar, lerr)
-               if (lerr) exit
-               ! keep the three closest a values to astar and discard the fourth  
-               d1 = abs(a1 - astar)
-               d2 = abs(a2 - astar)
-               d3 = abs(a3 - astar)
-
-               if (d1 > d2) then
-                  if (d1 > d3) then
-                     f1 = fstar
-                     a1 = astar
-                  else if (d3 > d2) then
-                     f3 = fstar
-                     a3 = astar
-                  end if
-               else 
-                  if (d2 > d3) then
-                     f2 = fstar
-                     a2 = astar
-                  else if (d3 > d1) then
-                     f3 = fstar
-                     a3 = astar
-                  end if
-               end if
-            end do
-            if (lerr) return
-            lo = a1
-            hi = a3
-            return 
-         end subroutine swiftest_quadfit
-
-   end subroutine swiftest_util_minimize_bfgs
-
    subroutine swiftest_util_peri(n,m, r, v, atp, q, isperi)
       !! author: David A. Minton
       !!
@@ -2729,6 +2198,43 @@ contains
       return
    end subroutine swiftest_util_resize_arr_info
 
+  
+   module subroutine swiftest_util_resize_arr_kin(arr, nnew)
+      !! author: David A. Minton
+      !!
+      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      implicit none
+      ! Arguments
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+      integer(I4B),                                      intent(in)    :: nnew !! New size
+      ! Internals
+      type(swiftest_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      integer(I4B) :: nold !! Old size
+
+      if (nnew < 0) return
+
+      if (nnew == 0) then
+         if (allocated(arr)) deallocate(arr)
+         return
+      end if
+      
+      if (allocated(arr)) then
+         nold = size(arr)
+      else
+         nold = 0
+      end if
+
+      allocate(tmp(nnew))
+      if (nnew > nold) then
+         tmp(1:nold) = arr(1:nold)
+      else
+         tmp(1:nnew) = arr(1:nnew)
+      end if
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine swiftest_util_resize_arr_kin
+
 
    module subroutine swiftest_util_resize_arr_logical(arr, nnew)
       !! author: David A. Minton
@@ -3129,234 +2635,6 @@ contains
 
       return
    end subroutine swiftest_util_snapshot_system
-
-
-   module function swiftest_util_solve_linear_system_d(A,b,n,lerr) result(x)
-      !! Author: David A. Minton
-      !!
-      !! Solves the linear equation of the form A*x = b for x. 
-      !!   A is an (n,n) arrays
-      !!   x and b are (n) arrays
-      !! Uses Gaussian elimination, so will have issues if system is ill-conditioned.
-      !! Uses quad precision intermidiate values, so works best on small arrays.
-      use, intrinsic :: ieee_exceptions
-      implicit none
-      ! Arguments
-      integer(I4B),             intent(in)  :: n
-      real(DP), dimension(:,:), intent(in)  :: A
-      real(DP), dimension(:),   intent(in)  :: b
-      logical,                  intent(out) :: lerr
-      ! Result
-      real(DP), dimension(n)                :: x
-      ! Internals
-      real(QP), dimension(:), allocatable :: qx
-      type(ieee_status_type) :: original_fpe_status
-      logical, dimension(:), allocatable :: fpe_flag 
-
-      call ieee_get_status(original_fpe_status) ! Save the original floating point exception status
-      call ieee_set_flag(ieee_all, .false.) ! Set all flags to quiet
-      allocate(fpe_flag(size(ieee_usual)))
-
-      qx = solve_wbs(ge_wpp(real(A, kind=QP), real(b, kind=QP)))
-
-      call ieee_get_flag(ieee_usual, fpe_flag)
-      lerr = any(fpe_flag) 
-      if (lerr .or. (any(abs(qx) > huge(x))) .or. (any(abs(qx) < tiny(x)))) then
-         x = 0.0_DP
-      else
-         x = real(qx, kind=DP)
-      end if
-      call ieee_set_status(original_fpe_status)
-
-      return
-   end function swiftest_util_solve_linear_system_d
-
-
-   module function swiftest_util_solve_linear_system_q(A,b,n,lerr) result(x)
-      !! Author: David A. Minton
-      !!
-      !! Solves the linear equation of the form A*x = b for x. 
-      !!   A is an (n,n) arrays
-      !!   x and b are (n) arrays
-      !! Uses Gaussian elimination, so will have issues if system is ill-conditioned.
-      !! Uses quad precision intermidiate values, so works best on small arrays.
-      use, intrinsic :: ieee_exceptions
-      implicit none
-      ! Arguments
-      integer(I4B),             intent(in) :: n
-      real(QP), dimension(:,:), intent(in) :: A
-      real(QP), dimension(:),   intent(in) :: b
-      logical,                  intent(out) :: lerr
-      ! Result
-      real(QP), dimension(n)  :: x
-      ! Internals
-      type(ieee_status_type) :: original_fpe_status
-      logical, dimension(:), allocatable :: fpe_flag 
-
-      call ieee_get_status(original_fpe_status) ! Save the original floating point exception status
-      call ieee_set_flag(ieee_all, .false.) ! Set all flags to quiet
-      allocate(fpe_flag(size(ieee_usual)))
-
-      x = solve_wbs(ge_wpp(A, b))
-
-      call ieee_get_flag(ieee_usual, fpe_flag)
-      lerr = any(fpe_flag) 
-      if (lerr) x = 0.0_DP
-      call ieee_set_status(original_fpe_status) 
-
-      return
-   end function swiftest_util_solve_linear_system_q
-
-   function solve_wbs(u) result(x) ! solve with backward substitution
-      !! Based on code available on Rosetta Code: https://rosettacode.org/wiki/Gaussian_elimination#Fortran
-      use, intrinsic :: ieee_exceptions
-      use swiftest
-      implicit none
-      ! Arguments
-      real(QP), intent(in), dimension(:,:), allocatable  :: u
-      ! Result
-      real(QP), dimension(:), allocatable :: x
-      ! Internals
-      integer(I4B)             :: i,n
-
-      n = size(u, 1)
-      if (allocated(x)) deallocate(x)
-      if (.not.allocated(x)) allocate(x(n))
-      if (any(abs(u) < tiny(1._DP)) .or. any(abs(u) > huge(1._DP))) then 
-         x(:) = 0._DP
-         return
-      end if
-      call ieee_set_halting_mode(ieee_divide_by_zero, .false.)
-      do i = n, 1, -1 
-         x(i) = (u(i, n + 1) - sum(u(i, i + 1:n) * x(i + 1:n))) / u(i, i)
-      end do   
-      return
-   end function solve_wbs
-
-
-   function ge_wpp(A, b) result(u) ! gaussian eliminate with partial pivoting
-      !! Solve  Ax=b  using Gaussian elimination then backwards substitution.
-      !!   A being an n by n matrix.
-      !!   x and b are n by 1 vectors. 
-      !! Based on code available on Rosetta Code: https://rosettacode.org/wiki/Gaussian_elimination#Fortran
-      use, intrinsic :: ieee_exceptions
-      use swiftest
-      implicit none
-      ! Arguments
-      real(QP), dimension(:,:), intent(in) :: A
-      real(QP), dimension(:),   intent(in) :: b
-      ! Result
-      real(QP), dimension(:,:), allocatable :: u
-      ! Internals
-      integer(I4B) :: i,j,n,p
-      real(QP)     ::  upi
-
-      n = size(a, 1)
-      allocate(u(n, (n + 1)))
-      u = reshape([A, b], [n, n + 1])
-      call ieee_set_halting_mode(ieee_divide_by_zero, .false.)
-      do j = 1, n
-         p = maxloc(abs(u(j:n, j)), 1) + j - 1 ! maxloc returns indices between (1, n - j + 1)
-         if (p /= j) u([p, j], j) = u([j, p], j)
-         u(j + 1:, j) = u(j + 1:, j) / u(j, j)
-         do i = j + 1, n + 1
-            upi = u(p, i)
-            if (p /= j) u([p, j], i) = u([j, p], i)
-            u(j + 1:n, i) = u(j + 1:n, i) - upi * u(j + 1:n, j)
-         end do
-      end do
-      return
-   end function ge_wpp
-
-
-   module function swiftest_util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
-      !! author: David A. Minton
-      !!
-      !! Implements the 4th order Runge-Kutta-Fehlberg ODE solver for initial value problems of the form f=dy/dt, y0 = y(t=0), solving for y1 = y(t=t1). Uses a 5th order adaptive step size control.
-      !! Uses a lambda function object as defined in the lambda_function module
-      implicit none
-      ! Arguments   
-      class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
-      real(DP), dimension(:), intent(in)    :: y0in !! Initial value at t=0
-      real(DP),               intent(in)    :: t1   !! Final time
-      real(DP),               intent(in)    :: dt0  !! Initial step size guess
-      real(DP),               intent(in)    :: tol  !! Tolerance on solution
-      ! Result
-      real(DP), dimension(:), allocatable   :: y1  !! Final result
-      ! Internals
-      integer(I4B),                          parameter :: MAXREDUX = 1000 !! Maximum number of times step size can be reduced
-      real(DP),                              parameter :: DTFAC = 0.95_DP !! Step size reduction safety factor (Value just under 1.0 to prevent adaptive step size control from discarding steps too aggressively)
-      integer(I4B),                          parameter :: RKS = 6         !! Number of RK stages
-      real(DP),     dimension(RKS, RKS - 1), parameter :: rkf45_btab = reshape( & !! Butcher tableau for Runge-Kutta-Fehlberg method
-         (/       1./4.,       1./4.,          0.,            0.,           0.,           0.,&
-                  3./8.,      3./32.,      9./32.,            0.,           0.,           0.,&
-                12./13., 1932./2197., -7200./2197.,  7296./2197.,           0.,           0.,&
-                     1.,   439./216.,          -8.,   3680./513.,   -845./4104.,          0.,&
-                  1./2.,     -8./27.,           2., -3544./2565.,   1859./4104.,    -11./40./), shape(rkf45_btab))
-      real(DP), dimension(RKS),  parameter   :: rkf4_coeff =  (/ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5.,      0. /)
-      real(DP), dimension(RKS),  parameter   :: rkf5_coeff =  (/ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. /)
-      real(DP), dimension(:, :), allocatable :: k                !! Runge-Kutta coefficient vector
-      real(DP), dimension(:),   allocatable  :: ynorm            !! Normalized y value used for adaptive step size control
-      real(DP), dimension(:),   allocatable  :: y0           !! Value of y at the beginning of each substep
-      integer(I4B)                           :: Nvar             !! Number of variables in problem
-      integer(I4B)                           :: rkn              !! Runge-Kutta loop index
-      real(DP)                               :: t, x1, dt, trem      !! Current time, step size and total time remaining
-      real(DP)                               :: s, yerr, yscale  !!  Step size reduction factor, error in dependent variable, and error scale factor
-      integer(I4B)                           :: i
-
-      allocate(y0, source=y0in)
-      allocate(y1, mold=y0)
-      allocate(ynorm, mold=y0)
-      Nvar = size(y0)
-      allocate(k(Nvar, RKS))
-
-      dt = dt0
-
-      trem = t1
-      t = 0._DP
-      do
-         yscale = norm2(y0(:))
-         do i = 1, MAXREDUX
-            select type(f)
-            class is (lambda_obj_tvar)
-               do rkn = 1, RKS
-                  y1(:) = y0(:) + matmul(k(:, 1:rkn - 1), rkf45_btab(2:rkn, rkn - 1))
-                  if (rkn == 1) then
-                     x1 = t
-                  else
-                     x1 = t + rkf45_btab(1,rkn-1)
-                  end if
-                  k(:, rkn) = dt * f%evalt(y1(:), t)
-               end do
-            class is (lambda_obj)
-               do rkn = 1, RKS
-                  y1(:) = y0(:) + matmul(k(:, 1:rkn - 1), rkf45_btab(2:rkn, rkn - 1))
-                  k(:, rkn) = dt * f%eval(y1(:))
-               end do
-            end select
-            ! Now determine if the step size needs adjusting
-            ynorm(:) = matmul(k(:,:), (rkf5_coeff(:) - rkf4_coeff(:))) / yscale
-            yerr = norm2(ynorm(:)) 
-            s = (tol / (2 * yerr))**(0.25_DP)
-            dt = min(s * DTFAC * dt, trem) ! Alter step size either up or down, but never bigger than the remaining time
-            if (s >= 1.0_DP) exit ! Good step!
-            if (i == MAXREDUX) then
-               write(*,*) "Something has gone wrong in util_solve_rkf45!! Step size reduction has gone too far this time!"
-               call swiftest_util_exit(FAILURE)
-            end if
-         end do
-      
-         ! Compute new value then step ahead in time
-         y1(:) = y0(:) + matmul(k(:, :), rkf4_coeff(:))
-         trem = trem - dt
-         t = t + dt
-         if (trem <= 0._DP) exit
-         y0(:) = y1(:)
-      end do
-
-      return
-   end function swiftest_util_solve_rkf45
-
 
 
    module subroutine swiftest_util_sort_body(self, sortby, ascending)
@@ -4240,6 +3518,56 @@ contains
    end subroutine swiftest_util_sort_rearrange_arr_I4B_I8Bind
 
 
+   module subroutine swiftest_util_sort_rearrange_arr_info(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of particle information type in-place from an index list.
+      implicit none
+      ! Arguments
+      type(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),                  dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      type(swiftest_particle_info),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, mold=arr)
+
+      call swiftest_util_copy_particle_info_arr(arr, tmp, ind)
+      call move_alloc(tmp, arr)
+
+      return
+   end subroutine swiftest_util_sort_rearrange_arr_info
+
+
+   pure module subroutine swiftest_util_sort_rearrange_arr_kin(arr, ind, n)
+      !! author: David A. Minton
+      !!
+      !! Rearrange a single array of particle kinship type in-place from an index list.
+      implicit none
+      ! Arguments
+      type(swiftest_kinship),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+      integer(I4B),            dimension(:),              intent(in)    :: ind !! Index to rearrange against
+      integer(I4B),                                       intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      ! Internals
+      type(swiftest_kinship),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+      integer(I4B) :: i,j
+
+      if (.not. allocated(arr) .or. n <= 0) return
+      allocate(tmp, source=arr)
+      tmp(1:n) = arr(ind(1:n))
+
+      do i = 1, n
+         do j = 1, tmp(i)%nchild
+            tmp(i)%child(j) = ind(tmp(i)%child(j))
+         end do
+      end do
+
+      call move_alloc(tmp, arr)
+      return
+   end subroutine swiftest_util_sort_rearrange_arr_kin
+
+
    pure module subroutine swiftest_util_sort_rearrange_arr_logical(arr, ind, n)
       !! author: David A. Minton
       !!
@@ -4280,28 +3608,6 @@ contains
 
       return
    end subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind
-
-
-   module subroutine swiftest_util_sort_rearrange_arr_info(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of particle information type in-place from an index list.
-      implicit none
-      ! Arguments
-      type(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B),                  dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      type(swiftest_particle_info),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
-
-      call swiftest_util_copy_particle_info_arr(arr, tmp, ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_info
 
 
    module subroutine swiftest_util_sort_rearrange_pl(self, ind)
@@ -4623,6 +3929,48 @@ contains
 
       return
    end subroutine swiftest_util_spill_arr_info
+
+
+   module subroutine swiftest_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)
+      !! author: David A. Minton
+      !!
+      !! Performs a spill operation on a single array of particle kinships
+      !! This is the inverse of a spill operation
+      implicit none
+      ! Arguments
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+      logical,                dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+      logical,                                           intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      ! Internals
+      integer(I4B) :: nspill, nkeep, nlist
+      type(swiftest_kinship), dimension(:), allocatable :: tmp
+
+      nkeep = count(.not.lspill_list(:))
+      nspill = count(lspill_list(:))
+      nlist = size(lspill_list(:))
+
+      if (.not.allocated(keeps) .or. nspill == 0) return
+      if (.not.allocated(discards)) then
+         allocate(discards(nspill))
+      else if (size(discards) /= nspill) then
+         deallocate(discards)
+         allocate(discards(nspill))
+      end if
+
+      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+      if (ldestructive) then
+         if (nkeep > 0) then
+            allocate(tmp(nkeep))
+            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+            call move_alloc(tmp, keeps)
+         else
+            deallocate(keeps)
+         end if
+      end if
+
+      return
+   end subroutine swiftest_util_spill_arr_kin
 
 
    module subroutine swiftest_util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)

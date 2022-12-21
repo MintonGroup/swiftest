@@ -401,7 +401,7 @@ contains
 
             tol = TOL_INIT
             do while(tol < TOL_MIN)
-               call swiftest_util_minimize_bfgs(objective_function, nfrag-6, v_t_initial(7:nfrag), tol, MAXLOOP, lfailure, v_t_output)
+               call minimize_bfgs(objective_function, nfrag-6, v_t_initial(7:nfrag), tol, MAXLOOP, lfailure, v_t_output)
                fragments%v_t_mag(7:nfrag) = v_t_output(:)
                ! Now that the KE-minimized values of the i>6 fragments are found, calculate the momentum-conserving solution for tangential velociteis
                v_t_initial(7:nfrag) = fragments%v_t_mag(7:nfrag)
@@ -495,7 +495,7 @@ contains
                b(1:3) = -L_lin_others(:)
                b(4:6) = fragments%L_budget(:) - fragments%Lspin(:) - L_orb_others(:)
                allocate(v_t_mag_output(nfrag))
-               v_t_mag_output(1:6) = swiftest_util_solve_linear_system(A, b, 6, lfailure)
+               v_t_mag_output(1:6) = solve_linear_system(A, b, 6, lfailure)
                if (present(v_t_mag_input)) v_t_mag_output(7:nfrag) = v_t_mag_input(:)
             end associate
             end select
@@ -584,7 +584,7 @@ contains
          objective_function = lambda_obj(radial_objective_function)
          tol = TOL_INIT
          do while(tol < TOL_MIN)
-            call swiftest_util_minimize_bfgs(objective_function, nfrag, v_r_initial, tol, MAXLOOP, lfailure, v_r_output)
+            call minimize_bfgs(objective_function, nfrag, v_r_initial, tol, MAXLOOP, lfailure, v_r_output)
             fragments%v_r_mag(1:nfrag) = v_r_output(1:nfrag) 
             if (.not.lfailure) exit
             tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
