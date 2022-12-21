@@ -198,7 +198,7 @@ contains
                      write(*, *) "SWIFTEST Warning:"
                      write(*, *) "   In symba_step_recur_system, local time step is too small"
                      write(*, *) "   Roundoff error will be important!"
-                     call util_exit(FAILURE)
+                     call swiftest_util_exit(FAILURE)
                   END IF
                   irecp = ireci + 1
                   if (ireci == 0) then

@@ -225,26 +225,23 @@ contains
       class(symba_pl), allocatable            :: plsub
     
       ! First check for collisions with the central body
-      associate(npl => pl%nbody, cb => system%cb)
+      associate(npl => pl%nbody, cb => system%cb, pl_discards => system%pl_discards)
          if (npl == 0) return 
-         select type(pl_discards => system%pl_discards)
-         class is (symba_merger)
-            if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
-               call symba_discard_cb_pl(pl, system, param)
-            end if
-            if (param%qmin >= 0.0_DP) call symba_discard_peri_pl(pl, system, param)
-            if (any(pl%ldiscard(1:npl))) then
-               ldiscard(1:npl) = pl%ldiscard(1:npl)
-                  
-               allocate(plsub, mold=pl)
-               call pl%spill(plsub, ldiscard, ldestructive=.false.)
-               nsub = plsub%nbody
-               nstart = pl_discards%nbody + 1
-               nend = pl_discards%nbody + nsub
-               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
-   
-            end if
-         end select
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) then
+            call symba_discard_cb_pl(pl, system, param)
+         end if
+         if (param%qmin >= 0.0_DP) call symba_discard_peri_pl(pl, system, param)
+         if (any(pl%ldiscard(1:npl))) then
+            ldiscard(1:npl) = pl%ldiscard(1:npl)
+               
+            allocate(plsub, mold=pl)
+            call pl%spill(plsub, ldiscard, ldestructive=.false.)
+            nsub = plsub%nbody
+            nstart = pl_discards%nbody + 1
+            nend = pl_discards%nbody + nsub
+            call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
+
+         end if
       end associate
 
       return

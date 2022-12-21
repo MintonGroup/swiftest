@@ -25,17 +25,17 @@ contains
       select type(source)
       class is (whm_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%eta, source%eta, nold, nsrc, lsource_mask)
-            call util_append(self%muj, source%muj, nold, nsrc, lsource_mask)
-            call util_append(self%ir3j, source%ir3j, nold, nsrc, lsource_mask)
-            call util_append(self%xj, source%xj, nold, nsrc, lsource_mask)
-            call util_append(self%vj, source%vj, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%eta, source%eta, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%muj, source%muj, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%ir3j, source%ir3j, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%xj, source%xj, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%vj, source%vj, nold, nsrc, lsource_mask)
 
-            call util_append_pl(self, source, lsource_mask)
+            call swiftest_util_append_pl(self, source, lsource_mask)
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class whm_pl or its descendents"
-         call util_exit(FAILURE)
+         call swiftest_util_exit(FAILURE)
       end select
 
       return
@@ -56,7 +56,7 @@ contains
       if (allocated(self%vj)) deallocate(self%vj)
       if (allocated(self%ir3j)) deallocate(self%ir3j)
 
-      call util_dealloc_pl(self)
+      call swiftest_util_dealloc_pl(self)
 
       return
    end subroutine whm_util_dealloc_pl
@@ -78,16 +78,16 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (whm_pl)
-            call util_fill(keeps%eta, inserts%eta, lfill_list)
-            call util_fill(keeps%muj, inserts%muj, lfill_list)
-            call util_fill(keeps%ir3j, inserts%ir3j, lfill_list)
-            call util_fill(keeps%xj, inserts%xj, lfill_list)
-            call util_fill(keeps%vj, inserts%vj, lfill_list)
+            call swiftest_util_fill(keeps%eta, inserts%eta, lfill_list)
+            call swiftest_util_fill(keeps%muj, inserts%muj, lfill_list)
+            call swiftest_util_fill(keeps%ir3j, inserts%ir3j, lfill_list)
+            call swiftest_util_fill(keeps%xj, inserts%xj, lfill_list)
+            call swiftest_util_fill(keeps%vj, inserts%vj, lfill_list)
 
-            call util_fill_pl(keeps, inserts, lfill_list)
+            call swiftest_util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) "Invalid object passed to the fill method. Inserts must be of class whm_pl or its descendents!"
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end select
       end associate
    
@@ -117,7 +117,7 @@ contains
       ! Arguments
       type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
 
-      call util_final_system(self)
+      call swiftest_util_final_system(self)
 
       return
    end subroutine whm_util_final_system
@@ -146,13 +146,13 @@ contains
       class(whm_pl), intent(inout) :: self  !! WHM massive body object
       integer(I4B),  intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%eta, nnew)
-      call util_resize(self%xj, nnew)
-      call util_resize(self%vj, nnew)
-      call util_resize(self%muj, nnew)
-      call util_resize(self%ir3j, nnew)
+      call swiftest_util_resize(self%eta, nnew)
+      call swiftest_util_resize(self%xj, nnew)
+      call swiftest_util_resize(self%vj, nnew)
+      call swiftest_util_resize(self%muj, nnew)
+      call swiftest_util_resize(self%ir3j, nnew)
 
-      call util_resize_pl(self, nnew)
+      call swiftest_util_resize_pl(self, nnew)
 
       return
    end subroutine whm_util_resize_pl
@@ -209,15 +209,15 @@ contains
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("eta")
-            call util_sort(direction * pl%eta(1:npl), ind)
+            call swiftest_util_sort(direction * pl%eta(1:npl), ind)
          case("muj")
-            call util_sort(direction * pl%muj(1:npl), ind)
+            call swiftest_util_sort(direction * pl%muj(1:npl), ind)
          case("ir3j")
-            call util_sort(direction * pl%ir3j(1:npl), ind)
+            call swiftest_util_sort(direction * pl%ir3j(1:npl), ind)
          case("xj", "vj")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
-            call util_sort_pl(pl, sortby, ascending)
+            call swiftest_util_sort_pl(pl, sortby, ascending)
             return
          end select
 
@@ -241,13 +241,13 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         call util_sort_rearrange(pl%eta,  ind, npl)
-         call util_sort_rearrange(pl%xj,   ind, npl)
-         call util_sort_rearrange(pl%vj,   ind, npl)
-         call util_sort_rearrange(pl%muj,  ind, npl)
-         call util_sort_rearrange(pl%ir3j, ind, npl)
+         call swiftest_util_sort_rearrange(pl%eta,  ind, npl)
+         call swiftest_util_sort_rearrange(pl%xj,   ind, npl)
+         call swiftest_util_sort_rearrange(pl%vj,   ind, npl)
+         call swiftest_util_sort_rearrange(pl%muj,  ind, npl)
+         call swiftest_util_sort_rearrange(pl%ir3j, ind, npl)
 
-         call util_sort_rearrange_pl(pl,ind)
+         call swiftest_util_sort_rearrange_pl(pl,ind)
       end associate
 
       return
@@ -270,16 +270,16 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (whm_pl)
-            call util_spill(keeps%eta, discards%eta, lspill_list, ldestructive)
-            call util_spill(keeps%muj, discards%muj, lspill_list, ldestructive)
-            call util_spill(keeps%ir3j, discards%ir3j, lspill_list, ldestructive)
-            call util_spill(keeps%xj, discards%xj, lspill_list, ldestructive)
-            call util_spill(keeps%vj, discards%vj, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%eta, discards%eta, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%muj, discards%muj, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%ir3j, discards%ir3j, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%xj, discards%xj, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%vj, discards%vj, lspill_list, ldestructive)
 
-            call util_spill_pl(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class whm_pl or its descendents!"
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end select
       end associate
 

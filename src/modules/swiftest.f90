@@ -1060,7 +1060,7 @@ module swiftest
       end subroutine swiftest_user_kick_getacch_body
    end interface
 
-   interface util_append
+   interface swiftest_util_append
       module subroutine swiftest_util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
@@ -1272,7 +1272,7 @@ module swiftest
       end subroutine swiftest_util_fill_tp
    end interface
 
-   interface util_fill
+   interface swiftest_util_fill
       module subroutine swiftest_util_fill_arr_char_string(keeps, inserts, lfill_list)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
@@ -1430,7 +1430,7 @@ module swiftest
    end interface
 
 
-   interface util_resize
+   interface swiftest_util_resize
       module subroutine swiftest_util_resize_arr_char_string(arr, nnew)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
@@ -1588,28 +1588,28 @@ module swiftest
    end interface
 
 
-   interface util_solve_linear_system
-      module function util_solve_linear_system_d(A,b,n,lerr) result(x)
+   interface swiftest_util_solve_linear_system
+      module function swiftest_util_solve_linear_system_d(A,b,n,lerr) result(x)
          implicit none
          integer(I4B),             intent(in)  :: n
          real(DP), dimension(:,:), intent(in)  :: A
          real(DP), dimension(:),   intent(in)  :: b
          logical,                  intent(out) :: lerr
          real(DP), dimension(n)                :: x
-      end function util_solve_linear_system_d
+      end function swiftest_util_solve_linear_system_d
 
-      module function util_solve_linear_system_q(A,b,n,lerr) result(x)
+      module function swiftest_util_solve_linear_system_q(A,b,n,lerr) result(x)
          implicit none
          integer(I4B),             intent(in)  :: n
          real(QP), dimension(:,:), intent(in)  :: A
          real(QP), dimension(:),   intent(in)  :: b
          logical,                  intent(out) :: lerr
          real(QP), dimension(n)                :: x
-      end function util_solve_linear_system_q
+      end function swiftest_util_solve_linear_system_q
    end interface
 
    interface
-      module function util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
+      module function swiftest_util_solve_rkf45(f, y0in, t1, dt0, tol) result(y1)
          use lambda_function
          implicit none
          class(lambda_obj),      intent(inout) :: f    !! lambda function object that has been initialized to be a function of derivatives. The object will return with components lastarg and lasteval set
@@ -1618,10 +1618,10 @@ module swiftest
          real(DP),               intent(in)    :: dt0  !! Initial step size guess
          real(DP),               intent(in)    :: tol  !! Tolerance on solution
          real(DP), dimension(:), allocatable   :: y1  !! Final result
-      end function util_solve_rkf45
+      end function swiftest_util_solve_rkf45
    end interface
 
-   interface util_sort      
+   interface swiftest_util_sort      
       pure module subroutine swiftest_util_sort_i4b(arr)
          implicit none
          integer(I4B), dimension(:), intent(inout) :: arr
@@ -1666,9 +1666,9 @@ module swiftest
          real(DP), dimension(:), intent(in)  :: arr
          integer(I4B), dimension(:), allocatable, intent(inout) :: ind
       end subroutine swiftest_util_sort_index_dp
-   end interface util_sort
+   end interface swiftest_util_sort
 
-   interface util_sort_rearrange
+   interface swiftest_util_sort_rearrange
       pure module subroutine swiftest_util_sort_rearrange_arr_char_string(arr, ind, n)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
@@ -1731,7 +1731,7 @@ module swiftest
          integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind
-   end interface util_sort_rearrange
+   end interface swiftest_util_sort_rearrange
 
    interface
       module subroutine swiftest_util_sort_rearrange_body(self, ind)
@@ -1775,7 +1775,7 @@ module swiftest
 
    end interface
 
-   interface util_spill
+   interface swiftest_util_spill
       module subroutine swiftest_util_spill_arr_char_string(keeps, discards, lspill_list, ldestructive)
          implicit none
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
@@ -1868,7 +1868,7 @@ module swiftest
 
    end interface
 
-   interface util_unique
+   interface swiftest_util_unique
       module subroutine swiftest_util_unique_DP(input_array, output_array, index_map)
          implicit none
          real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array
@@ -1882,7 +1882,7 @@ module swiftest
          integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
          integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
       end subroutine swiftest_util_unique_I4B
-   end interface util_unique
+   end interface swiftest_util_unique
 
    interface
       module subroutine swiftest_util_valid_id_system(self, param)

@@ -291,7 +291,7 @@ contains
                if (.not.allocated(tmpsys)) then
                   write(*,*) "Error in collision_util_get_energy_momentum. " // &
                            " This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
-                  call util_exit(FAILURE)
+                  call swiftest_util_exit(FAILURE)
                end if
                select type(tmpsys)
                class is (swiftest_nbody_system)
@@ -345,7 +345,7 @@ contains
       call self%get_index_values(idvals, tvals)
 
       ! Consolidate ids to only unique values
-      call util_unique(idvals,self%idvals,self%idmap)
+      call swiftest_util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
       ! Don't consolidate time values (multiple collisions can happen in a single time step)
@@ -501,6 +501,7 @@ contains
 
       return
    end subroutine collision_util_set_coordinate_system
+
 
    subroutine collision_util_save_snapshot(collision_history, snapshot)
       !! author: David A. Minton

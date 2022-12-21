@@ -48,7 +48,7 @@ contains
                   WRITE(*, *) " STOPPING "
                end if
             end do
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end if
       end associate
 

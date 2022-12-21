@@ -25,21 +25,21 @@ contains
       select type(source)
       class is (rmvs_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%nenc, source%nenc, nold, nsrc, lsource_mask)
-            call util_append(self%tpenc1P, source%tpenc1P, nold, nsrc, lsource_mask)
-            call util_append(self%plind, source%plind, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%nenc, source%nenc, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%tpenc1P, source%tpenc1P, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%plind, source%plind, nold, nsrc, lsource_mask)
 
             ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
             ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
-            !call util_append(self%outer, source%outer, nold, nsrc, lsource_mask)
-            !call util_append(self%inner, source%inner, nold, nsrc, lsource_mask)
-            !call util_append(self%planetocentric, source%planetocentric, nold, nsrc, lsource_mask)
+            !call swiftest_util_append(self%outer, source%outer, nold, nsrc, lsource_mask)
+            !call swiftest_util_append(self%inner, source%inner, nold, nsrc, lsource_mask)
+            !call swiftest_util_append(self%planetocentric, source%planetocentric, nold, nsrc, lsource_mask)
 
             call whm_util_append_pl(self, source, lsource_mask)
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_pl or its descendents!"
-         call util_exit(FAILURE)
+         call swiftest_util_exit(FAILURE)
       end select
 
       return
@@ -60,15 +60,15 @@ contains
       select type(source)
       class is (rmvs_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%lperi, source%lperi, nold, nsrc, lsource_mask)
-            call util_append(self%plperP, source%plperP, nold, nsrc, lsource_mask)
-            call util_append(self%plencP, source%plencP, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%lperi, source%lperi, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%plperP, source%plperP, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%plencP, source%plencP, nold, nsrc, lsource_mask)
 
-            call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
+            call swiftest_util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
-         call util_exit(FAILURE)
+         call swiftest_util_exit(FAILURE)
       end select
 
       return
@@ -140,7 +140,7 @@ contains
       if (allocated(self%rheliocentric)) deallocate(self%rheliocentric)
       call self%cb_heliocentric%dealloc()
 
-      call util_dealloc_tp(self)
+      call swiftest_util_dealloc_tp(self)
 
       return
    end subroutine rmvs_util_dealloc_tp
@@ -161,20 +161,20 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_pl)
-            call util_fill(keeps%nenc, inserts%nenc, lfill_list)
-            call util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
-            call util_fill(keeps%plind, inserts%plind, lfill_list)
+            call swiftest_util_fill(keeps%nenc, inserts%nenc, lfill_list)
+            call swiftest_util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
+            call swiftest_util_fill(keeps%plind, inserts%plind, lfill_list)
 
             ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
             ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
-            !call util_fill(keeps%outer, inserts%outer, lfill_list)
-            !call util_fill(keeps%inner, inserts%inner, lfill_list)
-            !call util_fill(keeps%planetocentric, inserts%planetocentric, lfill_list)
+            !call swiftest_util_fill(keeps%outer, inserts%outer, lfill_list)
+            !call swiftest_util_fill(keeps%inner, inserts%inner, lfill_list)
+            !call swiftest_util_fill(keeps%planetocentric, inserts%planetocentric, lfill_list)
 
             call whm_util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_pl or its descendents!"
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end select
       end associate
 
@@ -268,14 +268,14 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_tp)
-            call util_fill(keeps%lperi, inserts%lperi, lfill_list)
-            call util_fill(keeps%plperP, inserts%plperP, lfill_list)
-            call util_fill(keeps%plencP, inserts%plencP, lfill_list)
+            call swiftest_util_fill(keeps%lperi, inserts%lperi, lfill_list)
+            call swiftest_util_fill(keeps%plperP, inserts%plperP, lfill_list)
+            call swiftest_util_fill(keeps%plencP, inserts%plencP, lfill_list)
             
-            call util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_tp or its descendents!"
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end select
       end associate
 
@@ -292,15 +292,15 @@ contains
       class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
       integer(I4B),   intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%nenc, nnew)
-      call util_resize(self%tpenc1P, nnew)
-      call util_resize(self%plind, nnew)
+      call swiftest_util_resize(self%nenc, nnew)
+      call swiftest_util_resize(self%tpenc1P, nnew)
+      call swiftest_util_resize(self%plind, nnew)
 
       ! The following are not implemented as RMVS doesn't make use of resize operations on pl type
       ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
-      !call util_resize(self%outer, nnew)
-      !call util_resize(self%inner, nnew)
-      !call util_resize(self%planetocentric, nnew)
+      !call swiftest_util_resize(self%outer, nnew)
+      !call swiftest_util_resize(self%inner, nnew)
+      !call swiftest_util_resize(self%planetocentric, nnew)
 
       call whm_util_resize_pl(self, nnew)
       return
@@ -316,12 +316,12 @@ contains
       class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
       integer(I4B),   intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%lperi, nnew)
-      call util_resize(self%plperP, nnew)
-      call util_resize(self%plencP, nnew)
-      call util_resize(self%rheliocentric, nnew)
+      call swiftest_util_resize(self%lperi, nnew)
+      call swiftest_util_resize(self%plperP, nnew)
+      call swiftest_util_resize(self%plencP, nnew)
+      call swiftest_util_resize(self%rheliocentric, nnew)
 
-      call util_resize_tp(self, nnew)
+      call swiftest_util_resize_tp(self, nnew)
 
       return
    end subroutine rmvs_util_resize_tp
@@ -352,11 +352,11 @@ contains
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("nenc")
-            call util_sort(direction * pl%nenc(1:npl), ind)
+            call swiftest_util_sort(direction * pl%nenc(1:npl), ind)
          case("tpenc1P")
-            call util_sort(direction * pl%tpenc1P(1:npl), ind)
+            call swiftest_util_sort(direction * pl%tpenc1P(1:npl), ind)
          case("plind")
-            call util_sort(direction * pl%plind(1:npl), ind)
+            call swiftest_util_sort(direction * pl%plind(1:npl), ind)
          case("outer", "inner", "planetocentric", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -396,13 +396,13 @@ contains
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("plperP")
-            call util_sort(direction * tp%plperP(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%plperP(1:ntp), ind)
          case("plencP")
-            call util_sort(direction * tp%plencP(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%plencP(1:ntp), ind)
          case("lperi", "cb_heliocentric", "rheliocentric", "index", "ipleP", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class (*NOTE whm_tp does not need its own sort method, so we go straight to the swiftest_tp method)
-            call util_sort_tp(tp, sortby, ascending)
+            call swiftest_util_sort_tp(tp, sortby, ascending)
             return
          end select
 
@@ -425,10 +425,10 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         call util_sort_rearrange(pl%nenc, ind, npl)
-         call util_sort_rearrange(pl%tpenc1P, ind, npl)
-         call util_sort_rearrange(pl%plind, ind, npl)
-         call util_sort_rearrange_pl(pl,ind)
+         call swiftest_util_sort_rearrange(pl%nenc, ind, npl)
+         call swiftest_util_sort_rearrange(pl%tpenc1P, ind, npl)
+         call swiftest_util_sort_rearrange(pl%plind, ind, npl)
+         call swiftest_util_sort_rearrange_pl(pl,ind)
       end associate
 
       return
@@ -448,11 +448,11 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
-         call util_sort_rearrange(tp%lperi, ind, ntp)
-         call util_sort_rearrange(tp%plperP, ind, ntp)
-         call util_sort_rearrange(tp%plencP, ind, ntp)
-         call util_sort_rearrange(tp%rheliocentric, ind, ntp)
-         call util_sort_rearrange_tp(tp,ind)
+         call swiftest_util_sort_rearrange(tp%lperi, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%plperP, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%plencP, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%rheliocentric, ind, ntp)
+         call swiftest_util_sort_rearrange_tp(tp,ind)
       end associate
 
       return
@@ -475,14 +475,14 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (rmvs_pl)
-            call util_spill(keeps%nenc, discards%nenc, lspill_list, ldestructive)
-            call util_spill(keeps%tpenc1P, discards%tpenc1P, lspill_list, ldestructive)
-            call util_spill(keeps%plind, discards%plind, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%nenc, discards%nenc, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%tpenc1P, discards%tpenc1P, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%plind, discards%plind, lspill_list, ldestructive)
 
             call whm_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class rmvs_pl or its descendents!"
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end select
       end associate
 
@@ -506,14 +506,14 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (rmvs_tp)
-            call util_spill(keeps%lperi, discards%lperi, lspill_list, ldestructive)
-            call util_spill(keeps%plperP, discards%plperP, lspill_list, ldestructive)
-            call util_spill(keeps%plencP, discards%plencP, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%lperi, discards%lperi, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%plperP, discards%plperP, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%plencP, discards%plencP, lspill_list, ldestructive)
 
-            call util_spill_tp(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class rmvs_tp or its descendents!"
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end select
       end associate
 

@@ -29,7 +29,7 @@ contains
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nnew)
+         call swiftest_util_resize(arr, nold + nnew)
       end if
 
       arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
@@ -57,7 +57,7 @@ contains
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nnew)
+         call swiftest_util_resize(arr, nold + nnew)
       end if
 
       arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
@@ -85,7 +85,7 @@ contains
       if (.not.allocated(arr)) then
          allocate(arr(NDIM,nold+nnew))
       else
-         call util_resize(arr, nold + nnew)
+         call swiftest_util_resize(arr, nold + nnew)
       end if
 
       arr(1, nold + 1:nold + nnew) = pack(source(1,1:nsrc), lsource_mask(1:nsrc))
@@ -115,7 +115,7 @@ contains
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nnew)
+         call swiftest_util_resize(arr, nold + nnew)
       end if
 
       arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
@@ -144,14 +144,14 @@ contains
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nnew)
+         call swiftest_util_resize(arr, nold + nnew)
       end if
 
       allocate(idx(nnew))
 
       idx = pack([(i, i = 1, nsrc)], lsource_mask(1:nsrc))
 
-      call util_copy_particle_info_arr(source(1:nsrc), arr(nold+1:nold+nnew), idx)
+      call swiftest_util_copy_particle_info_arr(source(1:nsrc), arr(nold+1:nold+nnew), idx)
 
       return
    end subroutine swiftest_util_append_arr_info
@@ -176,7 +176,7 @@ contains
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nnew)
+         call swiftest_util_resize(arr, nold + nnew)
       end if
 
       arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
@@ -202,27 +202,27 @@ contains
       nsrc = source%nbody
       nnew = count(lsource_mask(1:nsrc))
 
-      call util_append(self%info, source%info, nold, nsrc, lsource_mask)
-      call util_append(self%id, source%id, nold, nsrc, lsource_mask)
-      call util_append(self%status, source%status, nold, nsrc, lsource_mask)
-      call util_append(self%ldiscard, source%ldiscard, nold, nsrc, lsource_mask)
-      call util_append(self%lmask, source%lmask, nold, nsrc, lsource_mask)
-      call util_append(self%mu, source%mu, nold, nsrc, lsource_mask)
-      call util_append(self%rh, source%rh, nold, nsrc, lsource_mask)
-      call util_append(self%vh, source%vh, nold, nsrc, lsource_mask)
-      call util_append(self%rb, source%rb, nold, nsrc, lsource_mask)
-      call util_append(self%vb, source%vb, nold, nsrc, lsource_mask)
-      call util_append(self%ah, source%ah, nold, nsrc, lsource_mask)
-      call util_append(self%aobl, source%aobl, nold, nsrc, lsource_mask)
-      call util_append(self%atide, source%atide, nold, nsrc, lsource_mask)
-      call util_append(self%agr, source%agr, nold, nsrc, lsource_mask)
-      call util_append(self%ir3h, source%ir3h, nold, nsrc, lsource_mask)
-      call util_append(self%a, source%a, nold, nsrc, lsource_mask)
-      call util_append(self%e, source%e, nold, nsrc, lsource_mask)
-      call util_append(self%inc, source%inc, nold, nsrc, lsource_mask)
-      call util_append(self%capom, source%capom, nold, nsrc, lsource_mask)
-      call util_append(self%omega, source%omega, nold, nsrc, lsource_mask)
-      call util_append(self%capm, source%capm, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%info, source%info, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%id, source%id, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%status, source%status, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%ldiscard, source%ldiscard, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%lmask, source%lmask, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%mu, source%mu, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%rh, source%rh, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%vh, source%vh, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%rb, source%rb, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%vb, source%vb, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%ah, source%ah, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%aobl, source%aobl, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%atide, source%atide, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%agr, source%agr, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%ir3h, source%ir3h, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%a, source%a, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%e, source%e, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%inc, source%inc, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%capom, source%capom, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%omega, source%omega, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%capm, source%capm, nold, nsrc, lsource_mask)
 
       self%nbody = nold + nnew
 
@@ -244,28 +244,28 @@ contains
       select type(source)
       class is (swiftest_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%mass, source%mass, nold, nsrc, lsource_mask)
-            call util_append(self%Gmass, source%Gmass, nold, nsrc, lsource_mask)
-            call util_append(self%rhill, source%rhill, nold, nsrc, lsource_mask)
-            call util_append(self%renc, source%renc, nold, nsrc, lsource_mask)
-            call util_append(self%radius, source%radius, nold, nsrc, lsource_mask)
-            call util_append(self%rbeg, source%rbeg, nold, nsrc, lsource_mask)
-            call util_append(self%rend, source%rend, nold, nsrc, lsource_mask)
-            call util_append(self%vbeg, source%vbeg, nold, nsrc, lsource_mask)
-            call util_append(self%density, source%density, nold, nsrc, lsource_mask)
-            call util_append(self%Ip, source%Ip, nold, nsrc, lsource_mask)
-            call util_append(self%rot, source%rot, nold, nsrc, lsource_mask)
-            call util_append(self%k2, source%k2, nold, nsrc, lsource_mask)
-            call util_append(self%Q, source%Q, nold, nsrc, lsource_mask)
-            call util_append(self%tlag, source%tlag, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%mass, source%mass, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%Gmass, source%Gmass, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%rhill, source%rhill, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%renc, source%renc, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%radius, source%radius, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%rbeg, source%rbeg, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%rend, source%rend, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%vbeg, source%vbeg, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%density, source%density, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%Ip, source%Ip, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%rot, source%rot, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%k2, source%k2, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%Q, source%Q, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%tlag, source%tlag, nold, nsrc, lsource_mask)
 
             if (allocated(self%k_plpl)) deallocate(self%k_plpl)
 
-            call util_append_body(self, source, lsource_mask)
+            call swiftest_util_append_body(self, source, lsource_mask)
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_pl or its descendents"
-         call util_exit(FAILURE)
+         call swiftest_util_exit(FAILURE)
       end select
 
       return
@@ -286,15 +286,15 @@ contains
       select type(source)
       class is (swiftest_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
-            call util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
-            call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
 
-            call util_append_body(self, source, lsource_mask)
+            call swiftest_util_append_body(self, source, lsource_mask)
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_tp or its descendents"
-         call util_exit(FAILURE)
+         call swiftest_util_exit(FAILURE)
       end select
 
       return
@@ -750,7 +750,7 @@ contains
          deallocate(self%kin)
       end if
 
-      call util_dealloc_body(self)
+      call swiftest_util_dealloc_body(self)
 
       return
    end subroutine swiftest_util_dealloc_pl
@@ -770,7 +770,7 @@ contains
       if (allocated(self%atp)) deallocate(self%atp)
       if (allocated(self%k_pltp)) deallocate(self%k_pltp)
 
-      call util_dealloc_body(self)
+      call swiftest_util_dealloc_body(self)
 
       return
    end subroutine swiftest_util_dealloc_tp
@@ -916,7 +916,7 @@ contains
       allocate(insert_idx(ninsert))
 
       insert_idx(:) = pack([(i, i = 1, nkeep)], lfill_list)
-      call util_copy_particle_info_arr(inserts, keeps, insert_idx)
+      call swiftest_util_copy_particle_info_arr(inserts, keeps, insert_idx)
 
       return
    end subroutine swiftest_util_fill_arr_info
@@ -956,32 +956,32 @@ contains
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Fill all the common components
       associate(keeps => self)
-         call util_fill(keeps%id,         inserts%id,         lfill_list)
-         call util_fill(keeps%info,       inserts%info,       lfill_list)
-         call util_fill(keeps%lmask,      inserts%lmask,      lfill_list)
-         call util_fill(keeps%status,     inserts%status,     lfill_list)
-         call util_fill(keeps%ldiscard,   inserts%ldiscard,   lfill_list)
-         call util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
-         call util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
-         call util_fill(keeps%mu,         inserts%mu,         lfill_list)
-         call util_fill(keeps%rh,         inserts%rh,         lfill_list)
-         call util_fill(keeps%vh,         inserts%vh,         lfill_list)
-         call util_fill(keeps%rb,         inserts%rb,         lfill_list)
-         call util_fill(keeps%vb,         inserts%vb,         lfill_list)
-         call util_fill(keeps%ah,         inserts%ah,         lfill_list)
-         call util_fill(keeps%aobl,       inserts%aobl,       lfill_list)
-         call util_fill(keeps%agr,        inserts%agr,        lfill_list)
-         call util_fill(keeps%atide,      inserts%atide,      lfill_list)
-         call util_fill(keeps%ir3h,       inserts%ir3h,       lfill_list)
-         call util_fill(keeps%isperi,     inserts%isperi,     lfill_list)
-         call util_fill(keeps%peri,       inserts%peri,       lfill_list)
-         call util_fill(keeps%atp,        inserts%atp,        lfill_list)
-         call util_fill(keeps%a,          inserts%a,          lfill_list)
-         call util_fill(keeps%e,          inserts%e,          lfill_list)
-         call util_fill(keeps%inc,        inserts%inc,        lfill_list)
-         call util_fill(keeps%capom,      inserts%capom,      lfill_list)
-         call util_fill(keeps%omega,      inserts%omega,      lfill_list)
-         call util_fill(keeps%capm,       inserts%capm,       lfill_list)
+         call swiftest_util_fill(keeps%id,         inserts%id,         lfill_list)
+         call swiftest_util_fill(keeps%info,       inserts%info,       lfill_list)
+         call swiftest_util_fill(keeps%lmask,      inserts%lmask,      lfill_list)
+         call swiftest_util_fill(keeps%status,     inserts%status,     lfill_list)
+         call swiftest_util_fill(keeps%ldiscard,   inserts%ldiscard,   lfill_list)
+         call swiftest_util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
+         call swiftest_util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
+         call swiftest_util_fill(keeps%mu,         inserts%mu,         lfill_list)
+         call swiftest_util_fill(keeps%rh,         inserts%rh,         lfill_list)
+         call swiftest_util_fill(keeps%vh,         inserts%vh,         lfill_list)
+         call swiftest_util_fill(keeps%rb,         inserts%rb,         lfill_list)
+         call swiftest_util_fill(keeps%vb,         inserts%vb,         lfill_list)
+         call swiftest_util_fill(keeps%ah,         inserts%ah,         lfill_list)
+         call swiftest_util_fill(keeps%aobl,       inserts%aobl,       lfill_list)
+         call swiftest_util_fill(keeps%agr,        inserts%agr,        lfill_list)
+         call swiftest_util_fill(keeps%atide,      inserts%atide,      lfill_list)
+         call swiftest_util_fill(keeps%ir3h,       inserts%ir3h,       lfill_list)
+         call swiftest_util_fill(keeps%isperi,     inserts%isperi,     lfill_list)
+         call swiftest_util_fill(keeps%peri,       inserts%peri,       lfill_list)
+         call swiftest_util_fill(keeps%atp,        inserts%atp,        lfill_list)
+         call swiftest_util_fill(keeps%a,          inserts%a,          lfill_list)
+         call swiftest_util_fill(keeps%e,          inserts%e,          lfill_list)
+         call swiftest_util_fill(keeps%inc,        inserts%inc,        lfill_list)
+         call swiftest_util_fill(keeps%capom,      inserts%capom,      lfill_list)
+         call swiftest_util_fill(keeps%omega,      inserts%omega,      lfill_list)
+         call swiftest_util_fill(keeps%capm,       inserts%capm,       lfill_list)
            
          ! This is the base class, so will be the last to be called in the cascade. 
          keeps%nbody = size(keeps%id(:))
@@ -1007,27 +1007,27 @@ contains
       select type (inserts) ! The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
             !> Fill components specific to the massive body class
-            call util_fill(keeps%mass,    inserts%mass,    lfill_list)
-            call util_fill(keeps%Gmass,   inserts%Gmass,   lfill_list)
-            call util_fill(keeps%rhill,   inserts%rhill,   lfill_list)
-            call util_fill(keeps%renc,    inserts%renc,    lfill_list)
-            call util_fill(keeps%radius,  inserts%radius,  lfill_list)
-            call util_fill(keeps%density, inserts%density, lfill_list)
-            call util_fill(keeps%rbeg,    inserts%rbeg,    lfill_list)
-            call util_fill(keeps%rend,    inserts%rend,    lfill_list)
-            call util_fill(keeps%vbeg,    inserts%vbeg,    lfill_list)
-            call util_fill(keeps%Ip,      inserts%Ip,      lfill_list)
-            call util_fill(keeps%rot,     inserts%rot,     lfill_list)
-            call util_fill(keeps%k2,      inserts%k2,      lfill_list)
-            call util_fill(keeps%Q,       inserts%Q,       lfill_list)
-            call util_fill(keeps%tlag,    inserts%tlag,    lfill_list)
-            call util_fill(keeps%kin,     inserts%kin,     lfill_list)
-            call util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
-            call util_fill(keeps%ntpenc,  inserts%ntpenc,  lfill_list)
+            call swiftest_util_fill(keeps%mass,    inserts%mass,    lfill_list)
+            call swiftest_util_fill(keeps%Gmass,   inserts%Gmass,   lfill_list)
+            call swiftest_util_fill(keeps%rhill,   inserts%rhill,   lfill_list)
+            call swiftest_util_fill(keeps%renc,    inserts%renc,    lfill_list)
+            call swiftest_util_fill(keeps%radius,  inserts%radius,  lfill_list)
+            call swiftest_util_fill(keeps%density, inserts%density, lfill_list)
+            call swiftest_util_fill(keeps%rbeg,    inserts%rbeg,    lfill_list)
+            call swiftest_util_fill(keeps%rend,    inserts%rend,    lfill_list)
+            call swiftest_util_fill(keeps%vbeg,    inserts%vbeg,    lfill_list)
+            call swiftest_util_fill(keeps%Ip,      inserts%Ip,      lfill_list)
+            call swiftest_util_fill(keeps%rot,     inserts%rot,     lfill_list)
+            call swiftest_util_fill(keeps%k2,      inserts%k2,      lfill_list)
+            call swiftest_util_fill(keeps%Q,       inserts%Q,       lfill_list)
+            call swiftest_util_fill(keeps%tlag,    inserts%tlag,    lfill_list)
+            call swiftest_util_fill(keeps%kin,     inserts%kin,     lfill_list)
+            call swiftest_util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
+            call swiftest_util_fill(keeps%ntpenc,  inserts%ntpenc,  lfill_list)
 
             if (allocated(keeps%k_plpl)) deallocate(keeps%k_plpl)
             
-            call util_fill_body(keeps, inserts, lfill_list)
+            call swiftest_util_fill_body(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on swiftest_pl'
          end select
@@ -1052,9 +1052,9 @@ contains
          select type(inserts)
          class is (swiftest_tp)
             !> Spill components specific to the test particle class
-            call util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
+            call swiftest_util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
 
-            call util_fill_body(keeps, inserts, lfill_list)
+            call swiftest_util_fill_body(keeps, inserts, lfill_list)
          class default
             write(*,*) 'Error! fill method called for incompatible return type on swiftest_tp'
          end select
@@ -1186,7 +1186,7 @@ contains
                param%lflatten_interactions = .false.
             else
                do concurrent (i=1:npl, j=1:npl, j>i)
-                  call util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
+                  call swiftest_util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
                   self%k_plpl(1, k) = i
                   self%k_plpl(2, k) = j
                end do
@@ -1312,9 +1312,9 @@ contains
          end if
   
          if (param%lflatten_interactions) then
-            call util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
+            call swiftest_util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
          else
-            call util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
+            call swiftest_util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
          end if
 
          ! Potential energy from the oblateness term
@@ -1577,12 +1577,12 @@ contains
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
  
-      call util_get_vals_storage(self, idvals, tvals)
+      call swiftest_util_get_vals_storage(self, idvals, tvals)
 
-      call util_unique(idvals,self%idvals,self%idmap)
+      call swiftest_util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
-      call util_unique(tvals,self%tvals,self%tmap)
+      call swiftest_util_unique(tvals,self%tvals,self%tmap)
       self%nt = size(self%tvals)
 
       return
@@ -2111,7 +2111,7 @@ contains
                lhs(2, :) = row_2
                lhs(3, :) = row_3
                ! Solve system of equations   
-               soln(:) = util_solve_linear_system(lhs, rhs, 3, lerr)
+               soln(:) = swiftest_util_solve_linear_system(lhs, rhs, 3, lerr)
                call ieee_set_flag(ieee_all, .false.) ! Set all flags back to quiet
                call ieee_set_halting_mode(ieee_divide_by_zero, .false.)
                if (lerr) then
@@ -2259,7 +2259,7 @@ contains
       integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp
       integer(I4B), dimension(:), allocatable :: nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
 
-      associate(pl => self, pl_adds => system%pl_adds)
+      associate(pl => self, tp => system%tp, pl_adds => system%pl_adds)
 
          npl = pl%nbody
          nadd = pl_adds%nbody
@@ -2327,32 +2327,38 @@ contains
          ! Reset the kinship trackers
          call pl%reset_kinship([(i, i=1, npl)])
 
-         ! Re-build the zero-level encounter list, being sure to save the original level information for all bodies
-         allocate(nplenc_orig_pl, source=pl%nplenc)
+         ! Re-build the encounter list
+
+
+         ! Be sure to get the level info if this is a SyMBA system
+         select type(system)
+         class is (symba_nbody_system)
          select type(pl)
          class is (symba_pl)
+         select type(tp)
+         class is (symba_tp)
             allocate(levelg_orig_pl, source=pl%levelg)
             allocate(levelm_orig_pl, source=pl%levelm)
+            allocate(nplenc_orig_tp, source=tp%nplenc)
             call move_alloc(levelg_orig_pl, pl%levelg)
             call move_alloc(levelm_orig_pl, pl%levelm)
-         end select
-         lencounter = pl%encounter_check(param, system, param%dt, system%irec) 
-         if (system%tp%nbody > 0) then
-            allocate(ntpenc_orig_pl, source=pl%ntpenc)
-            allocate(nplenc_orig_tp, source=tp%nplenc)
-            select type(tp => system%tp)
-            class is (symba_tp)
+            call move_alloc(nplenc_orig_pl, pl%nplenc)
+            lencounter = pl%encounter_check(param, system, param%dt, system%irec) 
+            if (tp%nbody > 0) then
                allocate(levelg_orig_tp, source=tp%levelg)
                allocate(levelm_orig_tp, source=tp%levelm)
+               allocate(nplenc_orig_tp, source=tp%nplenc)
+               allocate(ntpenc_orig_pl, source=pl%ntpenc)
                lencounter = tp%encounter_check(param, system, param%dt, system%irec)
                call move_alloc(levelg_orig_tp, tp%levelg)
                call move_alloc(levelm_orig_tp, tp%levelm)
                call move_alloc(nplenc_orig_tp, tp%nplenc)
                call move_alloc(ntpenc_orig_pl, pl%ntpenc)
-            end select
-         end if
+            end if
+         end select
+         end select
+         end select
 
-         call move_alloc(nplenc_orig_pl, pl%nplenc)
 
          ! Re-index the encounter list as the index values may have changed
          if (nenc_old > 0) then
@@ -2689,9 +2695,9 @@ contains
       
       allocate(tmp(nnew))
       if (nnew > nold) then
-         call util_copy_particle_info_arr(arr(1:nold), tmp(1:nold))
+         call swiftest_util_copy_particle_info_arr(arr(1:nold), tmp(1:nold))
       else
-         call util_copy_particle_info_arr(arr(1:nnew), tmp(1:nnew))
+         call swiftest_util_copy_particle_info_arr(arr(1:nnew), tmp(1:nnew))
       end if
 
       call move_alloc(tmp, arr)
@@ -2754,29 +2760,29 @@ contains
       class(swiftest_body), intent(inout) :: self  !! Swiftest body object
       integer(I4B),         intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%info, nnew)
-      call util_resize(self%id, nnew)
-      call util_resize(self%status, nnew)
-      call util_resize(self%lcollision, nnew)
-      call util_resize(self%lencounter, nnew)
-      call util_resize(self%ldiscard, nnew)
-      call util_resize(self%lmask, nnew)
-      call util_resize(self%mu, nnew)
-      call util_resize(self%rh, nnew)
-      call util_resize(self%vh, nnew)
-      call util_resize(self%rb, nnew)
-      call util_resize(self%vb, nnew)
-      call util_resize(self%ah, nnew)
-      call util_resize(self%aobl, nnew)
-      call util_resize(self%atide, nnew)
-      call util_resize(self%agr, nnew)
-      call util_resize(self%ir3h, nnew)
-      call util_resize(self%a, nnew)
-      call util_resize(self%e, nnew)
-      call util_resize(self%inc, nnew)
-      call util_resize(self%capom, nnew)
-      call util_resize(self%omega, nnew)
-      call util_resize(self%capm, nnew)
+      call swiftest_util_resize(self%info, nnew)
+      call swiftest_util_resize(self%id, nnew)
+      call swiftest_util_resize(self%status, nnew)
+      call swiftest_util_resize(self%lcollision, nnew)
+      call swiftest_util_resize(self%lencounter, nnew)
+      call swiftest_util_resize(self%ldiscard, nnew)
+      call swiftest_util_resize(self%lmask, nnew)
+      call swiftest_util_resize(self%mu, nnew)
+      call swiftest_util_resize(self%rh, nnew)
+      call swiftest_util_resize(self%vh, nnew)
+      call swiftest_util_resize(self%rb, nnew)
+      call swiftest_util_resize(self%vb, nnew)
+      call swiftest_util_resize(self%ah, nnew)
+      call swiftest_util_resize(self%aobl, nnew)
+      call swiftest_util_resize(self%atide, nnew)
+      call swiftest_util_resize(self%agr, nnew)
+      call swiftest_util_resize(self%ir3h, nnew)
+      call swiftest_util_resize(self%a, nnew)
+      call swiftest_util_resize(self%e, nnew)
+      call swiftest_util_resize(self%inc, nnew)
+      call swiftest_util_resize(self%capom, nnew)
+      call swiftest_util_resize(self%omega, nnew)
+      call swiftest_util_resize(self%capm, nnew)
       self%nbody = count(self%status(1:nnew) /= INACTIVE)
 
       return
@@ -2792,26 +2798,26 @@ contains
       class(swiftest_pl), intent(inout) :: self  !! Swiftest massive body object
       integer(I4B),       intent(in)    :: nnew  !! New size neded
 
-      call util_resize_body(self, nnew)
+      call swiftest_util_resize_body(self, nnew)
 
-      call util_resize(self%mass, nnew)
-      call util_resize(self%Gmass, nnew)
-      call util_resize(self%rhill, nnew)
-      call util_resize(self%renc, nnew)
-      call util_resize(self%radius, nnew)
-      call util_resize(self%rbeg, nnew)
-      call util_resize(self%rend, nnew)
-      call util_resize(self%vbeg, nnew)
-      call util_resize(self%density, nnew)
-      call util_resize(self%Ip, nnew)
-      call util_resize(self%rot, nnew)
-      call util_resize(self%k2, nnew)
-      call util_resize(self%Q, nnew)
-      call util_resize(self%tlag, nnew)
-      call util_resize(self%kin, nnew)
-      call util_resize(self%lmtiny, nnew)
-      call util_resize(self%nplenc, nnew)
-      call util_resize(self%ntpenc, nnew)
+      call swiftest_util_resize(self%mass, nnew)
+      call swiftest_util_resize(self%Gmass, nnew)
+      call swiftest_util_resize(self%rhill, nnew)
+      call swiftest_util_resize(self%renc, nnew)
+      call swiftest_util_resize(self%radius, nnew)
+      call swiftest_util_resize(self%rbeg, nnew)
+      call swiftest_util_resize(self%rend, nnew)
+      call swiftest_util_resize(self%vbeg, nnew)
+      call swiftest_util_resize(self%density, nnew)
+      call swiftest_util_resize(self%Ip, nnew)
+      call swiftest_util_resize(self%rot, nnew)
+      call swiftest_util_resize(self%k2, nnew)
+      call swiftest_util_resize(self%Q, nnew)
+      call swiftest_util_resize(self%tlag, nnew)
+      call swiftest_util_resize(self%kin, nnew)
+      call swiftest_util_resize(self%lmtiny, nnew)
+      call swiftest_util_resize(self%nplenc, nnew)
+      call swiftest_util_resize(self%ntpenc, nnew)
 
 
 
@@ -2830,12 +2836,12 @@ contains
       class(swiftest_tp), intent(inout) :: self  !! Swiftest test particle object
       integer(I4B),       intent(in)    :: nnew  !! New size neded
 
-      call util_resize_body(self, nnew)
+      call swiftest_util_resize_body(self, nnew)
 
-      call util_resize(self%nplenc, nnew)
-      call util_resize(self%isperi, nnew)
-      call util_resize(self%peri, nnew)
-      call util_resize(self%atp, nnew)
+      call swiftest_util_resize(self%nplenc, nnew)
+      call swiftest_util_resize(self%isperi, nnew)
+      call swiftest_util_resize(self%peri, nnew)
+      call swiftest_util_resize(self%atp, nnew)
 
       return
    end subroutine swiftest_util_resize_tp
@@ -3139,7 +3145,7 @@ contains
       call ieee_set_status(original_fpe_status)
 
       return
-   end function util_solve_linear_system_d
+   end function swiftest_util_solve_linear_system_d
 
 
    module function swiftest_util_solve_linear_system_q(A,b,n,lerr) result(x)
@@ -3175,7 +3181,7 @@ contains
       call ieee_set_status(original_fpe_status) 
 
       return
-   end function util_solve_linear_system_q
+   end function swiftest_util_solve_linear_system_q
 
    function solve_wbs(u) result(x) ! solve with backward substitution
       !! Based on code available on Rosetta Code: https://rosettacode.org/wiki/Gaussian_elimination#Fortran
@@ -3312,7 +3318,7 @@ contains
             if (s >= 1.0_DP) exit ! Good step!
             if (i == MAXREDUX) then
                write(*,*) "Something has gone wrong in util_solve_rkf45!! Step size reduction has gone too far this time!"
-               call util_exit(FAILURE)
+               call swiftest_util_exit(FAILURE)
             end if
          end do
       
@@ -3325,7 +3331,7 @@ contains
       end do
 
       return
-   end function util_solve_rkf45
+   end function swiftest_util_solve_rkf45
 
 
 
@@ -3354,21 +3360,21 @@ contains
       associate(body => self, n => self%nbody)
          select case(sortby)
          case("id")
-            call util_sort(direction * body%id(1:n), ind)
+            call swiftest_util_sort(direction * body%id(1:n), ind)
          case("status")
-            call util_sort(direction * body%status(1:n), ind)
+            call swiftest_util_sort(direction * body%status(1:n), ind)
          case("ir3h")
-            call util_sort(direction * body%ir3h(1:n), ind)
+            call swiftest_util_sort(direction * body%ir3h(1:n), ind)
          case("a")
-            call util_sort(direction * body%a(1:n), ind)
+            call swiftest_util_sort(direction * body%a(1:n), ind)
          case("e")
-            call util_sort(direction * body%e(1:n), ind)
+            call swiftest_util_sort(direction * body%e(1:n), ind)
          case("inc")
-            call util_sort(direction * body%inc(1:n), ind)
+            call swiftest_util_sort(direction * body%inc(1:n), ind)
          case("capom")
-            call util_sort(direction * body%capom(1:n), ind)
+            call swiftest_util_sort(direction * body%capom(1:n), ind)
          case("mu")
-            call util_sort(direction * body%mu(1:n), ind)
+            call swiftest_util_sort(direction * body%mu(1:n), ind)
          case("lfirst", "nbody", "ldiscard", "rh", "vh", "rb", "vb", "ah", "aobl", "atide", "agr")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
@@ -3393,7 +3399,7 @@ contains
       ! Arguments
       real(DP), dimension(:), intent(inout) :: arr
 
-      call qsort_DP(arr)
+      call swiftest_qsort_DP(arr)
 
       return
    end subroutine swiftest_util_sort_dp
@@ -3422,7 +3428,7 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call qsort_DP(tmparr, ind)
+      call swiftest_qsort_DP(tmparr, ind)
    
       return
    end subroutine swiftest_util_sort_index_dp
@@ -3442,13 +3448,13 @@ contains
 
       if (size(arr) > 1) then
          if (present(ind)) then
-            call partition_DP(arr, iq, ind)
-            call qsort_DP(arr(:iq-1),ind(:iq-1))
-            call qsort_DP(arr(iq:),  ind(iq:))
+            call swiftest_partition_DP(arr, iq, ind)
+            call swiftest_qsort_DP(arr(:iq-1),ind(:iq-1))
+            call swiftest_qsort_DP(arr(iq:),  ind(iq:))
          else
-            call partition_DP(arr, iq)
-            call qsort_DP(arr(:iq-1))
-            call qsort_DP(arr(iq:))
+            call swiftest_partition_DP(arr, iq)
+            call swiftest_qsort_DP(arr(:iq-1))
+            call swiftest_qsort_DP(arr(iq:))
          end if
       end if
 
@@ -3523,7 +3529,7 @@ contains
       ! Arguments
       integer(I4B), dimension(:), intent(inout) :: arr
 
-      call qsort_I4B(arr)
+      call swiftest_qsort_I4B(arr)
 
       return
    end subroutine swiftest_util_sort_i4b
@@ -3551,7 +3557,7 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call qsort_I4B(tmparr, ind)
+      call swiftest_qsort_I4B(tmparr, ind)
 
       return
    end subroutine swiftest_util_sort_index_I4B
@@ -3579,7 +3585,7 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call qsort_I4B_I8Bind(tmparr, ind)
+      call swiftest_qsort_I4B_I8Bind(tmparr, ind)
 
       return
    end subroutine swiftest_util_sort_index_I4B_I8Bind
@@ -3599,13 +3605,13 @@ contains
 
       if (size(arr) > 1) then
          if (present(ind)) then
-            call partition_I4B(arr, iq, ind)
-            call qsort_I4B(arr(:iq-1),ind(:iq-1))
-            call qsort_I4B(arr(iq:),  ind(iq:))
+            call swiftest_partition_I4B(arr, iq, ind)
+            call swiftest_qsort_I4B(arr(:iq-1),ind(:iq-1))
+            call swiftest_qsort_I4B(arr(iq:),  ind(iq:))
          else
-            call partition_I4B(arr, iq)
-            call qsort_I4B(arr(:iq-1))
-            call qsort_I4B(arr(iq:))
+            call swiftest_partition_I4B(arr, iq)
+            call swiftest_qsort_I4B(arr(:iq-1))
+            call swiftest_qsort_I4B(arr(iq:))
          end if
       end if
 
@@ -3626,13 +3632,13 @@ contains
 
       if (size(arr) > 1_I8B) then
          if (present(ind)) then
-            call partition_I4B_I8Bind(arr, iq, ind)
-            call qsort_I4B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
-            call qsort_I4B_I8Bind(arr(iq:),  ind(iq:))
+            call swiftest_partition_I4B_I8Bind(arr, iq, ind)
+            call swiftest_qsort_I4B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+            call swiftest_qsort_I4B_I8Bind(arr(iq:),  ind(iq:))
          else
-            call partition_I4B_I8Bind(arr, iq)
-            call qsort_I4B_I8Bind(arr(:iq-1_I8B))
-            call qsort_I4B_I8Bind(arr(iq:))
+            call swiftest_partition_I4B_I8Bind(arr, iq)
+            call swiftest_qsort_I4B_I8Bind(arr(:iq-1_I8B))
+            call swiftest_qsort_I4B_I8Bind(arr(iq:))
          end if
       end if
 
@@ -3654,13 +3660,13 @@ contains
 
       if (size(arr) > 1_I8B) then
          if (present(ind)) then
-            call partition_I8B_I8Bind(arr, iq, ind)
-            call qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
-            call qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
+            call swiftest_partition_I8B_I8Bind(arr, iq, ind)
+            call swiftest_qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+            call swiftest_qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
          else
-            call partition_I8B_I8Bind(arr, iq)
-            call qsort_I8B_I8Bind(arr(:iq-1_I8B))
-            call qsort_I8B_I8Bind(arr(iq:))
+            call swiftest_partition_I8B_I8Bind(arr, iq)
+            call swiftest_qsort_I8B_I8Bind(arr(:iq-1_I8B))
+            call swiftest_qsort_I8B_I8Bind(arr(iq:))
          end if
       end if
 
@@ -3846,7 +3852,7 @@ contains
       ! Arguments
       real(SP), dimension(:), intent(inout) :: arr
 
-      call qsort_SP(arr)
+      call swiftest_qsort_SP(arr)
 
       return
    end subroutine swiftest_util_sort_sp
@@ -3874,7 +3880,7 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call qsort_SP(tmparr, ind)
+      call swiftest_qsort_SP(tmparr, ind)
    
       return
    end subroutine swiftest_util_sort_index_sp
@@ -3894,13 +3900,13 @@ contains
 
       if (size(arr) > 1) then
          if (present(ind)) then
-            call partition_SP(arr, iq, ind)
-            call qsort_SP(arr(:iq-1),ind(:iq-1))
-            call qsort_SP(arr(iq:),  ind(iq:))
+            call swiftest_partition_SP(arr, iq, ind)
+            call swiftest_qsort_SP(arr(:iq-1),ind(:iq-1))
+            call swiftest_qsort_SP(arr(iq:),  ind(iq:))
          else
-            call partition_SP(arr, iq)
-            call qsort_SP(arr(:iq-1))
-            call qsort_SP(arr(iq:))
+            call swiftest_partition_SP(arr, iq)
+            call swiftest_qsort_SP(arr(:iq-1))
+            call swiftest_qsort_SP(arr(iq:))
          end if
       end if
 
@@ -3990,25 +3996,25 @@ contains
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("Gmass","mass")
-            call util_sort(direction * pl%Gmass(1:npl), ind)
+            call swiftest_util_sort(direction * pl%Gmass(1:npl), ind)
          case("rhill")
-            call util_sort(direction * pl%rhill(1:npl), ind)
+            call swiftest_util_sort(direction * pl%rhill(1:npl), ind)
          case("renc")
-            call util_sort(direction * pl%renc(1:npl), ind)
+            call swiftest_util_sort(direction * pl%renc(1:npl), ind)
          case("radius")
-            call util_sort(direction * pl%radius(1:npl), ind)
+            call swiftest_util_sort(direction * pl%radius(1:npl), ind)
          case("density")
-            call util_sort(direction * pl%density(1:npl), ind)
+            call swiftest_util_sort(direction * pl%density(1:npl), ind)
          case("k2")
-            call util_sort(direction * pl%k2(1:npl), ind)
+            call swiftest_util_sort(direction * pl%k2(1:npl), ind)
          case("Q")
-            call util_sort(direction * pl%Q(1:npl), ind)
+            call swiftest_util_sort(direction * pl%Q(1:npl), ind)
          case("tlag")
-            call util_sort(direction * pl%tlag(1:npl), ind)
+            call swiftest_util_sort(direction * pl%tlag(1:npl), ind)
          case("rbeg", "rend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
-            call util_sort_body(pl, sortby, ascending)
+            call swiftest_util_sort_body(pl, sortby, ascending)
             return
          end select
 
@@ -4045,13 +4051,13 @@ contains
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("peri")
-            call util_sort(direction * tp%peri(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%peri(1:ntp), ind)
          case("atp")
-            call util_sort(direction * tp%atp(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%atp(1:ntp), ind)
          case("isperi")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
-            call util_sort_body(tp, sortby, ascending)
+            call swiftest_util_sort_body(tp, sortby, ascending)
             return
          end select
 
@@ -4074,32 +4080,32 @@ contains
       integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(n => self%nbody)
-         call util_sort_rearrange(self%id,       ind, n)
-         call util_sort_rearrange(self%lmask,    ind, n)
-         call util_sort_rearrange(self%info,     ind, n)
-         call util_sort_rearrange(self%status,   ind, n)
-         call util_sort_rearrange(self%ldiscard, ind, n)
-         call util_sort_rearrange(pl%lcollision, ind, n)
-         call util_sort_rearrange(pl%lencounter, ind, n)
-         call util_sort_rearrange(self%rh,       ind, n)
-         call util_sort_rearrange(self%vh,       ind, n)
-         call util_sort_rearrange(self%rb,       ind, n)
-         call util_sort_rearrange(self%vb,       ind, n)
-         call util_sort_rearrange(self%ah,       ind, n)
-         call util_sort_rearrange(self%aobl,     ind, n)
-         call util_sort_rearrange(self%agr,      ind, n)
-         call util_sort_rearrange(self%atide,    ind, n)
-         call util_sort_rearrange(self%ir3h,     ind, n)
-         call util_sort_rearrange(self%isperi,   ind, n)
-         call util_sort_rearrange(self%peri,     ind, n)
-         call util_sort_rearrange(self%atp,      ind, n)
-         call util_sort_rearrange(self%mu,       ind, n)
-         call util_sort_rearrange(self%a,        ind, n)
-         call util_sort_rearrange(self%e,        ind, n)
-         call util_sort_rearrange(self%inc,      ind, n)
-         call util_sort_rearrange(self%capom,    ind, n)
-         call util_sort_rearrange(self%omega,    ind, n)
-         call util_sort_rearrange(self%capm,     ind, n)
+         call swiftest_util_sort_rearrange(self%id,       ind, n)
+         call swiftest_util_sort_rearrange(self%lmask,    ind, n)
+         call swiftest_util_sort_rearrange(self%info,     ind, n)
+         call swiftest_util_sort_rearrange(self%status,   ind, n)
+         call swiftest_util_sort_rearrange(self%ldiscard, ind, n)
+         call swiftest_util_sort_rearrange(self%lcollision, ind, n)
+         call swiftest_util_sort_rearrange(self%lencounter, ind, n)
+         call swiftest_util_sort_rearrange(self%rh,       ind, n)
+         call swiftest_util_sort_rearrange(self%vh,       ind, n)
+         call swiftest_util_sort_rearrange(self%rb,       ind, n)
+         call swiftest_util_sort_rearrange(self%vb,       ind, n)
+         call swiftest_util_sort_rearrange(self%ah,       ind, n)
+         call swiftest_util_sort_rearrange(self%aobl,     ind, n)
+         call swiftest_util_sort_rearrange(self%agr,      ind, n)
+         call swiftest_util_sort_rearrange(self%atide,    ind, n)
+         call swiftest_util_sort_rearrange(self%ir3h,     ind, n)
+         call swiftest_util_sort_rearrange(self%isperi,   ind, n)
+         call swiftest_util_sort_rearrange(self%peri,     ind, n)
+         call swiftest_util_sort_rearrange(self%atp,      ind, n)
+         call swiftest_util_sort_rearrange(self%mu,       ind, n)
+         call swiftest_util_sort_rearrange(self%a,        ind, n)
+         call swiftest_util_sort_rearrange(self%e,        ind, n)
+         call swiftest_util_sort_rearrange(self%inc,      ind, n)
+         call swiftest_util_sort_rearrange(self%capom,    ind, n)
+         call swiftest_util_sort_rearrange(self%omega,    ind, n)
+         call swiftest_util_sort_rearrange(self%capm,     ind, n)
       end associate
 
       return
@@ -4267,7 +4273,7 @@ contains
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
 
-      call util_copy_particle_info_arr(arr, tmp, ind)
+      call swiftest_util_copy_particle_info_arr(arr, tmp, ind)
       call move_alloc(tmp, arr)
 
       return
@@ -4284,27 +4290,27 @@ contains
       integer(I4B),       dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(pl => self, npl => self%nbody)
-         call util_sort_rearrange(pl%mass,    ind, npl)
-         call util_sort_rearrange(pl%Gmass,   ind, npl)
-         call util_sort_rearrange(pl%rhill,   ind, npl)
-         call util_sort_rearrange(pl%renc,    ind, npl)
-         call util_sort_rearrange(pl%radius,  ind, npl)
-         call util_sort_rearrange(pl%density, ind, npl)
-         call util_sort_rearrange(pl%rbeg,    ind, npl)
-         call util_sort_rearrange(pl%vbeg,    ind, npl)
-         call util_sort_rearrange(pl%Ip,      ind, npl)
-         call util_sort_rearrange(pl%rot,     ind, npl)
-         call util_sort_rearrange(pl%k2,      ind, npl)
-         call util_sort_rearrange(pl%Q,       ind, npl)
-         call util_sort_rearrange(pl%tlag,    ind, npl)
-         call util_sort_rearrange(pl%kin,        ind, npl)
-         call util_sort_rearrange(pl%lmtiny,     ind, npl)
-         call util_sort_rearrange(pl%nplenc,     ind, npl)
-         call util_sort_rearrange(pl%ntpenc,     ind, npl)
+         call swiftest_util_sort_rearrange(pl%mass,    ind, npl)
+         call swiftest_util_sort_rearrange(pl%Gmass,   ind, npl)
+         call swiftest_util_sort_rearrange(pl%rhill,   ind, npl)
+         call swiftest_util_sort_rearrange(pl%renc,    ind, npl)
+         call swiftest_util_sort_rearrange(pl%radius,  ind, npl)
+         call swiftest_util_sort_rearrange(pl%density, ind, npl)
+         call swiftest_util_sort_rearrange(pl%rbeg,    ind, npl)
+         call swiftest_util_sort_rearrange(pl%vbeg,    ind, npl)
+         call swiftest_util_sort_rearrange(pl%Ip,      ind, npl)
+         call swiftest_util_sort_rearrange(pl%rot,     ind, npl)
+         call swiftest_util_sort_rearrange(pl%k2,      ind, npl)
+         call swiftest_util_sort_rearrange(pl%Q,       ind, npl)
+         call swiftest_util_sort_rearrange(pl%tlag,    ind, npl)
+         call swiftest_util_sort_rearrange(pl%kin,        ind, npl)
+         call swiftest_util_sort_rearrange(pl%lmtiny,     ind, npl)
+         call swiftest_util_sort_rearrange(pl%nplenc,     ind, npl)
+         call swiftest_util_sort_rearrange(pl%ntpenc,     ind, npl)
 
          if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
 
-         call util_sort_rearrange_body(pl, ind)
+         call swiftest_util_sort_rearrange_body(pl, ind)
       end associate
 
       return
@@ -4322,11 +4328,11 @@ contains
       integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(tp => self, ntp => self%nbody)
-         call util_sort_rearrange(tp%nplenc,  ind, ntp)
+         call swiftest_util_sort_rearrange(tp%nplenc,  ind, ntp)
 
          if (allocated(tp%k_pltp)) deallocate(tp%k_pltp)
 
-         call util_sort_rearrange_body(tp, ind)
+         call swiftest_util_sort_rearrange_body(tp, ind)
       end associate
 
       return
@@ -4577,14 +4583,14 @@ contains
 
       allocate(idx(nspill))
       idx(:) = pack([(i, i = 1, nlist)], lspill_list)
-      call util_copy_particle_info_arr(keeps, discards, idx)
+      call swiftest_util_copy_particle_info_arr(keeps, discards, idx)
       if (ldestructive) then
          if (nkeep > 0) then
             deallocate(idx)
             allocate(idx(nkeep))
             allocate(tmp(nkeep))
             idx(:) = pack([(i, i = 1, nlist)], .not. lspill_list)
-            call util_copy_particle_info_arr(keeps, tmp, idx)
+            call swiftest_util_copy_particle_info_arr(keeps, tmp, idx)
             call move_alloc(tmp, keeps)
          else
             deallocate(keeps)
@@ -4655,32 +4661,32 @@ contains
       !> Spill all the common components
       associate(keeps => self)
          
-         call util_spill(keeps%id,         discards%id,         lspill_list, ldestructive)
-         call util_spill(keeps%info,       discards%info,       lspill_list, ldestructive)
-         call util_spill(keeps%lmask,      discards%lmask,      lspill_list, ldestructive)
-         call util_spill(keeps%status,     discards%status,     lspill_list, ldestructive)
-         call util_spill(keeps%ldiscard,   discards%ldiscard,   lspill_list, ldestructive)
-         call util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
-         call util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
-         call util_spill(keeps%mu,         discards%mu,         lspill_list, ldestructive)
-         call util_spill(keeps%rh,         discards%rh,         lspill_list, ldestructive)
-         call util_spill(keeps%vh,         discards%vh,         lspill_list, ldestructive)
-         call util_spill(keeps%rb,         discards%rb,         lspill_list, ldestructive)
-         call util_spill(keeps%vb,         discards%vb,         lspill_list, ldestructive)
-         call util_spill(keeps%ah,         discards%ah,         lspill_list, ldestructive)
-         call util_spill(keeps%aobl,       discards%aobl,       lspill_list, ldestructive)
-         call util_spill(keeps%agr,        discards%agr,        lspill_list, ldestructive)
-         call util_spill(keeps%atide,      discards%atide,      lspill_list, ldestructive)
-         call util_spill(keeps%ir3h,       discards%ir3h,       lspill_list, ldestructive)
-         call util_spill(keeps%isperi,     discards%isperi,     lspill_list, ldestructive)
-         call util_spill(keeps%peri,       discards%peri,       lspill_list, ldestructive)
-         call util_spill(keeps%atp,        discards%atp,        lspill_list, ldestructive)
-         call util_spill(keeps%a,          discards%a,          lspill_list, ldestructive)
-         call util_spill(keeps%e,          discards%e,          lspill_list, ldestructive)
-         call util_spill(keeps%inc,        discards%inc,        lspill_list, ldestructive)
-         call util_spill(keeps%capom,      discards%capom,      lspill_list, ldestructive)
-         call util_spill(keeps%omega,      discards%omega,      lspill_list, ldestructive)
-         call util_spill(keeps%capm,       discards%capm,       lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%id,         discards%id,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%info,       discards%info,       lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%lmask,      discards%lmask,      lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%status,     discards%status,     lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%ldiscard,   discards%ldiscard,   lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%mu,         discards%mu,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%rh,         discards%rh,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%vh,         discards%vh,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%rb,         discards%rb,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%vb,         discards%vb,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%ah,         discards%ah,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%aobl,       discards%aobl,       lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%agr,        discards%agr,        lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%atide,      discards%atide,      lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%ir3h,       discards%ir3h,       lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%isperi,     discards%isperi,     lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%peri,       discards%peri,       lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%atp,        discards%atp,        lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%a,          discards%a,          lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%e,          discards%e,          lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%inc,        discards%inc,        lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%capom,      discards%capom,      lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%omega,      discards%omega,      lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%capm,       discards%capm,       lspill_list, ldestructive)
 
          nbody_old = keeps%nbody
 
@@ -4710,28 +4716,28 @@ contains
          select type (discards) ! The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
             !> Spill components specific to the massive body class
-            call util_spill(keeps%mass,    discards%mass,    lspill_list, ldestructive)
-            call util_spill(keeps%Gmass,   discards%Gmass,   lspill_list, ldestructive)
-            call util_spill(keeps%rhill,   discards%rhill,   lspill_list, ldestructive)
-            call util_spill(keeps%renc,    discards%renc,    lspill_list, ldestructive)
-            call util_spill(keeps%radius,  discards%radius,  lspill_list, ldestructive)
-            call util_spill(keeps%density, discards%density, lspill_list, ldestructive)
-            call util_spill(keeps%rbeg,    discards%rbeg,    lspill_list, ldestructive)
-            call util_spill(keeps%rend,    discards%rend,    lspill_list, ldestructive)
-            call util_spill(keeps%vbeg,    discards%vbeg,    lspill_list, ldestructive)
-            call util_spill(keeps%Ip,      discards%Ip,      lspill_list, ldestructive)
-            call util_spill(keeps%rot,     discards%rot,     lspill_list, ldestructive)
-            call util_spill(keeps%k2,      discards%k2,      lspill_list, ldestructive)
-            call util_spill(keeps%Q,       discards%Q,       lspill_list, ldestructive)
-            call util_spill(keeps%tlag,    discards%tlag,    lspill_list, ldestructive)
-            call util_spill(keeps%kin,     discards%kin,     lspill_list, ldestructive)
-            call util_spill(keeps%lmtiny,  discards%lmtiny,  lspill_list, ldestructive)
-            call util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
-            call util_spill(keeps%ntpenc,  discards%ntpenc,  lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%mass,    discards%mass,    lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%Gmass,   discards%Gmass,   lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%rhill,   discards%rhill,   lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%renc,    discards%renc,    lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%radius,  discards%radius,  lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%density, discards%density, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%rbeg,    discards%rbeg,    lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%rend,    discards%rend,    lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%vbeg,    discards%vbeg,    lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%Ip,      discards%Ip,      lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%rot,     discards%rot,     lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%k2,      discards%k2,      lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%Q,       discards%Q,       lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%tlag,    discards%tlag,    lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%kin,     discards%kin,     lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%lmtiny,  discards%lmtiny,  lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%ntpenc,  discards%ntpenc,  lspill_list, ldestructive)
 
             if (ldestructive .and. allocated(keeps%k_plpl)) deallocate(keeps%k_plpl)
 
-            call util_spill_body(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill_body(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on swiftest_pl'
          end select
@@ -4757,8 +4763,8 @@ contains
          select type(discards)
          class is (swiftest_tp)
             !> Spill components specific to the test particle class
-            call util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
-            call util_spill_body(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
+            call swiftest_util_spill_body(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on swiftest_tp'
          end select
@@ -4857,12 +4863,12 @@ contains
          do i = 1, ntp
             idarr(1+npl+i) = tp%id(i)
          end do
-         call util_sort(idarr)
+         call swiftest_util_sort(idarr)
          do i = 1, npl + ntp 
             if (idarr(i) == idarr(i+1)) then
                write(*, *) "Swiftest error:"
                write(*, *) "   more than one body/particle has id = ", idarr(i)
-               call util_exit(FAILURE)
+               call swiftest_util_exit(FAILURE)
             end if
          end do
          param%maxid = max(param%maxid, maxval(idarr))

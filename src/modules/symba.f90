@@ -76,18 +76,21 @@ module symba
 
 
    !> SyMBA class for tracking close encounters in a step
-   type, extends(encounter_list) :: symba_encounter
-      integer(I4B), dimension(:),   allocatable :: level      !! encounter recursion level
+   type, extends(collision_list_plpl) :: symba_list_plpl
    contains
-      procedure :: encounter_check => symba_encounter_check             !! Checks if massive bodies are going through close encounters with each other
-      procedure :: kick            => symba_kick_encounter              !! Kick barycentric velocities of active test particles within SyMBA recursion
-      procedure :: setup           => symba_setup_encounter_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: copy            => symba_util_copy_encounter_list    !! Copies elements from the source encounter list into self.
-      procedure :: dealloc         => symba_util_dealloc_encounter_list !! Deallocates all allocatable arrays
-      procedure :: spill           => symba_util_spill_encounter_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: append          => symba_util_append_encounter_list  !! Appends elements from one structure to another
-      final     :: symba_util_final_encounter_list                      !! Finalizes the SyMBA test particle object - deallocates all allocatables
-   end type symba_encounter
+      procedure :: encounter_check => symba_encounter_check_list_plpl !! Checks if massive bodies are going through close encounters with each other
+      procedure :: kick            => symba_kick_list_plpl            !! Kick barycentric velocities of active massive bodies within SyMBA recursion
+      final     :: symba_util_final_list_plpl                         !! Finalizes the SyMBA test particle object - deallocates all allocatables
+   end type symba_list_plpl
+
+
+   !> SyMBA class for tracking close encounters in a step
+   type, extends(collision_list_pltp) :: symba_list_pltp
+   contains
+      procedure :: encounter_check => symba_encounter_check_list_pltp !! Checks if massive bodies are going through close encounters with test particles
+      procedure :: kick            => symba_kick_list_pltp            !! Kick barycentric velocities of active test particles within SyMBA recursion
+      final     :: symba_util_final_list_pltp                         !! Finalizes the SyMBA test particle object - deallocates all allocatables
+   end type symba_list_pltp
 
 
    type, extends(helio_nbody_system) :: symba_nbody_system
@@ -101,7 +104,6 @@ module symba
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
       final     ::                     symba_util_final_system            !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
-
 
    interface
       module subroutine symba_discard_pl(self, system, param)
@@ -137,15 +139,25 @@ module symba
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_pl
 
-      module function symba_encounter_check(self, param, system, dt, irec) result(lany_encounter)
+      module function symba_encounter_check_list_plpl(self, param, system, dt, irec) result(lany_encounter)
          implicit none
-         class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
+         class(symba_list_plpl),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
-      end function symba_encounter_check
+      end function symba_encounter_check_list_plpl
+
+      module function symba_encounter_check_list_pltp(self, param, system, dt, irec) result(lany_encounter)
+         implicit none
+         class(symba_list_pltp),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
+         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+         class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+         real(DP),                   intent(in)    :: dt             !! step size
+         integer(I4B),               intent(in)    :: irec           !! Current recursion level 
+         logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
+      end function symba_encounter_check_list_pltp
 
       module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
          implicit none
@@ -214,14 +226,23 @@ module symba
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine symba_kick_getacch_tp
 
-      module subroutine symba_kick_encounter(self, system, dt, irec, sgn)
+      module subroutine symba_kick_list_plpl(self, system, dt, irec, sgn)
          implicit none
-         class(symba_encounter),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
+         class(symba_list_plpl),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
          class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt     !! step size
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
-      end subroutine symba_kick_encounter
+      end subroutine symba_kick_list_plpl
+
+      module subroutine symba_kick_list_pltp(self, system, dt, irec, sgn)
+         implicit none
+         class(symba_list_pltp),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
+         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         real(DP),                  intent(in)    :: dt     !! step size
+         integer(I4B),              intent(in)    :: irec   !! Current recursion level
+         integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
+      end subroutine symba_kick_list_pltp
 
       module subroutine symba_setup_initialize_system(self, param)
          implicit none
@@ -229,19 +250,12 @@ module symba
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine symba_setup_initialize_system
 
-
       module subroutine symba_setup_pl(self, n, param)
          implicit none
          class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine symba_setup_pl
-
-      module subroutine symba_setup_encounter_list(self,n)
-         implicit none
-         class(symba_encounter), intent(inout) :: self !! SyMBA pl-tp encounter structure
-         integer(I8B),           intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine symba_setup_encounter_list
 
       module subroutine symba_setup_tp(self, n, param)
          implicit none
@@ -286,13 +300,6 @@ module symba
          class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
       end subroutine symba_step_reset_system
 
-      module subroutine symba_util_append_encounter_list(self, source, lsource_mask)
-         implicit none
-         class(symba_encounter),    intent(inout) :: self         !! SyMBA encounter list object
-         class(encounter_list), intent(in)    :: source       !! Source object to append
-         logical, dimension(:),     intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine symba_util_append_encounter_list
-
       module subroutine symba_util_append_pl(self, source, lsource_mask)
          implicit none
          class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
@@ -306,18 +313,6 @@ module symba
          class(swiftest_body),            intent(in)    :: source       !! Source object to append
          logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine symba_util_append_tp
-
-      module subroutine symba_util_copy_encounter_list(self, source)
-         use encounter, only : encounter_list
-         implicit none
-         class(symba_encounter),    intent(inout) :: self   !! Encounter list 
-         class(encounter_list), intent(in)    :: source !! Source object to copy into
-      end subroutine symba_util_copy_encounter_list
-
-      module subroutine symba_util_dealloc_encounter_list(self)
-         implicit none
-         class(symba_encounter),  intent(inout) :: self !! SyMBA encounter list
-      end subroutine symba_util_dealloc_encounter_list
 
       module subroutine symba_util_dealloc_pl(self)
          implicit none
@@ -352,10 +347,15 @@ module symba
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine symba_util_flatten_eucl_plpl
 
-      module subroutine symba_util_final_encounter_list(self)
+      module subroutine symba_util_final_list_plpl(self)
          implicit none
-         type(symba_encounter),  intent(inout) :: self !! SyMBA encounter list object
-      end subroutine symba_util_final_encounter_list
+         type(symba_list_plpl),  intent(inout) :: self !! SyMBA encounter list object
+      end subroutine symba_util_final_list_plpl
+
+      module subroutine symba_util_final_list_pltp(self)
+         implicit none
+         type(symba_list_pltp),  intent(inout) :: self !! SyMBA encounter list object
+      end subroutine symba_util_final_list_pltp
 
       module subroutine symba_util_final_pl(self)
          implicit none
@@ -431,15 +431,6 @@ module symba
          logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
          logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine symba_util_spill_pl
-
-      module subroutine symba_util_spill_encounter_list(self, discards, lspill_list, ldestructive)
-         use encounter, only : encounter_list
-         implicit none
-         class(symba_encounter), intent(inout) :: self         !! SyMBA pl-tp encounter list
-         class(encounter_list),  intent(inout) :: discards     !! Discarded object 
-         logical, dimension(:),  intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-      end subroutine symba_util_spill_encounter_list
 
       module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
          implicit none

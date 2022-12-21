@@ -56,7 +56,7 @@ contains
 
       associate(pl => self, npl => self%nbody)
          if (npl == 0) return
-         call util_set_mu_pl(pl, cb)
+         call swiftest_util_set_mu_pl(pl, cb)
          pl%eta(1) = cb%Gmass + pl%Gmass(1)
          pl%muj(1) = pl%eta(1)
          do i = 2, npl
@@ -81,7 +81,7 @@ contains
 
       call setup_initialize_system(self, param)
       ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
-      call util_set_ir3h(self%pl)
+      call swiftest_util_set_ir3h(self%pl)
       call self%pl%sort("ir3h", ascending=.false.)
       call self%pl%flatten(param)
 

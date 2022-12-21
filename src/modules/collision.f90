@@ -7,6 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
+
 module collision
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!

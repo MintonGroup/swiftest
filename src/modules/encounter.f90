@@ -22,7 +22,7 @@ module encounter
       integer(I8B)                              :: nenc = 0   !! Total number of encounters
       real(DP)                                  :: t          !! Time of encounter
       logical                                   :: lcollision !! Indicates if the encounter resulted in at least one collision
-      real(DP),     dimension(:),   allocatable :: tcollision!! Time of collision
+      real(DP),     dimension(:),   allocatable :: tcollision !! Time of collision
       logical,      dimension(:),   allocatable :: lclosest   !! indicates that thie pair of bodies is in currently at its closest approach point
       logical,      dimension(:),   allocatable :: lvdotr     !! relative vdotr flag
       integer(I4B), dimension(:),   allocatable :: status     !! status of the interaction
@@ -34,6 +34,7 @@ module encounter
       real(DP),     dimension(:,:), allocatable :: r2         !! the position of body 2 in the encounter
       real(DP),     dimension(:,:), allocatable :: v1         !! the velocity of body 1 in the encounter
       real(DP),     dimension(:,:), allocatable :: v2         !! the velocity of body 2 in the encounter
+      integer(I4B), dimension(:),   allocatable :: level      !! Recursion level (used in SyMBA)
    contains
       procedure :: setup       => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: append      => encounter_util_append_list  !! Appends elements from one structure to another

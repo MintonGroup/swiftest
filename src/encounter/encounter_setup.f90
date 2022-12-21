@@ -84,6 +84,7 @@ contains
       allocate(self%r2(NDIM,n))
       allocate(self%v1(NDIM,n))
       allocate(self%v2(NDIM,n))
+      allocate(self%level(n))
 
       self%tcollision(:) = 0.0_DP
       self%lvdotr(:) = .false.
@@ -97,6 +98,7 @@ contains
       self%r2(:,:) = 0.0_DP
       self%v1(:,:) = 0.0_DP
       self%v2(:,:) = 0.0_DP
+      self%level(:) = 0
 
       return
    end subroutine encounter_setup_list

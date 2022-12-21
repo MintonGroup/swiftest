@@ -635,7 +635,7 @@ contains
                   plpl_collision%status(i) = collision_resolve_merge(system, param, t)
                case default 
                   write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-                  call util_exit(FAILURE)
+                  call swiftest_util_exit(FAILURE)
                end select
                call collision_history%take_snapshot(param,system, t, "after") 
                call impactors%reset()

@@ -262,7 +262,7 @@ contains
 
       667 continue
       write(*,*) "Error creating NetCDF output file. " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end subroutine swiftest_io_netcdf_initialize_output
 
 
@@ -453,19 +453,19 @@ contains
 
          if (npl_check /= npl) then
             write(*,*) "Error reading in NetCDF file: The recorded value of npl does not match the number of active massive bodies"
-            call util_exit(failure)
+            call swiftest_util_exit(failure)
          end if
 
          if (ntp_check /= ntp) then
             write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
-            call util_exit(failure)
+            call swiftest_util_exit(failure)
          end if
 
          if (param%integrator == INT_SYMBA) then
             nplm_check = count(pack(rtemp,plmask) > param%GMTINY )
             if (nplm_check /= pl%nplm) then
                write(*,*) "Error reading in NetCDF file: The recorded value of nplm does not match the number of active fully interacting massive bodies"
-               call util_exit(failure)
+               call swiftest_util_exit(failure)
             end if
          end if
 
@@ -980,7 +980,7 @@ contains
          associate(n => self%nbody)
             if (n == 0) return
 
-            call util_sort(self%id(1:n), ind)
+            call swiftest_util_sort(self%id(1:n), ind)
 
             do i = 1, n
                j = ind(i)
@@ -1166,7 +1166,7 @@ contains
          class is (swiftest_body)
          associate(n => self%nbody)
             if (n == 0) return
-            call util_sort(self%id(1:n), ind)
+            call swiftest_util_sort(self%id(1:n), ind)
 
             do i = 1, n
                j = ind(i)

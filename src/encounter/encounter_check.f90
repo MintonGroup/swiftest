@@ -168,10 +168,10 @@ contains
          call move_alloc(ltmp, lvdotr)
          nenc = nenc + plmplt_nenc
 
-         call util_sort(index1, ind)
-         call util_sort_rearrange(index1, ind, nenc)
-         call util_sort_rearrange(index2, ind, nenc)
-         call util_sort_rearrange(lvdotr, ind, nenc)
+         call swiftest_util_sort(index1, ind)
+         call swiftest_util_sort_rearrange(index1, ind, nenc)
+         call swiftest_util_sort_rearrange(index2, ind, nenc)
+         call swiftest_util_sort_rearrange(lvdotr, ind, nenc)
 
       end if
 
@@ -565,7 +565,7 @@ contains
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(collision_list_plpl), dimension(npl) :: lenc
 
-      call util_index_array(ind_arr, npl) 
+      call swiftest_util_index_array(ind_arr, npl) 
 
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(x, v, renc, lenc, ind_arr) &
@@ -612,7 +612,7 @@ contains
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       type(collision_list_plpl), dimension(nplm) :: lenc
 
-      call util_index_array(ind_arr, nplt)
+      call swiftest_util_index_array(ind_arr, nplt)
 
       !$omp parallel do default(private) schedule(dynamic)&
       !$omp shared(xplm, vplm, xplt, vplt, rencm, renct, lenc, ind_arr) &
@@ -659,7 +659,7 @@ contains
       type(collision_list_pltp), dimension(npl) :: lenc
       real(DP), dimension(ntp) :: renct
 
-      call util_index_array(ind_arr, ntp)
+      call swiftest_util_index_array(ind_arr, ntp)
       renct(:) = 0.0_DP
 
       !$omp parallel do default(private) schedule(dynamic)&
@@ -807,10 +807,10 @@ contains
          return
       end if
 
-      call util_sort(index1, ind)
-      call util_sort_rearrange(index1, ind, nenc)
-      call util_sort_rearrange(index2, ind, nenc)
-      call util_sort_rearrange(lvdotr, ind, nenc)
+      call swiftest_util_sort(index1, ind)
+      call swiftest_util_sort_rearrange(index1, ind, nenc)
+      call swiftest_util_sort_rearrange(index2, ind, nenc)
+      call swiftest_util_sort_rearrange(lvdotr, ind, nenc)
 
       ! Get the bounds on the bodies in the first index
       ibeg(:) = n
@@ -836,7 +836,7 @@ contains
          khi = iend(i)
          nenci = khi - klo + 1_I8B
          if (allocated(ind)) deallocate(ind)
-         call util_sort(index2(klo:khi), ind)
+         call swiftest_util_sort(index2(klo:khi), ind)
          index2(klo:khi) = itmp(klo - 1_I8B + ind(:))
          do j = klo + 1_I8B, khi
             if (index2(j) == index2(j - 1_I8B)) lencounter(j) = .false. 
@@ -876,7 +876,7 @@ contains
       ! Internals
       integer(I8B) :: i, k
 
-      call util_sort(extent_arr, self%ind)
+      call swiftest_util_sort(extent_arr, self%ind)
 
       do concurrent(k = 1_I8B:2_I8B * n)
          i = self%ind(k)
@@ -923,7 +923,7 @@ contains
       real(DP), dimension(2*(n1+n2)) :: xind, yind, zind, vxind, vyind, vzind, rencind
 
       ntot = n1 + n2
-      call util_index_array(ind_arr, ntot)
+      call swiftest_util_index_array(ind_arr, ntot)
 
       do concurrent(dim = 1:SWEEPDIM)
          loverlap_by_dimension(dim,:) = (self%aabb(dim)%ibeg(:) + 1_I8B) < (self%aabb(dim)%iend(:) - 1_I8B)
@@ -1035,7 +1035,7 @@ contains
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibeg, iend
 
-      call util_index_array(ind_arr, n)
+      call swiftest_util_index_array(ind_arr, n)
       dim = 1
 
       ! Sweep the intervals for each of the massive bodies along one dimension

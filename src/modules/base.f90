@@ -387,7 +387,7 @@ module base
          if(status /= nf90_noerr) then
             if (present(call_identifier)) write(*,*) "NetCDF error in ",trim(call_identifier)
             write(*,*) trim(nf90_strerror(status))
-            call util_exit(FAILURE)
+            call swiftest_util_exit(FAILURE)
          end if
    
          return

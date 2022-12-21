@@ -51,7 +51,7 @@ contains
          rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
          ! Use this space call the ode_solver, passing tides_spin_derivs as the function:
          subdt = dt / 20._DP
-         !rot1(:) = util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%rbeg, pl%rend), rot0, dt, subdt tol)
+         !rot1(:) = swiftest_util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%rbeg, pl%rend), rot0, dt, subdt tol)
          ! Recover with unpack
          !pl%rot(:,1:npl) = unpack(rot1...
          !cb%rot(:) = unpack(rot1...

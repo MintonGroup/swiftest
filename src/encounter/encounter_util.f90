@@ -26,17 +26,19 @@ contains
 
       nold = self%nenc
       nsrc = source%nenc
-      call util_append(self%lvdotr, source%lvdotr, nold, nsrc, lsource_mask)
-      call util_append(self%lclosest, source%lclosest, nold, nsrc, lsource_mask)
-      call util_append(self%status, source%status, nold, nsrc, lsource_mask)
-      call util_append(self%index1, source%index1, nold, nsrc, lsource_mask)
-      call util_append(self%index2, source%index2, nold, nsrc, lsource_mask)
-      call util_append(self%id1, source%id1, nold, nsrc, lsource_mask)
-      call util_append(self%id2, source%id2, nold, nsrc, lsource_mask)
-      call util_append(self%r1, source%r1, nold, nsrc, lsource_mask)
-      call util_append(self%r2, source%r2, nold, nsrc, lsource_mask)
-      call util_append(self%v1, source%v1, nold, nsrc, lsource_mask)
-      call util_append(self%v2, source%v2, nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%tcollision, source%tcollision,   nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%lclosest,   source%lclosest,     nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%lvdotr,     source%lvdotr,       nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%status,     source%status,       nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%index1,     source%index1,       nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%index2,     source%index2,       nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%id1,        source%id1,          nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%id2,        source%id2,          nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%r1,         source%r1,           nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%r2,         source%r2,           nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%v1,         source%v1,           nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%v2,         source%v2,           nold, nsrc, lsource_mask)
+      call swiftest_util_append(self%level,      source%level,        nold, nsrc, lsource_mask)
       self%nenc = nold + count(lsource_mask(1:nsrc))
 
       return
@@ -55,8 +57,10 @@ contains
       associate(n => source%nenc)
          self%nenc = n
          self%t = source%t
-         self%lvdotr(1:n) = source%lvdotr(1:n) 
+         self%lcollision = source%lcollision
+         self%tcollision(1:n) = source%tcollision(1:n) 
          self%lclosest(1:n) = source%lclosest(1:n) 
+         self%lvdotr(1:n)   = source%lvdotr(1:n) 
          self%status(1:n) = source%status(1:n) 
          self%index1(1:n) = source%index1(1:n)
          self%index2(1:n) = source%index2(1:n)
@@ -66,6 +70,7 @@ contains
          self%r2(:,1:n) = source%r2(:,1:n)
          self%v1(:,1:n) = source%v1(:,1:n)
          self%v2(:,1:n) = source%v2(:,1:n)
+         self%level(1:n) = source%level(1:n)
       end associate
 
       return
@@ -97,8 +102,8 @@ contains
       class(encounter_list), intent(inout) :: self
 
       if (allocated(self%tcollision)) deallocate(self%tcollision)
-      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
       if (allocated(self%lclosest)) deallocate(self%lclosest)
+      if (allocated(self%lvdotr)) deallocate(self%lvdotr)
       if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%index1)) deallocate(self%index1)
       if (allocated(self%index2)) deallocate(self%index2)
@@ -108,6 +113,7 @@ contains
       if (allocated(self%r2)) deallocate(self%r2)
       if (allocated(self%v1)) deallocate(self%v1)
       if (allocated(self%v2)) deallocate(self%v2)
+      if (allocated(self%level)) deallocate(self%level)
 
       return
    end subroutine encounter_util_dealloc_list
@@ -276,11 +282,11 @@ contains
       call encounter_util_get_vals_storage(self, idvals, tvals)
 
       ! Consolidate ids to only unique values
-      call util_unique(idvals,self%idvals,self%idmap)
+      call swiftest_util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
       ! Consolidate time values to only unique values
-      call util_unique(tvals,self%tvals,self%tmap)
+      call swiftest_util_unique(tvals,self%tvals,self%tmap)
       self%nt = size(self%tvals)
 
       return
@@ -339,17 +345,19 @@ contains
       integer(I8B) :: nenc_old
   
       associate(keeps => self)
-         call util_spill(keeps%lvdotr, discards%lvdotr, lspill_list, ldestructive)
-         call util_spill(keeps%lclosest, discards%lclosest, lspill_list, ldestructive)
-         call util_spill(keeps%status, discards%status, lspill_list, ldestructive)
-         call util_spill(keeps%index1, discards%index1, lspill_list, ldestructive)
-         call util_spill(keeps%index2, discards%index2, lspill_list, ldestructive)
-         call util_spill(keeps%id1, discards%id1, lspill_list, ldestructive)
-         call util_spill(keeps%id2, discards%id2, lspill_list, ldestructive)
-         call util_spill(keeps%r1, discards%r1, lspill_list, ldestructive)
-         call util_spill(keeps%r2, discards%r2, lspill_list, ldestructive)
-         call util_spill(keeps%v1, discards%v1, lspill_list, ldestructive)
-         call util_spill(keeps%v2, discards%v2, lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%tcollision, discards%tcollision, lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%lvdotr,     discards%lvdotr,     lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%lclosest,   discards%lclosest,   lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%status,     discards%status,     lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%index1,     discards%index1,     lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%index2,     discards%index2,     lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%id1,        discards%id1,        lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%id2,        discards%id2,        lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%r1,         discards%r1,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%r2,         discards%r2,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%v1,         discards%v1,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%v2,         discards%v2,         lspill_list, ldestructive)
+         call swiftest_util_spill(keeps%level,      discards%level,      lspill_list, ldestructive)
 
          nenc_old = keeps%nenc
 

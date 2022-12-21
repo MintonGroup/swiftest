@@ -178,7 +178,7 @@ contains
                param%ioutput = param%ioutput + 1
                call self%write_frame(nc, param)
                call nc%close()
-               call util_exit(FAILURE)
+               call swiftest_util_exit(FAILURE)
             end if
          end if
       end associate
@@ -187,7 +187,7 @@ contains
 
       667 continue
       write(*,*) "Error writing energy and momentum tracking file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end subroutine swiftest_io_conservation_report
 
 
@@ -218,7 +218,7 @@ contains
 
       667 continue
       write(*,*) "Error opening parameter dump file " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end subroutine swiftest_io_dump_param
 
 
@@ -331,18 +331,18 @@ contains
          do i = 1,narg
             call get_command_argument(i, arg(i), status = ierr(i))
          end do
-         if (any(ierr /= 0)) call util_exit(USAGE)
+         if (any(ierr /= 0)) call swiftest_util_exit(USAGE)
       else
-         call util_exit(USAGE)
+         call swiftest_util_exit(USAGE)
       end if
    
       if (narg == 1) then
          if (arg(1) == '-v' .or. arg(1) == '--version') then
-            call util_version() 
+            call swiftest_util_version() 
          else if (arg(1) == '-h' .or. arg(1) == '--help') then
-            call util_exit(HELP)
+            call swiftest_util_exit(HELP)
          else
-            call util_exit(USAGE)
+            call swiftest_util_exit(USAGE)
          end if
       else if (narg >= 2) then
          call io_toupper(arg(1))
@@ -366,7 +366,7 @@ contains
          case default
             integrator = UNKNOWN_INTEGRATOR
             write(*,*) trim(adjustl(arg(1))) // ' is not a valid integrator.'
-            call util_exit(USAGE)
+            call swiftest_util_exit(USAGE)
          end select
          param_file_name = trim(adjustl(arg(2)))
       end if
@@ -377,7 +377,7 @@ contains
          call io_toupper(arg(3))
          display_style = trim(adjustl(arg(3)))
       else
-         call util_exit(USAGE)
+         call swiftest_util_exit(USAGE)
       end if
 
       return
@@ -1328,7 +1328,7 @@ contains
 
       667 continue
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end subroutine swiftest_io_read_in_cb
 
 
@@ -1367,7 +1367,7 @@ contains
          end if
          ierr = self%read_frame(tmp_param%system_history%nc, tmp_param)
          deallocate(tmp_param)
-         if (ierr /=0) call util_exit(FAILURE)
+         if (ierr /=0) call swiftest_util_exit(FAILURE)
       end if
 
       param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP))
@@ -1481,7 +1481,7 @@ contains
       class default
          write(*,*) "Error reading body file: " // trim(adjustl(errmsg))
       end select
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end function swiftest_io_read_frame_body
 
 
@@ -1513,7 +1513,7 @@ contains
 
       667 continue
       write(self%display_unit,*) "Error reading parameter file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end subroutine swiftest_io_read_in_param
 
 
@@ -1539,7 +1539,7 @@ contains
          self%log_output = .true.
       case default
          write(*,*) display_style, " is an unknown display style"
-         call util_exit(USAGE)
+         call swiftest_util_exit(USAGE)
       end select
 
       self%display_style = display_style
@@ -1548,7 +1548,7 @@ contains
 
       667 continue
       write(*,*) "Error opening swiftest log file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end subroutine swiftest_io_set_display_param
 
 
@@ -1650,7 +1650,7 @@ contains
 
       667 continue
       write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call swiftest_util_exit(FAILURE)
    end subroutine swiftest_io_write_frame_system
 
 end submodule s_io

@@ -87,16 +87,9 @@ contains
    end function symba_encounter_check_pl
 
 
-   module function symba_encounter_io_netcdf_check(self, param, system, dt, irec) result(lany_encounter)
-      !! author: David A. Minton
-      !!
-      !! Check for an encounter between test particles and massive bodies in the plplenc and pltpenc list.
-      !! Note: This method works for the polymorphic pltp_encounter and plpl_encounter types.
-      !!
-      !! Adapted from portions of David E. Kaufmann's Swifter routine: symba_step_recur.f90
+   module function symba_encounter_check_list_plpl(self, param, system, dt, irec) result(lany_encounter)
       implicit none
-      ! Arguments
-      class(symba_encounter),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
+      class(symba_list_plpl),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
       class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
@@ -105,7 +98,6 @@ contains
       ! Internals
       integer(I4B)              :: i, j, k, lidx, nenc_enc
       real(DP), dimension(NDIM) :: xr, vr
-      logical                   :: isplpl
       real(DP)                  :: rlim2, rji2, rcrit12
       logical, dimension(:), allocatable :: lencmask, lencounter
       integer(I4B), dimension(:), allocatable :: eidx
@@ -113,84 +105,125 @@ contains
       lany_encounter = .false.
       if (self%nenc == 0) return
 
-      select type(self)
-      class is (plpl_encounter)
-         isplpl = .true.
-      class is (pltp_encounter)
-         isplpl = .false.
+      select type(pl => system%pl)
+      class is (symba_pl)
+         allocate(lencmask(self%nenc))
+         lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
+         nenc_enc = count(lencmask(:))
+         if (nenc_enc == 0) return
+
+         call pl%set_renc(irec)
+
+         allocate(eidx(nenc_enc))
+         allocate(lencounter(nenc_enc))
+         eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
+         lencounter(:) = .false.
+
+         do concurrent(lidx = 1:nenc_enc)
+            k = eidx(lidx)
+            i = self%index1(k)
+            j = self%index2(k)
+            xr(:) = pl%rh(:,j) - pl%rh(:,i)
+            vr(:) = pl%vb(:,j) - pl%vb(:,i)
+            rcrit12 = pl%renc(i) + pl%renc(j)
+            call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), rcrit12, dt, lencounter(lidx), self%lvdotr(k))
+            if (lencounter(lidx)) then
+               rlim2 = (pl%radius(i) + pl%radius(j))**2
+               rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+               lencounter(lidx) = rji2 > rlim2
+            end if
+         end do
+
+         lany_encounter = any(lencounter(:))
+         if (lany_encounter) then
+            nenc_enc = count(lencounter(:))
+            eidx(1:nenc_enc) = pack(eidx(:), lencounter(:))
+            do lidx = 1, nenc_enc
+               k = eidx(lidx)
+               i = self%index1(k)
+               j = self%index2(k)
+               pl%levelg(i) = irec
+               pl%levelm(i) = MAX(irec, pl%levelm(i))
+               pl%levelg(j) = irec
+               pl%levelm(j) = MAX(irec, pl%levelm(j))
+               self%level(k) = irec
+            end do
+         end if   
       end select
+
+      return      
+   end function symba_encounter_check_list_plpl
+
+
+   module function symba_encounter_check_list_pltp(self, param, system, dt, irec) result(lany_encounter)
+      implicit none
+      class(symba_list_pltp),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
+      class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt             !! step size
+      integer(I4B),               intent(in)    :: irec           !! Current recursion level 
+      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter     
+      ! Internals
+      integer(I4B)              :: i, j, k, lidx, nenc_enc
+      real(DP), dimension(NDIM) :: xr, vr
+      real(DP)                  :: rlim2, rji2
+      logical, dimension(:), allocatable :: lencmask, lencounter
+      integer(I4B), dimension(:), allocatable :: eidx
+
+      lany_encounter = .false.
+      if (self%nenc == 0) return
 
       select type(pl => system%pl)
       class is (symba_pl)
-         select type(tp => system%tp)
-         class is (symba_tp)
-            allocate(lencmask(self%nenc))
-            lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
-            nenc_enc = count(lencmask(:))
-            if (nenc_enc == 0) return
+      select type(tp => system%tp)
+      class is (symba_tp)
+         allocate(lencmask(self%nenc))
+         lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
+         nenc_enc = count(lencmask(:))
+         if (nenc_enc == 0) return
 
-            call pl%set_renc(irec)
+         call pl%set_renc(irec)
 
-            allocate(eidx(nenc_enc))
-            allocate(lencounter(nenc_enc))
-            eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
-            lencounter(:) = .false.
-            if (isplpl) then
-               do concurrent(lidx = 1:nenc_enc)
-                  k = eidx(lidx)
-                  i = self%index1(k)
-                  j = self%index2(k)
-                  xr(:) = pl%rh(:,j) - pl%rh(:,i)
-                  vr(:) = pl%vb(:,j) - pl%vb(:,i)
-                  rcrit12 = pl%renc(i) + pl%renc(j)
-                  call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), rcrit12, dt, lencounter(lidx), self%lvdotr(k))
-                  if (lencounter(lidx)) then
-                     rlim2 = (pl%radius(i) + pl%radius(j))**2
-                     rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
-                     lencounter(lidx) = rji2 > rlim2
-                  end if
-               end do
-            else
-               do concurrent(lidx = 1:nenc_enc)
-                  k = eidx(lidx)
-                  i = self%index1(k)
-                  j = self%index2(k)
-                  xr(:) = tp%rh(:,j) - pl%rh(:,i)
-                  vr(:) = tp%vb(:,j) - pl%vb(:,i)
-                  call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%renc(i), dt, &
-                                           lencounter(lidx), self%lvdotr(k))
-                  if (lencounter(lidx)) then
-                     rlim2 = (pl%radius(i))**2
-                     rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
-                     lencounter(lidx) = rji2 > rlim2
-                  end if
-               end do
+         allocate(eidx(nenc_enc))
+         allocate(lencounter(nenc_enc))
+         eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
+         lencounter(:) = .false.
+
+         do concurrent(lidx = 1:nenc_enc)
+            k = eidx(lidx)
+            i = self%index1(k)
+            j = self%index2(k)
+            xr(:) = tp%rh(:,j) - pl%rh(:,i)
+            vr(:) = tp%vb(:,j) - pl%vb(:,i)
+            call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%renc(i), dt, &
+                                       lencounter(lidx), self%lvdotr(k))
+            if (lencounter(lidx)) then
+               rlim2 = (pl%radius(i))**2
+               rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+               lencounter(lidx) = rji2 > rlim2
             end if
-            lany_encounter = any(lencounter(:))
-            if (lany_encounter) then
-               nenc_enc = count(lencounter(:))
-               eidx(1:nenc_enc) = pack(eidx(:), lencounter(:))
-               do lidx = 1, nenc_enc
-                  k = eidx(lidx)
-                  i = self%index1(k)
-                  j = self%index2(k)
-                  pl%levelg(i) = irec
-                  pl%levelm(i) = MAX(irec, pl%levelm(i))
-                  if (isplpl) then
-                     pl%levelg(j) = irec
-                     pl%levelm(j) = MAX(irec, pl%levelm(j))
-                  else
-                     tp%levelg(j) = irec
-                     tp%levelm(j) = MAX(irec, tp%levelm(j))
-                  end if
-                  self%level(k) = irec
-               end do
-            end if   
-         end select
+         end do
+
+         lany_encounter = any(lencounter(:))
+         if (lany_encounter) then
+            nenc_enc = count(lencounter(:))
+            eidx(1:nenc_enc) = pack(eidx(:), lencounter(:))
+            do lidx = 1, nenc_enc
+               k = eidx(lidx)
+               i = self%index1(k)
+               j = self%index2(k)
+               pl%levelg(i) = irec
+               pl%levelm(i) = MAX(irec, pl%levelm(i))
+               tp%levelg(j) = irec
+               tp%levelm(j) = MAX(irec, tp%levelm(j))
+               self%level(k) = irec
+            end do
+         end if   
+      end select
       end select
 
       return
-   end function symba_encounter_check
+   end function symba_encounter_check_list_pltp
 
 
    module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
