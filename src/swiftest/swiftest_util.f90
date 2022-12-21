@@ -2254,7 +2254,7 @@ contains
       class(swiftest_pl), allocatable :: tmp !! The discarded body list.
       integer(I4B) :: i, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
       logical, dimension(:), allocatable :: lmask, ldump_mask
-      class(collision_list_plpl), allocatable :: plplenc_old
+      class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
       integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp
       integer(I4B), dimension(:), allocatable :: nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl

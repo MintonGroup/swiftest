@@ -30,25 +30,25 @@ contains
      
       select type(pl => self%pl)
       class is (symba_pl)
-         select type(tp => self%tp)
-         class is (symba_tp)
-            select type(param)
-            class is (swiftest_parameters)
-               associate(encounter_history => self%encounter_history)
-                  call self%reset(param)
-                  lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
-                  if (lencounter) then
-                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t, "trajectory") 
-                     call self%interp(param, t, dt)
-                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+dt, "trajectory") 
-                  else
-                     self%irec = -1
-                     call helio_step_system(self, param, t, dt)
-                  end if
-                  param%lfirstkick = pl%lfirst
-               end associate
-            end select
-         end select
+      select type(tp => self%tp)
+      class is (symba_tp)
+      select type(param)
+      class is (swiftest_parameters)
+         associate(encounter_history => self%encounter_history)
+            call self%reset(param)
+            lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
+            if (lencounter) then
+               if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t, "trajectory") 
+               call self%interp(param, t, dt)
+               if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+dt, "trajectory") 
+            else
+               self%irec = -1
+               call helio_step_system(self, param, t, dt)
+            end if
+            param%lfirstkick = pl%lfirst
+         end associate
+      end select
+      end select
       end select
 
       return
@@ -72,47 +72,47 @@ contains
       ! Internals
       real(DP)                                  :: dth   !! Half step size
 
-      dth = 0.5_DP * dt
-      associate(system => self)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            select type(tp => system%tp)
-            class is (symba_tp)
-               select type(cb => system%cb)
-               class is (symba_cb)
-                  system%irec = -1
-                  if (pl%lfirst) call pl%vh2vb(cb)
-                  call pl%lindrift(cb, dth, lbeg=.true.)
-                  call pl%kick(system, param, t, dth, lbeg=.true.)
-                  if (param%lgr) call pl%gr_pos_kick(system, param, dth)
-                  call pl%drift(system, param, dt)
+      select type(pl => selfpl)
+      class is (symba_pl)
+      select type(tp => self%tp)
+      class is (symba_tp)
+      select type(cb => self%cb)
+      class is (symba_cb)
+         associate(system => self)
+            dth = 0.5_DP * dt
+            system%irec = -1
+            if (pl%lfirst) call pl%vh2vb(cb)
+            call pl%lindrift(cb, dth, lbeg=.true.)
+            call pl%kick(system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
+            call pl%drift(system, param, dt)
 
-                  if (tp%nbody > 0) then
-                     if (tp%lfirst) call tp%vh2vb(vbcb = -cb%ptbeg)
-                     call tp%lindrift(cb, dth, lbeg=.true.)
-                     call tp%kick(system, param, t, dth, lbeg=.true.)
-                     if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-                     call tp%drift(system, param, dt)
-                  end if
+            if (tp%nbody > 0) then
+               if (tp%lfirst) call tp%vh2vb(vbcb = -cb%ptbeg)
+               call tp%lindrift(cb, dth, lbeg=.true.)
+               call tp%kick(system, param, t, dth, lbeg=.true.)
+               if (param%lgr) call tp%gr_pos_kick(system, param, dth)
+               call tp%drift(system, param, dt)
+            end if
 
-                  call system%recursive_step(param, t, 0)
-                  system%irec = -1
+            call system%recursive_step(param, t, 0)
+            system%irec = -1
 
-                  if (param%lgr) call pl%gr_pos_kick(system, param, dth)
-                  call pl%kick(system, param, t, dth, lbeg=.false.)
-                  call pl%lindrift(cb, dth, lbeg=.false.)
-                  call pl%vb2vh(cb)
+            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
+            call pl%kick(system, param, t, dth, lbeg=.false.)
+            call pl%lindrift(cb, dth, lbeg=.false.)
+            call pl%vb2vh(cb)
 
-                  if (tp%nbody > 0) then
-                     if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-                     call tp%kick(system, param, t, dth, lbeg=.false.)
-                     call tp%lindrift(cb, dth, lbeg=.false.)
-                     call tp%vb2vh(vbcb = -cb%ptend)
-                  end if
-               end select
-            end select
-         end select
-      end associate
+            if (tp%nbody > 0) then
+               if (param%lgr) call tp%gr_pos_kick(system, param, dth)
+               call tp%kick(system, param, t, dth, lbeg=.false.)
+               call tp%lindrift(cb, dth, lbeg=.false.)
+               call tp%vb2vh(vbcb = -cb%ptend)
+            end if
+         end associate
+      end select
+      end select
+      end select
 
       return
    end subroutine symba_step_interp_system
@@ -132,32 +132,32 @@ contains
       ! Internals
       integer(I4B) :: irecp
 
-      associate(system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, &
-                npl => self%pl%nbody, ntp => self%tp%nbody)
-         select type(pl => self%pl)
-         class is (symba_pl)
-            select type(tp => self%tp)
-            class is (symba_tp)
-               irecp = ireci + 1
+      select type(pl => self%pl)
+      class is (symba_pl)
+      select type(tp => self%tp)
+      class is (symba_tp)
+         associate(system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, npl => self%pl%nbody, ntp => self%tp%nbody)
 
-               if (npl >0) where(pl%levelg(1:npl) == irecp) pl%levelg(1:npl) = ireci
-               if (ntp > 0) where(tp%levelg(1:ntp) == irecp) tp%levelg(1:ntp) = ireci
-               if (plpl_encounter%nenc > 0) then
-                  where(plpl_encounter%level(1:plpl_encounter%nenc) == irecp) 
-                     plpl_encounter%level(1:plpl_encounter%nenc) = ireci
-                  endwhere
-               end if
-               if (pltp_encounter%nenc > 0) then
-                  where(pltp_encounter%level(1:pltp_encounter%nenc) == irecp) 
-                     pltp_encounter%level(1:pltp_encounter%nenc) = ireci
-                  endwhere
-               end if
+            irecp = ireci + 1
 
-               system%irec = ireci
+            if (npl >0) where(pl%levelg(1:npl) == irecp) pl%levelg(1:npl) = ireci
+            if (ntp > 0) where(tp%levelg(1:ntp) == irecp) tp%levelg(1:ntp) = ireci
+            if (plpl_encounter%nenc > 0) then
+               where(plpl_encounter%level(1:plpl_encounter%nenc) == irecp) 
+                  plpl_encounter%level(1:plpl_encounter%nenc) = ireci
+               endwhere
+            end if
+            if (pltp_encounter%nenc > 0) then
+               where(pltp_encounter%level(1:pltp_encounter%nenc) == irecp) 
+                  pltp_encounter%level(1:pltp_encounter%nenc) = ireci
+               endwhere
+            end if
 
-            end select
-         end select
-      end associate
+            system%irec = ireci
+
+         end associate
+      end select
+      end select
 
       return
    end subroutine symba_step_set_recur_levels_system
@@ -184,77 +184,81 @@ contains
 
       select type(param)
       class is (swiftest_parameters)
-         select type(pl => self%pl)
-         class is (symba_pl)
-            select type(tp => self%tp)
-            class is (symba_tp)
-               associate(system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, &
-                        lplpl_collision => self%plpl_encounter%lcollision, lpltp_collision => self%pltp_encounter%lcollision, &
-                        encounter_history => self%encounter_history)
-                  system%irec = ireci
-                  dtl = param%dt / (NTENC**ireci)
-                  dth = 0.5_DP * dtl
-                  IF (dtl / param%dt < VSMALL) THEN
-                     write(*, *) "SWIFTEST Warning:"
-                     write(*, *) "   In symba_step_recur_system, local time step is too small"
-                     write(*, *) "   Roundoff error will be important!"
-                     call swiftest_util_exit(FAILURE)
-                  END IF
-                  irecp = ireci + 1
-                  if (ireci == 0) then
-                     nloops = 1
-                  else
-                     nloops = NTENC
-                  end if
-                  do j = 1, nloops
-                     lencounter = plpl_encounter%encounter_check(param, system, dtl, irecp) &
-                           .or. pltp_encounter%encounter_check(param, system, dtl, irecp)
-                     
-                     call plpl_encounter%kick(system, dth, irecp, 1)
-                     call pltp_encounter%kick(system, dth, irecp, 1)
-                     if (ireci /= 0) then
-                        call plpl_encounter%kick(system, dth, irecp, -1)
-                        call pltp_encounter%kick(system, dth, irecp, -1)
-                     end if
+      select type(pl => self%pl)
+      class is (symba_pl)
+      select type(tp => self%tp)
+      class is (symba_tp)
+      select type(plpl_encounter => self%plpl_encounter)
+      class is (symba_list_plpl)
+      select type(pltp_encounter => self%pltp_encounter)
+      class is (symba_list_pltp)
+         associate(system => self, lplpl_collision => plpl_encounter%lcollision, lpltp_collision => pltp_encounter%lcollision,  encounter_history => self%encounter_history)
+            system%irec = ireci
+            dtl = param%dt / (NTENC**ireci)
+            dth = 0.5_DP * dtl
+            IF (dtl / param%dt < VSMALL) THEN
+               write(*, *) "SWIFTEST Warning:"
+               write(*, *) "   In symba_step_recur_system, local time step is too small"
+               write(*, *) "   Roundoff error will be important!"
+               call swiftest_util_exit(FAILURE)
+            END IF
+            irecp = ireci + 1
+            if (ireci == 0) then
+               nloops = 1
+            else
+               nloops = NTENC
+            end if
+            do j = 1, nloops
+               lencounter = plpl_encounter%encounter_check(param, system, dtl, irecp) &
+                     .or. pltp_encounter%encounter_check(param, system, dtl, irecp)
+               
+               call plpl_encounter%kick(system, dth, irecp, 1)
+               call pltp_encounter%kick(system, dth, irecp, 1)
+               if (ireci /= 0) then
+                  call plpl_encounter%kick(system, dth, irecp, -1)
+                  call pltp_encounter%kick(system, dth, irecp, -1)
+               end if
 
-                     if (param%lgr) then
-                        call pl%gr_pos_kick(system, param, dth)
-                        call tp%gr_pos_kick(system, param, dth)
-                     end if
+               if (param%lgr) then
+                  call pl%gr_pos_kick(system, param, dth)
+                  call tp%gr_pos_kick(system, param, dth)
+               end if
 
-                     call pl%drift(system, param, dtl)
-                     call tp%drift(system, param, dtl)
+               call pl%drift(system, param, dtl)
+               call tp%drift(system, param, dtl)
 
-                     if (lencounter) call system%recursive_step(param, t+(j-1)*dtl, irecp)
-                     system%irec = ireci
+               if (lencounter) call system%recursive_step(param, t+(j-1)*dtl, irecp)
+               system%irec = ireci
 
-                     if (param%lgr) then
-                        call pl%gr_pos_kick(system, param, dth)
-                        call tp%gr_pos_kick(system, param, dth)
-                     end if
+               if (param%lgr) then
+                  call pl%gr_pos_kick(system, param, dth)
+                  call tp%gr_pos_kick(system, param, dth)
+               end if
 
-                     call plpl_encounter%kick(system, dth, irecp, 1)
-                     call pltp_encounter%kick(system, dth, irecp, 1)
-                     if (ireci /= 0) then
-                        call plpl_encounter%kick(system, dth, irecp, -1)
-                        call pltp_encounter%kick(system, dth, irecp, -1)
-                     end if
+               call plpl_encounter%kick(system, dth, irecp, 1)
+               call pltp_encounter%kick(system, dth, irecp, 1)
+               if (ireci /= 0) then
+                  call plpl_encounter%kick(system, dth, irecp, -1)
+                  call pltp_encounter%kick(system, dth, irecp, -1)
+               end if
 
-                     if (param%lclose) then
-                        call plpl_encounter%collision_io_netcdf_check(system, param, t+j*dtl, dtl, ireci, lplpl_collision) 
-                        call pltp_encounter%collision_io_netcdf_check(system, param, t+j*dtl, dtl, ireci, lpltp_collision) 
+               if (param%lclose) then
+                  call plpl_encounter%collision_check(system, param, t+j*dtl, dtl, ireci, lplpl_collision) 
+                  call pltp_encounter%collision_check(system, param, t+j*dtl, dtl, ireci, lpltp_collision) 
 
-                        if (lplpl_collision) call plpl_encounter%resolve_collision(system, param, t+j*dtl, dtl, ireci)
-                        if (lpltp_collision) call pltp_encounter%resolve_collision(system, param, t+j*dtl, dtl, ireci)
-                     end if
-                     if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+j*dtl, "trajectory") 
+                  if (lplpl_collision) call plpl_encounter%resolve_collision(system, param, t+j*dtl, dtl, ireci)
+                  if (lpltp_collision) call pltp_encounter%resolve_collision(system, param, t+j*dtl, dtl, ireci)
+               end if
+               if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+j*dtl, "trajectory") 
 
-                     call self%set_recur_levels(ireci)
+               call self%set_recur_levels(ireci)
 
-                  end do
-               end associate
-            end select
-         end select
+            end do
+         end associate
+      end select
+      end select
+      end select
+      end select
       end select
 
       return
@@ -277,53 +281,53 @@ contains
       integer(I8B) :: nenc_old
 
       associate(system => self)
-         select type(pl => system%pl)
-         class is (symba_pl)
-            select type(tp => system%tp)
-            class is (symba_tp)
-               associate(npl => pl%nbody, ntp => tp%nbody)
-                  nenc_old = system%plpl_encounter%nenc
-                  call system%plpl_encounter%setup(0_I8B)
-                  call system%plpl_collision%setup(0_I8B)
-                  if (npl > 0) then
-                     pl%lcollision(1:npl) = .false.
-                     call pl%reset_kinship([(i, i=1, npl)])
-                     pl%nplenc(1:npl) = 0
-                     pl%ntpenc(1:npl) = 0
-                     pl%levelg(1:npl) = -1
-                     pl%levelm(1:npl) = -1
-                     pl%lencounter(1:npl) = .false.
-                     pl%lcollision(1:npl) = .false.
-                     pl%ldiscard(1:npl) = .false.
-                     pl%lmask(1:npl) = .true.
-                     call pl%set_renc(0)
-                     call system%plpl_encounter%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
-                     system%plpl_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
-                     system%plpl_encounter%lcollision = .false.
-                  end if
-            
-                  nenc_old = system%pltp_encounter%nenc
-                  call system%pltp_encounter%setup(0_I8B)
-                  if (ntp > 0) then
-                     tp%nplenc(1:ntp) = 0 
-                     tp%levelg(1:ntp) = -1
-                     tp%levelm(1:ntp) = -1
-                     tp%lmask(1:ntp) = .true.
-                     tp%ldiscard(1:ntp) = .false.
-                     call system%pltp_encounter%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
-                     system%pltp_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
-                     system%pltp_encounter%lcollision = .false.
-                  end if
+      select type(pl => system%pl)
+      class is (symba_pl)
+      select type(tp => system%tp)
+      class is (symba_tp)
+         associate(npl => pl%nbody, ntp => tp%nbody)
+            nenc_old = system%plpl_encounter%nenc
+            call system%plpl_encounter%setup(0_I8B)
+            call system%plpl_collision%setup(0_I8B)
+            if (npl > 0) then
+               pl%lcollision(1:npl) = .false.
+               call pl%reset_kinship([(i, i=1, npl)])
+               pl%nplenc(1:npl) = 0
+               pl%ntpenc(1:npl) = 0
+               pl%levelg(1:npl) = -1
+               pl%levelm(1:npl) = -1
+               pl%lencounter(1:npl) = .false.
+               pl%lcollision(1:npl) = .false.
+               pl%ldiscard(1:npl) = .false.
+               pl%lmask(1:npl) = .true.
+               call pl%set_renc(0)
+               call system%plpl_encounter%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+               system%plpl_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+               system%plpl_encounter%lcollision = .false.
+            end if
+      
+            nenc_old = system%pltp_encounter%nenc
+            call system%pltp_encounter%setup(0_I8B)
+            if (ntp > 0) then
+               tp%nplenc(1:ntp) = 0 
+               tp%levelg(1:ntp) = -1
+               tp%levelm(1:ntp) = -1
+               tp%lmask(1:ntp) = .true.
+               tp%ldiscard(1:ntp) = .false.
+               call system%pltp_encounter%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+               system%pltp_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+               system%pltp_encounter%lcollision = .false.
+            end if
 
-                  call system%pl_adds%setup(0, param)
-                  call system%pl_discards%setup(0, param)
+            call system%pl_adds%setup(0, param)
+            call system%pl_discards%setup(0, param)
 
-                  tp%lfirst = param%lfirstkick
-                  pl%lfirst = param%lfirstkick
+            tp%lfirst = param%lfirstkick
+            pl%lfirst = param%lfirstkick
 
-               end associate
-            end select
-         end select
+         end associate
+      end select
+      end select
       end associate
 
       return
