@@ -12,6 +12,7 @@ module solver
    !! 
    !! Contains the Broyden-Fletcher-Goldfarb-Shanno minimizer used by Fraggle
    use globals
+   use base
    use lambda_function
    use, intrinsic :: ieee_exceptions
    private
