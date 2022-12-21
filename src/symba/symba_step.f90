@@ -72,7 +72,7 @@ contains
       ! Internals
       real(DP)                                  :: dth   !! Half step size
 
-      select type(pl => selfpl)
+      select type(pl => self%pl)
       class is (symba_pl)
       select type(tp => self%tp)
       class is (symba_tp)
