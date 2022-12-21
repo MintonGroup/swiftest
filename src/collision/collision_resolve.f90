@@ -98,14 +98,14 @@ contains
    end function collision_resolve_merge
 
 
-   subroutine collision_resolve_collider_message(pl, collidx, collider_message)
+   module subroutine collision_resolve_collider_message(pl, collidx, collider_message)
       !! author: David A. Minton
       !!
       !! Prints a nicely formatted message about which bodies collided, including their names and ids.
       !! This subroutine appends the body names and ids to an input message.
       implicit none
       ! Arguments
-      class(swiftest_pl),            intent(in)    :: pl            !! Swiftest massive body object
+      class(base_object),            intent(in)    :: pl            !! Swiftest massive body object
       integer(I4B),    dimension(:), intent(in)    :: collidx           !! Index of collisional impactors%id members
       character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
       ! Internals
@@ -115,12 +115,15 @@ contains
       n = size(collidx)
       if (n == 0) return
 
-      do i = 1, n
-         if (i > 1) collider_message = trim(adjustl(collider_message)) // " and "
-         collider_message = " " // trim(adjustl(collider_message)) // " " // trim(adjustl(pl%info(collidx(i))%name))
-         write(idstr, '(I10)') pl%id(collidx(i))
-         collider_message = trim(adjustl(collider_message)) // " (" // trim(adjustl(idstr)) // ") "
-      end do
+      select type(pl)
+      class is (swiftest_pl)
+         do i = 1, n
+            if (i > 1) collider_message = trim(adjustl(collider_message)) // " and "
+            collider_message = " " // trim(adjustl(collider_message)) // " " // trim(adjustl(pl%info(collidx(i))%name))
+            write(idstr, '(I10)') pl%id(collidx(i))
+            collider_message = trim(adjustl(collider_message)) // " (" // trim(adjustl(idstr)) // ") "
+         end do
+      end select
 
       return
    end subroutine collision_resolve_collider_message

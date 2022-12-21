@@ -247,6 +247,13 @@ module collision
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
          logical,                    intent(out)   :: lany_collision !! Returns true if any pair of encounters resulted in a collision 
       end subroutine collision_check_pltp
+
+      module subroutine collision_resolve_collider_message(pl, collidx, collider_message)
+         implicit none
+         class(base_object),            intent(in)    :: pl            !! Swiftest massive body object
+         integer(I4B),    dimension(:), intent(in)    :: collidx           !! Index of collisional impactors%id members
+         character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
+      end subroutine collision_resolve_collider_message
    
       module subroutine collision_resolve_extract_plpl(self, system, param)
          implicit none
@@ -275,6 +282,8 @@ module collision
          real(DP),                 intent(in)    :: t      !! Time of collision
          integer(I4B)                            :: status !! Status flag assigned to this outcome
       end function collision_resolve_merge
+
+
 
 
       module subroutine collision_resolve_plpl(self, system, param, t, dt, irec)
