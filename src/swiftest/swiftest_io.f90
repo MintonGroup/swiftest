@@ -614,6 +614,7 @@ contains
 
          ! Create the file
          call netcdf_io_check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "netcdf_io_initialize_output nf90_create" )
+         nc%lfile_is_open = .true.
 
          ! Dimensions
          call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "netcdf_io_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
@@ -768,6 +769,7 @@ contains
 
          write(errmsg,*) "netcdf_io_open nf90_open ",trim(adjustl(nc%file_name))
          call netcdf_io_check( nf90_open(nc%file_name, mode, nc%id), errmsg)
+         self%lfile_is_open = .true.
 
          ! Dimensions
          call netcdf_io_check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), "netcdf_io_open nf90_inq_dimid time_dimid"  )

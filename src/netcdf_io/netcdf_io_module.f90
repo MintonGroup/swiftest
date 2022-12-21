@@ -21,6 +21,7 @@ module netcdf_io
    !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as the base class defined in base
    type, abstract :: netcdf_parameters
       character(STRMAX)  :: file_name                                   !! Name of the output file
+      logical            :: lfile_is_open = .false.                     !! Flag indicating that the linked file is currently open
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B)       :: id                                          !! ID for the output file
       integer(I4B)       :: name_chunk                                  !! Chunk size for the id dimension variables

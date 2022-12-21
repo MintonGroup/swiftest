@@ -97,6 +97,7 @@ contains
             end if
 
             call netcdf_io_check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "collision_netcdf_io_initialize_output nf90_create" )
+            nc%lfile_is_open = .true.
 
             ! Dimensions
             call netcdf_io_check( nf90_def_dim(nc%id, nc%event_dimname, nc%event_dimsize, nc%event_dimid), "collision_netcdf_io_initialize_output nf90_def_dim event_dimid"  ) ! Dimension to store individual collision events

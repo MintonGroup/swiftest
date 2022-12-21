@@ -40,7 +40,10 @@ contains
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
 
-      call netcdf_io_check( nf90_close(self%id), "netcdf_io_close" )
+      if (self%lfile_is_open) then
+         call netcdf_io_check( nf90_close(self%id), "netcdf_io_close" )
+         self%lfile_is_open = .false.
+      end if
 
       return
    end subroutine netcdf_io_close

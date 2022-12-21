@@ -92,6 +92,7 @@ contains
          end if
 
          call netcdf_io_check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), "encounter_netcdf_io_initialize_output nf90_create" )
+         nc%lfile_is_open = .true.
 
          ! Dimensions
          call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "encounter_netcdf_io_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
