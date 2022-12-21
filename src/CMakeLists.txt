@@ -40,10 +40,11 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
             ${SRC}/collision/collision_check.f90  
-            ${SRC}/collision/collision_regime.f90   
-            ${SRC}/collision/collision_setup.f90
             ${SRC}/collision/collision_io.f90     
+            ${SRC}/collision/collision_model.f90
+            ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
+            ${SRC}/collision/collision_setup.f90
             ${SRC}/collision/collision_util.f90
             ${SRC}/encounter/encounter_check.f90
             ${SRC}/encounter/encounter_io.f90

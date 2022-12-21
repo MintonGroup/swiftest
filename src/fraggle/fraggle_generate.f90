@@ -18,7 +18,39 @@ submodule(fraggle) s_fraggle_generate
 
 contains
 
-   module subroutine fraggle_generate_fragments(self, system, param, lfailure)
+   module subroutine fraggle_generate_system(self, system, param, t)
+      implicit none
+      class(fraggle_system),    intent(inout) :: self     !! Fraggle fragment system object 
+      class(base_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t         !! The time of the collision
+      ! Internals
+      integer(I4B) :: i
+             
+      select type(system)
+      class is (swiftest_nbody_system)
+      select type(param)
+      class is (swiftest_parameters)
+         associate(impactors => self%impactors, plpl_collision => system%plpl_collision)
+            select case (impactors%regime)
+            case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+               plpl_collision%status(i) = fraggle_resolve_disruption(system, param, t)
+            case (COLLRESOLVE_REGIME_HIT_AND_RUN)
+               plpl_collision%status(i) = fraggle_resolve_hitandrun(system, param, t)
+            case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+               plpl_collision%status(i) = collision_resolve_merge(system, param, t)
+            case default 
+               write(*,*) "Error in swiftest_collision, unrecognized collision regime"
+               call util_exit(FAILURE)
+            end select
+         end associate
+      end select
+      end select
+
+   end subroutine fraggle_generate_system
+
+
+   subroutine fraggle_generate_fragments(self, system, param, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.

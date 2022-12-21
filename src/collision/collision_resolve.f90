@@ -616,30 +616,11 @@ contains
                lgoodcollision = collision_resolve_consolidate_impactors(pl, cb, param, idx_parent, impactors) 
                if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
 
-               if (param%lfragmentation) then
-                  call impactors%get_regime(system, param)
-               else
-                  impactors%regime = COLLRESOLVE_REGIME_MERGE
-                  fragments%mtot = sum(impactors%mass(:))
-                  impactors%mass_dist(1) = fragments%mtot
-                  impactors%mass_dist(2) = 0.0_DP
-                  impactors%mass_dist(3) = 0.0_DP
-                  impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / fragments%mtot 
-                  impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / fragments%mtot
-               end if
-
+               call impactors%get_regime(system, param)
                call collision_history%take_snapshot(param,system, t, "before") 
-               select case (impactors%regime)
-               case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                  plpl_collision%status(i) = fraggle_resolve_disruption(system, param, t)
-               case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-                  plpl_collision%status(i) = fraggle_resolve_hitandrun(system, param, t)
-               case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-                  plpl_collision%status(i) = collision_resolve_merge(system, param, t)
-               case default 
-                  write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-                  call util_exit(FAILURE)
-               end select
+
+               call collision_system%generate_fragments(system, param, t)
+
                call collision_history%take_snapshot(param,system, t, "after") 
                call impactors%reset()
             end do

@@ -583,7 +583,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_netcdf_parameters), intent(inout) :: self  !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters),               intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
@@ -1915,9 +1915,9 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
                case ("MAXID_COLLISION")
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid_collision
-               case ("FRAGMENTATION")
+               case ("COLLISION_MODEL")
                   call swiftest_io_toupper(param_value)
-                  if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
+                  read(param_value, *) param%collision_model
                case ("GMTINY")
                   read(param_value, *) param%GMTINY
                case ("MIN_GMFRAG")
@@ -2076,13 +2076,24 @@ contains
 
          param%lmtiny_pl = (integrator == INT_SYMBA) 
 
-         if (param%lmtiny_pl .and. self%GMTINY < 0.0_DP) then
-            write(iomsg,*) "GMTINY invalid or not set: ", self%GMTINY
+         if (param%lmtiny_pl .and. param%GMTINY < 0.0_DP) then
+            write(iomsg,*) "GMTINY invalid or not set: ", param%GMTINY
             iostat = -1
             return
          end if
 
-         if (param%lfragmentation) then
+
+         if ((param%collision_model /= "MERGE")       .and. &
+             (param%collision_model /= "SIMPLE") .and. &
+             (param%collision_model /= "BOUNCE")    .and. &
+             (param%collision_model /= "FRAGGLE")) then
+            write(iomsg,*) 'Invalid collision_model parameter: ',trim(adjustl(param%out_type))
+            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, CLOSEST, or BOTH'
+            iostat = -1
+            return
+         end if
+
+         if (param%collision_model == "FRAGGLE") then
             if (seed_set) then
                call random_seed(put = param%seed)
             else

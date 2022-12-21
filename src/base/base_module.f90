@@ -34,8 +34,8 @@ module base
       character(STRMAX)                       :: inplfile             = PL_INFILE       !! Name of input file for massive bodies
       character(STRMAX)                       :: intpfile             = TP_INFILE       !! Name of input file for test particles
       character(STRMAX)                       :: in_netcdf            = NC_INFILE       !! Name of system input file for NetCDF input
-      character(STRMAX)                       :: in_type              = "ASCII"         !! Data representation type of input data files
-      character(STRMAX)                       :: in_form              = "XV"            !! Format of input data files ("EL" or "XV")
+      character(STRMAX)                       :: in_type              = "NETCDF_DOUBLE" !! Data representation type of input data files
+      character(STRMAX)                       :: in_form              = "XV"            !! Format of input data files ("EL" or ["XV"])
       integer(I4B)                            :: istep_out            = -1              !! Number of time steps between saved outputs
       character(STRMAX)                       :: outfile              = BIN_OUTFILE     !! Name of output binary file
       character(STRMAX)                       :: out_type             = "NETCDF_DOUBLE" !! Binary format of output file
@@ -46,7 +46,7 @@ module base
       real(DP)                                :: rmax                 = -1.0_DP         !! Maximum heliocentric radius for test particle
       real(DP)                                :: rmaxu                = -1.0_DP         !! Maximum unbound heliocentric radius for test particle
       real(DP)                                :: qmin                 = -1.0_DP         !! Minimum pericenter distance for test particle
-      character(STRMAX)                       :: qmin_coord           = 'HELIO'         !! Coordinate frame to use for qmin
+      character(STRMAX)                       :: qmin_coord           = "HELIO"         !! Coordinate frame to use for qmin (["HELIO"] or "BARY")
       real(DP)                                :: qmin_alo             = -1.0_DP         !! Minimum semimajor axis for qmin
       real(DP)                                :: qmin_ahi             = -1.0_DP         !! Maximum semimajor axis for qmin
       real(QP)                                :: MU2KG                = -1.0_QP         !! Converts mass units to grams
@@ -58,7 +58,7 @@ module base
       real(DP)                                :: min_GMfrag           = -1.0_DP         !! Smallest G*mass that can be produced in a fragmentation event
       integer(I4B), dimension(:), allocatable :: seed                                   !! Random seeds for fragmentation modeling
       logical                                 :: lmtiny_pl            = .false.         !! Include semi-interacting massive bodies
-      logical                                 :: lfragmentation       = .false.         !! Do fragmentation modeling instead of simple merger.
+      character(STRMAX)                       :: collision_model      = "MERGE"         !! The Coll
       character(STRMAX)                       :: encounter_save       = "NONE"          !! Indicate if and how encounter data should be saved
       logical                                 :: lenc_save_trajectory = .false.         !! Indicates that when encounters are saved, the full trajectory through recursion steps are saved
       logical                                 :: lenc_save_closest    = .false.         !! Indicates that when encounters are saved, the closest approach distance between pairs of bodies is saved

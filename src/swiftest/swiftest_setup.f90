@@ -83,10 +83,12 @@ contains
                allocate(collision_list_plpl :: system%plpl_encounter)
                allocate(collision_list_plpl :: system%plpl_collision)
 
-               if (param%lfragmentation) then
+               if (param%collision_model == "FRAGGLE") then
                   allocate(fraggle_system :: system%collision_system)
-                  call system%collision_system%setup(system)
+               else
+                  allocate(collision_system :: system%collision_system)
                end if
+               call system%collision_system%setup(system)
 
                if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
                   allocate(encounter_netcdf_parameters :: encounter_history%nc)

@@ -107,7 +107,7 @@ module collision
    end type collision_fragments
 
 
-   type :: collision_system
+   type, abstract :: collision_system
       !! This class defines a collisional system that stores impactors and fragments. This is written so that various collision models (i.e. Fraggle) could potentially be used
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       class(collision_fragments(:)), allocatable :: fragments !! Object containing information on the pre-collision system
@@ -124,7 +124,7 @@ module collision
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: Etot     !! Before/after total system energy
    contains
-      procedure :: generate_fragments         => abstract_generate_fragments               !! Generates a system of fragments 
+      procedure(abstract_generate_fragments), deferred :: generate_fragments               !! Generates a system of fragments depending on collision model
       procedure :: set_mass_dist              => abstract_set_mass_dist                    !! Sets the distribution of mass among the fragments depending on the regime type
       procedure :: setup                      => collision_setup_system                    !! Initializer for the encounter collision system and the before/after snapshots
       procedure :: setup_impactors            => collision_setup_impactors_system          !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
@@ -134,8 +134,25 @@ module collision
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
       procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate system of the collisional system
-      final     ::                               collision_final_system                    !! Finalizer will deallocate all allocatables
    end type collision_system
+
+   type, extends(collision_system) :: collision_merge
+   contains 
+      procedure :: generate_fragments => collision_generate_merge_system !! Merges the impactors to make a single final body
+      final     ::                       collision_final_merge_system    !! Finalizer will deallocate all allocatables
+   end type collision_merge
+
+   type, extends(collision_system) :: collision_bounce
+   contains 
+      procedure :: generate_fragments => collision_generate_bounce_system !! If a collision would result in a disruption, "bounce" the bodies instead.
+      final     ::                       collision_final_bounce_system    !! Finalizer will deallocate all allocatables
+   end type collision_bounce
+
+   type, extends(collision_system) :: collision_simple
+   contains 
+      procedure :: generate_fragments => collision_generate_simple_system !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
+      final     ::                       collision_final_simple_system !! Finalizer will deallocate all allocatables
+   end type collision_simple
 
 
    !! NetCDF dimension and variable names for the enounter save object
@@ -181,13 +198,13 @@ module collision
 
 
    abstract interface 
-      subroutine abstract_generate_fragments(self, system, param, lfailure)
-         import collision_system, base_nbody_system, base_parameters
+      subroutine abstract_generate_fragments(self, system, param, t) 
+         import collision_system, base_nbody_system, base_parameters, DP
          implicit none
          class(collision_system),  intent(inout) :: self      !! Collision system object 
          class(base_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
-         logical,                  intent(out)   :: lfailure  !! Answers the question: Should this have been a merger instead?
+         real(DP),                 intent(in)    :: t         !! The time of the collision
       end subroutine abstract_generate_fragments
 
       subroutine abstract_set_mass_dist(self, param)
@@ -200,6 +217,31 @@ module collision
 
 
    interface
+
+      module subroutine collision_generate_merge_system(self, system, param, t)
+         implicit none
+         class(collision_merge), intent(inout) :: self      !! Fraggle fragment system object 
+         class(base_nbody_system),     intent(inout) :: system    !! Swiftest nbody system object
+         class(base_parameters),       intent(inout) :: param     !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t         !! The time of the collision
+      end subroutine collision_generate_merge_system
+
+      module subroutine collision_generate_bounce_system(self, system, param, t)
+         implicit none
+         class(collision_bounce), intent(inout) :: self      !! Fraggle fragment system object 
+         class(base_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
+         class(base_parameters),        intent(inout) :: param     !! Current run configuration parameters 
+         real(DP),                      intent(in)    :: t         !! The time of the collision
+      end subroutine collision_generate_bounce_system
+
+      module subroutine collision_generate_simple_system(self, system, param, t)
+         implicit none
+         class(collision_simple), intent(inout) :: self      !! Fraggle fragment system object 
+         class(base_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
+         class(base_parameters),        intent(inout) :: param     !! Current run configuration parameters 
+         real(DP),                      intent(in)    :: t         !! The time of the collision
+      end subroutine collision_generate_simple_system
+
       module subroutine collision_netcdf_io_dump(self, param)
          implicit none
          class(collision_storage(*)), intent(inout) :: self  !! Collision storage object
@@ -354,7 +396,6 @@ module collision
          class(collision_fragments(*)), intent(inout) :: self
       end subroutine collision_util_reset_fragments
 
-
       module subroutine collision_util_get_idvalues_snapshot(self, idvals)
          implicit none
          class(collision_snapshot),               intent(in)  :: self   !! Fraggle snapshot object
@@ -498,20 +539,52 @@ module collision
       end subroutine collision_final_storage
 
 
-      subroutine collision_final_system(self)
+      subroutine collision_final_merge_system(self)
          !! author: David A. Minton
          !!
          !! Finalizer will deallocate all allocatables
          implicit none
          ! Arguments
-         type(collision_system),  intent(inout) :: self !!  Collision system object
+         type(collision_merge),  intent(inout) :: self !!  Collision system object
 
          call self%reset()
          if (allocated(self%impactors)) deallocate(self%impactors)
          if (allocated(self%fragments)) deallocate(self%fragments)
 
          return
-      end subroutine collision_final_system
+      end subroutine collision_final_merge_system
+
+
+      subroutine collision_final_bounce_system(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer will deallocate all allocatables
+         implicit none
+         ! Arguments
+         type(collision_bounce),  intent(inout) :: self !!  Collision system object
+
+         call self%reset()
+         if (allocated(self%impactors)) deallocate(self%impactors)
+         if (allocated(self%fragments)) deallocate(self%fragments)
+
+         return
+      end subroutine collision_final_bounce_system
+
+
+      subroutine collision_final_simple_system(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer will deallocate all allocatables
+         implicit none
+         ! Arguments
+         type(collision_simple),  intent(inout) :: self !!  Collision system object
+
+         call self%reset()
+         if (allocated(self%impactors)) deallocate(self%impactors)
+         if (allocated(self%fragments)) deallocate(self%fragments)
+
+         return
+      end subroutine collision_final_simple_system
 
 
 
