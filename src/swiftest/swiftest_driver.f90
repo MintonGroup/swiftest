@@ -166,5 +166,5 @@ program swiftest_driver
       end associate
    end associate
 
-   call swiftest_util_exit(SUCCESS)
+   call util_exit(SUCCESS)
 end program swiftest_driver

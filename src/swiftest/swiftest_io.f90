@@ -179,7 +179,7 @@ contains
                param%ioutput = param%ioutput + 1
                call self%write_frame(nc, param)
                call nc%close()
-               call swiftest_util_exit(FAILURE)
+               call util_exit(FAILURE)
             end if
          end if
       end associate
@@ -188,7 +188,7 @@ contains
 
       667 continue
       write(*,*) "Error writing energy and momentum tracking file: " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine swiftest_io_conservation_report
 
 
@@ -219,7 +219,7 @@ contains
 
       667 continue
       write(*,*) "Error opening parameter dump file " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine swiftest_io_dump_param
 
 
@@ -329,21 +329,21 @@ contains
          do i = 1,narg
             call get_command_argument(i, arg(i), status = ierr(i))
          end do
-         if (any(ierr /= 0)) call swiftest_util_exit(USAGE)
+         if (any(ierr /= 0)) call util_exit(USAGE)
       else
-         call swiftest_util_exit(USAGE)
+         call util_exit(USAGE)
       end if
    
       if (narg == 1) then
          if (arg(1) == '-v' .or. arg(1) == '--version') then
             call swiftest_util_version() 
          else if (arg(1) == '-h' .or. arg(1) == '--help') then
-            call swiftest_util_exit(HELP)
+            call util_exit(HELP)
          else
-            call swiftest_util_exit(USAGE)
+            call util_exit(USAGE)
          end if
       else if (narg >= 2) then
-         call io_toupper(arg(1))
+         call swiftest_io_toupper(arg(1))
          select case(arg(1))
          case('INT_BS')
             integrator = INT_BS
@@ -364,7 +364,7 @@ contains
          case default
             integrator = UNKNOWN_INTEGRATOR
             write(*,*) trim(adjustl(arg(1))) // ' is not a valid integrator.'
-            call swiftest_util_exit(USAGE)
+            call util_exit(USAGE)
          end select
          param_file_name = trim(adjustl(arg(2)))
       end if
@@ -372,10 +372,10 @@ contains
       if (narg == 2) then
          display_style = "STANDARD"
       else if (narg == 3) then
-         call io_toupper(arg(3))
+         call swiftest_io_toupper(arg(3))
          display_style = trim(adjustl(arg(3)))
       else
-         call swiftest_util_exit(USAGE)
+         call util_exit(USAGE)
       end if
 
       return
@@ -742,7 +742,7 @@ contains
 
       667 continue
       write(*,*) "Error creating NetCDF output file. " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine swiftest_io_netcdf_initialize_output
 
 
@@ -929,19 +929,19 @@ contains
 
          if (npl_check /= npl) then
             write(*,*) "Error reading in NetCDF file: The recorded value of npl does not match the number of active massive bodies"
-            call swiftest_util_exit(failure)
+            call util_exit(failure)
          end if
 
          if (ntp_check /= ntp) then
             write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
-            call swiftest_util_exit(failure)
+            call util_exit(failure)
          end if
 
          if (param%lmtiny_pl) then
             nplm_check = count(pack(rtemp,plmask) > param%GMTINY )
             if (nplm_check /= pl%nplm) then
                write(*,*) "Error reading in NetCDF file: The recorded value of nplm does not match the number of active fully interacting massive bodies"
-               call swiftest_util_exit(failure)
+               call util_exit(failure)
             end if
          end if
 
@@ -1760,7 +1760,7 @@ contains
                ! Read the pair of tokens. The first one is the parameter name, the second is the value.
                param_name = swiftest_io_get_token(line_trim, ifirst, ilast, iostat)
                if (param_name == '') cycle ! No parameter name (usually because this line is commented out)
-               call io_toupper(param_name)
+               call swiftest_io_toupper(param_name)
                ifirst = ilast + 1
                param_value = swiftest_io_get_token(line_trim, ifirst, ilast, iostat)
                select case (param_name)
@@ -1784,28 +1784,28 @@ contains
                case ("NC_IN")
                   param%in_netcdf = param_value
                case ("IN_TYPE")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%in_type = param_value
                case ("IN_FORM")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%in_form = param_value
                case ("ISTEP_OUT")
                   read(param_value, *) param%istep_out
                case ("BIN_OUT")
                   param%outfile = param_value
                case ("OUT_TYPE")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%out_type = param_value
                case ("OUT_FORM")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%out_form = param_value
                case ("OUT_STAT")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%out_stat = param_value
                case ("DUMP_CADENCE")
                   read(param_value, *, err = 667, iomsg = iomsg) param%dump_cadence
                case ("CHK_CLOSE")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lclose = .true.
                case ("CHK_RMIN")
                   read(param_value, *, err = 667, iomsg = iomsg) param%rmin
@@ -1816,7 +1816,7 @@ contains
                case ("CHK_QMIN")
                   read(param_value, *, err = 667, iomsg = iomsg) param%qmin
                case ("CHK_QMIN_COORD")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%qmin_coord = param_value
                case ("CHK_QMIN_RANGE")
                   read(param_value, *, err = 667, iomsg = iomsg) param%qmin_alo
@@ -1824,13 +1824,13 @@ contains
                   param_value = swiftest_io_get_token(line, ifirst, ilast, iostat)
                   read(param_value, *, err = 667, iomsg = iomsg) param%qmin_ahi
                case ("EXTRA_FORCE")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lextra_force = .true.
                case ("BIG_DISCARD")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T' ) param%lbig_discard = .true.
                case ("RHILL_PRESENT")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T' ) param%lrhill_present = .true.
                case ("MU2KG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%MU2KG
@@ -1839,35 +1839,35 @@ contains
                case ("DU2M")
                   read(param_value, *, err = 667, iomsg = iomsg) param%DU2M
                case ("ENERGY")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lenergy = .true.
                case ("GR")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lgr = .true. 
                case ("ROTATION")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lrotation = .true. 
                case ("TIDES")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
                case ("INTERACTION_LOOPS")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%interaction_loops = param_value
                case ("ENCOUNTER_CHECK_PLPL")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%encounter_check_plpl = param_value
                case ("ENCOUNTER_CHECK_PLTP")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%encounter_check_pltp = param_value
                case ("ENCOUNTER_CHECK")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   param%encounter_check_plpl = param_value
                   param%encounter_check_pltp = param_value
                case ("FIRSTKICK")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstkick = .false. 
                case ("FIRSTENERGY")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "NO" .or. param_value == 'F') param%lfirstenergy = .false. 
                case("EORBIT_ORIG")
                   read(param_value, *, err = 667, iomsg = iomsg) param%Eorbit_orig 
@@ -1912,14 +1912,14 @@ contains
                case ("MAXID_COLLISION")
                   read(param_value, *, err = 667, iomsg = iomsg) param%maxid_collision
                case ("FRAGMENTATION")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == "T") self%lfragmentation = .true.
                case ("GMTINY")
                   read(param_value, *) param%GMTINY
                case ("MIN_GMFRAG")
                   read(param_value, *) param%min_GMfrag
                case ("ENCOUNTER_SAVE")
-                  call io_toupper(param_value)
+                  call swiftest_io_toupper(param_value)
                   read(param_value, *) param%encounter_save
                case("SEED")
                   read(param_value, *) nseeds_from_file
@@ -2562,7 +2562,7 @@ contains
 
       667 continue
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine swiftest_io_read_in_cb
 
 
@@ -2601,7 +2601,7 @@ contains
          end if
          ierr = self%read_frame(tmp_param%system_history%nc, tmp_param)
          deallocate(tmp_param)
-         if (ierr /=0) call swiftest_util_exit(FAILURE)
+         if (ierr /=0) call util_exit(FAILURE)
       end if
 
       param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP))
@@ -2715,7 +2715,7 @@ contains
       class default
          write(*,*) "Error reading body file: " // trim(adjustl(errmsg))
       end select
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end function swiftest_io_read_frame_body
 
 
@@ -2747,7 +2747,7 @@ contains
 
       667 continue
       write(self%display_unit,*) "Error reading parameter file: " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine swiftest_io_read_in_param
 
 
@@ -2773,7 +2773,7 @@ contains
          self%log_output = .true.
       case default
          write(*,*) display_style, " is an unknown display style"
-         call swiftest_util_exit(USAGE)
+         call util_exit(USAGE)
       end select
 
       self%display_style = display_style
@@ -2782,7 +2782,7 @@ contains
 
       667 continue
       write(*,*) "Error opening swiftest log file: " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine swiftest_io_set_display_param
 
 
@@ -2884,7 +2884,7 @@ contains
 
       667 continue
       write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine swiftest_io_write_frame_system
 
 end submodule s_io

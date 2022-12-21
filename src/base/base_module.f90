@@ -277,4 +277,41 @@ module base
          return
       end subroutine reset_storage
 
+
+
+      subroutine util_exit(code)
+         !! author: David A. Minton
+         !!
+         !! Print termination message and exit program
+         !!
+         !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
+         !! Adapted from Hal Levison's Swift routine util_exit.f
+         implicit none
+         ! Arguments
+         integer(I4B), intent(in) :: code
+         ! Internals
+         character(*), parameter :: BAR = '("------------------------------------------------")'
+         character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
+         character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
+         character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <paramfile> [standard|compact|progress|NONE]")'
+         character(*), parameter :: HELP_MSG  = USAGE_MSG
+   
+         select case(code)
+         case(SUCCESS)
+            write(*, SUCCESS_MSG) VERSION_NUMBER
+            write(*, BAR)
+         case(USAGE) 
+            write(*, USAGE_MSG)
+         case(HELP)
+            write(*, HELP_MSG)
+         case default
+            write(*, FAIL_MSG) VERSION_NUMBER
+            write(*, BAR)
+            error stop
+         end select
+   
+         stop
+   
+      end subroutine util_exit
+
 end module base

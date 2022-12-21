@@ -146,7 +146,7 @@ contains
 
       667 continue
       write(*,*) "Error creating encounter output file. " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine encounter_netcdf_io_initialize_output
 
 

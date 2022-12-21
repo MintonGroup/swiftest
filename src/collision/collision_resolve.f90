@@ -411,7 +411,7 @@ contains
    end subroutine collision_resolve_make_impactors_pl
 
 
-   subroutine collision_resolve_mergeaddsub(system, param, t, status)
+   module subroutine collision_resolve_mergeaddsub(system, param, t, status)
       !! author:  David A. Minton
       !!
       !! Fills the pl_discards and pl_adds with removed and added bodies
@@ -638,7 +638,7 @@ contains
                   plpl_collision%status(i) = collision_resolve_merge(system, param, t)
                case default 
                   write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-                  call swiftest_util_exit(FAILURE)
+                  call util_exit(FAILURE)
                end select
                call collision_history%take_snapshot(param,system, t, "after") 
                call impactors%reset()

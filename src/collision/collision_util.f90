@@ -215,7 +215,7 @@ contains
                if (.not.allocated(tmpsys)) then
                   write(*,*) "Error in collision_util_get_energy_momentum. " // &
                            " This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
-                  call swiftest_util_exit(FAILURE)
+                  call util_exit(FAILURE)
                end if
                select type(tmpsys)
                class is (swiftest_nbody_system)

@@ -283,8 +283,13 @@ module collision
          integer(I4B)                            :: status !! Status flag assigned to this outcome
       end function collision_resolve_merge
 
-
-
+      module subroutine collision_resolve_mergeaddsub(system, param, t, status)
+         class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
+         real(DP),                  intent(in)    :: t      !! Time of collision
+         integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
+      end subroutine collision_resolve_mergeaddsub
+   
 
       module subroutine collision_resolve_plpl(self, system, param, t, dt, irec)
          implicit none

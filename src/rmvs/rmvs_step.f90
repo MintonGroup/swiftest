@@ -117,7 +117,7 @@ contains
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
                      write(*, *) " STOPPING "
-                     call swiftest_util_exit(FAILURE)
+                     call util_exit(FAILURE)
                   end if
                end do
             end if
@@ -139,7 +139,7 @@ contains
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
                      write(*, *) " STOPPING "
-                     call swiftest_util_exit(FAILURE)
+                     call util_exit(FAILURE)
                   end if
                end do
             end if
@@ -284,7 +284,7 @@ contains
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
                      write(*, *) " STOPPING "
-                     call swiftest_util_exit(failure)
+                     call util_exit(failure)
                   end if
                end do
             end if
@@ -308,7 +308,7 @@ contains
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
                      write(*, *) " STOPPING "
-                     call swiftest_util_exit(failure)
+                     call util_exit(failure)
                   end if
                end do
             end if

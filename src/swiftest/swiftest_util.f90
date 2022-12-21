@@ -293,7 +293,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_pl or its descendents"
-         call swiftest_util_exit(FAILURE)
+         call util_exit(FAILURE)
       end select
 
       return
@@ -322,7 +322,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_tp or its descendents"
-         call swiftest_util_exit(FAILURE)
+         call util_exit(FAILURE)
       end select
 
       return
@@ -743,7 +743,6 @@ contains
    end subroutine swiftest_util_dealloc_kin
 
 
-
    module subroutine swiftest_util_dealloc_pl(self)
       !! author: David A. Minton
       !!
@@ -802,42 +801,6 @@ contains
 
       return
    end subroutine swiftest_util_dealloc_tp
-
-
-   module subroutine swiftest_util_exit(code)
-      !! author: David A. Minton
-      !!
-      !! Print termination message and exit program
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
-      !! Adapted from Hal Levison's Swift routine util_exit.f
-      implicit none
-      ! Arguments
-      integer(I4B), intent(in) :: code
-      ! Internals
-      character(*), parameter :: BAR = '("------------------------------------------------")'
-      character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
-      character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
-      character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <paramfile> [standard|compact|progress|NONE]")'
-      character(*), parameter :: HELP_MSG  = USAGE_MSG
-
-      select case(code)
-      case(SUCCESS)
-         write(*, SUCCESS_MSG) VERSION_NUMBER
-         write(*, BAR)
-      case(USAGE) 
-         write(*, USAGE_MSG)
-      case(HELP)
-         write(*, HELP_MSG)
-      case default
-         write(*, FAIL_MSG) VERSION_NUMBER
-         write(*, BAR)
-         error stop
-      end select
-
-      stop
-
-   end subroutine swiftest_util_exit
 
 
    module subroutine swiftest_util_fill_arr_char_string(keeps, inserts, lfill_list)
@@ -4204,7 +4167,7 @@ contains
             if (idarr(i) == idarr(i+1)) then
                write(*, *) "Swiftest error:"
                write(*, *) "   more than one body/particle has id = ", idarr(i)
-               call swiftest_util_exit(FAILURE)
+               call util_exit(FAILURE)
             end if
          end do
          param%maxid = max(param%maxid, maxval(idarr))

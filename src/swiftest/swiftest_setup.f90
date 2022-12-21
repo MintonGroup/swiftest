@@ -111,7 +111,7 @@ contains
             write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
          case default
             write(*,*) 'Unkown integrator',param%integrator
-            call swiftest_util_exit(FAILURE)
+            call util_exit(FAILURE)
          end select
       end select
 

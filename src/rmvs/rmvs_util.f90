@@ -39,7 +39,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_pl or its descendents!"
-         call swiftest_util_exit(FAILURE)
+         call util_exit(FAILURE)
       end select
 
       return
@@ -68,7 +68,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
-         call swiftest_util_exit(FAILURE)
+         call util_exit(FAILURE)
       end select
 
       return
@@ -174,7 +174,7 @@ contains
             call whm_util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_pl or its descendents!"
-            call swiftest_util_exit(FAILURE)
+            call util_exit(FAILURE)
          end select
       end associate
 
@@ -275,7 +275,7 @@ contains
             call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_tp or its descendents!"
-            call swiftest_util_exit(FAILURE)
+            call util_exit(FAILURE)
          end select
       end associate
 
@@ -482,7 +482,7 @@ contains
             call whm_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class rmvs_pl or its descendents!"
-            call swiftest_util_exit(FAILURE)
+            call util_exit(FAILURE)
          end select
       end associate
 
@@ -513,7 +513,7 @@ contains
             call swiftest_util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class rmvs_tp or its descendents!"
-            call swiftest_util_exit(FAILURE)
+            call util_exit(FAILURE)
          end select
       end associate
 

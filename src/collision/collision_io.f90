@@ -191,7 +191,7 @@ contains
 
       667 continue
       write(*,*) "Error creating fragmentation output file. " // trim(adjustl(errmsg))
-      call swiftest_util_exit(FAILURE)
+      call util_exit(FAILURE)
    end subroutine collision_netcdf_io_initialize_output
 
 
