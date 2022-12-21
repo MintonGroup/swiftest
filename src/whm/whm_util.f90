@@ -95,48 +95,6 @@ contains
    end subroutine whm_util_fill_pl
 
 
-   module subroutine whm_util_final_pl(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the WHM massive body object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(whm_pl),  intent(inout) :: self !! WHM massive body object
-
-      call self%dealloc()
-
-      return
-   end subroutine whm_util_final_pl
-
-
-   module subroutine whm_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the WHM nbody system object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
-
-      call swiftest_util_final_system(self)
-
-      return
-   end subroutine whm_util_final_system
-
-
-   module subroutine whm_util_final_tp(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the WHM test particle object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(whm_tp),  intent(inout) :: self !! WHM test particle object
-
-      call self%dealloc()
-
-      return
-   end subroutine whm_util_final_tp
-
-
    module subroutine whm_util_resize_pl(self, nnew)
       !! author: David A. Minton
       !!

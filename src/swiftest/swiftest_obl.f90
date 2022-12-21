@@ -65,7 +65,7 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody, cb => system%cb)
-         call obl_acc_body(pl, system)
+         call swiftest_obl_acc_body(pl, system)
          cb%aobl(:) = 0.0_DP
          do i = npl, 1, -1
             if (pl%lmask(i)) cb%aobl(:) = cb%aobl(:) - pl%Gmass(i) * pl%aobl(:, i) / cb%Gmass
@@ -99,7 +99,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, cb => system%cb)
-         call obl_acc_body(tp, system)
+         call swiftest_obl_acc_body(tp, system)
          if (system%lbeg) then
             aoblcb = cb%aoblbeg
          else

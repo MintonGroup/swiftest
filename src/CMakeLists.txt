@@ -59,7 +59,6 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_gr.f90
             ${SRC}/helio/helio_setup.f90
             ${SRC}/helio/helio_step.f90
-            ${SRC}/helio/helio_util.f90
             ${SRC}/netcdf_io/netcdf_io_implementations.f90  
             ${SRC}/operator/operator_cross.f90
             ${SRC}/operator/operator_mag.f90

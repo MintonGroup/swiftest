@@ -182,7 +182,7 @@ contains
    end subroutine rmvs_util_fill_pl
 
 
-   module subroutine rmvs_util_final_cb(self)
+   module subroutine rmvs_final_cb(self)
       !! author: David A. Minton
       !!
       !! Finalize the RMVS massive body object - deallocates all allocatables
@@ -193,10 +193,10 @@ contains
       call self%dealloc()
 
       return
-   end subroutine rmvs_util_final_cb
+   end subroutine rmvs_final_cb
 
 
-   module subroutine rmvs_util_final_interp(self)
+   module subroutine rmvs_final_interp(self)
       !! author: David A. Minton
       !!
       !! Finalize the RMVS nbody system object - deallocates all allocatables
@@ -207,10 +207,10 @@ contains
       call self%dealloc()
 
       return
-   end subroutine rmvs_util_final_interp
+   end subroutine rmvs_final_interp
 
 
-   module subroutine rmvs_util_final_pl(self)
+   module subroutine rmvs_final_pl(self)
       !! author: David A. Minton
       !!
       !! Finalize the RMVS massive body object - deallocates all allocatables
@@ -221,10 +221,10 @@ contains
       call self%dealloc()
 
       return
-   end subroutine rmvs_util_final_pl
+   end subroutine rmvs_final_pl
 
 
-   module subroutine rmvs_util_final_system(self)
+   module subroutine rmvs_final_system(self)
       !! author: David A. Minton
       !!
       !! Finalize the RMVS nbody system object - deallocates all allocatables
@@ -233,13 +233,13 @@ contains
       type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
 
       if (allocated(self%vbeg)) deallocate(self%vbeg)
-      call whm_util_final_system(self%whm_nbody_system)
+      call whm_final_system(self%whm_nbody_system)
 
       return
-   end subroutine rmvs_util_final_system
+   end subroutine rmvs_final_system
 
 
-   module subroutine rmvs_util_final_tp(self)
+   module subroutine rmvs_final_tp(self)
       !! author: David A. Minton
       !!
       !! Finalize the RMVS test particle object - deallocates all allocatables
@@ -250,7 +250,7 @@ contains
       call self%dealloc()
 
       return
-   end subroutine rmvs_util_final_tp
+   end subroutine rmvs_final_tp
 
 
    module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)

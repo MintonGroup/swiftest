@@ -55,6 +55,7 @@ module swiftest
       procedure :: initialize => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
       procedure :: flush      => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
+      final     ::               swiftest_final_netcdf_parameters     !! Finalizer will close the NetCDF file
    end type swiftest_netcdf_parameters
 
 
@@ -65,7 +66,7 @@ module swiftest
       procedure :: get_index_values => swiftest_util_get_vals_storage  !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
       procedure :: make_index_map   => swiftest_util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: take_snapshot    => swiftest_util_snapshot_system   !! Takes a snapshot of the system for later file storage
-      final     ::                     swiftest_util_final_storage
+      final     ::                     swiftest_final_storage
    end type swiftest_storage
 
 
@@ -88,7 +89,7 @@ module swiftest
       integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    contains
       procedure :: dealloc  => swiftest_util_dealloc_kin !! Deallocates all allocatable arrays
-      final     :: swiftest_util_final_kin               !! Finalizes the Swiftest kinship object - deallocates all allocatables
+      final     :: swiftest_final_kin               !! Finalizes the Swiftest kinship object - deallocates all allocatables
    end type swiftest_kinship
 
 
@@ -1225,16 +1226,6 @@ module swiftest
          class(swiftest_pl), intent(inout) :: self
       end subroutine swiftest_util_dealloc_pl
 
-      module subroutine swiftest_util_final_kin(self)
-         implicit none
-         type(swiftest_kinship), intent(inout) :: self !! Swiftest kinship object
-      end subroutine swiftest_util_final_kin
-
-      module subroutine swiftest_util_final_system(self)
-         implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self
-      end subroutine swiftest_util_final_system
-
       module subroutine swiftest_util_dealloc_tp(self)
          implicit none
          class(swiftest_tp), intent(inout) :: self
@@ -1251,7 +1242,6 @@ module swiftest
          class(swiftest_body),  intent(in)    :: inserts    !! Swiftest body object to be inserted
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine swiftest_util_fill_body
-
 
       module subroutine swiftest_util_fill_pl(self, inserts, lfill_list)
          implicit none
@@ -1320,11 +1310,6 @@ module swiftest
    end interface
 
    interface
-
-      module subroutine swiftest_util_final_storage(self)
-         implicit none
-         type(swiftest_storage(*)) :: self
-      end subroutine swiftest_util_final_storage
 
       pure module subroutine swiftest_util_flatten_eucl_ij_to_k(n, i, j, k)
          !$omp declare simd(swiftest_util_flatten_eucl_ij_to_k)
@@ -1857,6 +1842,70 @@ module swiftest
 
          return
       end subroutine make_impactors_pl
+
+
+      subroutine swiftest_final_kin(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the swiftest kinship object - deallocates all allocatables
+         implicit none
+         ! Argument
+         type(swiftest_kinship),  intent(inout) :: self !! SyMBA kinship object
+   
+         call self%dealloc()
+   
+         return
+      end subroutine swiftest_final_kin
+
+
+      subroutine swiftest_final_netcdf_parameters(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the NetCDF by closing the file
+         implicit none
+         ! Arguments
+         type(swiftest_netcdf_parameters), intent(inout) :: self
+
+         call self%close()
+
+         return
+      end subroutine swiftest_final_netcdf_parameters
+
+
+      subroutine swiftest_final_storage(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer for the storage data type
+         implicit none
+         ! Arguments
+         type(swiftest_storage(*)) :: self
+         ! Internals
+         integer(I4B) :: i
+   
+         do i = 1, self%nframes
+            if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
+         end do
+   
+         return
+      end subroutine swiftest_final_storage
+   
+   
+      subroutine swiftest_final_system(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the swiftest nbody system object - deallocates all allocatables
+         implicit none
+         ! Argument
+         class(swiftest_nbody_system),  intent(inout) :: self !! Swiftest nbody system object
+   
+         if (allocated(self%cb)) deallocate(self%cb)
+         if (allocated(self%pl)) deallocate(self%pl)
+         if (allocated(self%tp)) deallocate(self%tp)
+         if (allocated(self%tp_discards)) deallocate(self%tp_discards)
+         if (allocated(self%pl_discards)) deallocate(self%pl_discards)
+   
+         return
+      end subroutine swiftest_final_system
 
 
 end module swiftest

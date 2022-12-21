@@ -119,56 +119,6 @@ contains
    end subroutine encounter_util_dealloc_list
 
 
-   module subroutine encounter_util_final_aabb(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the axis aligned bounding box (1D) - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(encounter_bounding_box_1D), intent(inout) :: self
-
-      call self%dealloc()
-
-      return
-   end subroutine encounter_util_final_aabb
-
-
-   module subroutine encounter_util_final_snapshot(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates allocatable arrays in an encounter snapshot
-      implicit none
-      ! Arguments
-      type(encounter_snapshot),  intent(inout) :: self !! Encounter storage object
-
-      if (allocated(self%pl)) deallocate(self%pl)
-      if (allocated(self%tp)) deallocate(self%tp)
-      self%t = 0.0_DP
-
-      return
-   end subroutine encounter_util_final_snapshot
-
-
-   module subroutine encounter_util_final_storage(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates allocatable arrays in an encounter snapshot
-      implicit none
-      ! Arguments
-      type(encounter_storage(*)),  intent(inout) :: self !! Encounter storage object
-      ! Internals
-      integer(I4B) :: i
-
-      do i = 1, self%nframes
-         if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-      end do
-
-      return
-
-      return
-   end subroutine encounter_util_final_storage
-
-
    module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
       !! author: David A. Minton
       !!

@@ -53,9 +53,9 @@ module encounter
       real(DP)                        :: t     !! Simulation time when snapshot was taken
       integer(I8B)                    :: iloop !! Loop number at time of snapshot
    contains
-      procedure :: write_frame => encounter_io_write_frame_snapshot     !! Writes a frame of encounter data to file 
+      procedure :: write_frame => encounter_netcdf_io_write_frame_snapshot     !! Writes a frame of encounter data to file 
       procedure :: get_idvals  => encounter_util_get_idvalues_snapshot  !! Gets an array of all id values saved in this snapshot
-      final     ::                encounter_util_final_snapshot
+      final     ::                encounter_final_snapshot
    end type encounter_snapshot
 
    !> NetCDF dimension and variable names for the enounter save object
@@ -66,7 +66,8 @@ module encounter
       integer(I4B)       :: name_dimsize = 0         !! Number of potential id values in snapshot
       integer(I4B)       :: file_number  = 1         !! The number to append on the output file
    contains
-      procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: initialize => encounter_netcdf_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      final     ::               encounter_final_netcdf_parameters     !! Finalizer will close the NetCDF file
    end type encounter_netcdf_parameters
 
 
@@ -74,11 +75,11 @@ module encounter
    type, extends(base_storage) :: encounter_storage
       class(encounter_netcdf_parameters), allocatable :: nc             !! NetCDF object attached to this storage object
    contains
-      procedure :: dump             => encounter_io_dump        !! Dumps contents of encounter history to file
+      procedure :: dump             => encounter_netcdf_io_dump        !! Dumps contents of encounter history to file
       procedure :: get_index_values => encounter_util_get_vals_storage !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
-      procedure :: make_index_map   => encounter_util_index_map  !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: take_snapshot    => encounter_util_snapshot !! Take a minimal snapshot of the system through an encounter
-      final     ::                     encounter_util_final_storage
+      procedure :: make_index_map   => encounter_util_index_map        !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: take_snapshot    => encounter_util_snapshot         !! Take a minimal snapshot of the system through an encounter
+      final     ::                     encounter_final_storage
    end type encounter_storage
 
 
@@ -91,7 +92,7 @@ module encounter
    contains
       procedure :: sort    => encounter_check_sort_aabb_1D !! Sorts the bounding box extents along a single dimension prior to the sweep phase
       procedure :: dealloc => encounter_util_dealloc_aabb  !! Deallocates all allocatables
-      final     ::            encounter_util_final_aabb    !! Finalize the axis-aligned bounding box (1D) - deallocates all allocatables
+      final     ::            encounter_final_aabb    !! Finalize the axis-aligned bounding box (1D) - deallocates all allocatables
    end type
 
 
@@ -217,24 +218,24 @@ module encounter
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_io_dump(self, param)
+      module subroutine encounter_netcdf_io_dump(self, param)
          implicit none
          class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
          class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
-      end subroutine encounter_io_dump
+      end subroutine encounter_netcdf_io_dump
 
-      module subroutine encounter_io_initialize_output(self, param)
+      module subroutine encounter_netcdf_io_initialize_output(self, param)
          implicit none
          class(encounter_netcdf_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),     intent(in)    :: param   
-      end subroutine encounter_io_initialize_output
+      end subroutine encounter_netcdf_io_initialize_output
 
-      module subroutine encounter_io_write_frame_snapshot(self, history, param)
+      module subroutine encounter_netcdf_io_write_frame_snapshot(self, history, param)
          implicit none
          class(encounter_snapshot),   intent(in)    :: self    !! Swiftest encounter structure
          class(encounter_storage(*)), intent(inout) :: history !! Encounter storage object
          class(base_parameters),  intent(inout) :: param   !! Current run configuration parameters
-      end subroutine encounter_io_write_frame_snapshot
+      end subroutine encounter_netcdf_io_write_frame_snapshot
 
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none
@@ -272,20 +273,6 @@ module encounter
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list object
       end subroutine encounter_util_dealloc_list
 
-      module subroutine encounter_util_final_aabb(self)
-         implicit none
-         type(encounter_bounding_box_1D), intent(inout) :: self !!Bounding box structure along a single dimension
-      end subroutine encounter_util_final_aabb
-
-      module subroutine encounter_util_final_snapshot(self)
-         implicit none
-         type(encounter_snapshot),  intent(inout) :: self !! Encounter snapshot object
-      end subroutine encounter_util_final_snapshot
-
-      module subroutine encounter_util_final_storage(self)
-         implicit none
-         type(encounter_storage(*)),  intent(inout) :: self !! SyMBA nbody system object
-      end subroutine encounter_util_final_storage
 
       module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
          implicit none
@@ -328,6 +315,71 @@ module encounter
       end subroutine encounter_util_spill_list
 
    end interface
+
+   contains
+
+      subroutine encounter_final_aabb(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the axis aligned bounding box (1D) - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(encounter_bounding_box_1D), intent(inout) :: self
+
+         call self%dealloc()
+
+         return
+      end subroutine encounter_final_aabb
+
+
+      subroutine encounter_final_netcdf_parameters(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the NetCDF by closing the file
+         implicit none
+         ! Arguments
+         type(encounter_netcdf_parameters), intent(inout) :: self
+
+         call self%close()
+
+         return
+      end subroutine encounter_final_netcdf_parameters
+
+
+      subroutine encounter_final_snapshot(self)
+         !! author: David A. Minton
+         !!
+         !! Deallocates allocatable arrays in an encounter snapshot
+         implicit none
+         ! Arguments
+         type(encounter_snapshot),  intent(inout) :: self !! Encounter storage object
+
+         if (allocated(self%pl)) deallocate(self%pl)
+         if (allocated(self%tp)) deallocate(self%tp)
+         self%t = 0.0_DP
+
+         return
+      end subroutine encounter_final_snapshot
+
+
+      subroutine encounter_final_storage(self)
+         !! author: David A. Minton
+         !!
+         !! Deallocates allocatable arrays in an encounter snapshot
+         implicit none
+         ! Arguments
+         type(encounter_storage(*)),  intent(inout) :: self !! Encounter storage object
+         ! Internals
+         integer(I4B) :: i
+
+         do i = 1, self%nframes
+            if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
+         end do
+
+         return
+
+         return
+      end subroutine encounter_final_storage
 
 end module encounter
 

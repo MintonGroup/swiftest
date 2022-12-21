@@ -22,7 +22,7 @@ module helio
    contains
       procedure :: step       => helio_step_system             !! Advance the Helio nbody system forward in time by one step
       procedure :: initialize => helio_setup_initialize_system !! Performs Helio-specific initilization steps, including converting to DH coordinates
-      final     ::               helio_util_final_system       !! Finalizes the Helio system object - deallocates all allocatables 
+      final     ::               helio_final_system       !! Finalizes the Helio system object - deallocates all allocatables 
    end type helio_nbody_system
 
 
@@ -44,7 +44,7 @@ module helio
       procedure :: accel       => helio_kick_getacch_pl    !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => helio_kick_vb_pl         !! Kicks the barycentric velocities
       procedure :: step        => helio_step_pl            !! Steps the body forward one stepsize
-      final     ::                helio_util_final_pl      !! Finalizes the Helio massive body object - deallocates all allocatables
+      final     ::                helio_final_pl      !! Finalizes the Helio massive body object - deallocates all allocatables
    end type helio_pl
 
 
@@ -58,7 +58,7 @@ module helio
       procedure :: accel       => helio_kick_getacch_tp    !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => helio_kick_vb_tp         !! Kicks the barycentric velocities
       procedure :: step        => helio_step_tp            !! Steps the body forward one stepsize
-      final     ::                helio_util_final_tp      !! Finalizes the Helio test particle object - deallocates all allocatables
+      final     ::                helio_final_tp      !! Finalizes the Helio test particle object - deallocates all allocatables
    end type helio_tp
 
    interface
@@ -199,22 +199,49 @@ module helio
          real(DP),                     intent(in)    :: t      !! Current simulation time
          real(DP),                     intent(in)    :: dt     !! Stepsizee
       end subroutine helio_step_tp
-
-      module subroutine helio_util_final_pl(self)
-         implicit none
-         type(helio_pl),  intent(inout) :: self !! Helio massive body object
-      end subroutine helio_util_final_pl
-
-      module subroutine helio_util_final_system(self)
-         implicit none
-         type(helio_nbody_system),  intent(inout) :: self !! Helio nbody system object
-      end subroutine helio_util_final_system
-
-      module subroutine helio_util_final_tp(self)
-         implicit none
-         type(helio_tp),  intent(inout) :: self !! Helio test particle object
-      end subroutine helio_util_final_tp
-
    end interface
+
+   contains
+
+      subroutine helio_final_pl(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the Helio massive body object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(helio_pl),  intent(inout) :: self !! Helio massive body object
+
+         call self%dealloc()
+
+         return
+      end subroutine helio_final_pl
+
+
+      subroutine helio_final_system(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the Helio nbody system object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(helio_nbody_system),  intent(inout) :: self !! Helio nbody system object
+
+         call whm_final_system(self%whm_nbody_system)
+
+         return
+      end subroutine helio_final_system
+
+
+      subroutine helio_final_tp(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the Helio test particle object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(helio_tp),  intent(inout) :: self !! Helio test particle object
+
+         call self%dealloc()
+
+         return
+      end subroutine helio_final_tp
 
 end module helio

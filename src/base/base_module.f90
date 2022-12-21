@@ -237,7 +237,7 @@ module base
       end subroutine final_storage_frame
 
 
-      subroutine base_util_final_storage(self)
+      subroutine base_final_storage(self)
          !! author: David A. Minton
          !!
          !! Finalizer for the storage object
@@ -251,7 +251,7 @@ module base
             call final_storage_frame(self%frame(i))
          end do
          return
-      end subroutine base_util_final_storage
+      end subroutine base_final_storage
 
 
       subroutine reset_storage(self)

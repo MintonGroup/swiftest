@@ -91,14 +91,12 @@ contains
 
             nenc = self%nenc
             allocate(lmask(nenc))
-            ! TODO: Move this to a SyMBA-specific method
-            ! lmask(:) = ((self%status(1:nenc) == ACTIVE) .and. (pl%levelg(self%index1(1:nenc)) >= irec))
-            ! if (isplpl) then
-            !    lmask(:) = lmask(:) .and. (pl%levelg(self%index2(1:nenc)) >= irec)
-            ! else
-            !    lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
-            ! end if
-            ! if (.not.any(lmask(:))) return
+            lmask(:) = (self%status(1:nenc) == ACTIVE)
+            select type(pl)
+            class is (symba_pl)
+               lmask(:) = lmask(:).and. (pl%levelg(self%index1(1:nenc)) >= irec))
+            end select
+            if (.not.any(lmask(:))) return
 
             allocate(lcollision(nenc))
             lcollision(:) = .false.
@@ -195,10 +193,15 @@ contains
 
             nenc = self%nenc
             allocate(lmask(nenc))
-            ! TODO: Move this to a SyMBA-specific method
-            ! lmask(:) = ((self%status(1:nenc) == ACTIVE) .and. (pl%levelg(self%index1(1:nenc)) >= irec))
-            ! lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
-            ! if (.not.any(lmask(:))) return
+             lmask(:) = (self%status(1:nenc) == ACTIVE) 
+            select type(pl)
+            class is (symba_pl)
+            select type(tp)
+            class is (symba_tp)
+               lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
+            end select
+            end select
+            if (.not.any(lmask(:))) return
 
             allocate(lcollision(nenc))
             lcollision(:) = .false.

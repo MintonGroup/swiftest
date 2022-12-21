@@ -62,36 +62,6 @@ contains
    end subroutine fraggle_util_construct_temporary_system
 
 
-   module subroutine fraggle_util_final_fragments(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer will deallocate all allocatables
-      implicit none
-      ! Arguments
-      type(fraggle_fragments(*)),  intent(inout) :: self !! Fraggle encountar storage object
-
-      call self%collision_fragments%reset()
-
-      return
-   end subroutine fraggle_util_final_fragments
-
-
-   module subroutine fraggle_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer will deallocate all allocatables
-      implicit none
-      ! Arguments
-      type(fraggle_system),  intent(inout) :: self !! Collision impactors storage object
-
-      call self%reset()
-      if (allocated(self%impactors)) deallocate(self%impactors)
-      if (allocated(self%fragments)) deallocate(self%fragments)
-
-      return
-   end subroutine fraggle_util_final_system
-
-
    module subroutine fraggle_util_reset_fragments(self)
       !! author: David A. Minton
       !!

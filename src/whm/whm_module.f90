@@ -51,7 +51,7 @@ module whm
       procedure :: spill       => whm_util_spill_pl          !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       procedure :: setup       => whm_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
-      final     ::                whm_util_final_pl          !! Finalizes the WHM massive body object - deallocates all allocatables
+      final     ::                whm_final_pl          !! Finalizes the WHM massive body object - deallocates all allocatables
    end type whm_pl
 
 
@@ -65,7 +65,7 @@ module whm
       procedure :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
       procedure :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
       procedure :: step        => whm_step_tp            !! Steps the particle forward one stepsize
-      final     ::                whm_util_final_tp      !! Finalizes the WHM test particle object - deallocates all allocatables 
+      final     ::                whm_final_tp      !! Finalizes the WHM test particle object - deallocates all allocatables 
    end type whm_tp
 
    !> An abstract class for the WHM integrator nbody system 
@@ -74,7 +74,7 @@ module whm
       !> Replace the abstract procedures with concrete ones
       procedure :: initialize   => whm_setup_initialize_system !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
       procedure :: step         => whm_step_system             !! Advance the WHM nbody system forward in time by one step
-      final     ::                 whm_util_final_system       !! Finalizes the WHM system object - deallocates all allocatables 
+      final     ::                 whm_final_system       !! Finalizes the WHM system object - deallocates all allocatables 
    end type whm_nbody_system
 
    interface
@@ -224,21 +224,6 @@ module whm
          class(whm_pl),  intent(inout) :: self !! WHM massive body object
       end subroutine whm_util_dealloc_pl
 
-      module subroutine whm_util_final_pl(self)
-         implicit none
-         type(whm_pl),  intent(inout) :: self !! WHM massive body object
-      end subroutine whm_util_final_pl
-
-      module subroutine whm_util_final_system(self)
-         implicit none
-         type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
-      end subroutine whm_util_final_system
-
-      module subroutine whm_util_final_tp(self)
-         implicit none
-         type(whm_tp),  intent(inout) :: self !! WHM test particle object
-      end subroutine whm_util_final_tp
-
       module subroutine whm_util_spill_pl(self, discards, lspill_list, ldestructive)
          implicit none
          class(whm_pl),         intent(inout) :: self        !! WHM massive body object
@@ -284,5 +269,50 @@ module whm
          integer(I4B),  dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine whm_util_sort_rearrange_pl
    end interface
+
+   contains
+
+
+
+      subroutine whm_final_pl(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the WHM massive body object - deallocates all allocatables
+         implicit none
+         ! Argument
+         type(whm_pl),  intent(inout) :: self !! WHM massive body object
+
+         call self%dealloc()
+
+         return
+      end subroutine whm_final_pl
+
+
+      subroutine whm_final_system(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the WHM nbody system object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
+
+         call swiftest_final_system(self)
+
+         return
+      end subroutine whm_final_system
+
+
+      subroutine whm_final_tp(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the WHM test particle object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(whm_tp),  intent(inout) :: self !! WHM test particle object
+
+         call self%dealloc()
+
+         return
+      end subroutine whm_final_tp
 
 end module whm

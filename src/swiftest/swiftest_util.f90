@@ -176,7 +176,7 @@ contains
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
-         call util_resize(arr, nold + nnew)
+         call swiftest_util_resize(arr, nold + nnew)
       end if
 
       arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
@@ -1112,42 +1112,6 @@ contains
 
       return
    end subroutine swiftest_util_fill_tp
-
-
-   module subroutine swiftest_util_final_storage(self)
-      !! author: David A. Minton
-      !!
-      !! Finalizer for the storage data type
-      implicit none
-      ! Arguments
-      type(swiftest_storage(*)) :: self
-      ! Internals
-      integer(I4B) :: i
-
-      do i = 1, self%nframes
-         if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-      end do
-
-      return
-   end subroutine swiftest_util_final_storage
-
-
-   module subroutine swiftest_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the swiftest nbody system object - deallocates all allocatables
-      implicit none
-      ! Argument
-      class(swiftest_nbody_system),  intent(inout) :: self !! Swiftest nbody system object
-
-      if (allocated(self%cb)) deallocate(self%cb)
-      if (allocated(self%pl)) deallocate(self%pl)
-      if (allocated(self%tp)) deallocate(self%tp)
-      if (allocated(self%tp_discards)) deallocate(self%tp_discards)
-      if (allocated(self%pl_discards)) deallocate(self%pl_discards)
-
-      return
-   end subroutine swiftest_util_final_system
 
 
    pure module subroutine swiftest_util_flatten_eucl_ij_to_k(n, i, j, k)

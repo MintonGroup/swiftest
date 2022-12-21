@@ -21,7 +21,6 @@ module fraggle
    integer(I4B),     parameter :: FRAGGLE_NMASS_DIST = 3             !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
    character(len=*), parameter :: FRAGGLE_LOG_OUT    = "fraggle.log" !! Name of log file for Fraggle diagnostic information
 
-
    !> Class definition for the variables that describe a collection of fragments by Fraggle barycentric coordinates
    type, extends(collision_fragments) :: fraggle_fragments
 
@@ -39,7 +38,7 @@ module fraggle
       procedure :: get_angular_momentum  => fraggle_util_get_angular_momentum  !! Calcualtes the current angular momentum of the fragments
       procedure :: reset                 => fraggle_util_reset_fragments       !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
       procedure :: restructure           => fraggle_util_restructure           !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
-      final     ::                          fraggle_util_final_fragments       !! Finalizer will deallocate all allocatables
+      final     ::                          fraggle_final_fragments       !! Finalizer will deallocate all allocatables
    end type fraggle_fragments
 
 
@@ -60,7 +59,7 @@ module fraggle
       procedure :: setup_fragments            => fraggle_setup_fragments_system          !! Initializer for the fragments of the collision system. 
       procedure :: construct_temporary_system => fraggle_util_construct_temporary_system !! Constructs temporary n-body system in order to compute pre- and post-impact energy and momentum
       procedure :: reset                      => fraggle_util_reset_system               !! Deallocates all allocatables
-      final     ::                               fraggle_util_final_system               !! Finalizer will deallocate all allocatables
+      final     ::                               fraggle_final_system               !! Finalizer will deallocate all allocatables
    end type fraggle_system  
 
 
@@ -138,20 +137,10 @@ module fraggle
          class(base_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
       end subroutine fraggle_util_construct_temporary_system
 
-      module subroutine fraggle_util_final_impactors(self)
+      module subroutine fraggle_final_impactors(self)
          implicit none
          type(collision_impactors),  intent(inout) :: self !! Fraggle impactors object
-      end subroutine fraggle_util_final_impactors
-
-      module subroutine fraggle_util_final_fragments(self)
-         implicit none
-         type(fraggle_fragments(*)),  intent(inout) :: self !! Fraggle frgments object
-      end subroutine fraggle_util_final_fragments
-
-      module subroutine fraggle_util_final_system(self)
-         implicit none
-         type(fraggle_system),  intent(inout) :: self !!  Collision system object
-      end subroutine fraggle_util_final_system
+      end subroutine fraggle_final_impactors
 
       module subroutine fraggle_util_reset_fragments(self)
          implicit none
@@ -188,5 +177,38 @@ module fraggle
          real(DP), dimension(:,:), allocatable   :: vb
       end function fraggle_util_vmag_to_vb
    end interface
+
+   contains
+
+      
+
+      subroutine fraggle_final_fragments(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer will deallocate all allocatables
+         implicit none
+         ! Arguments
+         type(fraggle_fragments(*)),  intent(inout) :: self !! Fraggle encountar storage object
+
+         call self%collision_fragments%reset()
+
+         return
+      end subroutine fraggle_final_fragments
+
+
+      subroutine fraggle_final_system(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer will deallocate all allocatables
+         implicit none
+         ! Arguments
+         type(fraggle_system),  intent(inout) :: self !! Collision impactors storage object
+
+         call self%reset()
+         if (allocated(self%impactors)) deallocate(self%impactors)
+         if (allocated(self%fragments)) deallocate(self%fragments)
+
+         return
+      end subroutine fraggle_final_system
 
 end module fraggle

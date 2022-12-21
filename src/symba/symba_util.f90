@@ -25,17 +25,8 @@ contains
       select type(source)
       class is (symba_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call swiftest_util_append(self%lcollision, source%lcollision, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%lencounter, source%lencounter, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%lmtiny, source%lmtiny, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%ntpenc, source%ntpenc, nold, nsrc, lsource_mask)
             call swiftest_util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
             call swiftest_util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
 
             call swiftest_util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
          end associate
@@ -181,79 +172,6 @@ contains
 
       return
    end subroutine symba_util_fill_tp
-
-
-   module subroutine symba_util_final_list_plpl(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the pl-tp list - deallocates all allocatables
-      implicit none
-      type(symba_list_plpl),  intent(inout) :: self !! SyMBA encounter list object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_list_plpl
-
-
-   module subroutine symba_util_final_list_pltp(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the pl-tp list - deallocates all allocatables
-      implicit none
-      type(symba_list_pltp),  intent(inout) :: self !! SyMBA encounter list object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_list_pltp
-
-
-   module subroutine symba_util_final_pl(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA massive body object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_pl),  intent(inout) :: self !! SyMBA massive body object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_pl
-
-
-   module subroutine symba_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA nbody system object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
-
-      if (allocated(self%pl_adds)) deallocate(self%pl_adds)
-      if (allocated(self%pltp_encounter)) deallocate(self%pltp_encounter)
-      if (allocated(self%plpl_encounter)) deallocate(self%plpl_encounter)
-      if (allocated(self%plpl_collision)) deallocate(self%plpl_collision)
-
-      call helio_util_final_system(self%helio_nbody_system)
-
-      return
-   end subroutine symba_util_final_system
-
-
-   module subroutine symba_util_final_tp(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA test particleobject - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_tp),  intent(inout) :: self !! SyMBA test particle object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_tp
 
 
    module subroutine symba_util_flatten_eucl_plpl(self, param)
@@ -527,7 +445,6 @@ contains
      
       return
    end subroutine symba_util_spill_pl
-
 
 
    module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
