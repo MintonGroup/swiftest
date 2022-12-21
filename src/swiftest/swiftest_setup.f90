@@ -21,8 +21,8 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(base_nbody_system),  allocatable,  intent(inout) :: system     !! Swiftest system object
-      class(base_parameters),                  intent(inout) :: param     !! Swiftest parameters
+      class(swiftest_nbody_system), allocatable, intent(inout) :: system !! Swiftest system object
+      class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       type(encounter_storage)  :: encounter_history
       type(collision_storage)  :: collision_history

@@ -310,7 +310,7 @@ contains
    end subroutine swiftest_io_dump_storage
 
 
-   module subroutine swiftest_io_get_args(integrator, param_file_name, display_style)
+   module subroutine swiftest_swiftest_io_get_args(integrator, param_file_name, display_style)
       !! author: David A. Minton
       !!
       !! Reads in the name of the parameter file from command line arguments. 
@@ -381,7 +381,7 @@ contains
       end if
 
       return
-   end subroutine swiftest_io_get_args
+   end subroutine swiftest_swiftest_io_get_args
 
 
    module function swiftest_io_get_token(buffer, ifirst, ilast, ierr) result(token)

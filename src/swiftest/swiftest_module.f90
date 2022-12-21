@@ -585,12 +585,12 @@ module swiftest
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_io_dump_storage
 
-      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style) 
+      module subroutine swiftest_swiftest_io_get_args(integrator, param_file_name, display_style) 
          implicit none
          character(len=:), allocatable, intent(inout) :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable, intent(inout) :: param_file_name !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
-      end subroutine swiftest_io_get_args
+      end subroutine swiftest_swiftest_io_get_args
 
       module function swiftest_io_get_token(buffer, ifirst, ilast, ierr) result(token)
          implicit none
@@ -1005,8 +1005,8 @@ module swiftest
 
       module subroutine swiftest_setup_construct_system(system, param)
          implicit none
-         class(base_nbody_system),   allocatable, intent(inout) :: system !! Swiftest system object
-         class(base_parameters),                  intent(inout) :: param  !! Current run configuration parameters
+         class(swiftest_nbody_system), allocatable, intent(inout) :: system !! Swiftest system object
+         class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
       end subroutine swiftest_setup_construct_system
 
       module subroutine swiftest_setup_initialize_particle_info_system(self, param)
@@ -1034,21 +1034,6 @@ module swiftest
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametersr
       end subroutine swiftest_setup_tp
-
-      ! TODO: Implement the tides model
-      module subroutine swiftest_tides_kick_getacch_pl(self, system)
-         implicit none
-         class(swiftest_pl),                intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      end subroutine swiftest_tides_kick_getacch_pl
-
-      ! module subroutine swiftest_tides_step_spin_system(self, param, t, dt)
-      !    implicit none
-      !    class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-      !    class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
-      !    real(DP),                          intent(in)    :: t     !! Simulation time
-      !    real(DP),                          intent(in)    :: dt    !! Current stepsize
-      ! end subroutine swiftest_tides_step_spin_system
 
       module subroutine swiftest_user_kick_getacch_body(self, system, param, t, lbeg)
          implicit none

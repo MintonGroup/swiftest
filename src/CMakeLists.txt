@@ -18,6 +18,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/rmvs/rmvs_kick.f90
             ${SRC}/symba/symba_kick.f90
             ${SRC}/whm/whm_kick.f90
+            ${SRC}/swiftest/swiftest_user.f90
 )
 
 SET(FAST_MATH_FILES
@@ -82,9 +83,6 @@ SET(FAST_MATH_FILES
             ${SRC}/symba/symba_setup.f90
             ${SRC}/symba/symba_step.f90
             ${SRC}/symba/symba_util.f90
-            ${SRC}/tides/tides_getacch_pl.f90
-            ${SRC}/tides/tides_spin_step.f90
-            ${SRC}/user/user_getacch.f90
             ${SRC}/walltime/walltime_implementations.f90
             ${SRC}/whm/whm_coord.f90
             ${SRC}/whm/whm_drift.f90

@@ -1,32 +1,5 @@
-submodule(base) s_tides_step_spin
+submodule(tides) s_tides_step_spin
    use swiftest
-
-   type, extends(lambda_obj_tvar) :: tides_derivs_func 
-      !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers
-      procedure(tidederiv), pointer, nopass :: lambdaptr_tides_deriv 
-      real(DP), dimension(:,:), allocatable :: rbeg
-      real(DP), dimension(:,:), allocatable :: rend
-      real(DP)                              :: dt
-   contains
-      generic   :: init => tides_derivs_init
-      procedure :: evalt => tides_derivs_eval
-      procedure, nopass :: tides_derivs_init
-   end type
-   interface lambda_obj
-      module procedure tides_derivs_init
-   end interface
-   abstract interface
-      function tidederiv(x, t, dt, rbeg, rend) result(y)
-         ! Template for a 0 argument function
-         import DP, base_nbody_system
-         real(DP), dimension(:),     intent(in) :: x
-         real(DP),                     intent(in) :: t
-         real(DP),                     intent(in) :: dt
-         real(DP), dimension(:,:),     intent(in) :: rbeg
-         real(DP), dimension(:,:),     intent(in) :: rend
-         real(DP), dimension(:), allocatable    :: y
-      end function
-   end interface
 
 contains
 
@@ -46,22 +19,25 @@ contains
       real(DP), parameter                       :: tol=1e-6_DP !! Just a guess at the moment
       real(DP)                                  :: subdt 
 
-      associate(pl => self%pl, npl => self%pl%nbody, cb => self%cb)
-         allocate(rot0(NDIM*(npl+1)))
-         rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
-         ! Use this space call the ode_solver, passing tides_spin_derivs as the function:
-         subdt = dt / 20._DP
-         !rot1(:) = swiftest_util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%rbeg, pl%rend), rot0, dt, subdt tol)
-         ! Recover with unpack
-         !pl%rot(:,1:npl) = unpack(rot1...
-         !cb%rot(:) = unpack(rot1...
-      end associate
+      select type(self)
+      class is (swiftest_nbody_system)
+         associate(pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+            allocate(rot0(NDIM*(npl+1)))
+            ! rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
+            ! Use this space call the ode_solver, passing tides_spin_derivs as the function:
+            ! subdt = dt / 20._DP
+            ! rot1(:) = swiftest_util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%rbeg, pl%rend), rot0, dt, subdt,tol)
+            ! ! Recover with unpack
+            ! pl%rot(:,1:npl) = unpack(rot1...
+            ! cb%rot(:) = unpack(rot1...
+         end associate
+      end select
 
       return
    end subroutine tides_step_spin_system
 
 
-   function tides_spin_derivs(rot_pl_cb, t, dt, rbeg, rend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
+   module function tides_spin_derivs(rot_pl_cb, t, dt, rbeg, rend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
       !! author: Jennifer L.L. Pouplin and David A. Minton
       !!
       !! function used to calculate the derivatives that are fed to the ODE solver
@@ -95,7 +71,7 @@ contains
       return
    end function tides_spin_derivs
 
-   function tides_derivs_eval(self, x, t) result(y)
+   module function tides_derivs_eval(self, x, t) result(y)
       implicit none
       ! Arguments
       class(tides_derivs_func), intent(inout) :: self
@@ -112,7 +88,7 @@ contains
       return
    end function tides_derivs_eval
 
-   function tides_derivs_init(lambda, dt, rbeg, rend) result(f)
+   module function tides_derivs_init(lambda, dt, rbeg, rend) result(f)
       implicit none
       ! Arguments
       procedure(tidederiv)                     :: lambda

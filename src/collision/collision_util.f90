@@ -75,6 +75,9 @@ contains
       ! Internals
       logical, dimension(:), allocatable :: linclude
       integer(I4B) :: npl_tot
+      ! The following are needed in order to deal with typing requirements
+      class(swiftest_nbody_system), allocatable :: tmpsys_local
+      class(swiftest_parameters), allocatable :: tmpparam_local
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -85,30 +88,27 @@ contains
             if (allocated(tmpparam)) deallocate(tmpparam)
             if (allocated(tmpsys)) deallocate(tmpsys)
             allocate(tmpparam, source=param)
-            call swiftest_setup_construct_system(tmpsys, tmpparam)
-            select type(tmpsys)
-            class is (swiftest_nbody_system)
-            select type(tmpparam)
-            class is (swiftest_parameters)
+            call swiftest_setup_construct_system(tmpsys_local, tmpparam_local)
 
-               ! No test particles necessary for energy/momentum calcs
-               call tmpsys%tp%setup(0, param)
+            ! No test particles necessary for energy/momentum calcs
+            call tmpsys_local%tp%setup(0, tmpparam_local)
 
-               ! Replace the empty central body object with a copy of the original
-               deallocate(tmpsys%cb)
-               allocate(tmpsys%cb, source=cb)
+            ! Replace the empty central body object with a copy of the original
+            deallocate(tmpsys_local%cb)
+            allocate(tmpsys_local%cb, source=cb)
 
-               ! Make space for the fragments
-               npl_tot = npl + nfrag
-               call tmpsys%pl%setup(npl_tot, tmpparam)
-               allocate(linclude(npl_tot))
+            ! Make space for the fragments
+            npl_tot = npl + nfrag
+            call tmpsys_local%pl%setup(npl_tot, tmpparam_local)
+            allocate(linclude(npl_tot))
 
-               ! Fill up the temporary system with all of the original bodies, leaving the spaces for fragments empty until we add them in later
-               linclude(1:npl) = .true.
-               linclude(npl+1:npl_tot) = .false.
-               call tmpsys%pl%fill(pl, linclude)
-            end select
-            end select
+            ! Fill up the temporary system with all of the original bodies, leaving the spaces for fragments empty until we add them in later
+            linclude(1:npl) = .true.
+            linclude(npl+1:npl_tot) = .false.
+            call tmpsys_local%pl%fill(pl, linclude)
+
+            call move_alloc(tmpsys_local, tmpsys) 
+            call move_alloc(tmpparam_local, tmpparam) 
 
          end associate
       end select

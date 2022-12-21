@@ -2480,6 +2480,28 @@ contains
    end subroutine swiftest_util_rescale_system 
 
 
+   module subroutine swiftest_util_reset_kinship_pl(self, idx)
+      !! author: David A. Minton
+      !! 
+      !! Resets the kinship status of bodies.
+      !!
+      implicit none
+      class(swiftest_pl),         intent(inout) :: self !! SyMBA massive body object
+      integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
+      ! Internals
+      integer(I4B) :: i, j
+
+      self%kin(idx(:))%parent = idx(:)
+      self%kin(idx(:))%nchild = 0
+      do j = 1, size(idx(:))
+         i = idx(j)
+         if (allocated(self%kin(i)%child)) deallocate(self%kin(i)%child)
+      end do
+
+      return
+   end subroutine swiftest_util_reset_kinship_pl
+
+
    module subroutine swiftest_util_resize_arr_char_string(arr, nnew)
       !! author: David A. Minton
       !!

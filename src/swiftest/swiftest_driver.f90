@@ -41,7 +41,7 @@ program swiftest_driver
    character(*), parameter                        :: symbacompactfmt = '(";NPLM",ES22.15,$)'
    !type(base_storage(nframes=:)), allocatable :: system_history
 
-   call io_get_args(integrator, param_file_name, display_style)
+   call swiftest_io_get_args(integrator, param_file_name, display_style)
 
    !> Read in the user-defined parameters file and the initial conditions of the system
    allocate(swiftest_parameters :: param)
@@ -71,7 +71,7 @@ program swiftest_driver
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
 
       ! Construct the main n-body system using the user-input integrator to choose the type of system
-      call setup_construct_system(system, param)
+      call swiftest_setup_construct_system(system, param)
 
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case

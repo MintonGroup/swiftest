@@ -292,6 +292,7 @@ module base
       final     ::                  final_storage_frame
    end type
 
+
    type, abstract :: base_storage(nframes)
       !! An class that establishes the pattern for various storage objects
       integer(I4B), len  :: nframes = 4096 !! Total number of frames that can be stored
@@ -321,10 +322,12 @@ module base
    type, abstract :: base_object
    end type base_object
 
+
    type, abstract :: base_multibody(nbody)
       integer(I4B), len              :: nbody
       integer(I4B), dimension(nbody) :: id
    end type base_multibody 
+
 
    !> Class definition for the kinship relationships used in bookkeeping multiple collisions bodies in a single time step.
    type, abstract :: base_kinship
