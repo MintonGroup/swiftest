@@ -313,8 +313,8 @@ module swiftest
       class(swiftest_pl),                  allocatable :: pl_discards       !! Discarded massive body particle data structure
       class(swiftest_pl),                  allocatable :: pl_adds            !! List of added bodies in mergers or collisions
       class(swiftest_tp),                  allocatable :: tp_adds            !! List of added bodies in mergers or collisions
-      class(collision_list_pltp),          allocatable :: pltp_encounter         !! List of massive body-test particle encounters in a single step 
-      class(collision_list_plpl),          allocatable :: plpl_encounter         !! List of massive body-massive body encounters in a single step
+      class(encounter_list),               allocatable :: pltp_encounter         !! List of massive body-test particle encounters in a single step 
+      class(encounter_list),               allocatable :: plpl_encounter         !! List of massive body-massive body encounters in a single step
       class(collision_list_plpl),          allocatable :: plpl_collision    !! List of massive body-massive body collisions in a single step
       class(collision_list_plpl),          allocatable :: pltp_collision    !! List of massive body-massive body collisions in a single step
       class(collision_system),             allocatable :: collision_system  !! Collision system object

@@ -34,7 +34,7 @@ contains
          class is (symba_tp)
             select type(param)
             class is (swiftest_parameters)
-               associate(encounter_history => param%encounter_history)
+               associate(encounter_history => self%encounter_history)
                   call self%reset(param)
                   lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
                   if (lencounter) then
@@ -190,7 +190,7 @@ contains
             class is (symba_tp)
                associate(system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, &
                         lplpl_collision => self%plpl_encounter%lcollision, lpltp_collision => self%pltp_encounter%lcollision, &
-                        encounter_history => param%encounter_history)
+                        encounter_history => self%encounter_history)
                   system%irec = ireci
                   dtl = param%dt / (NTENC**ireci)
                   dth = 0.5_DP * dtl

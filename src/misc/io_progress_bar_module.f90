@@ -9,7 +9,7 @@ module io_progress_bar
 
    character(len=1),parameter, private                :: barchar = "#" !! The progress bar character
 
-   type :: pbar
+   type :: progress_bar
       !! author: David A. Minton
       !! 
       !! Implements a class for a simple progress bar that can print on the screen.
@@ -22,7 +22,7 @@ module io_progress_bar
    contains
       procedure :: reset  => io_progress_bar_reset   !! Resets the progress bar to the beginning
       procedure :: update => io_progress_bar_update !! Updates the progress bar with new values 
-   end type pbar
+   end type progress_bar
 
 contains
 
@@ -32,7 +32,7 @@ contains
       !! Resets the progress bar to the beginning
       implicit none
       ! Arguments
-      class(pbar),intent(inout)        :: self         !! The progress bar object
+      class(progress_bar),intent(inout)        :: self         !! The progress bar object
       integer(I8B),       intent(in)           :: loop_length  !! The length of the loop that the progress bar is attached to
       ! Internals
       character(len=2) :: numchar
@@ -62,7 +62,7 @@ contains
       !! Updates the progress bar with new values 
       implicit none
       ! Arguments
-      class(pbar), intent(inout)        :: self    !! Progres bar object
+      class(progress_bar), intent(inout)        :: self    !! Progres bar object
       integer(I8B),        intent(in)           :: i       !! The current loop index of the progress loop
       character(len=*),    intent(in), optional :: message !! An optional message to display to the right of the progress bar
       ! Internals

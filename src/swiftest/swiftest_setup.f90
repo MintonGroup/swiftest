@@ -74,9 +74,11 @@ contains
                allocate(symba_cb :: system%cb)
                allocate(symba_pl :: system%pl)
                allocate(symba_tp :: system%tp)
+
                allocate(symba_tp :: system%tp_discards)
                allocate(symba_pl :: system%pl_adds)
                allocate(symba_pl :: system%pl_discards)
+
                allocate(collision_list_pltp :: system%pltp_encounter)
                allocate(collision_list_plpl :: system%plpl_encounter)
                allocate(collision_list_plpl :: system%plpl_collision)

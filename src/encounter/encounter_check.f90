@@ -11,8 +11,7 @@ submodule (encounter) s_encounter_check
    use swiftest
 contains
 
-   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, &
-                                              nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -72,8 +71,7 @@ contains
    end subroutine encounter_check_all_plpl
 
 
-   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
-                                               nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between fully interacting massive bodies partially interacting massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -138,8 +136,7 @@ contains
          ! call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
           !                                             plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
       ! else
-         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
-                                                       plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
+         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
       ! end if
 
       ! if (skipit) then
@@ -179,8 +176,7 @@ contains
    end subroutine encounter_check_all_plplm
 
 
-   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
-                                              nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -297,8 +293,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
 
-   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
-                                                       nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -370,8 +365,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plplm
 
 
-   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, rencpl, dt, &
-                                                      nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, rencpl, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 

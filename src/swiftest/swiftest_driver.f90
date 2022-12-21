@@ -16,6 +16,7 @@ program swiftest_driver
    !! Adapted from Swifter by David E. Kaufmann's Swifter driver programs swifter_[bs,helio,ra15,rmvs,symba,tu4,whm].f90
    !! Adapted from Hal Levison and Martin Duncan's Swift driver programs
    use swiftest
+   use symba
    implicit none
 
    class(swiftest_nbody_system), allocatable      :: system           !! Polymorphic object containing the nbody system to be integrated
@@ -29,7 +30,7 @@ program swiftest_driver
    integer(I4B)                                   :: idump             !! Dump cadence counter
    type(walltimer)                                :: integration_timer !! Object used for computing elapsed wall time
    real(DP)                                       :: tfrac             !! Fraction of total simulation time completed
-   type(pbar)                             :: pbar              !! Object used to print out a progress bar
+   type(progress_bar)                             :: pbar              !! Object used to print out a progress bar
    character(*), parameter                        :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                                                  '"; Number of active pl, tp = ", I6, ", ", I6)'
    character(*), parameter                        :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
@@ -43,12 +44,7 @@ program swiftest_driver
    call io_get_args(integrator, param_file_name, display_style)
 
    !> Read in the user-defined parameters file and the initial conditions of the system
-   select case(integrator)
-   case(symba)
-      allocate(base_parameters :: param)
-   case default
-      allocate(base_parameters :: param)
-   end select
+   allocate(swiftest_parameters :: param)
    param%integrator = trim(adjustl(integrator))
    call param%set_display(display_style)
    call param%read_in(param_file_name)
