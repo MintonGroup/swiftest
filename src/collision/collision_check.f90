@@ -10,6 +10,7 @@
 
 submodule (collision) s_collision_check
    use swiftest
+   use symba, only : symba_pl, symba_tp
 contains
 
    pure elemental subroutine collision_check_one(xr, yr, zr, vxr, vyr, vzr, Gmtot, rlim, dt, lvdotr, lcollision, lclosest)
@@ -94,7 +95,7 @@ contains
             lmask(:) = (self%status(1:nenc) == ACTIVE)
             select type(pl)
             class is (symba_pl)
-               lmask(:) = lmask(:).and. (pl%levelg(self%index1(1:nenc)) >= irec))
+               lmask(:) = lmask(:).and. (pl%levelg(self%index1(1:nenc)) >= irec)
             end select
             if (.not.any(lmask(:))) return
 
