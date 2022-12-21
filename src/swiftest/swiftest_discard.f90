@@ -93,9 +93,9 @@ contains
             call tp%h2b(cb) 
          end if
 
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call discard_cb_tp(tp, system, param)
-         if (param%qmin >= 0.0_DP) call discard_peri_tp(tp, system, param)
-         if (param%lclose) call discard_pl_tp(tp, system, param)
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call swiftest_discard_cb_tp(tp, system, param)
+         if (param%qmin >= 0.0_DP) call swiftest_discard_peri_tp(tp, system, param)
+         if (param%lclose) call swiftest_discard_pl_tp(tp, system, param)
          if (any(tp%ldiscard(1:ntp))) then
             allocate(ldiscard, source=tp%ldiscard)
             call tp%spill(system%tp_discards, ldiscard(1:ntp), ldestructive=.true.)
@@ -252,7 +252,7 @@ contains
                   dx(:) = tp%rh(:, i) - pl%rh(:, j)
                   dv(:) = tp%vh(:, i) - pl%vh(:, j)
                   radius = pl%radius(j)
-                  call discard_pl_close(dx(:), dv(:), dt, radius**2, isp, r2min)
+                  call swiftest_discard_pl_close(dx(:), dv(:), dt, radius**2, isp, r2min)
                   if (isp /= 0) then
                      tp%status(i) = DISCARDED_PLR
                      tp%lmask(i) = .false.

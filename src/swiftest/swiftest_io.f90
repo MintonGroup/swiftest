@@ -2046,7 +2046,7 @@ contains
 
 
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
-         call io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
+         call swiftest_io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
 
          if ((param%encounter_save /= "NONE")       .and. &
              (param%encounter_save /= "TRAJECTORY") .and. &
@@ -2106,7 +2106,7 @@ contains
          case("ADAPTIVE")
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
+            call swiftest_io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
             call swiftest_io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
             param%ladaptive_interactions = .false.
@@ -2121,7 +2121,7 @@ contains
             param%interaction_loops = "ADAPTIVE"
             param%ladaptive_interactions = .true.
             param%lflatten_interactions = .true.
-            call io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
+            call swiftest_io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
             call swiftest_io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          end select
 
@@ -2129,7 +2129,7 @@ contains
          case("ADAPTIVE")
             param%ladaptive_encounters_plpl = .true.
             param%lencounter_sas_plpl = .true.
-            call io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call swiftest_io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
             call swiftest_io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
             param%ladaptive_encounters_plpl = .false.
@@ -2144,7 +2144,7 @@ contains
             param%encounter_check_plpl = "ADAPTIVE"
             param%ladaptive_encounters_plpl = .true.
             param%lencounter_sas_plpl = .true.
-            call io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call swiftest_io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
             call swiftest_io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          end select
 
@@ -2152,7 +2152,7 @@ contains
          case("ADAPTIVE")
             param%ladaptive_encounters_pltp = .true.
             param%lencounter_sas_pltp = .true.
-            call io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call swiftest_io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
             call swiftest_io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
          case("TRIANGULAR")
             param%ladaptive_encounters_pltp = .false.
@@ -2167,7 +2167,7 @@ contains
             param%encounter_check_pltp = "ADAPTIVE"
             param%ladaptive_encounters_pltp = .true.
             param%lencounter_sas_pltp = .true.
-            call io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
+            call swiftest_io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
             call swiftest_io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
          end select
 

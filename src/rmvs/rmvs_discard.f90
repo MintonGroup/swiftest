@@ -50,7 +50,7 @@ contains
             end associate
          end do
          ! Call the base method that this overrides
-         call discard_tp(tp, system, param)
+         call swiftest_discard_tp(tp, system, param)
       end associate
 
    end subroutine rmvs_discard_tp
