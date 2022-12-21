@@ -1231,11 +1231,6 @@ module swiftest
          class(swiftest_tp), intent(inout) :: self
       end subroutine swiftest_util_dealloc_tp
 
-      module subroutine util_exit(code)
-         implicit none
-         integer(I4B), intent(in) :: code !! Failure exit code
-      end subroutine util_exit
-
       module subroutine swiftest_util_fill_body(self, inserts, lfill_list)
          implicit none
          class(swiftest_body),  intent(inout) :: self       !! Swiftest body object
