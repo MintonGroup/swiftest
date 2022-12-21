@@ -2310,12 +2310,14 @@ contains
          pl%lcollision(1:npl) = .false.
          pl%lmask(1:npl) = .true.
 
-         pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
-         where(pl%lmtiny(1:npl))
-            pl%info(1:npl)%particle_type = PL_TINY_TYPE_NAME 
-         elsewhere
-            pl%info(1:npl)%particle_type = PL_TYPE_NAME 
-         end where
+         if (param%lmtiny_pl) then
+            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
+            where(pl%lmtiny(1:npl))
+               pl%info(1:npl)%particle_type = PL_TINY_TYPE_NAME 
+            elsewhere
+               pl%info(1:npl)%particle_type = PL_TYPE_NAME 
+            end where
+         end if
 
          call pl%write_info(param%system_history%nc, param)
          deallocate(ldump_mask)

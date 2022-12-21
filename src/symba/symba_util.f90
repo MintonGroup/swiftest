@@ -276,11 +276,12 @@ contains
 
       associate(pl => self, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
-         select type(param)
-         class is (swiftest_parameters)
+         if (param%lmtiny_pl) then 
             pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY 
-         end select
-         nplm = count(.not. pl%lmtiny(1:npl))
+            nplm = count(.not. pl%lmtiny(1:npl))
+         else
+            nplm = npl
+         end if
          pl%nplm = int(nplm, kind=I4B)
          nplplm = nplm * npl - nplm * (nplm + 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
 

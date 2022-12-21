@@ -30,7 +30,7 @@ contains
       select type(param)
       class is (swiftest_parameters)
          allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
-         allocate(swiftest_io_netcdf_parameters :: param%system_history%nc)
+         allocate(swiftest_netcdf_parameters :: param%system_history%nc)
          call param%system_history%reset()
 
          select case(param%integrator)
@@ -89,24 +89,22 @@ contains
                end if
 
                if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
-                  allocate(encounter_io_parameters :: encounter_history%nc)
+                  allocate(encounter_netcdf_parameters :: encounter_history%nc)
                   call encounter_history%reset()
                   select type(nc => encounter_history%nc)
-                  class is (encounter_io_parameters)
+                  class is (encounter_netcdf_parameters)
                      nc%file_number = param%iloop / param%dump_cadence
                   end select
                   allocate(system%encounter_history, source=encounter_history)
                end if
                
-               allocate(collision_io_parameters :: collision_history%nc)
+               allocate(collision_netcdf_parameters :: collision_history%nc)
                call collision_history%reset()
                select type(nc => collision_history%nc)
-               class is (collision_io_parameters)
+               class is (collision_netcdf_parameters)
                   nc%file_number = param%iloop / param%dump_cadence
                end select
                allocate(system%collision_history, source=collision_history)
-
-
 
             end select
          case (INT_RINGMOONS)
@@ -304,18 +302,21 @@ contains
       self%nplpl = 0   
 
       if (param%lclose) then
-         allocate(self%lmtiny(n))
          allocate(self%nplenc(n))
          allocate(self%ntpenc(n))
          allocate(self%radius(n))
          allocate(self%density(n))
 
-         self%lmtiny(:) = .false.
          self%nplenc(:) = 0
          self%ntpenc(:) = 0
          self%radius(:) = 0.0_DP
          self%density(:) = 1.0_DP
 
+      end if
+
+      if (param%lmtiny_pl) then
+         allocate(self%lmtiny(n))
+         self%lmtiny(:) = .false.
       end if
 
       if (param%lrotation) then

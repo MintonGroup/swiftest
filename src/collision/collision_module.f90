@@ -137,7 +137,7 @@ module collision
 
 
    !! NetCDF dimension and variable names for the enounter save object
-   type, extends(encounter_io_parameters) :: collision_io_parameters
+   type, extends(encounter_netcdf_parameters) :: collision_netcdf_parameters
       integer(I4B)       :: stage_dimid                                    !! ID for the stage dimension
       integer(I4B)       :: stage_varid                                    !! ID for the stage variable  
       character(NAMELEN) :: stage_dimname            = "stage"             !! name of the stage dimension (before/after)
@@ -154,7 +154,7 @@ module collision
       integer(I4B)       :: regime_varid               !! ID for the collision regime variable
    contains
       procedure :: initialize => collision_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-   end type collision_io_parameters
+   end type collision_netcdf_parameters
 
 
    type, extends(encounter_snapshot)  :: collision_snapshot
@@ -205,7 +205,7 @@ module collision
 
       module subroutine collision_io_initialize_output(self, param)
          implicit none
-         class(collision_io_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+         class(collision_netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),   intent(in)    :: param !! Current run configuration parameters  
       end subroutine collision_io_initialize_output
 

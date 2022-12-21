@@ -34,7 +34,7 @@ contains
       !          call itimer%time_this_loop(param, self%nplplm, self)
       !          lfirst = .false.
       !       else
-      !          if (itimer%io_netcdf_check(param, self%nplplm)) call itimer%time_this_loop(param, self%nplplm, self)
+      !          if (itimer%netcdf_io_check(param, self%nplplm)) call itimer%time_this_loop(param, self%nplplm, self)
       !       end if
       !    else
       !       param%lflatten_interactions = .false.

@@ -43,7 +43,7 @@ contains
       !          lfirst = .false.
       !          itimer%step_counter = INTERACTION_TIMER_CADENCE
       !       else 
-      !          if (itimer%io_netcdf_check(param, nplpl)) call itimer%time_this_loop(param, nplpl)
+      !          if (itimer%netcdf_io_check(param, nplpl)) call itimer%time_this_loop(param, nplpl)
       !       end if
       !    else
       !       param%lencounter_sas_plpl = .false.
@@ -117,7 +117,7 @@ contains
       !          lfirst = .false.
       !          itimer%step_counter = INTERACTION_TIMER_CADENCE
       !       else 
-      !          if (itimer%io_netcdf_check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
+      !          if (itimer%netcdf_io_check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
       !       end if
       !    else
       !       param%lencounter_sas_plpl = .false.
@@ -214,7 +214,7 @@ contains
       !          if (lsecond) then ! This ensures that the encounter check methods are run at least once prior to timing. Sort and sweep improves on the second pass due to the bounding box extents needing to be nearly sorted 
       !             call itimer%time_this_loop(param, npltp)
       !             lsecond = .false.
-      !          else if (itimer%io_netcdf_check(param, npltp)) then
+      !          else if (itimer%netcdf_io_check(param, npltp)) then
       !             lsecond = .true.
       !             itimer%is_on = .false.
       !          end if

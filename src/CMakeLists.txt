@@ -24,6 +24,7 @@ SET(STRICT_MATH_FILES
 SET(FAST_MATH_FILES
             ${SRC}/globals/globals_module.f90
             ${SRC}/base/base_module.f90
+            ${SRC}/netcdf_io/netcdf_io_module.f90
             ${SRC}/misc/lambda_function_module.f90
             ${SRC}/misc/io_progress_bar_module.f90
             ${SRC}/encounter/encounter_module.f90
@@ -36,16 +37,6 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_module.f90
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
-            ${SRC}/swiftest/swiftest_discard.f90  
-            ${SRC}/swiftest/swiftest_io.f90         
-            ${SRC}/swiftest/swiftest_obl.f90    
-            ${SRC}/swiftest/swiftest_util.f90
-            ${SRC}/swiftest/swiftest_drift.f90    
-            ${SRC}/swiftest/swiftest_io_netcdf.f90  
-            ${SRC}/swiftest/swiftest_orbel.f90
-            ${SRC}/swiftest/swiftest_gr.f90       
-            ${SRC}/swiftest/swiftest_kick.f90       
-            ${SRC}/swiftest/swiftest_setup.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_setup.f90
@@ -67,6 +58,7 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_setup.f90
             ${SRC}/helio/helio_step.f90
             ${SRC}/helio/helio_util.f90
+            ${SRC}/netcdf_io/netcdf_io_implementations.f90  
             ${SRC}/operator/operator_cross.f90
             ${SRC}/operator/operator_mag.f90
             ${SRC}/operator/operator_unit.f90
@@ -75,6 +67,15 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_setup.f90
             ${SRC}/rmvs/rmvs_step.f90
             ${SRC}/rmvs/rmvs_util.f90
+            ${SRC}/swiftest/swiftest_discard.f90  
+            ${SRC}/swiftest/swiftest_io.f90         
+            ${SRC}/swiftest/swiftest_obl.f90    
+            ${SRC}/swiftest/swiftest_util.f90
+            ${SRC}/swiftest/swiftest_drift.f90    
+            ${SRC}/swiftest/swiftest_orbel.f90
+            ${SRC}/swiftest/swiftest_gr.f90       
+            ${SRC}/swiftest/swiftest_kick.f90       
+            ${SRC}/swiftest/swiftest_setup.f90 
             ${SRC}/symba/symba_discard.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_encounter_check.f90

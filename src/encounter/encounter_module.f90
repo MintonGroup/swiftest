@@ -13,6 +13,7 @@ module encounter
    !! Definition of classes and methods used to determine close encounters
    use globals
    use base
+   use netcdf_io
    implicit none
    public
 
@@ -57,8 +58,22 @@ module encounter
       final     ::                encounter_util_final_snapshot
    end type encounter_snapshot
 
+   !> NetCDF dimension and variable names for the enounter save object
+   type, extends(netcdf_parameters) :: encounter_netcdf_parameters
+      character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
+      integer(I4B)       :: loop_varid               !! ID for the recursion level variable
+      integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
+      integer(I4B)       :: name_dimsize = 0         !! Number of potential id values in snapshot
+      integer(I4B)       :: file_number  = 1         !! The number to append on the output file
+   contains
+      procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: open => encounter_netcdf_io_open 
+   end type encounter_netcdf_parameters
+
+
    !> A class that that is used to store simulation history data between file output
    type, extends(base_storage) :: encounter_storage
+      class(encounter_netcdf_parameters), allocatable :: nc             !! NetCDF object attached to this storage object
    contains
       procedure :: dump             => encounter_io_dump        !! Dumps contents of encounter history to file
       procedure :: get_index_values => encounter_util_get_vals_storage !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
@@ -67,17 +82,7 @@ module encounter
       final     ::                     encounter_util_final_storage
    end type encounter_storage
 
-   !> NetCDF dimension and variable names for the enounter save object
-   type, extends(base_io_netcdf_parameters) :: encounter_io_parameters
-      character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
-      integer(I4B)       :: loop_varid               !! ID for the recursion level variable
-      integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
-      integer(I4B)       :: name_dimsize   = 0         !! Number of potential id values in snapshot
-      integer(I4B)       :: file_number  = 1         !! The number to append on the output file
-   contains
-      procedure :: initialize => encounter_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-      procedure :: open => encounter_io_netcdf_open 
-   end type encounter_io_parameters
+
 
    type encounter_bounding_box_1D
       integer(I4B)                            :: n    !! Number of bodies with extents
@@ -90,6 +95,7 @@ module encounter
       final     ::            encounter_util_final_aabb    !! Finalize the axis-aligned bounding box (1D) - deallocates all allocatables
    end type
 
+
    type encounter_bounding_box
       type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
    contains
@@ -98,6 +104,7 @@ module encounter
       procedure :: sweep_double => encounter_check_sweep_aabb_double_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
       generic   :: sweep        => sweep_single, sweep_double
    end type
+
 
    interface
       module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
@@ -219,16 +226,16 @@ module encounter
 
       module subroutine encounter_io_initialize_output(self, param)
          implicit none
-         class(encounter_io_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
+         class(encounter_netcdf_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),     intent(in)    :: param   
       end subroutine encounter_io_initialize_output
 
-      module subroutine encounter_io_netcdf_open(self, param, readonly)
+      module subroutine encounter_netcdf_io_open(self, param, readonly)
          implicit none
-         class(encounter_io_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+         class(encounter_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),               intent(in)    :: param    !! Current run configuration parameters
          logical, optional,                    intent(in)    :: readonly !! Logical flag indicating that this should be open read only
-      end subroutine encounter_io_netcdf_open
+      end subroutine encounter_netcdf_io_open
 
       module subroutine encounter_io_write_frame_snapshot(self, history, param)
          implicit none
