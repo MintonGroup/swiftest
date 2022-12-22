@@ -75,9 +75,10 @@ module collision
       real(DP), dimension(NDIM) :: rbimp   !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
 
    contains
-      procedure :: get_regime             => collision_regime_impactors         !! Determine which fragmentation regime the set of impactors will be
-      procedure :: reset                  => collision_util_reset_impactors     !! Resets the collider object variables to 0 and deallocates the index and mass distributions
-      final     ::                           collision_final_impactors     !! Finalizer will deallocate all allocatables
+      procedure :: consolidate => collision_resolve_consolidate_impactors !! Consolidates a multi-body collision into an equivalent 2-body collision
+      procedure :: get_regime  => collision_regime_impactors              !! Determine which fragmentation regime the set of impactors will be
+      procedure :: reset       => collision_util_reset_impactors          !! Resets the collider object variables to 0 and deallocates the index and mass distributions
+      final     ::               collision_final_impactors                !! Finalizer will deallocate all allocatables
    end type collision_impactors
 
 
@@ -109,9 +110,11 @@ module collision
    end type collision_fragments
 
 
-   type, abstract :: collision_system
+   type :: collision_system
       !! This class defines a collisional nbody_system that stores impactors and fragments. This is written so that various collision models (i.e. Fraggle) could potentially be used
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
+      !!
+      !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_system parent class
       class(collision_fragments(:)), allocatable :: fragments !! Object containing information on the pre-collision system
       class(collision_impactors),    allocatable :: impactors !! Object containing information on the post-collision system
       class(base_nbody_system),      allocatable :: before    !! A snapshot of the subset of the nbody_system involved in the collision
@@ -135,14 +138,8 @@ module collision
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
       procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate nbody_system of the collisional nbody_system
-      procedure(abstract_generate_system), deferred :: generate                            !! Generates a nbody_system of fragments depending on collision model
+      procedure :: generate                   => collision_generate_merge_system           !! Merges the impactors to make a single final body
    end type collision_system
-
-   type, extends(collision_system) :: collision_merge
-   contains 
-      procedure :: generate => collision_generate_merge_system !! Merges the impactors to make a single final body
-      final     ::             collision_final_merge_system    !! Finalizer will deallocate all allocatables
-   end type collision_merge
 
    type, extends(collision_system) :: collision_bounce
    contains 
@@ -199,37 +196,10 @@ module collision
    end type collision_storage
 
 
-   abstract interface 
-      subroutine abstract_generate_system(self, nbody_system, param, t) 
-         import collision_system, base_nbody_system, base_parameters, DP
-         implicit none
-         class(collision_system),  intent(inout) :: self         !! Collision system object 
-         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-         real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine abstract_generate_system
-
-      subroutine abstract_set_mass_dist(self, param)
-         import collision_system, base_parameters
-         implicit none
-         class(collision_system), intent(inout) :: self  !! Collision system object
-         class(base_parameters),  intent(in)    :: param !! Current Swiftest run configuration parameters
-      end subroutine abstract_set_mass_dist
-   end interface
-
-
    interface
-      module subroutine collision_generate_merge_any(self, nbody_system, param, t)
-         implicit none
-         class(collision_system),   intent(inout) :: self         !! Merge fragment nbody_system object 
-         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-         real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine collision_generate_merge_any
-
       module subroutine collision_generate_merge_system(self, nbody_system, param, t)
          implicit none
-         class(collision_merge),   intent(inout) :: self         !! Merge fragment nbody_system object 
+         class(collision_system),  intent(inout) :: self         !! Merge fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
@@ -310,6 +280,15 @@ module collision
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
          logical,                    intent(out)   :: lany_collision !! Returns true if any pair of encounters resulted in a collision 
       end subroutine collision_check_pltp
+
+      module subroutine collision_resolve_consolidate_impactors(self, nbody_system, param, idx_parent, lflag)
+         implicit none
+         class(collision_impactors),               intent(out)   :: self         !! Collision impactors object
+         class(base_nbody_system),                 intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),                   intent(in)    :: param        !! Current run configuration parameters with Swiftest additions
+         integer(I4B),               dimension(:), intent(inout) :: idx_parent !! Index of the two bodies considered the "parents" of the collision
+         logical,                                  intent(out)   :: lflag      !! Logical flag indicating whether a impactors%id was successfully created or not
+      end subroutine collision_resolve_consolidate_impactors
    
       module subroutine collision_resolve_extract_plpl(self, nbody_system, param)
          implicit none
@@ -542,22 +521,6 @@ module collision
 
          return
       end subroutine collision_final_storage
-
-
-      subroutine collision_final_merge_system(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(collision_merge),  intent(inout) :: self !!  Collision system object
-
-         call self%reset()
-         if (allocated(self%impactors)) deallocate(self%impactors)
-         if (allocated(self%fragments)) deallocate(self%fragments)
-
-         return
-      end subroutine collision_final_merge_system
 
 
       subroutine collision_final_bounce_system(self)

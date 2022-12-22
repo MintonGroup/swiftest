@@ -12,20 +12,18 @@ submodule (collision) s_collision_resolve
 contains
 
 
-   function collision_resolve_consolidate_impactors(pl, cb, param, idx_parent, impactors) result(lflag)
+   module subroutine collision_resolve_consolidate_impactors(self, nbody_system, param, idx_parent, lflag)
       !! author: David A. Minton
       !! 
       !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%id members, 
       !! and pairs of quantities (x and v vectors, mass, radius, Lspin, and Ip) that can be used to resolve the collisional outcome.
       implicit none
       ! Arguments
-      class(swiftest_pl),                                 intent(inout) :: pl               !! Swiftest massive body object
-      class(swiftest_cb),                                 intent(inout) :: cb               !! Swiftest central body object
-      class(base_parameters),                         intent(in)    :: param            !! Current run configuration parameters with Swiftest additions
-      integer(I4B),    dimension(2),                   intent(inout) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      class(collision_impactors),                      intent(out)   :: impactors
-      ! Result
-      logical                                                        :: lflag            !! Logical flag indicating whether a impactors%id was successfully created or not
+      class(collision_impactors),               intent(out)   :: self         !! Collision impactors object
+      class(base_nbody_system),                 intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),                   intent(in)    :: param        !! Current run configuration parameters with Swiftest additions
+      integer(I4B),               dimension(:), intent(inout) :: idx_parent !! Index of the two bodies considered the "parents" of the collision
+      logical,                                  intent(out)   :: lflag      !! Logical flag indicating whether a impactors%id was successfully created or not
       ! Internals
       type collidx_array
          integer(I4B), dimension(:), allocatable :: id
@@ -39,115 +37,121 @@ contains
       real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv
       real(DP), dimension(NDIM,2)      :: mxc, vcc
 
-      nchild(:) = pl%kin(idx_parent(:))%nchild 
-      ! If all of these bodies share a parent, but this is still a unique collision, move the last child
-      ! out of the parent's position and make it the secondary body
-      if (idx_parent(1) == idx_parent(2)) then
-         if (nchild(1) == 0) then ! There is only one valid body recorded in this pair (this could happen due to restructuring of the kinship relationships, though it should be rare)
-            lflag = .false. 
-            call pl%reset_kinship([idx_parent(1)])
-            return
-         end if
-         idx_parent(2) = pl%kin(idx_parent(1))%child(nchild(1))
-         nchild(1) = nchild(1) - 1
-         nchild(2) = 0
-         pl%kin(idx_parent(:))%nchild = nchild(:)
-         pl%kin(idx_parent(2))%parent = idx_parent(1)
-      end if
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+         associate(impactors => self, pl => nbody_system%pl, cb => nbody_system%cb)
 
-      impactors%mass(:) = pl%mass(idx_parent(:)) ! Note: This is meant to mass, not G*mass, as the collisional regime determination uses mass values that will be converted to Si
-      impactors%radius(:) = pl%radius(idx_parent(:))
-      volume(:) =  (4.0_DP / 3.0_DP) * PI * impactors%radius(:)**3
- 
-      ! Group together the ids and indexes of each collisional parent and its children
-      do j = 1, 2
-         allocate(parent_child_index_array(j)%idx(nchild(j)+ 1))
-         allocate(parent_child_index_array(j)%id(nchild(j)+ 1))
-         associate(idx_arr => parent_child_index_array(j)%idx, &
-                   id_arr => parent_child_index_array(j)%id, &
-                   ncj => nchild(j), &
-                   plkinj => pl%kin(idx_parent(j)))
-            idx_arr(1) = idx_parent(j)
-            if (ncj > 0) idx_arr(2:ncj + 1) = plkinj%child(1:ncj)
-            id_arr(:) = pl%id(idx_arr(:))
-         end associate
-      end do
+            nchild(:) = pl%kin(idx_parent(:))%nchild 
+            ! If all of these bodies share a parent, but this is still a unique collision, move the last child
+            ! out of the parent's position and make it the secondary body
+            if (idx_parent(1) == idx_parent(2)) then
+               if (nchild(1) == 0) then ! There is only one valid body recorded in this pair (this could happen due to restructuring of the kinship relationships, though it should be rare)
+                  lflag = .false. 
+                  call pl%reset_kinship([idx_parent(1)])
+                  return
+               end if
+               idx_parent(2) = pl%kin(idx_parent(1))%child(nchild(1))
+               nchild(1) = nchild(1) - 1
+               nchild(2) = 0
+               pl%kin(idx_parent(:))%nchild = nchild(:)
+               pl%kin(idx_parent(2))%parent = idx_parent(1)
+            end if
 
-      ! Consolidate the groups of collsional parents with any children they may have into a single "impactors%id" index array
-      nimpactors = 2 + sum(nchild(:))
-      allocate(impactors%id(nimpactors))
-      impactors%id = [parent_child_index_array(1)%idx(:),parent_child_index_array(2)%idx(:)]
+            impactors%mass(:) = pl%mass(idx_parent(:)) ! Note: This is meant to mass, not G*mass, as the collisional regime determination uses mass values that will be converted to Si
+            impactors%radius(:) = pl%radius(idx_parent(:))
+            volume(:) =  (4.0_DP / 3.0_DP) * PI * impactors%radius(:)**3
+      
+            ! Group together the ids and indexes of each collisional parent and its children
+            do j = 1, 2
+               allocate(parent_child_index_array(j)%idx(nchild(j)+ 1))
+               allocate(parent_child_index_array(j)%id(nchild(j)+ 1))
+               associate(idx_arr => parent_child_index_array(j)%idx, &
+                        id_arr => parent_child_index_array(j)%id, &
+                        ncj => nchild(j), &
+                        plkinj => pl%kin(idx_parent(j)))
+                  idx_arr(1) = idx_parent(j)
+                  if (ncj > 0) idx_arr(2:ncj + 1) = plkinj%child(1:ncj)
+                  id_arr(:) = pl%id(idx_arr(:))
+               end associate
+            end do
 
-      impactors%ncoll = count(pl%lcollision(impactors%id(:)))
-      impactors%id = pack(impactors%id(:), pl%lcollision(impactors%id(:)))
-      impactors%Lspin(:,:) = 0.0_DP
-      impactors%Ip(:,:) = 0.0_DP
+            ! Consolidate the groups of collsional parents with any children they may have into a single "impactors%id" index array
+            nimpactors = 2 + sum(nchild(:))
+            allocate(impactors%id(nimpactors))
+            impactors%id = [parent_child_index_array(1)%idx(:),parent_child_index_array(2)%idx(:)]
 
-      ! Find the barycenter of each body along with its children, if it has any
-      do j = 1, 2
-         impactors%rb(:, j)  = pl%rh(:, idx_parent(j)) + cb%rb(:)
-         impactors%vb(:, j)  = pl%vb(:, idx_parent(j))
-         ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
-         if (param%lrotation) then
-            impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
-            impactors%Lspin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
-         end if
+            impactors%ncoll = count(pl%lcollision(impactors%id(:)))
+            impactors%id = pack(impactors%id(:), pl%lcollision(impactors%id(:)))
+            impactors%Lspin(:,:) = 0.0_DP
+            impactors%Ip(:,:) = 0.0_DP
 
-         if (nchild(j) > 0) then
-            do i = 1, nchild(j) ! Loop over all children and take the mass weighted mean of the properties
-               idx_child = parent_child_index_array(j)%idx(i + 1)
-               if (.not. pl%lcollision(idx_child)) cycle
-               mchild = pl%mass(idx_child)
-               xchild(:) = pl%rh(:, idx_child) + cb%rb(:)
-               vchild(:) = pl%vb(:, idx_child)
-               volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
-               volume(j) = volume(j) + volchild
-               ! Get angular momentum of the child-parent pair and add that to the spin
-               ! Add the child's spin
+            ! Find the barycenter of each body along with its children, if it has any
+            do j = 1, 2
+               impactors%rb(:, j)  = pl%rh(:, idx_parent(j)) + cb%rb(:)
+               impactors%vb(:, j)  = pl%vb(:, idx_parent(j))
+               ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
                if (param%lrotation) then
-                  xcom(:) = (impactors%mass(j) * impactors%rb(:,j) + mchild * xchild(:)) / (impactors%mass(j) + mchild)
-                  vcom(:) = (impactors%mass(j) * impactors%vb(:,j) + mchild * vchild(:)) / (impactors%mass(j) + mchild)
-                  xc(:) = impactors%rb(:, j) - xcom(:)
-                  vc(:) = impactors%vb(:, j) - vcom(:)
-                  xcrossv(:) = xc(:) .cross. vc(:) 
-                  impactors%Lspin(:, j) = impactors%Lspin(:, j) + impactors%mass(j) * xcrossv(:)
-   
-                  xc(:) = xchild(:) - xcom(:)
-                  vc(:) = vchild(:) - vcom(:)
-                  xcrossv(:) = xc(:) .cross. vc(:) 
-                  impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * xcrossv(:)
-
-                  impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * pl%Ip(3, idx_child)  &
-                                                                           * pl%radius(idx_child)**2 &
-                                                                           * pl%rot(:, idx_child)
-                  impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
+                  impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
+                  impactors%Lspin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
                end if
 
-               ! Merge the child and parent
-               impactors%mass(j) = impactors%mass(j) + mchild
-               impactors%rb(:, j) = xcom(:)
-               impactors%vb(:, j) = vcom(:)
+               if (nchild(j) > 0) then
+                  do i = 1, nchild(j) ! Loop over all children and take the mass weighted mean of the properties
+                     idx_child = parent_child_index_array(j)%idx(i + 1)
+                     if (.not. pl%lcollision(idx_child)) cycle
+                     mchild = pl%mass(idx_child)
+                     xchild(:) = pl%rh(:, idx_child) + cb%rb(:)
+                     vchild(:) = pl%vb(:, idx_child)
+                     volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
+                     volume(j) = volume(j) + volchild
+                     ! Get angular momentum of the child-parent pair and add that to the spin
+                     ! Add the child's spin
+                     if (param%lrotation) then
+                        xcom(:) = (impactors%mass(j) * impactors%rb(:,j) + mchild * xchild(:)) / (impactors%mass(j) + mchild)
+                        vcom(:) = (impactors%mass(j) * impactors%vb(:,j) + mchild * vchild(:)) / (impactors%mass(j) + mchild)
+                        xc(:) = impactors%rb(:, j) - xcom(:)
+                        vc(:) = impactors%vb(:, j) - vcom(:)
+                        xcrossv(:) = xc(:) .cross. vc(:) 
+                        impactors%Lspin(:, j) = impactors%Lspin(:, j) + impactors%mass(j) * xcrossv(:)
+         
+                        xc(:) = xchild(:) - xcom(:)
+                        vc(:) = vchild(:) - vcom(:)
+                        xcrossv(:) = xc(:) .cross. vc(:) 
+                        impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * xcrossv(:)
+
+                        impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * pl%Ip(3, idx_child)  &
+                                                                                 * pl%radius(idx_child)**2 &
+                                                                                 * pl%rot(:, idx_child)
+                        impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
+                     end if
+
+                     ! Merge the child and parent
+                     impactors%mass(j) = impactors%mass(j) + mchild
+                     impactors%rb(:, j) = xcom(:)
+                     impactors%vb(:, j) = vcom(:)
+                  end do
+               end if
+               density(j) = impactors%mass(j) / volume(j)
+               impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
+               if (param%lrotation) impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
             end do
-         end if
-         density(j) = impactors%mass(j) / volume(j)
-         impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
-         if (param%lrotation) impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
-      end do
-      lflag = .true.
+            lflag = .true.
 
-      xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / sum(impactors%mass(:))
-      vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / sum(impactors%mass(:))
-      mxc(:, 1) = impactors%mass(1) * (impactors%rb(:, 1) - xcom(:))
-      mxc(:, 2) = impactors%mass(2) * (impactors%rb(:, 2) - xcom(:))
-      vcc(:, 1) = impactors%vb(:, 1) - vcom(:)
-      vcc(:, 2) = impactors%vb(:, 2) - vcom(:)
-      impactors%Lorbit(:,:) = mxc(:,:) .cross. vcc(:,:)
+            xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / sum(impactors%mass(:))
+            vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / sum(impactors%mass(:))
+            mxc(:, 1) = impactors%mass(1) * (impactors%rb(:, 1) - xcom(:))
+            mxc(:, 2) = impactors%mass(2) * (impactors%rb(:, 2) - xcom(:))
+            vcc(:, 1) = impactors%vb(:, 1) - vcom(:)
+            vcc(:, 2) = impactors%vb(:, 2) - vcom(:)
+            impactors%Lorbit(:,:) = mxc(:,:) .cross. vcc(:,:)
 
-      ! Destroy the kinship relationships for all members of this impactors%id
-      call pl%reset_kinship(impactors%id(:))
+            ! Destroy the kinship relationships for all members of this impactors%id
+            call pl%reset_kinship(impactors%id(:))
 
+         end associate
+      end select
       return
-   end function collision_resolve_consolidate_impactors
+   end subroutine collision_resolve_consolidate_impactors
 
 
    module subroutine collision_resolve_extract_plpl(self, nbody_system, param)
@@ -230,48 +234,6 @@ contains
 
       return
    end subroutine collision_resolve_extract_pltp
-
-
-   subroutine collision_resolve_list(plpl_collision, nbody_system, param, t)
-      !! author: David A. Minton
-      !! 
-      !! Process list of collisions, determine the collisional regime, and then create fragments.
-      !!
-      implicit none
-      ! Arguments
-      class(collision_list_plpl), intent(inout) :: plpl_collision !! Swiftest pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system   !! Swiftest nbody system object
-      class(base_parameters),     intent(inout) :: param          !! Current run configuration parameters with Swiftest additions
-      real(DP),                   intent(in)    :: t              !! Time of collision
-      ! Internals
-      ! Internals
-      integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      logical                                     :: lgoodcollision
-      integer(I4B)                                :: i
-
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
-         associate(ncollisions => plpl_collision%nenc, idx1 => plpl_collision%index1, idx2 => plpl_collision%index2, &
-                   collision_history => nbody_system%collision_history,  impactors => nbody_system%collider%impactors, &
-                   fragments => nbody_system%collider%fragments, &
-                   pl => nbody_system%pl, cb => nbody_system%cb)
-            do i = 1, ncollisions
-               idx_parent(1) = pl%kin(idx1(i))%parent
-               idx_parent(2) = pl%kin(idx2(i))%parent
-               lgoodcollision = collision_resolve_consolidate_impactors(pl, cb, param, idx_parent, impactors) 
-               if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
-
-               call impactors%get_regime(nbody_system, param)
-               call collision_history%take_snapshot(param,nbody_system, t, "before") 
-               call nbody_system%collider%generate(nbody_system, param, t)
-               call collision_history%take_snapshot(param,nbody_system, t, "after") 
-               call impactors%reset()
-
-            end do
-         end associate
-      end select
-      return
-   end subroutine collision_resolve_list
 
 
    module subroutine collision_resolve_make_impactors_pl(pl, idx)
@@ -532,6 +494,10 @@ contains
       logical :: lplpl_collision
       character(len=STRMAX) :: timestr
       class(swiftest_parameters), allocatable :: tmp_param
+      integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
+      logical  :: lgoodcollision
+      integer(I4B) :: i, loop, ncollisions
+      integer(I4B), parameter :: MAXCASCADE = 1000
   
       select type (nbody_system)
       class is (swiftest_nbody_system)
@@ -539,59 +505,85 @@ contains
       class is (swiftest_pl)
       select type(param)
       class is (swiftest_parameters)
-         associate(plpl_encounter => self, plpl_collision => nbody_system%plpl_collision)
-            if (plpl_collision%nenc == 0) return ! No collisions to resolve
-            ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
-            call pl%vb2vh(nbody_system%cb) 
-            call pl%rh2rb(nbody_system%cb)
+         associate(plpl_encounter => self, plpl_collision => nbody_system%plpl_collision, &
+                   collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
+                   collider => nbody_system%collider, fragments => nbody_system%collider%fragments, impactors => nbody_system%collider%impactors)
+            associate( idx1 => plpl_collision%index1, idx2 => plpl_collision%index2)
 
-            ! Get the energy before the collision is resolved
-            if (param%lenergy) then
-               call nbody_system%get_energy_and_momentum(param)
-               Eorbit_before = nbody_system%te
-            end if
+               if (plpl_collision%nenc == 0) return ! No collisions to resolve
 
-            do
-               write(timestr,*) t
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
-                                                         "***********************************************************")
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between massive bodies detected at time t = " // &
-                                                         trim(adjustl(timestr)))
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
-                                                         "***********************************************************")
-               allocate(tmp_param, source=param)
 
-               call collision_resolve_list(plpl_collision, nbody_system, param, t)
+               ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
+               call pl%vb2vh(nbody_system%cb) 
+               call pl%rh2rb(nbody_system%cb)
 
-               ! Destroy the collision list now that the collisions are resolved
-               call plpl_collision%setup(0_I8B)
+               ! Get the energy before the collision is resolved
+               if (param%lenergy) then
+                  call nbody_system%get_energy_and_momentum(param)
+                  Eorbit_before = nbody_system%te
+               end if
 
-               if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
+               do loop = 1, MAXCASCADE
+                  ncollisions = plpl_collision%nenc
+                  write(timestr,*) t
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                            "***********************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between massive bodies detected at time t = " // &
+                                                            trim(adjustl(timestr)))
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                            "***********************************************************")
+                  allocate(tmp_param, source=param)
 
-               ! Save the add/discard information to file
-               call nbody_system%write_discard(tmp_param)
+                  do i = 1, ncollisions
+                     idx_parent(1) = pl%kin(idx1(i))%parent
+                     idx_parent(2) = pl%kin(idx2(i))%parent
+                     call impactors%consolidate(nbody_system, param, idx_parent, lgoodcollision)
+                     if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
+      
+                     call impactors%get_regime(nbody_system, param)
+                     call collision_history%take_snapshot(param,nbody_system, t, "before") 
+                     call collider%generate(nbody_system, param, t)
+                     call collision_history%take_snapshot(param,nbody_system, t, "after") 
+                     plpl_collision%status(i) = collider%status
+                     call impactors%reset()
+                  end do
 
-               ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
-               call pl%rearray(nbody_system, tmp_param)
+                  ! Destroy the collision list now that the collisions are resolved
+                  call plpl_collision%setup(0_I8B)
 
-               ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
-               call nbody_system%pl_discards%setup(0, param)
-               call nbody_system%pl_adds%setup(0, param)
-               deallocate(tmp_param)
+                  if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
 
-               ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
-               call plpl_encounter%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
+                  ! Save the add/discard information to file
+                  call nbody_system%write_discard(tmp_param)
 
-               if (.not.lplpl_collision) exit
-            end do
+                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
+                  call pl%rearray(nbody_system, tmp_param)
 
-            if (param%lenergy) then
-               call nbody_system%get_energy_and_momentum(param)
-               Eorbit_after = nbody_system%te
-               nbody_system%Ecollisions = nbody_system%Ecollisions + (Eorbit_after - Eorbit_before)
-            end if
+                  ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
+                  call nbody_system%pl_discards%setup(0, param)
+                  call nbody_system%pl_adds%setup(0, param)
+                  deallocate(tmp_param)
 
+                  ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
+                  call plpl_encounter%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
+
+                  if (.not.lplpl_collision) exit
+                  if (loop == MAXCASCADE) then
+                     write(*,*) 
+                     write(*,*) "An runaway collisional cascade has been detected in collision_resolve_plpl."
+                     write(*,*) "Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments."
+                     call util_exit(FAILURE)
+                  end if
+               end do
+
+               if (param%lenergy) then
+                  call nbody_system%get_energy_and_momentum(param)
+                  Eorbit_after = nbody_system%te
+                  nbody_system%Ecollisions = nbody_system%Ecollisions + (Eorbit_after - Eorbit_before)
+               end if
+
+            end associate
          end associate
       end select
       end select
