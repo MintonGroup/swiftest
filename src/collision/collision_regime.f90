@@ -32,19 +32,20 @@ contains
       select type(param)
       class is (swiftest_parameters)
 
+         mtot = sum(impactors%mass(:))
+         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot
+         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
+
          select case(param%collision_model)
          case("MERGE")
             impactors%regime = COLLRESOLVE_REGIME_MERGE
-            mtot = sum(impactors%mass(:))
             if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
             allocate(impactors%mass_dist(1))
             impactors%mass_dist(1) = mtot
-            impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot
-            impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
          case default
             call collision_regime_LS12(impactors, nbody_system, param)
+            call collision_io_log_regime(self)
          end select
-         !call fraggle_io_log_regime(impactors, fragments)
       end select
       end select
       end associate

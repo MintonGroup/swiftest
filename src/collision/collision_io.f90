@@ -45,40 +45,39 @@ contains
    end subroutine collision_io_collider_message
 
 
-   module subroutine collision_io_log_regime(self)
+   module subroutine collision_io_log_regime(impactors)
       !! author: David A. Minton
       !!
       !! Writes a log of the results of the collisional regime determination
       implicit none
       ! Arguments
-      class(collision_merge), intent(inout) :: self  !! Collision system object
+      class(collision_impactors), intent(inout) :: impactors  !! Collision system object
       ! Internals
       character(STRMAX) :: errmsg
 
-      associate(fragments => self%fragments, impactors => self%impactors)
-         open(unit=LUN, file=COLLISION_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         write(LUN, *, err = 667, iomsg = errmsg)
-         write(LUN, *) "--------------------------------------------------------------------"
-         write(LUN, *) "           Collisional regime determination results"
-         write(LUN, *) "--------------------------------------------------------------------"
-         write(LUN, *) "True number of impactors : ",impactors%ncoll
-         write(LUN, *) "Index list of true impactors  : ",impactors%id(1:impactors%ncoll)
-         select case(impactors%regime) 
-         case(COLLRESOLVE_REGIME_MERGE)
-            write(LUN, *) "Regime: Merge"
-         case(COLLRESOLVE_REGIME_DISRUPTION)
-            write(LUN, *) "Regime: Disruption"
-         case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-            write(LUN, *) "Regime: Supercatastrophic disruption"
-         case(COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-            write(LUN, *) "Regime: Graze and merge"
-         case(COLLRESOLVE_REGIME_HIT_AND_RUN)
-            write(LUN, *) "Regime: Hit and run"
-         end select
-         write(LUN, *) "Energy loss                  : ", impactors%Qloss
-         write(LUN, *) "--------------------------------------------------------------------"
-         close(LUN)
-      end associate
+      open(unit=LUN, file=COLLISION_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
+      write(LUN, *, err = 667, iomsg = errmsg)
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN, *) "           Collisional regime determination results"
+      write(LUN, *) "--------------------------------------------------------------------"
+      write(LUN, *) "True number of impactors : ",impactors%ncoll
+      write(LUN, *) "Index list of true impactors  : ",impactors%id(1:impactors%ncoll)
+      select case(impactors%regime) 
+      case(COLLRESOLVE_REGIME_MERGE)
+         write(LUN, *) "Regime: Merge"
+      case(COLLRESOLVE_REGIME_DISRUPTION)
+         write(LUN, *) "Regime: Disruption"
+      case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+         write(LUN, *) "Regime: Supercatastrophic disruption"
+      case(COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+         write(LUN, *) "Regime: Graze and merge"
+      case(COLLRESOLVE_REGIME_HIT_AND_RUN)
+         write(LUN, *) "Regime: Hit and run"
+      end select
+      write(LUN, *) "Energy loss                  : ", impactors%Qloss
+      write(LUN, *) "--------------------------------------------------------------------"
+      close(LUN)
+
       return
       667 continue
       write(*,*) "Error writing collision regime information to log file: " // trim(adjustl(errmsg))

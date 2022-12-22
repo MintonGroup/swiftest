@@ -167,7 +167,7 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
-      integer(I4B) :: nfrag
+      integer(I4B) :: i,nfrag
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -175,6 +175,9 @@ contains
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                nfrag = size(impactors%id(:))
+               call self%setup_fragments(nfrag)
+
+
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
                call collision_generate_hitandrun(self, nbody_system, param, t)
             case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
@@ -188,6 +191,7 @@ contains
 
       return
    end subroutine collision_generate_bounce
+
 
    module subroutine collision_generate_simple(self, nbody_system, param, t)
       implicit none

@@ -237,9 +237,9 @@ module collision
          character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
       end subroutine collision_io_collider_message
 
-      module subroutine collision_io_log_regime(self)
+      module subroutine collision_io_log_regime(impactors)
          implicit none
-         class(collision_merge), intent(inout) :: self  !! Collision system object
+         class(collision_impactors), intent(inout) :: impactors  !! Collision system object
       end subroutine collision_io_log_regime
 
       module subroutine collision_io_netcdf_dump(self, param)
