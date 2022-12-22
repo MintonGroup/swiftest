@@ -83,8 +83,8 @@ contains
                allocate(symba_pl :: nbody_system%pl_adds)
                allocate(symba_pl :: nbody_system%pl_discards)
 
-               allocate(collision_list_pltp :: nbody_system%pltp_encounter)
-               allocate(collision_list_plpl :: nbody_system%plpl_encounter)
+               allocate(symba_list_pltp :: nbody_system%pltp_encounter)
+               allocate(symba_list_plpl :: nbody_system%plpl_encounter)
                allocate(collision_list_plpl :: nbody_system%plpl_collision)
 
                if (param%lenc_save_trajectory .or. param%lenc_save_closest) then

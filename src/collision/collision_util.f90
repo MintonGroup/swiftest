@@ -503,6 +503,7 @@ contains
          case("before")
             ! Saves the states of the bodies involved in the collision before the collision is resolved
             associate (idx => nbody_system%collider%impactors%id, ncoll => nbody_system%collider%impactors%ncoll)
+               allocate(pl, mold=nbody_system%pl)
                call pl%setup(ncoll, param)
                pl%id(:) = nbody_system%pl%id(idx(:))
                pl%Gmass(:) = nbody_system%pl%Gmass(idx(:))
