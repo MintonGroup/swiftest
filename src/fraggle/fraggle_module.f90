@@ -60,9 +60,9 @@ module fraggle
 
    interface
 
-      module subroutine fraggle_generate_fragments(collision_system, nbody_system, param, lfailure)
+      module subroutine fraggle_generate_fragments(collider, nbody_system, param, lfailure)
          implicit none
-         class(fraggle_system),        intent(inout) :: collision_system !! Fraggle system object the outputs will be the fragmentation 
+         class(fraggle_system),        intent(inout) :: collider !! Fraggle system object the outputs will be the fragmentation 
          class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure         !! Answers the question: Should this have been a merger instead?
@@ -70,16 +70,12 @@ module fraggle
 
       module subroutine fraggle_generate_system(self, nbody_system, param, t)
          implicit none
-         class(fraggle_system),        intent(inout) :: self         !! Fraggle fragment system object 
+         class(fraggle_system),    intent(inout) :: self         !! Fraggle fragment system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t            !! Time of collision
+         real(DP),                 intent(in)    :: t            !! Time of collision
       end subroutine fraggle_generate_system
 
-      module subroutine fraggle_io_log_regime(collision_system)
-         implicit none
-         class(fraggle_system), intent(inout) :: collision_system  !! Fraggle collision system object
-      end subroutine fraggle_io_log_regime
 
       module subroutine fraggle_set_budgets(self)
          implicit none
