@@ -42,7 +42,7 @@ contains
       !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
       implicit none
       ! Arguments
-      class(fraggle_system),                  intent(inout) :: self         !! Fraggle collision system object
+      class(collision_fraggle),                  intent(inout) :: self         !! Fraggle collision system object
       class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
       class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
       class(base_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
@@ -97,7 +97,7 @@ contains
       !! Resets the collider system and deallocates all allocatables
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: self  !! Collision system object
+      class(collision_fraggle), intent(inout) :: self  !! Collision system object
 
       self%dscale = 1.0_DP
       self%mscale = 1.0_DP

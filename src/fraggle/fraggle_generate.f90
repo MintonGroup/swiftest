@@ -25,7 +25,7 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(fraggle_system),        intent(inout) :: collider
+      class(collision_fraggle),        intent(inout) :: collider
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
       real(DP),                     intent(in)    :: t            !! Time of collision
@@ -102,7 +102,7 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(fraggle_system),        intent(inout) :: collider !! Fraggle collision system object
+      class(collision_fraggle),        intent(inout) :: collider !! Fraggle collision system object
       class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
       real(DP),                     intent(in)    :: t                !! Time of collision
@@ -180,12 +180,10 @@ contains
 
    module subroutine fraggle_generate_system(self, nbody_system, param, t)
       implicit none
-      class(fraggle_system),    intent(inout) :: self     !! Fraggle fragment nbody_system object 
+      class(collision_fraggle),    intent(inout) :: self     !! Fraggle fragment nbody_system object 
       class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t         !! The time of the collision
-      ! Internals
-      integer(I4B) :: i
            
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -197,7 +195,7 @@ contains
          case (COLLRESOLVE_REGIME_HIT_AND_RUN)
             call fraggle_generate_hitandrun(self, nbody_system, param, t)
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-            call self%collision_system%generate(nbody_system, param, t)
+            call self%collision_merge%generate(nbody_system, param, t)
          case default 
             write(*,*) "Error in swiftest_collision, unrecognized collision regime"
             call util_exit(FAILURE)
@@ -216,7 +214,7 @@ contains
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(fraggle_system),    intent(inout) :: collider !! Fraggle nbody_system object the outputs will be the fragmentation 
+      class(collision_fraggle),    intent(inout) :: collider !! Fraggle nbody_system object the outputs will be the fragmentation 
       class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters 
       logical,                  intent(out)   :: lfailure         !! Answers the question: Should this have been a merger instead?
@@ -377,7 +375,7 @@ contains
       !! The initial positions do not conserve energy or momentum, so these need to be adjusted later.
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collider !! Fraggle collision system object
+      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       real(DP),              intent(in)    :: r_max_start !! Initial guess for the starting maximum radial distance of fragments
       ! Internals
       real(DP)  :: dis, rad, r_max, fdistort
@@ -460,7 +458,7 @@ contains
       !! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collider !! Fraggle collision system object
+      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       real(DP),              intent(in)    :: f_spin    !! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)
       logical,               intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
@@ -557,7 +555,7 @@ contains
       !! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collider !! Fraggle collision system object
+      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds
       ! Internals
       integer(I4B) :: i, try
@@ -741,7 +739,7 @@ contains
       !! Adjust the fragment velocities to set the fragment orbital kinetic energy. This will minimize the difference between the fragment kinetic energy and the energy budget
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collider !! Fraggle collision system object
+      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
       real(DP), parameter                   :: TOL_MIN = FRAGGLE_ETOL   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy

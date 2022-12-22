@@ -117,13 +117,13 @@ contains
 
          select case(param%collision_model)
          case("MERGE")
-            allocate(collision_system :: nbody_system%collider)
+            allocate(collision_merge :: nbody_system%collider)
          case("BOUNCE")
             allocate(collision_bounce :: nbody_system%collider)
          case("SIMPLE")
             allocate(collision_simple :: nbody_system%collider)
          case("FRAGGLE")
-            allocate(fraggle_system :: nbody_system%collider)
+            allocate(collision_fraggle :: nbody_system%collider)
          end select
          call nbody_system%collider%setup(nbody_system)
 

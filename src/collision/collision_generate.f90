@@ -8,11 +8,57 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(collision) s_collision_model
+submodule(collision) s_collision_generate
    use swiftest
 contains
 
-   module subroutine collision_generate_merge_system(self, nbody_system, param, t)
+   module subroutine collision_generate_hitandrun(collider, nbody_system, param, t) 
+      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Create the fragments resulting from a non-catastrophic hit-and-run collision
+      !! 
+      implicit none
+      ! Arguments
+      class(collision_merge),   intent(inout) :: collider !! Fraggle collision system object
+      class(base_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
+      real(DP),                 intent(in)    :: t                !! Time of collision
+      ! Internals
+      integer(I4B)                            :: i, ibiggest, nfrag, jtarg, jproj
+      logical                                 :: lpure 
+      character(len=STRMAX) :: message
+      real(DP) :: dpe
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+      select type (pl => nbody_system%pl)
+      class is (swiftest_pl)
+      select type(before => collider%after)
+      class is (swiftest_nbody_system)
+      select type(after => collider%after)
+      class is (swiftest_nbody_system)
+         associate(impactors => collider%impactors, fragments => collider%fragments,  pl => nbody_system%pl)
+            message = "Hit and run between"
+            call collision_io_collider_message(nbody_system%pl, impactors%id, message)
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
+
+            collider%status = HIT_AND_RUN_PURE
+            pl%status(impactors%id(:)) = ACTIVE
+            pl%ldiscard(impactors%id(:)) = .false.
+            pl%lcollision(impactors%id(:)) = .false.
+            allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work 
+         end associate
+      end select
+      end select
+      end select
+      end select
+
+
+      return
+   end subroutine collision_generate_hitandrun
+
+
+   module subroutine collision_generate_merge(self, nbody_system, param, t)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Merge massive bodies in any collisionals ystem.
@@ -22,7 +68,7 @@ contains
       !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
       implicit none
       ! Arguments
-      class(collision_system),  intent(inout) :: self         !! Merge fragment system object 
+      class(collision_merge),  intent(inout) :: self         !! Merge fragment system object 
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
@@ -106,23 +152,49 @@ contains
          end associate
       end select
       return 
-   end subroutine collision_generate_merge_system
+   end subroutine collision_generate_merge
 
 
-   module subroutine collision_generate_bounce_system(self, nbody_system, param, t)
+   module subroutine collision_generate_bounce(self, nbody_system, param, t)
+      !! author: David A. Minton
+      !!
+      !! In this collision model, if the collision would result in a disruption, the bodies are instead "bounced" off 
+      !! of the center of mass. This is done as a reflection in the 2-body equivalent distance vector direction.
       implicit none
+      ! Arguments
       class(collision_bounce),  intent(inout) :: self         !! Bounce fragment system object 
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
-   end subroutine collision_generate_bounce_system
+      ! Internals
+      integer(I4B) :: nfrag
 
-   module subroutine collision_generate_simple_system(self, nbody_system, param, t)
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+         associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
+            select case (impactors%regime) 
+            case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+               nfrag = size(impactors%id(:))
+            case (COLLRESOLVE_REGIME_HIT_AND_RUN)
+               call collision_generate_hitandrun(self, nbody_system, param, t)
+            case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+               call self%collision_merge%generate(nbody_system, param, t) ! Use the default collision model, which is merge
+            case default 
+               write(*,*) "Error in swiftest_collision, unrecognized collision regime"
+               call util_exit(FAILURE)
+            end select
+            end associate
+      end select
+
+      return
+   end subroutine collision_generate_bounce
+
+   module subroutine collision_generate_simple(self, nbody_system, param, t)
       implicit none
       class(collision_simple),  intent(inout) :: self         !! Simple fragment system object 
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
-   end subroutine collision_generate_simple_system
+   end subroutine collision_generate_simple
 
-end submodule s_collision_model
+end submodule s_collision_generate

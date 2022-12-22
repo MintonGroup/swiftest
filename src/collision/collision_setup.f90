@@ -18,7 +18,7 @@ contains
       !! but not fragments. Those are setup later when the number of fragments is known.
       implicit none
       ! Arguments
-      class(collision_system),  intent(inout) :: self         !! Encounter collision system object
+      class(collision_merge),  intent(inout) :: self         !! Encounter collision system object
       class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
 
       call self%setup_impactors()
@@ -38,7 +38,7 @@ contains
       !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       implicit none
       ! Arguments
-      class(collision_system), intent(inout) :: self   !! Encounter collision system object
+      class(collision_merge), intent(inout) :: self   !! Encounter collision system object
 
       if (allocated(self%impactors)) deallocate(self%impactors)
       allocate(collision_impactors :: self%impactors)
@@ -53,7 +53,7 @@ contains
       !! Initializer for the fragments of the collision system. 
       implicit none
       ! Arguments
-      class(collision_system), intent(inout) :: self  !! Encounter collision system object
+      class(collision_merge), intent(inout) :: self  !! Encounter collision system object
       integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
 
       if (allocated(self%fragments)) deallocate(self%fragments)

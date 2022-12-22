@@ -18,7 +18,7 @@ contains
       !! Initializer for the fragments of the collision system. 
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: self  !! Encounter collision system object
+      class(collision_fraggle), intent(inout) :: self  !! Encounter collision system object
       integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
 
       if (allocated(self%fragments)) deallocate(self%fragments)

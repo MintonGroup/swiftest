@@ -51,7 +51,7 @@ contains
       !! Writes a log of the results of the collisional regime determination
       implicit none
       ! Arguments
-      class(collision_system), intent(inout) :: self  !! Collision system object
+      class(collision_merge), intent(inout) :: self  !! Collision system object
       ! Internals
       character(STRMAX) :: errmsg
 

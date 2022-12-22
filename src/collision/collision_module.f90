@@ -110,11 +110,11 @@ module collision
    end type collision_fragments
 
 
-   type :: collision_system
+   type :: collision_merge
       !! This class defines a collisional nbody_system that stores impactors and fragments. This is written so that various collision models (i.e. Fraggle) could potentially be used
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       !!
-      !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_system parent class
+      !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_merge parent class
       class(collision_fragments(:)), allocatable :: fragments !! Object containing information on the pre-collision system
       class(collision_impactors),    allocatable :: impactors !! Object containing information on the post-collision system
       class(base_nbody_system),      allocatable :: before    !! A snapshot of the subset of the nbody_system involved in the collision
@@ -138,19 +138,19 @@ module collision
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
       procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate nbody_system of the collisional nbody_system
-      procedure :: generate                   => collision_generate_merge_system           !! Merges the impactors to make a single final body
-   end type collision_system
+      procedure :: generate                   => collision_generate_merge           !! Merges the impactors to make a single final body
+   end type collision_merge
 
-   type, extends(collision_system) :: collision_bounce
+   type, extends(collision_merge) :: collision_bounce
    contains 
-      procedure :: generate => collision_generate_bounce_system !! If a collision would result in a disruption, "bounce" the bodies instead.
-      final     ::             collision_final_bounce_system    !! Finalizer will deallocate all allocatables
+      procedure :: generate => collision_generate_bounce !! If a collision would result in a disruption, "bounce" the bodies instead.
+      final     ::             collision_final_bounce    !! Finalizer will deallocate all allocatables
    end type collision_bounce
 
-   type, extends(collision_system) :: collision_simple
+   type, extends(collision_merge) :: collision_simple
    contains 
-      procedure :: generate => collision_generate_simple_system !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
-      final     ::             collision_final_simple_system !! Finalizer will deallocate all allocatables
+      procedure :: generate => collision_generate_simple !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
+      final     ::             collision_final_simple !! Finalizer will deallocate all allocatables
    end type collision_simple
 
 
@@ -178,7 +178,7 @@ module collision
 
    type, extends(encounter_snapshot)  :: collision_snapshot
       logical                              :: lcollision !! Indicates that this snapshot contains at least one collision
-      class(collision_system), allocatable :: collider  !! Collider object at this snapshot
+      class(collision_merge), allocatable :: collider  !! Collider object at this snapshot
    contains
       procedure :: write_frame => collision_io_netcdf_write_frame_snapshot !! Writes a frame of encounter data to file 
       procedure :: get_idvals  => collision_util_get_idvalues_snapshot     !! Gets an array of all id values saved in this snapshot
@@ -197,29 +197,38 @@ module collision
 
 
    interface
-      module subroutine collision_generate_merge_system(self, nbody_system, param, t)
+
+      module subroutine collision_generate_hitandrun(collider, nbody_system, param, t) 
          implicit none
-         class(collision_system),  intent(inout) :: self         !! Merge fragment nbody_system object 
+         class(collision_merge),   intent(inout) :: collider     !! Merge (or extended) collision system object
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
+         real(DP),                 intent(in)    :: t            !! Time of collision
+      end subroutine collision_generate_hitandrun
+
+      module subroutine collision_generate_merge(self, nbody_system, param, t)
+         implicit none
+         class(collision_merge),   intent(inout) :: self          !! Merge fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine collision_generate_merge_system
+      end subroutine collision_generate_merge
 
-      module subroutine collision_generate_bounce_system(self, nbody_system, param, t)
+      module subroutine collision_generate_bounce(self, nbody_system, param, t)
          implicit none
          class(collision_bounce),  intent(inout) :: self         !! Bounce fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine collision_generate_bounce_system
+      end subroutine collision_generate_bounce
 
-      module subroutine collision_generate_simple_system(self, nbody_system, param, t)
+      module subroutine collision_generate_simple(self, nbody_system, param, t)
          implicit none
          class(collision_simple),  intent(inout) :: self         !! Simple fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine collision_generate_simple_system
+      end subroutine collision_generate_simple
 
       module subroutine collision_io_collider_message(pl, collidx, collider_message)
          implicit none
@@ -230,7 +239,7 @@ module collision
 
       module subroutine collision_io_log_regime(self)
          implicit none
-         class(collision_system), intent(inout) :: self  !! Collision system object
+         class(collision_merge), intent(inout) :: self  !! Collision system object
       end subroutine collision_io_log_regime
 
       module subroutine collision_io_netcdf_dump(self, param)
@@ -339,36 +348,36 @@ module collision
 
       module subroutine collision_util_set_coordinate_system(self)
          implicit none
-         class(collision_system), intent(inout) :: self      !! Collisional nbody_system
+         class(collision_merge), intent(inout) :: self      !! Collisional nbody_system
       end subroutine collision_util_set_coordinate_system
 
       module subroutine collision_setup_system(self, nbody_system)
          implicit none
-         class(collision_system),  intent(inout) :: self         !! Encounter collision system object
+         class(collision_merge),  intent(inout) :: self         !! Encounter collision system object
          class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
       end subroutine collision_setup_system
    
       module subroutine collision_setup_impactors_system(self)
          implicit none
-         class(collision_system), intent(inout) :: self   !! Encounter collision system object
+         class(collision_merge), intent(inout) :: self   !! Encounter collision system object
       end subroutine collision_setup_impactors_system
    
       module subroutine collision_setup_fragments_system(self, nfrag)
          implicit none
-         class(collision_system), intent(inout) :: self  !! Encounter collision system object
+         class(collision_merge), intent(inout) :: self  !! Encounter collision system object
          integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
       end subroutine collision_setup_fragments_system
 
       module subroutine collision_util_add_fragments_to_system(self, nbody_system, param)
          implicit none
-         class(collision_system),  intent(in)    :: self         !! Collision system object
+         class(collision_merge),  intent(in)    :: self         !! Collision system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(in)    :: param        !! Current swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_system
 
       module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
          implicit none
-         class(collision_system),               intent(inout) :: self         !! Collision system object
+         class(collision_merge),               intent(inout) :: self         !! Collision system object
          class(base_nbody_system),              intent(in)    :: nbody_system !! Original swiftest nbody system object
          class(base_parameters),                intent(in)    :: param        !! Current swiftest run configuration parameters
          class(base_nbody_system), allocatable, intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
@@ -389,7 +398,7 @@ module collision
       module subroutine collision_util_get_energy_momentum(self, nbody_system, param, lbefore)
          use base, only : base_nbody_system, base_parameters
          implicit none
-         class(collision_system),  intent(inout) :: self         !! Encounter collision system object
+         class(collision_merge),  intent(inout) :: self         !! Encounter collision system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current swiftest run configuration parameters
          logical,                  intent(in)    :: lbefore      !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
@@ -407,7 +416,7 @@ module collision
 
       module subroutine collision_util_reset_system(self)
          implicit none
-         class(collision_system), intent(inout) :: self  !! Collision system object
+         class(collision_merge), intent(inout) :: self  !! Collision system object
       end subroutine collision_util_reset_system
 
       module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
@@ -523,7 +532,7 @@ module collision
       end subroutine collision_final_storage
 
 
-      subroutine collision_final_bounce_system(self)
+      subroutine collision_final_bounce(self)
          !! author: David A. Minton
          !!
          !! Finalizer will deallocate all allocatables
@@ -536,10 +545,10 @@ module collision
          if (allocated(self%fragments)) deallocate(self%fragments)
 
          return
-      end subroutine collision_final_bounce_system
+      end subroutine collision_final_bounce
 
 
-      subroutine collision_final_simple_system(self)
+      subroutine collision_final_simple(self)
          !! author: David A. Minton
          !!
          !! Finalizer will deallocate all allocatables
@@ -552,9 +561,7 @@ module collision
          if (allocated(self%fragments)) deallocate(self%fragments)
 
          return
-      end subroutine collision_final_simple_system
-
-
+      end subroutine collision_final_simple
 
 end module collision
 

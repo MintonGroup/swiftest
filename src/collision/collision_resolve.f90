@@ -323,7 +323,7 @@ contains
       select type(param)
       class is (swiftest_parameters)
          associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, npl => pl%nbody, &
-            collision_system => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
+            collision_merge => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
 
             ! Add the impactors%id bodies to the subtraction list
             nimpactors = impactors%ncoll
@@ -437,7 +437,7 @@ contains
             end where
 
             ! Log the properties of the new bodies
-            select type(after => collision_system%after)
+            select type(after => collision_merge%after)
             class is (swiftest_nbody_system)
                allocate(after%pl, source=plnew)
             end select
