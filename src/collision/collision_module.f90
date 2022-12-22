@@ -78,7 +78,7 @@ module collision
       procedure :: consolidate => collision_resolve_consolidate_impactors !! Consolidates a multi-body collision into an equivalent 2-body collision
       procedure :: get_regime  => collision_regime_impactors              !! Determine which fragmentation regime the set of impactors will be
       procedure :: reset       => collision_util_reset_impactors          !! Resets the collider object variables to 0 and deallocates the index and mass distributions
-      final     ::               collision_final_impactors                !! Finalizer will deallocate all allocatables
+      final     ::                collision_final_impactors                !! Finalizer will deallocate all allocatables
    end type collision_impactors
 
 
@@ -353,7 +353,7 @@ module collision
 
       module subroutine collision_setup_system(self, nbody_system)
          implicit none
-         class(collision_merge),  intent(inout) :: self         !! Encounter collision system object
+         class(collision_merge),   intent(inout) :: self         !! Encounter collision system object
          class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
       end subroutine collision_setup_system
    

@@ -33,10 +33,7 @@ contains
       class is (swiftest_nbody_system)
       select type (pl => nbody_system%pl)
       class is (swiftest_pl)
-      select type(before => collider%after)
-      class is (swiftest_nbody_system)
-      select type(after => collider%after)
-      class is (swiftest_nbody_system)
+
          associate(impactors => collider%impactors, fragments => collider%fragments,  pl => nbody_system%pl)
             message = "Hit and run between"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
@@ -46,12 +43,19 @@ contains
             pl%status(impactors%id(:)) = ACTIVE
             pl%ldiscard(impactors%id(:)) = .false.
             pl%lcollision(impactors%id(:)) = .false.
-            allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work 
+
+            ! Be sure to save the pl so that snapshots still work 
+            select type(before => collider%before)
+            class is (swiftest_nbody_system)
+            select type(after => collider%after)
+            class is (swiftest_nbody_system)
+               allocate(after%pl, source=before%pl) 
+            end select
+            end select
          end associate
       end select
       end select
-      end select
-      end select
+
 
 
       return
@@ -167,17 +171,36 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
-      integer(I4B) :: i,nfrag
+      integer(I4B) :: i,j,nfrag
+      real(DP), dimension(NDIM) :: vcom, rnorm
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
+      select type (pl => nbody_system%pl)
+      class is (swiftest_pl)
          associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                nfrag = size(impactors%id(:))
-               call self%setup_fragments(nfrag)
-
-
+               do i = 1, nfrag
+                  j = impactors%id(i)
+                  vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
+                  rnorm(:) = .unit. (impactors%rb(:,2) - impactors%rb(:,1))
+                  ! Do the reflection
+                  vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
+                  pl%vb(:,j) = impactors%vbcom(:) + vcom(:)
+                  self%status = DISRUPTED
+                  pl%status(j) = ACTIVE
+                  pl%ldiscard(j) = .false.
+                  pl%lcollision(j) = .false.
+               end do
+               select type(before => self%before)
+               class is (swiftest_nbody_system)
+               select type(after => self%after)
+               class is (swiftest_nbody_system)
+                  allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work   
+               end select
+               end select
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
                call collision_generate_hitandrun(self, nbody_system, param, t)
             case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
@@ -187,6 +210,7 @@ contains
                call util_exit(FAILURE)
             end select
             end associate
+      end select
       end select
 
       return

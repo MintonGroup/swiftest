@@ -351,8 +351,16 @@ contains
       ! Arguments
       class(collision_merge),    intent(inout) :: self  !! Collision system object
 
-      if (allocated(self%before)) deallocate(self%before)
-      if (allocated(self%after)) deallocate(self%after)
+      select type(before => self%before)
+      class is (swiftest_nbody_system)
+         if (allocated(before%pl)) deallocate(before%pl)
+         if (allocated(before%tp)) deallocate(before%tp)
+      end select
+      select type(after => self%after)
+      class is (swiftest_nbody_system)
+         if (allocated(after%pl)) deallocate(after%pl)
+         if (allocated(after%tp)) deallocate(after%tp)
+      end select
 
       self%Lorbit(:,:) = 0.0_DP
       self%Lspin(:,:) = 0.0_DP
@@ -486,7 +494,7 @@ contains
       character(*),                intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
       ! Arguments
       class(collision_snapshot), allocatable :: snapshot
-      class(swiftest_pl), allocatable                    :: pl
+      class(swiftest_pl), allocatable :: pl
       character(len=:), allocatable :: stage
 
       if (present(arg)) then
@@ -515,7 +523,7 @@ contains
                pl%info(:) = nbody_system%pl%info(idx(:))
                select type (before => nbody_system%collider%before)
                class is (swiftest_nbody_system)
-                  allocate(before%pl, source=pl)
+                  call move_alloc(pl, before%pl)
                end select
             end associate
          case("after")
