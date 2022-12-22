@@ -47,10 +47,10 @@ module tides
 
 
    interface
-      module subroutine tides_kick_getacch_pl(self, system)
+      module subroutine tides_kick_getacch_pl(self, nbody_system)
          implicit none
          class(base_object),         intent(inout) :: self   !! Swiftest massive body object
-         class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       end subroutine tides_kick_getacch_pl
 
       module function tides_derivs_init(lambda, dt, rbeg, rend) result(f)

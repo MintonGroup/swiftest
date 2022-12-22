@@ -368,7 +368,7 @@ contains
    end subroutine encounter_util_save_snapshot
 
 
-   module subroutine encounter_util_snapshot(self, param, system, t, arg)
+   module subroutine encounter_util_snapshot(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
       !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
@@ -378,7 +378,7 @@ contains
       ! Internals
       class(encounter_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
       class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters
-      class(base_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
+      class(base_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
       real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
@@ -400,11 +400,11 @@ contains
 
       select type(param)
       class is (swiftest_parameters)
-      select type (system)
+      select type (nbody_system)
       class is (swiftest_nbody_system)
-      select type (pl => system%pl)
+      select type (pl => nbody_system%pl)
       class is (swiftest_pl)
-      select type (tp => system%tp)
+      select type (tp => nbody_system%tp)
       class is (swiftest_tp)
          associate(npl => pl%nbody,  ntp => tp%nbody)
             if (npl + ntp == 0) return
@@ -429,9 +429,9 @@ contains
                         pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE 
                         select type(pl)
                         class is (symba_pl)
-                        select type(system)
+                        select type(nbody_system)
                         class is (symba_nbody_system)
-                           pl%lmask(1:npl) = pl%lmask(1:npl) .and. pl%levelg(1:npl) == system%irec
+                           pl%lmask(1:npl) = pl%lmask(1:npl) .and. pl%levelg(1:npl) == nbody_system%irec
                         end select
                         end select
                         npl_snap = count(pl%lmask(1:npl))
@@ -440,9 +440,9 @@ contains
                         tp%lmask(1:ntp) = tp%status(1:ntp) /= INACTIVE 
                         select type(tp)
                         class is (symba_tp)
-                        select type(system)
+                        select type(nbody_system)
                         class is (symba_nbody_system)
-                           tp%lmask(1:ntp) = tp%lmask(1:ntp) .and. tp%levelg(1:ntp) == system%irec
+                           tp%lmask(1:ntp) = tp%lmask(1:ntp) .and. tp%levelg(1:ntp) == nbody_system%irec
                         end select
                         end select
                         ntp_snap = count(tp%lmask(1:ntp))
@@ -496,13 +496,13 @@ contains
                      end if
 
                      ! Save the snapshot
-                     select type (encounter_history => system%encounter_history)
+                     select type (encounter_history => nbody_system%encounter_history)
                      class is (encounter_storage(*))
                         encounter_history%nid = encounter_history%nid + ntp_snap + npl_snap
-                        call encounter_util_save_snapshot(system%encounter_history,snapshot)
+                        call encounter_util_save_snapshot(nbody_system%encounter_history,snapshot)
                      end select
                   case("closest")
-                     associate(plpl_encounter => system%plpl_encounter, pltp_encounter => system%pltp_encounter)
+                     associate(plpl_encounter => nbody_system%plpl_encounter, pltp_encounter => nbody_system%pltp_encounter)
                         if (any(plpl_encounter%lclosest(:))) then
                            call pl_snap%setup(2, param)
                            do k = 1, plpl_encounter%nenc
@@ -565,7 +565,7 @@ contains
                                  pl_snap%vh(:,2) = vb(:,2) + vcom(:)
 
                                  call pl_snap%sort("id", ascending=.true.)
-                                 call encounter_util_save_snapshot(system%encounter_history,snapshot)
+                                 call encounter_util_save_snapshot(nbody_system%encounter_history,snapshot)
                               end if
                            end do
 

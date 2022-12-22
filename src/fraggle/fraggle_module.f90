@@ -15,8 +15,6 @@ module fraggle
    implicit none
    public
 
-   integer(I4B),     parameter :: FRAGGLE_NMASS_DIST = 3             !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
-   character(len=*), parameter :: FRAGGLE_LOG_OUT    = "fraggle.log" !! Name of log file for Fraggle diagnostic information
 
    !> Class definition for the variables that describe a collection of fragments by Fraggle barycentric coordinates
    type, extends(collision_fragments) :: fraggle_fragments

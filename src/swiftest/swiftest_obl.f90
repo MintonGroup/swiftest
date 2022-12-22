@@ -9,7 +9,7 @@
 
 submodule (swiftest) s_obl
 contains
-   module subroutine swiftest_obl_acc_body(self, system)
+   module subroutine swiftest_obl_acc_body(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
@@ -20,14 +20,14 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
       if (self%nbody == 0) return
 
-      associate(n => self%nbody, cb => system%cb)
+      associate(n => self%nbody, cb => nbody_system%cb)
          self%aobl(:,:) = 0.0_DP
          do concurrent(i = 1:n, self%lmask(i))
             r2 = dot_product(self%rh(:, i), self%rh(:, i))
@@ -48,7 +48,7 @@ contains
    end subroutine swiftest_obl_acc_body
 
 
-   module subroutine swiftest_obl_acc_pl(self, system)
+   module subroutine swiftest_obl_acc_pl(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of massive bodies due to the oblateness of the central body
@@ -58,14 +58,14 @@ contains
       implicit none
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
       integer(I4B) :: i
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody, cb => system%cb)
-         call swiftest_obl_acc_body(pl, system)
+      associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
+         call swiftest_obl_acc_body(pl, nbody_system)
          cb%aobl(:) = 0.0_DP
          do i = npl, 1, -1
             if (pl%lmask(i)) cb%aobl(:) = cb%aobl(:) - pl%Gmass(i) * pl%aobl(:, i) / cb%Gmass
@@ -81,7 +81,7 @@ contains
    end subroutine swiftest_obl_acc_pl
 
 
-   module subroutine swiftest_obl_acc_tp(self, system)
+   module subroutine swiftest_obl_acc_tp(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of massive bodies due to the oblateness of the central body
@@ -91,16 +91,16 @@ contains
       implicit none
       ! Arguments
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
       real(DP), dimension(NDIM)                   :: aoblcb
       integer(I4B) :: i
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody, cb => system%cb)
-         call swiftest_obl_acc_body(tp, system)
-         if (system%lbeg) then
+      associate(tp => self, ntp => self%nbody, cb => nbody_system%cb)
+         call swiftest_obl_acc_body(tp, nbody_system)
+         if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else
             aoblcb = cb%aoblend
@@ -133,12 +133,12 @@ contains
       integer(I4B) :: i
       real(DP), dimension(self%pl%nbody) :: oblpot_arr
 
-      associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+      associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          if (.not. any(pl%lmask(1:npl))) return
          do concurrent (i = 1:npl, pl%lmask(i))
             oblpot_arr(i) = obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
          end do
-         system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))
+         nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))
       end associate
          
       return

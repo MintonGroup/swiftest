@@ -11,7 +11,7 @@ submodule(whm) s_whm_kick
    use swiftest
 contains
 
-   module subroutine whm_kick_getacch_pl(self, system, param, t, lbeg)
+   module subroutine whm_kick_getacch_pl(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of planets
@@ -21,7 +21,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest central body particle data structure
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t       !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
@@ -31,7 +31,7 @@ contains
 
       if (self%nbody == 0) return
 
-      associate(cb => system%cb, pl => self, npl => self%nbody)
+      associate(cb => nbody_system%cb, pl => self, npl => self%nbody)
          call pl%set_ir3()
 
          ah0(:) = whm_kick_getacch_ah0(pl%Gmass(2:npl), pl%rh(:,2:npl), npl-1)
@@ -44,7 +44,7 @@ contains
          call pl%accel_int(param) 
 
          if (param%loblatecb) then
-            call pl%accel_obl(system)
+            call pl%accel_obl(nbody_system)
             if (lbeg) then
                cb%aoblbeg = cb%aobl
             else
@@ -53,21 +53,21 @@ contains
             ! TODO: Implement tides
             ! if (param%ltides) then
             !    cb%atidebeg = cb%aobl
-            !    call pl%accel_tides(system)
+            !    call pl%accel_tides(nbody_system)
             !    cb%atideend = cb%atide
             ! end if
          end if
 
          if (param%lgr) call pl%accel_gr(param) 
 
-         if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
+         if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
       end associate
 
       return
    end subroutine whm_kick_getacch_pl
 
 
-   module subroutine whm_kick_getacch_tp(self, system, param, t, lbeg)
+   module subroutine whm_kick_getacch_tp(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -77,7 +77,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest central body particle data structure
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
@@ -85,9 +85,9 @@ contains
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
    
-      associate(tp => self, ntp => self%nbody, pl => system%pl, cb => system%cb, npl => system%pl%nbody)
+      associate(tp => self, ntp => self%nbody, pl => nbody_system%pl, cb => nbody_system%cb, npl => nbody_system%pl%nbody)
          if (ntp == 0 .or. npl == 0) return
-         system%lbeg = lbeg
+         nbody_system%lbeg = lbeg
 
          if (lbeg) then
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
@@ -103,8 +103,8 @@ contains
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
          end if
 
-         if (param%loblatecb) call tp%accel_obl(system)
-         if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
+         if (param%loblatecb) call tp%accel_obl(nbody_system)
+         if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param) 
       end associate
 
@@ -200,7 +200,7 @@ contains
    end subroutine whm_kick_getacch_ah2
 
 
-   module subroutine whm_kick_vh_pl(self, system, param, t, dt, lbeg)
+   module subroutine whm_kick_vh_pl(self, nbody_system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick heliocentric velocities of massive bodies
@@ -210,7 +210,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                intent(inout) :: self  !! WHM massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -218,19 +218,19 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      associate(pl => self, npl => self%nbody, cb => system%cb)
+      associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
          if (npl == 0) return
          if (lbeg) then
             if (pl%lfirst) then
                call pl%h2j(cb)
                pl%ah(:, 1:npl) = 0.0_DP
-               call pl%accel(system, param, t, lbeg)
+               call pl%accel(nbody_system, param, t, lbeg)
                pl%lfirst = .false.
             end if
             call pl%set_beg_end(rbeg = pl%rh)
          else
             pl%ah(:, 1:npl) = 0.0_DP
-            call pl%accel(system, param, t, lbeg)
+            call pl%accel(nbody_system, param, t, lbeg)
             call pl%set_beg_end(rend = pl%rh)
          end if
          do concurrent(i = 1:npl, pl%lmask(i))
@@ -242,7 +242,7 @@ contains
    end subroutine whm_kick_vh_pl
 
 
-   module subroutine whm_kick_vh_tp(self, system, param, t, dt, lbeg)
+   module subroutine whm_kick_vh_tp(self, nbody_system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick heliocentric velocities of test particles
@@ -252,7 +252,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -267,14 +267,14 @@ contains
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = 0.0_DP
             end do
-            call tp%accel(system, param, t, lbeg=.true.)
+            call tp%accel(nbody_system, param, t, lbeg=.true.)
             tp%lfirst = .false.
          end if
          if (.not.lbeg) then
             do concurrent(i = 1:ntp, tp%lmask(i))
                tp%ah(:, i) = 0.0_DP
             end do
-            call tp%accel(system, param, t, lbeg)
+            call tp%accel(nbody_system, param, t, lbeg)
          end if
          do concurrent(i = 1:ntp, tp%lmask(i))
             tp%vh(:, i) = tp%vh(:, i) + tp%ah(:, i) * dt

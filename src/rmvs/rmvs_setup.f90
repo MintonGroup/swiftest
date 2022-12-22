@@ -70,7 +70,7 @@ contains
       !! We currently rearrange the pl order to keep it consistent with the way Swifter does it 
       !! In Swifter, the central body occupies the first position in the pl list, and during
       !! encounters, the encountering planet is skipped in loops. In Swiftest, we instantiate an
-      !! RMVS nbody system object attached to each pl to store planetocentric versions of the system
+      !! RMVS nbody system object attached to each pl to store planetocentric versions of the nbody_system
       !! to use during close encounters. 
       implicit none
       ! Arguments

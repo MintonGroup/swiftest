@@ -53,7 +53,7 @@ module encounter
       real(DP)                        :: t     !! Simulation time when snapshot was taken
       integer(I8B)                    :: iloop !! Loop number at time of snapshot
    contains
-      procedure :: write_frame => encounter_netcdf_io_write_frame_snapshot     !! Writes a frame of encounter data to file 
+      procedure :: write_frame => encounter_io_netcdf_write_frame_snapshot     !! Writes a frame of encounter data to file 
       procedure :: get_idvals  => encounter_util_get_idvalues_snapshot  !! Gets an array of all id values saved in this snapshot
       final     ::                encounter_final_snapshot
    end type encounter_snapshot
@@ -66,7 +66,7 @@ module encounter
       integer(I4B)       :: name_dimsize = 0         !! Number of potential id values in snapshot
       integer(I4B)       :: file_number  = 1         !! The number to append on the output file
    contains
-      procedure :: initialize => encounter_netcdf_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: initialize => encounter_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       final     ::               encounter_final_netcdf_parameters     !! Finalizer will close the NetCDF file
    end type encounter_netcdf_parameters
 
@@ -75,13 +75,12 @@ module encounter
    type, extends(base_storage) :: encounter_storage
       class(encounter_netcdf_parameters), allocatable :: nc             !! NetCDF object attached to this storage object
    contains
-      procedure :: dump             => encounter_netcdf_io_dump        !! Dumps contents of encounter history to file
+      procedure :: dump             => encounter_io_netcdf_dump        !! Dumps contents of encounter history to file
       procedure :: get_index_values => encounter_util_get_vals_storage !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
       procedure :: make_index_map   => encounter_util_index_map        !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: take_snapshot    => encounter_util_snapshot         !! Take a minimal snapshot of the system through an encounter
       final     ::                     encounter_final_storage
    end type encounter_storage
-
 
 
    type encounter_bounding_box_1D
@@ -110,7 +109,7 @@ module encounter
       module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
-         class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+         class(base_parameters),                  intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: x      !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: v      !! Velocity vectors of massive bodies
@@ -126,7 +125,7 @@ module encounter
                                                   nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
-         class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+         class(base_parameters),                 intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
          integer(I4B),                            intent(in)    :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
          real(DP),     dimension(:,:),            intent(in)    :: xplm   !! Position vectors of fully interacting massive bodies
@@ -218,24 +217,24 @@ module encounter
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_single_list
 
-      module subroutine encounter_netcdf_io_dump(self, param)
+      module subroutine encounter_io_netcdf_dump(self, param)
          implicit none
          class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
          class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
-      end subroutine encounter_netcdf_io_dump
+      end subroutine encounter_io_netcdf_dump
 
-      module subroutine encounter_netcdf_io_initialize_output(self, param)
+      module subroutine encounter_io_netcdf_initialize_output(self, param)
          implicit none
          class(encounter_netcdf_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),     intent(in)    :: param   
-      end subroutine encounter_netcdf_io_initialize_output
+      end subroutine encounter_io_netcdf_initialize_output
 
-      module subroutine encounter_netcdf_io_write_frame_snapshot(self, history, param)
+      module subroutine encounter_io_netcdf_write_frame_snapshot(self, history, param)
          implicit none
          class(encounter_snapshot),   intent(in)    :: self    !! Swiftest encounter structure
          class(encounter_storage(*)), intent(inout) :: history !! Encounter storage object
          class(base_parameters),  intent(inout) :: param   !! Current run configuration parameters
-      end subroutine encounter_netcdf_io_write_frame_snapshot
+      end subroutine encounter_io_netcdf_write_frame_snapshot
 
       module subroutine encounter_setup_aabb(self, n, n_last)
          implicit none
@@ -297,13 +296,13 @@ module encounter
          integer(I8B),          intent(in)    :: nnew !! New size of list needed
       end subroutine encounter_util_resize_list
 
-      module subroutine encounter_util_snapshot(self, param, system, t, arg)
+      module subroutine encounter_util_snapshot(self, param, nbody_system, t, arg)
          implicit none
-         class(encounter_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
-         class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters
-         class(base_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
-         real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
-         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+         class(encounter_storage(*)), intent(inout)        :: self         !! Swiftest storage object
+         class(base_parameters),      intent(inout)        :: param        !! Current run configuration parameters
+         class(base_nbody_system),    intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+         real(DP),                    intent(in), optional :: t            !! Time of snapshot if different from system time
+         character(*),                intent(in), optional :: arg          !! Optional argument (needed for extended storage type used in collision snapshots)
       end subroutine encounter_util_snapshot
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)

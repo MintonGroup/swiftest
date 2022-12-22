@@ -130,50 +130,50 @@ contains
                                                          "; D(Eorbit+Ecollisions)/|E0| = ", ES12.5, &
                                                          "; DM/M0 = ", ES12.5)'
 
-      associate(system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => param%system_history%nc)
+      associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => param%system_history%nc)
 
          call pl%vb2vh(cb)
          call pl%rh2rb(cb)
 
-         call system%get_energy_and_momentum(param) 
-         ke_orbit_now = system%ke_orbit
-         ke_spin_now = system%ke_spin
-         pe_now = system%pe
-         Lorbit_now(:) = system%Lorbit(:)
-         Lspin_now(:) = system%Lspin(:)
+         call nbody_system%get_energy_and_momentum(param) 
+         ke_orbit_now = nbody_system%ke_orbit
+         ke_spin_now = nbody_system%ke_spin
+         pe_now = nbody_system%pe
+         Lorbit_now(:) = nbody_system%Lorbit(:)
+         Lspin_now(:) = nbody_system%Lspin(:)
          Eorbit_now = ke_orbit_now + ke_spin_now + pe_now
-         Ltot_now(:) = system%Ltot(:) + system%Lescape(:)
-         GMtot_now = system%GMtot + system%GMescape 
+         Ltot_now(:) = nbody_system%Ltot(:) + nbody_system%Lescape(:)
+         GMtot_now = nbody_system%GMtot + nbody_system%GMescape 
 
          if (param%lfirstenergy) then
-            system%ke_orbit_orig = ke_orbit_now
-            system%ke_spin_orig = ke_spin_now
-            system%pe_orig = pe_now
-            system%Eorbit_orig = Eorbit_now
-            system%GMtot_orig = GMtot_now
-            system%Lorbit_orig(:) = Lorbit_now(:)
-            system%Lspin_orig(:) = Lspin_now(:)
-            system%Ltot_orig(:) = Ltot_now(:)
+            nbody_system%ke_orbit_orig = ke_orbit_now
+            nbody_system%ke_spin_orig = ke_spin_now
+            nbody_system%pe_orig = pe_now
+            nbody_system%Eorbit_orig = Eorbit_now
+            nbody_system%GMtot_orig = GMtot_now
+            nbody_system%Lorbit_orig(:) = Lorbit_now(:)
+            nbody_system%Lspin_orig(:) = Lspin_now(:)
+            nbody_system%Ltot_orig(:) = Ltot_now(:)
             param%lfirstenergy = .false.
          end if
 
          if (.not.param%lfirstenergy) then 
-            system%ke_orbit_error = (ke_orbit_now - system%ke_orbit_orig) / abs(system%Eorbit_orig)
-            system%ke_spin_error = (ke_spin_now - system%ke_spin_orig) / abs(system%Eorbit_orig)
-            system%pe_error = (pe_now - system%pe_orig) / abs(system%Eorbit_orig)
-            system%Eorbit_error = (Eorbit_now - system%Eorbit_orig) / abs(system%Eorbit_orig)
-            system%Ecoll_error = system%Ecollisions / abs(system%Eorbit_orig)
-            system%Euntracked_error = system%Euntracked / abs(system%Eorbit_orig)
-            system%Etot_error = (Eorbit_now - system%Ecollisions - system%Eorbit_orig - system%Euntracked) / abs(system%Eorbit_orig)
+            nbody_system%ke_orbit_error = (ke_orbit_now - nbody_system%ke_orbit_orig) / abs(nbody_system%Eorbit_orig)
+            nbody_system%ke_spin_error = (ke_spin_now - nbody_system%ke_spin_orig) / abs(nbody_system%Eorbit_orig)
+            nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%Eorbit_orig)
+            nbody_system%Eorbit_error = (Eorbit_now - nbody_system%Eorbit_orig) / abs(nbody_system%Eorbit_orig)
+            nbody_system%Ecoll_error = nbody_system%Ecollisions / abs(nbody_system%Eorbit_orig)
+            nbody_system%Euntracked_error = nbody_system%Euntracked / abs(nbody_system%Eorbit_orig)
+            nbody_system%Etot_error = (Eorbit_now - nbody_system%Ecollisions - nbody_system%Eorbit_orig - nbody_system%Euntracked) / abs(nbody_system%Eorbit_orig)
 
-            system%Lorbit_error = norm2(Lorbit_now(:) - system%Lorbit_orig(:)) / norm2(system%Ltot_orig(:))
-            system%Lspin_error = norm2(Lspin_now(:) - system%Lspin_orig(:)) / norm2(system%Ltot_orig(:))
-            system%Lescape_error = norm2(system%Lescape(:)) / norm2(system%Ltot_orig(:))
-            system%Ltot_error = norm2(Ltot_now(:) - system%Ltot_orig(:)) / norm2(system%Ltot_orig(:))
-            system%Mescape_error = system%GMescape / system%GMtot_orig
-            system%Mtot_error = (GMtot_now - system%GMtot_orig) / system%GMtot_orig
-            if (lterminal) write(display_unit, EGYTERMFMT) system%Ltot_error, system%Ecoll_error, system%Etot_error,system%Mtot_error
-            if (abs(system%Mtot_error) > 100 * epsilon(system%Mtot_error)) then
+            nbody_system%Lorbit_error = norm2(Lorbit_now(:) - nbody_system%Lorbit_orig(:)) / norm2(nbody_system%Ltot_orig(:))
+            nbody_system%Lspin_error = norm2(Lspin_now(:) - nbody_system%Lspin_orig(:)) / norm2(nbody_system%Ltot_orig(:))
+            nbody_system%Lescape_error = norm2(nbody_system%Lescape(:)) / norm2(nbody_system%Ltot_orig(:))
+            nbody_system%Ltot_error = norm2(Ltot_now(:) - nbody_system%Ltot_orig(:)) / norm2(nbody_system%Ltot_orig(:))
+            nbody_system%Mescape_error = nbody_system%GMescape / nbody_system%GMtot_orig
+            nbody_system%Mtot_error = (GMtot_now - nbody_system%GMtot_orig) / nbody_system%GMtot_orig
+            if (lterminal) write(display_unit, EGYTERMFMT) nbody_system%Ltot_error, nbody_system%Ecoll_error, nbody_system%Etot_error,nbody_system%Mtot_error
+            if (abs(nbody_system%Mtot_error) > 100 * epsilon(nbody_system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
                param%ioutput = param%ioutput + 1
@@ -226,12 +226,12 @@ contains
    module subroutine swiftest_io_dump_system(self, param)
       !! author: David A. Minton
       !!
-      !! Dumps the state of the system to files in case the simulation is interrupted.
+      !! Dumps the state of the nbody_system to files in case the simulation is interrupted.
       !! As a safety mechanism, there are two dump files that are written in alternating order
       !! so that if a dump file gets corrupted during writing, the user can restart from the older one.
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
@@ -268,7 +268,7 @@ contains
       if (param%lenc_save_trajectory .or. param%lenc_save_closest) call self%encounter_history%dump(param)
       call self%collision_history%dump(param)
 
-      ! Dump the system history to file
+      ! Dump the nbody_system history to file
       call param%system_history%dump(param)
 
       return
@@ -278,7 +278,7 @@ contains
    module subroutine swiftest_io_dump_storage(self, param)
       !! author: David A. Minton
       !!
-      !! Dumps the time history of the simulation to file. Each time it writes a frame to file, it deallocates the system
+      !! Dumps the time history of the simulation to file. Each time it writes a frame to file, it deallocates the nbody_system
       !! object from inside. It will only dump frames with systems that are allocated, so this can be called at the end of
       !! a simulation for cases when the number of saved frames is not equal to the dump cadence (for instance, if the dump
       !! cadence is not divisible by the total number of loops).
@@ -296,9 +296,9 @@ contains
       do i = 1, self%iframe
          if (allocated(self%frame(i)%item)) then
             param%ioutput = iloop_start + self%tmap(i)
-            select type(system => self%frame(i)%item)
+            select type(nbody_system => self%frame(i)%item)
             class is (swiftest_nbody_system)
-               call system%write_frame(param)
+               call nbody_system%write_frame(param)
             end select
             deallocate(self%frame(i)%item)
          end if
@@ -578,7 +578,7 @@ contains
    module subroutine swiftest_io_netcdf_initialize_output(self, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Initialize a NetCDF file system and defines all variables.
+      !! Initialize a NetCDF file nbody_system and defines all variables.
       use, intrinsic :: ieee_arithmetic
       implicit none
       ! Arguments
@@ -881,7 +881,7 @@ contains
       !! Read a frame (header plus records for each massive body and active test particle) from an output binary file
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest system object
+      class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody_system object
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Return
@@ -1108,7 +1108,7 @@ contains
       return
 
       667 continue
-      write(*,*) "Error reading system frame in netcdf_io_read_frame_system"
+      write(*,*) "Error reading nbody_system frame in netcdf_io_read_frame_system"
 
    end function swiftest_io_netcdf_read_frame_system
 
@@ -1568,7 +1568,7 @@ contains
       !! Write a frame (header plus records for each massive body and active test particle) to a output binary file
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest system object
+      class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest nbody_system object
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
 
@@ -1928,7 +1928,7 @@ contains
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
-                  ! number of seeds than the current system. If the number of seeds in the file is smaller than required, we will use them as a source to fill in the missing elements.
+                  ! number of seeds than the current nbody_system. If the number of seeds in the file is smaller than required, we will use them as a source to fill in the missing elements.
                   ! If the number of seeds in the file is larger than required, we will truncate the seed array.
                   if (nseeds_from_file > nseeds) then
                      nseeds = nseeds_from_file
@@ -2045,12 +2045,12 @@ contains
             return
          end if
 
-         ! Calculate the G for the system units
+         ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
 
          ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
-         call swiftest_io_log_start(param, FRAGGLE_LOG_OUT, "Fraggle logfile")
+         call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Fraggle logfile")
 
          if ((param%encounter_save /= "NONE")       .and. &
              (param%encounter_save /= "TRAJECTORY") .and. &
@@ -2111,7 +2111,7 @@ contains
          end select
 
          if (param%lgr) then
-            ! Calculate the inverse speed of light in the system units
+            ! Calculate the inverse speed of light in the nbody_system units
             param%inv_c2 = einsteinC * param%TU2S / param%DU2M
             param%inv_c2 = (param%inv_c2)**(-2)
          end if
@@ -2584,7 +2584,7 @@ contains
    module subroutine swiftest_io_read_in_system(self, param)
       !! author: David A. Minton and Carlisle A. Wishard
       !!
-      !! Reads in the system from input files
+      !! Reads in the nbody_system from input files
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self
@@ -2859,7 +2859,7 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.f
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
@@ -2898,7 +2898,7 @@ contains
       return
 
       667 continue
-      write(*,*) "Error writing system frame: " // trim(adjustl(errmsg))
+      write(*,*) "Error writing nbody_system frame: " // trim(adjustl(errmsg))
       call util_exit(FAILURE)
    end subroutine swiftest_io_write_frame_system
 

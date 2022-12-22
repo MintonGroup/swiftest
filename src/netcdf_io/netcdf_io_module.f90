@@ -96,24 +96,24 @@ module netcdf_io
       integer(I4B)       :: k2_varid                                    !! ID for the Love number variable
       character(NAMELEN) :: q_varname               = "Q"               !! name of the energy dissipation variable
       integer(I4B)       :: Q_varid                                     !! ID for the energy dissipation variable
-      character(NAMELEN) :: ke_orb_varname          = "KE_orb"          !! name of the system orbital kinetic energy variable
-      integer(I4B)       :: KE_orb_varid                                !! ID for the system orbital kinetic energy variable
-      character(NAMELEN) :: ke_spin_varname         = "KE_spin"         !! name of the system spin kinetic energy variable
-      integer(I4B)       :: KE_spin_varid                               !! ID for the system spin kinetic energy variable
-      character(NAMELEN) :: pe_varname              = "PE"              !! name of the system potential energy variable
-      integer(I4B)       :: PE_varid                                    !! ID for the system potential energy variable
+      character(NAMELEN) :: ke_orb_varname          = "KE_orb"          !! name of the nbody_system orbital kinetic energy variable
+      integer(I4B)       :: KE_orb_varid                                !! ID for the nbody_system orbital kinetic energy variable
+      character(NAMELEN) :: ke_spin_varname         = "KE_spin"         !! name of the nbody_system spin kinetic energy variable
+      integer(I4B)       :: KE_spin_varid                               !! ID for the nbody_system spin kinetic energy variable
+      character(NAMELEN) :: pe_varname              = "PE"              !! name of the nbody_system potential energy variable
+      integer(I4B)       :: PE_varid                                    !! ID for the nbody_system potential energy variable
       character(NAMELEN) :: L_orb_varname           = "L_orb"           !! name of the orbital angular momentum vector variable
-      integer(I4B)       :: L_orb_varid                                 !! ID for the system orbital angular momentum vector variable
+      integer(I4B)       :: L_orb_varid                                 !! ID for the nbody_system orbital angular momentum vector variable
       character(NAMELEN) :: Lspin_varname          = "Lspin"            !! name of the spin angular momentum vector variable
-      integer(I4B)       :: Lspin_varid                                 !! ID for the system spin angular momentum vector variable
+      integer(I4B)       :: Lspin_varid                                 !! ID for the nbody_system spin angular momentum vector variable
       character(NAMELEN) :: L_escape_varname        = "L_escape"        !! name of the escaped angular momentum vector variable
       integer(I4B)       :: L_escape_varid                              !! ID for the escaped angular momentum vector variable
       character(NAMELEN) :: Ecollisions_varname     = "Ecollisions"     !! name of the escaped angular momentum y variable                             
       integer(I4B)       :: Ecollisions_varid                           !! ID for the energy lost in collisions variable
       character(NAMELEN) :: Euntracked_varname      = "Euntracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       integer(I4B)       :: Euntracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
-      character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
-      integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the system
+      character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the nbody_system
+      integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the nbody_system
       character(NAMELEN) :: origin_type_varname     = "origin_type"     !! name of the origin type variable (Initial Conditions, Disruption, etc.)
       integer(I4B)       :: origin_type_varid                           !! ID for the origin type
       character(NAMELEN) :: origin_time_varname     = "origin_time"     !! name of the time of origin variable

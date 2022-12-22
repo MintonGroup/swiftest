@@ -11,7 +11,7 @@ submodule (symba) s_symba_encounter_check
    use swiftest
 contains
 
-   module function symba_encounter_check_pl(self, param, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check_pl(self, param, nbody_system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between massive bodies.
@@ -20,7 +20,7 @@ contains
       ! Arguments
       class(symba_pl),            intent(inout)  :: self   !! SyMBA test particle object  
       class(swiftest_parameters), intent(inout)  :: param  !! Current swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout)  :: system !! SyMBA nbody system object
+      class(symba_nbody_system),  intent(inout)  :: nbody_system !! SyMBA nbody system object
       real(DP),                   intent(in)     :: dt     !! step size
       integer(I4B),               intent(in)     :: irec   !! Current recursion level
       ! Result
@@ -34,7 +34,7 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(pl => self, plpl_encounter => system%plpl_encounter, cb => system%cb)
+      associate(pl => self, plpl_encounter => nbody_system%plpl_encounter, cb => nbody_system%cb)
 
          npl = pl%nbody
          nplm = pl%nplm
@@ -59,7 +59,7 @@ contains
 
          if (lany_encounter) then
             do k = 1_I8B, nenc
-               plpl_encounter%t = system%t
+               plpl_encounter%t = nbody_system%t
                i = plpl_encounter%index1(k)
                j = plpl_encounter%index2(k)
                plpl_encounter%id1(k) = pl%id(i)
@@ -87,11 +87,11 @@ contains
    end function symba_encounter_check_pl
 
 
-   module function symba_encounter_check_list_plpl(self, param, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check_list_plpl(self, param, nbody_system, dt, irec) result(lany_encounter)
       implicit none
       class(symba_list_plpl),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
       class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+      class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter  
@@ -105,7 +105,7 @@ contains
       lany_encounter = .false.
       if (self%nenc == 0) return
 
-      select type(pl => system%pl)
+      select type(pl => nbody_system%pl)
       class is (symba_pl)
          allocate(lencmask(self%nenc))
          lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
@@ -155,11 +155,11 @@ contains
    end function symba_encounter_check_list_plpl
 
 
-   module function symba_encounter_check_list_pltp(self, param, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check_list_pltp(self, param, nbody_system, dt, irec) result(lany_encounter)
       implicit none
       class(symba_list_pltp),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
       class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+      class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter     
@@ -173,9 +173,9 @@ contains
       lany_encounter = .false.
       if (self%nenc == 0) return
 
-      select type(pl => system%pl)
+      select type(pl => nbody_system%pl)
       class is (symba_pl)
-      select type(tp => system%tp)
+      select type(tp => nbody_system%tp)
       class is (symba_tp)
          allocate(lencmask(self%nenc))
          lencmask(:) = (self%status(1:self%nenc) == ACTIVE) .and. (self%level(1:self%nenc) == irec - 1)
@@ -226,7 +226,7 @@ contains
    end function symba_encounter_check_list_pltp
 
 
-   module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
+   module function symba_encounter_check_tp(self, param, nbody_system, dt, irec) result(lany_encounter)
       !! author: David A. Minton
       !!
       !! Check for an encounter between test particles and massive bodies.
@@ -235,7 +235,7 @@ contains
       ! Arguments
       class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
       class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout) :: system !! SyMBA nbody system object
+      class(symba_nbody_system),  intent(inout) :: nbody_system !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Result
@@ -249,13 +249,13 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody, pl => system%pl, npl => system%pl%nbody)
+      associate(tp => self, ntp => self%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody)
          call pl%set_renc(irec)
          call encounter_check_all_pltp(param, npl, ntp, pl%rh, pl%vb, tp%rh, tp%vb, pl%renc, dt, nenc, index1, index2, lvdotr) 
    
          lany_encounter = nenc > 0
          if (lany_encounter) then 
-            associate(pltp_encounter => system%pltp_encounter)
+            associate(pltp_encounter => nbody_system%pltp_encounter)
                call pltp_encounter%resize(nenc)
                pltp_encounter%status(1:nenc) = ACTIVE
                pltp_encounter%level(1:nenc) = irec

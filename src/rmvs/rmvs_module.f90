@@ -44,7 +44,7 @@ module rmvs
       real(DP), dimension(:, :), allocatable :: atide !! Encountering planet's tidal acceleration value
    contains
       procedure :: dealloc => rmvs_util_dealloc_interp !! Deallocates all allocatable arrays
-      final     ::            rmvs_final_interp   !! Finalizes the RMVS interpolated system variables object - deallocates all allocatables
+      final     ::            rmvs_final_interp   !! Finalizes the RMVS interpolated nbody_system variables object - deallocates all allocatables
    end type rmvs_interp
 
 
@@ -113,26 +113,26 @@ module rmvs
    end type rmvs_pl
 
    interface
-      module subroutine rmvs_discard_tp(self, system, param)
+      module subroutine rmvs_discard_tp(self, nbody_system, param)
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine rmvs_discard_tp
 
-      module function rmvs_encounter_check_tp(self, param, system, dt) result(lencounter)
+      module function rmvs_encounter_check_tp(self, param, nbody_system, dt) result(lencounter)
          implicit none
          class(rmvs_tp),             intent(inout) :: self       !! RMVS test particle object  
          class(swiftest_parameters), intent(inout) :: param      !! Current run configuration parameters 
-         class(rmvs_nbody_system),   intent(inout) :: system     !! RMVS nbody system object
+         class(rmvs_nbody_system),   intent(inout) :: nbody_system     !! RMVS nbody system object
          real(DP),                   intent(in)    :: dt         !! step size
          logical                                   :: lencounter !! Returns true if there is at least one close encounter      
       end function rmvs_encounter_check_tp
 
-      module subroutine rmvs_kick_getacch_tp(self, system, param, t, lbeg)
+      module subroutine rmvs_kick_getacch_tp(self, nbody_system, param, t, lbeg)
          implicit none
          class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structuree 
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest central body particle data structuree 
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
@@ -179,7 +179,7 @@ module rmvs
 
       module subroutine rmvs_util_dealloc_interp(self)
          implicit none
-         class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated system variables object
+         class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated nbody_system variables object
       end subroutine rmvs_util_dealloc_interp
 
       module subroutine rmvs_util_dealloc_pl(self)
@@ -213,7 +213,7 @@ module rmvs
 
       module subroutine rmvs_final_interp(self)
          implicit none
-         type(rmvs_interp),  intent(inout) :: self !! RMVS interpolated system variables object
+         type(rmvs_interp),  intent(inout) :: self !! RMVS interpolated nbody_system variables object
       end subroutine rmvs_final_interp
 
       module subroutine rmvs_final_pl(self)

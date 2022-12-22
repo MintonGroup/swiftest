@@ -38,8 +38,8 @@ contains
          case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
             message = "Supercatastrophic disruption between"
          end select
-         call collision_resolve_collider_message(nbody_system%pl, impactors%id, message)
-         call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
+         call collision_io_collider_message(nbody_system%pl, impactors%id, message)
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
 
          ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
          call collision_system%set_mass_dist(param)
@@ -52,7 +52,7 @@ contains
          nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
 
          if (lfailure) then
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "No fragment solution found, so treat as a pure hit-and-run")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "No fragment solution found, so treat as a pure hit-and-run")
             status = ACTIVE 
             nfrag = 0
             pl%status(impactors%id(:)) = status
@@ -69,7 +69,7 @@ contains
             ! Populate the list of new bodies
             nfrag = fragments%nbody
             write(message, *) nfrag
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
             select case(impactors%regime)
             case(COLLRESOLVE_REGIME_DISRUPTION)
                status = DISRUPTED
@@ -116,8 +116,8 @@ contains
       class is (swiftest_nbody_system)
          associate(impactors => collision_system%impactors, fragments => collision_system%fragments,  pl => nbody_system%pl)
             message = "Hit and run between"
-            call collision_resolve_collider_message(nbody_system%pl, impactors%id, message)
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, trim(adjustl(message)))
+            call collision_io_collider_message(nbody_system%pl, impactors%id, message)
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
 
             if (impactors%mass(1) > impactors%mass(2)) then
                jtarg = 1
@@ -128,7 +128,7 @@ contains
             end if
 
             if (impactors%mass_dist(2) > 0.9_DP * impactors%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Pure hit and run. No new fragments generated.")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Pure hit and run. No new fragments generated.")
                nfrag = 0
                lpure = .true.
             else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
@@ -143,12 +143,12 @@ contains
                nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
 
                if (lpure) then
-                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Should have been a pure hit and run instead")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Should have been a pure hit and run instead")
                   nfrag = 0
                else
                   nfrag = fragments%nbody
                   write(message, *) nfrag
-                  call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
                end if
             end if
             if (lpure) then ! Reset these bodies back to being active so that nothing further is done to them

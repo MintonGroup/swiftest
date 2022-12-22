@@ -17,7 +17,7 @@ contains
       !!
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       logical :: lpl_discards, ltp_discards, lpl_check, ltp_check
@@ -25,16 +25,16 @@ contains
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
 
-      associate(system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards)
+      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards)
          lpl_discards = .false.
          ltp_discards = .false.
          if (lpl_check) then
-            call pl%discard(system, param)
+            call pl%discard(nbody_system, param)
             lpl_discards = (pl_discards%nbody > 0)
          end if
             
          if (ltp_check) then
-            call tp%discard(system, param)
+            call tp%discard(nbody_system, param)
             ltp_discards = (tp_discards%nbody > 0)
          end if
          if (ltp_discards) call tp_discards%write_info(param%system_history%nc, param)
@@ -49,7 +49,7 @@ contains
    end subroutine swiftest_discard_system
 
 
-   module subroutine swiftest_discard_pl(self, system, param)
+   module subroutine swiftest_discard_pl(self, nbody_system, param)
       !! author: David A. Minton
       !!
       !!  Placeholder method for discarding massive bodies. This method does nothing except to ensure that the discard flag is set to false. 
@@ -57,7 +57,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
 
       if (self%nbody == 0) return
@@ -67,7 +67,7 @@ contains
    end subroutine swiftest_discard_pl
 
 
-   module subroutine swiftest_discard_tp(self, system, param)
+   module subroutine swiftest_discard_tp(self, nbody_system, param)
       !! author: David A. Minton
       !!
       !! Check to see if particles should be discarded based on their positions relative to the massive bodies
@@ -77,13 +77,13 @@ contains
       implicit none
       ! Arguments
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
       ! Internals
       logical, dimension(:), allocatable :: ldiscard
       integer(I4B) :: npl, ntp
 
-      associate(tp => self, cb => system%cb, pl => system%pl)
+      associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl)
          ntp = tp%nbody
          npl = pl%nbody
 
@@ -93,12 +93,12 @@ contains
             call tp%h2b(cb) 
          end if
 
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call swiftest_discard_cb_tp(tp, system, param)
-         if (param%qmin >= 0.0_DP) call swiftest_discard_peri_tp(tp, system, param)
-         if (param%lclose) call swiftest_discard_pl_tp(tp, system, param)
+         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call swiftest_discard_cb_tp(tp, nbody_system, param)
+         if (param%qmin >= 0.0_DP) call swiftest_discard_peri_tp(tp, nbody_system, param)
+         if (param%lclose) call swiftest_discard_pl_tp(tp, nbody_system, param)
          if (any(tp%ldiscard(1:ntp))) then
             allocate(ldiscard, source=tp%ldiscard)
-            call tp%spill(system%tp_discards, ldiscard(1:ntp), ldestructive=.true.)
+            call tp%spill(nbody_system%tp_discards, ldiscard(1:ntp), ldestructive=.true.)
          end if
       end associate
 
@@ -106,25 +106,25 @@ contains
    end subroutine swiftest_discard_tp
 
 
-   subroutine swiftest_discard_cb_tp(tp, system, param)
+   subroutine swiftest_discard_cb_tp(tp, nbody_system, param)
       !! author: David A. Minton
       !!
       !!  Check to see if test particles should be discarded based on their positions relative to the Sun
-      !!        or because they are unbound from the system
+      !!        or because they are unbound from the nbody_system
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: discard_sun.f90
       !! Adapted from Hal Levison's Swift routine discard_sun.f
       implicit none
       ! Arguments
       class(swiftest_tp),           intent(inout) :: tp     !! Swiftest test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
       character(len=STRMAX) :: idstr, timestr
 
-      associate(ntp => tp%nbody, cb => system%cb, Gmtot => system%Gmtot)
+      associate(ntp => tp%nbody, cb => nbody_system%cb, Gmtot => nbody_system%Gmtot)
          rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
          rmax2 = param%rmax**2
          rmaxu2 = param%rmaxu**2
@@ -134,22 +134,22 @@ contains
                if ((param%rmax >= 0.0_DP) .and. (rh2 > rmax2)) then
                   tp%status(i) = DISCARDED_RMAX
                   write(idstr, *) tp%id(i)
-                  write(timestr, *) system%t
+                  write(timestr, *) nbody_system%t
                   write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                               " too far from the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
-                  call tp%info(i)%set_value(status="DISCARDED_RMAX", discard_time=system%t, discard_rh=tp%rh(:,i), &
+                  call tp%info(i)%set_value(status="DISCARDED_RMAX", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                             discard_vh=tp%vh(:,i))
                else if ((param%rmin >= 0.0_DP) .and. (rh2 < rmin2)) then
                   tp%status(i) = DISCARDED_RMIN
                   write(idstr, *) tp%id(i)
-                  write(timestr, *) system%t
+                  write(timestr, *) nbody_system%t
                   write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                               " too close to the central body at t = " // trim(adjustl(timestr))
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
-                  call tp%info(i)%set_value(status="DISCARDED_RMIN", discard_time=system%t, discard_rh=tp%rh(:,i), &
+                  call tp%info(i)%set_value(status="DISCARDED_RMIN", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                             discard_vh=tp%vh(:,i), discard_body_id=cb%id)
                else if (param%rmaxu >= 0.0_DP) then
                   rb2 = dot_product(tp%rb(:, i),  tp%rb(:, i))
@@ -158,12 +158,12 @@ contains
                   if ((energy > 0.0_DP) .and. (rb2 > rmaxu2)) then
                      tp%status(i) = DISCARDED_RMAXU
                      write(idstr, *) tp%id(i)
-                     write(timestr, *) system%t
+                     write(timestr, *) nbody_system%t
                      write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                                  " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
-                     call tp%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=system%t, discard_rh=tp%rh(:,i), &
+                     call tp%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                                discard_vh=tp%vh(:,i))
                   end if
                end if
@@ -175,7 +175,7 @@ contains
    end subroutine swiftest_discard_cb_tp
 
 
-   subroutine swiftest_discard_peri_tp(tp, system, param)
+   subroutine swiftest_discard_peri_tp(tp, nbody_system, param)
       !! author: David A. Minton
       !!
       !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
@@ -185,7 +185,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_tp),           intent(inout) :: tp   !! Swiftest test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameterss
       ! Internals
       integer(I4B)              :: i, j, ih
@@ -193,8 +193,8 @@ contains
       real(DP), dimension(NDIM) :: dx
       character(len=STRMAX) :: idstr, timestr
    
-      associate(cb => system%cb, ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, t => system%t)
-         call tp%get_peri(system, param)
+      associate(cb => nbody_system%cb, ntp => tp%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, t => nbody_system%t)
+         call tp%get_peri(nbody_system, param)
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                if (tp%isperi(i) == 0) then
@@ -210,11 +210,11 @@ contains
                         (tp%peri(i) <= param%qmin)) then
                         tp%status(i) = DISCARDED_PERI
                         write(idstr, *) tp%id(i)
-                        write(timestr, *) system%t
+                        write(timestr, *) nbody_system%t
                         write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                                     " perihelion distance too small at t = " // trim(adjustl(timestr))
                         tp%ldiscard(i) = .true.
-                        call tp%info(i)%set_value(status="DISCARDED_PERI", discard_time=system%t, discard_rh=tp%rh(:,i), &
+                        call tp%info(i)%set_value(status="DISCARDED_PERI", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                                   discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))
                      end if
                   end if
@@ -227,7 +227,7 @@ contains
    end subroutine swiftest_discard_peri_tp
 
 
-   subroutine swiftest_discard_pl_tp(tp, system, param)
+   subroutine swiftest_discard_pl_tp(tp, nbody_system, param)
       !! author: David A. Minton
       !!
       !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
@@ -237,7 +237,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_tp),           intent(inout) :: tp     !! Swiftest test particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals 
       integer(I4B)              :: i, j, isp
@@ -245,7 +245,7 @@ contains
       real(DP), dimension(NDIM) :: dx, dv
       character(len=STRMAX) :: idstri, idstrj, timestr
    
-      associate(ntp => tp%nbody, pl => system%pl, npl => system%pl%nbody, t => system%t, dt => param%dt)
+      associate(ntp => tp%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, t => nbody_system%t, dt => param%dt)
          do i = 1, ntp
             if (tp%status(i) == ACTIVE) then
                do j = 1, npl
@@ -259,12 +259,12 @@ contains
                      pl%ldiscard(j) = .true.
                      write(idstri, *) tp%id(i)
                      write(idstrj, *) pl%id(j)
-                     write(timestr, *) system%t
+                     write(timestr, *) nbody_system%t
                      write(*, *) "Test particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
                                                   // "  too close to massive body " // trim(adjustl(pl%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                                                   // " at t = " // trim(adjustl(timestr))
                      tp%ldiscard(i) = .true.
-                     call tp%info(i)%set_value(status="DISCARDED_PLR", discard_time=system%t, discard_rh=tp%rh(:,i), &
+                     call tp%info(i)%set_value(status="DISCARDED_PLR", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                                discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))
                      exit
                   end if

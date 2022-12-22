@@ -18,7 +18,7 @@ submodule (swiftest) s_drift
 
 contains
 
-   module subroutine swiftest_drift_body(self, system, param, dt)
+   module subroutine swiftest_drift_body(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Loop bodies and call Danby drift routine on the heliocentric position and velocities.
@@ -28,7 +28,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals

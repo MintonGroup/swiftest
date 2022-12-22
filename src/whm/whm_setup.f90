@@ -49,7 +49,7 @@ contains
       !! Sets the Jacobi mass value eta for all massive bodies
       implicit none
       ! Arguments
-      class(whm_pl),      intent(inout) :: self   !! WHM system object
+      class(whm_pl),      intent(inout) :: self   !! WHM nbody_system object
       class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body object
       ! Internals
       integer(I4B)                                 :: i

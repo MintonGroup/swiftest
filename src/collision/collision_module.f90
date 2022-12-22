@@ -18,6 +18,8 @@ module collision
    implicit none
    public
 
+   character(len=*), parameter :: COLLISION_LOG_OUT    = "collision.log" !! Name of log file for collision diagnostic information
+
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
    integer(I4B), parameter :: COLLRESOLVE_REGIME_DISRUPTION         =  2
@@ -63,14 +65,14 @@ module collision
       real(DP),     dimension(:),      allocatable :: mass_dist !! Distribution of fragment mass determined by the regime calculation (largest fragment, second largest, and remainder)    
       real(DP)                                     :: Mcb       !! Mass of central body (used to compute potential energy in regime determination)
 
-      ! Values in a coordinate frame centered on the collider barycenter and collisional system unit vectors 
-      real(DP), dimension(NDIM) :: x_unit  !! x-direction unit vector of collisional system
-      real(DP), dimension(NDIM) :: y_unit  !! y-direction unit vector of collisional system
-      real(DP), dimension(NDIM) :: z_unit  !! z-direction unit vector of collisional system
-      real(DP), dimension(NDIM) :: v_unit  !! z-direction unit vector of collisional system
-      real(DP), dimension(NDIM) :: rbcom   !! Center of mass position vector of the collider system in system barycentric coordinates
-      real(DP), dimension(NDIM) :: vbcom   !! Velocity vector of the center of mass of the collider system in system barycentric coordinates
-      real(DP), dimension(NDIM) :: rbimp   !! Impact point position vector of the collider system in system barycentric coordinates
+      ! Values in a coordinate frame centered on the collider barycenter and collisional nbody_system unit vectors 
+      real(DP), dimension(NDIM) :: x_unit  !! x-direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: y_unit  !! y-direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: z_unit  !! z-direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: v_unit  !! z-direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: rbcom   !! Center of mass position vector of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: vbcom   !! Velocity vector of the center of mass of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: rbimp   !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
 
    contains
       procedure :: get_regime             => collision_regime_impactors         !! Determine which fragmentation regime the set of impactors will be
@@ -108,49 +110,50 @@ module collision
 
 
    type, abstract :: collision_system
-      !! This class defines a collisional system that stores impactors and fragments. This is written so that various collision models (i.e. Fraggle) could potentially be used
+      !! This class defines a collisional nbody_system that stores impactors and fragments. This is written so that various collision models (i.e. Fraggle) could potentially be used
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       class(collision_fragments(:)), allocatable :: fragments !! Object containing information on the pre-collision system
       class(collision_impactors),    allocatable :: impactors !! Object containing information on the post-collision system
-      class(base_nbody_system),      allocatable :: before    !! A snapshot of the subset of the system involved in the collision
-      class(base_nbody_system),      allocatable :: after     !! A snapshot of the subset of the system containing products of the collision
+      class(base_nbody_system),      allocatable :: before    !! A snapshot of the subset of the nbody_system involved in the collision
+      class(base_nbody_system),      allocatable :: after     !! A snapshot of the subset of the nbody_system containing products of the collision
+      integer(I4B)                               :: status    !! Status flag to pass to the collision list once the collision has been resolved
 
-      ! For the following variables, index 1 refers to the *entire* n-body system in its pre-collisional state and index 2 refers to the system in its post-collisional state
+      ! For the following variables, index 1 refers to the *entire* n-body nbody_system in its pre-collisional state and index 2 refers to the nbody_system in its post-collisional state
       real(DP), dimension(NDIM,2) :: Lorbit   !! Before/after orbital angular momentum 
       real(DP), dimension(NDIM,2) :: Lspin    !! Before/after spin angular momentum 
-      real(DP), dimension(NDIM,2) :: Ltot     !! Before/after total system angular momentum 
+      real(DP), dimension(NDIM,2) :: Ltot     !! Before/after total nbody_system angular momentum 
       real(DP), dimension(2)      :: ke_orbit !! Before/after orbital kinetic energy
       real(DP), dimension(2)      :: ke_spin  !! Before/after spin kinetic energy
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
-      real(DP), dimension(2)      :: Etot     !! Before/after total system energy
+      real(DP), dimension(2)      :: Etot     !! Before/after total nbody_system energy
    contains
       procedure :: setup                      => collision_setup_system                    !! Initializer for the encounter collision system and the before/after snapshots
       procedure :: setup_impactors            => collision_setup_impactors_system          !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       procedure :: setup_fragments            => collision_setup_fragments_system          !! Initializer for the fragments of the collision system. 
-      procedure :: add_fragments              => collision_util_add_fragments_to_system    !! Add fragments to system
-      procedure :: construct_temporary_system => collision_util_construct_temporary_system !! Constructs temporary n-body system in order to compute pre- and post-impact energy and momentum
-      procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
+      procedure :: add_fragments              => collision_util_add_fragments_to_system    !! Add fragments to nbody_system
+      procedure :: construct_temporary_system => collision_util_construct_temporary_system !! Constructs temporary n-body nbody_system in order to compute pre- and post-impact energy and momentum
+      procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
-      procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate system of the collisional system
-      procedure(abstract_generate_system), deferred :: generate                            !! Generates a system of fragments depending on collision model
+      procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate nbody_system of the collisional nbody_system
+      procedure(abstract_generate_system), deferred :: generate                            !! Generates a nbody_system of fragments depending on collision model
    end type collision_system
 
    type, extends(collision_system) :: collision_merge
    contains 
       procedure :: generate => collision_generate_merge_system !! Merges the impactors to make a single final body
-      final     ::                       collision_final_merge_system    !! Finalizer will deallocate all allocatables
+      final     ::             collision_final_merge_system    !! Finalizer will deallocate all allocatables
    end type collision_merge
 
    type, extends(collision_system) :: collision_bounce
    contains 
       procedure :: generate => collision_generate_bounce_system !! If a collision would result in a disruption, "bounce" the bodies instead.
-      final     ::                       collision_final_bounce_system    !! Finalizer will deallocate all allocatables
+      final     ::             collision_final_bounce_system    !! Finalizer will deallocate all allocatables
    end type collision_bounce
 
    type, extends(collision_system) :: collision_simple
    contains 
       procedure :: generate => collision_generate_simple_system !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
-      final     ::                       collision_final_simple_system !! Finalizer will deallocate all allocatables
+      final     ::             collision_final_simple_system !! Finalizer will deallocate all allocatables
    end type collision_simple
 
 
@@ -171,28 +174,28 @@ module collision
       character(NAMELEN) :: regime_varname = "regime"  !! name of the collision regime variable
       integer(I4B)       :: regime_varid               !! ID for the collision regime variable
    contains
-      procedure :: initialize => collision_netcdf_io_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: initialize => collision_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       final     ::               collision_final_netcdf_parameters     !! Finalizer closes the NetCDF file
    end type collision_netcdf_parameters
 
 
    type, extends(encounter_snapshot)  :: collision_snapshot
-      logical                         :: lcollision !! Indicates that this snapshot contains at least one collision
-      class(collision_system), allocatable :: collision_system  !! impactors object at this snapshot
+      logical                              :: lcollision !! Indicates that this snapshot contains at least one collision
+      class(collision_system), allocatable :: collider  !! Collider object at this snapshot
    contains
-      procedure :: write_frame => collision_netcdf_io_write_frame_snapshot    !! Writes a frame of encounter data to file 
-      procedure :: get_idvals  => collision_util_get_idvalues_snapshot !! Gets an array of all id values saved in this snapshot
-      final     ::                collision_final_snapshot        !! Finalizer deallocates all allocatables
+      procedure :: write_frame => collision_io_netcdf_write_frame_snapshot !! Writes a frame of encounter data to file 
+      procedure :: get_idvals  => collision_util_get_idvalues_snapshot     !! Gets an array of all id values saved in this snapshot
+      final     ::                collision_final_snapshot                 !! Finalizer deallocates all allocatables
    end type collision_snapshot
 
 
    !> A class that that is used to store simulation history data between file output
    type, extends(encounter_storage) :: collision_storage
    contains
-      procedure :: dump           => collision_netcdf_io_dump            !! Dumps contents of encounter history to file
-      procedure :: take_snapshot  => collision_util_snapshot      !! Take a minimal snapshot of the system through an encounter
-      procedure :: make_index_map => collision_util_index_map     !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      final     ::                   collision_final_storage !! Finalizer deallocates all allocatables
+      procedure :: dump           => collision_io_netcdf_dump !! Dumps contents of encounter history to file
+      procedure :: take_snapshot  => collision_util_snapshot  !! Take a minimal snapshot of the nbody_system through an encounter
+      procedure :: make_index_map => collision_util_index_map !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      final     ::                   collision_final_storage  !! Finalizer deallocates all allocatables
    end type collision_storage
 
 
@@ -216,10 +219,17 @@ module collision
 
 
    interface
+      module subroutine collision_generate_merge_any(self, nbody_system, param, t)
+         implicit none
+         class(collision_system),   intent(inout) :: self         !! Merge fragment nbody_system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
+      end subroutine collision_generate_merge_any
 
       module subroutine collision_generate_merge_system(self, nbody_system, param, t)
          implicit none
-         class(collision_merge),   intent(inout) :: self         !! Merge fragment system object 
+         class(collision_merge),   intent(inout) :: self         !! Merge fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
@@ -227,7 +237,7 @@ module collision
 
       module subroutine collision_generate_bounce_system(self, nbody_system, param, t)
          implicit none
-         class(collision_bounce),  intent(inout) :: self         !! Bounce fragment system object 
+         class(collision_bounce),  intent(inout) :: self         !! Bounce fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
@@ -235,42 +245,54 @@ module collision
 
       module subroutine collision_generate_simple_system(self, nbody_system, param, t)
          implicit none
-         class(collision_simple),  intent(inout) :: self         !! Simple fragment system object 
+         class(collision_simple),  intent(inout) :: self         !! Simple fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_simple_system
 
-      module subroutine collision_netcdf_io_dump(self, param)
+      module subroutine collision_io_collider_message(pl, collidx, collider_message)
+         implicit none
+         class(base_object),            intent(in)    :: pl               !! Swiftest massive body object
+         integer(I4B),    dimension(:), intent(in)    :: collidx          !! Index of collisional colliders%idx members
+         character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
+      end subroutine collision_io_collider_message
+
+      module subroutine collision_io_log_regime(self)
+         implicit none
+         class(collision_system), intent(inout) :: self  !! Collision system object
+      end subroutine collision_io_log_regime
+
+      module subroutine collision_io_netcdf_dump(self, param)
          implicit none
          class(collision_storage(*)), intent(inout) :: self  !! Collision storage object
          class(base_parameters),      intent(inout) :: param !! Current run configuration parameters 
-      end subroutine collision_netcdf_io_dump
+      end subroutine collision_io_netcdf_dump
 
-      module subroutine collision_netcdf_io_initialize_output(self, param)
+      module subroutine collision_io_netcdf_initialize_output(self, param)
          implicit none
          class(collision_netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),   intent(in)    :: param !! Current run configuration parameters  
-      end subroutine collision_netcdf_io_initialize_output
+      end subroutine collision_io_netcdf_initialize_output
 
-      module subroutine collision_netcdf_io_write_frame_snapshot(self, history, param)
+      module subroutine collision_io_netcdf_write_frame_snapshot(self, history, param)
          implicit none
          class(collision_snapshot),   intent(in)    :: self    !! Swiftest encounter structure
          class(encounter_storage(*)), intent(inout) :: history !! Collision history object
          class(base_parameters),      intent(inout) :: param   !! Current run configuration parameters
-      end subroutine collision_netcdf_io_write_frame_snapshot
+      end subroutine collision_io_netcdf_write_frame_snapshot
 
-      module subroutine collision_regime_impactors(self, system, param)
+      module subroutine collision_regime_impactors(self, nbody_system, param)
          implicit none 
-         class(collision_impactors), intent(inout) :: self   !! Collision system impactors object
-         class(base_nbody_system),   intent(in)    :: system !! Swiftest nbody system object
-         class(base_parameters),     intent(in)    :: param  !! Current Swiftest run configuration parameters
+         class(collision_impactors), intent(inout) :: self         !! Collision system impactors object
+         class(base_nbody_system),   intent(in)    :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),     intent(in)    :: param        !! Current Swiftest run configuration parameters
       end subroutine collision_regime_impactors
 
-      module subroutine collision_check_plpl(self, system, param, t, dt, irec, lany_collision)
+      module subroutine collision_check_plpl(self, nbody_system, param, t, dt, irec, lany_collision)
          implicit none
          class(collision_list_plpl), intent(inout) :: self           !!  encounter list object
-         class(base_nbody_system),   intent(inout) :: system         !! SyMBA nbody system object
+         class(base_nbody_system),   intent(inout) :: nbody_system   !! Swiftest nbody system object
          class(base_parameters),     intent(inout) :: param          !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t              !! current time
          real(DP),                   intent(in)    :: dt             !! step size
@@ -278,35 +300,28 @@ module collision
          logical,                    intent(out)   :: lany_collision !! Returns true if any pair of encounters resulted in a collision 
       end subroutine collision_check_plpl
 
-      module subroutine collision_check_pltp(self, system, param, t, dt, irec, lany_collision)
+      module subroutine collision_check_pltp(self, nbody_system, param, t, dt, irec, lany_collision)
          implicit none
          class(collision_list_pltp), intent(inout) :: self           !!  encounter list object
-         class(base_nbody_system),   intent(inout) :: system         !! SyMBA nbody system object
+         class(base_nbody_system),   intent(inout) :: nbody_system   !! Swiftest nbody system object
          class(base_parameters),     intent(inout) :: param          !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t              !! current time
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
          logical,                    intent(out)   :: lany_collision !! Returns true if any pair of encounters resulted in a collision 
       end subroutine collision_check_pltp
-
-      module subroutine collision_resolve_collider_message(pl, collidx, collider_message)
-         implicit none
-         class(base_object),            intent(in)    :: pl            !! Swiftest massive body object
-         integer(I4B),    dimension(:), intent(in)    :: collidx           !! Index of collisional impactors%id members
-         character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
-      end subroutine collision_resolve_collider_message
    
-      module subroutine collision_resolve_extract_plpl(self, system, param)
+      module subroutine collision_resolve_extract_plpl(self, nbody_system, param)
          implicit none
-         class(collision_list_plpl), intent(inout) :: self   !! pl-pl encounter list
-         class(base_nbody_system),   intent(inout) :: system !! Swiftest nbody system object
-         class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
+         class(collision_list_plpl), intent(inout) :: self         !! pl-pl encounter list
+         class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),     intent(in)    :: param        !! Current run configuration parameters
       end subroutine collision_resolve_extract_plpl
 
-      module subroutine collision_resolve_extract_pltp(self, system, param)
+      module subroutine collision_resolve_extract_pltp(self, nbody_system, param)
          implicit none
          class(collision_list_pltp), intent(inout) :: self   !! pl-tp encounter list
-         class(base_nbody_system),   intent(inout) :: system !! Swiftest nbody system object
+         class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
       end subroutine collision_resolve_extract_pltp
 
@@ -316,36 +331,27 @@ module collision
          integer(I4B), dimension(:), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision
       end subroutine collision_resolve_make_impactors_pl
 
-      module function collision_resolve_merge(system, param, t) result(status)
-         implicit none
-         class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
-         real(DP),                 intent(in)    :: t      !! Time of collision
-         integer(I4B)                            :: status !! Status flag assigned to this outcome
-      end function collision_resolve_merge
-
-      module subroutine collision_resolve_mergeaddsub(system, param, t, status)
-         class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      module subroutine collision_resolve_mergeaddsub(nbody_system, param, t, status)
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
          real(DP),                  intent(in)    :: t      !! Time of collision
          integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
       end subroutine collision_resolve_mergeaddsub
    
-
-      module subroutine collision_resolve_plpl(self, system, param, t, dt, irec)
+      module subroutine collision_resolve_plpl(self, nbody_system, param, t, dt, irec)
          implicit none
          class(collision_list_plpl), intent(inout) :: self   !! pl-pl encounter list
-         class(base_nbody_system),   intent(inout) :: system !! Swiftest nbody system object
+         class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
          real(DP),                   intent(in)    :: t      !! Current simulation time
          real(DP),                   intent(in)    :: dt     !! Current simulation step size
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine collision_resolve_plpl
    
-      module subroutine collision_resolve_pltp(self, system, param, t, dt, irec)
+      module subroutine collision_resolve_pltp(self, nbody_system, param, t, dt, irec)
          implicit none
          class(collision_list_pltp), intent(inout) :: self   !! pl-tp encounter list
-         class(base_nbody_system),   intent(inout) :: system !! Swiftest nbody system object
+         class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
          real(DP),                   intent(in)    :: t      !! Current simulation time
          real(DP),                   intent(in)    :: dt     !! Current simulation step size
@@ -354,7 +360,7 @@ module collision
 
       module subroutine collision_util_set_coordinate_system(self)
          implicit none
-         class(collision_system), intent(inout) :: self      !! Collisional system
+         class(collision_system), intent(inout) :: self      !! Collisional nbody_system
       end subroutine collision_util_set_coordinate_system
 
       module subroutine collision_setup_system(self, nbody_system)
@@ -374,11 +380,11 @@ module collision
          integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
       end subroutine collision_setup_fragments_system
 
-      module subroutine collision_util_add_fragments_to_system(self, system, param)
+      module subroutine collision_util_add_fragments_to_system(self, nbody_system, param)
          implicit none
-         class(collision_system),  intent(in)    :: self      !! Collision system system object
-         class(base_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(base_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+         class(collision_system),  intent(in)    :: self         !! Collision system object
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(in)    :: param        !! Current swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_system
 
       module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
@@ -397,17 +403,17 @@ module collision
 
       module subroutine collision_util_get_idvalues_snapshot(self, idvals)
          implicit none
-         class(collision_snapshot),               intent(in)  :: self   !! Fraggle snapshot object
+         class(collision_snapshot),               intent(in)  :: self   !! Collision snapshot object
          integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
       end subroutine collision_util_get_idvalues_snapshot
 
-      module subroutine collision_util_get_energy_momentum(self, system, param, lbefore)
+      module subroutine collision_util_get_energy_momentum(self, nbody_system, param, lbefore)
          use base, only : base_nbody_system, base_parameters
          implicit none
-         class(collision_system),  intent(inout) :: self    !! Encounter collision system object
-         class(base_nbody_system), intent(inout) :: system  !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param   !! Current swiftest run configuration parameters
-         logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the system, with impactors included and fragments excluded or vice versa
+         class(collision_system),  intent(inout) :: self         !! Encounter collision system object
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current swiftest run configuration parameters
+         logical,                  intent(in)    :: lbefore      !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
       end subroutine collision_util_get_energy_momentum
 
       module subroutine collision_util_index_map(self)
@@ -425,13 +431,13 @@ module collision
          class(collision_system), intent(inout) :: self  !! Collision system object
       end subroutine collision_util_reset_system
 
-      module subroutine collision_util_snapshot(self, param, system, t, arg)
+      module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
          implicit none
-         class(collision_storage(*)), intent(inout)        :: self   !! Swiftest storage object
-         class(base_parameters),      intent(inout)        :: param  !! Current run configuration parameters
-         class(base_nbody_system),    intent(inout)        :: system !! Swiftest nbody system object to store
-         real(DP),                    intent(in), optional :: t      !! Time of snapshot if different from system time
-         character(*),                intent(in), optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
+         class(collision_storage(*)), intent(inout)        :: self         !! Swiftest storage object
+         class(base_parameters),      intent(inout)        :: param        !! Current run configuration parameters
+         class(base_nbody_system),    intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+         real(DP),                    intent(in), optional :: t            !! Time of snapshot if different from nbody_system time
+         character(*),                intent(in), optional :: arg          !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
       end subroutine collision_util_snapshot
    end interface
 

@@ -10,7 +10,7 @@
 submodule(swiftest) s_user_kick_getacch
    use swiftest
 contains
-   module subroutine swiftest_user_kick_getacch_body(self, system, param, t, lbeg)
+   module subroutine swiftest_user_kick_getacch_body(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Add user-supplied heliocentric accelerations to planets.
@@ -19,7 +19,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system_object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters user parameters
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the ste

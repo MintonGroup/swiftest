@@ -57,7 +57,7 @@ contains
    end subroutine collision_check_one
 
 
-   module subroutine collision_check_plpl(self, system, param, t, dt, irec, lany_collision)
+   module subroutine collision_check_plpl(self, nbody_system, param, t, dt, irec, lany_collision)
       !! author: David A. Minton
       !!
       !! Check for merger between massive bodies and test particles in SyMBA
@@ -68,7 +68,7 @@ contains
       implicit none
       ! Arguments
       class(collision_list_plpl),   intent(inout) :: self           !! SyMBA pl-tp encounter list object
-      class(base_nbody_system),     intent(inout) :: system         !! SyMBA nbody system object
+      class(base_nbody_system),     intent(inout) :: nbody_system         !! SyMBA nbody system object
       class(base_parameters),       intent(inout) :: param          !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t              !! current time
       real(DP),                     intent(in)    :: dt             !! step size
@@ -86,9 +86,9 @@ contains
       lany_collision = .false.
       if (self%nenc == 0) return
 
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(pl => system%pl)
+         associate(pl => nbody_system%pl)
 
             nenc = self%nenc
             allocate(lmask(nenc))
@@ -118,18 +118,18 @@ contains
 
 
             if (lany_collision .or. lany_closest) then
-               call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+               call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
                do k = 1, nenc
                   if (.not.lcollision(k) .and. .not. self%lclosest(k)) cycle
                   i = self%index1(k)
                   j = self%index2(k)
-                  self%r1(:,k) = pl%rh(:,i) + system%cb%rb(:)
+                  self%r1(:,k) = pl%rh(:,i) + nbody_system%cb%rb(:)
                   self%v1(:,k) = pl%vb(:,i) 
                   if (lcollision(k)) then
                      self%status(k) = COLLIDED
                      self%tcollision(k) = t
                   end if
-                  self%r2(:,k) = pl%rh(:,j) + system%cb%rb(:)
+                  self%r2(:,k) = pl%rh(:,j) + nbody_system%cb%rb(:)
                   self%v2(:,k) = pl%vb(:,j) 
                   if (lcollision(k)) then
                      ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collider pair
@@ -145,11 +145,11 @@ contains
                end do
 
                ! Extract the pl-pl encounter list and return the pl-pl collision_list
-               call self%extract_collisions(system, param)
+               call self%extract_collisions(nbody_system, param)
             end if
 
             ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
-            if (lany_closest) call system%encounter_history%take_snapshot(param, system, t, "closest") 
+            if (lany_closest) call nbody_system%encounter_history%take_snapshot(param, nbody_system, t, "closest") 
 
          end associate
       end select
@@ -157,7 +157,7 @@ contains
    end subroutine collision_check_plpl
 
 
-   module subroutine collision_check_pltp(self, system, param, t, dt, irec, lany_collision)
+   module subroutine collision_check_pltp(self, nbody_system, param, t, dt, irec, lany_collision)
       !! author: David A. Minton
       !!
       !! Check for merger between massive bodies and test particles in SyMBA
@@ -168,7 +168,7 @@ contains
       implicit none
       ! Arguments
       class(collision_list_pltp),          intent(inout) :: self           !! SyMBA pl-tp encounter list object
-      class(base_nbody_system), intent(inout) :: system         !! SyMBA nbody system object
+      class(base_nbody_system), intent(inout) :: nbody_system         !! SyMBA nbody system object
       class(base_parameters),   intent(inout) :: param          !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t              !! current time
       real(DP),                     intent(in)    :: dt             !! step size
@@ -185,12 +185,12 @@ contains
 
       lany_collision = .false.
       if (self%nenc == 0) return
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
 
-         associate(pl => system%pl, tp => system%tp)
+         associate(pl => nbody_system%pl, tp => nbody_system%tp)
 
             nenc = self%nenc
             allocate(lmask(nenc))
@@ -222,19 +222,19 @@ contains
 
 
             if (lany_collision .or. lany_closest) then
-               call pl%rh2rb(system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+               call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
                do k = 1, nenc
                   if (.not.lcollision(k) .and. .not. self%lclosest(k)) cycle
                   i = self%index1(k)
                   j = self%index2(k)
-                  self%r1(:,k) = pl%rh(:,i) + system%cb%rb(:)
+                  self%r1(:,k) = pl%rh(:,i) + nbody_system%cb%rb(:)
                   self%v1(:,k) = pl%vb(:,i) 
                   if (lcollision(k)) then
                      self%status(k) = COLLIDED
                      self%tcollision(k) = t
                   end if
 
-                  self%r2(:,k) = tp%rh(:,j) + system%cb%rb(:)
+                  self%r2(:,k) = tp%rh(:,j) + nbody_system%cb%rb(:)
                   self%v2(:,k) = tp%vb(:,j) 
                   if (lcollision(k)) then
                      tp%status(j) = DISCARDED_PLR
@@ -246,7 +246,7 @@ contains
                      write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                            //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
                            //  " at t = " // trim(adjustl(timestr))
-                     !call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
+                     !call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                   end if
                end do
 
@@ -256,7 +256,7 @@ contains
             end if
 
             ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
-            if (lany_closest) call system%encounter_history%take_snapshot(param, system, t, "closest") 
+            if (lany_closest) call nbody_system%encounter_history%take_snapshot(param, nbody_system, t, "closest") 
          end associate
       end select
       end select

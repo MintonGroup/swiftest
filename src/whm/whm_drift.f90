@@ -11,7 +11,7 @@ submodule(whm) whm_drift
    use swiftest
 contains
 
-   module subroutine whm_drift_pl(self, system, param, dt)
+   module subroutine whm_drift_pl(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through planets and call Danby drift routine
@@ -21,7 +21,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_nbody_system),  intent(inout) :: system !! WHM nbody system object
+      class(swiftest_nbody_system),  intent(inout) :: nbody_system !! WHM nbody system object
       class(swiftest_parameters),    intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals

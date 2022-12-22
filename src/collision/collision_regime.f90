@@ -13,7 +13,7 @@ submodule(collision) s_collision_regime
 contains
 
 
-   module subroutine collision_regime_impactors(self, system, param)
+   module subroutine collision_regime_impactors(self, nbody_system, param)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton 
       !!
       !! Determine which fragmentation regime the set of impactors will be. This subroutine is a wrapper for the non-polymorphic raggle_regime_collresolve subroutine.
@@ -21,13 +21,13 @@ contains
       implicit none 
       ! Arguments
       class(collision_impactors), intent(inout) :: self   !! Collision system impactors object
-      class(base_nbody_system),   intent(in)    :: system !! Swiftest nbody system object
+      class(base_nbody_system),   intent(in)    :: nbody_system !! Swiftest nbody system object
       class(base_parameters),     intent(in)    :: param  !! Current Swiftest run configuration parameters
       ! Internals
       real (DP) :: mtot
         
       associate(impactors => self)
-      select type (system)
+      select type (nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
@@ -42,7 +42,7 @@ contains
             impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot
             impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
          case default
-            call collision_regim_LS12(impactors, system, param)
+            call collision_regime_LS12(impactors, nbody_system, param)
          end select
          !call fraggle_io_log_regime(impactors, fragments)
       end select
@@ -70,6 +70,7 @@ contains
       real(DP) :: min_mfrag_si, Mcb_si
       real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si, runit
       real(DP) :: mlr, mslr, mtot, dentot
+      integer(I4B), parameter :: NMASS_DIST = 3   !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
 
       ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them to the regime determination subroutine
       if (impactors%mass(1) > impactors%mass(2)) then
@@ -93,12 +94,12 @@ contains
       dentot = sum(mass_si(:) * density_si(:)) / mtot 
 
       !! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
-      call collision_regime_collresolve(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
+      call collision_regime_LS12_SI(Mcb_si, mass_si(jtarg), mass_si(jproj), radius_si(jtarg), radius_si(jproj), &
                                     x1_si(:), x2_si(:), v1_si(:), v2_si(:), density_si(jtarg), density_si(jproj), &
                                     min_mfrag_si, impactors%regime, mlr, mslr, impactors%Qloss)
 
       if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
-      allocate(impactors%mass_dist(3))
+      allocate(impactors%mass_dist(NMASS_DIST))
       impactors%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
       impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
       impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
@@ -231,7 +232,7 @@ contains
          Mlr = Mtot
          Mslr = 0.0_DP
          Qloss = 0.0_DP
-         call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, &
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
                                  "Fragments would have mass below the minimum. Converting this collision into a merger.")
       else 
          if( Vimp < Vescp) then

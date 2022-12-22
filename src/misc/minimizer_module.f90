@@ -542,7 +542,7 @@ module minimizer
                hi = astar
                exit
             end if
-            ! Set up system for gaussian elimination equation solver   
+            ! Set up nbody_system for gaussian elimination equation solver   
             row_1 = [1.0_DP, a1, a1**2]
             row_2 = [1.0_DP, a2, a2**2]
             row_3 = [1.0_DP, a3, a3**2]
@@ -550,7 +550,7 @@ module minimizer
             lhs(1, :) = row_1
             lhs(2, :) = row_2
             lhs(3, :) = row_3
-            ! Solve system of equations   
+            ! Solve nbody_system of equations   
             soln(:) = solve_linear_system(lhs, rhs, 3, lerr)
             call ieee_set_flag(ieee_all, .false.) ! Set all flags back to quiet
             call ieee_set_halting_mode(ieee_divide_by_zero, .false.)

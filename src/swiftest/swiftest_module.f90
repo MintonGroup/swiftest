@@ -64,7 +64,7 @@ module swiftest
       procedure :: dump             => swiftest_io_dump_storage        !! Dumps storage object contents to file
       procedure :: get_index_values => swiftest_util_get_vals_storage  !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
       procedure :: make_index_map   => swiftest_util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: take_snapshot    => swiftest_util_snapshot_system   !! Takes a snapshot of the system for later file storage
+      procedure :: take_snapshot    => swiftest_util_snapshot_system   !! Takes a snapshot of the nbody_system for later file storage
       final     ::                     swiftest_final_storage
    end type swiftest_storage
 
@@ -139,7 +139,7 @@ module swiftest
       procedure :: pv2v            => swiftest_gr_pv2vh_body                !! Converts from psudeovelocity to velocity for GR calculations using symplectic integrators
       procedure :: read_frame_bin  => swiftest_io_read_frame_body           !! I/O routine for writing out a single frame of time-series data for the central body
       procedure :: read_in         => swiftest_io_read_in_body              !! Read in body initial conditions from an ascii file
-      procedure :: write_frame     => swiftest_io_netcdf_write_frame_body   !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      procedure :: write_frame     => swiftest_io_netcdf_write_frame_body   !! I/O routine for writing out a single frame of time-series data for all bodies in the nbody_system in NetCDF format  
       procedure :: write_info      => swiftest_io_netcdf_write_info_body    !! Dump contents of particle information metadata to file
       procedure :: accel_obl       => swiftest_obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: el2xv           => swiftest_orbel_el2xv_vec              !! Convert orbital elements to position and velocity vectors
@@ -149,7 +149,7 @@ module swiftest
       procedure :: append          => swiftest_util_append_body             !! Appends elements from one structure to another
       procedure :: dealloc         => swiftest_util_dealloc_body            !! Deallocates all allocatable arrays
       procedure :: fill            => swiftest_util_fill_body               !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
-      procedure :: get_peri        => swiftest_util_peri_body               !! Determine system pericenter passages for test particles 
+      procedure :: get_peri        => swiftest_util_peri_body               !! Determine nbody_system pericenter passages for test particles 
       procedure :: resize          => swiftest_util_resize_body             !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
 
       procedure :: set_ir3         => swiftest_util_set_ir3h                !! Sets the inverse heliocentric radius term (1/rh**3)
@@ -211,7 +211,7 @@ module swiftest
       real(DP)                                    :: dR       = 0.0_DP !! Change in the radius of the central body
    contains
       procedure :: read_in => swiftest_io_read_in_cb     !! Read in central body initial conditions from an ASCII file
-      procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
+      procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the nbody_system in NetCDF format  
       procedure :: write_info   => swiftest_io_netcdf_write_info_cb  !! Dump contents of particle information metadata to file
    end type swiftest_cb
 
@@ -307,7 +307,7 @@ module swiftest
 
    !> An abstract class for a basic Swiftest nbody system 
    type, abstract, extends(base_nbody_system) :: swiftest_nbody_system
-      !! This superclass contains a minimial system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
+      !! This superclass contains a minimial nbody_system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
       !! The full swiftest_nbody_system type that is used as the parent class of all integrators is defined in collision
 
       class(swiftest_cb),                  allocatable :: cb                !! Central body data structure
@@ -316,38 +316,38 @@ module swiftest
       
       class(swiftest_tp),                  allocatable :: tp_discards       !! Discarded test particle data structure
       class(swiftest_pl),                  allocatable :: pl_discards       !! Discarded massive body particle data structure
-      class(swiftest_pl),                  allocatable :: pl_adds            !! List of added bodies in mergers or collisions
-      class(swiftest_tp),                  allocatable :: tp_adds            !! List of added bodies in mergers or collisions
-      class(encounter_list),               allocatable :: pltp_encounter         !! List of massive body-test particle encounters in a single step 
-      class(encounter_list),               allocatable :: plpl_encounter         !! List of massive body-massive body encounters in a single step
+      class(swiftest_pl),                  allocatable :: pl_adds           !! List of added bodies in mergers or collisions
+      class(swiftest_tp),                  allocatable :: tp_adds           !! List of added bodies in mergers or collisions
+      class(encounter_list),               allocatable :: pltp_encounter    !! List of massive body-test particle encounters in a single step 
+      class(encounter_list),               allocatable :: plpl_encounter    !! List of massive body-massive body encounters in a single step
       class(collision_list_plpl),          allocatable :: plpl_collision    !! List of massive body-massive body collisions in a single step
       class(collision_list_plpl),          allocatable :: pltp_collision    !! List of massive body-massive body collisions in a single step
-      class(collision_system),             allocatable :: collision_system  !! Collision system object
+      class(collision_system),             allocatable :: collider          !! Collision system object
       class(encounter_storage(nframes=:)), allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
       class(collision_storage(nframes=:)), allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
 
       real(DP)                        :: t = -1.0_DP            !! Integration current time
-      real(DP)                        :: GMtot = 0.0_DP         !! Total system mass - used for barycentric coordinate conversion
-      real(DP)                        :: ke_orbit = 0.0_DP      !! System orbital kinetic energy
-      real(DP)                        :: ke_spin = 0.0_DP       !! System spin kinetic energy
-      real(DP)                        :: pe = 0.0_DP            !! System potential energy
-      real(DP)                        :: te = 0.0_DP            !! System total energy
-      real(DP)                        :: oblpot = 0.0_DP        !! System potential energy due to oblateness of the central body
-      real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP        !! System orbital angular momentum vector
-      real(DP), dimension(NDIM)       :: Lspin = 0.0_DP         !! System spin angular momentum vector
-      real(DP), dimension(NDIM)       :: Ltot = 0.0_DP          !! System angular momentum vector
+      real(DP)                        :: GMtot = 0.0_DP         !! Total nbody_system mass - used for barycentric coordinate conversion
+      real(DP)                        :: ke_orbit = 0.0_DP      !! nbody_system orbital kinetic energy
+      real(DP)                        :: ke_spin = 0.0_DP       !! nbody_system spin kinetic energy
+      real(DP)                        :: pe = 0.0_DP            !! nbody_system potential energy
+      real(DP)                        :: te = 0.0_DP            !! nbody_system total energy
+      real(DP)                        :: oblpot = 0.0_DP        !! nbody_system potential energy due to oblateness of the central body
+      real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP        !! nbody_system orbital angular momentum vector
+      real(DP), dimension(NDIM)       :: Lspin = 0.0_DP         !! nbody_system spin angular momentum vector
+      real(DP), dimension(NDIM)       :: Ltot = 0.0_DP          !! nbody_system angular momentum vector
       real(DP)                        :: ke_orbit_orig = 0.0_DP !! Initial orbital kinetic energy
       real(DP)                        :: ke_spin_orig = 0.0_DP  !! Initial spin kinetic energy
       real(DP)                        :: pe_orig = 0.0_DP       !! Initial potential energy
       real(DP)                        :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
-      real(DP)                        :: GMtot_orig = 0.0_DP    !! Initial system mass
+      real(DP)                        :: GMtot_orig = 0.0_DP    !! Initial nbody_system mass
       real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
       real(DP), dimension(NDIM)       :: Lorbit_orig = 0.0_DP   !! Initial orbital angular momentum
       real(DP), dimension(NDIM)       :: Lspin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM)       :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the system (used for bookeeping)
-      real(DP)                        :: GMescape = 0.0_DP      !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                        :: Ecollisions = 0.0_DP   !! Energy lost from system due to collisions
-      real(DP)                        :: Euntracked = 0.0_DP    !! Energy gained from system due to escaped bodies
+      real(DP), dimension(NDIM)       :: Lescape = 0.0_DP       !! Angular momentum of bodies that escaped the nbody_system (used for bookeeping)
+      real(DP)                        :: GMescape = 0.0_DP      !! Mass of bodies that escaped the nbody_system (used for bookeeping)
+      real(DP)                        :: Ecollisions = 0.0_DP   !! Energy lost from nbody_system due to collisions
+      real(DP)                        :: Euntracked = 0.0_DP    !! Energy gained from nbody_system due to escaped bodies
 
       ! Energy, momentum, and mass errors (used in error reporting)
       real(DP)                        :: ke_orbit_error   = 0.0_DP
@@ -372,10 +372,10 @@ module swiftest
       procedure(abstract_step_system), deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure :: discard                 => swiftest_discard_system                         !! Perform a discard step on the system
+      procedure :: discard                 => swiftest_discard_system                         !! Perform a discard step on the nbody_system
       procedure :: compact_output          => swiftest_io_compact_output                      !! Prints out out terminal output when display_style is set to COMPACT
       procedure :: conservation_report     => swiftest_io_conservation_report                 !! Compute energy and momentum and print out the change with time
-      procedure :: dump                    => swiftest_io_dump_system                         !! Dump the state of the system to a file
+      procedure :: dump                    => swiftest_io_dump_system                         !! Dump the state of the nbody_system to a file
       procedure :: get_old_t_final         => swiftest_io_netcdf_get_old_t_final_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
       procedure :: read_frame              => swiftest_io_netcdf_read_frame_system               !! Read in a frame of input data from file
       procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system              !! Write a frame of input data from file
@@ -385,14 +385,14 @@ module swiftest
       procedure :: read_in                 => swiftest_io_read_in_system                      !! Reads the initial conditions for an nbody system
       procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system       !! Read in particle metadata from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-      procedure :: initialize              => swiftest_setup_initialize_system                !! Initialize the system from input files
-      procedure :: init_particle_info      => swiftest_setup_initialize_particle_info_system  !! Initialize the system from input files
+      procedure :: initialize              => swiftest_setup_initialize_system                !! Initialize the nbody_system from input files
+      procedure :: init_particle_info      => swiftest_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
     ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
-      procedure :: set_msys                => swiftest_util_set_msys                          !! Sets the value of msys from the masses of system bodies.
-      procedure :: get_energy_and_momentum => swiftest_util_get_energy_momentum_system        !! Calculates the total system energy and momentum
-      procedure :: get_idvals              => swiftest_util_get_idvalues_system               !! Returns an array of all id values in use in the system
-      procedure :: rescale                 => swiftest_util_rescale_system                    !! Rescales the system into a new set of units
-      procedure :: validate_ids            => swiftest_util_valid_id_system                   !! Validate the numerical ids passed to the system and save the maximum value
+      procedure :: set_msys                => swiftest_util_set_msys                          !! Sets the value of msys from the masses of nbody_system bodies.
+      procedure :: get_energy_and_momentum => swiftest_util_get_energy_momentum_system        !! Calculates the total nbody_system energy and momentum
+      procedure :: get_idvals              => swiftest_util_get_idvalues_system               !! Returns an array of all id values in use in the nbody_system
+      procedure :: rescale                 => swiftest_util_rescale_system                    !! Rescales the nbody_system into a new set of units
+      procedure :: validate_ids            => swiftest_util_valid_id_system                   !! Validate the numerical ids passed to the nbody_system and save the maximum value
       procedure :: write_discard           => swiftest_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
       generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
@@ -400,27 +400,27 @@ module swiftest
 
    abstract interface
 
-      subroutine abstract_accel(self, system, param, t, lbeg)
+      subroutine abstract_accel(self, nbody_system, param, t, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          class(swiftest_body),         intent(inout) :: self   !! Swiftest body data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine abstract_accel
 
-      subroutine abstract_discard_body(self, system, param) 
+      subroutine abstract_discard_body(self, nbody_system, param) 
          import swiftest_body, swiftest_nbody_system, swiftest_parameters
          class(swiftest_body),              intent(inout) :: self   !! Swiftest body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters 
       end subroutine abstract_discard_body
 
-      subroutine abstract_kick_body(self, system, param, t, dt, lbeg)
+      subroutine abstract_kick_body(self, nbody_system, param, t, dt, lbeg)
          import swiftest_body, swiftest_nbody_system, swiftest_parameters, DP
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest generic body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system objec
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system objec
          class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                          intent(in)    :: t      !! Current time
          real(DP),                          intent(in)    :: dt     !! Stepsize
@@ -433,11 +433,11 @@ module swiftest
          class(swiftest_cb),   intent(inout) :: cb   !! Swiftest central body object
       end subroutine abstract_set_mu
 
-      subroutine abstract_step_body(self, system, param, t, dt)
+      subroutine abstract_step_body(self, nbody_system, param, t, dt)
          import DP, swiftest_body, swiftest_nbody_system, swiftest_parameters
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system object
          class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                          intent(in)    :: t      !! Simulation time
          real(DP),                          intent(in)    :: dt     !! Current stepsize
@@ -446,7 +446,7 @@ module swiftest
       subroutine abstract_step_system(self, param, t, dt)
          import DP, swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
          real(DP),                          intent(in)    :: t     !! Simulation time
          real(DP),                          intent(in)    :: dt    !! Current stepsize
@@ -455,23 +455,23 @@ module swiftest
 
 
    interface
-      module subroutine swiftest_discard_pl(self, system, param)
+      module subroutine swiftest_discard_pl(self, nbody_system, param)
          implicit none
          class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
       end subroutine swiftest_discard_pl
 
       module subroutine swiftest_discard_system(self, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_discard_system
 
-      module subroutine swiftest_discard_tp(self, system, param)
+      module subroutine swiftest_discard_tp(self, nbody_system, param)
          implicit none
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       end subroutine swiftest_discard_tp
 
@@ -486,10 +486,10 @@ module swiftest
          integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
       end subroutine swiftest_drift_all
 
-      module subroutine swiftest_drift_body(self, system, param, dt)
+      module subroutine swiftest_drift_body(self, nbody_system, param, dt)
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),        intent(in)    :: param  !! Current run configuration parameters
          real(DP),                          intent(in)    :: dt     !! Stepsize
       end subroutine swiftest_drift_body
@@ -503,10 +503,10 @@ module swiftest
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine swiftest_drift_one
 
-      pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, system, param)
+      pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, nbody_system, param)
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest generic body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),        intent(in)    :: param  !! Current run configuration parameters 
       end subroutine swiftest_gr_kick_getaccb_ns_body
 
@@ -580,7 +580,7 @@ module swiftest
 
       module subroutine swiftest_io_dump_system(self, param)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest system object
+         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest nbody_system object
          class(swiftest_parameters),         intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_io_dump_system
 
@@ -647,7 +647,7 @@ module swiftest
 
       module function swiftest_io_netcdf_read_frame_system(self, nc, param) result(ierr)
          implicit none
-         class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest system object
+         class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for reading a NetCDF dataset to file
          class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                                    :: ierr  !! Error code: returns 0 if the read is successful
@@ -685,7 +685,7 @@ module swiftest
 
       module subroutine swiftest_io_netcdf_write_frame_system(self, nc, param)
          implicit none
-         class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest system object
+         class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_write_frame_system
@@ -834,7 +834,7 @@ module swiftest
 
       module function swiftest_io_read_frame_system(self, iu, param) result(ierr)
          implicit none
-         class(swiftest_nbody_system),intent(inout) :: self  !! Swiftest system object
+         class(swiftest_nbody_system),intent(inout) :: self  !! Swiftest nbody_system object
          integer(I4B),                     intent(inout) :: iu    !! Unit number for the output file to read frame from
          class(swiftest_parameters),       intent(inout) :: param !! Current run configuration parameters 
          integer(I4B)                               :: ierr  !! Error code: returns 0 if the read is successful
@@ -853,7 +853,7 @@ module swiftest
 
       module subroutine swiftest_io_write_frame_system(self, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_write_frame_system
 
@@ -924,22 +924,22 @@ module swiftest
          real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
       end subroutine swiftest_kick_getacch_int_one_tp
 
-      module subroutine swiftest_obl_acc_body(self, system)
+      module subroutine swiftest_obl_acc_body(self, nbody_system)
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest body object 
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       end subroutine swiftest_obl_acc_body
 
-      module subroutine swiftest_obl_acc_pl(self, system)
+      module subroutine swiftest_obl_acc_pl(self, nbody_system)
          implicit none
          class(swiftest_pl),                intent(inout) :: self   !! Swiftest massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       end subroutine swiftest_obl_acc_pl
 
-      module subroutine swiftest_obl_acc_tp(self, system)
+      module subroutine swiftest_obl_acc_tp(self, nbody_system)
          implicit none
          class(swiftest_tp),                intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       end subroutine swiftest_obl_acc_tp
 
       module subroutine swiftest_obl_pot_system(self)
@@ -1014,9 +1014,9 @@ module swiftest
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine swiftest_setup_body
 
-      module subroutine swiftest_setup_construct_system(system, param)
+      module subroutine swiftest_setup_construct_system(nbody_system, param)
          implicit none
-         class(swiftest_nbody_system), allocatable, intent(inout) :: system !! Swiftest system object
+         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
          class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
       end subroutine swiftest_setup_construct_system
 
@@ -1028,7 +1028,7 @@ module swiftest
 
       module subroutine swiftest_setup_initialize_system(self, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_setup_initialize_system
 
@@ -1046,10 +1046,10 @@ module swiftest
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametersr
       end subroutine swiftest_setup_tp
 
-      module subroutine swiftest_user_kick_getacch_body(self, system, param, t, lbeg)
+      module subroutine swiftest_user_kick_getacch_body(self, nbody_system, param, t, lbeg)
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest massive body particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody_system_object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system_object
          class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                          intent(in)    :: t      !! Current time
          logical,                           intent(in)    :: lbeg   !! Optional argument that determines whether or not this is the beginning or end of the step
@@ -1352,24 +1352,24 @@ module swiftest
          class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
       end subroutine swiftest_util_index_map_storage
 
-      module subroutine swiftest_util_peri_body(self, system, param)
+      module subroutine swiftest_util_peri_body(self, nbody_system, param)
          implicit none
          class(swiftest_body),         intent(inout) :: self   !! SyMBA massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       end subroutine swiftest_util_peri_body
 
-      module subroutine swiftest_util_peri_tp(self, system, param) 
+      module subroutine swiftest_util_peri_tp(self, nbody_system, param) 
          implicit none
          class(swiftest_tp),                intent(inout) :: self   !! Swiftest test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),        intent(in)    :: param  !! Current run configuration parameters
       end subroutine swiftest_util_peri_tp
 
-      module subroutine swiftest_util_rearray_pl(self, system, param)
+      module subroutine swiftest_util_rearray_pl(self, nbody_system, param)
          implicit none
          class(swiftest_pl),           intent(inout) :: self   !! SyMBA massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       end subroutine swiftest_util_rearray_pl
 
@@ -1483,7 +1483,7 @@ module swiftest
 
       module subroutine swiftest_util_set_msys(self)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest system object
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest nbody_system object
       end subroutine swiftest_util_set_msys
 
       module subroutine swiftest_util_set_mu_pl(self, cb)
@@ -1540,12 +1540,12 @@ module swiftest
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine swiftest_util_set_rhill_approximate
 
-      module subroutine swiftest_util_snapshot_system(self, param, system, t, arg)
+      module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
          implicit none
          class(swiftest_storage(*)),        intent(inout)        :: self   !! Swiftest storage object
          class(swiftest_parameters),        intent(inout)        :: param  !! Current run configuration parameters
-         class(swiftest_nbody_system), intent(inout)        :: system !! Swiftest nbody system object to store
-         real(DP),                          intent(in), optional :: t      !! Time of snapshot if different from system time
+         class(swiftest_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+         real(DP),                          intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
          character(*),                      intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in encounter snapshots)
       end subroutine swiftest_util_snapshot_system
    end interface

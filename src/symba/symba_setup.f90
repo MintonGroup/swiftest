@@ -19,15 +19,15 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA system object
+      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody_system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
       ! Call parent method
-      associate(system => self)
-         call helio_setup_initialize_system(system, param)
-         call system%pltp_encounter%setup(0_I8B)
-         call system%plpl_encounter%setup(0_I8B)
-         call system%plpl_collision%setup(0_I8B)
+      associate(nbody_system => self)
+         call helio_setup_initialize_system(nbody_system, param)
+         call nbody_system%pltp_encounter%setup(0_I8B)
+         call nbody_system%plpl_encounter%setup(0_I8B)
+         call nbody_system%plpl_collision%setup(0_I8B)
       end associate
 
       return

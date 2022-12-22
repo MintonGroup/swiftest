@@ -21,31 +21,31 @@ contains
    module subroutine fraggle_generate_system(self, nbody_system, param, t)
       implicit none
       class(fraggle_system),    intent(inout) :: self     !! Fraggle fragment nbody_system object 
-      class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody nbody_system object
+      class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t         !! The time of the collision
       ! Internals
       integer(I4B) :: i
              
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
-      select type(param)
-      class is (swiftest_parameters)
-         associate(impactors => self%impactors, plpl_collision => nbody_system%plpl_collision)
-            select case (impactors%regime)
-            case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-               plpl_collision%status(i) = fraggle_resolve_disruption(nbody_system, param, t)
-            case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-               plpl_collision%status(i) = fraggle_resolve_hitandrun(nbody_system, param, t)
-            case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-               plpl_collision%status(i) = collision_resolve_merge(nbody_system, param, t)
-            case default 
-               write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-               call util_exit(FAILURE)
-            end select
-         end associate
-      end select
-      end select
+      ! select type(nbody_system)
+      ! class is (swiftest_nbody_system)
+      ! select type(param)
+      ! class is (swiftest_parameters)
+      !    associate(impactors => self%impactors, plpl_collision => nbody_system%plpl_collision)
+      !       select case (impactors%regime)
+      !       case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+      !          plpl_collision%status(i) = fraggle_resolve_disruption(nbody_system, param, t)
+      !       case (COLLRESOLVE_REGIME_HIT_AND_RUN)
+      !          plpl_collision%status(i) = fraggle_resolve_hitandrun(nbody_system, param, t)
+      !       case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+      !          plpl_collision%status(i) = collision_resolve_merge(nbody_system, param, t)
+      !       case default 
+      !          write(*,*) "Error in swiftest_collision, unrecognized collision regime"
+      !          call util_exit(FAILURE)
+      !       end select
+      !    end associate
+      ! end select
+      ! end select
 
    end subroutine fraggle_generate_system
 
@@ -58,7 +58,7 @@ contains
       implicit none
       ! Arguments
       class(fraggle_system),    intent(inout) :: collision_system !! Fraggle nbody_system object the outputs will be the fragmentation 
-      class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody nbody_system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters 
       logical,                  intent(out)   :: lfailure         !! Answers the question: Should this have been a merger instead?
       ! Internals
@@ -87,10 +87,10 @@ contains
       associate(impactors => collision_system%impactors, nfrag => fragments%nbody, pl => nbody_system%pl)
 
          write(message,*) nfrag
-         call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle generating " // trim(adjustl(message)) // " fragments.")
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle generating " // trim(adjustl(message)) // " fragments.")
          if (nfrag < NFRAG_MIN) then
             write(message,*) "Fraggle needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
             lfailure = .true.
             return
          end if
@@ -119,7 +119,7 @@ contains
          try = 1
          do while (try < MAXTRY)
             write(message,*) try
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
             if (lfailure) then
                call fragments%restructure(impactors, try, f_spin, r_max_start)
                call fragments%reset()
@@ -142,19 +142,19 @@ contains
 
             call fraggle_generate_spins(collision_system, f_spin, lfailure)
             if (lfailure) then
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find spins")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
                cycle
             end if
 
             call fraggle_generate_tan_vel(collision_system, lfailure)
             if (lfailure) then
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find tangential velocities")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find tangential velocities")
                cycle
             end if
 
             call fraggle_generate_rad_vel(collision_system, lfailure)
             if (lfailure) then
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed to find radial velocities")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
                cycle
             end if
 
@@ -166,7 +166,7 @@ contains
             lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
             if (lfailure) then
                write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high energy error: " // &
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high energy error: " // &
                                                         trim(adjustl(message)))
                cycle
             end if
@@ -174,7 +174,7 @@ contains
             lfailure = ((abs(dLmag) / (.mag.collision_system%Ltot(:,1))) > FRAGGLE_LTOL) 
             if (lfailure) then
                write(message,*) dLmag / (.mag.collision_system%Ltot(:,1))
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
                                                         trim(adjustl(message)))
                cycle
             end if
@@ -184,15 +184,15 @@ contains
             lfailure = any(fpe_flag) 
             if (.not.lfailure) exit
             write(message,*) "Fraggle failed due to a floating point exception: ", fpe_flag
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
 
          end do
          write(message,*) try
          if (lfailure) then
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation failed after " // &
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation failed after " // &
                                                       trim(adjustl(message)) // " tries")
          else
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Fraggle fragment generation succeeded after " // &
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation succeeded after " // &
                                                        trim(adjustl(message)) // " tries")
          end if
 
@@ -218,7 +218,7 @@ contains
       !! The initial positions do not conserve energy or momentum, so these need to be adjusted later.
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision nbody_system object
+      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision system object
       real(DP),              intent(in)    :: r_max_start !! Initial guess for the starting maximum radial distance of fragments
       ! Internals
       real(DP)  :: dis, rad, r_max, fdistort
@@ -301,7 +301,7 @@ contains
       !! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision nbody_system object
+      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision system object
       real(DP),              intent(in)    :: f_spin    !! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)
       logical,               intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
@@ -364,16 +364,16 @@ contains
          lfailure = ((fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit) < 0.0_DP)
 
          if (lfailure) then
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, " ")
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Spin failure diagnostics")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, " ")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Spin failure diagnostics")
             write(message, *) fragments%ke_budget
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
             write(message, *) fragments%ke_spin
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
             write(message, *) fragments%ke_orbit
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_orbit      : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_orbit      : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
          end if
 
       end select
@@ -398,7 +398,7 @@ contains
       !! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision nbody_system object
+      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds
       ! Internals
       integer(I4B) :: i, try
@@ -466,20 +466,20 @@ contains
             fragments%rc(:,:) = fragments%rc(:,:) * 1.1_DP
          end do
          if (lfailure) then
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, " ")
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Tangential velocity failure diagnostics")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, " ")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Tangential velocity failure diagnostics")
             call fragments%get_angular_momentum()
             L_frag_tot = fragments%Lspin(:) + fragments%Lorbit(:)
             write(message, *) .mag.(fragments%L_budget(:) - L_frag_tot(:)) / (.mag.collision_system%Ltot(:,1))
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "|L_remainder| : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "|L_remainder| : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
             write(message, *) fragments%ke_spin
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
             write(message, *) fragments%ke_orbit
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_tangential : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_tangential : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_radial     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_radial     : " // trim(adjustl(message)))
          end if
       end select
       end associate
@@ -582,7 +582,7 @@ contains
       !! Adjust the fragment velocities to set the fragment orbital kinetic energy. This will minimize the difference between the fragment kinetic energy and the energy budget
       implicit none
       ! Arguments
-      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision nbody_system object
+      class(fraggle_system), intent(inout) :: collision_system !! Fraggle collision system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
       real(DP), parameter                   :: TOL_MIN = FRAGGLE_ETOL   ! This needs to be more accurate than the tangential step, as we are trying to minimize the total residual energy
@@ -641,16 +641,16 @@ contains
 
          lfailure = abs((fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)) / fragments%ke_budget) > FRAGGLE_ETOL
          if (lfailure) then
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, " ")
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Radial velocity failure diagnostics")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, " ")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Radial velocity failure diagnostics")
             write(message, *) fragments%ke_budget
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
             write(message, *) fragments%ke_spin
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
             write(message, *) fragments%ke_orbit
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_orbit : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_orbit : " // trim(adjustl(message)))
             write(message, *) fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
-            call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
          end if
 
       end select

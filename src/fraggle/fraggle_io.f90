@@ -12,43 +12,5 @@ submodule(fraggle) s_fraggle_io
 
 contains
 
-   module subroutine fraggle_io_log_regime(collision_system)
-      !! author: David A. Minton
-      !!
-      !! Writes a log of the results of the collisional regime determination
-      implicit none
-      ! Arguments
-      class(fraggle_system), intent(inout) :: collision_system  !! Fraggle collision system object
-      ! Internals
-      character(STRMAX) :: errmsg
-
-      associate(fragments => collision_system%fragments, impactors => collision_system%impactors)
-         open(unit=LUN, file=FRAGGLE_LOG_OUT, status = 'OLD', position = 'APPEND', form = 'FORMATTED', err = 667, iomsg = errmsg)
-         write(LUN, *, err = 667, iomsg = errmsg)
-         write(LUN, *) "--------------------------------------------------------------------"
-         write(LUN, *) "           Fraggle collisional regime determination results"
-         write(LUN, *) "--------------------------------------------------------------------"
-         write(LUN, *) "True number of impactors : ",impactors%ncoll
-         write(LUN, *) "Index list of true impactors  : ",impactors%id(1:impactors%ncoll)
-         select case(impactors%regime) 
-         case(COLLRESOLVE_REGIME_MERGE)
-            write(LUN, *) "Regime: Merge"
-         case(COLLRESOLVE_REGIME_DISRUPTION)
-            write(LUN, *) "Regime: Disruption"
-         case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-            write(LUN, *) "Regime: Supercatastrophic disruption"
-         case(COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-            write(LUN, *) "Regime: Graze and merge"
-         case(COLLRESOLVE_REGIME_HIT_AND_RUN)
-            write(LUN, *) "Regime: Hit and run"
-         end select
-         write(LUN, *) "Energy loss                  : ", impactors%Qloss
-         write(LUN, *) "--------------------------------------------------------------------"
-         close(LUN)
-      end associate
-      return
-      667 continue
-      write(*,*) "Error writing Fraggle regime information to log file: " // trim(adjustl(errmsg))
-   end subroutine fraggle_io_log_regime
 
 end submodule s_fraggle_io

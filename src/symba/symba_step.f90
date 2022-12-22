@@ -78,34 +78,34 @@ contains
       class is (symba_tp)
       select type(cb => self%cb)
       class is (symba_cb)
-         associate(system => self)
+         associate(nbody_system => self)
             dth = 0.5_DP * dt
-            system%irec = -1
+            nbody_system%irec = -1
             if (pl%lfirst) call pl%vh2vb(cb)
             call pl%lindrift(cb, dth, lbeg=.true.)
-            call pl%kick(system, param, t, dth, lbeg=.true.)
-            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
-            call pl%drift(system, param, dt)
+            call pl%kick(nbody_system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call pl%gr_pos_kick(nbody_system, param, dth)
+            call pl%drift(nbody_system, param, dt)
 
             if (tp%nbody > 0) then
                if (tp%lfirst) call tp%vh2vb(vbcb = -cb%ptbeg)
                call tp%lindrift(cb, dth, lbeg=.true.)
-               call tp%kick(system, param, t, dth, lbeg=.true.)
-               if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-               call tp%drift(system, param, dt)
+               call tp%kick(nbody_system, param, t, dth, lbeg=.true.)
+               if (param%lgr) call tp%gr_pos_kick(nbody_system, param, dth)
+               call tp%drift(nbody_system, param, dt)
             end if
 
-            call system%recursive_step(param, t, 0)
-            system%irec = -1
+            call nbody_system%recursive_step(param, t, 0)
+            nbody_system%irec = -1
 
-            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
-            call pl%kick(system, param, t, dth, lbeg=.false.)
+            if (param%lgr) call pl%gr_pos_kick(nbody_system, param, dth)
+            call pl%kick(nbody_system, param, t, dth, lbeg=.false.)
             call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
 
             if (tp%nbody > 0) then
-               if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-               call tp%kick(system, param, t, dth, lbeg=.false.)
+               if (param%lgr) call tp%gr_pos_kick(nbody_system, param, dth)
+               call tp%kick(nbody_system, param, t, dth, lbeg=.false.)
                call tp%lindrift(cb, dth, lbeg=.false.)
                call tp%vb2vh(vbcb = -cb%ptend)
             end if
@@ -136,7 +136,7 @@ contains
       class is (symba_pl)
       select type(tp => self%tp)
       class is (symba_tp)
-         associate(system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, npl => self%pl%nbody, ntp => self%tp%nbody)
+         associate(nbody_system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, npl => self%pl%nbody, ntp => self%tp%nbody)
 
             irecp = ireci + 1
 
@@ -153,7 +153,7 @@ contains
                endwhere
             end if
 
-            system%irec = ireci
+            nbody_system%irec = ireci
 
          end associate
       end select
@@ -192,8 +192,8 @@ contains
       class is (symba_list_plpl)
       select type(pltp_encounter => self%pltp_encounter)
       class is (symba_list_pltp)
-         associate(system => self, lplpl_collision => plpl_encounter%lcollision, lpltp_collision => pltp_encounter%lcollision,  encounter_history => self%encounter_history)
-            system%irec = ireci
+         associate(nbody_system => self, lplpl_collision => plpl_encounter%lcollision, lpltp_collision => pltp_encounter%lcollision,  encounter_history => self%encounter_history)
+            nbody_system%irec = ireci
             dtl = param%dt / (NTENC**ireci)
             dth = 0.5_DP * dtl
             IF (dtl / param%dt < VSMALL) THEN
@@ -209,45 +209,45 @@ contains
                nloops = NTENC
             end if
             do j = 1, nloops
-               lencounter = plpl_encounter%encounter_check(param, system, dtl, irecp) &
-                     .or. pltp_encounter%encounter_check(param, system, dtl, irecp)
+               lencounter = plpl_encounter%encounter_check(param, nbody_system, dtl, irecp) &
+                     .or. pltp_encounter%encounter_check(param, nbody_system, dtl, irecp)
                
-               call plpl_encounter%kick(system, dth, irecp, 1)
-               call pltp_encounter%kick(system, dth, irecp, 1)
+               call plpl_encounter%kick(nbody_system, dth, irecp, 1)
+               call pltp_encounter%kick(nbody_system, dth, irecp, 1)
                if (ireci /= 0) then
-                  call plpl_encounter%kick(system, dth, irecp, -1)
-                  call pltp_encounter%kick(system, dth, irecp, -1)
+                  call plpl_encounter%kick(nbody_system, dth, irecp, -1)
+                  call pltp_encounter%kick(nbody_system, dth, irecp, -1)
                end if
 
                if (param%lgr) then
-                  call pl%gr_pos_kick(system, param, dth)
-                  call tp%gr_pos_kick(system, param, dth)
+                  call pl%gr_pos_kick(nbody_system, param, dth)
+                  call tp%gr_pos_kick(nbody_system, param, dth)
                end if
 
-               call pl%drift(system, param, dtl)
-               call tp%drift(system, param, dtl)
+               call pl%drift(nbody_system, param, dtl)
+               call tp%drift(nbody_system, param, dtl)
 
-               if (lencounter) call system%recursive_step(param, t+(j-1)*dtl, irecp)
-               system%irec = ireci
+               if (lencounter) call nbody_system%recursive_step(param, t+(j-1)*dtl, irecp)
+               nbody_system%irec = ireci
 
                if (param%lgr) then
-                  call pl%gr_pos_kick(system, param, dth)
-                  call tp%gr_pos_kick(system, param, dth)
+                  call pl%gr_pos_kick(nbody_system, param, dth)
+                  call tp%gr_pos_kick(nbody_system, param, dth)
                end if
 
-               call plpl_encounter%kick(system, dth, irecp, 1)
-               call pltp_encounter%kick(system, dth, irecp, 1)
+               call plpl_encounter%kick(nbody_system, dth, irecp, 1)
+               call pltp_encounter%kick(nbody_system, dth, irecp, 1)
                if (ireci /= 0) then
-                  call plpl_encounter%kick(system, dth, irecp, -1)
-                  call pltp_encounter%kick(system, dth, irecp, -1)
+                  call plpl_encounter%kick(nbody_system, dth, irecp, -1)
+                  call pltp_encounter%kick(nbody_system, dth, irecp, -1)
                end if
 
                if (param%lclose) then
-                  call plpl_encounter%collision_check(system, param, t+j*dtl, dtl, ireci, lplpl_collision) 
-                  call pltp_encounter%collision_check(system, param, t+j*dtl, dtl, ireci, lpltp_collision) 
+                  call plpl_encounter%collision_check(nbody_system, param, t+j*dtl, dtl, ireci, lplpl_collision) 
+                  call pltp_encounter%collision_check(nbody_system, param, t+j*dtl, dtl, ireci, lpltp_collision) 
 
-                  if (lplpl_collision) call plpl_encounter%resolve_collision(system, param, t+j*dtl, dtl, ireci)
-                  if (lpltp_collision) call pltp_encounter%resolve_collision(system, param, t+j*dtl, dtl, ireci)
+                  if (lplpl_collision) call plpl_encounter%resolve_collision(nbody_system, param, t+j*dtl, dtl, ireci)
+                  if (lpltp_collision) call pltp_encounter%resolve_collision(nbody_system, param, t+j*dtl, dtl, ireci)
                end if
                if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+j*dtl, "trajectory") 
 
@@ -280,15 +280,15 @@ contains
       integer(I4B) :: i
       integer(I8B) :: nenc_old
 
-      associate(system => self)
-      select type(pl => system%pl)
+      associate(nbody_system => self)
+      select type(pl => nbody_system%pl)
       class is (symba_pl)
-      select type(tp => system%tp)
+      select type(tp => nbody_system%tp)
       class is (symba_tp)
          associate(npl => pl%nbody, ntp => tp%nbody)
-            nenc_old = system%plpl_encounter%nenc
-            call system%plpl_encounter%setup(0_I8B)
-            call system%plpl_collision%setup(0_I8B)
+            nenc_old = nbody_system%plpl_encounter%nenc
+            call nbody_system%plpl_encounter%setup(0_I8B)
+            call nbody_system%plpl_collision%setup(0_I8B)
             if (npl > 0) then
                pl%lcollision(1:npl) = .false.
                call pl%reset_kinship([(i, i=1, npl)])
@@ -301,26 +301,26 @@ contains
                pl%ldiscard(1:npl) = .false.
                pl%lmask(1:npl) = .true.
                call pl%set_renc(0)
-               call system%plpl_encounter%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
-               system%plpl_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
-               system%plpl_encounter%lcollision = .false.
+               call nbody_system%plpl_encounter%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+               nbody_system%plpl_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+               nbody_system%plpl_encounter%lcollision = .false.
             end if
       
-            nenc_old = system%pltp_encounter%nenc
-            call system%pltp_encounter%setup(0_I8B)
+            nenc_old = nbody_system%pltp_encounter%nenc
+            call nbody_system%pltp_encounter%setup(0_I8B)
             if (ntp > 0) then
                tp%nplenc(1:ntp) = 0 
                tp%levelg(1:ntp) = -1
                tp%levelm(1:ntp) = -1
                tp%lmask(1:ntp) = .true.
                tp%ldiscard(1:ntp) = .false.
-               call system%pltp_encounter%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
-               system%pltp_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
-               system%pltp_encounter%lcollision = .false.
+               call nbody_system%pltp_encounter%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+               nbody_system%pltp_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
+               nbody_system%pltp_encounter%lcollision = .false.
             end if
 
-            call system%pl_adds%setup(0, param)
-            call system%pl_discards%setup(0, param)
+            call nbody_system%pl_adds%setup(0, param)
+            call nbody_system%pl_discards%setup(0, param)
 
             tp%lfirst = param%lfirstkick
             pl%lfirst = param%lfirstkick

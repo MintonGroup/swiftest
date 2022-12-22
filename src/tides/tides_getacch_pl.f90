@@ -2,7 +2,7 @@ submodule(tides) s_tides_kick_getacch
    use swiftest
 contains
 
-   module subroutine tides_kick_getacch_pl(self, system)
+   module subroutine tides_kick_getacch_pl(self, nbody_system)
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!
       !! Calculated tidal torques from central body to any planet and from any planet to central body
@@ -18,7 +18,7 @@ contains
       implicit none
       ! Arguments
       class(base_object),           intent(inout) :: self   !! Swiftest massive body object
-      class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
       integer(I4B)                          :: i
       real(DP)                              :: rmag, vmag
@@ -27,9 +27,9 @@ contains
 
       select type(pl => self)
       class is (swiftest_pl)
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(npl => pl%nbody, cb => system%cb)
+         associate(npl => pl%nbody, cb => nbody_system%cb)
             pl%atide(:,:) = 0.0_DP
             cb%atide(:) = 0.0_DP
             do i = 1, npl

@@ -55,7 +55,7 @@ contains
    end subroutine symba_kick_getacch_int_pl
 
 
-   module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
+   module subroutine symba_kick_getacch_pl(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of massive bodies
@@ -65,7 +65,7 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
@@ -75,11 +75,11 @@ contains
       integer(I4B), dimension(:,:), allocatable :: k_plpl_enc
 
       if (self%nbody == 0) return
-      select type(system)
+      select type(nbody_system)
       class is (symba_nbody_system)
-         associate(pl => self, npl => self%nbody, nplm => self%nplm, plpl_encounter => system%plpl_encounter, radius => self%radius)
+         associate(pl => self, npl => self%nbody, nplm => self%nplm, plpl_encounter => nbody_system%plpl_encounter, radius => self%radius)
             ! Apply kicks to all bodies (including those in the encounter list)
-            call helio_kick_getacch_pl(pl, system, param, t, lbeg)
+            call helio_kick_getacch_pl(pl, nbody_system, param, t, lbeg)
             if (plpl_encounter%nenc > 0) then 
                ! Remove kicks from bodies involved currently in the encounter list, as these are dealt with separately.
                ah_enc(:,:) = 0.0_DP
@@ -98,7 +98,7 @@ contains
    end subroutine symba_kick_getacch_pl
 
 
-   module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
+   module subroutine symba_kick_getacch_tp(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -108,7 +108,7 @@ contains
       implicit none
       ! Arguments
       class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
@@ -118,11 +118,11 @@ contains
       real(DP), dimension(NDIM) :: dx
 
       if (self%nbody == 0) return
-      select type(system)
+      select type(nbody_system)
       class is (symba_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl, &
-            pltp_encounter => system%pltp_encounter, npltpenc => system%pltp_encounter%nenc)
-            call helio_kick_getacch_tp(tp, system, param, t, lbeg)
+         associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl, &
+            pltp_encounter => nbody_system%pltp_encounter, npltpenc => nbody_system%pltp_encounter%nenc)
+            call helio_kick_getacch_tp(tp, nbody_system, param, t, lbeg)
             ! Remove accelerations from encountering pairs
             do k = 1, npltpenc
                i = pltp_encounter%index1(k)
@@ -144,7 +144,7 @@ contains
    end subroutine symba_kick_getacch_tp
 
 
-   module subroutine symba_kick_list_plpl(self, system, dt, irec, sgn)
+   module subroutine symba_kick_list_plpl(self, nbody_system, dt, irec, sgn)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of massive bodies within SyMBA recursion.
@@ -154,7 +154,7 @@ contains
       implicit none
       ! Arguments
       class(symba_list_plpl),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
-      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
       real(DP),                  intent(in)    :: dt     !! step size
       integer(I4B),              intent(in)    :: irec   !! Current recursion level
       integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
@@ -168,7 +168,7 @@ contains
 
       if (self%nenc == 0) return
 
-      select type(pl => system%pl)
+      select type(pl => nbody_system%pl)
       class is (symba_pl)
          associate(npl => pl%nbody, nenc => self%nenc)
             if (npl == 0)  return
@@ -249,7 +249,7 @@ contains
    end subroutine symba_kick_list_plpl
 
 
-   module subroutine symba_kick_list_pltp(self, system, dt, irec, sgn)
+   module subroutine symba_kick_list_pltp(self, nbody_system, dt, irec, sgn)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of ACTIVE test particles within SyMBA recursion.
@@ -259,7 +259,7 @@ contains
       implicit none
       ! Arguments
       class(symba_list_pltp),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
-      class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(symba_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
       real(DP),                  intent(in)    :: dt     !! step size
       integer(I4B),              intent(in)    :: irec   !! Current recursion level
       integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
@@ -273,9 +273,9 @@ contains
 
       if (self%nenc == 0) return
 
-      select type(pl => system%pl)
+      select type(pl => nbody_system%pl)
       class is (symba_pl)
-      select type(tp => system%tp)
+      select type(tp => nbody_system%tp)
       class is (symba_tp)
          associate(npl => pl%nbody, ntp => tp%nbody, nenc => self%nenc)
             if ((npl == 0) .or. (ntp == 0)) return

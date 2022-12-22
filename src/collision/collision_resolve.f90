@@ -11,123 +11,6 @@ submodule (collision) s_collision_resolve
    use swiftest
 contains
 
-   module function collision_resolve_merge(system, param, t)  result(status)
-      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Merge massive bodies.
-      !! 
-      !! Adapted from David E. Kaufmann's Swifter routines swiftest_merge_pl.f90 and swiftest_discard_merge_pl.f90
-      !!
-      !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
-      implicit none
-      ! Arguments
-      class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                     intent(in)    :: t      !! Time of collision
-      ! Result
-      integer(I4B)                                :: status    !! Status flag assigned to this outcome
-      ! Internals
-      integer(I4B)                              :: i, j, k, ibiggest
-      real(DP), dimension(NDIM)                 :: Lspin_new
-      real(DP)                                  :: dpe
-      character(len=STRMAX) :: message
-
-      select type(system)
-      class is (swiftest_nbody_system)
-         associate(collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments)
-            message = "Merging"
-            call collision_resolve_collider_message(system%pl, impactors%id, message)
-         ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, message)
-
-            select type(pl => system%pl)
-            class is (swiftest_pl)
-
-               call collision_system%set_mass_dist(param)
-
-               ! Calculate the initial energy of the system without the collisional family
-               call collision_system%get_energy_and_momentum(system, param, lbefore=.true.)
-
-               ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
-               fragments%id(1) = pl%id(ibiggest)
-               fragments%rb(:,1) = impactors%rbcom(:)
-               fragments%vb(:,1) = impactors%vbcom(:)
-
-               if (param%lrotation) then
-                  ! Conserve angular momentum by putting pre-impact orbital momentum into spin of the new body
-                  Lspin_new(:) = impactors%Lorbit(:,1) + impactors%Lorbit(:,2) + impactors%Lspin(:,1) + impactors%Lspin(:,2)  
-
-                  ! Assume prinicpal axis rotation on 3rd Ip axis
-                  fragments%rot(:,1) = Lspin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
-               else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
-                  system%Lescape(:) = system%Lescape(:) + impactors%Lorbit(:,1) + impactors%Lorbit(:,2) 
-               end if
-
-               ! Keep track of the component of potential energy due to the pre-impact impactors%id for book-keeping
-               ! Get the energy of the system after the collision
-               call collision_system%get_energy_and_momentum(system, param, lbefore=.false.)
-               dpe = collision_system%pe(2) - collision_system%pe(1) 
-               system%Ecollisions = system%Ecollisions - dpe 
-               system%Euntracked  = system%Euntracked + dpe 
-
-
-               ! Update any encounter lists that have the removed bodies in them so that they instead point to the new 
-               do k = 1, system%plpl_encounter%nenc
-                  do j = 1, impactors%ncoll
-                     i = impactors%id(j)
-                     if (i == ibiggest) cycle
-                     if (system%plpl_encounter%id1(k) == pl%id(i)) then
-                        system%plpl_encounter%id1(k) = pl%id(ibiggest)
-                        system%plpl_encounter%index1(k) = i
-                     end if
-                     if (system%plpl_encounter%id2(k) == pl%id(i)) then
-                        system%plpl_encounter%id2(k) = pl%id(ibiggest)
-                        system%plpl_encounter%index2(k) = i
-                     end if
-                     if (system%plpl_encounter%id1(k) == system%plpl_encounter%id2(k)) system%plpl_encounter%status(k) = INACTIVE
-                  end do
-               end do
-
-               status = MERGED
-               
-               call collision_resolve_mergeaddsub(system, param, t, status) 
-
-            end select
-         end associate
-      end select
-      return 
-   end function collision_resolve_merge
-
-
-   module subroutine collision_resolve_collider_message(pl, collidx, collider_message)
-      !! author: David A. Minton
-      !!
-      !! Prints a nicely formatted message about which bodies collided, including their names and ids.
-      !! This subroutine appends the body names and ids to an input message.
-      implicit none
-      ! Arguments
-      class(base_object),            intent(in)    :: pl            !! Swiftest massive body object
-      integer(I4B),    dimension(:), intent(in)    :: collidx           !! Index of collisional impactors%id members
-      character(*),                  intent(inout) :: collider_message !! The message to print to the screen.
-      ! Internals
-      integer(I4B) :: i, n
-      character(len=STRMAX) :: idstr
-      
-      n = size(collidx)
-      if (n == 0) return
-
-      select type(pl)
-      class is (swiftest_pl)
-         do i = 1, n
-            if (i > 1) collider_message = trim(adjustl(collider_message)) // " and "
-            collider_message = " " // trim(adjustl(collider_message)) // " " // trim(adjustl(pl%info(collidx(i))%name))
-            write(idstr, '(I10)') pl%id(collidx(i))
-            collider_message = trim(adjustl(collider_message)) // " (" // trim(adjustl(idstr)) // ") "
-         end do
-      end select
-
-      return
-   end subroutine collision_resolve_collider_message
-
 
    function collision_resolve_consolidate_impactors(pl, cb, param, idx_parent, impactors) result(lflag)
       !! author: David A. Minton
@@ -267,16 +150,16 @@ contains
    end function collision_resolve_consolidate_impactors
 
 
-   module subroutine collision_resolve_extract_plpl(self, system, param)
+   module subroutine collision_resolve_extract_plpl(self, nbody_system, param)
       !! author: David A. Minton
       !! 
       !! Processes the pl-pl encounter list remove only those encounters that led to a collision
       !!
       implicit none
       ! Arguments
-      class(collision_list_plpl), intent(inout) :: self   !! pl-pl encounter list
-      class(base_nbody_system),             intent(inout) :: system !! Swiftest nbody system object
-      class(base_parameters),               intent(in)    :: param  !! Current run configuration parameters
+      class(collision_list_plpl), intent(inout) :: self         !! pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),     intent(in)    :: param        !! Current run configuration parameters
       ! Internals
       logical,      dimension(:), allocatable :: lplpl_collision
       logical,      dimension(:), allocatable :: lplpl_unique_parent
@@ -284,9 +167,9 @@ contains
       integer(I4B), dimension(:), allocatable :: collision_idx, unique_parent_idx
       integer(I4B)                            :: i, index_coll, ncollisions, nunique_parent, nplplenc
 
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
-      select type (pl => system%pl)
+      select type (pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(plpl_encounter => self, idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
             nplplenc = plpl_encounter%nenc
@@ -330,7 +213,7 @@ contains
             ! Create a mask that contains only the pl-pl encounters that did not result in a collision, and then discard them
             lplpl_collision(:) = .false.
             lplpl_collision(collision_idx(:)) = .true.
-            call plpl_encounter%spill(system%plpl_collision, lplpl_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
+            call plpl_encounter%spill(nbody_system%plpl_collision, lplpl_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
          end associate
       end select
       end select
@@ -338,14 +221,57 @@ contains
       return
    end subroutine collision_resolve_extract_plpl
 
-   module subroutine collision_resolve_extract_pltp(self, system, param)
+
+   module subroutine collision_resolve_extract_pltp(self, nbody_system, param)
       implicit none
       class(collision_list_pltp), intent(inout) :: self   !! pl-tp encounter list
-      class(base_nbody_system),             intent(inout) :: system !! Swiftest nbody system object
-      class(base_parameters),               intent(in)    :: param  !! Current run configuration parameters
+      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
 
       return
    end subroutine collision_resolve_extract_pltp
+
+
+   subroutine collision_resolve_list(plpl_collision, nbody_system, param, t)
+      !! author: David A. Minton
+      !! 
+      !! Process list of collisions, determine the collisional regime, and then create fragments.
+      !!
+      implicit none
+      ! Arguments
+      class(collision_list_plpl), intent(inout) :: plpl_collision !! Swiftest pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system   !! Swiftest nbody system object
+      class(base_parameters),     intent(inout) :: param          !! Current run configuration parameters with Swiftest additions
+      real(DP),                   intent(in)    :: t              !! Time of collision
+      ! Internals
+      ! Internals
+      integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
+      logical                                     :: lgoodcollision
+      integer(I4B)                                :: i
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+         associate(ncollisions => plpl_collision%nenc, idx1 => plpl_collision%index1, idx2 => plpl_collision%index2, &
+                   collision_history => nbody_system%collision_history,  impactors => nbody_system%collider%impactors, &
+                   fragments => nbody_system%collider%fragments, &
+                   pl => nbody_system%pl, cb => nbody_system%cb)
+            do i = 1, ncollisions
+               idx_parent(1) = pl%kin(idx1(i))%parent
+               idx_parent(2) = pl%kin(idx2(i))%parent
+               lgoodcollision = collision_resolve_consolidate_impactors(pl, cb, param, idx_parent, impactors) 
+               if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
+
+               call impactors%get_regime(nbody_system, param)
+               call collision_history%take_snapshot(param,nbody_system, t, "before") 
+               call nbody_system%collider%generate(nbody_system, param, t)
+               call collision_history%take_snapshot(param,nbody_system, t, "after") 
+               call impactors%reset()
+
+            end do
+         end associate
+      end select
+      return
+   end subroutine collision_resolve_list
 
 
    module subroutine collision_resolve_make_impactors_pl(pl, idx)
@@ -411,7 +337,7 @@ contains
    end subroutine collision_resolve_make_impactors_pl
 
 
-   module subroutine collision_resolve_mergeaddsub(system, param, t, status)
+   module subroutine collision_resolve_mergeaddsub(nbody_system, param, t, status)
       !! author:  David A. Minton
       !!
       !! Fills the pl_discards and pl_adds with removed and added bodies
@@ -419,7 +345,7 @@ contains
       use symba, only : symba_pl
       implicit none
       ! Arguments
-      class(base_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
       real(DP),                  intent(in)    :: t      !! Time of collision
       integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
@@ -430,18 +356,18 @@ contains
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
       character(len=NAMELEN) :: newname, origin_type
   
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(pl => system%pl, pl_discards => system%pl_discards, info => system%pl%info, pl_adds => system%pl_adds, cb => system%cb, npl => pl%nbody, &
-            collision_system => system%collision_system, impactors => system%collision_system%impactors,fragments => system%collision_system%fragments)
+         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, npl => pl%nbody, &
+            collision_system => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
 
             ! Add the impactors%id bodies to the subtraction list
             nimpactors = impactors%ncoll
             nfrag = fragments%nbody
 
-            param%maxid_collision = max(param%maxid_collision, maxval(system%pl%info(:)%collision_id))
+            param%maxid_collision = max(param%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
             param%maxid_collision = param%maxid_collision + 1
 
             ! Setup new bodies
@@ -588,49 +514,7 @@ contains
    end subroutine collision_resolve_mergeaddsub
 
 
-   subroutine collision_resolve_list(plpl_collision , system, param, t)
-      !! author: David A. Minton
-      !! 
-      !! Process list of collisions, determine the collisional regime, and then create fragments.
-      !!
-      implicit none
-      ! Arguments
-      class(collision_list_plpl), intent(inout) :: plpl_collision !! Swiftest pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: system         !! Swiftest nbody system object
-      class(base_parameters),     intent(inout) :: param          !! Current run configuration parameters with Swiftest additions
-      real(DP),                   intent(in)    :: t              !! Time of collision
-      ! Internals
-      ! Internals
-      integer(I4B), dimension(2)                  :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
-      logical                                     :: lgoodcollision
-      integer(I4B)                                :: i
-
-      select type(system)
-      class is (swiftest_nbody_system)
-         associate(ncollisions => plpl_collision%nenc, idx1 => plpl_collision%index1, idx2 => plpl_collision%index2, collision_history => system%collision_history, &
-                  collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments, &
-                  pl => system%pl, cb => system%cb)
-            do i = 1, ncollisions
-               idx_parent(1) = pl%kin(idx1(i))%parent
-               idx_parent(2) = pl%kin(idx2(i))%parent
-               lgoodcollision = collision_resolve_consolidate_impactors(pl, cb, param, idx_parent, impactors) 
-               if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
-
-               call impactors%get_regime(system, param)
-               call collision_history%take_snapshot(param,system, t, "before") 
-
-               call collision_system%generate(system, param, t)
-
-               call collision_history%take_snapshot(param,system, t, "after") 
-               call impactors%reset()
-            end do
-         end associate
-      end select
-      return
-   end subroutine collision_resolve_list
-
-
-   module subroutine collision_resolve_plpl(self, system, param, t, dt, irec)
+   module subroutine collision_resolve_plpl(self, nbody_system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-pl collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -638,7 +522,7 @@ contains
       implicit none
       ! Arguments
       class(collision_list_plpl),       intent(inout) :: self   !! Swiftest pl-pl encounter list
-      class(base_nbody_system),  intent(inout) :: system !! Swiftest nbody system object
+      class(base_nbody_system),  intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters), intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
       real(DP),                   intent(in)    :: t      !! Current simulation time
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
@@ -649,63 +533,63 @@ contains
       character(len=STRMAX) :: timestr
       class(swiftest_parameters), allocatable :: tmp_param
   
-      select type (system)
+      select type (nbody_system)
       class is (swiftest_nbody_system)
-      select type(pl => system%pl)
+      select type(pl => nbody_system%pl)
       class is (swiftest_pl)
       select type(param)
       class is (swiftest_parameters)
-         associate(plpl_encounter => self, plpl_collision => system%plpl_collision)
+         associate(plpl_encounter => self, plpl_collision => nbody_system%plpl_collision)
             if (plpl_collision%nenc == 0) return ! No collisions to resolve
             ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
-            call pl%vb2vh(system%cb) 
-            call pl%rh2rb(system%cb)
+            call pl%vb2vh(nbody_system%cb) 
+            call pl%rh2rb(nbody_system%cb)
 
             ! Get the energy before the collision is resolved
             if (param%lenergy) then
-               call system%get_energy_and_momentum(param)
-               Eorbit_before = system%te
+               call nbody_system%get_energy_and_momentum(param)
+               Eorbit_before = nbody_system%te
             end if
 
             do
                write(timestr,*) t
-               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
-               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
-               !                                           "***********************************************************")
-               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Collision between massive bodies detected at time t = " // &
-               !                                           trim(adjustl(timestr)))
-               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
-               !                                           "***********************************************************")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                         "***********************************************************")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between massive bodies detected at time t = " // &
+                                                         trim(adjustl(timestr)))
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                         "***********************************************************")
                allocate(tmp_param, source=param)
 
-               call collision_resolve_list(plpl_collision, system, param, t)
+               call collision_resolve_list(plpl_collision, nbody_system, param, t)
 
                ! Destroy the collision list now that the collisions are resolved
                call plpl_collision%setup(0_I8B)
 
-               if ((system%pl_adds%nbody == 0) .and. (system%pl_discards%nbody == 0)) exit
+               if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
 
                ! Save the add/discard information to file
-               call system%write_discard(tmp_param)
+               call nbody_system%write_discard(tmp_param)
 
                ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
-               call pl%rearray(system, tmp_param)
+               call pl%rearray(nbody_system, tmp_param)
 
                ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
-               call system%pl_discards%setup(0, param)
-               call system%pl_adds%setup(0, param)
+               call nbody_system%pl_discards%setup(0, param)
+               call nbody_system%pl_adds%setup(0, param)
                deallocate(tmp_param)
 
                ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
-               call plpl_encounter%collision_check(system, param, t, dt, irec, lplpl_collision)
+               call plpl_encounter%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
 
                if (.not.lplpl_collision) exit
             end do
 
             if (param%lenergy) then
-               call system%get_energy_and_momentum(param)
-               Eorbit_after = system%te
-               system%Ecollisions = system%Ecollisions + (Eorbit_after - Eorbit_before)
+               call nbody_system%get_energy_and_momentum(param)
+               Eorbit_after = nbody_system%te
+               nbody_system%Ecollisions = nbody_system%Ecollisions + (Eorbit_after - Eorbit_before)
             end if
 
          end associate
@@ -717,7 +601,7 @@ contains
    end subroutine collision_resolve_plpl
 
 
-   module subroutine collision_resolve_pltp(self, system, param, t, dt, irec)
+   module subroutine collision_resolve_pltp(self, nbody_system, param, t, dt, irec)
       !! author: David A. Minton
       !! 
       !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the collision
@@ -725,24 +609,24 @@ contains
       implicit none
       ! Arguments
       class(collision_list_pltp), intent(inout) :: self   !! Swiftest pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: system !! Swiftest nbody system object
+      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
       real(DP),                   intent(in)    :: t      !! Current simulation tim
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
      
       ! Make sure coordinate systems are all synced up due to being inside the recursion at this point
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         call system%pl%vb2vh(system%cb)
-         call system%tp%vb2vh(system%cb%vb)
-         call system%pl%b2h(system%cb)
-         call system%tp%b2h(system%cb)
+         call nbody_system%pl%vb2vh(nbody_system%cb)
+         call nbody_system%tp%vb2vh(nbody_system%cb%vb)
+         call nbody_system%pl%b2h(nbody_system%cb)
+         call nbody_system%tp%b2h(nbody_system%cb)
 
          ! Discard the collider
-         call system%tp%discard(system, param)
+         call nbody_system%tp%discard(nbody_system, param)
       end select
       end select
 

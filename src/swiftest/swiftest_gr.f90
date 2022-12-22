@@ -10,7 +10,7 @@
 submodule(swiftest) s_gr
 contains
 
-   pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, system, param) 
+   pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, nbody_system, param) 
       !! author: David A. Minton
       !!
       !! Add relativistic correction acceleration for non-symplectic integrators.
@@ -24,13 +24,13 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       ! Internals
       real(DP)                  :: rmag, rdotv, vmag2
       integer(I4B)              :: i
 
-      associate(n => self%nbody, cb => system%cb, inv_c2 => param%inv_c2)
+      associate(n => self%nbody, cb => nbody_system%cb, inv_c2 => param%inv_c2)
          if (n == 0) return
          do i = 1, n
             rmag = norm2(self%rh(:,i))

@@ -96,7 +96,7 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Argument
-      class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated system variables object
+      class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated nbody_system variables object
       
       if (allocated(self%x)) deallocate(self%x)
       if (allocated(self%v)) deallocate(self%v)

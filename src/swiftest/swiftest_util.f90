@@ -1215,7 +1215,7 @@ contains
    module subroutine swiftest_util_get_energy_momentum_system(self, param)
       !! author: David A. Minton
       !!
-      !! Compute total system angular momentum vector and kinetic, potential and total system energy
+      !! Compute total nbody_system angular momentum vector and kinetic, potential and total nbody_system energy
       !!  
       !! Adapted from David E. Kaufmann Swifter routine symba_energy_eucl.f90
       !!  
@@ -1232,12 +1232,12 @@ contains
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
       real(DP) :: hx, hy, hz
 
-      associate(system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
-         system%Lorbit(:) = 0.0_DP
-         system%Lspin(:) = 0.0_DP
-         system%Ltot(:) = 0.0_DP
-         system%ke_orbit = 0.0_DP
-         system%ke_spin = 0.0_DP
+      associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+         nbody_system%Lorbit(:) = 0.0_DP
+         nbody_system%Lspin(:) = 0.0_DP
+         nbody_system%Ltot(:) = 0.0_DP
+         nbody_system%ke_orbit = 0.0_DP
+         nbody_system%ke_spin = 0.0_DP
 
          kepl(:) = 0.0_DP
          Lplorbitx(:) = 0.0_DP
@@ -1249,7 +1249,7 @@ contains
 
          pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
 
-         system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
+         nbody_system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
@@ -1289,32 +1289,32 @@ contains
          end if
   
          if (param%lflatten_interactions) then
-            call swiftest_util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
+            call swiftest_util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
          else
-            call swiftest_util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, system%pe)
+            call swiftest_util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
          end if
 
          ! Potential energy from the oblateness term
          if (param%loblatecb) then
-            call system%obl_pot()
-            system%pe = system%pe + system%oblpot
+            call nbody_system%obl_pot()
+            nbody_system%pe = nbody_system%pe + nbody_system%oblpot
          end if
 
-         system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
-         if (param%lrotation) system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+         nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
+         if (param%lrotation) nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
    
-         system%Lorbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
-         system%Lorbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
-         system%Lorbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), pl%lmask(1:npl)) 
+         nbody_system%Lorbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
+         nbody_system%Lorbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
+         nbody_system%Lorbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), pl%lmask(1:npl)) 
   
          if (param%lrotation) then
-            system%Lspin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), pl%lmask(1:npl)) 
-            system%Lspin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), pl%lmask(1:npl)) 
-            system%Lspin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
+            nbody_system%Lspin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), pl%lmask(1:npl)) 
+            nbody_system%Lspin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), pl%lmask(1:npl)) 
+            nbody_system%Lspin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
          end if
 
-         system%te = system%ke_orbit + system%ke_spin + system%pe
-         system%Ltot(:) = system%Lorbit(:) + system%Lspin(:)
+         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe
+         nbody_system%Ltot(:) = nbody_system%Lorbit(:) + nbody_system%Lspin(:)
       end associate
 
       return
@@ -1324,7 +1324,7 @@ contains
    subroutine swiftest_util_get_energy_potential_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
-      !! Compute total system potential energy
+      !! Compute total nbody_system potential energy
       implicit none
       ! Arguments
       integer(I4B),                 intent(in)  :: npl
@@ -1376,7 +1376,7 @@ contains
    subroutine swiftest_util_get_energy_potential_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
-      !! Compute total system potential energy
+      !! Compute total nbody_system potential energy
       implicit none
       ! Arguments
       integer(I4B),                 intent(in)  :: npl
@@ -1606,17 +1606,17 @@ contains
    end subroutine swiftest_util_peri
 
 
-   module subroutine swiftest_util_peri_body(self, system, param)
+   module subroutine swiftest_util_peri_body(self, nbody_system, param)
       !! author: David A. Minton
       !!
-      !! Determine system pericenter passages for bodies
+      !! Determine nbody_system pericenter passages for bodies
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: symba_peri.f90
       !! Adapted from Hal Levison's Swift routine util_mass_peri.f
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! SyMBA massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i
@@ -1629,14 +1629,14 @@ contains
       if (param%qmin_coord == "HELIO") then
          call swiftest_util_peri(self%nbody, self%mu, self%rh, self%vh, self%atp, self%peri, self%isperi)
       else 
-         call swiftest_util_peri(self%nbody, [(system%Gmtot,i=1,self%nbody)], self%rb, self%vb, self%atp, self%peri, self%isperi)
+         call swiftest_util_peri(self%nbody, [(nbody_system%Gmtot,i=1,self%nbody)], self%rb, self%vb, self%atp, self%peri, self%isperi)
       end if
 
       return
    end subroutine swiftest_util_peri_body
 
 
-   module subroutine swiftest_util_rearray_pl(self, system, param)
+   module subroutine swiftest_util_rearray_pl(self, nbody_system, param)
       !! Author: the Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Clean up the massive body structures to remove discarded bodies and add new bodies
@@ -1644,7 +1644,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(swiftest_pl), allocatable :: tmp !! The discarded body list.
@@ -1655,7 +1655,7 @@ contains
       integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp
       integer(I4B), dimension(:), allocatable :: nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
 
-      associate(pl => self, tp => system%tp, pl_adds => system%pl_adds)
+      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds)
 
          npl = pl%nbody
          nadd = pl_adds%nbody
@@ -1664,7 +1664,7 @@ contains
          if (allocated(pl%rbeg)) deallocate(pl%rbeg)
          if (allocated(pl%rend)) deallocate(pl%rend)
 
-         ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
+         ! Remove the discards and destroy the list, as the nbody_system already tracks pl_discards elsewhere
          allocate(lmask(npl))
          lmask(1:npl) = pl%ldiscard(1:npl)
          if (count(lmask(:)) > 0) then
@@ -1677,10 +1677,10 @@ contains
          end if
 
          ! Store the original plplenc list so we don't remove any of the original encounters
-         nenc_old = system%plpl_encounter%nenc
+         nenc_old = nbody_system%plpl_encounter%nenc
          if (nenc_old > 0) then 
-            allocate(plplenc_old, source=system%plpl_encounter)
-            call plplenc_old%copy(system%plpl_encounter)
+            allocate(plplenc_old, source=nbody_system%plpl_encounter)
+            call plplenc_old%copy(nbody_system%plpl_encounter)
          end if
 
          ! Add in any new bodies
@@ -1728,8 +1728,8 @@ contains
          ! Re-build the encounter list
 
 
-         ! Be sure to get the level info if this is a SyMBA system
-         select type(system)
+         ! Be sure to get the level info if this is a SyMBA nbody_system
+         select type(nbody_system)
          class is (symba_nbody_system)
          select type(pl)
          class is (symba_pl)
@@ -1741,13 +1741,13 @@ contains
             call move_alloc(levelg_orig_pl, pl%levelg)
             call move_alloc(levelm_orig_pl, pl%levelm)
             call move_alloc(nplenc_orig_pl, pl%nplenc)
-            lencounter = pl%encounter_check(param, system, param%dt, system%irec) 
+            lencounter = pl%encounter_check(param, nbody_system, param%dt, nbody_system%irec) 
             if (tp%nbody > 0) then
                allocate(levelg_orig_tp, source=tp%levelg)
                allocate(levelm_orig_tp, source=tp%levelm)
                allocate(nplenc_orig_tp, source=tp%nplenc)
                allocate(ntpenc_orig_pl, source=pl%ntpenc)
-               lencounter = tp%encounter_check(param, system, param%dt, system%irec)
+               lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
                call move_alloc(levelg_orig_tp, tp%levelg)
                call move_alloc(levelm_orig_tp, tp%levelm)
                call move_alloc(nplenc_orig_tp, tp%nplenc)
@@ -1760,64 +1760,64 @@ contains
 
          ! Re-index the encounter list as the index values may have changed
          if (nenc_old > 0) then
-            nencmin = min(system%plpl_encounter%nenc, plplenc_old%nenc) 
-            system%plpl_encounter%nenc = nencmin
+            nencmin = min(nbody_system%plpl_encounter%nenc, plplenc_old%nenc) 
+            nbody_system%plpl_encounter%nenc = nencmin
             do k = 1, nencmin
-               idnew1 = system%plpl_encounter%id1(k)
-               idnew2 = system%plpl_encounter%id2(k)
+               idnew1 = nbody_system%plpl_encounter%id1(k)
+               idnew2 = nbody_system%plpl_encounter%id2(k)
                idold1 = plplenc_old%id1(k)
                idold2 = plplenc_old%id2(k)
                if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
                   ! This is an encounter we already know about, so save the old information
-                  system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
-                  system%plpl_encounter%status(k) = plplenc_old%status(k) 
-                  system%plpl_encounter%r1(:,k) = plplenc_old%r1(:,k)
-                  system%plpl_encounter%r2(:,k) = plplenc_old%r2(:,k)
-                  system%plpl_encounter%v1(:,k) = plplenc_old%v1(:,k)
-                  system%plpl_encounter%v2(:,k) = plplenc_old%v2(:,k)
-                  system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
-                  system%plpl_encounter%level(k) = plplenc_old%level(k)
+                  nbody_system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  nbody_system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
+                  nbody_system%plpl_encounter%status(k) = plplenc_old%status(k) 
+                  nbody_system%plpl_encounter%r1(:,k) = plplenc_old%r1(:,k)
+                  nbody_system%plpl_encounter%r2(:,k) = plplenc_old%r2(:,k)
+                  nbody_system%plpl_encounter%v1(:,k) = plplenc_old%v1(:,k)
+                  nbody_system%plpl_encounter%v2(:,k) = plplenc_old%v2(:,k)
+                  nbody_system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
+                  nbody_system%plpl_encounter%level(k) = plplenc_old%level(k)
                else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
                   ! This is an encounter we already know about, but with the order reversed, so save the old information
-                  system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
-                  system%plpl_encounter%status(k) = plplenc_old%status(k) 
-                  system%plpl_encounter%r1(:,k) = plplenc_old%r2(:,k)
-                  system%plpl_encounter%r2(:,k) = plplenc_old%r1(:,k)
-                  system%plpl_encounter%v1(:,k) = plplenc_old%v2(:,k)
-                  system%plpl_encounter%v2(:,k) = plplenc_old%v1(:,k)
-                  system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
-                  system%plpl_encounter%level(k) = plplenc_old%level(k)
+                  nbody_system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
+                  nbody_system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
+                  nbody_system%plpl_encounter%status(k) = plplenc_old%status(k) 
+                  nbody_system%plpl_encounter%r1(:,k) = plplenc_old%r2(:,k)
+                  nbody_system%plpl_encounter%r2(:,k) = plplenc_old%r1(:,k)
+                  nbody_system%plpl_encounter%v1(:,k) = plplenc_old%v2(:,k)
+                  nbody_system%plpl_encounter%v2(:,k) = plplenc_old%v1(:,k)
+                  nbody_system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
+                  nbody_system%plpl_encounter%level(k) = plplenc_old%level(k)
                end if
-               system%plpl_encounter%index1(k) = findloc(pl%id(1:npl), system%plpl_encounter%id1(k), dim=1)
-               system%plpl_encounter%index2(k) = findloc(pl%id(1:npl), system%plpl_encounter%id2(k), dim=1)
+               nbody_system%plpl_encounter%index1(k) = findloc(pl%id(1:npl), nbody_system%plpl_encounter%id1(k), dim=1)
+               nbody_system%plpl_encounter%index2(k) = findloc(pl%id(1:npl), nbody_system%plpl_encounter%id2(k), dim=1)
             end do
             if (allocated(lmask)) deallocate(lmask)
             allocate(lmask(nencmin))
             nenc_old = nencmin
-            if (any(system%plpl_encounter%index1(1:nencmin) == 0) .or. any(system%plpl_encounter%index2(1:nencmin) == 0)) then
-               lmask(:) = system%plpl_encounter%index1(1:nencmin) /= 0 .and. system%plpl_encounter%index2(1:nencmin) /= 0
+            if (any(nbody_system%plpl_encounter%index1(1:nencmin) == 0) .or. any(nbody_system%plpl_encounter%index2(1:nencmin) == 0)) then
+               lmask(:) = nbody_system%plpl_encounter%index1(1:nencmin) /= 0 .and. nbody_system%plpl_encounter%index2(1:nencmin) /= 0
             else
                return
             end if
             nencmin = count(lmask(:))
-            system%plpl_encounter%nenc = nencmin
+            nbody_system%plpl_encounter%nenc = nencmin
             if (nencmin > 0) then
-               system%plpl_encounter%index1(1:nencmin) = pack(system%plpl_encounter%index1(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%index2(1:nencmin) = pack(system%plpl_encounter%index2(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%id1(1:nencmin) = pack(system%plpl_encounter%id1(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%id2(1:nencmin) = pack(system%plpl_encounter%id2(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%lvdotr(1:nencmin) = pack(system%plpl_encounter%lvdotr(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%lclosest(1:nencmin) = pack(system%plpl_encounter%lclosest(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%status(1:nencmin) = pack(system%plpl_encounter%status(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%tcollision(1:nencmin) = pack(system%plpl_encounter%tcollision(1:nenc_old), lmask(1:nenc_old))
-               system%plpl_encounter%level(1:nencmin) = pack(system%plpl_encounter%level(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%index1(1:nencmin) = pack(nbody_system%plpl_encounter%index1(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%index2(1:nencmin) = pack(nbody_system%plpl_encounter%index2(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%id1(1:nencmin) = pack(nbody_system%plpl_encounter%id1(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%id2(1:nencmin) = pack(nbody_system%plpl_encounter%id2(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%lvdotr(1:nencmin) = pack(nbody_system%plpl_encounter%lvdotr(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%lclosest(1:nencmin) = pack(nbody_system%plpl_encounter%lclosest(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%status(1:nencmin) = pack(nbody_system%plpl_encounter%status(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%tcollision(1:nencmin) = pack(nbody_system%plpl_encounter%tcollision(1:nenc_old), lmask(1:nenc_old))
+               nbody_system%plpl_encounter%level(1:nencmin) = pack(nbody_system%plpl_encounter%level(1:nenc_old), lmask(1:nenc_old))
                do i = 1, NDIM
-                  system%plpl_encounter%r1(i, 1:nencmin) = pack(system%plpl_encounter%r1(i, 1:nenc_old), lmask(1:nenc_old))
-                  system%plpl_encounter%r2(i, 1:nencmin) = pack(system%plpl_encounter%r2(i, 1:nenc_old), lmask(1:nenc_old))
-                  system%plpl_encounter%v1(i, 1:nencmin) = pack(system%plpl_encounter%v1(i, 1:nenc_old), lmask(1:nenc_old))
-                  system%plpl_encounter%v2(i, 1:nencmin) = pack(system%plpl_encounter%v2(i, 1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%r1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r1(i, 1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%r2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r2(i, 1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%v1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v1(i, 1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%v2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v2(i, 1:nenc_old), lmask(1:nenc_old))
                end do
             end if
          end if
@@ -1831,7 +1831,7 @@ contains
       !! author: David A. Minton
       !!
       !! Rescales an nbody system to a new set of units. Inputs are the multipliers on the mass (mscale), distance (dscale), and time units (tscale). 
-      !! Rescales all united quantities in the system, as well as the mass conversion factors, gravitational constant, and Einstein's constant in the parameter object.
+      !! Rescales all united quantities in the nbody_system, as well as the mass conversion factors, gravitational constant, and Einstein's constant in the parameter object.
       implicit none
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
@@ -1843,11 +1843,11 @@ contains
       param%DU2M = param%DU2M * dscale
       param%TU2S = param%TU2S * tscale
 
-      ! Calculate the G for the system units
+      ! Calculate the G for the nbody_system units
       param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
       if (param%lgr) then
-         ! Calculate the inverse speed of light in the system units
+         ! Calculate the inverse speed of light in the nbody_system units
          param%inv_c2 = einsteinC * param%TU2S / param%DU2M
          param%inv_c2 = (param%inv_c2)**(-2)
       end if
@@ -2357,10 +2357,10 @@ contains
    module subroutine swiftest_util_set_msys(self)
       !! author: David A. Minton
       !!
-      !! Sets the value of msys and the vector mass quantities based on the total mass of the system
+      !! Sets the value of msys and the vector mass quantities based on the total mass of the nbody_system
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest nobdy system object
+      class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest nobdy nbody_system object
 
       self%Gmtot = self%cb%Gmass + sum(self%pl%Gmass(1:self%pl%nbody), self%pl%status(1:self%pl%nbody) /= INACTIVE)
 
@@ -2541,24 +2541,24 @@ contains
    end subroutine swiftest_util_set_rhill_approximate
 
 
-   module subroutine swiftest_util_snapshot_system(self, param, system, t, arg)
+   module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
-      !! Takes a snapshot of the system for later file storage
+      !! Takes a snapshot of the nbody_system for later file storage
       implicit none
       ! Arguments
       class(swiftest_storage(*)),   intent(inout) :: self   !! Swiftest storage object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object to store
-      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object to store
+      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
 
       self%iframe = self%iframe + 1
       self%nt = self%iframe
-      self%frame(self%iframe) = system ! Store a snapshot of the system for posterity
+      self%frame(self%iframe) = nbody_system ! Store a snapshot of the nbody_system for posterity
       self%nid = self%nid + 1 ! Central body
-      if (allocated(system%pl)) self%nid = self%nid + system%pl%nbody
-      if (allocated(system%tp)) self%nid = self%nid + system%tp%nbody
+      if (allocated(nbody_system%pl)) self%nid = self%nid + nbody_system%pl%nbody
+      if (allocated(nbody_system%tp)) self%nid = self%nid + nbody_system%tp%nbody
 
       return
    end subroutine swiftest_util_snapshot_system

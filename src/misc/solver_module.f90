@@ -44,7 +44,7 @@ module solver
          !! Solves the linear equation of the form A*x = b for x. 
          !!   A is an (n,n) arrays
          !!   x and b are (n) arrays
-         !! Uses Gaussian elimination, so will have issues if system is ill-conditioned.
+         !! Uses Gaussian elimination, so will have issues if nbody_system is ill-conditioned.
          !! Uses quad precision intermidiate values, so works best on small arrays.
          implicit none
          ! Arguments
@@ -84,7 +84,7 @@ module solver
          !! Solves the linear equation of the form A*x = b for x. 
          !!   A is an (n,n) arrays
          !!   x and b are (n) arrays
-         !! Uses Gaussian elimination, so will have issues if system is ill-conditioned.
+         !! Uses Gaussian elimination, so will have issues if nbody_system is ill-conditioned.
          !! Uses quad precision intermidiate values, so works best on small arrays.
          implicit none
          ! Arguments

@@ -70,7 +70,7 @@ contains
    end subroutine whm_gr_kick_getacch_tp
    
 
-   pure module subroutine whm_gr_p4_pl(self, system, param, dt)
+   pure module subroutine whm_gr_p4_pl(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -80,7 +80,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
@@ -97,7 +97,7 @@ contains
    end subroutine whm_gr_p4_pl
 
 
-   pure module subroutine whm_gr_p4_tp(self, system, param, dt)
+   pure module subroutine whm_gr_p4_tp(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction
@@ -107,7 +107,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt    !! Step size
       ! Internals

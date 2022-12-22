@@ -12,16 +12,17 @@ submodule (swiftest) s_setup
    use rmvs
    use helio
    use symba
+   use fraggle
 contains
 
-   module subroutine swiftest_setup_construct_system(system, param)
+   module subroutine swiftest_setup_construct_system(nbody_system, param)
       !! author: David A. Minton
       !!
       !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
       !! 
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), allocatable, intent(inout) :: system !! Swiftest system object
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
       class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       type(encounter_storage)  :: encounter_history
@@ -37,58 +38,54 @@ contains
          case (INT_BS)
             write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
          case (INT_HELIO)
-            allocate(helio_nbody_system :: system)
-            select type(system)
+            allocate(helio_nbody_system :: nbody_system)
+            select type(nbody_system)
             class is (helio_nbody_system)
-               allocate(helio_cb :: system%cb)
-               allocate(helio_pl :: system%pl)
-               allocate(helio_tp :: system%tp)
-               allocate(helio_tp :: system%tp_discards)
+               allocate(helio_cb :: nbody_system%cb)
+               allocate(helio_pl :: nbody_system%pl)
+               allocate(helio_tp :: nbody_system%tp)
+               allocate(helio_tp :: nbody_system%tp_discards)
             end select
+            param%collision_model = "MERGE"
          case (INT_RA15)
             write(*,*) 'Radau integrator not yet enabled'
          case (INT_TU4)
             write(*,*) 'INT_TU4 integrator not yet enabled'
          case (INT_WHM)
-            allocate(whm_nbody_system :: system)
-            select type(system)
+            allocate(whm_nbody_system :: nbody_system)
+            select type(nbody_system)
             class is (whm_nbody_system)
-               allocate(whm_cb :: system%cb)
-               allocate(whm_pl :: system%pl)
-               allocate(whm_tp :: system%tp)
-               allocate(whm_tp :: system%tp_discards)
+               allocate(whm_cb :: nbody_system%cb)
+               allocate(whm_pl :: nbody_system%pl)
+               allocate(whm_tp :: nbody_system%tp)
+               allocate(whm_tp :: nbody_system%tp_discards)
             end select
+            param%collision_model = "MERGE"
          case (INT_RMVS)
-            allocate(rmvs_nbody_system :: system)
-            select type(system)
+            allocate(rmvs_nbody_system :: nbody_system)
+            select type(nbody_system)
             class is (rmvs_nbody_system)
-               allocate(rmvs_cb :: system%cb)
-               allocate(rmvs_pl :: system%pl)
-               allocate(rmvs_tp :: system%tp)
-               allocate(rmvs_tp :: system%tp_discards)
+               allocate(rmvs_cb :: nbody_system%cb)
+               allocate(rmvs_pl :: nbody_system%pl)
+               allocate(rmvs_tp :: nbody_system%tp)
+               allocate(rmvs_tp :: nbody_system%tp_discards)
             end select
+            param%collision_model = "MERGE"
          case (INT_SYMBA)
-            allocate(symba_nbody_system :: system)
-            select type(system)
+            allocate(symba_nbody_system :: nbody_system)
+            select type(nbody_system)
             class is (symba_nbody_system)
-               allocate(symba_cb :: system%cb)
-               allocate(symba_pl :: system%pl)
-               allocate(symba_tp :: system%tp)
+               allocate(symba_cb :: nbody_system%cb)
+               allocate(symba_pl :: nbody_system%pl)
+               allocate(symba_tp :: nbody_system%tp)
 
-               allocate(symba_tp :: system%tp_discards)
-               allocate(symba_pl :: system%pl_adds)
-               allocate(symba_pl :: system%pl_discards)
+               allocate(symba_tp :: nbody_system%tp_discards)
+               allocate(symba_pl :: nbody_system%pl_adds)
+               allocate(symba_pl :: nbody_system%pl_discards)
 
-               allocate(collision_list_pltp :: system%pltp_encounter)
-               allocate(collision_list_plpl :: system%plpl_encounter)
-               allocate(collision_list_plpl :: system%plpl_collision)
-
-               if (param%collision_model == "FRAGGLE") then
-                  allocate(fraggle_system :: system%collision_system)
-               else
-                  allocate(collision_system :: system%collision_system)
-               end if
-               call system%collision_system%setup(system)
+               allocate(collision_list_pltp :: nbody_system%pltp_encounter)
+               allocate(collision_list_plpl :: nbody_system%plpl_encounter)
+               allocate(collision_list_plpl :: nbody_system%plpl_collision)
 
                if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
                   allocate(encounter_netcdf_parameters :: encounter_history%nc)
@@ -97,7 +94,7 @@ contains
                   class is (encounter_netcdf_parameters)
                      nc%file_number = param%iloop / param%dump_cadence
                   end select
-                  allocate(system%encounter_history, source=encounter_history)
+                  allocate(nbody_system%encounter_history, source=encounter_history)
                end if
                
                allocate(collision_netcdf_parameters :: collision_history%nc)
@@ -106,7 +103,7 @@ contains
                class is (collision_netcdf_parameters)
                   nc%file_number = param%iloop / param%dump_cadence
                end select
-               allocate(system%collision_history, source=collision_history)
+               allocate(nbody_system%collision_history, source=collision_history)
 
             end select
          case (INT_RINGMOONS)
@@ -116,7 +113,20 @@ contains
             call util_exit(FAILURE)
          end select
 
-         allocate(swiftest_particle_info :: system%cb%info)
+         allocate(swiftest_particle_info :: nbody_system%cb%info)
+
+         select case(param%collision_model)
+         case("MERGE")
+            allocate(collision_merge :: nbody_system%collider)
+         case("BOUNCE")
+            allocate(collision_bounce :: nbody_system%collider)
+         case("SIMPLE")
+            allocate(collision_simple :: nbody_system%collider)
+         case("FRAGGLE")
+            allocate(fraggle_system :: nbody_system%collider)
+         end select
+         call nbody_system%collider%setup(nbody_system)
+
       end select
 
       return
@@ -163,14 +173,14 @@ contains
       !!
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
-      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp)
 
-         call system%read_in(param)
-         call system%validate_ids(param)
-         call system%set_msys()
+         call nbody_system%read_in(param)
+         call nbody_system%validate_ids(param)
+         call nbody_system%set_msys()
          call pl%set_mu(cb) 
          call tp%set_mu(cb) 
          if (param%in_form == "EL") then
@@ -183,7 +193,7 @@ contains
          tp%lfirst = param%lfirstkick
 
          if (.not.param%lrestart) then
-            call system%init_particle_info(param)
+            call nbody_system%init_particle_info(param)
          end if
       end associate
 

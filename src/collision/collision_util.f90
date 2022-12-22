@@ -11,22 +11,22 @@ submodule (collision) s_collision_util
    use swiftest
 contains
 
-   module subroutine collision_util_add_fragments_to_system(self, system, param)
+   module subroutine collision_util_add_fragments_to_system(self, nbody_system, param)
       !! Author: David A. Minton
       !!
       !! Adds fragments to the temporary system pl object
       implicit none
       ! Arguments
       class(collision_system),      intent(in)    :: self      !! Collision system system object
-      class(base_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
+      class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
       ! Internals
       integer(I4B) :: i, npl_before, npl_after
       logical, dimension(:), allocatable :: lexclude
 
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => system%pl, cb => system%cb)
+         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
             npl_after = pl%nbody
             npl_before = npl_after - nfrag
             allocate(lexclude(npl_after))
@@ -129,9 +129,9 @@ contains
       ! Internals
       integer(I4B) :: npl_before, ntp_before, npl_after, ntp_after, ntot, nlo, nhi
 
-      select type(before => self%collision_system%before)
+      select type(before => self%collider%before)
       class is (swiftest_nbody_system)
-      select type(after => self%collision_system%after)
+      select type(after => self%collider%after)
       class is (swiftest_nbody_system)
          npl_before = 0; ntp_before = 0; npl_after = 0; ntp_after = 0
          if (allocated(before%pl)) then
@@ -171,7 +171,7 @@ contains
    end subroutine collision_util_get_idvalues_snapshot
 
 
-   module subroutine collision_util_get_energy_momentum(self,  system, param, lbefore)
+   module subroutine collision_util_get_energy_momentum(self,  nbody_system, param, lbefore)
       !! Author: David A. Minton
       !!
       !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
@@ -181,19 +181,19 @@ contains
       implicit none
       ! Arguments
       class(collision_system),  intent(inout) :: self    !! Encounter collision system object
-      class(base_nbody_system), intent(inout) :: system  !! Swiftest nbody system object
+      class(base_nbody_system), intent(inout) :: nbody_system  !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param   !! Current swiftest run configuration parameters
-      logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the system, with impactors included and fragments excluded or vice versa
+      logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
       ! Internals
       class(base_nbody_system), allocatable, save :: tmpsys
       class(base_parameters), allocatable, save   :: tmpparam
       integer(I4B)  :: npl_before, npl_after, stage
 
-      select type(system)
+      select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => system%pl, cb => system%cb)
+         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
 
             ! Because we're making a copy of the massive body object with the excludes/fragments appended, we need to deallocate the
             ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
@@ -204,7 +204,7 @@ contains
             npl_after = npl_before + nfrag
 
             if (lbefore) then
-               call self%construct_temporary_system(system, param, tmpsys, tmpparam)
+               call self%construct_temporary_system(nbody_system, param, tmpsys, tmpparam)
                select type(tmpsys)
                class is (swiftest_nbody_system)
                   ! Build the exluded body logical mask for the *before* case: Only the original bodies are used to compute energy and momentum
@@ -346,7 +346,7 @@ contains
    module subroutine collision_util_reset_system(self)
       !! author: David A. Minton
       !!
-      !! Resets the collider system and deallocates all allocatables
+      !! Resets the collider nbody_system and deallocates all allocatables
       implicit none
       ! Arguments
       class(collision_system),    intent(inout) :: self  !! Collision system object
@@ -372,10 +372,10 @@ contains
    module subroutine collision_util_set_coordinate_system(self)
       !! author: David A. Minton
       !!
-      !! Defines the collisional coordinate system, including the unit vectors of both the system and individual fragments.
+      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
       implicit none
       ! Arguments
-      class(collision_system),    intent(inout) :: self      !! Collisional system
+      class(collision_system),    intent(inout) :: self      !! Collisional nbody_system
       ! Internals
       integer(I4B) :: i
       real(DP), dimension(NDIM) ::  delta_r, delta_v, Ltot
@@ -386,7 +386,7 @@ contains
          delta_v(:) = impactors%vb(:, 2) - impactors%vb(:, 1)
          delta_r(:) = impactors%rb(:, 2) - impactors%rb(:, 1)
    
-         ! We will initialize fragments on a plane defined by the pre-impact system, with the z-axis aligned with the angular momentum vector
+         ! We will initialize fragments on a plane defined by the pre-impact nbody_system, with the z-axis aligned with the angular momentum vector
          ! and the y-axis aligned with the pre-impact distance vector.
 
          ! y-axis is the separation distance
@@ -410,7 +410,7 @@ contains
          fragments%rmag(:) = .mag. fragments%rc(:,:)
   
          ! Randomize the tangential velocity direction. 
-         ! This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector, otherwise we can get an ill-conditioned system
+         ! This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector, otherwise we can get an ill-conditioned nbody_system
          call random_number(L_sigma(:,:)) 
          do concurrent(i = 1:nfrag, fragments%rmag(i) > 0.0_DP)
             fragments%v_n_unit(:, i) = impactors%z_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
@@ -472,17 +472,17 @@ contains
    end subroutine collision_util_save_snapshot
 
 
-   module subroutine collision_util_snapshot(self, param, system, t, arg)
+   module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
-      !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
+      !! Takes a minimal snapshot of the state of the nbody_system during an encounter so that the trajectories
       !! can be played back through the encounter
       implicit none
       ! Internals
       class(collision_storage(*)), intent(inout)          :: self   !! Swiftest storage object
       class(base_parameters),      intent(inout)          :: param  !! Current run configuration parameters
-      class(base_nbody_system),    intent(inout)          :: system !! Swiftest nbody system object to store
-      real(DP),                    intent(in),   optional :: t      !! Time of snapshot if different from system time
+      class(base_nbody_system),    intent(inout)          :: nbody_system !! Swiftest nbody system object to store
+      real(DP),                    intent(in),   optional :: t      !! Time of snapshot if different from nbody_system time
       character(*),                intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
       ! Arguments
       class(collision_snapshot), allocatable :: snapshot
@@ -495,33 +495,33 @@ contains
          stage = ""
       end if 
 
-      select type (system)
+      select type (nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
          select case(stage)
          case("before")
             ! Saves the states of the bodies involved in the collision before the collision is resolved
-            associate (idx => system%collision_system%impactors%id, ncoll => system%collision_system%impactors%ncoll)
+            associate (idx => nbody_system%collider%impactors%id, ncoll => nbody_system%collider%impactors%ncoll)
                call pl%setup(ncoll, param)
-               pl%id(:) = system%pl%id(idx(:))
-               pl%Gmass(:) = system%pl%Gmass(idx(:))
-               pl%radius(:) = system%pl%radius(idx(:))
-               pl%rot(:,:) = system%pl%rot(:,idx(:))
-               pl%Ip(:,:) = system%pl%Ip(:,idx(:))
-               pl%rh(:,:) = system%pl%rh(:,idx(:))
-               pl%vh(:,:) = system%pl%vh(:,idx(:))
-               pl%info(:) = system%pl%info(idx(:))
-               select type (before => system%collision_system%before)
+               pl%id(:) = nbody_system%pl%id(idx(:))
+               pl%Gmass(:) = nbody_system%pl%Gmass(idx(:))
+               pl%radius(:) = nbody_system%pl%radius(idx(:))
+               pl%rot(:,:) = nbody_system%pl%rot(:,idx(:))
+               pl%Ip(:,:) = nbody_system%pl%Ip(:,idx(:))
+               pl%rh(:,:) = nbody_system%pl%rh(:,idx(:))
+               pl%vh(:,:) = nbody_system%pl%vh(:,idx(:))
+               pl%info(:) = nbody_system%pl%info(idx(:))
+               select type (before => nbody_system%collider%before)
                class is (swiftest_nbody_system)
                   allocate(before%pl, source=pl)
                end select
             end associate
          case("after")
             allocate(collision_snapshot :: snapshot)
-            allocate(snapshot%collision_system, source=system%collision_system) 
+            allocate(snapshot%collider, source=nbody_system%collider) 
             snapshot%t = t
-            call collision_util_save_snapshot(system%collision_history,snapshot)
+            call collision_util_save_snapshot(nbody_system%collision_history,snapshot)
          case default
             write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
          end select

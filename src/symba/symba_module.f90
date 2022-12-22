@@ -93,93 +93,93 @@ module symba
 
 
    type, extends(helio_nbody_system) :: symba_nbody_system
-      integer(I4B)                                    :: irec               !! System recursion level
+      integer(I4B)                                    :: irec               !! nbody_system recursion level
    contains
       procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
       procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
       procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
-      procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current system level
+      procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current nbody_system level
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
       final     ::                     symba_final_system            !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
    interface
-      module subroutine symba_discard_pl(self, system, param)
+      module subroutine symba_discard_pl(self, nbody_system, param)
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine symba_discard_pl
 
-      module subroutine symba_drift_pl(self, system, param, dt)
+      module subroutine symba_drift_pl(self, nbody_system, param, dt)
          implicit none
          class(symba_pl),              intent(inout) :: self   !! Helio massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine symba_drift_pl
    
-      module subroutine symba_drift_tp(self, system, param, dt)
+      module subroutine symba_drift_tp(self, nbody_system, param, dt)
          implicit none
          class(symba_tp),              intent(inout) :: self   !! Helio massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Stepsize
       end subroutine symba_drift_tp
 
-      module function symba_encounter_check_pl(self, param, system, dt, irec) result(lany_encounter)
+      module function symba_encounter_check_pl(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_pl),            intent(inout) :: self           !! SyMBA test particle object  
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
-         class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+         class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_pl
 
-      module function symba_encounter_check_list_plpl(self, param, system, dt, irec) result(lany_encounter)
+      module function symba_encounter_check_list_plpl(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_list_plpl),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
-         class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+         class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_list_plpl
 
-      module function symba_encounter_check_list_pltp(self, param, system, dt, irec) result(lany_encounter)
+      module function symba_encounter_check_list_pltp(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_list_pltp),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
-         class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+         class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_list_pltp
 
-      module function symba_encounter_check_tp(self, param, system, dt, irec) result(lany_encounter)
+      module function symba_encounter_check_tp(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_tp),            intent(inout) :: self           !! SyMBA test particle object  
          class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
-         class(symba_nbody_system),  intent(inout) :: system         !! SyMBA nbody system object
+         class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
          logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
       end function symba_encounter_check_tp
 
-      pure module subroutine symba_gr_p4_pl(self, system, param, dt)
+      pure module subroutine symba_gr_p4_pl(self, nbody_system, param, dt)
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine symba_gr_p4_pl
    
-      pure module subroutine symba_gr_p4_tp(self, system, param, dt)
+      pure module subroutine symba_gr_p4_tp(self, nbody_system, param, dt)
          implicit none
          class(symba_tp),              intent(inout) :: self   !! SyMBA test particle object
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: dt     !! Step size
       end subroutine symba_gr_p4_tp
@@ -207,37 +207,37 @@ module symba
          class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       end subroutine symba_kick_getacch_int_pl
 
-      module subroutine symba_kick_getacch_pl(self, system, param, t, lbeg)
+      module subroutine symba_kick_getacch_pl(self, nbody_system, param, t, lbeg)
          implicit none
          class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current simulation time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine symba_kick_getacch_pl
 
-      module subroutine symba_kick_getacch_tp(self, system, param, t, lbeg)
+      module subroutine symba_kick_getacch_tp(self, nbody_system, param, t, lbeg)
          implicit none
          class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
-         class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
          real(DP),                     intent(in)    :: t      !! Current time
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine symba_kick_getacch_tp
 
-      module subroutine symba_kick_list_plpl(self, system, dt, irec, sgn)
+      module subroutine symba_kick_list_plpl(self, nbody_system, dt, irec, sgn)
          implicit none
          class(symba_list_plpl),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt     !! step size
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_list_plpl
 
-      module subroutine symba_kick_list_pltp(self, system, dt, irec, sgn)
+      module subroutine symba_kick_list_pltp(self, nbody_system, dt, irec, sgn)
          implicit none
          class(symba_list_pltp),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
-         class(symba_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(symba_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
          real(DP),                  intent(in)    :: dt     !! step size
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
@@ -245,7 +245,7 @@ module symba
 
       module subroutine symba_setup_initialize_system(self, param)
          implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA system object
+         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody_system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
       end subroutine symba_setup_initialize_system
 
