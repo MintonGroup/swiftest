@@ -245,7 +245,7 @@ module swiftest
    contains
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure :: make_impactors => make_impactors_pl               !! Make impactors out of the current kinship relationships
+      procedure :: make_impactors => swiftest_make_impactors_pl      !! Make impactors out of the current kinship relationships
       procedure :: discard        => swiftest_discard_pl             !! Placeholder method for discarding massive bodies 
       procedure :: accel_int      => swiftest_kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl      => swiftest_obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
@@ -1827,7 +1827,10 @@ module swiftest
    end interface
 
    contains
-      subroutine make_impactors_pl(self, idx)
+      subroutine swiftest_make_impactors_pl(self, idx)
+         !! author: David A. Minton
+         !!
+         !! This is a simple wrapper function that is used to make a type-bound procedure using a subroutine whose interface is in the collision module, which must be defined first
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Massive body object
          integer(I4B), dimension(:), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision)
@@ -1835,7 +1838,7 @@ module swiftest
          call collision_resolve_make_impactors_pl(self, idx)
 
          return
-      end subroutine make_impactors_pl
+      end subroutine swiftest_make_impactors_pl
 
 
       subroutine swiftest_final_kin(self)

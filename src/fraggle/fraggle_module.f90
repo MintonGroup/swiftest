@@ -97,23 +97,21 @@ module fraggle
          class(fraggle_system), intent(inout) :: self  !! Fraggle collision system object
       end subroutine fraggle_set_natural_scale_factors
 
-      module function fraggle_resolve_disruption(collision_system, nbody_system, param, t)  result(status)
+      module subroutine fraggle_generate_disruption(collider, nbody_system, param, t) 
          implicit none
-         class(fraggle_system),        intent(inout) :: collision_system !! Fraggle collision system object
+         class(fraggle_system),        intent(inout) :: collider !! Fraggle collision system object
          class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
          real(DP),                     intent(in)    :: t                !! Time of collision
-         integer(I4B)                                :: status           !! Status flag assigned to this outcome
-      end function fraggle_resolve_disruption
+      end subroutine fraggle_generate_disruption
 
-      module function fraggle_resolve_hitandrun(collision_system, nbody_system, param, t)  result(status)
+      module subroutine fraggle_generate_hitandrun(collider, nbody_system, param, t)
          implicit none
-         class(fraggle_system),        intent(inout) :: collision_system !! Fraggle collision system object
+         class(fraggle_system),        intent(inout) :: collider !! Fraggle collision system object
          class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
          real(DP),                     intent(in)    :: t                !! Time of collision
-         integer(I4B)                                :: status           !! Status flag assigned to this outcome
-      end function fraggle_resolve_hitandrun
+      end subroutine fraggle_generate_hitandrun
 
       module subroutine fraggle_set_original_scale_factors(self)
          implicit none

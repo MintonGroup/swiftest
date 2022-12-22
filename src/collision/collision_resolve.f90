@@ -239,7 +239,7 @@ contains
    module subroutine collision_resolve_make_impactors_pl(pl, idx)
       !! author: Jennifer L.L. Pouplin, Carlisle A. wishard, and David A. Minton
       !!
-      !! When a single body is involved in more than one collision in a single step, it becomes part of a impactors%id.
+      !! When a single body is involved in more than one collision in a single step, it becomes part of a collision family
       !! The largest body involved in a multi-body collision is the "parent" and all bodies that collide with it are its "children,"
       !! including those that collide with the children.
       !! 
@@ -249,7 +249,7 @@ contains
       implicit none
       ! Arguments
       class(base_object),           intent(inout) :: pl !! Swiftest massive body object
-      integer(I4B), dimension(:), intent(in)    :: idx  !! Array holding the indices of the two bodies involved in the collision
+      integer(I4B), dimension(:), intent(in)      :: idx  !! Array holding the indices of the two bodies involved in the collision
       ! Internals
       integer(I4B)                              :: i, j, index_parent, index_child, p1, p2
       integer(I4B)                              :: nchild_inherit, nchild_orig, nchild_new
