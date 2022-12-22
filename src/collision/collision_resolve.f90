@@ -669,13 +669,13 @@ contains
 
             do
                write(timestr,*) t
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
-                                                         "***********************************************************")
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Collision between massive bodies detected at time t = " // &
-                                                         trim(adjustl(timestr)))
-               call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
-                                                         "***********************************************************")
+               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "")
+               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
+               !                                           "***********************************************************")
+               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "Collision between massive bodies detected at time t = " // &
+               !                                           trim(adjustl(timestr)))
+               ! call swiftest_io_log_one_message(FRAGGLE_LOG_OUT, "***********************************************************" // &
+               !                                           "***********************************************************")
                allocate(tmp_param, source=param)
 
                call collision_resolve_list(plpl_collision, system, param, t)

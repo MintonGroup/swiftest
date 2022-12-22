@@ -40,8 +40,8 @@ SET(FAST_MATH_FILES
             ${SRC}/symba/symba_module.f90
             ${SRC}/fraggle/fraggle_module.f90
             ${SRC}/collision/collision_check.f90  
+            ${SRC}/collision/collision_generate.f90
             ${SRC}/collision/collision_io.f90     
-            ${SRC}/collision/collision_model.f90
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
             ${SRC}/collision/collision_setup.f90
