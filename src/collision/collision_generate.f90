@@ -12,28 +12,29 @@ submodule(collision) s_collision_model
    use swiftest
 contains
 
-   module subroutine collision_generate_merge_system(self, system, param, t)
-      implicit none
-      class(collision_merge), intent(inout) :: self      !! Fraggle fragment system object 
-      class(base_nbody_system),     intent(inout) :: system    !! Swiftest nbody system object
-      class(base_parameters),       intent(inout) :: param     !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t         !! The time of the collision
-   end subroutine collision_generate_merge_system
 
-   module subroutine collision_generate_bounce_system(self, system, param, t)
-      implicit none
-      class(collision_bounce), intent(inout) :: self      !! Fraggle fragment system object 
-      class(base_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
-      class(base_parameters),        intent(inout) :: param     !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: t         !! The time of the collision
-   end subroutine collision_generate_bounce_system
+      module subroutine collision_generate_merge_system(self, nbody_system, param, t)
+         implicit none
+         class(collision_merge),   intent(inout) :: self         !! Merge fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
+      end subroutine collision_generate_merge_system
 
-   module subroutine collision_generate_simple_system(self, system, param, t)
-      implicit none
-      class(collision_simple), intent(inout) :: self      !! Fraggle fragment system object 
-      class(base_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
-      class(base_parameters),        intent(inout) :: param     !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: t         !! The time of the collision
-   end subroutine collision_generate_simple_system
+      module subroutine collision_generate_bounce_system(self, nbody_system, param, t)
+         implicit none
+         class(collision_bounce),  intent(inout) :: self         !! Bounce fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
+      end subroutine collision_generate_bounce_system
+
+      module subroutine collision_generate_simple_system(self, nbody_system, param, t)
+         implicit none
+         class(collision_simple),  intent(inout) :: self         !! Simple fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
+      end subroutine collision_generate_simple_system
 
 end submodule s_collision_model

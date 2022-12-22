@@ -124,8 +124,6 @@ module collision
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: Etot     !! Before/after total system energy
    contains
-      procedure(abstract_generate_fragments), deferred :: generate_fragments               !! Generates a system of fragments depending on collision model
-      procedure :: set_mass_dist              => abstract_set_mass_dist                    !! Sets the distribution of mass among the fragments depending on the regime type
       procedure :: setup                      => collision_setup_system                    !! Initializer for the encounter collision system and the before/after snapshots
       procedure :: setup_impactors            => collision_setup_impactors_system          !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       procedure :: setup_fragments            => collision_setup_fragments_system          !! Initializer for the fragments of the collision system. 
@@ -134,23 +132,24 @@ module collision
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
       procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate system of the collisional system
+      procedure(abstract_generate_system), deferred :: generate                            !! Generates a system of fragments depending on collision model
    end type collision_system
 
    type, extends(collision_system) :: collision_merge
    contains 
-      procedure :: generate_fragments => collision_generate_merge_system !! Merges the impactors to make a single final body
+      procedure :: generate => collision_generate_merge_system !! Merges the impactors to make a single final body
       final     ::                       collision_final_merge_system    !! Finalizer will deallocate all allocatables
    end type collision_merge
 
    type, extends(collision_system) :: collision_bounce
    contains 
-      procedure :: generate_fragments => collision_generate_bounce_system !! If a collision would result in a disruption, "bounce" the bodies instead.
+      procedure :: generate => collision_generate_bounce_system !! If a collision would result in a disruption, "bounce" the bodies instead.
       final     ::                       collision_final_bounce_system    !! Finalizer will deallocate all allocatables
    end type collision_bounce
 
    type, extends(collision_system) :: collision_simple
    contains 
-      procedure :: generate_fragments => collision_generate_simple_system !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
+      procedure :: generate => collision_generate_simple_system !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
       final     ::                       collision_final_simple_system !! Finalizer will deallocate all allocatables
    end type collision_simple
 
@@ -198,14 +197,14 @@ module collision
 
 
    abstract interface 
-      subroutine abstract_generate_fragments(self, system, param, t) 
+      subroutine abstract_generate_system(self, nbody_system, param, t) 
          import collision_system, base_nbody_system, base_parameters, DP
          implicit none
-         class(collision_system),  intent(inout) :: self      !! Collision system object 
-         class(base_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
-         real(DP),                 intent(in)    :: t         !! The time of the collision
-      end subroutine abstract_generate_fragments
+         class(collision_system),  intent(inout) :: self         !! Collision system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
+      end subroutine abstract_generate_system
 
       subroutine abstract_set_mass_dist(self, param)
          import collision_system, base_parameters
@@ -218,28 +217,28 @@ module collision
 
    interface
 
-      module subroutine collision_generate_merge_system(self, system, param, t)
+      module subroutine collision_generate_merge_system(self, nbody_system, param, t)
          implicit none
-         class(collision_merge), intent(inout) :: self      !! Fraggle fragment system object 
-         class(base_nbody_system),     intent(inout) :: system    !! Swiftest nbody system object
-         class(base_parameters),       intent(inout) :: param     !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t         !! The time of the collision
+         class(collision_merge),   intent(inout) :: self         !! Merge fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_merge_system
 
-      module subroutine collision_generate_bounce_system(self, system, param, t)
+      module subroutine collision_generate_bounce_system(self, nbody_system, param, t)
          implicit none
-         class(collision_bounce), intent(inout) :: self      !! Fraggle fragment system object 
-         class(base_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
-         class(base_parameters),        intent(inout) :: param     !! Current run configuration parameters 
-         real(DP),                      intent(in)    :: t         !! The time of the collision
+         class(collision_bounce),  intent(inout) :: self         !! Bounce fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_bounce_system
 
-      module subroutine collision_generate_simple_system(self, system, param, t)
+      module subroutine collision_generate_simple_system(self, nbody_system, param, t)
          implicit none
-         class(collision_simple), intent(inout) :: self      !! Fraggle fragment system object 
-         class(base_nbody_system),      intent(inout) :: system    !! Swiftest nbody system object
-         class(base_parameters),        intent(inout) :: param     !! Current run configuration parameters 
-         real(DP),                      intent(in)    :: t         !! The time of the collision
+         class(collision_simple),  intent(inout) :: self         !! Simple fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_simple_system
 
       module subroutine collision_netcdf_io_dump(self, param)

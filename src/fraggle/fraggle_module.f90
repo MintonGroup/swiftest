@@ -11,10 +11,7 @@ module fraggle
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
    !! Definition of classes and methods specific to Fraggle: *Fragment* *g*eneration that conserves angular momentum (*L*) and energy (*E*)
-   use globals
-   use base
-   use encounter
-   use collision
+   use swiftest
    implicit none
    public
 
@@ -51,7 +48,7 @@ module fraggle
       real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
       real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
    contains
-      procedure :: generate_fragments         => fraggle_generate_system                 !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
+      procedure :: generate                   => fraggle_generate_system                 !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: set_budgets                => fraggle_set_budgets                     !! Sets the energy and momentum budgets of the fragments based on the collider value
       procedure :: set_mass_dist              => fraggle_set_mass_dist                   !! Sets the distribution of mass among the fragments depending on the regime type
       procedure :: set_natural_scale          => fraggle_set_natural_scale_factors       !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
@@ -65,12 +62,20 @@ module fraggle
 
    interface
 
-      module subroutine fraggle_generate_system(self, system, param, t)
+      module subroutine fraggle_generate_fragments(collision_system, nbody_system, param, lfailure)
          implicit none
-         class(fraggle_system),    intent(inout) :: self      !! Fraggle fragment system object 
-         class(base_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
-         real(DP),                 intent(in)    :: t       !! Time of collision
+         class(fraggle_system),        intent(inout) :: collision_system !! Fraggle system object the outputs will be the fragmentation 
+         class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters 
+         logical,                      intent(out)   :: lfailure         !! Answers the question: Should this have been a merger instead?
+      end subroutine fraggle_generate_fragments
+
+      module subroutine fraggle_generate_system(self, nbody_system, param, t)
+         implicit none
+         class(fraggle_system),        intent(inout) :: self         !! Fraggle fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t            !! Time of collision
       end subroutine fraggle_generate_system
 
       module subroutine fraggle_io_log_regime(collision_system)
@@ -86,7 +91,7 @@ module fraggle
       module subroutine fraggle_set_mass_dist(self, param)
          implicit none
          class(fraggle_system),        intent(inout) :: self  !! Fraggle collision system object
-         class(base_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
+         class(swiftest_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
       end subroutine fraggle_set_mass_dist
 
       module subroutine fraggle_set_natural_scale_factors(self)
@@ -96,16 +101,16 @@ module fraggle
 
       module function fraggle_resolve_disruption(system, param, t)  result(status)
          implicit none
-         class(base_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         class(swiftest_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
          real(DP),                     intent(in)    :: t      !! Time of collision
          integer(I4B)                                :: status    !! Status flag assigned to this outcome
       end function fraggle_resolve_disruption
 
       module function fraggle_resolve_hitandrun(system, param, t)  result(status)
          implicit none
-         class(base_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-         class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         class(swiftest_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
          real(DP),                     intent(in)    :: t      !! Time of collision
          integer(I4B)                                :: status    !! Status flag assigned to this outcome
       end function fraggle_resolve_hitandrun
@@ -127,9 +132,8 @@ module fraggle
       end subroutine fraggle_util_get_angular_momentum
 
       module subroutine fraggle_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
-         use base, only : base_nbody_system, base_parameters
          implicit none
-         class(fraggle_system),                      intent(inout) :: self         !! Fraggle collision system object
+         class(fraggle_system),                  intent(inout) :: self         !! Fraggle collision system object
          class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
          class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
          class(base_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
@@ -178,7 +182,6 @@ module fraggle
    end interface
 
    contains
-
       
 
       subroutine fraggle_final_fragments(self)

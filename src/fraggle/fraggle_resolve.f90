@@ -19,8 +19,8 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(base_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      class(swiftest_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       real(DP),                     intent(in)    :: t      !! Time of collision
       ! Result
       integer(I4B)                                :: status    !! Status flag assigned to this outcome
@@ -38,6 +38,7 @@ contains
       class is (swiftest_nbody_system)
       select type(after => system%collision_system%after)
       class is (swiftest_nbody_system)
+
          associate(collision_system => system%collision_system, impactors => system%collision_system%impactors, fragments => system%collision_system%fragments)
             select case(impactors%regime)
             case(COLLRESOLVE_REGIME_DISRUPTION)
@@ -52,7 +53,7 @@ contains
             call collision_system%set_mass_dist(param)
 
             ! Generate the position and velocity distributions of the fragments
-            call collision_system%generate_fragments(system, param, lfailure)
+            call fraggle_generate_fragments(collision_system, nbody_system, param, lfailure)
 
             dpe = collision_system%pe(2) - collision_system%pe(1) 
             system%Ecollisions = system%Ecollisions - dpe 
@@ -106,8 +107,8 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(base_nbody_system), intent(inout) :: system !! SyMBA nbody system object
-      class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+      class(swiftest_nbody_system), intent(inout) :: system !! SyMBA nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
       real(DP),                     intent(in)    :: t      !! Time of collision
       ! Result
       integer(I4B)                                :: status    !! Status flag assigned to this outcom
@@ -147,7 +148,7 @@ contains
                call collision_system%set_mass_dist(param)
 
                ! Generate the position and velocity distributions of the fragments
-               call collision_system%generate_fragments(system, param, lpure)
+               call collision_system%generate(system, param, lpure)
 
                dpe = collision_system%pe(2) - collision_system%pe(1) 
                system%Ecollisions = system%Ecollisions - dpe 

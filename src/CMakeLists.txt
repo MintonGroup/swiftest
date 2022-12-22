@@ -31,7 +31,6 @@ SET(FAST_MATH_FILES
             ${SRC}/misc/minimizer_module.f90
             ${SRC}/encounter/encounter_module.f90
             ${SRC}/collision/collision_module.f90
-            ${SRC}/fraggle/fraggle_module.f90
             ${SRC}/operator/operator_module.f90
             ${SRC}/walltime/walltime_module.f90
             ${SRC}/swiftest/swiftest_module.f90
@@ -39,6 +38,7 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_module.f90
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
+            ${SRC}/fraggle/fraggle_module.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_io.f90     
             ${SRC}/collision/collision_model.f90

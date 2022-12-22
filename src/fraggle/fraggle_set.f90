@@ -49,7 +49,7 @@ contains
       implicit none
       ! Arguments
       class(fraggle_system),        intent(inout) :: self  !! Fraggle collision system object
-      class(base_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
+      class(swiftest_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
       integer(I4B)              :: i, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
@@ -85,7 +85,7 @@ contains
             ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
 
             select type(param)
-            class is (base_parameters)
+            class is (swiftest_parameters)
                min_mfrag = (param%min_GMfrag / param%GU) 
                ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
                ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody

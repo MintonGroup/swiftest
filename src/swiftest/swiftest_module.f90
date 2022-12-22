@@ -39,7 +39,6 @@ module swiftest
    use base
    use encounter
    use collision
-   use fraggle
    use walltime
    use io_progress_bar
    use netcdf_io

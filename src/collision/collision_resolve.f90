@@ -619,7 +619,7 @@ contains
                call impactors%get_regime(system, param)
                call collision_history%take_snapshot(param,system, t, "before") 
 
-               call collision_system%generate_fragments(system, param, t)
+               call collision_system%generate(system, param, t)
 
                call collision_history%take_snapshot(param,system, t, "after") 
                call impactors%reset()
