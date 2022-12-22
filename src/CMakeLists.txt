@@ -51,7 +51,6 @@ SET(FAST_MATH_FILES
             ${SRC}/encounter/encounter_setup.f90
             ${SRC}/encounter/encounter_util.f90
             ${SRC}/fraggle/fraggle_generate.f90
-            ${SRC}/fraggle/fraggle_resolve.f90
             ${SRC}/fraggle/fraggle_set.f90
             ${SRC}/fraggle/fraggle_setup.f90
             ${SRC}/fraggle/fraggle_util.f90
