@@ -459,8 +459,8 @@ contains
          ! Find the point of impact between the two bodies
          impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * impactors%y_unit(:)
 
-         ! The "bounce" unit vector is the projection of 
-         impactors%vbimp(:) = dot_product(delta_v(:),impactors%x_unit(:)) * impactors%x_unit(:)
+         ! The "bounce" unit vector is the projection of the velocity vector into the distance vector
+         impactors%vbimp(:) = dot_product(delta_v(:),impactors%y_unit(:)) * impactors%y_unit(:)
       end associate
 
       return
@@ -654,6 +654,36 @@ contains
 
       return
    end subroutine collision_util_setup_fragments_collider
+
+
+   module subroutine collision_util_shift_vector_to_origin(m_frag, vec_frag)
+      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Adjusts the position or velocity of the fragments as needed to align them with the origin
+      implicit none
+      ! Arguments
+      real(DP), dimension(:),   intent(in)    :: m_frag    !! Fragment masses
+      real(DP), dimension(:,:), intent(inout) :: vec_frag  !! Fragment positions or velocities in the center of mass frame
+
+      ! Internals
+      real(DP), dimension(NDIM) :: mvec_frag, COM_offset
+      integer(I4B) :: i, nfrag
+      real(DP) :: mtot
+
+      mvec_frag(:) = 0.0_DP
+      mtot = sum(m_frag)
+      nfrag = size(m_frag)
+
+      do i = 1, nfrag
+         mvec_frag = mvec_frag(:) + vec_frag(:,i) * m_frag(i)
+      end do
+      COM_offset(:) = -mvec_frag(:) / mtot
+      do i = 1, nfrag 
+         vec_frag(:, i) = vec_frag(:, i) + COM_offset(:)
+      end do
+
+      return
+   end subroutine collision_util_shift_vector_to_origin
 
 
    subroutine collision_util_save_snapshot(collision_history, snapshot)

@@ -233,6 +233,17 @@ module collision
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_simple_disruption
 
+      module subroutine collision_generate_simple_pos_vec(collider, r_max_start)
+         implicit none
+         class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
+         real(DP),                           intent(in)    :: r_max_start    !! The maximum radial distance of fragments for disruptive collisions
+      end subroutine collision_generate_simple_pos_vec 
+
+      module subroutine collision_generate_simple_vel_vec(collider)
+         implicit none
+         class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
+      end subroutine collision_generate_simple_vel_vec
+    
       module subroutine collision_io_collider_message(pl, collidx, collider_message)
          implicit none
          class(base_object),            intent(in)    :: pl               !! Swiftest massive body object
@@ -349,32 +360,6 @@ module collision
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine collision_resolve_pltp
 
-      module subroutine collision_util_set_coordinate_collider(self)
-         implicit none
-         class(collision_merge), intent(inout) :: self      !! collisional system
-      end subroutine collision_util_set_coordinate_collider
-
-      module subroutine collision_util_set_coordinate_impactors(self)
-         implicit none
-         class(collision_impactors), intent(inout) :: self      !! collisional system
-      end subroutine collision_util_set_coordinate_impactors
-
-      module subroutine collision_util_setup_collider(self, nbody_system)
-         implicit none
-         class(collision_merge),   intent(inout) :: self         !! Encounter collision system object
-         class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
-      end subroutine collision_util_setup_collider
-   
-      module subroutine collision_util_setup_impactors_collider(self)
-         implicit none
-         class(collision_merge), intent(inout) :: self   !! Encounter collision system object
-      end subroutine collision_util_setup_impactors_collider
-   
-      module subroutine collision_util_setup_fragments_collider(self, nfrag)
-         implicit none
-         class(collision_merge), intent(inout) :: self  !! Encounter collision system object
-         integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
-      end subroutine collision_util_setup_fragments_collider
 
       module subroutine collision_util_add_fragments_to_collider(self, nbody_system, param)
          implicit none
@@ -402,6 +387,39 @@ module collision
          class(collision_simple_disruption), intent(inout) :: self  !! Simple disruption collision object
          class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
       end subroutine collision_util_set_mass_dist
+
+      module subroutine collision_util_set_coordinate_collider(self)
+         implicit none
+         class(collision_merge), intent(inout) :: self      !! collisional system
+      end subroutine collision_util_set_coordinate_collider
+
+      module subroutine collision_util_set_coordinate_impactors(self)
+         implicit none
+         class(collision_impactors), intent(inout) :: self      !! collisional system
+      end subroutine collision_util_set_coordinate_impactors
+
+      module subroutine collision_util_setup_collider(self, nbody_system)
+         implicit none
+         class(collision_merge),   intent(inout) :: self         !! Encounter collision system object
+         class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
+      end subroutine collision_util_setup_collider
+   
+      module subroutine collision_util_setup_impactors_collider(self)
+         implicit none
+         class(collision_merge), intent(inout) :: self   !! Encounter collision system object
+      end subroutine collision_util_setup_impactors_collider
+   
+      module subroutine collision_util_setup_fragments_collider(self, nfrag)
+         implicit none
+         class(collision_merge), intent(inout) :: self  !! Encounter collision system object
+         integer(I4B),           intent(in)    :: nfrag !! Number of fragments to create
+      end subroutine collision_util_setup_fragments_collider
+
+      module subroutine collision_util_shift_vector_to_origin(m_frag, vec_frag)
+         implicit none
+         real(DP), dimension(:),   intent(in)    :: m_frag    !! Fragment masses
+         real(DP), dimension(:,:), intent(inout) :: vec_frag  !! Fragment positions or velocities in the center of mass frame
+      end subroutine
 
       module subroutine collision_util_get_idvalues_snapshot(self, idvals)
          implicit none

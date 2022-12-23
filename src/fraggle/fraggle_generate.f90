@@ -282,7 +282,7 @@ contains
             lfailure = .false.
             call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
-            call fraggle_generate_pos_vec(collider, r_max_start)
+            call collision_generate_simple_pos_vec(collider, r_max_start)
             call collider%set_coordinate_system()
 
             ! Initial velocity guess will be the barycentric velocity of the colliding nbody_system so that the budgets are based on the much smaller collisional-frame velocities
@@ -293,46 +293,46 @@ contains
             call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             call collider%set_budgets()
 
-            call fraggle_generate_vel_vec_guess(collider)
+            call collision_generate_simple_vel_vec(collider)
 
-         !    call fraggle_generate_tan_vel(collider, lfailure)
-         !    if (lfailure) then
-         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find tangential velocities")
-         !       cycle
-         !    end if
+            call fraggle_generate_tan_vel(collider, lfailure)
+            if (lfailure) then
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find tangential velocities")
+               cycle
+            end if
 
-         !    call fraggle_generate_rad_vel(collider, lfailure)
-         !    if (lfailure) then
-         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
-         !       cycle
-         !    end if
+            call fraggle_generate_rad_vel(collider, lfailure)
+            if (lfailure) then
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
+               cycle
+            end if
 
-         !    call fraggle_generate_spins(collider, f_spin, lfailure)
-         !    if (lfailure) then
-         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
-         !       cycle
-         !    end if
+            call fraggle_generate_spins(collider, f_spin, lfailure)
+            if (lfailure) then
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
+               cycle
+            end if
 
-         !    call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-         !    dEtot = collider%Etot(2) - collider%Etot(1)
-         !    dLmag = .mag. (collider%Ltot(:,2) - collider%Ltot(:,1))
-         !    exit
+            call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+            dEtot = collider%Etot(2) - collider%Etot(1)
+            dLmag = .mag. (collider%Ltot(:,2) - collider%Ltot(:,1))
+            exit
 
-         !    lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
-         !    if (lfailure) then
-         !       write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
-         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high energy error: " // &
-         !                                                trim(adjustl(message)))
-         !       cycle
-         !    end if
+            lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
+            if (lfailure) then
+               write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high energy error: " // &
+                                                        trim(adjustl(message)))
+               cycle
+            end if
 
-         !    lfailure = ((abs(dLmag) / (.mag.collider%Ltot(:,1))) > FRAGGLE_LTOL) 
-         !    if (lfailure) then
-         !       write(message,*) dLmag / (.mag.collider%Ltot(:,1))
-         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
-         !                                                trim(adjustl(message)))
-         !       cycle
-         !    end if
+            lfailure = ((abs(dLmag) / (.mag.collider%Ltot(:,1))) > FRAGGLE_LTOL) 
+            if (lfailure) then
+               write(message,*) dLmag / (.mag.collider%Ltot(:,1))
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
+                                                        trim(adjustl(message)))
+               cycle
+            end if
 
             ! Check if any of the usual floating point exceptions happened, and fail the try if so
             call ieee_get_flag(ieee_usual, fpe_flag)
@@ -363,122 +363,6 @@ contains
 
       return 
    end subroutine fraggle_generate_fragments
-
-
-   subroutine fraggle_generate_pos_vec(collider, r_max_start)
-      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Initializes the orbits of the fragments around the center of mass. The fragments are initially placed on a plane defined by the 
-      !! pre-impact angular momentum. They are distributed on an ellipse surrounding the center of mass.
-      !! The initial positions do not conserve energy or momentum, so these need to be adjusted later.
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
-      real(DP),              intent(in)    :: r_max_start !! Initial guess for the starting maximum radial distance of fragments
-      ! Internals
-      real(DP)  :: dis, rad, r_max, fdistort
-      logical, dimension(:), allocatable :: loverlap
-      integer(I4B) :: i, j
-      logical :: lnoncat, lhitandrun
-
-      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
-         allocate(loverlap(nfrag))
-
-         lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
-         lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) ! Disruptive hit and runs have their own fragment distribution
-
-         ! Place the fragments into a region that is big enough that we should usually not have overlapping bodies
-         ! An overlapping bodies will collide in the next time step, so it's not a major problem if they do (it just slows the run down)
-         r_max = r_max_start
-         rad = sum(impactors%radius(:))
-
-         ! This is a factor that will "distort" the shape of the fragment cloud in the direction of the impact velocity 
-         fdistort = .mag. (impactors%y_unit(:) .cross. impactors%v_unit(:)) 
-
-         ! We will treat the first two fragments of the list as special cases. They get initialized at the original positions of the impactor bodies
-         fragments%rc(:, 1) = impactors%rb(:, 1) - impactors%rbcom(:) 
-         fragments%rc(:, 2) = impactors%rb(:, 2) - impactors%rbcom(:)
-         call random_number(fragments%rc(:,3:nfrag))
-         loverlap(:) = .true.
-         do while (any(loverlap(3:nfrag)))
-            if (lhitandrun) then ! For a hit-and-run with disruption, the fragment cloud size is based on the radius of the disrupted body
-               r_max = 2 * impactors%radius(2) 
-            else ! For disruptions, the the fragment cloud size is based on the mutual collision system
-               r_max = r_max + 0.1_DP * rad
-            end if
-            do i = 3, nfrag
-               if (loverlap(i)) then 
-                  call random_number(fragments%rc(:,i))
-                  fragments%rc(:,i) = 2 * (fragments%rc(:, i) - 0.5_DP)  
-                  fragments%rc(:, i) = fragments%rc(:,i) + fdistort * impactors%v_unit(:) 
-                  fragments%rc(:, i) = r_max * fragments%rc(:, i)  
-                  fragments%rc(:, i) = fragments%rc(:, i) + (impactors%rbimp(:) - impactors%rbcom(:)) ! Shift the center of the fragment cloud to the impact point rather than the CoM
-                  if (lnoncat .and. dot_product(fragments%rc(:,i), impactors%y_unit(:)) < 0.0_DP) fragments%rc(:, i) = -fragments%rc(:, i) ! Make sure the fragment cloud points away from the impact point
-               end if
-            end do
-
-            ! Check for any overlapping bodies.
-            loverlap(:) = .false.
-            do j = 1, nfrag
-               do i = j + 1, nfrag
-                  dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
-                  loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
-               end do
-            end do
-         end do
-         call fraggle_util_shift_vector_to_origin(fragments%mass, fragments%rc)
-         call collider%set_coordinate_system()
-
-         do concurrent(i = 1:nfrag)
-            fragments%rb(:,i) = fragments%rc(:,i) + impactors%rbcom(:)
-         end do
-
-         impactors%rbcom(:) = 0.0_DP
-         do concurrent(i = 1:nfrag)
-            impactors%rbcom(:) = impactors%rbcom(:) + fragments%mass(i) * fragments%rb(:,i) 
-         end do
-         impactors%rbcom(:) = impactors%rbcom(:) / fragments%mtot
-      end associate
-
-      return
-   end subroutine fraggle_generate_pos_vec
-
-
-   subroutine fraggle_generate_vel_vec_guess(collider)
-      !! Author:  David A. Minton
-      !!
-      !! Generates an initial "guess" for the velocitity vectors 
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
-      ! Internals
-      integer(I4B) :: i, j
-      logical :: lcat
-      real(DP), dimension(NDIM) :: vimp_unit
-      real(DP), dimension(NDIM,collider%fragments%nbody) :: vnoise
-      real(DP), parameter :: VNOISE_MAG = 0.10_DP
-      real(DP) :: vmag
-
-      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
-         lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
-
-         ! "Bounce" the first two bodies
-         do i = 1,2
-            fragments%vc(:,i) = impactors%vb(:,i) - impactors%vbcom(:)  - 2 * impactors%vbimp(:)
-         end do
-
-         vmag = .mag.impactors%vbcom(:) 
-         vimp_unit(:) = .unit. impactors%vbimp(:)
-         call random_number(vnoise)
-         vnoise = (2 * vnoise - 1.0_DP) * vmag
-         do i = 3, nfrag
-            vimp_unit(:) = .unit. (fragments%rc(:,i) + impactors%rbcom(:) - impactors%rbimp(:))
-            fragments%vc(:,i) = vmag * vimp_unit(:) + vnoise(:,i)
-         end do
-      end associate
-      return
-   end subroutine fraggle_generate_vel_vec_guess
-
 
    subroutine fraggle_generate_spins(collider, f_spin, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton

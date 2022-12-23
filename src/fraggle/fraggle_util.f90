@@ -317,36 +317,6 @@ contains
    end subroutine fraggle_util_setup_fragments_system
 
 
-   module subroutine fraggle_util_shift_vector_to_origin(m_frag, vec_frag)
-      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Adjusts the position or velocity of the fragments as needed to align them with the origin
-      implicit none
-      ! Arguments
-      real(DP), dimension(:),   intent(in)    :: m_frag    !! Fragment masses
-      real(DP), dimension(:,:), intent(inout) :: vec_frag  !! Fragment positions or velocities in the center of mass frame
-
-      ! Internals
-      real(DP), dimension(NDIM) :: mvec_frag, COM_offset
-      integer(I4B) :: i, nfrag
-      real(DP) :: mtot
-
-      mvec_frag(:) = 0.0_DP
-      mtot = sum(m_frag)
-      nfrag = size(m_frag)
-
-      do i = 1, nfrag
-         mvec_frag = mvec_frag(:) + vec_frag(:,i) * m_frag(i)
-      end do
-      COM_offset(:) = -mvec_frag(:) / mtot
-      do i = 1, nfrag 
-         vec_frag(:, i) = vec_frag(:, i) + COM_offset(:)
-      end do
-
-      return
-   end subroutine fraggle_util_shift_vector_to_origin
-
-
    module function fraggle_util_vmag_to_vb(v_r_mag, v_r_unit, v_t_mag, v_t_unit, m_frag, vcom) result(vb) 
       !! Author: David A. Minton
       !!
@@ -370,7 +340,7 @@ contains
          vb(:,i) = abs(v_r_mag(i)) * v_r_unit(:, i)
       end do
       ! In order to keep satisfying the kinetic energy constraint, we must shift the origin of the radial component of the velocities to the center of mass
-      call fraggle_util_shift_vector_to_origin(m_frag, vb)
+      call collision_util_shift_vector_to_origin(m_frag, vb)
       
       do i = 1, nfrag
          vb(:, i) = vb(:, i) + v_t_mag(i) * v_t_unit(:, i) + vcom(:)

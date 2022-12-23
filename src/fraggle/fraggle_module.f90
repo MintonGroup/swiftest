@@ -143,13 +143,6 @@ module fraggle
          class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
       end subroutine fraggle_util_set_original_scale_factors
 
-
-      module subroutine fraggle_util_shift_vector_to_origin(m_frag, vec_frag)
-         implicit none
-         real(DP), dimension(:),   intent(in)    :: m_frag    !! Fragment masses
-         real(DP), dimension(:,:), intent(inout) :: vec_frag  !! Fragment positions or velocities in the center of mass frame
-      end subroutine
-
       module function fraggle_util_vmag_to_vb(v_r_mag, v_r_unit, v_t_mag, v_t_unit, m_frag, vcom) result(vb) 
          implicit none
          real(DP), dimension(:),   intent(in)  :: v_r_mag   !! Unknown radial component of fragment velocity vector
