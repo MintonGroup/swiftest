@@ -493,7 +493,6 @@ contains
       real(DP) :: Eorbit_before, Eorbit_after
       logical :: lplpl_collision
       character(len=STRMAX) :: timestr
-      class(swiftest_parameters), allocatable :: tmp_param
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
       integer(I4B) :: i, loop, ncollisions
@@ -533,7 +532,6 @@ contains
                                                             trim(adjustl(timestr)))
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
                                                             "***********************************************************")
-                  allocate(tmp_param, source=param)
 
                   do i = 1, ncollisions
                      idx_parent(1) = pl%kin(idx1(i))%parent
@@ -555,15 +553,14 @@ contains
                   if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
 
                   ! Save the add/discard information to file
-                  call nbody_system%write_discard(tmp_param)
+                  call nbody_system%write_discard(param)
 
                   ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
-                  call pl%rearray(nbody_system, tmp_param)
+                  call pl%rearray(nbody_system, param)
 
                   ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
                   call nbody_system%pl_discards%setup(0, param)
                   call nbody_system%pl_adds%setup(0, param)
-                  deallocate(tmp_param)
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
                   call plpl_encounter%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)

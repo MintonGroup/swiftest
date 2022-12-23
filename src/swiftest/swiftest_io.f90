@@ -2049,8 +2049,9 @@ contains
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
 
-         ! All reporting of collision information in SyMBA (including mergers) is now recorded in the Fraggle logfile
-         call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Fraggle logfile")
+         ! A minimal log of collision outcomes is stored in the following log file
+         ! More complete data on collisions is stored in the NetCDF output files
+         call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")
 
          if ((param%encounter_save /= "NONE")       .and. &
              (param%encounter_save /= "TRAJECTORY") .and. &

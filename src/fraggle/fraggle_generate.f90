@@ -25,7 +25,7 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(collision_fraggle),        intent(inout) :: collider
+      class(collision_fraggle),     intent(inout) :: collider
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
       real(DP),                     intent(in)    :: t            !! Time of collision
@@ -102,7 +102,7 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(collision_fraggle),        intent(inout) :: collider !! Fraggle collision system object
+      class(collision_fraggle),     intent(inout) :: collider !! Fraggle collision system object
       class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
       real(DP),                     intent(in)    :: t                !! Time of collision
@@ -180,7 +180,7 @@ contains
 
    module subroutine fraggle_generate_system(self, nbody_system, param, t)
       implicit none
-      class(collision_fraggle),    intent(inout) :: self     !! Fraggle fragment nbody_system object 
+      class(collision_fraggle), intent(inout) :: self     !! Fraggle fragment nbody_system object 
       class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t         !! The time of the collision
