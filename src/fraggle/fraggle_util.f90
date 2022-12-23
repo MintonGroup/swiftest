@@ -9,10 +9,7 @@
 
 submodule(fraggle) s_fraggle_util
    use swiftest
-   use symba
 contains
-
-
 
    module subroutine fraggle_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
       !! Author: David A. Minton
