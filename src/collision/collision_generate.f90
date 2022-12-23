@@ -149,12 +149,15 @@ contains
 
             select type(pl => nbody_system%pl)
             class is (swiftest_pl)
+               ! Get coordinate system
+               call self%set_coordinate_system()
+
                ! Generate the merged body as a single fragment
                call self%setup_fragments(1)
 
                ! Calculate the initial energy of the nbody_system without the collisional family
                call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-
+            
                ! The new body's metadata will be taken from the largest of the two impactor bodies, so we need 
                ! its index in the main pl structure
                ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))

@@ -387,7 +387,7 @@ contains
       ! Internals
       integer(I4B) :: i
       real(DP), dimension(NDIM) ::  delta_r, delta_v, Ltot
-      real(DP)   ::  L_mag
+      real(DP)   ::  L_mag, mtot
       real(DP), dimension(NDIM, self%fragments%nbody) :: L_sigma
 
       associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody)
@@ -412,6 +412,14 @@ contains
          ! The cross product of the y- by z-axis will give us the x-axis
          impactors%x_unit(:) = impactors%y_unit(:) .cross. impactors%z_unit(:)
          impactors%v_unit(:) = .unit.delta_v(:)
+
+         ! Find the center of mass of the collisional system	
+         mtot = sum(impactors%mass(:))
+         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot 
+         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
+   
+         ! Find the point of impact between the two bodies
+         impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * impactors%y_unit(:)
 
          ! The "bounce" unit vector is the projection of 
          impactors%vbimp(:) = dot_product(delta_v(:),impactors%x_unit(:)) * impactors%x_unit(:)

@@ -118,7 +118,7 @@ contains
       class is (swiftest_nbody_system)
       select type(after => collider%after)
       class is (swiftest_nbody_system)
-         associate(impactors => collider%impactors, fragments => collider%fragments,  pl => nbody_system%pl)
+         associate(impactors => collider%impactors,pl => nbody_system%pl)
             message = "Hit and run between"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
@@ -150,7 +150,7 @@ contains
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Should have been a pure hit and run instead")
                   nfrag = 0
                else
-                  nfrag = fragments%nbody
+                  nfrag = collider%fragments%nbody
                   write(message, *) nfrag
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
                end if
@@ -163,9 +163,9 @@ contains
                allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work 
             else
                ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
-               fragments%id(1) = pl%id(ibiggest)
-               fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-               param%maxid = fragments%id(nfrag)
+               collider%fragments%id(1) = pl%id(ibiggest)
+               collider%fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
+               param%maxid = collider%fragments%id(nfrag)
                status = HIT_AND_RUN_DISRUPT
                call collision_resolve_mergeaddsub(nbody_system, param, t, status)
             end if
@@ -293,44 +293,46 @@ contains
             call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             call collider%set_budgets()
 
-            call fraggle_generate_tan_vel(collider, lfailure)
-            if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find tangential velocities")
-               cycle
-            end if
+            call fraggle_generate_vel_vec_guess(collider)
 
-            call fraggle_generate_rad_vel(collider, lfailure)
-            if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
-               cycle
-            end if
+         !    call fraggle_generate_tan_vel(collider, lfailure)
+         !    if (lfailure) then
+         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find tangential velocities")
+         !       cycle
+         !    end if
 
-            call fraggle_generate_spins(collider, f_spin, lfailure)
-            if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
-               cycle
-            end if
+         !    call fraggle_generate_rad_vel(collider, lfailure)
+         !    if (lfailure) then
+         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
+         !       cycle
+         !    end if
 
-            call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-            dEtot = collider%Etot(2) - collider%Etot(1)
-            dLmag = .mag. (collider%Ltot(:,2) - collider%Ltot(:,1))
-            exit
+         !    call fraggle_generate_spins(collider, f_spin, lfailure)
+         !    if (lfailure) then
+         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
+         !       cycle
+         !    end if
 
-            lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
-            if (lfailure) then
-               write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high energy error: " // &
-                                                        trim(adjustl(message)))
-               cycle
-            end if
+         !    call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+         !    dEtot = collider%Etot(2) - collider%Etot(1)
+         !    dLmag = .mag. (collider%Ltot(:,2) - collider%Ltot(:,1))
+         !    exit
 
-            lfailure = ((abs(dLmag) / (.mag.collider%Ltot(:,1))) > FRAGGLE_LTOL) 
-            if (lfailure) then
-               write(message,*) dLmag / (.mag.collider%Ltot(:,1))
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
-                                                        trim(adjustl(message)))
-               cycle
-            end if
+         !    lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
+         !    if (lfailure) then
+         !       write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
+         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high energy error: " // &
+         !                                                trim(adjustl(message)))
+         !       cycle
+         !    end if
+
+         !    lfailure = ((abs(dLmag) / (.mag.collider%Ltot(:,1))) > FRAGGLE_LTOL) 
+         !    if (lfailure) then
+         !       write(message,*) dLmag / (.mag.collider%Ltot(:,1))
+         !       call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
+         !                                                trim(adjustl(message)))
+         !       cycle
+         !    end if
 
             ! Check if any of the usual floating point exceptions happened, and fail the try if so
             call ieee_get_flag(ieee_usual, fpe_flag)
@@ -440,6 +442,42 @@ contains
 
       return
    end subroutine fraggle_generate_pos_vec
+
+
+   subroutine fraggle_generate_vel_vec_guess(collider)
+      !! Author:  David A. Minton
+      !!
+      !! Generates an initial "guess" for the velocitity vectors 
+      implicit none
+      ! Arguments
+      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
+      ! Internals
+      integer(I4B) :: i, j
+      logical :: lcat
+      real(DP), dimension(NDIM) :: vimp_unit
+      real(DP), dimension(NDIM,collider%fragments%nbody) :: vnoise
+      real(DP), parameter :: VNOISE_MAG = 0.10_DP
+      real(DP) :: vmag
+
+      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
+         lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
+
+         ! "Bounce" the first two bodies
+         do i = 1,2
+            fragments%vc(:,i) = impactors%vb(:,i) - impactors%vbcom(:)  - 2 * impactors%vbimp(:)
+         end do
+
+         vmag = .mag.impactors%vbcom(:) 
+         vimp_unit(:) = .unit. impactors%vbimp(:)
+         call random_number(vnoise)
+         vnoise = (2 * vnoise - 1.0_DP) * vmag
+         do i = 3, nfrag
+            vimp_unit(:) = .unit. (fragments%rc(:,i) + impactors%rbcom(:) - impactors%rbimp(:))
+            fragments%vc(:,i) = vmag * vimp_unit(:) + vnoise(:,i)
+         end do
+      end associate
+      return
+   end subroutine fraggle_generate_vel_vec_guess
 
 
    subroutine fraggle_generate_spins(collider, f_spin, lfailure)

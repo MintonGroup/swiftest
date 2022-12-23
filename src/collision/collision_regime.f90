@@ -32,10 +32,6 @@ contains
       select type(param)
       class is (swiftest_parameters)
 
-         mtot = sum(impactors%mass(:))
-         impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot
-         impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
-
          select case(param%collision_model)
          case("MERGE")
             impactors%regime = COLLRESOLVE_REGIME_MERGE
@@ -105,15 +101,6 @@ contains
       impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
       impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
 
-      ! Find the center of mass of the collisional system	
-      mtot = sum(impactors%mass(:))
-      impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot 
-      impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
-
-      ! Find the point of impact between the two bodies
-      runit(:) = impactors%rb(:,2) - impactors%rb(:,1)
-      runit(:) = runit(:) / (.mag. runit(:))
-      impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * runit(:)
 
       ! Convert quantities back to the system units and save them into the fragment system
       impactors%mass_dist(:) = (impactors%mass_dist(:) / param%MU2KG) 

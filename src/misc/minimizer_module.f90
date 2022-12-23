@@ -140,9 +140,10 @@ module minimizer
 
          call ieee_get_status(original_fpe_status) ! Save the original floating point exception status
          call ieee_set_flag(ieee_all, .false.) ! Set all flags to quiet
-         allocate(fpe_flag(size(ieee_usual)))
+         if (.not.allocated(fpe_flag)) allocate(fpe_flag(size(ieee_usual)))
 
          lerr = .false.
+         if (allocated(x1)) deallocate(x1)
          allocate(x1, source=x0)
          ! Initialize approximate Hessian with the identity matrix (i.e. begin with method of steepest descent) 
          ! Get initial gradient and initialize arrays for updated values of gradient and x
