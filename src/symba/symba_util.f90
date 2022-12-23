@@ -79,9 +79,6 @@ contains
 
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
-      if (allocated(self%isperi)) deallocate(self%isperi)
-      if (allocated(self%peri)) deallocate(self%peri)
-      if (allocated(self%atp)) deallocate(self%atp)
 
       call self%helio_pl%dealloc()
 
@@ -121,18 +118,9 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_pl)
-            call swiftest_util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
-            call swiftest_util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
-            call swiftest_util_fill(keeps%lmtiny, inserts%lmtiny, lfill_list)
-            call swiftest_util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
-            call swiftest_util_fill(keeps%ntpenc, inserts%ntpenc, lfill_list)
             call swiftest_util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call swiftest_util_fill(keeps%levelm, inserts%levelm, lfill_list)
-            call swiftest_util_fill(keeps%isperi, inserts%isperi, lfill_list)
-            call swiftest_util_fill(keeps%peri, inserts%peri, lfill_list)
-            call swiftest_util_fill(keeps%atp, inserts%atp, lfill_list)
-            call swiftest_util_fill(keeps%kin, inserts%kin, lfill_list)
-            
+
             call swiftest_util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_pl or its descendents!"
@@ -221,9 +209,6 @@ contains
 
       call swiftest_util_resize(self%levelg, nnew)
       call swiftest_util_resize(self%levelm, nnew)
-      call swiftest_util_resize(self%isperi, nnew)
-      call swiftest_util_resize(self%peri, nnew)
-      call swiftest_util_resize(self%atp, nnew)
 
       call swiftest_util_resize_pl(self, nnew)
 
@@ -315,18 +300,9 @@ contains
 
       allocate(self%levelg(n))
       allocate(self%levelm(n))
-      allocate(self%isperi(n))
-      allocate(self%peri(n))
-      allocate(self%atp(n))
-      allocate(self%kin(n))
-
 
       self%levelg(:) = -1
       self%levelm(:) = -1
-      self%isperi(:) = 0
-      self%peri(:) = 0.0_DP
-      self%atp(:) = 0.0_DP
-      call self%reset_kinship([(i, i=1, n)])
       return
    end subroutine symba_util_setup_pl
 
@@ -381,20 +357,11 @@ contains
 
       associate(pl => self, npl => self%nbody)
          select case(sortby)
-         case("nplenc")
-            call swiftest_util_sort(direction * pl%nplenc(1:npl), ind)
-         case("ntpenc")
-            call swiftest_util_sort(direction * pl%ntpenc(1:npl), ind)
          case("levelg")
             call swiftest_util_sort(direction * pl%levelg(1:npl), ind)
          case("levelm")
             call swiftest_util_sort(direction * pl%levelm(1:npl), ind)
-         case("peri")
-            call swiftest_util_sort(direction * pl%peri(1:npl), ind)
-         case("atp")
-            call swiftest_util_sort(direction * pl%atp(1:npl), ind)
-         case("lcollision", "lencounter", "lmtiny", "nplm", "nplplm", "kin", "info")
-            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+
          case default ! Look for components in the parent class
             call swiftest_util_sort_pl(pl, sortby, ascending)
             return
@@ -508,17 +475,8 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_pl)
-            call swiftest_util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%lmtiny, discards%lmtiny, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%ntpenc, discards%ntpenc, lspill_list, ldestructive)
             call swiftest_util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call swiftest_util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%isperi, discards%isperi, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%peri, discards%peri, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%atp, discards%atp, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%kin, discards%kin, lspill_list, ldestructive)
 
             call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default

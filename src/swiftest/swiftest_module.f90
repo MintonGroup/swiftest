@@ -322,7 +322,7 @@ module swiftest
       class(encounter_list),               allocatable :: plpl_encounter    !! List of massive body-massive body encounters in a single step
       class(collision_list_plpl),          allocatable :: plpl_collision    !! List of massive body-massive body collisions in a single step
       class(collision_list_plpl),          allocatable :: pltp_collision    !! List of massive body-massive body collisions in a single step
-      class(collision_merge),             allocatable :: collider          !! Collision system object
+      class(collision_merge),              allocatable :: collider          !! Collision system object
       class(encounter_storage(nframes=:)), allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
       class(collision_storage(nframes=:)), allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
 

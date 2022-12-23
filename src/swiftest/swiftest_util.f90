@@ -328,9 +328,7 @@ contains
       select type(source)
       class is (swiftest_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call swiftest_util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
 
             call swiftest_util_append_body(self, source, lsource_mask)
          end associate
@@ -806,9 +804,6 @@ contains
       class(swiftest_tp),  intent(inout) :: self !! Swiftest test particle object
 
       if (allocated(self%nplenc)) deallocate(self%nplenc)
-      if (allocated(self%isperi)) deallocate(self%isperi)
-      if (allocated(self%peri)) deallocate(self%peri)
-      if (allocated(self%atp)) deallocate(self%atp)
       if (allocated(self%k_pltp)) deallocate(self%k_pltp)
 
       call swiftest_util_dealloc_body(self)
@@ -1903,6 +1898,7 @@ contains
       ! Internals
       integer(I4B) :: i, j
 
+      
       self%kin(idx(:))%parent = idx(:)
       self%kin(idx(:))%nchild = 0
       do j = 1, size(idx(:))
@@ -2777,6 +2773,9 @@ contains
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
       allocate(self%aobl(NDIM, n))
+      allocate(self%isperi(n))
+      allocate(self%peri(n))
+      allocate(self%atp(n))
       if (param%lclose) then
          allocate(self%lcollision(n))
          allocate(self%lencounter(n))
@@ -2813,6 +2812,9 @@ contains
       self%ah(:,:)   = 0.0_DP
       self%ir3h(:)   = 0.0_DP
       self%aobl(:,:) = 0.0_DP
+      self%isperi(:) = 1
+      self%peri(:)   = 0.0_DP
+      self%atp(:)    = 0.0_DP
 
       if (param%ltides) then
          allocate(self%atide(NDIM, n))
@@ -2837,6 +2839,8 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
 
       !> Call allocation method for parent class
       !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
@@ -2860,12 +2864,13 @@ contains
          allocate(self%ntpenc(n))
          allocate(self%radius(n))
          allocate(self%density(n))
+         allocate(self%kin(n))
 
          self%nplenc(:) = 0
          self%ntpenc(:) = 0
          self%radius(:) = 0.0_DP
          self%density(:) = 1.0_DP
-
+         call self%reset_kinship([(i, i=1, n)])
       end if
 
       if (param%lmtiny_pl) then
@@ -2909,14 +2914,9 @@ contains
       call swiftest_util_setup_body(self, n, param)
       if (n == 0) return
 
-      allocate(self%isperi(n))
-      allocate(self%peri(n))
-      allocate(self%atp(n))
       allocate(self%nplenc(n))
 
-      self%isperi(:) = 0
-      self%peri(:)   = 0.0_DP
-      self%atp(:)    = 0.0_DP
+      self%npltp = 0_I8B
       self%nplenc(:) = 0
 
       return
@@ -2986,7 +2986,11 @@ contains
             call swiftest_util_sort(direction * body%capom(1:n), ind)
          case("mu")
             call swiftest_util_sort(direction * body%mu(1:n), ind)
-         case("lfirst", "nbody", "ldiscard", "rh", "vh", "rb", "vb", "ah", "aobl", "atide", "agr")
+         case("peri")
+            call swiftest_util_sort(direction * body%peri(1:n), ind)
+         case("atp")
+            call swiftest_util_sort(direction * body%atp(1:n), ind)
+         case("info", "lfirst", "nbody", "ldiscard", "lcollision", "lencounter", "rh", "vh", "rb", "vb", "ah", "aobl", "atide", "agr","isperi")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not found!'
@@ -3625,7 +3629,11 @@ contains
             call swiftest_util_sort(direction * pl%Q(1:npl), ind)
          case("tlag")
             call swiftest_util_sort(direction * pl%tlag(1:npl), ind)
-         case("rbeg", "rend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
+         case("nplenc")
+            call swiftest_util_sort(direction * pl%nplenc(1:npl), ind)
+         case("ntpenc")
+            call swiftest_util_sort(direction * pl%ntpenc(1:npl), ind)
+         case("lmtiny", "nplm", "nplplm", "kin", "rbeg", "rend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
             call swiftest_util_sort_body(pl, sortby, ascending)
@@ -3664,12 +3672,8 @@ contains
 
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
-         case("peri")
-            call swiftest_util_sort(direction * tp%peri(1:ntp), ind)
-         case("atp")
-            call swiftest_util_sort(direction * tp%atp(1:ntp), ind)
-         case("isperi")
-            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+         case("nplenc")
+            call swiftest_util_sort(direction * tp%nplenc(1:ntp), ind)
          case default ! Look for components in the parent class
             call swiftest_util_sort_body(tp, sortby, ascending)
             return
