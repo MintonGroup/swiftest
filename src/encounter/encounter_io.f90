@@ -173,7 +173,7 @@ contains
       select type(pl => self%pl)
       class is (swiftest_pl)
       select type(tp => self%tp)
-      class is (swiftest_pl)
+      class is (swiftest_tp)
       select type (nc => history%nc)
       class is (encounter_netcdf_parameters)
          associate(tslot => param%ioutput)
