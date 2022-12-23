@@ -32,6 +32,70 @@ module minimizer
          logical,                intent(out)              :: lerr
          real(DP), dimension(:), intent(out), allocatable :: x1
       end subroutine minimize_bfgs
+
+      module function gradf(f, N, x1, dx, lerr) result(grad)
+         implicit none
+         integer(I4B),           intent(in)    :: N
+         class(lambda_obj),      intent(inout) :: f
+         real(DP), dimension(:), intent(in)    :: x1
+         real(DP),               intent(in)    :: dx
+         logical,                intent(out)   :: lerr
+         real(DP), dimension(N)                :: grad
+      end function gradf
+
+      module function minimize1D(f, x0, S, N, eps, lerr) result(astar)
+         implicit none
+         integer(I4B),           intent(in)  :: N
+         class(lambda_obj),      intent(inout)  :: f
+         real(DP), dimension(:), intent(in)  :: x0, S
+         real(DP),               intent(in)  :: eps
+         logical,                intent(out) :: lerr
+         real(DP)                            :: astar
+      end function minimize1D
+
+      module function n2one(f, x0, S, N, a, lerr) result(fnew)
+         implicit none
+         integer(I4B),           intent(in) :: N
+         class(lambda_obj),      intent(inout) :: f
+         real(DP), dimension(:), intent(in) :: x0, S
+         real(DP),               intent(in) :: a
+         logical,                intent(out) :: lerr
+         real(DP) :: fnew
+      end function n2one
+
+      module subroutine bracket(f, x0, S, N, gam, step, lo, hi, lerr)
+         implicit none
+         integer(I4B),           intent(in)    :: N
+         class(lambda_obj),      intent(inout) :: f
+         real(DP), dimension(:), intent(in)    :: x0, S
+         real(DP),               intent(in)    :: gam, step
+         real(DP),               intent(inout) :: lo
+         real(DP),               intent(out)   :: hi
+         logical,                intent(out)   :: lerr
+      end subroutine bracket
+
+      module subroutine golden(f, x0, S, N, eps, lo, hi, lerr) 
+         implicit none
+         integer(I4B),           intent(in)    :: N
+         class(lambda_obj),      intent(inout) :: f
+         real(DP), dimension(:), intent(in)    :: x0, S
+         real(DP),               intent(in)    :: eps
+         real(DP),               intent(inout) :: lo
+         real(DP),               intent(out)   :: hi
+         logical,                intent(out)   :: lerr
+      end subroutine golden
+
+      module subroutine quadfit(f, x0, S, N, eps, lo, hi, lerr) 
+         implicit none
+         ! Arguments
+         integer(I4B),           intent(in)    :: N
+         class(lambda_obj),      intent(inout) :: f
+         real(DP), dimension(:), intent(in)    :: x0, S
+         real(DP),               intent(in)    :: eps
+         real(DP),               intent(inout) :: lo
+         real(DP),               intent(out)   :: hi
+         logical,                intent(out)   :: lerr
+      end subroutine quadfit
    end interface
 
    contains
@@ -153,7 +217,7 @@ module minimizer
       end subroutine minimize_bfgs
 
 
-      function gradf(f, N, x1, dx, lerr) result(grad)
+      module function gradf(f, N, x1, dx, lerr) result(grad)
          !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
          !! Purpose:  Estimates the gradient of a function using a central difference
          !! approximation
@@ -211,7 +275,7 @@ module minimizer
       end function gradf
 
 
-      function minimize1D(f, x0, S, N, eps, lerr) result(astar)
+      module function minimize1D(f, x0, S, N, eps, lerr) result(astar)
          !! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
          !! This program find the minimum of a function of N variables in a single direction
          !! S using in sequence:
@@ -286,7 +350,7 @@ module minimizer
       end function minimize1D
 
 
-      function n2one(f, x0, S, N, a, lerr) result(fnew)
+      module function n2one(f, x0, S, N, a, lerr) result(fnew)
          implicit none
          ! Arguments
          integer(I4B),           intent(in) :: N
@@ -294,7 +358,6 @@ module minimizer
          real(DP), dimension(:), intent(in) :: x0, S
          real(DP),               intent(in) :: a
          logical,                intent(out) :: lerr
-
          ! Return
          real(DP) :: fnew
          ! Internals
@@ -313,7 +376,7 @@ module minimizer
       end function n2one
 
 
-      subroutine bracket(f, x0, S, N, gam, step, lo, hi, lerr)
+      module subroutine bracket(f, x0, S, N, gam, step, lo, hi, lerr)
          ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
          !! This subroutine brackets the minimum.  It recieves as input:
          !!   f%eval(x) : lambda function object containing the objective function as the eval metho
@@ -420,7 +483,7 @@ module minimizer
       end subroutine bracket
 
 
-      subroutine golden(f, x0, S, N, eps, lo, hi, lerr) 
+      module subroutine golden(f, x0, S, N, eps, lo, hi, lerr) 
          ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
          !! This function uses the golden section method to reduce the starting interval lo, hi by some amount sigma.  
          !! It recieves as input:
@@ -482,7 +545,7 @@ module minimizer
       end subroutine golden
 
 
-      subroutine quadfit(f, x0, S, N, eps, lo, hi, lerr) 
+      module subroutine quadfit(f, x0, S, N, eps, lo, hi, lerr) 
          ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - 
          !! This function uses a quadratic polynomial fit to locate the minimum of a function
          !! to some accuracy eps.  It recieves as input:

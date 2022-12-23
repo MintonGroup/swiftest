@@ -851,6 +851,6 @@ contains
             return
          end function radial_objective_function
 
-      end subroutine fraggle_generate_rad_vel
+   end subroutine fraggle_generate_rad_vel
 
 end submodule s_fraggle_generate
