@@ -252,7 +252,6 @@ contains
             return
          end if
 
-
          ! This is a factor that will "distort" the shape of the frgment cloud in the direction of the impact velocity 
          f_spin= .mag. (runit(:) .cross. vunit(:)) 
 
