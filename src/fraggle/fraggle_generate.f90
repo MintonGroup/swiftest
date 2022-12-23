@@ -35,7 +35,7 @@ contains
       integer(I4B)                         :: try
       real(DP)                             :: r_max_start, f_spin, dEtot, dLmag
       integer(I4B), parameter              :: MAXTRY = 100
-      logical                              :: lk_plpl
+      logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
       character(len=STRMAX)                :: message
@@ -59,7 +59,7 @@ contains
          if (nfrag < NFRAG_MIN) then
             write(message,*) "Fraggle needs at least ",NFRAG_MIN," fragments, but only ",nfrag," were given."
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-            lfailure = .true.
+            lfailure_local = .true.
             return
          end if
 
@@ -79,19 +79,19 @@ contains
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
          r_max_start = 1.1_DP * .mag.(impactors%rb(:,2) - impactors%rb(:,1))
-         lfailure = .false.
+         lfailure_local = .false.
          try = 1
          f_spin = F_SPIN_FIRST
          do while (try < MAXTRY)
             write(message,*) try
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
-            if (lfailure) then
+            if (lfailure_local) then
                call fragments%restructure(impactors, try, f_spin, r_max_start)
                call fragments%reset()
                try = try + 1
             end if
 
-            lfailure = .false.
+            lfailure_local = .false.
             call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
             call collision_generate_simple_pos_vec(self, r_max_start)
@@ -107,20 +107,20 @@ contains
 
             call collision_generate_simple_vel_vec(self)
 
-            call fraggle_generate_tan_vel(self, lfailure)
-            if (lfailure) then
+            call fraggle_generate_tan_vel(self, lfailure_local)
+            if (lfailure_local) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find tangential velocities")
                cycle
             end if
 
-            call fraggle_generate_rad_vel(self, lfailure)
-            if (lfailure) then
+            call fraggle_generate_rad_vel(self, lfailure_local)
+            if (lfailure_local) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
                cycle
             end if
 
-            call fraggle_generate_spins(self, f_spin, lfailure)
-            if (lfailure) then
+            call fraggle_generate_spins(self, f_spin, lfailure_local)
+            if (lfailure_local) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
                cycle
             end if
@@ -130,16 +130,16 @@ contains
             dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
             exit
 
-            lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
-            if (lfailure) then
+            lfailure_local = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
+            if (lfailure_local) then
                write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high energy error: " // &
                                                         trim(adjustl(message)))
                cycle
             end if
 
-            lfailure = ((abs(dLmag) / (.mag.self%Ltot(:,1))) > FRAGGLE_LTOL) 
-            if (lfailure) then
+            lfailure_local = ((abs(dLmag) / (.mag.self%Ltot(:,1))) > FRAGGLE_LTOL) 
+            if (lfailure_local) then
                write(message,*) dLmag / (.mag.self%Ltot(:,1))
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
                                                         trim(adjustl(message)))
@@ -148,14 +148,14 @@ contains
 
             ! Check if any of the usual floating point exceptions happened, and fail the try if so
             call ieee_get_flag(ieee_usual, fpe_flag)
-            lfailure = any(fpe_flag) 
-            if (.not.lfailure) exit
+            lfailure_local = any(fpe_flag) 
+            if (.not.lfailure_local) exit
             write(message,*) "Fraggle failed due to a floating point exception: ", fpe_flag
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
 
          end do
          write(message,*) try
-         if (lfailure) then
+         if (lfailure_local) then
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation failed after " // &
                                                       trim(adjustl(message)) // " tries")
          else
@@ -167,6 +167,7 @@ contains
 
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
+         if (present(lfailure)) lfailure = lfailure_local
       end associate
       end select
       end select

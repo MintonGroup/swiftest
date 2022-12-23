@@ -226,14 +226,6 @@ contains
                write(*,*) "Error in swiftest_collision, unrecognized collision regime"
                call util_exit(FAILURE)
             end select
-            call collision_io_collider_message(nbody_system%pl, impactors%id, message)
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-
-            ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
-            call self%set_mass_dist(param)
-
-            ! Generate the position and velocity distributions of the fragments
-            call self%disrupt(nbody_system, param, t)
 
             dpe = self%pe(2) - self%pe(1) 
             nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
@@ -379,10 +371,12 @@ contains
       ! Internals
       real(DP) :: r_max_start
 
+      call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
       r_max_start = 1.1_DP * .mag.(self%impactors%rb(:,2) - self%impactors%rb(:,1))
       call collision_generate_simple_pos_vec(self, r_max_start)
       call self%set_coordinate_system()
       call collision_generate_simple_vel_vec(self)
+      call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
       return
    end subroutine collision_generate_disrupt
 
@@ -508,6 +502,16 @@ contains
             vimp_unit(:) = .unit. (fragments%rc(:,i) + impactors%rbcom(:) - impactors%rbimp(:))
             fragments%vc(:,i) = vmag * vimp_unit(:) + vnoise(:,i)
          end do
+         do concurrent(i = 1:nfrag)
+            fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
+         end do
+
+         impactors%vbcom(:) = 0.0_DP
+         do concurrent(i = 1:nfrag)
+            impactors%vbcom(:) = impactors%vbcom(:) + fragments%mass(i) * fragments%vb(:,i) 
+         end do
+         impactors%vbcom(:) = impactors%vbcom(:) / fragments%mtot
+
       end associate
       return
    end subroutine collision_generate_simple_vel_vec
