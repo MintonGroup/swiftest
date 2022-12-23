@@ -21,7 +21,7 @@ module helio
    type, extends(whm_nbody_system) :: helio_nbody_system
    contains
       procedure :: step       => helio_step_system             !! Advance the Helio nbody system forward in time by one step
-      procedure :: initialize => helio_setup_initialize_system !! Performs Helio-specific initilization steps, including converting to DH coordinates
+      procedure :: initialize => helio_util_setup_initialize_system !! Performs Helio-specific initilization steps, including converting to DH coordinates
       final     ::               helio_final_system       !! Finalizes the Helio nbody_system object - deallocates all allocatables 
    end type helio_nbody_system
 
@@ -168,11 +168,11 @@ module helio
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine helio_kick_vb_tp
 
-      module subroutine helio_setup_initialize_system(self, param)
+      module subroutine helio_util_setup_initialize_system(self, param)
          implicit none
          class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine helio_setup_initialize_system
+      end subroutine helio_util_setup_initialize_system
 
       module subroutine helio_step_pl(self, nbody_system, param, t, dt)
          implicit none

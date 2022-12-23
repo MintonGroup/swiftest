@@ -40,7 +40,7 @@ module symba
       procedure :: gr_pos_kick     => symba_gr_p4_pl                    !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel_int       => symba_kick_getacch_int_pl         !! Compute direct cross (third) term heliocentric accelerations of massive bodiess, with no mutual interactions between bodies below GMTINY
       procedure :: accel           => symba_kick_getacch_pl             !! Compute heliocentric accelerations of massive bodies
-      procedure :: setup           => symba_setup_pl                    !! Constructor method - Allocates space for the input number of bodies
+      procedure :: setup           => symba_util_setup_pl                    !! Constructor method - Allocates space for the input number of bodies
       procedure :: append          => symba_util_append_pl              !! Appends elements from one structure to another
       procedure :: dealloc         => symba_util_dealloc_pl             !! Deallocates all allocatable arrays
       procedure :: fill            => symba_util_fill_pl                !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
@@ -62,7 +62,7 @@ module symba
       procedure :: encounter_check => symba_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: gr_pos_kick     => symba_gr_p4_tp               !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel           => symba_kick_getacch_tp        !! Compute heliocentric accelerations of test particles
-      procedure :: setup           => symba_setup_tp               !! Constructor method - Allocates space for the input number of bodies
+      procedure :: setup           => symba_util_setup_tp               !! Constructor method - Allocates space for the input number of bodies
       procedure :: append          => symba_util_append_tp         !! Appends elements from one structure to another
       procedure :: dealloc         => symba_util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill            => symba_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
@@ -95,7 +95,7 @@ module symba
    type, extends(helio_nbody_system) :: symba_nbody_system
       integer(I4B)                                    :: irec               !! nbody_system recursion level
    contains
-      procedure :: initialize       => symba_setup_initialize_system      !! Performs SyMBA-specific initilization steps
+      procedure :: initialize       => symba_util_setup_initialize_system      !! Performs SyMBA-specific initilization steps
       procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
       procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
       procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current nbody_system level
@@ -243,25 +243,25 @@ module symba
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_list_pltp
 
-      module subroutine symba_setup_initialize_system(self, param)
+      module subroutine symba_util_setup_initialize_system(self, param)
          implicit none
          class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody_system object
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      end subroutine symba_setup_initialize_system
+      end subroutine symba_util_setup_initialize_system
 
-      module subroutine symba_setup_pl(self, n, param)
+      module subroutine symba_util_setup_pl(self, n, param)
          implicit none
          class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      end subroutine symba_setup_pl
+      end subroutine symba_util_setup_pl
 
-      module subroutine symba_setup_tp(self, n, param)
+      module subroutine symba_util_setup_tp(self, n, param)
          implicit none
          class(symba_tp),            intent(inout) :: self  !! SyMBA test particle object
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
-      end subroutine symba_setup_tp
+      end subroutine symba_util_setup_tp
 
       module subroutine symba_step_system(self, param, t, dt)
          implicit none

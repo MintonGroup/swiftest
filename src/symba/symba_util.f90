@@ -272,6 +272,90 @@ contains
       return
    end subroutine symba_util_set_renc
 
+   module subroutine symba_util_setup_initialize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
+      !! This subroutine will also sort the massive bodies in descending order by mass
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody_system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+
+      ! Call parent method
+      associate(nbody_system => self)
+         call helio_util_setup_initialize_system(nbody_system, param)
+         call nbody_system%pltp_encounter%setup(0_I8B)
+         call nbody_system%plpl_encounter%setup(0_I8B)
+         call nbody_system%plpl_collision%setup(0_I8B)
+      end associate
+
+      return
+   end subroutine symba_util_setup_initialize_system
+
+
+   module subroutine symba_util_setup_pl(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate SyMBA test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine symba_util_setup.f90
+      implicit none
+      ! Arguments
+      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
+
+      !> Call allocation method for parent class. 
+      call self%helio_pl%setup(n, param) 
+      if (n == 0) return
+
+      allocate(self%levelg(n))
+      allocate(self%levelm(n))
+      allocate(self%isperi(n))
+      allocate(self%peri(n))
+      allocate(self%atp(n))
+      allocate(self%kin(n))
+
+
+      self%levelg(:) = -1
+      self%levelm(:) = -1
+      self%isperi(:) = 0
+      self%peri(:) = 0.0_DP
+      self%atp(:) = 0.0_DP
+      call self%reset_kinship([(i, i=1, n)])
+      return
+   end subroutine symba_util_setup_pl
+
+
+   module subroutine symba_util_setup_tp(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate WHM test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_util_setup.f90
+      implicit none
+      ! Arguments
+      class(symba_tp),            intent(inout) :: self  !! SyMBA test particle object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
+      !> Call allocation method for parent class. 
+      call self%helio_tp%setup(n, param) 
+      if (n == 0) return
+
+      allocate(self%levelg(n))
+      allocate(self%levelm(n))
+
+      self%levelg(:) = -1
+      self%levelm(:) = -1
+      
+      return
+   end subroutine symba_util_setup_tp
+
 
    module subroutine symba_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton

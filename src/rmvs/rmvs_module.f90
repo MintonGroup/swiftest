@@ -32,7 +32,7 @@ module rmvs
       real(DP), dimension(:,:), allocatable :: vbeg                       !! Planet velocities at beginning ot step
    contains
       !> Replace the abstract procedures with concrete ones
-      procedure :: initialize => rmvs_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
+      procedure :: initialize => rmvs_util_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
       procedure :: step       => rmvs_step_system              !! Advance the RMVS nbody system forward in time by one step
       final     ::               rmvs_final_system        !! Finalizes the RMVS nbody system object - deallocates all allocatables
    end type rmvs_nbody_system
@@ -62,7 +62,7 @@ module rmvs
    !! RMVS test particle class
    type, extends(whm_tp) :: rmvs_tp
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as rmvs_setup_tp and rmvs_util_spill_tp
+      !!    component list, such as rmvs_util_setup_tp and rmvs_util_spill_tp
       ! encounter steps)
       logical,      dimension(:),   allocatable :: lperi  !! planetocentric pericenter passage flag (persistent for a full rmvs time step) over a full RMVS time step)
       integer(I4B), dimension(:),   allocatable :: plperP !! index of planet associated with pericenter distance peri (persistent over a full RMVS time step)
@@ -79,7 +79,7 @@ module rmvs
       procedure :: encounter_check => rmvs_encounter_check_tp     !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => rmvs_kick_getacch_tp        !! Calculates either the standard or modified version of the acceleration depending if the
                                                                   !!    if the test particle is undergoing a close encounter or not
-      procedure :: setup           => rmvs_setup_tp               !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: setup           => rmvs_util_setup_tp               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: append          => rmvs_util_append_tp         !! Appends elements from one structure to another
       procedure :: dealloc         => rmvs_util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill            => rmvs_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
@@ -101,7 +101,7 @@ module rmvs
       class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric            !! Planetocentric version of the massive body objects (one for each massive body)
       logical                                             :: lplanetocentric = .false. !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      procedure :: setup     => rmvs_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: setup     => rmvs_util_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: append    => rmvs_util_append_pl         !! Appends elements from one structure to another
       procedure :: dealloc   => rmvs_util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
@@ -138,25 +138,25 @@ module rmvs
          logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine rmvs_kick_getacch_tp
 
-      module subroutine rmvs_setup_pl(self, n, param)
+      module subroutine rmvs_util_setup_pl(self, n, param)
          implicit none
          class(rmvs_pl),             intent(inout) :: self  !! RMVS massive body object
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      end subroutine rmvs_setup_pl
+      end subroutine rmvs_util_setup_pl
 
-      module subroutine rmvs_setup_initialize_system(self, param)
+      module subroutine rmvs_util_setup_initialize_system(self, param)
          implicit none
          class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine rmvs_setup_initialize_system
+      end subroutine rmvs_util_setup_initialize_system
 
-      module subroutine rmvs_setup_tp(self, n, param)
+      module subroutine rmvs_util_setup_tp(self, n, param)
          implicit none
          class(rmvs_tp),            intent(inout) :: self !! RMVS test particle object
          integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametere
-      end subroutine rmvs_setup_tp
+      end subroutine rmvs_util_setup_tp
 
       module subroutine rmvs_util_append_pl(self, source, lsource_mask)
          implicit none
@@ -205,31 +205,6 @@ module rmvs
          class(swiftest_body),  intent(in)    :: inserts     !!  Inserted object 
          logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine rmvs_util_fill_tp
-
-      module subroutine rmvs_final_cb(self)
-         implicit none
-         type(rmvs_cb),  intent(inout) :: self !! RMVS central body object
-      end subroutine rmvs_final_cb
-
-      module subroutine rmvs_final_interp(self)
-         implicit none
-         type(rmvs_interp),  intent(inout) :: self !! RMVS interpolated nbody_system variables object
-      end subroutine rmvs_final_interp
-
-      module subroutine rmvs_final_pl(self)
-         implicit none
-         type(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
-      end subroutine rmvs_final_pl
-
-      module subroutine rmvs_final_system(self)
-         implicit none
-         type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
-      end subroutine rmvs_final_system
-
-      module subroutine rmvs_final_tp(self)
-         implicit none
-         type(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
-      end subroutine rmvs_final_tp
 
       module subroutine rmvs_util_resize_pl(self, nnew)
          implicit none
@@ -294,5 +269,78 @@ module rmvs
       end subroutine rmvs_step_system
 
    end interface
+
+   contains
+
+      subroutine rmvs_final_cb(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the RMVS massive body object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(rmvs_cb),  intent(inout) :: self !! RMVS central body object
+
+         call self%dealloc()
+
+         return
+      end subroutine rmvs_final_cb
+
+
+      subroutine rmvs_final_interp(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the RMVS nbody system object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(rmvs_interp),  intent(inout) :: self !! RMVS nbody system object
+
+         call self%dealloc()
+
+         return
+      end subroutine rmvs_final_interp
+
+
+      subroutine rmvs_final_pl(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the RMVS massive body object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
+
+         call self%dealloc()
+
+         return
+      end subroutine rmvs_final_pl
+
+
+      subroutine rmvs_final_system(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the RMVS nbody system object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
+
+         if (allocated(self%vbeg)) deallocate(self%vbeg)
+         call whm_final_system(self%whm_nbody_system)
+
+         return
+      end subroutine rmvs_final_system
+
+
+      subroutine rmvs_final_tp(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the RMVS test particle object - deallocates all allocatables
+         implicit none
+         ! Arguments
+         type(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
+
+         call self%dealloc()
+
+         return
+      end subroutine rmvs_final_tp
+
 
 end module rmvs

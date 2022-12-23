@@ -8,6 +8,11 @@
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule (swiftest) s_util
+   use whm
+   use rmvs
+   use helio
+   use symba
+   use fraggle
 contains
 
    module subroutine swiftest_util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
@@ -2541,6 +2546,374 @@ contains
    end subroutine swiftest_util_set_rhill_approximate
 
 
+   module subroutine swiftest_util_setup_construct_system(nbody_system, param)
+      !! author: David A. Minton
+      !!
+      !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
+      !! 
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
+      class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
+      ! Internals
+      type(encounter_storage)  :: encounter_history
+      type(collision_storage)  :: collision_history
+
+      select type(param)
+      class is (swiftest_parameters)
+         allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
+         allocate(swiftest_netcdf_parameters :: param%system_history%nc)
+         call param%system_history%reset()
+
+         select case(param%integrator)
+         case (INT_BS)
+            write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
+         case (INT_HELIO)
+            allocate(helio_nbody_system :: nbody_system)
+            select type(nbody_system)
+            class is (helio_nbody_system)
+               allocate(helio_cb :: nbody_system%cb)
+               allocate(helio_pl :: nbody_system%pl)
+               allocate(helio_tp :: nbody_system%tp)
+               allocate(helio_tp :: nbody_system%tp_discards)
+            end select
+            param%collision_model = "MERGE"
+         case (INT_RA15)
+            write(*,*) 'Radau integrator not yet enabled'
+         case (INT_TU4)
+            write(*,*) 'INT_TU4 integrator not yet enabled'
+         case (INT_WHM)
+            allocate(whm_nbody_system :: nbody_system)
+            select type(nbody_system)
+            class is (whm_nbody_system)
+               allocate(whm_cb :: nbody_system%cb)
+               allocate(whm_pl :: nbody_system%pl)
+               allocate(whm_tp :: nbody_system%tp)
+               allocate(whm_tp :: nbody_system%tp_discards)
+            end select
+            param%collision_model = "MERGE"
+         case (INT_RMVS)
+            allocate(rmvs_nbody_system :: nbody_system)
+            select type(nbody_system)
+            class is (rmvs_nbody_system)
+               allocate(rmvs_cb :: nbody_system%cb)
+               allocate(rmvs_pl :: nbody_system%pl)
+               allocate(rmvs_tp :: nbody_system%tp)
+               allocate(rmvs_tp :: nbody_system%tp_discards)
+            end select
+            param%collision_model = "MERGE"
+         case (INT_SYMBA)
+            allocate(symba_nbody_system :: nbody_system)
+            select type(nbody_system)
+            class is (symba_nbody_system)
+               allocate(symba_cb :: nbody_system%cb)
+               allocate(symba_pl :: nbody_system%pl)
+               allocate(symba_tp :: nbody_system%tp)
+
+               allocate(symba_tp :: nbody_system%tp_discards)
+               allocate(symba_pl :: nbody_system%pl_adds)
+               allocate(symba_pl :: nbody_system%pl_discards)
+
+               allocate(symba_list_pltp :: nbody_system%pltp_encounter)
+               allocate(symba_list_plpl :: nbody_system%plpl_encounter)
+               allocate(collision_list_plpl :: nbody_system%plpl_collision)
+
+               if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+                  allocate(encounter_netcdf_parameters :: encounter_history%nc)
+                  call encounter_history%reset()
+                  select type(nc => encounter_history%nc)
+                  class is (encounter_netcdf_parameters)
+                     nc%file_number = param%iloop / param%dump_cadence
+                  end select
+                  allocate(nbody_system%encounter_history, source=encounter_history)
+               end if
+               
+               allocate(collision_netcdf_parameters :: collision_history%nc)
+               call collision_history%reset()
+               select type(nc => collision_history%nc)
+               class is (collision_netcdf_parameters)
+                  nc%file_number = param%iloop / param%dump_cadence
+               end select
+               allocate(nbody_system%collision_history, source=collision_history)
+
+            end select
+         case (INT_RINGMOONS)
+            write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
+         case default
+            write(*,*) 'Unkown integrator',param%integrator
+            call util_exit(FAILURE)
+         end select
+
+         allocate(swiftest_particle_info :: nbody_system%cb%info)
+
+         select case(param%collision_model)
+         case("MERGE")
+            allocate(collision_merge :: nbody_system%collider)
+         case("BOUNCE")
+            allocate(collision_bounce :: nbody_system%collider)
+         case("SIMPLE")
+            allocate(collision_simple_disruption :: nbody_system%collider)
+         case("FRAGGLE")
+            allocate(collision_fraggle :: nbody_system%collider)
+         end select
+         call nbody_system%collider%setup(nbody_system)
+
+      end select
+
+      return
+   end subroutine swiftest_util_setup_construct_system
+
+
+   module subroutine swiftest_util_setup_initialize_particle_info_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Setup up particle information metadata from initial conditions
+      !
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      integer(I4B) :: i
+
+      associate(pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
+
+         if (.not. allocated(self%cb%info)) allocate(swiftest_particle_info :: self%cb%info)
+
+         call self%cb%info%set_value(particle_type=CB_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
+                                origin_time=param%t0, origin_rh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP])
+         do i = 1, self%pl%nbody
+            call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
+                                       origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i))
+         end do
+         do i = 1, self%tp%nbody
+            call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
+                                      origin_time=param%t0, origin_rh=self%tp%rh(:,i), origin_vh=self%tp%vh(:,i))
+         end do
+
+      end associate
+
+      return
+   end subroutine swiftest_util_setup_initialize_particle_info_system
+
+
+   module subroutine swiftest_util_setup_initialize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Wrapper method to initialize a basic Swiftest nbody system from files
+      !!
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+
+         call nbody_system%read_in(param)
+         call nbody_system%validate_ids(param)
+         call nbody_system%set_msys()
+         call pl%set_mu(cb) 
+         call tp%set_mu(cb) 
+         if (param%in_form == "EL") then
+            call pl%el2xv(cb)
+            call tp%el2xv(cb)
+         end if
+         call pl%flatten(param)
+         if (.not.param%lrhill_present) call pl%set_rhill(cb)
+         pl%lfirst = param%lfirstkick
+         tp%lfirst = param%lfirstkick
+
+         if (.not.param%lrestart) then
+            call nbody_system%init_particle_info(param)
+         end if
+      end associate
+
+      return
+   end subroutine swiftest_util_setup_initialize_system
+
+
+   module subroutine swiftest_util_setup_body(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Constructor for base Swiftest particle class. Allocates space for all particles and
+      !! initializes all components with a value.
+      !! Note: Timing tests indicate that (NDIM, n) is more efficient than (NDIM, n) 
+      implicit none
+      ! Arguments
+      class(swiftest_body),       intent(inout) :: self  !! Swiftest generic body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
+
+      if (n < 0) return
+
+      self%lfirst = .true.
+
+      call self%dealloc()
+
+      self%nbody = n
+      if (n == 0) return
+
+      allocate(swiftest_particle_info :: self%info(n))
+      allocate(self%id(n))
+      allocate(self%status(n))
+      allocate(self%ldiscard(n))
+      allocate(self%lmask(n))
+      allocate(self%mu(n))
+      allocate(self%rh(NDIM, n))
+      allocate(self%vh(NDIM, n))
+      allocate(self%rb(NDIM, n))
+      allocate(self%vb(NDIM, n))
+      allocate(self%ah(NDIM, n))
+      allocate(self%ir3h(n))
+      allocate(self%aobl(NDIM, n))
+      if (param%lclose) then
+         allocate(self%lcollision(n))
+         allocate(self%lencounter(n))
+         self%lcollision(:) = .false.
+         self%lencounter(:) = .false.
+      end if
+
+      self%id(:) = 0
+      do i = 1, n
+         call self%info(i)%set_value(&
+            name = "UNNAMED", &
+            particle_type = "UNKNOWN", &
+            status = "INACTIVE", & 
+            origin_type = "UNKNOWN", &
+            collision_id = 0, &
+            origin_time = -huge(1.0_DP), & 
+            origin_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_time = huge(1.0_DP), & 
+            discard_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+            discard_body_id = -1  &
+         )
+      end do
+
+      self%status(:) = INACTIVE
+      self%ldiscard(:) = .false.
+      self%lmask(:)  = .false.
+      self%mu(:)     = 0.0_DP
+      self%rh(:,:)   = 0.0_DP
+      self%vh(:,:)   = 0.0_DP
+      self%rb(:,:)   = 0.0_DP
+      self%vb(:,:)   = 0.0_DP
+      self%ah(:,:)   = 0.0_DP
+      self%ir3h(:)   = 0.0_DP
+      self%aobl(:,:) = 0.0_DP
+
+      if (param%ltides) then
+         allocate(self%atide(NDIM, n))
+         self%atide(:,:) = 0.0_DP
+      end if
+      if (param%lgr) then
+         allocate(self%agr(NDIM, n))
+         self%agr(:,:) = 0.0_DP
+      end if
+
+      return
+   end subroutine swiftest_util_setup_body
+
+
+   module subroutine swiftest_util_setup_pl(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Constructor for base Swiftest massive body class. Allocates space for all particles and
+      !! initializes all components with a value. 
+      implicit none
+      ! Arguments
+      class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
+      !> Call allocation method for parent class
+      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      call swiftest_util_setup_body(self, n, param)
+      if (n == 0) return
+
+      allocate(self%mass(n))
+      allocate(self%Gmass(n))
+      allocate(self%rhill(n))
+      allocate(self%renc(n))
+
+      self%mass(:) = 0.0_DP
+      self%Gmass(:) = 0.0_DP
+      self%rhill(:) = 0.0_DP
+      self%renc(:) = 0.0_DP
+
+      self%nplpl = 0   
+
+      if (param%lclose) then
+         allocate(self%nplenc(n))
+         allocate(self%ntpenc(n))
+         allocate(self%radius(n))
+         allocate(self%density(n))
+
+         self%nplenc(:) = 0
+         self%ntpenc(:) = 0
+         self%radius(:) = 0.0_DP
+         self%density(:) = 1.0_DP
+
+      end if
+
+      if (param%lmtiny_pl) then
+         allocate(self%lmtiny(n))
+         self%lmtiny(:) = .false.
+      end if
+
+      if (param%lrotation) then
+         allocate(self%rot(NDIM, n))
+         allocate(self%Ip(NDIM, n))
+         self%rot(:,:) = 0.0_DP
+         self%Ip(:,:) = 0.0_DP
+      end if
+
+      if (param%ltides) then
+         allocate(self%k2(n))
+         allocate(self%Q(n))
+         allocate(self%tlag(n))
+         self%k2(:) = 0.0_DP
+         self%Q(:) = 0.0_DP
+         self%tlag(:) = 0.0_DP
+      end if
+      
+      return
+   end subroutine swiftest_util_setup_pl
+   
+
+   module subroutine swiftest_util_setup_tp(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Constructor for base Swiftest test particle particle class. Allocates space for 
+      !! all particles and initializes all components with a value. 
+      implicit none
+      ! Arguments
+      class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
+      !> Call allocation method for parent class
+      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      call swiftest_util_setup_body(self, n, param)
+      if (n == 0) return
+
+      allocate(self%isperi(n))
+      allocate(self%peri(n))
+      allocate(self%atp(n))
+      allocate(self%nplenc(n))
+
+      self%isperi(:) = 0
+      self%peri(:)   = 0.0_DP
+      self%atp(:)    = 0.0_DP
+      self%nplenc(:) = 0
+
+      return
+   end subroutine swiftest_util_setup_tp
+
+
    module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
@@ -2628,7 +3001,7 @@ contains
       ! Arguments
       real(DP), dimension(:), intent(inout) :: arr
 
-      call swiftest_qsort_DP(arr)
+      call swiftest_util_sort_qsort_DP(arr)
 
       return
    end subroutine swiftest_util_sort_dp
@@ -2657,13 +3030,13 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call swiftest_qsort_DP(tmparr, ind)
+      call swiftest_util_sort_qsort_DP(tmparr, ind)
    
       return
    end subroutine swiftest_util_sort_index_dp
 
 
-   recursive pure subroutine swiftest_qsort_DP(arr, ind)
+   recursive pure subroutine swiftest_util_sort_qsort_DP(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input DP precision array by index in ascending numerical order using quicksort sort.
@@ -2677,21 +3050,21 @@ contains
 
       if (size(arr) > 1) then
          if (present(ind)) then
-            call swiftest_partition_DP(arr, iq, ind)
-            call swiftest_qsort_DP(arr(:iq-1),ind(:iq-1))
-            call swiftest_qsort_DP(arr(iq:),  ind(iq:))
+            call swiftest_util_sort_partition_DP(arr, iq, ind)
+            call swiftest_util_sort_qsort_DP(arr(:iq-1),ind(:iq-1))
+            call swiftest_util_sort_qsort_DP(arr(iq:),  ind(iq:))
          else
-            call swiftest_partition_DP(arr, iq)
-            call swiftest_qsort_DP(arr(:iq-1))
-            call swiftest_qsort_DP(arr(iq:))
+            call swiftest_util_sort_partition_DP(arr, iq)
+            call swiftest_util_sort_qsort_DP(arr(:iq-1))
+            call swiftest_util_sort_qsort_DP(arr(iq:))
          end if
       end if
 
       return
-   end subroutine swiftest_qsort_DP
+   end subroutine swiftest_util_sort_qsort_DP
 
  
-   pure subroutine swiftest_partition_DP(arr, marker, ind)
+   pure subroutine swiftest_util_sort_partition_DP(arr, marker, ind)
       !! author: David A. Minton
       !!
       !! Partition function for quicksort on DP type
@@ -2745,7 +3118,7 @@ contains
       end do
   
       return
-   end subroutine swiftest_partition_DP
+   end subroutine swiftest_util_sort_partition_DP
  
 
    pure module subroutine swiftest_util_sort_i4b(arr)
@@ -2758,7 +3131,7 @@ contains
       ! Arguments
       integer(I4B), dimension(:), intent(inout) :: arr
 
-      call swiftest_qsort_I4B(arr)
+      call swiftest_util_sort_qsort_I4B(arr)
 
       return
    end subroutine swiftest_util_sort_i4b
@@ -2786,7 +3159,7 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call swiftest_qsort_I4B(tmparr, ind)
+      call swiftest_util_sort_qsort_I4B(tmparr, ind)
 
       return
    end subroutine swiftest_util_sort_index_I4B
@@ -2814,13 +3187,13 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call swiftest_qsort_I4B_I8Bind(tmparr, ind)
+      call swiftest_util_sort_qsort_I4B_I8Bind(tmparr, ind)
 
       return
    end subroutine swiftest_util_sort_index_I4B_I8Bind
 
 
-   recursive pure subroutine swiftest_qsort_I4B(arr, ind)
+   recursive pure subroutine swiftest_util_sort_qsort_I4B(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input I4B array by index in ascending numerical order using quicksort.
@@ -2834,20 +3207,21 @@ contains
 
       if (size(arr) > 1) then
          if (present(ind)) then
-            call swiftest_partition_I4B(arr, iq, ind)
-            call swiftest_qsort_I4B(arr(:iq-1),ind(:iq-1))
-            call swiftest_qsort_I4B(arr(iq:),  ind(iq:))
+            call swiftest_util_sort_partition_I4B(arr, iq, ind)
+            call swiftest_util_sort_qsort_I4B(arr(:iq-1),ind(:iq-1))
+            call swiftest_util_sort_qsort_I4B(arr(iq:),  ind(iq:))
          else
-            call swiftest_partition_I4B(arr, iq)
-            call swiftest_qsort_I4B(arr(:iq-1))
-            call swiftest_qsort_I4B(arr(iq:))
+            call swiftest_util_sort_partition_I4B(arr, iq)
+            call swiftest_util_sort_qsort_I4B(arr(:iq-1))
+            call swiftest_util_sort_qsort_I4B(arr(iq:))
          end if
       end if
 
       return
-   end subroutine swiftest_qsort_I4B
+   end subroutine swiftest_util_sort_qsort_I4B
 
-   recursive pure subroutine swiftest_qsort_I4B_I8Bind(arr, ind)
+
+   recursive pure subroutine swiftest_util_sort_qsort_I4B_I8Bind(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input I4B array by index in ascending numerical order using quicksort.
@@ -2861,21 +3235,21 @@ contains
 
       if (size(arr) > 1_I8B) then
          if (present(ind)) then
-            call swiftest_partition_I4B_I8Bind(arr, iq, ind)
-            call swiftest_qsort_I4B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
-            call swiftest_qsort_I4B_I8Bind(arr(iq:),  ind(iq:))
+            call swiftest_util_sort_partition_I4B_I8Bind(arr, iq, ind)
+            call swiftest_util_sort_qsort_I4B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+            call swiftest_util_sort_qsort_I4B_I8Bind(arr(iq:),  ind(iq:))
          else
-            call swiftest_partition_I4B_I8Bind(arr, iq)
-            call swiftest_qsort_I4B_I8Bind(arr(:iq-1_I8B))
-            call swiftest_qsort_I4B_I8Bind(arr(iq:))
+            call swiftest_util_sort_partition_I4B_I8Bind(arr, iq)
+            call swiftest_util_sort_qsort_I4B_I8Bind(arr(:iq-1_I8B))
+            call swiftest_util_sort_qsort_I4B_I8Bind(arr(iq:))
          end if
       end if
 
       return
-   end subroutine swiftest_qsort_I4B_I8Bind
+   end subroutine swiftest_util_sort_qsort_I4B_I8Bind
 
 
-   recursive pure subroutine swiftest_qsort_I8B_I8Bind(arr, ind)
+   recursive pure subroutine swiftest_util_sort_qsort_I8B_I8Bind(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input I8B array by index in ascending numerical order using quicksort.
@@ -2889,21 +3263,21 @@ contains
 
       if (size(arr) > 1_I8B) then
          if (present(ind)) then
-            call swiftest_partition_I8B_I8Bind(arr, iq, ind)
-            call swiftest_qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
-            call swiftest_qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
+            call swiftest_util_sort_partition_I8B_I8Bind(arr, iq, ind)
+            call swiftest_util_sort_qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+            call swiftest_util_sort_qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
          else
-            call swiftest_partition_I8B_I8Bind(arr, iq)
-            call swiftest_qsort_I8B_I8Bind(arr(:iq-1_I8B))
-            call swiftest_qsort_I8B_I8Bind(arr(iq:))
+            call swiftest_util_sort_partition_I8B_I8Bind(arr, iq)
+            call swiftest_util_sort_qsort_I8B_I8Bind(arr(:iq-1_I8B))
+            call swiftest_util_sort_qsort_I8B_I8Bind(arr(iq:))
          end if
       end if
 
       return
-   end subroutine swiftest_qsort_I8B_I8Bind
+   end subroutine swiftest_util_sort_qsort_I8B_I8Bind
 
  
-   pure subroutine swiftest_partition_I4B(arr, marker, ind)
+   pure subroutine swiftest_util_sort_partition_I4B(arr, marker, ind)
       !! author: David A. Minton
       !!
       !! Partition function for quicksort on I4B type
@@ -2957,9 +3331,10 @@ contains
       end do
   
       return
-   end subroutine swiftest_partition_I4B
+   end subroutine swiftest_util_sort_partition_I4B
 
-   pure subroutine swiftest_partition_I4B_I8Bind(arr, marker, ind)
+
+   pure subroutine swiftest_util_sort_partition_I4B_I8Bind(arr, marker, ind)
       !! author: David A. Minton
       !!
       !! Partition function for quicksort on I4B type
@@ -3013,9 +3388,10 @@ contains
       end do
   
       return
-   end subroutine swiftest_partition_I4B_I8Bind
+   end subroutine swiftest_util_sort_partition_I4B_I8Bind
 
-   pure subroutine swiftest_partition_I8B_I8Bind(arr, marker, ind)
+
+   pure subroutine swiftest_util_sort_partition_I8B_I8Bind(arr, marker, ind)
       !! author: David A. Minton
       !!
       !! Partition function for quicksort on I8B type with I8B index
@@ -3069,7 +3445,7 @@ contains
       end do
   
       return
-   end subroutine swiftest_partition_I8B_I8Bind
+   end subroutine swiftest_util_sort_partition_I8B_I8Bind
 
 
    pure module subroutine swiftest_util_sort_sp(arr)
@@ -3081,7 +3457,7 @@ contains
       ! Arguments
       real(SP), dimension(:), intent(inout) :: arr
 
-      call swiftest_qsort_SP(arr)
+      call swiftest_util_sort_qsort_SP(arr)
 
       return
    end subroutine swiftest_util_sort_sp
@@ -3109,13 +3485,13 @@ contains
       end if
       allocate(tmparr, mold=arr)
       tmparr(:) = arr(ind(:))
-      call swiftest_qsort_SP(tmparr, ind)
+      call swiftest_util_sort_qsort_SP(tmparr, ind)
    
       return
    end subroutine swiftest_util_sort_index_sp
 
 
-   recursive pure subroutine swiftest_qsort_SP(arr, ind)
+   recursive pure subroutine swiftest_util_sort_qsort_SP(arr, ind)
       !! author: David A. Minton
       !!
       !! Sort input DP precision array by index in ascending numerical order using quicksort.
@@ -3129,21 +3505,21 @@ contains
 
       if (size(arr) > 1) then
          if (present(ind)) then
-            call swiftest_partition_SP(arr, iq, ind)
-            call swiftest_qsort_SP(arr(:iq-1),ind(:iq-1))
-            call swiftest_qsort_SP(arr(iq:),  ind(iq:))
+            call swiftest_util_sort_partition_SP(arr, iq, ind)
+            call swiftest_util_sort_qsort_SP(arr(:iq-1),ind(:iq-1))
+            call swiftest_util_sort_qsort_SP(arr(iq:),  ind(iq:))
          else
-            call swiftest_partition_SP(arr, iq)
-            call swiftest_qsort_SP(arr(:iq-1))
-            call swiftest_qsort_SP(arr(iq:))
+            call swiftest_util_sort_partition_SP(arr, iq)
+            call swiftest_util_sort_qsort_SP(arr(:iq-1))
+            call swiftest_util_sort_qsort_SP(arr(iq:))
          end if
       end if
 
       return
-   end subroutine swiftest_qsort_SP
+   end subroutine swiftest_util_sort_qsort_SP
 
 
-   pure subroutine swiftest_partition_SP(arr, marker, ind)
+   pure subroutine swiftest_util_sort_partition_SP(arr, marker, ind)
       !! author: David A. Minton
       !!
       !! Partition function for quicksort on SP type
@@ -3197,7 +3573,7 @@ contains
       end do
   
       return
-   end subroutine swiftest_partition_SP
+   end subroutine swiftest_util_sort_partition_SP
 
 
    module subroutine swiftest_util_sort_pl(self, sortby, ascending)

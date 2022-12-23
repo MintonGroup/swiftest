@@ -71,7 +71,7 @@ program swiftest_driver
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
 
       ! Construct the main n-body nbody_system using the user-input integrator to choose the type of nbody_system
-      call swiftest_setup_construct_system(nbody_system, param)
+      call swiftest_util_setup_construct_system(nbody_system, param)
 
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case

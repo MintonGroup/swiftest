@@ -130,9 +130,9 @@ module collision
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: Etot     !! Before/after total nbody_system energy
    contains
-      procedure :: setup                      => collision_setup_system                    !! Initializer for the encounter collision system and the before/after snapshots
-      procedure :: setup_impactors            => collision_setup_impactors_system          !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
-      procedure :: setup_fragments            => collision_setup_fragments_system          !! Initializer for the fragments of the collision system. 
+      procedure :: setup                      => collision_util_setup_system                    !! Initializer for the encounter collision system and the before/after snapshots
+      procedure :: setup_impactors            => collision_util_setup_impactors_system          !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
+      procedure :: setup_fragments            => collision_util_setup_fragments_system          !! Initializer for the fragments of the collision system. 
       procedure :: add_fragments              => collision_util_add_fragments_to_system    !! Add fragments to nbody_system
       procedure :: construct_temporary_system => collision_util_construct_temporary_system !! Constructs temporary n-body nbody_system in order to compute pre- and post-impact energy and momentum
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
@@ -352,22 +352,22 @@ module collision
          class(collision_merge), intent(inout) :: self      !! Collisional nbody_system
       end subroutine collision_util_set_coordinate_system
 
-      module subroutine collision_setup_system(self, nbody_system)
+      module subroutine collision_util_setup_system(self, nbody_system)
          implicit none
          class(collision_merge),   intent(inout) :: self         !! Encounter collision system object
          class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
-      end subroutine collision_setup_system
+      end subroutine collision_util_setup_system
    
-      module subroutine collision_setup_impactors_system(self)
+      module subroutine collision_util_setup_impactors_system(self)
          implicit none
          class(collision_merge), intent(inout) :: self   !! Encounter collision system object
-      end subroutine collision_setup_impactors_system
+      end subroutine collision_util_setup_impactors_system
    
-      module subroutine collision_setup_fragments_system(self, nfrag)
+      module subroutine collision_util_setup_fragments_system(self, nfrag)
          implicit none
          class(collision_merge), intent(inout) :: self  !! Encounter collision system object
          integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
-      end subroutine collision_setup_fragments_system
+      end subroutine collision_util_setup_fragments_system
 
       module subroutine collision_util_add_fragments_to_system(self, nbody_system, param)
          implicit none
@@ -438,7 +438,6 @@ module collision
 
    contains
 
-
       subroutine collision_final_fragments(self)
          !! author: David A. Minton
          !!
@@ -465,6 +464,7 @@ module collision
 
          return
       end subroutine collision_final_impactors
+
 
       subroutine collision_final_netcdf_parameters(self)
         !! author: David A. Minton

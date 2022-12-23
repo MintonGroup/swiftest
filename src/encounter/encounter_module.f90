@@ -37,7 +37,7 @@ module encounter
       real(DP),     dimension(:,:), allocatable :: v2         !! the velocity of body 2 in the encounter
       integer(I4B), dimension(:),   allocatable :: level      !! Recursion level (used in SyMBA)
    contains
-      procedure :: setup       => encounter_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: setup       => encounter_util_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
       procedure :: append      => encounter_util_append_list  !! Appends elements from one structure to another
       procedure :: copy        => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
       procedure :: dealloc     => encounter_util_dealloc_list !! Deallocates all allocatables
@@ -98,7 +98,7 @@ module encounter
    type encounter_bounding_box
       type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
    contains
-      procedure :: setup        => encounter_setup_aabb      !! Setup a new axis-aligned bounding box structure
+      procedure :: setup        => encounter_util_setup_aabb      !! Setup a new axis-aligned bounding box structure
       procedure :: sweep_single => encounter_check_sweep_aabb_single_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
       procedure :: sweep_double => encounter_check_sweep_aabb_double_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
       generic   :: sweep        => sweep_single, sweep_double
@@ -236,18 +236,18 @@ module encounter
          class(base_parameters),  intent(inout) :: param   !! Current run configuration parameters
       end subroutine encounter_io_netcdf_write_frame_snapshot
 
-      module subroutine encounter_setup_aabb(self, n, n_last)
+      module subroutine encounter_util_setup_aabb(self, n, n_last)
          implicit none
          class(encounter_bounding_box), intent(inout) :: self   !! Swiftest encounter structure
          integer(I4B),                  intent(in)    :: n      !! Number of objects with bounding box extents
          integer(I4B),                  intent(in)    :: n_last !! Number of objects with bounding box extents the previous time this was called
-      end subroutine encounter_setup_aabb
+      end subroutine encounter_util_setup_aabb
 
-      module subroutine encounter_setup_list(self, n)
+      module subroutine encounter_util_setup_list(self, n)
          implicit none
          class(encounter_list), intent(inout) :: self !! Swiftest encounter structure
          integer(I8B),          intent(in)    :: n    !! Number of encounters to allocate space for
-      end subroutine encounter_setup_list
+      end subroutine encounter_util_setup_list
 
       module subroutine encounter_util_append_list(self, source, lsource_mask)
          implicit none

@@ -30,7 +30,7 @@ module whm
       real(DP), dimension(:),   allocatable :: muj    !! Jacobi mu: GMcb * eta(i) / eta(i - 1) 
       real(DP), dimension(:),   allocatable :: ir3j    !! Third term of heliocentric acceleration
       !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as whm_setup_pl and whm_util_spill_pl
+      !!    component list, such as whm_util_setup_pl and whm_util_spill_pl
    contains
       procedure :: h2j         => whm_coord_h2j_pl           !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
       procedure :: j2h         => whm_coord_j2h_pl           !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
@@ -49,7 +49,7 @@ module whm
       procedure :: sort        => whm_util_sort_pl           !! Sort a WHM massive body object in-place. 
       procedure :: rearrange   => whm_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill       => whm_util_spill_pl          !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: setup       => whm_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: setup       => whm_util_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
       procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
       final     ::                whm_final_pl          !! Finalizes the WHM massive body object - deallocates all allocatables
    end type whm_pl
@@ -72,7 +72,7 @@ module whm
    type, extends(swiftest_nbody_system) :: whm_nbody_system
    contains
       !> Replace the abstract procedures with concrete ones
-      procedure :: initialize   => whm_setup_initialize_system !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure :: initialize   => whm_util_setup_initialize_system !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
       procedure :: step         => whm_step_system             !! Advance the WHM nbody system forward in time by one step
       final     ::                 whm_final_system       !! Finalizes the WHM nbody_system object - deallocates all allocatables 
    end type whm_nbody_system
@@ -173,18 +173,18 @@ module whm
       end subroutine whm_gr_p4_tp
 
       !> Reads WHM massive body object in from file
-      module subroutine whm_setup_pl(self, n, param)
+      module subroutine whm_util_setup_pl(self, n, param)
          implicit none
          class(whm_pl),             intent(inout) :: self  !! WHM massive body objectobject
          integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      end subroutine whm_setup_pl
+      end subroutine whm_util_setup_pl
 
-      module subroutine whm_setup_initialize_system(self, param)
+      module subroutine whm_util_setup_initialize_system(self, param)
          implicit none
          class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      end subroutine whm_setup_initialize_system
+      end subroutine whm_util_setup_initialize_system
 
       module subroutine whm_step_pl(self, nbody_system, param, t, dt)
          implicit none

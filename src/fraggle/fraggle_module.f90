@@ -44,10 +44,10 @@ module fraggle
       real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
    contains
       procedure :: generate                   => fraggle_generate_system                 !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
-      procedure :: set_budgets                => fraggle_set_budgets                     !! Sets the energy and momentum budgets of the fragments based on the collider value
-      procedure :: set_natural_scale          => fraggle_set_natural_scale_factors       !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
-      procedure :: set_original_scale         => fraggle_set_original_scale_factors      !! Restores dimenional quantities back to the original system units
-      procedure :: setup_fragments            => fraggle_setup_fragments_system          !! Initializer for the fragments of the collision system. 
+      procedure :: set_budgets                => fraggle_util_set_budgets                     !! Sets the energy and momentum budgets of the fragments based on the collider value
+      procedure :: set_natural_scale          => fraggle_util_set_natural_scale_factors       !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
+      procedure :: set_original_scale         => fraggle_util_set_original_scale_factors      !! Restores dimenional quantities back to the original system units
+      procedure :: setup_fragments            => fraggle_util_setup_fragments_system          !! Initializer for the fragments of the collision system. 
       procedure :: construct_temporary_system => fraggle_util_construct_temporary_system !! Constructs temporary n-body system in order to compute pre- and post-impact energy and momentum
       procedure :: reset                      => fraggle_util_reset_system               !! Deallocates all allocatables
       final     ::                               fraggle_final_system                    !! Finalizer will deallocate all allocatables
@@ -89,31 +89,11 @@ module fraggle
          real(DP),                 intent(in)    :: t            !! Time of collision
       end subroutine fraggle_generate_system
 
-      module subroutine fraggle_set_budgets(self)
-         implicit none
-         class(collision_fraggle), intent(inout) :: self !! Fraggle collision system object
-      end subroutine  fraggle_set_budgets
-
-      module subroutine fraggle_set_natural_scale_factors(self)
-         implicit none
-         class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      end subroutine fraggle_set_natural_scale_factors
-
-      module subroutine fraggle_set_original_scale_factors(self)
-         implicit none
-         class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      end subroutine fraggle_set_original_scale_factors
-
-      module subroutine fraggle_setup_fragments_system(self, nfrag)
+      module subroutine fraggle_util_setup_fragments_system(self, nfrag)
          implicit none
          class(collision_fraggle), intent(inout) :: self  !! Encounter collision system object
          integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
-      end subroutine fraggle_setup_fragments_system
-
-      module subroutine fraggle_util_get_angular_momentum(self) 
-         implicit none
-         class(fraggle_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
-      end subroutine fraggle_util_get_angular_momentum
+      end subroutine fraggle_util_setup_fragments_system
 
       module subroutine fraggle_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
          implicit none
@@ -124,10 +104,10 @@ module fraggle
          class(base_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
       end subroutine fraggle_util_construct_temporary_system
 
-      module subroutine fraggle_final_impactors(self)
+      module subroutine fraggle_util_get_angular_momentum(self) 
          implicit none
-         type(collision_impactors),  intent(inout) :: self !! Fraggle impactors object
-      end subroutine fraggle_final_impactors
+         class(fraggle_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
+      end subroutine fraggle_util_get_angular_momentum
 
       module subroutine fraggle_util_reset_fragments(self)
          implicit none
@@ -147,6 +127,22 @@ module fraggle
          real(DP),                 intent(inout) :: f_spin      !! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt
          real(DP),                 intent(inout) :: r_max_start !! The maximum radial distance that the position calculation starts with. This increases after a failed attempt
       end subroutine fraggle_util_restructure
+
+      module subroutine fraggle_util_set_budgets(self)
+         implicit none
+         class(collision_fraggle), intent(inout) :: self !! Fraggle collision system object
+      end subroutine  fraggle_util_set_budgets
+
+      module subroutine fraggle_util_set_natural_scale_factors(self)
+         implicit none
+         class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
+      end subroutine fraggle_util_set_natural_scale_factors
+
+      module subroutine fraggle_util_set_original_scale_factors(self)
+         implicit none
+         class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
+      end subroutine fraggle_util_set_original_scale_factors
+
 
       module subroutine fraggle_util_shift_vector_to_origin(m_frag, vec_frag)
          implicit none
@@ -179,6 +175,18 @@ module fraggle
 
          return
       end subroutine fraggle_final_fragments
+
+
+      subroutine fraggle_final_impactors(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer will deallocate all allocatables
+         implicit none
+         ! Arguments
+         type(collision_impactors),  intent(inout) :: self !! Fraggle impactors object
+         call self%reset()
+         return
+      end subroutine fraggle_final_impactors
 
 
       subroutine fraggle_final_system(self)

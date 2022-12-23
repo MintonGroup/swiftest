@@ -144,7 +144,7 @@ module swiftest
       procedure :: accel_obl       => swiftest_obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: el2xv           => swiftest_orbel_el2xv_vec              !! Convert orbital elements to position and velocity vectors
       procedure :: xv2el           => swiftest_orbel_xv2el_vec              !! Convert position and velocity vectors to orbital  elements 
-      procedure :: setup           => swiftest_setup_body                   !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure :: setup           => swiftest_util_setup_body                   !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user      => swiftest_user_kick_getacch_body       !! Add user-supplied heliocentric accelerations to planets
       procedure :: append          => swiftest_util_append_body             !! Appends elements from one structure to another
       procedure :: dealloc         => swiftest_util_dealloc_body            !! Deallocates all allocatable arrays
@@ -249,7 +249,7 @@ module swiftest
       procedure :: discard        => swiftest_discard_pl             !! Placeholder method for discarding massive bodies 
       procedure :: accel_int      => swiftest_kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl      => swiftest_obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: setup          => swiftest_setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure :: setup          => swiftest_util_setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
     ! procedure :: accel_tides    => tides_kick_getacch_pl           !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure :: append         => swiftest_util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b            => swiftest_util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
@@ -281,14 +281,14 @@ module swiftest
       integer(I8B)                              :: npltp  !! Number of pl-tp comparisons in the flattened upper triangular matrix
       integer(I4B), dimension(:),   allocatable :: nplenc !! number of encounters with planets this time step
       !! Note to developers: If you add components to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as swiftest_setup_tp and util_spill_tp
+      !!    component list, such as swiftest_util_setup_tp and util_spill_tp
    contains
       ! Test particle-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
       procedure :: discard   => swiftest_discard_tp             !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       procedure :: accel_int => swiftest_kick_getacch_int_tp    !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
       procedure :: accel_obl => swiftest_obl_acc_tp             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: setup     => swiftest_setup_tp               !! A base constructor that sets the number of bodies and 
+      procedure :: setup     => swiftest_util_setup_tp               !! A base constructor that sets the number of bodies and 
       procedure :: append    => swiftest_util_append_tp         !! Appends elements from one structure to another
       procedure :: h2b       => swiftest_util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h       => swiftest_util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
@@ -385,8 +385,8 @@ module swiftest
       procedure :: read_in                 => swiftest_io_read_in_system                      !! Reads the initial conditions for an nbody system
       procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system       !! Read in particle metadata from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-      procedure :: initialize              => swiftest_setup_initialize_system                !! Initialize the nbody_system from input files
-      procedure :: init_particle_info      => swiftest_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
+      procedure :: initialize              => swiftest_util_setup_initialize_system                !! Initialize the nbody_system from input files
+      procedure :: init_particle_info      => swiftest_util_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
     ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => swiftest_util_set_msys                          !! Sets the value of msys from the masses of nbody_system bodies.
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_momentum_system        !! Calculates the total nbody_system energy and momentum
@@ -1007,44 +1007,44 @@ module swiftest
          class(swiftest_cb),   intent(inout) :: cb   !! Swiftest central body object
       end subroutine swiftest_orbel_xv2el_vec
 
-      module subroutine swiftest_setup_body(self, n, param)
+      module subroutine swiftest_util_setup_body(self, n, param)
          implicit none
          class(swiftest_body),       intent(inout) :: self  !! Swiftest body object
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      end subroutine swiftest_setup_body
+      end subroutine swiftest_util_setup_body
 
-      module subroutine swiftest_setup_construct_system(nbody_system, param)
+      module subroutine swiftest_util_setup_construct_system(nbody_system, param)
          implicit none
          class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
          class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
-      end subroutine swiftest_setup_construct_system
+      end subroutine swiftest_util_setup_construct_system
 
-      module subroutine swiftest_setup_initialize_particle_info_system(self, param)
+      module subroutine swiftest_util_setup_initialize_particle_info_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
-      end subroutine swiftest_setup_initialize_particle_info_system
+      end subroutine swiftest_util_setup_initialize_particle_info_system
 
-      module subroutine swiftest_setup_initialize_system(self, param)
+      module subroutine swiftest_util_setup_initialize_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
-      end subroutine swiftest_setup_initialize_system
+      end subroutine swiftest_util_setup_initialize_system
 
-      module subroutine swiftest_setup_pl(self, n, param)
+      module subroutine swiftest_util_setup_pl(self, n, param)
          implicit none
          class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      end subroutine swiftest_setup_pl
+      end subroutine swiftest_util_setup_pl
 
-      module subroutine swiftest_setup_tp(self, n, param)
+      module subroutine swiftest_util_setup_tp(self, n, param)
          implicit none
          class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parametersr
-      end subroutine swiftest_setup_tp
+      end subroutine swiftest_util_setup_tp
 
       module subroutine swiftest_user_kick_getacch_body(self, nbody_system, param, t, lbeg)
          implicit none

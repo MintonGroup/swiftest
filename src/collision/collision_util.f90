@@ -88,7 +88,7 @@ contains
             if (allocated(tmpparam)) deallocate(tmpparam)
             if (allocated(tmpsys)) deallocate(tmpsys)
             allocate(tmpparam, source=param)
-            call swiftest_setup_construct_system(tmpsys_local, tmpparam_local)
+            call swiftest_util_setup_construct_system(tmpsys_local, tmpparam_local)
 
             ! No test particles necessary for energy/momentum calcs
             call tmpsys_local%tp%setup(0, tmpparam_local)
@@ -571,6 +571,59 @@ contains
    end subroutine collision_util_set_mass_dist
 
 
+   module subroutine collision_util_setup_system(self, nbody_system)
+      !! author: David A. Minton
+      !!
+      !! Initializer for the encounter collision system. Sets up impactors and the before/after snapshots,
+      !! but not fragments. Those are setup later when the number of fragments is known.
+      implicit none
+      ! Arguments
+      class(collision_merge),  intent(inout) :: self         !! Encounter collision system object
+      class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
+
+      call self%setup_impactors()
+      if (allocated(self%before)) deallocate(self%before)
+      if (allocated(self%after)) deallocate(self%after)
+
+      allocate(self%before, mold=nbody_system)
+      allocate(self%after,  mold=nbody_system)
+
+      return
+   end subroutine collision_util_setup_system
+
+
+   module subroutine collision_util_setup_impactors_system(self)
+      !! author: David A. Minton
+      !!
+      !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
+      implicit none
+      ! Arguments
+      class(collision_merge), intent(inout) :: self   !! Encounter collision system object
+
+      if (allocated(self%impactors)) deallocate(self%impactors)
+      allocate(collision_impactors :: self%impactors)
+
+      return
+   end subroutine collision_util_setup_impactors_system
+
+
+   module subroutine collision_util_setup_fragments_system(self, nfrag)
+      !! author: David A. Minton
+      !!
+      !! Initializer for the fragments of the collision system. 
+      implicit none
+      ! Arguments
+      class(collision_merge), intent(inout) :: self  !! Encounter collision system object
+      integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
+
+      if (allocated(self%fragments)) deallocate(self%fragments)
+      allocate(collision_fragments(nfrag) :: self%fragments)
+      self%fragments%nbody = nfrag
+
+      return
+   end subroutine collision_util_setup_fragments_system
+
+   
    subroutine collision_util_save_snapshot(collision_history, snapshot)
       !! author: David A. Minton
       !!
