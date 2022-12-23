@@ -1687,16 +1687,16 @@ contains
       character(len=:), allocatable             :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_io_write_info_body nf90_set_fill nf90_nofill"  )
+      call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_io_write_info_cb nf90_set_fill nf90_nofill"  )
 
       idslot = self%id + 1
-      call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_info_body nf90_put_var cb id_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_info_cb nf90_put_var id_varid"  )
 
       charstring = trim(adjustl(self%info%name))
-      call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_body nf90_put_var cb name_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_cb nf90_put_var name_varid"  )
 
       charstring = trim(adjustl(self%info%particle_type))
-      call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_body nf90_put_var cb ptype_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_cb nf90_put_var ptype_varid"  )
 
       if (param%lclose) then
          charstring = trim(adjustl(self%info%origin_type))
