@@ -58,6 +58,7 @@ module collision
       real(DP),     dimension(NDIM,2)              :: Lspin     !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: Lorbit    !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: Ip        !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
+      real(DP),     dimension(2)                   :: Gmass     !! Two-body equivalent G*mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: mass      !! Two-body equivalent mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: radius    !! Two-body equivalent radii of the collider bodies prior to the collision
       real(DP)                                     :: Qloss     !! Energy lost during the collision

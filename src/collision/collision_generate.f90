@@ -328,28 +328,38 @@ contains
    module subroutine collision_generate_simple_vel_vec(collider)
       !! Author:  David A. Minton
       !!
-      !! Generates an initial "guess" for the velocitity vectors 
+      !! Generates an initial velocity distribution. For disruptions, the velocity magnitude is set to be
+      !! 2x the escape velocity of the colliding pair. For hit and runs the velocity magnitude is set to be
+      !! 2x the escape velocity of the smallest of the two bodies.
       implicit none
       ! Arguments
       class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
       integer(I4B) :: i, j
-      logical :: lcat
-      real(DP), dimension(NDIM) :: vimp_unit
+      logical :: lhr
+      real(DP), dimension(NDIM) :: vimp_unit, vcom, rnorm
       real(DP), dimension(NDIM,collider%fragments%nbody) :: vnoise
       real(DP), parameter :: VNOISE_MAG = 0.10_DP
       real(DP) :: vmag
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
-         lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
+         lhr = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
          ! "Bounce" the first two bodies
          do i = 1,2
-            fragments%vc(:,i) = impactors%vb(:,i) - impactors%vbcom(:)  - 2 * impactors%vbimp(:)
+            vcom(:) = impactors%vb(:,i) - impactors%vbcom(:)
+            rnorm(:) = impactors%y_unit(:)
+            ! Do the reflection
+            vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
+            fragments%vc(:,i) = vcom(:)
          end do
 
-         vmag = .mag.impactors%vbcom(:) 
-         vimp_unit(:) = .unit. impactors%vbimp(:)
+         ! Compute the escape velocity
+         if (lhr) then
+            vmag = 2 * sqrt(2 * impactors%Gmass(2) / impactors%radius(2))
+         else
+            vmag = 2 * sqrt(2 * sum(impactors%Gmass(:)) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1))))
+         end if
          call random_number(vnoise)
          vnoise = (2 * vnoise - 1.0_DP) * vmag
          do i = 3, nfrag

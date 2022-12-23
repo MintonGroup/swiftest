@@ -57,7 +57,8 @@ contains
                pl%kin(idx_parent(2))%parent = idx_parent(1)
             end if
 
-            impactors%mass(:) = pl%mass(idx_parent(:)) ! Note: This is meant to mass, not G*mass, as the collisional regime determination uses mass values that will be converted to Si
+            impactors%Gmass(:) = pl%Gmass(idx_parent(:)) 
+            impactors%mass(:)  = pl%mass(idx_parent(:)) 
             impactors%radius(:) = pl%radius(idx_parent(:))
             volume(:) =  (4.0_DP / 3.0_DP) * PI * impactors%radius(:)**3
       
