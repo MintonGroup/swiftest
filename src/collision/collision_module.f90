@@ -255,13 +255,18 @@ module collision
 
       module subroutine collision_generate_simple_pos_vec(collider, r_max_start)
          implicit none
-         class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
+         class(collision_simple_disruption), intent(inout) :: collider !! Collision system object
          real(DP),                           intent(in)    :: r_max_start    !! The maximum radial distance of fragments for disruptive collisions
       end subroutine collision_generate_simple_pos_vec 
 
+      module subroutine collision_generate_simple_rot_vec(collider)
+         implicit none
+         class(collision_basic), intent(inout) :: collider !! Collision system object
+      end subroutine collision_generate_simple_rot_vec 
+
       module subroutine collision_generate_simple_vel_vec(collider)
          implicit none
-         class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
+         class(collision_simple_disruption), intent(inout) :: collider !! Collision system object
       end subroutine collision_generate_simple_vel_vec
     
       module subroutine collision_io_collider_message(pl, collidx, collider_message)

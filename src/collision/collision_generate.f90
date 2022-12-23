@@ -376,6 +376,7 @@ contains
       call collision_generate_simple_pos_vec(self, r_max_start)
       call self%set_coordinate_system()
       call collision_generate_simple_vel_vec(self)
+      call collision_generate_simple_rot_vec(self)
       call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
       return
    end subroutine collision_generate_disrupt
@@ -461,6 +462,45 @@ contains
    end subroutine collision_generate_simple_pos_vec
 
 
+   module subroutine collision_generate_simple_rot_vec(collider)
+      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Calculates the spins of a collection of fragments such that they conserve angular momentum 
+      implicit none
+      ! Arguments
+      class(collision_basic), intent(inout) :: collider !! Fraggle collision system object
+      ! Internals
+      real(DP), dimension(NDIM) :: Ltotal, Lresidual
+      integer(I4B) :: i
+
+      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
+
+         fragments%rot(:,:) = 0.0_DP
+         ! Keep the first two bodies spinning as before to start with
+         Lresidual(:) = 0.0_DP
+         do i = 1,2
+            fragments%rot(:,i) = impactors%Lspin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
+            Lresidual(:) = Lresidual(:) + impactors%Lorbit(:,i)
+         end do
+
+         ! Compute the current orbital angular momentum
+         do i = 1, nfrag
+            Lresidual(:) = Lresidual(:) - fragments%mass(i) * (fragments%rc(:,i) .cross. fragments%vc(:,i))
+         end do
+
+         ! Distributed most of the remaining angular momentum amongst all the particles
+         if (.mag.(Lresidual(:)) > tiny(1.0_DP)) then 
+            do i = 1,nfrag
+               fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / (nfrag * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)) 
+            end do
+         end if
+
+      end associate
+
+      return
+   end subroutine collision_generate_simple_rot_vec
+
+
    module subroutine collision_generate_simple_vel_vec(collider)
       !! Author:  David A. Minton
       !!
@@ -471,7 +511,7 @@ contains
       ! Arguments
       class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      integer(I4B) :: i, j
+      integer(I4B) :: i
       logical :: lhr
       real(DP), dimension(NDIM) :: vimp_unit, vcom, rnorm
       real(DP), dimension(NDIM,collider%fragments%nbody) :: vnoise
