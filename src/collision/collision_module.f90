@@ -66,13 +66,14 @@ module collision
       real(DP)                                     :: Mcb       !! Mass of central body (used to compute potential energy in regime determination)
 
       ! Values in a coordinate frame centered on the collider barycenter and collisional nbody_system unit vectors 
-      real(DP), dimension(NDIM) :: x_unit  !! x-direction unit vector of collisional nbody_system
-      real(DP), dimension(NDIM) :: y_unit  !! y-direction unit vector of collisional nbody_system
-      real(DP), dimension(NDIM) :: z_unit  !! z-direction unit vector of collisional nbody_system
-      real(DP), dimension(NDIM) :: v_unit  !! z-direction unit vector of collisional nbody_system
-      real(DP), dimension(NDIM) :: rbcom   !! Center of mass position vector of the collider nbody_system in nbody_system barycentric coordinates
-      real(DP), dimension(NDIM) :: vbcom   !! Velocity vector of the center of mass of the collider nbody_system in nbody_system barycentric coordinates
-      real(DP), dimension(NDIM) :: rbimp   !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: x_unit !! x-direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: y_unit !! y-direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: z_unit !! z-direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: v_unit !! velocity direction unit vector of collisional nbody_system
+      real(DP), dimension(NDIM) :: rbcom  !! Center of mass position vector of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: vbcom  !! Velocity vector of the center of mass of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: rbimp  !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: vbimp  !! The impact point velocity vector is the component of the velocity in the distance vector direction
 
    contains
       procedure :: consolidate => collision_resolve_consolidate_impactors !! Consolidates a multi-body collision into an equivalent 2-body collision
@@ -149,7 +150,7 @@ module collision
 
    type, extends(collision_merge) :: collision_simple_disruption
    contains 
-      procedure :: generate      => collision_generate_simple    !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
+      procedure :: generate      => collision_generate_simple_disruption    !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
       procedure :: set_mass_dist => collision_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
       final     ::                  collision_final_simple       !! Finalizer will deallocate all allocatables
    end type collision_simple_disruption
@@ -223,13 +224,13 @@ module collision
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_bounce
 
-      module subroutine collision_generate_simple(self, nbody_system, param, t)
+      module subroutine collision_generate_simple_disruption(self, nbody_system, param, t)
          implicit none
          class(collision_simple_disruption),  intent(inout) :: self         !! Simple fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine collision_generate_simple
+      end subroutine collision_generate_simple_disruption
 
       module subroutine collision_io_collider_message(pl, collidx, collider_message)
          implicit none

@@ -252,9 +252,6 @@ contains
             return
          end if
 
-         ! This is a factor that will "distort" the shape of the frgment cloud in the direction of the impact velocity 
-         f_spin= .mag. (runit(:) .cross. vunit(:)) 
-
          if (param%lflatten_interactions) then
             lk_plpl = allocated(pl%k_plpl)
             if (lk_plpl) deallocate(pl%k_plpl)
@@ -287,6 +284,9 @@ contains
 
             call fraggle_generate_pos_vec(collider, r_max_start)
             call collider%set_coordinate_system()
+
+            ! This is a factor that will "distort" the shape of the fragment cloud in the direction of the impact velocity 
+            f_spin= .mag. (impactors%y_unit(:) .cross. impactors%v_unit(:)) 
 
             ! Initial velocity guess will be the barycentric velocity of the colliding nbody_system so that the budgets are based on the much smaller collisional-frame velocities
             do concurrent (i = 1:nfrag)

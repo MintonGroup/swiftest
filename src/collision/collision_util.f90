@@ -87,7 +87,7 @@ contains
             ! Set up a new system based on the original
             if (allocated(tmpparam)) deallocate(tmpparam)
             if (allocated(tmpsys)) deallocate(tmpsys)
-            allocate(tmpparam, source=param)
+            allocate(tmpparam_local, source=param)
             call swiftest_util_setup_construct_system(tmpsys_local, tmpparam_local)
 
             ! No test particles necessary for energy/momentum calcs
@@ -411,10 +411,13 @@ contains
 
          ! The cross product of the y- by z-axis will give us the x-axis
          impactors%x_unit(:) = impactors%y_unit(:) .cross. impactors%z_unit(:)
-
          impactors%v_unit(:) = .unit.delta_v(:)
 
-         if (.not.any(fragments%rc(:,:) > 0.0_DP)) return
+         ! The "bounce" unit vector is the projection of 
+         impactors%vbimp(:) = dot_product(delta_v(:),impactors%x_unit(:)) * impactors%x_unit(:)
+
+         if ((.not.allocated(self%fragments)) .or. (nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
+
          fragments%rmag(:) = .mag. fragments%rc(:,:)
   
          ! Randomize the tangential velocity direction. 
@@ -623,7 +626,7 @@ contains
       return
    end subroutine collision_util_setup_fragments_system
 
-   
+
    subroutine collision_util_save_snapshot(collision_history, snapshot)
       !! author: David A. Minton
       !!

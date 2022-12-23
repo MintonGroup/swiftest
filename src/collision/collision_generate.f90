@@ -12,6 +12,64 @@ submodule(collision) s_collision_generate
    use swiftest
 contains
 
+   module subroutine collision_generate_bounce(self, nbody_system, param, t)
+      !! author: David A. Minton
+      !!
+      !! In this collision model, if the collision would result in a disruption, the bodies are instead "bounced" off 
+      !! of the center of mass. This is done as a reflection in the 2-body equivalent distance vector direction.
+      implicit none
+      ! Arguments
+      class(collision_bounce),  intent(inout) :: self         !! Bounce fragment system object 
+      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            !! The time of the collision
+      ! Internals
+      integer(I4B) :: i,j,nfrag
+      real(DP), dimension(NDIM) :: vcom, rnorm
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+      select type (pl => nbody_system%pl)
+      class is (swiftest_pl)
+         associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
+            select case (impactors%regime) 
+            case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+               nfrag = size(impactors%id(:))
+               do i = 1, nfrag
+                  j = impactors%id(i)
+                  vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
+                  rnorm(:) = .unit. (impactors%rb(:,2) - impactors%rb(:,1))
+                  ! Do the reflection
+                  vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
+                  pl%vb(:,j) = impactors%vbcom(:) + vcom(:)
+                  self%status = DISRUPTED
+                  pl%status(j) = ACTIVE
+                  pl%ldiscard(j) = .false.
+                  pl%lcollision(j) = .false.
+               end do
+               select type(before => self%before)
+               class is (swiftest_nbody_system)
+               select type(after => self%after)
+               class is (swiftest_nbody_system)
+                  allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work   
+               end select
+               end select
+            case (COLLRESOLVE_REGIME_HIT_AND_RUN)
+               call collision_generate_hitandrun(self, nbody_system, param, t)
+            case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
+               call self%collision_merge%generate(nbody_system, param, t) ! Use the default collision model, which is merge
+            case default 
+               write(*,*) "Error in swiftest_collision, unrecognized collision regime"
+               call util_exit(FAILURE)
+            end select
+            end associate
+      end select
+      end select
+
+      return
+   end subroutine collision_generate_bounce
+
+
    module subroutine collision_generate_hitandrun(collider, nbody_system, param, t) 
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
@@ -159,70 +217,12 @@ contains
    end subroutine collision_generate_merge
 
 
-   module subroutine collision_generate_bounce(self, nbody_system, param, t)
-      !! author: David A. Minton
-      !!
-      !! In this collision model, if the collision would result in a disruption, the bodies are instead "bounced" off 
-      !! of the center of mass. This is done as a reflection in the 2-body equivalent distance vector direction.
-      implicit none
-      ! Arguments
-      class(collision_bounce),  intent(inout) :: self         !! Bounce fragment system object 
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! The time of the collision
-      ! Internals
-      integer(I4B) :: i,j,nfrag
-      real(DP), dimension(NDIM) :: vcom, rnorm
-
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
-      select type (pl => nbody_system%pl)
-      class is (swiftest_pl)
-         associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
-            select case (impactors%regime) 
-            case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-               nfrag = size(impactors%id(:))
-               do i = 1, nfrag
-                  j = impactors%id(i)
-                  vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
-                  rnorm(:) = .unit. (impactors%rb(:,2) - impactors%rb(:,1))
-                  ! Do the reflection
-                  vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
-                  pl%vb(:,j) = impactors%vbcom(:) + vcom(:)
-                  self%status = DISRUPTED
-                  pl%status(j) = ACTIVE
-                  pl%ldiscard(j) = .false.
-                  pl%lcollision(j) = .false.
-               end do
-               select type(before => self%before)
-               class is (swiftest_nbody_system)
-               select type(after => self%after)
-               class is (swiftest_nbody_system)
-                  allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work   
-               end select
-               end select
-            case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-               call collision_generate_hitandrun(self, nbody_system, param, t)
-            case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-               call self%collision_merge%generate(nbody_system, param, t) ! Use the default collision model, which is merge
-            case default 
-               write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-               call util_exit(FAILURE)
-            end select
-            end associate
-      end select
-      end select
-
-      return
-   end subroutine collision_generate_bounce
-
-
-   module subroutine collision_generate_simple(self, nbody_system, param, t)
+   module subroutine collision_generate_simple_disruption(self, nbody_system, param, t)
       implicit none
       class(collision_simple_disruption),  intent(inout) :: self         !! Simple fragment system object 
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
-   end subroutine collision_generate_simple
+   end subroutine collision_generate_simple_disruption
 
 end submodule s_collision_generate
