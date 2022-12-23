@@ -632,7 +632,7 @@ contains
             end do
             fragments%v_t_mag(1:nfrag) = solve_fragment_tan_vel(v_t_mag_input=v_t_initial(7:nfrag), lfailure=lfailure)
 
-            ! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional nbody_system (the origin)
+            ! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional system (the origin)
             fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), fragments%v_t_mag(1:nfrag), &
                                                          fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
             do concurrent (i = 1:nfrag)
@@ -813,7 +813,7 @@ contains
             v_r_initial(:) = v_r_initial(:) * vnoise(:)
          end do
          
-         ! Shift the radial velocity vectors to align with the center of mass of the collisional nbody_system (the origin)
+         ! Shift the radial velocity vectors to align with the center of mass of the collisional system (the origin)
          fragments%ke_orbit = 0.0_DP
          fragments%ke_spin = 0.0_DP
          fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), &

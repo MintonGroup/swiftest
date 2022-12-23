@@ -11,7 +11,7 @@ submodule (collision) s_collision_util
    use swiftest
 contains
 
-   module subroutine collision_util_add_fragments_to_system(self, nbody_system, param)
+   module subroutine collision_util_add_fragments_to_collider(self, nbody_system, param)
       !! Author: David A. Minton
       !!
       !! Adds fragments to the temporary system pl object
@@ -58,7 +58,7 @@ contains
       end select
 
       return
-   end subroutine collision_util_add_fragments_to_system
+   end subroutine collision_util_add_fragments_to_collider
 
 
    module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
@@ -381,7 +381,7 @@ contains
    end subroutine collision_util_reset_system
 
 
-   module subroutine collision_util_set_coordinate_system(self)
+   module subroutine collision_util_set_coordinate_collider(self)
       !! author: David A. Minton
       !!
       !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
@@ -390,11 +390,45 @@ contains
       class(collision_merge),    intent(inout) :: self      !! Collisional nbody_system
       ! Internals
       integer(I4B) :: i
-      real(DP), dimension(NDIM) ::  delta_r, delta_v, Ltot
-      real(DP)   ::  L_mag, mtot
       real(DP), dimension(NDIM, self%fragments%nbody) :: L_sigma
 
       associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody)
+         call impactors%set_coordinate_system() 
+
+         if ((.not.allocated(self%fragments)) .or. (nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
+
+         fragments%rmag(:) = .mag. fragments%rc(:,:)
+  
+         ! Randomize the tangential velocity direction. 
+         ! This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector, otherwise we can get an ill-conditioned nbody_system
+         call random_number(L_sigma(:,:)) 
+         do concurrent(i = 1:nfrag, fragments%rmag(i) > 0.0_DP)
+            fragments%v_n_unit(:, i) = impactors%z_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
+         end do
+
+         ! Define the radial, normal, and tangential unit vectors for each individual fragment
+         fragments%v_r_unit(:,:) = .unit. fragments%rc(:,:) 
+         fragments%v_n_unit(:,:) = .unit. fragments%v_n_unit(:,:) 
+         fragments%v_t_unit(:,:) = .unit. (fragments%v_n_unit(:,:) .cross. fragments%v_r_unit(:,:))
+
+      end associate
+
+      return
+   end subroutine collision_util_set_coordinate_collider
+
+
+   module subroutine collision_util_set_coordinate_impactors(self)
+      !! author: David A. Minton
+      !!
+      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
+      implicit none
+      ! Arguments
+      class(collision_impactors),    intent(inout) :: self      !! Collisional nbody_system
+      ! Internals
+      real(DP), dimension(NDIM) ::  delta_r, delta_v, Ltot
+      real(DP)   ::  L_mag, mtot
+
+      associate(impactors => self)
          delta_v(:) = impactors%vb(:, 2) - impactors%vb(:, 1)
          delta_r(:) = impactors%rb(:, 2) - impactors%rb(:, 1)
    
@@ -427,27 +461,10 @@ contains
 
          ! The "bounce" unit vector is the projection of 
          impactors%vbimp(:) = dot_product(delta_v(:),impactors%x_unit(:)) * impactors%x_unit(:)
-
-         if ((.not.allocated(self%fragments)) .or. (nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
-
-         fragments%rmag(:) = .mag. fragments%rc(:,:)
-  
-         ! Randomize the tangential velocity direction. 
-         ! This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector, otherwise we can get an ill-conditioned nbody_system
-         call random_number(L_sigma(:,:)) 
-         do concurrent(i = 1:nfrag, fragments%rmag(i) > 0.0_DP)
-            fragments%v_n_unit(:, i) = impactors%z_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
-         end do
-
-         ! Define the radial, normal, and tangential unit vectors for each individual fragment
-         fragments%v_r_unit(:,:) = .unit. fragments%rc(:,:) 
-         fragments%v_n_unit(:,:) = .unit. fragments%v_n_unit(:,:) 
-         fragments%v_t_unit(:,:) = .unit. (fragments%v_n_unit(:,:) .cross. fragments%v_r_unit(:,:))
-
       end associate
 
       return
-   end subroutine collision_util_set_coordinate_system
+   end subroutine collision_util_set_coordinate_impactors
 
 
    module subroutine collision_util_set_mass_dist(self, param)
@@ -586,7 +603,7 @@ contains
    end subroutine collision_util_set_mass_dist
 
 
-   module subroutine collision_util_setup_system(self, nbody_system)
+   module subroutine collision_util_setup_collider(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Initializer for the encounter collision system. Sets up impactors and the before/after snapshots,
@@ -604,10 +621,10 @@ contains
       allocate(self%after,  mold=nbody_system)
 
       return
-   end subroutine collision_util_setup_system
+   end subroutine collision_util_setup_collider
 
 
-   module subroutine collision_util_setup_impactors_system(self)
+   module subroutine collision_util_setup_impactors_collider(self)
       !! author: David A. Minton
       !!
       !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
@@ -619,10 +636,10 @@ contains
       allocate(collision_impactors :: self%impactors)
 
       return
-   end subroutine collision_util_setup_impactors_system
+   end subroutine collision_util_setup_impactors_collider
 
 
-   module subroutine collision_util_setup_fragments_system(self, nfrag)
+   module subroutine collision_util_setup_fragments_collider(self, nfrag)
       !! author: David A. Minton
       !!
       !! Initializer for the fragments of the collision system. 
@@ -636,7 +653,7 @@ contains
       self%fragments%nbody = nfrag
 
       return
-   end subroutine collision_util_setup_fragments_system
+   end subroutine collision_util_setup_fragments_collider
 
 
    subroutine collision_util_save_snapshot(collision_history, snapshot)

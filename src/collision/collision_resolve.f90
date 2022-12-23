@@ -148,6 +148,9 @@ contains
             ! Destroy the kinship relationships for all members of this impactors%id
             call pl%reset_kinship(impactors%id(:))
 
+            ! Set the coordinate system of the impactors
+            call impactors%set_coordinate_system()
+
          end associate
       end select
       return

@@ -65,21 +65,22 @@ module collision
       real(DP),     dimension(:),      allocatable :: mass_dist !! Distribution of fragment mass determined by the regime calculation (largest fragment, second largest, and remainder)    
       real(DP)                                     :: Mcb       !! Mass of central body (used to compute potential energy in regime determination)
 
-      ! Values in a coordinate frame centered on the collider barycenter and collisional nbody_system unit vectors 
-      real(DP), dimension(NDIM) :: x_unit !! x-direction unit vector of collisional nbody_system
-      real(DP), dimension(NDIM) :: y_unit !! y-direction unit vector of collisional nbody_system
-      real(DP), dimension(NDIM) :: z_unit !! z-direction unit vector of collisional nbody_system
-      real(DP), dimension(NDIM) :: v_unit !! velocity direction unit vector of collisional nbody_system
+      ! Values in a coordinate frame centered on the collider barycenter and collisional system unit vectors 
+      real(DP), dimension(NDIM) :: x_unit !! x-direction unit vector of collisional system
+      real(DP), dimension(NDIM) :: y_unit !! y-direction unit vector of collisional system
+      real(DP), dimension(NDIM) :: z_unit !! z-direction unit vector of collisional system
+      real(DP), dimension(NDIM) :: v_unit !! velocity direction unit vector of collisional system
       real(DP), dimension(NDIM) :: rbcom  !! Center of mass position vector of the collider nbody_system in nbody_system barycentric coordinates
       real(DP), dimension(NDIM) :: vbcom  !! Velocity vector of the center of mass of the collider nbody_system in nbody_system barycentric coordinates
       real(DP), dimension(NDIM) :: rbimp  !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
       real(DP), dimension(NDIM) :: vbimp  !! The impact point velocity vector is the component of the velocity in the distance vector direction
 
    contains
-      procedure :: consolidate => collision_resolve_consolidate_impactors !! Consolidates a multi-body collision into an equivalent 2-body collision
-      procedure :: get_regime  => collision_regime_impactors              !! Determine which fragmentation regime the set of impactors will be
-      procedure :: reset       => collision_util_reset_impactors          !! Resets the collider object variables to 0 and deallocates the index and mass distributions
-      final     ::                collision_final_impactors                !! Finalizer will deallocate all allocatables
+      procedure :: consolidate           => collision_resolve_consolidate_impactors !! Consolidates a multi-body collision into an equivalent 2-body collision
+      procedure :: get_regime            => collision_regime_impactors              !! Determine which fragmentation regime the set of impactors will be
+      procedure :: reset                 => collision_util_reset_impactors          !! Resets the collider object variables to 0 and deallocates the index and mass distributions
+      procedure :: set_coordinate_system => collision_util_set_coordinate_impactors !! Sets the coordinate system of the impactors
+      final     ::                          collision_final_impactors               !! Finalizer will deallocate all allocatables
    end type collision_impactors
 
 
@@ -112,7 +113,7 @@ module collision
 
 
    type :: collision_merge
-      !! This class defines a collisional nbody_system that stores impactors and fragments. This is written so that various collision models (i.e. Fraggle) could potentially be used
+      !! This class defines a collisional system that stores impactors and fragments. This is written so that various collision models (i.e. Fraggle) could potentially be used
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       !!
       !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_merge parent class
@@ -131,15 +132,15 @@ module collision
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: Etot     !! Before/after total nbody_system energy
    contains
-      procedure :: setup                      => collision_util_setup_system                    !! Initializer for the encounter collision system and the before/after snapshots
-      procedure :: setup_impactors            => collision_util_setup_impactors_system          !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
-      procedure :: setup_fragments            => collision_util_setup_fragments_system          !! Initializer for the fragments of the collision system. 
-      procedure :: add_fragments              => collision_util_add_fragments_to_system    !! Add fragments to nbody_system
+      procedure :: setup                      => collision_util_setup_collider             !! Initializer for the encounter collision system and the before/after snapshots
+      procedure :: setup_impactors            => collision_util_setup_impactors_collider   !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
+      procedure :: setup_fragments            => collision_util_setup_fragments_collider   !! Initializer for the fragments of the collision system. 
+      procedure :: add_fragments              => collision_util_add_fragments_to_collider  !! Add fragments to nbody_system
       procedure :: construct_temporary_system => collision_util_construct_temporary_system !! Constructs temporary n-body nbody_system in order to compute pre- and post-impact energy and momentum
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
-      procedure :: set_coordinate_system      => collision_util_set_coordinate_system      !! Sets the coordinate nbody_system of the collisional nbody_system
-      procedure :: generate                   => collision_generate_merge           !! Merges the impactors to make a single final body
+      procedure :: set_coordinate_system      => collision_util_set_coordinate_collider    !! Sets the coordinate system of the collisional system
+      procedure :: generate                   => collision_generate_merge                  !! Merges the impactors to make a single final body
    end type collision_merge
 
    type, extends(collision_merge) :: collision_bounce
@@ -348,34 +349,39 @@ module collision
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine collision_resolve_pltp
 
-      module subroutine collision_util_set_coordinate_system(self)
+      module subroutine collision_util_set_coordinate_collider(self)
          implicit none
-         class(collision_merge), intent(inout) :: self      !! Collisional nbody_system
-      end subroutine collision_util_set_coordinate_system
+         class(collision_merge), intent(inout) :: self      !! collisional system
+      end subroutine collision_util_set_coordinate_collider
 
-      module subroutine collision_util_setup_system(self, nbody_system)
+      module subroutine collision_util_set_coordinate_impactors(self)
+         implicit none
+         class(collision_impactors), intent(inout) :: self      !! collisional system
+      end subroutine collision_util_set_coordinate_impactors
+
+      module subroutine collision_util_setup_collider(self, nbody_system)
          implicit none
          class(collision_merge),   intent(inout) :: self         !! Encounter collision system object
          class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
-      end subroutine collision_util_setup_system
+      end subroutine collision_util_setup_collider
    
-      module subroutine collision_util_setup_impactors_system(self)
+      module subroutine collision_util_setup_impactors_collider(self)
          implicit none
          class(collision_merge), intent(inout) :: self   !! Encounter collision system object
-      end subroutine collision_util_setup_impactors_system
+      end subroutine collision_util_setup_impactors_collider
    
-      module subroutine collision_util_setup_fragments_system(self, nfrag)
+      module subroutine collision_util_setup_fragments_collider(self, nfrag)
          implicit none
          class(collision_merge), intent(inout) :: self  !! Encounter collision system object
          integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
-      end subroutine collision_util_setup_fragments_system
+      end subroutine collision_util_setup_fragments_collider
 
-      module subroutine collision_util_add_fragments_to_system(self, nbody_system, param)
+      module subroutine collision_util_add_fragments_to_collider(self, nbody_system, param)
          implicit none
          class(collision_merge),  intent(in)    :: self         !! Collision system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(in)    :: param        !! Current swiftest run configuration parameters
-      end subroutine collision_util_add_fragments_to_system
+      end subroutine collision_util_add_fragments_to_collider
 
       module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
          implicit none
