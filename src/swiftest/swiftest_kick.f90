@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(swiftest) s_kick
+submodule(swiftest) s_swiftest_kick
 contains
    module subroutine swiftest_kick_getacch_int_pl(self, param)
       !! author: David A. Minton
@@ -316,4 +316,4 @@ contains
       return
    end subroutine swiftest_kick_getacch_int_one_tp
 
-end submodule s_kick
+end submodule s_swiftest_kick

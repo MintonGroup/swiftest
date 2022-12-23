@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest) s_obl
+submodule (swiftest) s_swiftest_obl
 contains
    module subroutine swiftest_obl_acc_body(self, nbody_system)
       !! author: David A. Minton
@@ -136,7 +136,7 @@ contains
       associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          if (.not. any(pl%lmask(1:npl))) return
          do concurrent (i = 1:npl, pl%lmask(i))
-            oblpot_arr(i) = obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
+            oblpot_arr(i) = swiftest_obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
          end do
          nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))
       end associate
@@ -145,7 +145,7 @@ contains
    end subroutine swiftest_obl_pot_system
 
 
-   elemental function obl_pot_one(GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
+   elemental function swiftest_obl_pot_one(GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
       !! author: David A. Minton
       !!
       !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a single massive body
@@ -179,6 +179,6 @@ contains
       oblpot = t0 * (t1 * p2 + t3 * p4)
          
       return
-   end function obl_pot_one
+   end function swiftest_obl_pot_one
 
-end submodule s_obl
+end submodule s_swiftest_obl

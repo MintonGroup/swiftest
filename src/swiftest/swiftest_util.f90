@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest) s_util
+submodule (swiftest) s_swiftest_util
    use whm
    use rmvs
    use helio
@@ -4601,4 +4601,4 @@ contains
       return
    end subroutine swiftest_util_version
 
-end submodule s_util
+end submodule s_swiftest_util

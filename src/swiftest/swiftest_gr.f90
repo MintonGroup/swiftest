@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(swiftest) s_gr
+submodule(swiftest) s_swiftest_gr
 contains
 
    pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, nbody_system, param) 
@@ -270,4 +270,4 @@ contains
       return
    end subroutine swiftest_gr_vh2pv_body
 
-end submodule s_gr
+end submodule s_swiftest_gr

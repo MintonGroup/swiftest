@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(swiftest) s_user_kick_getacch
+submodule(swiftest) s_swiftest_user
    use swiftest
 contains
    module subroutine swiftest_user_kick_getacch_body(self, nbody_system, param, t, lbeg)
@@ -27,4 +27,4 @@ contains
       return
    end subroutine swiftest_user_kick_getacch_body
 
-end submodule s_user_kick_getacch
+end submodule s_swiftest_user

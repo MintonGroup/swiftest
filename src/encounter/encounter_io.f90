@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (encounter) s_encounter_io_netcdf
+submodule (encounter) s_encounter_io
    use swiftest
 contains
 
@@ -226,4 +226,4 @@ contains
       return
    end subroutine encounter_io_netcdf_write_frame_snapshot
 
-end submodule s_encounter_io_netcdf
+end submodule s_encounter_io

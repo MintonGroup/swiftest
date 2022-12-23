@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest) s_io
+submodule (swiftest) s_swiftest_io
    use symba
    use netcdf
 contains
@@ -2903,4 +2903,4 @@ contains
       call util_exit(FAILURE)
    end subroutine swiftest_io_write_frame_system
 
-end submodule s_io
+end submodule s_swiftest_io

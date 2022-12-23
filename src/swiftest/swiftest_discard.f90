@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest) s_discard
+submodule (swiftest) s_swiftest_discard
 contains
 
    module subroutine swiftest_discard_system(self, param)
@@ -321,4 +321,4 @@ contains
       return
    end subroutine swiftest_discard_pl_close
 
-end submodule s_discard
+end submodule s_swiftest_discard

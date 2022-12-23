@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (rmvs) s_rmvs_chk
+submodule (rmvs) s_rmvs_encounter_check
    use swiftest
 contains
 
@@ -59,4 +59,4 @@ contains
    end function rmvs_encounter_check_tp
 
 
-end submodule s_rmvs_chk
+end submodule s_rmvs_encounter_check

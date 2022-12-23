@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest) s_orbel
+submodule (swiftest) s_swiftest_orbel
 contains
 
    module subroutine swiftest_orbel_el2xv_vec(self, cb)
@@ -1046,4 +1046,4 @@ contains
    end subroutine swiftest_orbel_xv2el
 
    
-end submodule s_orbel
+end submodule s_swiftest_orbel

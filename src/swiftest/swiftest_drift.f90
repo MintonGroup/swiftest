@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (swiftest) s_drift
+submodule (swiftest) s_swiftest_drift
    !> Integration control parameters:
    real(DP), parameter :: E2MAX    = 0.36_DP      
    real(DP), parameter :: DM2MAX   = 0.16_DP
@@ -556,4 +556,4 @@ contains
    end subroutine swiftest_drift_kepu_stumpff
 
 
-end submodule s_drift
+end submodule s_swiftest_drift
