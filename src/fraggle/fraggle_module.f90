@@ -43,11 +43,11 @@ module fraggle
       real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
       real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
    contains
-      procedure :: generate                   => fraggle_generate_system                 !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
-      procedure :: set_budgets                => fraggle_util_set_budgets                     !! Sets the energy and momentum budgets of the fragments based on the collider value
-      procedure :: set_natural_scale          => fraggle_util_set_natural_scale_factors       !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
-      procedure :: set_original_scale         => fraggle_util_set_original_scale_factors      !! Restores dimenional quantities back to the original system units
-      procedure :: setup_fragments            => fraggle_util_setup_fragments_system          !! Initializer for the fragments of the collision system. 
+      procedure :: disrupt                    => fraggle_generate_disrupt                !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
+      procedure :: set_budgets                => fraggle_util_set_budgets                !! Sets the energy and momentum budgets of the fragments based on the collider value
+      procedure :: set_natural_scale          => fraggle_util_set_natural_scale_factors  !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
+      procedure :: set_original_scale         => fraggle_util_set_original_scale_factors !! Restores dimenional quantities back to the original system units
+      procedure :: setup_fragments            => fraggle_util_setup_fragments_system     !! Initializer for the fragments of the collision system. 
       procedure :: construct_temporary_system => fraggle_util_construct_temporary_system !! Constructs temporary n-body system in order to compute pre- and post-impact energy and momentum
       procedure :: reset                      => fraggle_util_reset_system               !! Deallocates all allocatables
       final     ::                               fraggle_final_system                    !! Finalizer will deallocate all allocatables
@@ -55,39 +55,14 @@ module fraggle
 
 
    interface
-
-
-      module subroutine fraggle_generate_disruption(collider, nbody_system, param, t) 
+      module subroutine fraggle_generate_disrupt(self, nbody_system, param, t, lfailure)
          implicit none
-         class(collision_fraggle),        intent(inout) :: collider !! Fraggle collision system object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         real(DP),                     intent(in)    :: t                !! Time of collision
-      end subroutine fraggle_generate_disruption
-
-      module subroutine fraggle_generate_fragments(collider, nbody_system, param, lfailure)
-         implicit none
-         class(collision_fraggle),        intent(inout) :: collider !! Fraggle system object the outputs will be the fragmentation 
-         class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters 
-         logical,                      intent(out)   :: lfailure         !! Answers the question: Should this have been a merger instead?
-      end subroutine fraggle_generate_fragments
-
-      module subroutine fraggle_generate_hitandrun(collider, nbody_system, param, t)
-         implicit none
-         class(collision_fraggle),        intent(inout) :: collider !! Fraggle collision system object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-         real(DP),                     intent(in)    :: t                !! Time of collision
-      end subroutine fraggle_generate_hitandrun
-
-      module subroutine fraggle_generate_system(self, nbody_system, param, t)
-         implicit none
-         class(collision_fraggle),    intent(inout) :: self         !! Fraggle fragment system object 
+         class(collision_fraggle), intent(inout) :: self         !! Fraggle system object the outputs will be the fragmentation 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-         real(DP),                 intent(in)    :: t            !! Time of collision
-      end subroutine fraggle_generate_system
+         real(DP),                 intent(in)    :: t            !! Time of collision 
+         logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
+      end subroutine fraggle_generate_disrupt
 
       module subroutine fraggle_util_setup_fragments_system(self, nfrag)
          implicit none

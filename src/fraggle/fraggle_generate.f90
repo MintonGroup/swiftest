@@ -18,207 +18,19 @@ submodule(fraggle) s_fraggle_generate
 
 contains
 
-   module subroutine fraggle_generate_disruption(collider, nbody_system, param, t)
-      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Create the fragments resulting from a non-catastrophic disruption collision
-      !! 
-      implicit none
-      ! Arguments
-      class(collision_fraggle),     intent(inout) :: collider
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
-      real(DP),                     intent(in)    :: t            !! Time of collision
-      ! Internals
-      integer(I4B)          :: i, ibiggest, nfrag
-      logical               :: lfailure
-      character(len=STRMAX) :: message 
-      real(DP) :: dpe
-
-      associate(impactors => collider%impactors, fragments => collider%fragments,  pl => nbody_system%pl, status => collider%status)
-         select case(impactors%regime)
-         case(COLLRESOLVE_REGIME_DISRUPTION)
-            message = "Disruption between"
-         case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-            message = "Supercatastrophic disruption between"
-         end select
-         call collision_io_collider_message(nbody_system%pl, impactors%id, message)
-         call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-
-         ! Collisional fragments will be uniformly distributed around the pre-impact barycenter
-         call collider%set_mass_dist(param)
-
-         ! Generate the position and velocity distributions of the fragments
-         call fraggle_generate_fragments(collider, nbody_system, param, lfailure)
-
-         dpe = collider%pe(2) - collider%pe(1) 
-         nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
-         nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
-
-         if (lfailure) then
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "No fragment solution found, so treat as a pure hit-and-run")
-            status = ACTIVE 
-            nfrag = 0
-            pl%status(impactors%id(:)) = status
-            pl%ldiscard(impactors%id(:)) = .false.
-            pl%lcollision(impactors%id(:)) = .false.
-            select type(before => collider%before)
-            class is (swiftest_nbody_system)
-            select type(after => collider%after)
-            class is (swiftest_nbody_system)
-               allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work 
-            end select
-            end select
-         else
-            ! Populate the list of new bodies
-            nfrag = fragments%nbody
-            write(message, *) nfrag
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
-            select case(impactors%regime)
-            case(COLLRESOLVE_REGIME_DISRUPTION)
-               status = DISRUPTED
-               ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
-               fragments%id(1) = pl%id(ibiggest)
-               fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-               param%maxid = fragments%id(nfrag)
-            case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-               status = SUPERCATASTROPHIC
-               fragments%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
-               param%maxid = fragments%id(nfrag)
-            end select
-
-            call collision_resolve_mergeaddsub(nbody_system, param, t, status)
-         end if
-      end associate
-
-      return
-   end subroutine fraggle_generate_disruption
-
-
-   module subroutine fraggle_generate_hitandrun(collider, nbody_system, param, t) 
-      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Create the fragments resulting from a non-catastrophic hit-and-run collision
-      !! 
-      implicit none
-      ! Arguments
-      class(collision_fraggle),     intent(inout) :: collider !! Fraggle collision system object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters with SyMBA additions
-      real(DP),                     intent(in)    :: t                !! Time of collision
-      ! Result
-      integer(I4B)                                :: status           !! Status flag assigned to this outcome
-      ! Internals
-      integer(I4B)                            :: i, ibiggest, nfrag, jtarg, jproj
-      logical                                 :: lpure 
-      character(len=STRMAX) :: message
-      real(DP) :: dpe
-
-      select type(before => collider%before)
-      class is (swiftest_nbody_system)
-      select type(after => collider%after)
-      class is (swiftest_nbody_system)
-         associate(impactors => collider%impactors,pl => nbody_system%pl)
-            message = "Hit and run between"
-            call collision_io_collider_message(nbody_system%pl, impactors%id, message)
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
-
-            if (impactors%mass(1) > impactors%mass(2)) then
-               jtarg = 1
-               jproj = 2
-            else
-               jtarg = 2
-               jproj = 1
-            end if
-
-            if (impactors%mass_dist(2) > 0.9_DP * impactors%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Pure hit and run. No new fragments generated.")
-               nfrag = 0
-               lpure = .true.
-            else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
-               lpure = .false.
-               call collider%set_mass_dist(param)
-
-               ! Generate the position and velocity distributions of the fragments
-               call fraggle_generate_fragments(collider, nbody_system, param, lpure)
-
-               dpe = collider%pe(2) - collider%pe(1) 
-               nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
-               nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
-
-               if (lpure) then
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Should have been a pure hit and run instead")
-                  nfrag = 0
-               else
-                  nfrag = collider%fragments%nbody
-                  write(message, *) nfrag
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
-               end if
-            end if
-            if (lpure) then ! Reset these bodies back to being active so that nothing further is done to them
-               status = HIT_AND_RUN_PURE
-               pl%status(impactors%id(:)) = ACTIVE
-               pl%ldiscard(impactors%id(:)) = .false.
-               pl%lcollision(impactors%id(:)) = .false.
-               allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work 
-            else
-               ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
-               collider%fragments%id(1) = pl%id(ibiggest)
-               collider%fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-               param%maxid = collider%fragments%id(nfrag)
-               status = HIT_AND_RUN_DISRUPT
-               call collision_resolve_mergeaddsub(nbody_system, param, t, status)
-            end if
-         end associate
-      end select
-      end select
-
-
-      return
-   end subroutine fraggle_generate_hitandrun
-
-
-   module subroutine fraggle_generate_system(self, nbody_system, param, t)
-      implicit none
-      class(collision_fraggle), intent(inout) :: self     !! Fraggle fragment nbody_system object 
-      class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param     !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t         !! The time of the collision
-           
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
-      select type(param)
-      class is (swiftest_parameters)
-         select case (self%impactors%regime) 
-         case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-            call fraggle_generate_disruption(self, nbody_system, param, t)
-         case (COLLRESOLVE_REGIME_HIT_AND_RUN)
-            call fraggle_generate_hitandrun(self, nbody_system, param, t)
-         case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
-            call self%collision_merge%generate(nbody_system, param, t)
-         case default 
-            write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-            call util_exit(FAILURE)
-         end select
-      end select
-      end select
-
-      return
-   end subroutine fraggle_generate_system
-
-
-   module subroutine fraggle_generate_fragments(collider, nbody_system, param, lfailure)
+   module subroutine fraggle_generate_disrupt(self, nbody_system, param, t, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Generates a nbody_system of fragments in barycentric coordinates that conserves energy and momentum.
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(collision_fraggle),    intent(inout) :: collider !! Fraggle nbody_system object the outputs will be the fragmentation 
-      class(swiftest_nbody_system), intent(inout) :: nbody_system     !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param            !! Current run configuration parameters 
-      logical,                  intent(out)   :: lfailure         !! Answers the question: Should this have been a merger instead?
-      ! Internals
+      class(collision_fraggle), intent(inout) :: self         !! Fraggle system object the outputs will be the fragmentation 
+      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            !! Time of collision 
+      logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
+       ! Internals
       integer(I4B)                         :: i
       integer(I4B)                         :: try
       real(DP)                             :: r_max_start, f_spin, dEtot, dLmag
@@ -238,9 +50,9 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-      select type(fragments => collider%fragments)
+      select type(fragments => self%fragments)
       class is (fraggle_fragments(*))
-      associate(impactors => collider%impactors, nfrag => fragments%nbody, pl => nbody_system%pl)
+      associate(impactors => self%impactors, nfrag => fragments%nbody, pl => nbody_system%pl)
 
          write(message,*) nfrag
          call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle generating " // trim(adjustl(message)) // " fragments.")
@@ -258,12 +70,12 @@ contains
             lk_plpl = .false.
          end if
 
-         call collider%set_natural_scale()
+         call self%set_natural_scale()
 
          call fragments%reset()
 
          ! Calculate the initial energy of the nbody_system without the collisional family
-         call collider%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
+         call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
          r_max_start = 1.1_DP * .mag.(impactors%rb(:,2) - impactors%rb(:,1))
@@ -282,40 +94,40 @@ contains
             lfailure = .false.
             call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
-            call collision_generate_simple_pos_vec(collider, r_max_start)
-            call collider%set_coordinate_system()
+            call collision_generate_simple_pos_vec(self, r_max_start)
+            call self%set_coordinate_system()
 
             ! Initial velocity guess will be the barycentric velocity of the colliding nbody_system so that the budgets are based on the much smaller collisional-frame velocities
             do concurrent (i = 1:nfrag)
                fragments%vb(:, i) = impactors%vbcom(:)
             end do
 
-            call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-            call collider%set_budgets()
+            call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+            call self%set_budgets()
 
-            call collision_generate_simple_vel_vec(collider)
+            call collision_generate_simple_vel_vec(self)
 
-            call fraggle_generate_tan_vel(collider, lfailure)
+            call fraggle_generate_tan_vel(self, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find tangential velocities")
                cycle
             end if
 
-            call fraggle_generate_rad_vel(collider, lfailure)
+            call fraggle_generate_rad_vel(self, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
                cycle
             end if
 
-            call fraggle_generate_spins(collider, f_spin, lfailure)
+            call fraggle_generate_spins(self, f_spin, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
                cycle
             end if
 
-            call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-            dEtot = collider%Etot(2) - collider%Etot(1)
-            dLmag = .mag. (collider%Ltot(:,2) - collider%Ltot(:,1))
+            call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+            dEtot = self%Etot(2) - self%Etot(1)
+            dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
             exit
 
             lfailure = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
@@ -326,9 +138,9 @@ contains
                cycle
             end if
 
-            lfailure = ((abs(dLmag) / (.mag.collider%Ltot(:,1))) > FRAGGLE_LTOL) 
+            lfailure = ((abs(dLmag) / (.mag.self%Ltot(:,1))) > FRAGGLE_LTOL) 
             if (lfailure) then
-               write(message,*) dLmag / (.mag.collider%Ltot(:,1))
+               write(message,*) dLmag / (.mag.self%Ltot(:,1))
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
                                                         trim(adjustl(message)))
                cycle
@@ -351,7 +163,7 @@ contains
                                                        trim(adjustl(message)) // " tries")
          end if
 
-         call collider%set_original_scale()
+         call self%set_original_scale()
 
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
@@ -362,7 +174,8 @@ contains
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
 
       return 
-   end subroutine fraggle_generate_fragments
+   end subroutine fraggle_generate_disrupt
+
 
    subroutine fraggle_generate_spins(collider, f_spin, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
@@ -373,8 +186,8 @@ contains
       implicit none
       ! Arguments
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
-      real(DP),              intent(in)    :: f_spin    !! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)
-      logical,               intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
+      real(DP),                 intent(in)    :: f_spin    !! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)
+      logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
       ! Internals
       real(DP), dimension(NDIM) :: L_remainder, rot_L, rot_ke, L
       real(DP), dimension(NDIM,collider%fragments%nbody) :: frot_rand ! The random rotation factor applied to fragments

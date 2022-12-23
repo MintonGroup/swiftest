@@ -197,36 +197,36 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      associate(collision_merge => self, fragments => self%fragments, impactors => self%impactors)
+      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
          ! Set scale factors
-         collision_merge%Escale = 0.5_DP * ( impactors%mass(1) * dot_product(impactors%vb(:,1), impactors%vb(:,1)) &
+         collider%Escale = 0.5_DP * ( impactors%mass(1) * dot_product(impactors%vb(:,1), impactors%vb(:,1)) &
                                             + impactors%mass(2) * dot_product(impactors%vb(:,2), impactors%vb(:,2)))
-         collision_merge%dscale = sum(impactors%radius(:))
-         collision_merge%mscale = fragments%mtot 
-         collision_merge%vscale = sqrt(collision_merge%Escale / collision_merge%mscale) 
-         collision_merge%tscale = collision_merge%dscale / collision_merge%vscale 
-         collision_merge%Lscale = collision_merge%mscale * collision_merge%dscale * collision_merge%vscale
+         collider%dscale = sum(impactors%radius(:))
+         collider%mscale = fragments%mtot 
+         collider%vscale = sqrt(collider%Escale / collider%mscale) 
+         collider%tscale = collider%dscale / collider%vscale 
+         collider%Lscale = collider%mscale * collider%dscale * collider%vscale
 
          ! Scale all dimensioned quantities of impactors and fragments
-         impactors%rbcom(:)    = impactors%rbcom(:)    / collision_merge%dscale
-         impactors%vbcom(:)    = impactors%vbcom(:)    / collision_merge%vscale
-         impactors%rbimp(:)    = impactors%rbimp(:)    / collision_merge%dscale
-         impactors%vbimp(:)    = impactors%vbimp(:)    / collision_merge%vscale
-         impactors%rb(:,:)     = impactors%rb(:,:)     / collision_merge%dscale
-         impactors%vb(:,:)     = impactors%vb(:,:)     / collision_merge%vscale
-         impactors%mass(:)     = impactors%mass(:)     / collision_merge%mscale
-         impactors%radius(:)   = impactors%radius(:)   / collision_merge%dscale
-         impactors%Lspin(:,:)  = impactors%Lspin(:,:)  / collision_merge%Lscale
-         impactors%Lorbit(:,:) = impactors%Lorbit(:,:) / collision_merge%Lscale
+         impactors%rbcom(:)    = impactors%rbcom(:)    / collider%dscale
+         impactors%vbcom(:)    = impactors%vbcom(:)    / collider%vscale
+         impactors%rbimp(:)    = impactors%rbimp(:)    / collider%dscale
+         impactors%vbimp(:)    = impactors%vbimp(:)    / collider%vscale
+         impactors%rb(:,:)     = impactors%rb(:,:)     / collider%dscale
+         impactors%vb(:,:)     = impactors%vb(:,:)     / collider%vscale
+         impactors%mass(:)     = impactors%mass(:)     / collider%mscale
+         impactors%radius(:)   = impactors%radius(:)   / collider%dscale
+         impactors%Lspin(:,:)  = impactors%Lspin(:,:)  / collider%Lscale
+         impactors%Lorbit(:,:) = impactors%Lorbit(:,:) / collider%Lscale
 
          do i = 1, 2
             impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
          end do
 
-         fragments%mtot    = fragments%mtot   / collision_merge%mscale
-         fragments%mass    = fragments%mass   / collision_merge%mscale
-         fragments%radius  = fragments%radius / collision_merge%dscale
-         impactors%Qloss   = impactors%Qloss  / collision_merge%Escale
+         fragments%mtot    = fragments%mtot   / collider%mscale
+         fragments%mass    = fragments%mass   / collider%mscale
+         fragments%radius  = fragments%radius / collider%dscale
+         impactors%Qloss   = impactors%Qloss  / collider%Escale
       end associate
 
       return
@@ -248,51 +248,51 @@ contains
       call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
       call ieee_set_halting_mode(IEEE_ALL,.false.)
 
-      associate(collision_merge => self, fragments => self%fragments, impactors => self%impactors)
+      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
 
          ! Restore scale factors
-         impactors%rbcom(:) = impactors%rbcom(:) * collision_merge%dscale
-         impactors%vbcom(:) = impactors%vbcom(:) * collision_merge%vscale
-         impactors%rbimp(:) = impactors%rbimp(:) * collision_merge%dscale
-         impactors%vbimp(:) = impactors%vbimp(:) * collision_merge%vscale
+         impactors%rbcom(:) = impactors%rbcom(:) * collider%dscale
+         impactors%vbcom(:) = impactors%vbcom(:) * collider%vscale
+         impactors%rbimp(:) = impactors%rbimp(:) * collider%dscale
+         impactors%vbimp(:) = impactors%vbimp(:) * collider%vscale
    
-         impactors%mass   = impactors%mass   * collision_merge%mscale
-         impactors%radius = impactors%radius * collision_merge%dscale
-         impactors%rb     = impactors%rb     * collision_merge%dscale
-         impactors%vb     = impactors%vb     * collision_merge%vscale
-         impactors%Lspin  = impactors%Lspin  * collision_merge%Lscale
+         impactors%mass   = impactors%mass   * collider%mscale
+         impactors%radius = impactors%radius * collider%dscale
+         impactors%rb     = impactors%rb     * collider%dscale
+         impactors%vb     = impactors%vb     * collider%vscale
+         impactors%Lspin  = impactors%Lspin  * collider%Lscale
          do i = 1, 2
             impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
          end do
    
-         fragments%mtot   = fragments%mtot   * collision_merge%mscale
-         fragments%mass   = fragments%mass   * collision_merge%mscale
-         fragments%radius = fragments%radius * collision_merge%dscale
-         fragments%rot    = fragments%rot    / collision_merge%tscale
-         fragments%rc     = fragments%rc     * collision_merge%dscale
-         fragments%vc     = fragments%vc     * collision_merge%vscale
+         fragments%mtot   = fragments%mtot   * collider%mscale
+         fragments%mass   = fragments%mass   * collider%mscale
+         fragments%radius = fragments%radius * collider%dscale
+         fragments%rot    = fragments%rot    / collider%tscale
+         fragments%rc     = fragments%rc     * collider%dscale
+         fragments%vc     = fragments%vc     * collider%vscale
    
          do i = 1, fragments%nbody
             fragments%rb(:, i) = fragments%rc(:, i) + impactors%rbcom(:)
             fragments%vb(:, i) = fragments%vc(:, i) + impactors%vbcom(:)
          end do
 
-         impactors%Qloss = impactors%Qloss * collision_merge%Escale
+         impactors%Qloss = impactors%Qloss * collider%Escale
 
-         collision_merge%Lorbit(:,:) = collision_merge%Lorbit(:,:) * collision_merge%Lscale
-         collision_merge%Lspin(:,:)  = collision_merge%Lspin(:,:)  * collision_merge%Lscale
-         collision_merge%Ltot(:,:)   = collision_merge%Ltot(:,:)   * collision_merge%Lscale
-         collision_merge%ke_orbit(:) = collision_merge%ke_orbit(:) * collision_merge%Escale
-         collision_merge%ke_spin(:)  = collision_merge%ke_spin(:)  * collision_merge%Escale
-         collision_merge%pe(:)       = collision_merge%pe(:)       * collision_merge%Escale
-         collision_merge%Etot(:)     = collision_merge%Etot(:)     * collision_merge%Escale
+         collider%Lorbit(:,:) = collider%Lorbit(:,:) * collider%Lscale
+         collider%Lspin(:,:)  = collider%Lspin(:,:)  * collider%Lscale
+         collider%Ltot(:,:)   = collider%Ltot(:,:)   * collider%Lscale
+         collider%ke_orbit(:) = collider%ke_orbit(:) * collider%Escale
+         collider%ke_spin(:)  = collider%ke_spin(:)  * collider%Escale
+         collider%pe(:)       = collider%pe(:)       * collider%Escale
+         collider%Etot(:)     = collider%Etot(:)     * collider%Escale
    
-         collision_merge%mscale = 1.0_DP
-         collision_merge%dscale = 1.0_DP
-         collision_merge%vscale = 1.0_DP
-         collision_merge%tscale = 1.0_DP
-         collision_merge%Lscale = 1.0_DP
-         collision_merge%Escale = 1.0_DP
+         collider%mscale = 1.0_DP
+         collider%dscale = 1.0_DP
+         collider%vscale = 1.0_DP
+         collider%tscale = 1.0_DP
+         collider%Lscale = 1.0_DP
+         collider%Escale = 1.0_DP
       end associate
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
    

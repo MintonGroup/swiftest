@@ -2653,7 +2653,7 @@ contains
 
          select case(param%collision_model)
          case("MERGE")
-            allocate(collision_merge :: nbody_system%collider)
+            allocate(collision_basic :: nbody_system%collider)
          case("BOUNCE")
             allocate(collision_bounce :: nbody_system%collider)
          case("SIMPLE")

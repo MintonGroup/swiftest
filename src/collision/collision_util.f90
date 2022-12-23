@@ -17,7 +17,7 @@ contains
       !! Adds fragments to the temporary system pl object
       implicit none
       ! Arguments
-      class(collision_merge),      intent(in)    :: self      !! Collision system system object
+      class(collision_basic),      intent(in)    :: self      !! Collision system system object
       class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
       ! Internals
@@ -67,7 +67,7 @@ contains
       !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
       implicit none
       ! Arguments
-      class(collision_merge),                intent(inout) :: self         !! Fraggle collision system object
+      class(collision_basic),                intent(inout) :: self         !! Fraggle collision system object
       class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
       class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
       class(base_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
@@ -184,7 +184,7 @@ contains
       !! This will temporarily expand the massive body object in a temporary system object called tmpsys to feed it into symba_energy
       implicit none
       ! Arguments
-      class(collision_merge),  intent(inout) :: self    !! Encounter collision system object
+      class(collision_basic),  intent(inout) :: self    !! Encounter collision system object
       class(base_nbody_system), intent(inout) :: nbody_system  !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param   !! Current swiftest run configuration parameters
       logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
@@ -353,7 +353,7 @@ contains
       !! Resets the collider nbody_system and deallocates all allocatables
       implicit none
       ! Arguments
-      class(collision_merge),    intent(inout) :: self  !! Collision system object
+      class(collision_basic),    intent(inout) :: self  !! Collision system object
 
       select type(before => self%before)
       class is (swiftest_nbody_system)
@@ -387,7 +387,7 @@ contains
       !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
       implicit none
       ! Arguments
-      class(collision_merge),    intent(inout) :: self      !! Collisional nbody_system
+      class(collision_basic),    intent(inout) :: self      !! Collisional nbody_system
       ! Internals
       integer(I4B) :: i
       real(DP), dimension(NDIM, self%fragments%nbody) :: L_sigma
@@ -610,7 +610,7 @@ contains
       !! but not fragments. Those are setup later when the number of fragments is known.
       implicit none
       ! Arguments
-      class(collision_merge),  intent(inout) :: self         !! Encounter collision system object
+      class(collision_basic),  intent(inout) :: self         !! Encounter collision system object
       class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
 
       call self%setup_impactors()
@@ -630,7 +630,7 @@ contains
       !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       implicit none
       ! Arguments
-      class(collision_merge), intent(inout) :: self   !! Encounter collision system object
+      class(collision_basic), intent(inout) :: self   !! Encounter collision system object
 
       if (allocated(self%impactors)) deallocate(self%impactors)
       allocate(collision_impactors :: self%impactors)
@@ -645,7 +645,7 @@ contains
       !! Initializer for the fragments of the collision system. 
       implicit none
       ! Arguments
-      class(collision_merge), intent(inout) :: self  !! Encounter collision system object
+      class(collision_basic), intent(inout) :: self  !! Encounter collision system object
       integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
 
       if (allocated(self%fragments)) deallocate(self%fragments)
