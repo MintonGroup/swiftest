@@ -88,6 +88,10 @@ contains
             if (allocated(tmpparam)) deallocate(tmpparam)
             if (allocated(tmpsys)) deallocate(tmpsys)
             allocate(tmpparam_local, source=param)
+            select type(tmpparam_local)
+            class is (swiftest_parameters)
+               tmpparam_local%system_history%nc%lfile_is_open = .false.
+            end select
             call swiftest_util_setup_construct_system(tmpsys_local, tmpparam_local)
 
             ! No test particles necessary for energy/momentum calcs
