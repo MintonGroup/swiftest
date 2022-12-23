@@ -345,13 +345,13 @@ contains
       else if (narg >= 2) then
          call swiftest_io_toupper(arg(1))
          select case(arg(1))
-         case('INT_BS')
+         case('BS')
             integrator = INT_BS
-         case('INT_HELIO')
+         case('HELIO')
             integrator = INT_HELIO
-         case('INT_RA15')
+         case('RA15')
             integrator = INT_RA15
-         case('INT_TU4')
+         case('TU4')
             integrator = INT_TU4
          case('WHM')
             integrator = INT_WHM
