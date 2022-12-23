@@ -227,7 +227,6 @@ contains
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
       character(len=STRMAX)                :: message
-      real(DP), dimension(NDIM)            :: runit, vunit
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
       ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
@@ -267,9 +266,10 @@ contains
          call collider%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
         
          ! Start out the fragments close to the initial separation distance. This will be increased if there is any overlap or we fail to find a solution
-         r_max_start = 1.2_DP * .mag.(impactors%rb(:,2) - impactors%rb(:,1))
+         r_max_start = 1.1_DP * .mag.(impactors%rb(:,2) - impactors%rb(:,1))
          lfailure = .false.
          try = 1
+         f_spin = F_SPIN_FIRST
          do while (try < MAXTRY)
             write(message,*) try
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
@@ -285,9 +285,6 @@ contains
             call fraggle_generate_pos_vec(collider, r_max_start)
             call collider%set_coordinate_system()
 
-            ! This is a factor that will "distort" the shape of the fragment cloud in the direction of the impact velocity 
-            f_spin= .mag. (impactors%y_unit(:) .cross. impactors%v_unit(:)) 
-
             ! Initial velocity guess will be the barycentric velocity of the colliding nbody_system so that the budgets are based on the much smaller collisional-frame velocities
             do concurrent (i = 1:nfrag)
                fragments%vb(:, i) = impactors%vbcom(:)
@@ -295,12 +292,6 @@ contains
 
             call collider%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             call collider%set_budgets()
-
-            call fraggle_generate_spins(collider, f_spin, lfailure)
-            if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
-               cycle
-            end if
 
             call fraggle_generate_tan_vel(collider, lfailure)
             if (lfailure) then
@@ -311,6 +302,12 @@ contains
             call fraggle_generate_rad_vel(collider, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find radial velocities")
+               cycle
+            end if
+
+            call fraggle_generate_spins(collider, f_spin, lfailure)
+            if (lfailure) then
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find spins")
                cycle
             end if
 
@@ -378,7 +375,6 @@ contains
       real(DP),              intent(in)    :: r_max_start !! Initial guess for the starting maximum radial distance of fragments
       ! Internals
       real(DP)  :: dis, rad, r_max, fdistort
-      real(DP), dimension(NDIM) :: runit, vunit
       logical, dimension(:), allocatable :: loverlap
       integer(I4B) :: i, j
       logical :: lnoncat, lhitandrun
@@ -394,35 +390,32 @@ contains
          r_max = r_max_start
          rad = sum(impactors%radius(:))
 
+         ! This is a factor that will "distort" the shape of the fragment cloud in the direction of the impact velocity 
+         fdistort = .mag. (impactors%y_unit(:) .cross. impactors%v_unit(:)) 
 
-         ! Get the unit vectors for the relative position and velocity vectors. These are used to shift the fragment cloud depending on the 
-         runit(:) = impactors%rb(:,2) - impactors%rb(:,1) 
-         runit(:) = runit(:) / (.mag. runit(:))
-
-         vunit(:) = impactors%vb(:,2) - impactors%vb(:,1) 
-         vunit(:) = vunit(:) / (.mag. vunit(:))
-
-         ! This is a factor that will "distort" the shape of the frgment cloud in the direction of the impact velocity 
-         fdistort = .mag. (runit(:) .cross. vunit(:)) 
-
-         ! We will treat the first two fragments of the list as special cases. They get initialized the maximum distances apart along the original impactor distance vector.
-         ! This is done because in a regular disruption, the first body is the largest, the second the second largest, and the rest are smaller equal-mass fragments.
+         ! We will treat the first two fragments of the list as special cases. They get initialized at the original positions of the impactor bodies
+         fragments%rc(:, 1) = impactors%rb(:, 1) - impactors%rbcom(:) 
+         fragments%rc(:, 2) = impactors%rb(:, 2) - impactors%rbcom(:)
          call random_number(fragments%rc(:,3:nfrag))
          loverlap(:) = .true.
          do while (any(loverlap(3:nfrag)))
-            fragments%rc(:, 1) = impactors%rb(:, 1) - impactors%rbcom(:) 
-            fragments%rc(:, 2) = impactors%rb(:, 2) - impactors%rbcom(:)
-            r_max = r_max + 0.1_DP * rad
+            if (lhitandrun) then ! For a hit-and-run with disruption, the fragment cloud size is based on the radius of the disrupted body
+               r_max = 2 * impactors%radius(2) 
+            else ! For disruptions, the the fragment cloud size is based on the mutual collision system
+               r_max = r_max + 0.1_DP * rad
+            end if
             do i = 3, nfrag
-               if (loverlap(i)) then
+               if (loverlap(i)) then 
                   call random_number(fragments%rc(:,i))
                   fragments%rc(:,i) = 2 * (fragments%rc(:, i) - 0.5_DP)  
-                  fragments%rc(:, i) = fragments%rc(:,i) + fdistort * vunit(:) 
-                  fragments%rc(:, i) = r_max * fragments%rc(:, i) 
+                  fragments%rc(:, i) = fragments%rc(:,i) + fdistort * impactors%v_unit(:) 
+                  fragments%rc(:, i) = r_max * fragments%rc(:, i)  
                   fragments%rc(:, i) = fragments%rc(:, i) + (impactors%rbimp(:) - impactors%rbcom(:)) ! Shift the center of the fragment cloud to the impact point rather than the CoM
-                  !if (lnoncat .and. dot_product(fragments%rc(:,i), runit(:)) < 0.0_DP) fragments%rc(:, i) = -fragments%rc(:, i) ! Make sure the fragment cloud points away from the impact point
+                  if (lnoncat .and. dot_product(fragments%rc(:,i), impactors%y_unit(:)) < 0.0_DP) fragments%rc(:, i) = -fragments%rc(:, i) ! Make sure the fragment cloud points away from the impact point
                end if
             end do
+
+            ! Check for any overlapping bodies.
             loverlap(:) = .false.
             do j = 1, nfrag
                do i = j + 1, nfrag
