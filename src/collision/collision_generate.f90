@@ -517,7 +517,7 @@ contains
       logical :: lhr
       real(DP), dimension(NDIM) :: vimp_unit, vcom, rnorm
       real(DP), dimension(NDIM,collider%fragments%nbody) :: vnoise
-      real(DP), parameter :: VNOISE_MAG = 0.10_DP
+      real(DP), parameter :: VNOISE_MAG = 0.50_DP
       real(DP) :: vmag
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
@@ -528,7 +528,7 @@ contains
             vcom(:) = impactors%vb(:,i) - impactors%vbcom(:)
             rnorm(:) = impactors%y_unit(:)
             ! Do the reflection
-            vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
+            if (.not. lhr) vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
             fragments%vc(:,i) = vcom(:)
          end do
 
@@ -542,11 +542,11 @@ contains
          vnoise = (2 * vnoise - 1.0_DP) * vmag
          do i = 3, nfrag
             vimp_unit(:) = .unit. (fragments%rc(:,i) + impactors%rbcom(:) - impactors%rbimp(:))
-            fragments%vc(:,i) = vmag * vimp_unit(:) + vnoise(:,i)
+            fragments%vc(:,i) = vmag * vimp_unit(:) + vnoise(:,i) 
+            if (lhr) fragments%vc(:,i) = fragments%vc(:,i) + fragments%vc(:,2)
          end do
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
-            if (lhr) fragments%vb(:,i) = fragments%vb(:,i) + impactors%vb(:,2)
          end do
 
          impactors%vbcom(:) = 0.0_DP
