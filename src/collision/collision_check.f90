@@ -114,7 +114,7 @@ contains
             end do
 
             lany_collision = any(lcollision(:))
-            !lany_closest = (param%lenc_save_closest .and. any(self%lclosest(:)))
+            lany_closest = (param%lenc_save_closest .and. any(self%lclosest(:)))
 
 
             if (lany_collision .or. lany_closest) then
