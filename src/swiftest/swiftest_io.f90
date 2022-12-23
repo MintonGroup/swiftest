@@ -265,8 +265,8 @@ contains
       if (idx > NDUMPFILES) idx = 1
 
       ! Dump the encounter history if necessary
-      if (param%lenc_save_trajectory .or. param%lenc_save_closest) call self%encounter_history%dump(param)
-      call self%collision_history%dump(param)
+      if (param%lenc_save_trajectory .or. param%lenc_save_closest .and. allocated(self%encounter_history)) call self%encounter_history%dump(param)
+      if (allocated(self%collision_history)) call self%collision_history%dump(param)
 
       ! Dump the nbody_system history to file
       call param%system_history%dump(param)
