@@ -278,7 +278,7 @@ contains
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
+         associate(impactors => nbody_system%collider%impactors)
             message = "Merging"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
@@ -290,65 +290,67 @@ contains
 
                ! Generate the merged body as a single fragment
                call self%setup_fragments(1)
+               associate(fragments => nbody_system%collider%fragments)
 
-               ! Calculate the initial energy of the nbody_system without the collisional family
-               call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-            
-               ! The new body's metadata will be taken from the largest of the two impactor bodies, so we need 
-               ! its index in the main pl structure
-               ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
-               fragments%id(1) = pl%id(ibiggest)
-               allocate(fragments%info, source=pl%info(ibiggest:ibiggest))
-
-               ! Compute the physical properties of the new body after the merge.
-               volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
-               fragments%mass(1) = impactors%mass_dist(1)
-               fragments%density(1) = fragments%mass(1) / volume
-               fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
-               if (param%lrotation) then
-                  do concurrent(i = 1:NDIM)
-                     fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-                     Lspin_new(i) = sum(impactors%Lorbit(i,:) + impactors%Lorbit(i,:))
-                  end do
-                  fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
-                  fragments%rot(:,1) = Lspin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
-               else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
-                  nbody_system%Lescape(:) = nbody_system%Lescape(:) + impactors%Lorbit(:,1) + impactors%Lorbit(:,2) 
-               end if
-
-               ! The fragment trajectory will be the barycentric trajectory
-               fragments%rb(:,1) = impactors%rbcom(:)
-               fragments%vb(:,1) = impactors%vbcom(:)
-
-               ! Get the energy of the system after the collision
-               call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-
-               ! Keep track of the component of potential energy that is now not considered because two bodies became one
-               dpe = self%pe(2) - self%pe(1)  
-               nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
-               nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
-
-               ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
-               do k = 1, nbody_system%plpl_encounter%nenc
-                  do j = 1, impactors%ncoll
-                     i = impactors%id(j)
-                     if (i == ibiggest) cycle
-                     if (nbody_system%plpl_encounter%id1(k) == pl%id(i)) then
-                        nbody_system%plpl_encounter%id1(k) = pl%id(ibiggest)
-                        nbody_system%plpl_encounter%index1(k) = i
-                     end if
-                     if (nbody_system%plpl_encounter%id2(k) == pl%id(i)) then
-                        nbody_system%plpl_encounter%id2(k) = pl%id(ibiggest)
-                        nbody_system%plpl_encounter%index2(k) = i
-                     end if
-                     if (nbody_system%plpl_encounter%id1(k) == nbody_system%plpl_encounter%id2(k)) nbody_system%plpl_encounter%status(k) = INACTIVE
-                  end do
-               end do
-
-               self%status = MERGED
+                  ! Calculate the initial energy of the nbody_system without the collisional family
+                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
                
-               call collision_resolve_mergeaddsub(nbody_system, param, t, self%status) 
+                  ! The new body's metadata will be taken from the largest of the two impactor bodies, so we need 
+                  ! its index in the main pl structure
+                  ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
+                  fragments%id(1) = pl%id(ibiggest)
+                  allocate(fragments%info, source=pl%info(ibiggest:ibiggest))
 
+                  ! Compute the physical properties of the new body after the merge.
+                  volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
+                  fragments%mass(1) = impactors%mass_dist(1)
+                  fragments%density(1) = fragments%mass(1) / volume
+                  fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
+                  if (param%lrotation) then
+                     do concurrent(i = 1:NDIM)
+                        fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
+                        Lspin_new(i) = sum(impactors%Lorbit(i,:) + impactors%Lorbit(i,:))
+                     end do
+                     fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
+                     fragments%rot(:,1) = Lspin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
+                  else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
+                     nbody_system%Lescape(:) = nbody_system%Lescape(:) + impactors%Lorbit(:,1) + impactors%Lorbit(:,2) 
+                  end if
+
+                  ! The fragment trajectory will be the barycentric trajectory
+                  fragments%rb(:,1) = impactors%rbcom(:)
+                  fragments%vb(:,1) = impactors%vbcom(:)
+
+                  ! Get the energy of the system after the collision
+                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+
+                  ! Keep track of the component of potential energy that is now not considered because two bodies became one
+                  dpe = self%pe(2) - self%pe(1)  
+                  nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
+                  nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
+
+                  ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
+                  do k = 1, nbody_system%plpl_encounter%nenc
+                     do j = 1, impactors%ncoll
+                        i = impactors%id(j)
+                        if (i == ibiggest) cycle
+                        if (nbody_system%plpl_encounter%id1(k) == pl%id(i)) then
+                           nbody_system%plpl_encounter%id1(k) = pl%id(ibiggest)
+                           nbody_system%plpl_encounter%index1(k) = i
+                        end if
+                        if (nbody_system%plpl_encounter%id2(k) == pl%id(i)) then
+                           nbody_system%plpl_encounter%id2(k) = pl%id(ibiggest)
+                           nbody_system%plpl_encounter%index2(k) = i
+                        end if
+                        if (nbody_system%plpl_encounter%id1(k) == nbody_system%plpl_encounter%id2(k)) nbody_system%plpl_encounter%status(k) = INACTIVE
+                     end do
+                  end do
+
+                  self%status = MERGED
+                  
+                  call collision_resolve_mergeaddsub(nbody_system, param, t, self%status) 
+
+               end associate
             end select
          end associate
       end select
@@ -544,6 +546,7 @@ contains
          end do
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
+            if (lhr) fragments%vb(:,i) = fragments%vb(:,i) + impactors%vb(:,2)
          end do
 
          impactors%vbcom(:) = 0.0_DP

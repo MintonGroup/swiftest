@@ -1735,8 +1735,6 @@ contains
          call pl%reset_kinship([(i, i=1, npl)])
 
          ! Re-build the encounter list
-
-
          ! Be sure to get the level info if this is a SyMBA nbody_system
          select type(nbody_system)
          class is (symba_nbody_system)
@@ -1744,23 +1742,23 @@ contains
          class is (symba_pl)
          select type(tp)
          class is (symba_tp)
-            allocate(levelg_orig_pl, source=pl%levelg)
-            allocate(levelm_orig_pl, source=pl%levelm)
-            allocate(nplenc_orig_tp, source=tp%nplenc)
-            call move_alloc(levelg_orig_pl, pl%levelg)
-            call move_alloc(levelm_orig_pl, pl%levelm)
-            call move_alloc(nplenc_orig_pl, pl%nplenc)
+            ! allocate(levelg_orig_pl, source=pl%levelg)
+            ! allocate(levelm_orig_pl, source=pl%levelm)
+            ! allocate(nplenc_orig_tp, source=tp%nplenc)
+            ! call move_alloc(levelg_orig_pl, pl%levelg)
+            ! call move_alloc(levelm_orig_pl, pl%levelm)
+            ! call move_alloc(nplenc_orig_pl, pl%nplenc)
             lencounter = pl%encounter_check(param, nbody_system, param%dt, nbody_system%irec) 
             if (tp%nbody > 0) then
-               allocate(levelg_orig_tp, source=tp%levelg)
-               allocate(levelm_orig_tp, source=tp%levelm)
-               allocate(nplenc_orig_tp, source=tp%nplenc)
-               allocate(ntpenc_orig_pl, source=pl%ntpenc)
+               ! allocate(levelg_orig_tp, source=tp%levelg)
+               ! allocate(levelm_orig_tp, source=tp%levelm)
+               ! allocate(nplenc_orig_tp, source=tp%nplenc)
+               ! allocate(ntpenc_orig_pl, source=pl%ntpenc)
                lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
-               call move_alloc(levelg_orig_tp, tp%levelg)
-               call move_alloc(levelm_orig_tp, tp%levelm)
-               call move_alloc(nplenc_orig_tp, tp%nplenc)
-               call move_alloc(ntpenc_orig_pl, pl%ntpenc)
+               ! call move_alloc(levelg_orig_tp, tp%levelg)
+               ! call move_alloc(levelm_orig_tp, tp%levelm)
+               ! call move_alloc(nplenc_orig_tp, tp%nplenc)
+               ! call move_alloc(ntpenc_orig_pl, pl%ntpenc)
             end if
          end select
          end select
