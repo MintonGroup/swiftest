@@ -219,7 +219,7 @@ contains
 
    module subroutine collision_generate_simple(self, nbody_system, param, t)
       implicit none
-      class(collision_simple),  intent(inout) :: self         !! Simple fragment system object 
+      class(collision_simple_disruption),  intent(inout) :: self         !! Simple fragment system object 
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision

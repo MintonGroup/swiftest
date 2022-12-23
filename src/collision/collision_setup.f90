@@ -58,10 +58,10 @@ contains
 
       if (allocated(self%fragments)) deallocate(self%fragments)
       allocate(collision_fragments(nfrag) :: self%fragments)
+      self%fragments%nbody = nfrag
 
       return
    end subroutine collision_setup_fragments_system
-
 
 end submodule s_collision_setup
 

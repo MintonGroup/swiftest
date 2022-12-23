@@ -15,10 +15,8 @@ module fraggle
    implicit none
    public
 
-
    !> Class definition for the variables that describe a collection of fragments by Fraggle barycentric coordinates
    type, extends(collision_fragments) :: fraggle_fragments
-
       real(DP), dimension(nbody) :: v_r_mag   !! Array of radial direction velocity magnitudes of individual fragments 
       real(DP), dimension(nbody) :: v_t_mag   !! Array of tangential direction velocity magnitudes of individual fragments
       real(DP), dimension(nbody) :: v_n_mag   !! Array of normal direction velocity magnitudes of individual fragments
@@ -28,16 +26,15 @@ module fraggle
       real(DP)                   :: ke_spin   !! Spin kinetic energy of all fragments
       real(DP)                   :: ke_budget !! Kinetic energy budget for computing fragment trajectories
       real(DP), dimension(NDIM)  :: L_budget  !! Angular momentum budget for computing fragment trajectories
-
    contains
-      procedure :: get_angular_momentum  => fraggle_util_get_angular_momentum  !! Calcualtes the current angular momentum of the fragments
-      procedure :: reset                 => fraggle_util_reset_fragments       !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
-      procedure :: restructure           => fraggle_util_restructure           !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
-      final     ::                          fraggle_final_fragments       !! Finalizer will deallocate all allocatables
+      procedure :: get_angular_momentum  => fraggle_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
+      procedure :: reset                 => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      procedure :: restructure           => fraggle_util_restructure          !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
+      final     ::                          fraggle_final_fragments           !! Finalizer will deallocate all allocatables
    end type fraggle_fragments
 
 
-   type, extends(collision_merge) :: collision_fraggle
+   type, extends(collision_simple_disruption) :: collision_fraggle
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
       real(DP) :: mscale = 1.0_DP !! Mass scale factor
@@ -48,13 +45,12 @@ module fraggle
    contains
       procedure :: generate                   => fraggle_generate_system                 !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: set_budgets                => fraggle_set_budgets                     !! Sets the energy and momentum budgets of the fragments based on the collider value
-      procedure :: set_mass_dist              => fraggle_set_mass_dist                   !! Sets the distribution of mass among the fragments depending on the regime type
       procedure :: set_natural_scale          => fraggle_set_natural_scale_factors       !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
       procedure :: set_original_scale         => fraggle_set_original_scale_factors      !! Restores dimenional quantities back to the original system units
       procedure :: setup_fragments            => fraggle_setup_fragments_system          !! Initializer for the fragments of the collision system. 
       procedure :: construct_temporary_system => fraggle_util_construct_temporary_system !! Constructs temporary n-body system in order to compute pre- and post-impact energy and momentum
       procedure :: reset                      => fraggle_util_reset_system               !! Deallocates all allocatables
-      final     ::                               fraggle_final_system               !! Finalizer will deallocate all allocatables
+      final     ::                               fraggle_final_system                    !! Finalizer will deallocate all allocatables
    end type collision_fraggle  
 
 
@@ -97,12 +93,6 @@ module fraggle
          implicit none
          class(collision_fraggle), intent(inout) :: self !! Fraggle collision system object
       end subroutine  fraggle_set_budgets
-
-      module subroutine fraggle_set_mass_dist(self, param)
-         implicit none
-         class(collision_fraggle),        intent(inout) :: self  !! Fraggle collision system object
-         class(swiftest_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
-      end subroutine fraggle_set_mass_dist
 
       module subroutine fraggle_set_natural_scale_factors(self)
          implicit none
@@ -176,7 +166,6 @@ module fraggle
    end interface
 
    contains
-      
 
       subroutine fraggle_final_fragments(self)
          !! author: David A. Minton

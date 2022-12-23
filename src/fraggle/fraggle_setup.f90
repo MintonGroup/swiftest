@@ -24,6 +24,7 @@ contains
       if (allocated(self%fragments)) deallocate(self%fragments)
       allocate(fraggle_fragments(nbody=nfrag) :: self%fragments)
       self%fragments%nbody = nfrag
+
       return
    end subroutine fraggle_setup_fragments_system
 

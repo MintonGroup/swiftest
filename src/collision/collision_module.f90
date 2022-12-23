@@ -147,11 +147,12 @@ module collision
       final     ::             collision_final_bounce    !! Finalizer will deallocate all allocatables
    end type collision_bounce
 
-   type, extends(collision_merge) :: collision_simple
+   type, extends(collision_merge) :: collision_simple_disruption
    contains 
-      procedure :: generate => collision_generate_simple !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
-      final     ::             collision_final_simple !! Finalizer will deallocate all allocatables
-   end type collision_simple
+      procedure :: generate      => collision_generate_simple    !! If a collision would result in a disruption [TODO: SOMETHING LIKE CHAMBERS 2012]
+      procedure :: set_mass_dist => collision_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
+      final     ::                  collision_final_simple       !! Finalizer will deallocate all allocatables
+   end type collision_simple_disruption
 
 
    !! NetCDF dimension and variable names for the enounter save object
@@ -224,7 +225,7 @@ module collision
 
       module subroutine collision_generate_simple(self, nbody_system, param, t)
          implicit none
-         class(collision_simple),  intent(inout) :: self         !! Simple fragment nbody_system object 
+         class(collision_simple_disruption),  intent(inout) :: self         !! Simple fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
@@ -388,6 +389,12 @@ module collision
          implicit none
          class(collision_fragments(*)), intent(inout) :: self
       end subroutine collision_util_reset_fragments
+
+      module subroutine collision_util_set_mass_dist(self, param)
+         implicit none
+         class(collision_simple_disruption), intent(inout) :: self  !! Simple disruption collision object
+         class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
+      end subroutine collision_util_set_mass_dist
 
       module subroutine collision_util_get_idvalues_snapshot(self, idvals)
          implicit none
@@ -554,7 +561,7 @@ module collision
          !! Finalizer will deallocate all allocatables
          implicit none
          ! Arguments
-         type(collision_simple),  intent(inout) :: self !!  Collision system object
+         type(collision_simple_disruption),  intent(inout) :: self !!  Collision system object
 
          call self%reset()
          if (allocated(self%impactors)) deallocate(self%impactors)

@@ -121,7 +121,7 @@ contains
          case("BOUNCE")
             allocate(collision_bounce :: nbody_system%collider)
          case("SIMPLE")
-            allocate(collision_simple :: nbody_system%collider)
+            allocate(collision_simple_disruption :: nbody_system%collider)
          case("FRAGGLE")
             allocate(collision_fraggle :: nbody_system%collider)
          end select
