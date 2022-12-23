@@ -71,7 +71,7 @@ contains
    end subroutine encounter_check_all_plpl
 
 
-   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_plplm(param, nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between fully interacting massive bodies partially interacting massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -81,9 +81,9 @@ contains
       class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
       integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
       integer(I4B),                            intent(in)    :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
-      real(DP),     dimension(:,:),            intent(in)    :: xplm   !! Position vectors of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: rplm   !! Position vectors of fully interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: vplm   !! Velocity vectors of fully interacting massive bodies
-      real(DP),     dimension(:,:),            intent(in)    :: xplt   !! Position vectors of partially interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: rplt   !! Position vectors of partially interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: vplt   !! Velocity vectors of partially interacting massive bodies
       real(DP),     dimension(:),              intent(in)    :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)    :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
@@ -134,13 +134,13 @@ contains
       tmp_param%ladaptive_encounters_plpl = .false.
 
       ! Start with the pl-pl group
-      call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
+      call encounter_check_all_plpl(tmp_param, nplm, rplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
       ! if (param%lencounter_sas_plpl) then
-         ! call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+         ! call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
           !                                             plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
       ! else
-         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
+         call encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
       ! end if
 
       ! if (skipit) then
@@ -180,7 +180,7 @@ contains
    end subroutine encounter_check_all_plplm
 
 
-   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_pltp(param, npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Choose between the standard triangular or the Sort & Sweep method based on user inputs
@@ -190,7 +190,7 @@ contains
       class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
       integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
       integer(I4B),                            intent(in)    :: ntp    !! Total number of test particles 
-      real(DP),     dimension(:,:),            intent(in)    :: xpl    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: rpl    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: xtp    !! Position vectors of test particlse
       real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of test particles
@@ -229,9 +229,9 @@ contains
       ! end if
 
       ! if (param%lencounter_sas_pltp) then
-      !    call encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+      !    call encounter_check_all_sort_and_sweep_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       ! else
-         call encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
+         call encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
       ! end if
 
       ! if (.not.lfirst .and. param%ladaptive_encounters_pltp .and. npltp > 0) then 
@@ -297,7 +297,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
 
-   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -308,9 +308,9 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: nplm   !! Total number of fully interacting massive bodies 
       integer(I4B),                            intent(in)  :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
-      real(DP),     dimension(:,:),            intent(in)  :: xplm   !! Position vectors of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplm   !! Position vectors of fully interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplm   !! Velocity vectors of fully interacting massive bodies
-      real(DP),     dimension(:,:),            intent(in)  :: xplt   !! Position vectors of partially interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplt   !! Position vectors of partially interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplt   !! Velocity vectors of partially interacting massive bodies
       real(DP),     dimension(:),              intent(in)  :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)  :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
@@ -337,7 +337,7 @@ contains
       end if
 
       !$omp parallel do default(private) schedule(static) &
-      !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
+      !$omp shared(rplm, rplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)
       do dim = 1, SWEEPDIM
          where(vplm(dim,1:nplm) < 0.0_DP)
@@ -356,20 +356,20 @@ contains
             vpltshift_max(1:nplt) = 1
          end where
 
-         call boundingbox%aabb(dim)%sort(ntot, [xplm(dim,1:nplm) - rencm(1:nplm) + vplmshift_min(1:nplm) * vplm(dim,1:nplm) * dt, &
-                                                xplt(dim,1:nplt) - renct(1:nplt) + vpltshift_min(1:nplt) * vplt(dim,1:nplt) * dt, &
-                                                xplm(dim,1:nplm) + rencm(1:nplm) + vplmshift_max(1:nplm) * vplm(dim,1:nplm) * dt, &
-                                                xplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
+         call boundingbox%aabb(dim)%sort(ntot, [rplm(dim,1:nplm) - rencm(1:nplm) + vplmshift_min(1:nplm) * vplm(dim,1:nplm) * dt, &
+                                                rplt(dim,1:nplt) - renct(1:nplt) + vpltshift_min(1:nplt) * vplt(dim,1:nplt) * dt, &
+                                                rplm(dim,1:nplm) + rencm(1:nplm) + vplmshift_max(1:nplm) * vplm(dim,1:nplm) * dt, &
+                                                rplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
       end do
       !$omp end parallel do
 
-      call boundingbox%sweep(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr) 
+      call boundingbox%sweep(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_sort_and_sweep_plplm
 
 
-   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, rencpl, dt, nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, rpl, vpl, xtp, vtp, rencpl, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -380,7 +380,7 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
       integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-      real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rpl    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
@@ -411,7 +411,7 @@ contains
       renctp(:) = 0.0_DP
       
       !$omp parallel do default(private) schedule(static) &
-      !$omp shared(xpl, xtp, vpl, vtp, rencpl, renctp, boundingbox) &
+      !$omp shared(rpl, xtp, vpl, vtp, rencpl, renctp, boundingbox) &
       !$omp firstprivate(dt, npl, ntp, ntot)
       do dim = 1, SWEEPDIM
          where(vpl(dim,1:npl) < 0.0_DP)
@@ -430,14 +430,14 @@ contains
             vtpshift_max(1:ntp) = 1
          end where
 
-         call boundingbox%aabb(dim)%sort(ntot, [xpl(dim,1:npl) - rencpl(1:npl) + vplshift_min(1:npl) * vpl(dim,1:npl) * dt, &
+         call boundingbox%aabb(dim)%sort(ntot, [rpl(dim,1:npl) - rencpl(1:npl) + vplshift_min(1:npl) * vpl(dim,1:npl) * dt, &
                                                 xtp(dim,1:ntp) - renctp(1:ntp) + vtpshift_min(1:ntp) * vtp(dim,1:ntp) * dt, &
-                                                xpl(dim,1:npl) + rencpl(1:npl) + vplshift_max(1:npl) * vpl(dim,1:npl) * dt, &
+                                                rpl(dim,1:npl) + rencpl(1:npl) + vplshift_max(1:npl) * vpl(dim,1:npl) * dt, &
                                                 xtp(dim,1:ntp) + renctp(1:ntp) + vtpshift_max(1:ntp) * vtp(dim,1:ntp) * dt])
       end do
       !$omp end parallel do
 
-      call boundingbox%sweep(npl, ntp, xpl, vpl, xtp, vtp, rencpl, renctp, dt, nenc, index1, index2, lvdotr) 
+      call boundingbox%sweep(npl, ntp, rpl, vpl, xtp, vtp, rencpl, renctp, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_sort_and_sweep_pltp
@@ -584,7 +584,7 @@ contains
    end subroutine encounter_check_all_triangular_plpl
 
 
-   subroutine encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+   subroutine encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
                                                    nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
@@ -594,9 +594,9 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: nplm   !! Total number of fully interacting massive bodies 
       integer(I4B),                            intent(in)  :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
-      real(DP),     dimension(:,:),            intent(in)  :: xplm   !! Position vectors of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplm   !! Position vectors of fully interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplm   !! Velocity vectors of fully interacting massive bodies
-      real(DP),     dimension(:,:),            intent(in)  :: xplt   !! Position vectors of partially interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplt   !! Position vectors of partially interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplt   !! Velocity vectors of partially interacting massive bodies
       real(DP),     dimension(:),              intent(in)  :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)  :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
@@ -613,12 +613,12 @@ contains
       call swiftest_util_index_array(ind_arr, nplt)
 
       !$omp parallel do default(private) schedule(dynamic)&
-      !$omp shared(xplm, vplm, xplt, vplt, rencm, renct, lenc, ind_arr) &
+      !$omp shared(rplm, vplm, rplt, vplt, rencm, renct, lenc, ind_arr) &
       !$omp firstprivate(nplm, nplt, dt)
       do i = 1, nplm
-         call encounter_check_all_triangular_one(0, nplt, xplm(1,i), xplm(2,i), xplm(3,i), &
+         call encounter_check_all_triangular_one(0, nplt, rplm(1,i), rplm(2,i), rplm(3,i), &
                                                           vplm(1,i), vplm(2,i), vplm(3,i), &
-                                                          xplt(1,:), xplt(2,:), xplt(3,:), &
+                                                          rplt(1,:), rplt(2,:), rplt(3,:), &
                                                           vplt(1,:), vplt(2,:), vplt(3,:), &
                                                           rencm(i), renct(:), dt, ind_arr(:), lenc(i))
          if (lenc(i)%nenc > 0) lenc(i)%index1(:) = i
@@ -631,7 +631,7 @@ contains
    end subroutine encounter_check_all_triangular_plplm
 
 
-   subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
+   subroutine encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, &
                                                   nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
@@ -641,7 +641,7 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
       integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-      real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rpl    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
@@ -661,10 +661,10 @@ contains
       renct(:) = 0.0_DP
 
       !$omp parallel do default(private) schedule(dynamic)&
-      !$omp shared(xpl, vpl, xtp, vtp, renc, renct, lenc, ind_arr) &
+      !$omp shared(rpl, vpl, xtp, vtp, renc, renct, lenc, ind_arr) &
       !$omp firstprivate(npl, ntp, dt)
       do i = 1, npl
-         call encounter_check_all_triangular_one(0, ntp, xpl(1,i), xpl(2,i), xpl(3,i), &
+         call encounter_check_all_triangular_one(0, ntp, rpl(1,i), rpl(2,i), rpl(3,i), &
                                                          vpl(1,i), vpl(2,i), vpl(3,i), &
                                                          xtp(1,:), xtp(2,:), xtp(3,:), &
                                                          vtp(1,:), vtp(2,:), vtp(3,:), &

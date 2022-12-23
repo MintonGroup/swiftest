@@ -121,16 +121,16 @@ module encounter
          integer(I8B),                            intent(out)   :: nenc   !! Total number of encounters
       end subroutine encounter_check_all_plpl
 
-      module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+      module subroutine encounter_check_all_plplm(param, nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
                                                   nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
          class(base_parameters),                 intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
          integer(I4B),                            intent(in)    :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
-         real(DP),     dimension(:,:),            intent(in)    :: xplm   !! Position vectors of fully interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: rplm   !! Position vectors of fully interacting massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: vplm   !! Velocity vectors of fully interacting massive bodies
-         real(DP),     dimension(:,:),            intent(in)    :: xplt   !! Position vectors of partially interacting massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: rplt   !! Position vectors of partially interacting massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: vplt   !! Velocity vectors of partially interacting massive bodies
          real(DP),     dimension(:),              intent(in)    :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
          real(DP),     dimension(:),              intent(in)    :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
@@ -141,13 +141,13 @@ module encounter
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       end subroutine encounter_check_all_plplm
 
-      module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+      module subroutine encounter_check_all_pltp(param, npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
          class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
          integer(I4B),                            intent(in)    :: ntp    !! Total number of test particles 
-         real(DP),     dimension(:,:),            intent(in)    :: xpl    !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: rpl    !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: vpl    !! Velocity vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: xtp    !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of massive bodies
