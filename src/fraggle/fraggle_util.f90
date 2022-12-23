@@ -211,6 +211,7 @@ contains
          impactors%rbcom(:)    = impactors%rbcom(:)    / collision_merge%dscale
          impactors%vbcom(:)    = impactors%vbcom(:)    / collision_merge%vscale
          impactors%rbimp(:)    = impactors%rbimp(:)    / collision_merge%dscale
+         impactors%vbimp(:)    = impactors%vbimp(:)    / collision_merge%vscale
          impactors%rb(:,:)     = impactors%rb(:,:)     / collision_merge%dscale
          impactors%vb(:,:)     = impactors%vb(:,:)     / collision_merge%vscale
          impactors%mass(:)     = impactors%mass(:)     / collision_merge%mscale
@@ -253,6 +254,7 @@ contains
          impactors%rbcom(:) = impactors%rbcom(:) * collision_merge%dscale
          impactors%vbcom(:) = impactors%vbcom(:) * collision_merge%vscale
          impactors%rbimp(:) = impactors%rbimp(:) * collision_merge%dscale
+         impactors%vbimp(:) = impactors%vbimp(:) * collision_merge%vscale
    
          impactors%mass   = impactors%mass   * collision_merge%mscale
          impactors%radius = impactors%radius * collision_merge%dscale

@@ -345,12 +345,8 @@ contains
             plnew%id(1:nfrag) = fragments%id(1:nfrag) 
             plnew%rb(:, 1:nfrag) = fragments%rb(:, 1:nfrag) 
             plnew%vb(:, 1:nfrag) = fragments%vb(:, 1:nfrag)
-            call pl%vb2vh(cb)
-            call pl%rh2rb(cb)
-            do i = 1, nfrag
-               plnew%rh(:,i) = fragments%rb(:, i) - cb%rb(:)
-               plnew%vh(:,i) = fragments%vb(:, i) - cb%vb(:)
-            end do
+            plnew%status(1:nfrag) = ACTIVE
+            call plnew%b2h(cb)
             plnew%mass(1:nfrag) = fragments%mass(1:nfrag)
             plnew%Gmass(1:nfrag) = param%GU * fragments%mass(1:nfrag)
             plnew%radius(1:nfrag) = fragments%radius(1:nfrag)
