@@ -507,22 +507,21 @@ contains
          associate(plpl_encounter => self, plpl_collision => nbody_system%plpl_collision, &
                    collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
                    collider => nbody_system%collider, fragments => nbody_system%collider%fragments, impactors => nbody_system%collider%impactors)
-            associate( idx1 => plpl_collision%index1, idx2 => plpl_collision%index2)
-
-               if (plpl_collision%nenc == 0) return ! No collisions to resolve
+            if (plpl_collision%nenc == 0) return ! No collisions to resolve
 
 
-               ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
-               call pl%vb2vh(nbody_system%cb) 
-               call pl%rh2rb(nbody_system%cb)
+            ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
+            call pl%vb2vh(nbody_system%cb) 
+            call pl%rh2rb(nbody_system%cb)
 
-               ! Get the energy before the collision is resolved
-               if (param%lenergy) then
-                  call nbody_system%get_energy_and_momentum(param)
-                  Eorbit_before = nbody_system%te
-               end if
+            ! Get the energy before the collision is resolved
+            if (param%lenergy) then
+               call nbody_system%get_energy_and_momentum(param)
+               Eorbit_before = nbody_system%te
+            end if
 
-               do loop = 1, MAXCASCADE
+            do loop = 1, MAXCASCADE
+               associate( idx1 => plpl_collision%index1, idx2 => plpl_collision%index2)
                   ncollisions = plpl_collision%nenc
                   write(timestr,*) t
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
@@ -572,15 +571,15 @@ contains
                      write(*,*) "Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments."
                      call util_exit(FAILURE)
                   end if
-               end do
+               end associate
+            end do
 
-               if (param%lenergy) then
-                  call nbody_system%get_energy_and_momentum(param)
-                  Eorbit_after = nbody_system%te
-                  nbody_system%Ecollisions = nbody_system%Ecollisions + (Eorbit_after - Eorbit_before)
-               end if
+            if (param%lenergy) then
+               call nbody_system%get_energy_and_momentum(param)
+               Eorbit_after = nbody_system%te
+               nbody_system%Ecollisions = nbody_system%Ecollisions + (Eorbit_after - Eorbit_before)
+            end if
 
-            end associate
          end associate
       end select
       end select

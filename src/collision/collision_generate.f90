@@ -209,7 +209,7 @@ contains
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
-         associate(impactors => self%impactors, fragments => self%fragments, status => self%status)
+         associate(impactors => self%impactors, status => self%status)
 
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -226,30 +226,34 @@ contains
                write(*,*) "Error in swiftest_collision, unrecognized collision regime"
                call util_exit(FAILURE)
             end select
+            call self%set_mass_dist(param) 
+            call self%disrupt(nbody_system, param, t)
 
             dpe = self%pe(2) - self%pe(1) 
             nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
             nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
 
-            ! Populate the list of new bodies
-            nfrag = fragments%nbody
-            write(message, *) nfrag
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
-            select case(impactors%regime)
-            case(COLLRESOLVE_REGIME_DISRUPTION)
-               status = DISRUPTED
-               ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
-               fragments%id(1) = pl%id(ibiggest)
-               fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-               param%maxid = fragments%id(nfrag)
-            case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-               status = SUPERCATASTROPHIC
-               fragments%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
-               param%maxid = fragments%id(nfrag)
-            end select
+            associate (fragments => self%fragments)
+               ! Populate the list of new bodies
+               nfrag = fragments%nbody
+               write(message, *) nfrag
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
+               select case(impactors%regime)
+               case(COLLRESOLVE_REGIME_DISRUPTION)
+                  status = DISRUPTED
+                  ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
+                  fragments%id(1) = pl%id(ibiggest)
+                  fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
+                  param%maxid = fragments%id(nfrag)
+               case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+                  status = SUPERCATASTROPHIC
+                  fragments%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
+                  param%maxid = fragments%id(nfrag)
+               end select
 
-            call collision_resolve_mergeaddsub(nbody_system, param, t, status)
-      end associate
+               call collision_resolve_mergeaddsub(nbody_system, param, t, status)
+            end associate
+         end associate
       end select
       end select
       return
