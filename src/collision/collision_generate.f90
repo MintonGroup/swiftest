@@ -290,7 +290,7 @@ contains
             select type(pl => nbody_system%pl)
             class is (swiftest_pl)
                ! Get coordinate system
-               call self%set_coordinate_system()
+               call impactors%set_coordinate_system()
 
                ! Generate the merged body as a single fragment
                call self%setup_fragments(1)
@@ -378,7 +378,7 @@ contains
       real(DP) :: r_max_start
 
       call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-      r_max_start = 1.1_DP * .mag.(self%impactors%rb(:,2) - self%impactors%rb(:,1))
+      r_max_start = 1.5_DP * .mag.(self%impactors%rb(:,2) - self%impactors%rb(:,1))
       call collision_generate_simple_pos_vec(self, r_max_start)
       call self%set_coordinate_system()
       call collision_generate_simple_vel_vec(self)
@@ -518,15 +518,15 @@ contains
       class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
       integer(I4B) :: i
-      logical :: lhr
+      logical :: lhr, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, vcom, rnorm
       real(DP), dimension(NDIM,collider%fragments%nbody) :: vnoise
-      real(DP), parameter :: VNOISE_MAG = 0.50_DP
+      real(DP), parameter :: VNOISE_MAG = 0.20_DP
       real(DP) :: vmag
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhr = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
-
+         lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
          ! "Bounce" the first two bodies
          do i = 1,2
             vcom(:) = impactors%vb(:,i) - impactors%vbcom(:)
@@ -536,18 +536,16 @@ contains
             fragments%vc(:,i) = vcom(:)
          end do
 
-         ! Compute the escape velocity
+         ! Compute the escape velocity and velocity dispursion
+         call random_number(vnoise)
          if (lhr) then
             vmag = 2 * sqrt(2 * impactors%Gmass(2) / impactors%radius(2))
          else
-            vmag = 2 * sqrt(2 * sum(impactors%Gmass(:)) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1))))
+            vmag = .mag. (impactors%vb(:,2) - impactors%vb(:,1))
          end if
-         call random_number(vnoise)
-         vnoise = (2 * vnoise - 1.0_DP) * vmag
          do i = 3, nfrag
-            vimp_unit(:) = .unit. (fragments%rc(:,i) + impactors%rbcom(:) - impactors%rbimp(:))
-            fragments%vc(:,i) = vmag * vimp_unit(:) + vnoise(:,i) 
-            if (lhr) fragments%vc(:,i) = fragments%vc(:,i) + fragments%vc(:,2)
+            vimp_unit(:) = .unit. (fragments%rc(:,i) - (impactors%rbimp(:) - impactors%rbcom(:)))
+            fragments%vc(:,i) = vmag * (vimp_unit(:) + vnoise(:,i)) + fragments%vc(:,2)
          end do
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
