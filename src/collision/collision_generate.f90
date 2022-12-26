@@ -559,15 +559,20 @@ contains
 
          fragments%vc(:,1) = .mag.impactors%vc(:,1) * impactors%bounce_unit(:) 
          do concurrent(i = 2:nfrag)
-            rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
-            vimp_unit(:) = .unit. rimp(:)
 
             j = fragments%origin_body(i)
             vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rb(:,j) + impactors%rbcom(:))
 
             vmag = .mag.impactors%vc(:,j) * vscale(i)
 
-            fragments%vc(:,i) = vmag * 0.5_DP * (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
+            if (lhitandrun) then
+               fragments%vc(:,i) = vmag * 0.5_DP * impactors%bounce_unit(:) * vsign(i) + vrot(:)
+            else
+               ! Add more velocity dispersion to disruptions vs hit and runs.
+               rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
+               vimp_unit(:) = .unit. rimp(:)
+               fragments%vc(:,i) = vmag * 0.5_DP * (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
+            end if
          end do
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
