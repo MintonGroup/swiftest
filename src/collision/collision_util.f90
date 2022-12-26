@@ -455,12 +455,23 @@ contains
          mtot = sum(impactors%mass(:))
          impactors%rbcom(:) = (impactors%mass(1) * impactors%rb(:,1) + impactors%mass(2) * impactors%rb(:,2)) / mtot 
          impactors%vbcom(:) = (impactors%mass(1) * impactors%vb(:,1) + impactors%mass(2) * impactors%vb(:,2)) / mtot
+
+         ! The center of mass coordinate position and velocities
+         impactors%rc(:,1) = impactors%rb(:,1) - impactors%rbcom(:)
+         impactors%rc(:,2) = impactors%rb(:,2) - impactors%rbcom(:)
+         impactors%vc(:,1) = impactors%vb(:,1) - impactors%vbcom(:)
+         impactors%vc(:,2) = impactors%vb(:,2) - impactors%vbcom(:)
    
          ! Find the point of impact between the two bodies
-         impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * impactors%y_unit(:)
+         impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * impactors%y_unit(:) - impactors%rbcom(:)
 
-         ! The "bounce" unit vector is the projection of the velocity vector into the distance vector
-         impactors%vbimp(:) = dot_product(delta_v(:),impactors%y_unit(:)) * impactors%y_unit(:)
+         ! Set the velocity direction as the "bounce" direction" for disruptions, and body 2's direction for hit and runs
+         if (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) then
+            impactors%bounce_unit(:) = .unit. impactors%vc(:,2)
+         else
+            impactors%bounce_unit(:) = .unit. (impactors%vc(:,2) - 2 * dot_product(impactors%vc(:,2),impactors%y_unit(:)) * impactors%y_unit(:))
+         end if
+
       end associate
 
       return
@@ -478,10 +489,10 @@ contains
       class(collision_simple_disruption), intent(inout) :: self  !! Fraggle collision system object
       class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, jproj, jtarg, nfrag, istart
+      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, min_mfrag, mtot
+      real(DP) :: mfrag, mremaining, min_mfrag, mtot, mcumul
       real(DP), parameter :: BETA = 2.85_DP
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
@@ -489,6 +500,7 @@ contains
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
+      logical :: flipper
      
       associate(impactors => self%impactors)
          ! Get mass weighted mean of Ip and density
@@ -596,7 +608,31 @@ contains
                fragments%Ip(:, i) = Ip_avg(:)
             end do
 
+            ! For catastrophic impacts, we will assign each of the n>2 fragments to one of the two original bodies so that the fragment cloud occupies 
+            ! roughly the same space as both original bodies. For all other disruption cases, we use body 2 as the center of the cloud.
+               fragments%origin_body(1) = 1
+               fragments%origin_body(2) = 2
+               if (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
+                  mcumul = fragments%mass(1)
+                  flipper = .true.
+                  j = 2
+                  do i = 1, nfrag
+                     if (flipper .and. (mcumul < impactors%mass(1))) then
+                        flipper = .false.
+                        j = 1
+                     else
+                        j = 2
+                        flipper = .true.
+                     end if
+                     fragments%origin_body(i) = j
+                  end do
+               else
+                  fragments%origin_body(3:nfrag) = 2
+               end if
+
          end select
+
+
       end associate
 
       return

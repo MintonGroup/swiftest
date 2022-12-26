@@ -179,10 +179,10 @@ contains
       class is (swiftest_nbody_system)
       select type (pl => nbody_system%pl)
       class is (swiftest_pl)
-         associate(plpl_encounter => self, idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
-            nplplenc = plpl_encounter%nenc
+         associate(idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
+            nplplenc = self%nenc
             allocate(lplpl_collision(nplplenc))
-            lplpl_collision(:) = plpl_encounter%status(1:nplplenc) == COLLIDED
+            lplpl_collision(:) = self%status(1:nplplenc) == COLLIDED
             if (.not.any(lplpl_collision)) return 
             ! Collisions have been detected in this step. So we need to determine which of them are between unique bodies.
 
@@ -221,7 +221,7 @@ contains
             ! Create a mask that contains only the pl-pl encounters that did not result in a collision, and then discard them
             lplpl_collision(:) = .false.
             lplpl_collision(collision_idx(:)) = .true.
-            call plpl_encounter%spill(nbody_system%plpl_collision, lplpl_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
+            call self%spill(nbody_system%plpl_collision, lplpl_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
          end associate
       end select
       end select
@@ -483,9 +483,9 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(collision_list_plpl),       intent(inout) :: self   !! Swiftest pl-pl encounter list
-      class(base_nbody_system),  intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters), intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
+      class(collision_list_plpl), intent(inout) :: self   !! Swiftest pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
       real(DP),                   intent(in)    :: t      !! Current simulation time
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
@@ -504,7 +504,7 @@ contains
       class is (swiftest_pl)
       select type(param)
       class is (swiftest_parameters)
-         associate(plpl_encounter => self, plpl_collision => nbody_system%plpl_collision, &
+         associate(plpl_collision => nbody_system%plpl_collision, &
                    collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
                    collider => nbody_system%collider, fragments => nbody_system%collider%fragments, impactors => nbody_system%collider%impactors)
             if (plpl_collision%nenc == 0) return ! No collisions to resolve
@@ -562,7 +562,7 @@ contains
                   call nbody_system%pl_adds%setup(0, param)
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
-                  call plpl_encounter%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
+                  call self%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
 
                   if (.not.lplpl_collision) exit
                   if (loop == MAXCASCADE) then

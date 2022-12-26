@@ -211,7 +211,7 @@ contains
          impactors%rbcom(:)    = impactors%rbcom(:)    / collider%dscale
          impactors%vbcom(:)    = impactors%vbcom(:)    / collider%vscale
          impactors%rbimp(:)    = impactors%rbimp(:)    / collider%dscale
-         impactors%vbimp(:)    = impactors%vbimp(:)    / collider%vscale
+         impactors%bounce_unit(:)    = impactors%bounce_unit(:)    / collider%vscale
          impactors%rb(:,:)     = impactors%rb(:,:)     / collider%dscale
          impactors%vb(:,:)     = impactors%vb(:,:)     / collider%vscale
          impactors%mass(:)     = impactors%mass(:)     / collider%mscale
@@ -254,7 +254,7 @@ contains
          impactors%rbcom(:) = impactors%rbcom(:) * collider%dscale
          impactors%vbcom(:) = impactors%vbcom(:) * collider%vscale
          impactors%rbimp(:) = impactors%rbimp(:) * collider%dscale
-         impactors%vbimp(:) = impactors%vbimp(:) * collider%vscale
+         impactors%bounce_unit(:) = impactors%bounce_unit(:) * collider%vscale
    
          impactors%mass   = impactors%mass   * collider%mscale
          impactors%radius = impactors%radius * collider%dscale

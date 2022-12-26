@@ -1661,8 +1661,6 @@ contains
       logical, dimension(:), allocatable :: lmask, ldump_mask
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
-      integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp
-      integer(I4B), dimension(:), allocatable :: nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
 
       associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds)
 
@@ -1742,23 +1740,9 @@ contains
          class is (symba_pl)
          select type(tp)
          class is (symba_tp)
-            ! allocate(levelg_orig_pl, source=pl%levelg)
-            ! allocate(levelm_orig_pl, source=pl%levelm)
-            ! allocate(nplenc_orig_tp, source=tp%nplenc)
-            ! call move_alloc(levelg_orig_pl, pl%levelg)
-            ! call move_alloc(levelm_orig_pl, pl%levelm)
-            ! call move_alloc(nplenc_orig_pl, pl%nplenc)
             lencounter = pl%encounter_check(param, nbody_system, param%dt, nbody_system%irec) 
             if (tp%nbody > 0) then
-               ! allocate(levelg_orig_tp, source=tp%levelg)
-               ! allocate(levelm_orig_tp, source=tp%levelm)
-               ! allocate(nplenc_orig_tp, source=tp%nplenc)
-               ! allocate(ntpenc_orig_pl, source=pl%ntpenc)
                lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
-               ! call move_alloc(levelg_orig_tp, tp%levelg)
-               ! call move_alloc(levelm_orig_tp, tp%levelm)
-               ! call move_alloc(nplenc_orig_tp, tp%nplenc)
-               ! call move_alloc(ntpenc_orig_pl, pl%ntpenc)
             end if
          end select
          end select
@@ -2523,7 +2507,11 @@ contains
       if (self%nbody == 0) return
 
       call self%xv2el(cb) 
-      self%rhill(1:self%nbody) = self%a(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
+      where(self%a(1:self%nbody) > 0.0_DP)
+         self%rhill(1:self%nbody) = self%a(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
+      elsewhere
+         self%rhill(1:self%nbody) = (.mag.self%rh(:,1:self%nbody)) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
+      end where
 
       return
    end subroutine swiftest_util_set_rhill

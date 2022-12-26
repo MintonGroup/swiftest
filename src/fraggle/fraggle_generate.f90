@@ -94,7 +94,7 @@ contains
             lfailure_local = .false.
             call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
-            call collision_generate_simple_pos_vec(self, r_max_start)
+            call collision_generate_simple_pos_vec(self)
             call self%set_coordinate_system()
 
             ! Initial velocity guess will be the barycentric velocity of the colliding nbody_system so that the budgets are based on the much smaller collisional-frame velocities

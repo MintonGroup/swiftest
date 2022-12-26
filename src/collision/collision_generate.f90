@@ -32,6 +32,7 @@ contains
       return
    end subroutine collision_generate_basic
 
+
    module subroutine collision_generate_bounce(self, nbody_system, param, t)
       !! author: David A. Minton
       !!
@@ -200,8 +201,7 @@ contains
       class(base_parameters),             intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
       real(DP),                           intent(in)    :: t            !! Time of collision
       ! Internals
-      integer(I4B)          :: i, ibiggest, nfrag, status
-      logical               :: lfailure
+      integer(I4B)          :: i, ibiggest, nfrag
       character(len=STRMAX) :: message 
       real(DP) :: dpe
 
@@ -370,16 +370,14 @@ contains
       implicit none
       ! Arguments
       class(collision_simple_disruption),  intent(inout) :: self         !! Simple fragment system object 
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! The time of the collision
-      logical, optional,        intent(out)   :: lfailure
+      class(base_nbody_system),            intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),              intent(inout) :: param        !! Current run configuration parameters 
+      real(DP),                            intent(in)    :: t            !! The time of the collision
+      logical, optional,                   intent(out)   :: lfailure
       ! Internals
-      real(DP) :: r_max_start
 
       call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-      r_max_start = 1.5_DP * .mag.(self%impactors%rb(:,2) - self%impactors%rb(:,1))
-      call collision_generate_simple_pos_vec(self, r_max_start)
+      call collision_generate_simple_pos_vec(self)
       call self%set_coordinate_system()
       call collision_generate_simple_vel_vec(self)
       call collision_generate_simple_rot_vec(self)
@@ -388,7 +386,7 @@ contains
    end subroutine collision_generate_disrupt
 
 
-   module subroutine collision_generate_simple_pos_vec(collider, r_max_start)
+   module subroutine collision_generate_simple_pos_vec(collider)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Initializes the position vectors of the fragments around the center of mass based on the collision style.
@@ -398,46 +396,51 @@ contains
       implicit none
       ! Arguments
       class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
-      real(DP),                           intent(in)    :: r_max_start    !! The maximum radial distance of fragments for disruptive collisions
       ! Internals
-      real(DP)  :: dis, rad, r_max, fdistort
-      logical, dimension(:), allocatable :: loverlap
-      integer(I4B) :: i, j
-      logical :: lnoncat, lhitandrun
+      real(DP)  :: dis
+      real(DP), dimension(NDIM,2) :: fragment_cloud_center
+      real(DP), dimension(2) :: fragment_cloud_radius
+      logical, dimension(collider%fragments%nbody) :: loverlap
+      integer(I4B) :: i, j, loop
+      logical :: lcat, lhitandrun
+      integer(I4B), parameter :: MAXLOOP = 10000
+      real(DP) :: rdistance
+      real(DP), parameter :: fail_scale = 1.1_DP ! Scale factor to apply to cloud radius and distance if cloud generation fails
+
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
-         allocate(loverlap(nfrag))
+         lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
+         lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
-         lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
-         lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) ! Disruptive hit and runs have their own fragment distribution
+         ! We will treat the first two fragments of the list as special cases. 
+         ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
+         rdistance = .mag. (impactors%rc(:,2) - impactors%rc(:,1)) - sum(fragments%radius(1:2))
+         rdistance = min(0.5_DP*rdistance, 1e-6_DP*impactors%radius(2))
 
-         ! Place the fragments into a region that is big enough that we should usually not have overlapping bodies
-         ! An overlapping bodies will collide in the next time step, so it's not a major problem if they do (it just slows the run down)
-         r_max = r_max_start
-         rad = sum(impactors%radius(:))
+         fragment_cloud_radius(:) = impactors%radius(:)
 
-         ! This is a factor that will "distort" the shape of the fragment cloud in the direction of the impact velocity 
-         fdistort = .mag. (impactors%y_unit(:) .cross. impactors%v_unit(:)) 
-
-         ! We will treat the first two fragments of the list as special cases. They get initialized at the original positions of the impactor bodies
-         fragments%rc(:, 1) = impactors%rb(:, 1) - impactors%rbcom(:) 
-         fragments%rc(:, 2) = impactors%rb(:, 2) - impactors%rbcom(:)
-         call random_number(fragments%rc(:,3:nfrag))
          loverlap(:) = .true.
-         do while (any(loverlap(3:nfrag)))
-            if (lhitandrun) then ! For a hit-and-run with disruption, the fragment cloud size is based on the radius of the disrupted body
-               r_max = 2 * impactors%radius(2) 
-            else ! For disruptions, the the fragment cloud size is based on the mutual collision system
-               r_max = r_max + 0.1_DP * rad
-            end if
-            do i = 3, nfrag
-               if (loverlap(i)) then 
+         do loop = 1, MAXLOOP
+            if (.not.any(loverlap(:))) exit
+            fragment_cloud_center(:,1) = impactors%rc(:,1) + rdistance * impactors%bounce_unit(:)
+            fragment_cloud_center(:,2) = impactors%rc(:,2) - rdistance * impactors%bounce_unit(:)
+            do concurrent(i = 1:nfrag, loverlap(i))
+               if (i < 3) then
+                  fragments%rc(:,i) = fragment_cloud_center(:,i)
+               else
+                  ! Make a random cloud
                   call random_number(fragments%rc(:,i))
-                  fragments%rc(:,i) = 2 * (fragments%rc(:, i) - 0.5_DP)  
-                  fragments%rc(:, i) = fragments%rc(:,i) + fdistort * impactors%v_unit(:) 
-                  fragments%rc(:, i) = r_max * fragments%rc(:, i)  
-                  fragments%rc(:, i) = fragments%rc(:, i) + (impactors%rbimp(:) - impactors%rbcom(:)) ! Shift the center of the fragment cloud to the impact point rather than the CoM
-                  if (lnoncat .and. dot_product(fragments%rc(:,i), impactors%y_unit(:)) < 0.0_DP) fragments%rc(:, i) = -fragments%rc(:, i) ! Make sure the fragment cloud points away from the impact point
+   
+                  ! Make the fragment cloud symmertic about 0
+                  fragments%rc(:,i) = 2 *(fragments%rc(:,i) - 0.5_DP)
+   
+                  j = fragments%origin_body(i)
+   
+                  ! Scale the cloud size
+                  fragments%rc(:,i) = fragment_cloud_radius(j) * fragments%rc(:,i)
+   
+                  ! Shift to the cloud center coordinates
+                  fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
                end if
             end do
 
@@ -449,6 +452,8 @@ contains
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
+            rdistance = rdistance * fail_scale
+            fragment_cloud_radius(:) = fragment_cloud_radius(:) * fail_scale
          end do
          call collision_util_shift_vector_to_origin(fragments%mass, fragments%rc)
          call collider%set_coordinate_system()
@@ -476,7 +481,7 @@ contains
       ! Arguments
       class(collision_basic), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      real(DP), dimension(NDIM) :: Ltotal, Lresidual
+      real(DP), dimension(NDIM) :: Lresidual
       integer(I4B) :: i
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
@@ -517,35 +522,52 @@ contains
       ! Arguments
       class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      integer(I4B) :: i
-      logical :: lhr, lnoncat
-      real(DP), dimension(NDIM) :: vimp_unit, vcom, rnorm
-      real(DP), dimension(NDIM,collider%fragments%nbody) :: vnoise
-      real(DP), parameter :: VNOISE_MAG = 0.20_DP
-      real(DP) :: vmag
+      integer(I4B) :: i,j
+      logical :: lhitandrun, lnoncat
+      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot
+      real(DP), dimension(2) :: vimp
+      real(DP) :: vmag, vdisp
+      integer(I4B), dimension(collider%fragments%nbody) :: vsign
+      real(DP), dimension(collider%fragments%nbody) :: vscale
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
-         lhr = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
+         lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
          lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
          ! "Bounce" the first two bodies
-         do i = 1,2
-            vcom(:) = impactors%vb(:,i) - impactors%vbcom(:)
-            rnorm(:) = impactors%y_unit(:)
-            ! Do the reflection
-            if (.not. lhr) vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
-            fragments%vc(:,i) = vcom(:)
-         end do
+         where(fragments%origin_body(:) == 1)
+            vsign(:) = -1
+         elsewhere
+            vsign(:) = 1
+         end where
 
-         ! Compute the escape velocity and velocity dispursion
-         call random_number(vnoise)
-         if (lhr) then
-            vmag = 2 * sqrt(2 * impactors%Gmass(2) / impactors%radius(2))
+         ! Compute the velocity dispersion based on the escape velocity
+         if (lhitandrun) then
+            vdisp = 2 * sqrt(2 * impactors%Gmass(2) / impactors%radius(2))
          else
-            vmag = .mag. (impactors%vb(:,2) - impactors%vb(:,1))
+            vdisp = 2 * sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
+            !vmag = abs(dot_product(impactors%vb(:,2) - impactors%vb(:,1), impactors%y_unit(:))) 
          end if
-         do i = 3, nfrag
-            vimp_unit(:) = .unit. (fragments%rc(:,i) - (impactors%rbimp(:) - impactors%rbcom(:)))
-            fragments%vc(:,i) = vmag * (vimp_unit(:) + vnoise(:,i)) + fragments%vc(:,2)
+
+         vimp(:) = .mag.impactors%vc(:,:)
+
+         ! Scale the magnitude of the velocity by the distance from the impact point and add a bit of shear
+         do concurrent(i = 1:nfrag)
+            rimp(:) = fragments%rc(:,i) - impactors%rbimp(:) 
+            vscale(i) = .mag. rimp(:) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1)))
+         end do
+         vscale(:) = vscale(:)/maxval(vscale(:))
+
+         fragments%vc(:,1) = .mag.impactors%vc(:,1) * impactors%bounce_unit(:) 
+         do concurrent(i = 2:nfrag)
+            rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
+            vimp_unit(:) = .unit. rimp(:)
+
+            j = fragments%origin_body(i)
+            vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rb(:,j) + impactors%rbcom(:))
+
+            vmag = .mag.impactors%vc(:,j) * vscale(i)
+
+            fragments%vc(:,i) = vmag * 0.5_DP * (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
          end do
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
