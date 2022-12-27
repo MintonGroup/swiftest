@@ -216,7 +216,7 @@ contains
    
          do i = 1, nfrag
             fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
-            fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
+            fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
          end do
 
          fragments%ke_orbit = fragments%ke_orbit / 2
@@ -263,6 +263,8 @@ contains
                   ke_orbit = ke_orbit + impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
                   ke_spin = ke_spin + impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
                end do
+               ke_orbit = ke_orbit / 2
+               ke_spin = ke_spin / 2
             else
                call fragments%get_angular_momentum()
                Lorbit(:) = fragments%Lorbit(:) 

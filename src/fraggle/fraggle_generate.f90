@@ -99,12 +99,12 @@ contains
             dEtot = self%Etot(2) - self%Etot(1)
             dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
 
-            lfailure_local = ((abs(dEtot + impactors%Qloss) > FRAGGLE_ETOL) .or. (dEtot > 0.0_DP)) 
+            lfailure_local = (dEtot > 0.0_DP) 
             if (lfailure_local) then
                write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high energy error: " // &
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to energy gain: " // &
                                                         trim(adjustl(message)))
-               cycle
+               !cycle
                lfailure_local = .false.
                exit
             end if
@@ -160,8 +160,8 @@ contains
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds
       ! Internals
-      real(DP), parameter :: TOL_MIN = 1.0e-6_DP
-      real(DP), parameter :: TOL_INIT = 1e-8_DP
+      real(DP), parameter :: TOL_MIN = 1.0e-5_DP
+      real(DP), parameter :: TOL_INIT = 1e-6_DP
       integer(I4B), parameter :: MAXLOOP = 50
       real(DP), dimension(collider%fragments%nbody) :: input_v
       real(DP), dimension(:), allocatable :: output_v
@@ -179,11 +179,11 @@ contains
             Efunc = lambda_obj(E_objective_function)
             tol = TOL_INIT
 
+            fragments%v_r_unit(:,:) = .unit. fragments%vc(:,:)
+            fragments%vmag(:) = .mag. fragments%vc(:,1:nfrag) 
+            fragments%rot(:,1:nfrag) = fragments%rot(:,1:nfrag) * 1e-12_DP
             do while(tol < TOL_MIN)
 
-               fragments%v_r_unit(:,:) = .unit. fragments%vc(:,:)
-               fragments%vmag(:) = .mag. fragments%vc(:,:)
-               
                input_v(:) = fragments%vmag(1:nfrag)
                fval = E_objective_function(input_v)
                call minimize_bfgs(Efunc, nelem, input_v, tol, MAXLOOP, lfailure, output_v)
@@ -196,13 +196,15 @@ contains
                   fragments%vc(:,i) = abs(fragments%vmag(i)) * fragments%v_r_unit(:,i)
                end do
 
-               call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)
                ! Set spins in order to conserve angular momentum
                call fraggle_generate_set_spins(fragments)
 
                if (.not.lfailure) exit
                tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
             end do
+
+
+            call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)
          end select
       end associate
 
@@ -244,10 +246,11 @@ contains
             
                   ! Use the deltaE as the basis of our objective function, with a higher penalty for having excess kinetic energy compared with having a deficit
                   if (deltaE < 0.0_DP) then
-                     fval = deltaE**4
+                     fval = deltaE**8
                   else
                      fval = deltaE**2
                   end if
+                  deallocate(tmp_frag)
                   
                end select
             end associate

@@ -328,6 +328,8 @@ contains
                   ! The fragment trajectory will be the barycentric trajectory
                   fragments%rb(:,1) = impactors%rbcom(:)
                   fragments%vb(:,1) = impactors%vbcom(:)
+                  fragments%rc(:,1) = 0.0_DP
+                  fragments%vc(:,1) = 0.0_DP
 
                   ! Get the energy of the system after the collision
                   call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
@@ -485,7 +487,9 @@ contains
       class(collision_basic), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
       real(DP), dimension(NDIM) :: Lresidual, Lbefore, Lafter, Lspin, rot
-      integer(I4B) :: i
+      real(DP) :: ke_residual, rotmag_old, rotmag_new, vmag_old, vmag_new
+      integer(I4B) :: i, loop
+      integer(I4B) :: MAXLOOP = 10
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
 
@@ -537,7 +541,7 @@ contains
       real(DP), dimension(2) :: vimp
       real(DP) :: vmag, vdisp
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
-      real(DP), dimension(collider%fragments%nbody) :: vscale
+      real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
@@ -554,7 +558,6 @@ contains
             vdisp = 2 * sqrt(2 * impactors%Gmass(2) / impactors%radius(2))
          else
             vdisp = 2 * sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
-            !vmag = abs(dot_product(impactors%vb(:,2) - impactors%vb(:,1), impactors%y_unit(:))) 
          end if
 
          vimp(:) = .mag.impactors%vc(:,:)
@@ -566,13 +569,18 @@ contains
          end do
          vscale(:) = vscale(:)/maxval(vscale(:))
 
+         ! Give the fragment velocities a random value that is somewhat scaled with fragment mass
+         call random_number(mass_vscale)
+         mass_vscale(:) = (mass_vscale(:) + 1.0_DP) / 2
+         mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP)
+         mass_vscale(:) = sqrt(2*mass_vscale(:) / maxval(mass_vscale(:)))
          fragments%vc(:,1) = .mag.impactors%vc(:,1) * impactors%bounce_unit(:) 
          do concurrent(i = 2:nfrag)
 
             j = fragments%origin_body(i)
             vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rb(:,j) + impactors%rbcom(:))
 
-            vmag = .mag.impactors%vc(:,j) * vscale(i)
+            vmag = .mag.impactors%vc(:,j) * vscale(i) * mass_vscale(i)
 
             if (lhitandrun) then
                fragments%vc(:,i) = vmag * 0.5_DP * impactors%bounce_unit(:) * vsign(i) + vrot(:)
