@@ -175,6 +175,59 @@ contains
    end subroutine collision_util_get_idvalues_snapshot
 
 
+
+   module subroutine collision_util_get_angular_momentum(self) 
+      !! Author: David A. Minton
+      !!
+      !! Calculates the current angular momentum of the fragments
+      implicit none
+      ! Arguments
+      class(collision_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
+      ! Internals
+      integer(I4B) :: i
+
+      associate(fragments => self, nfrag => self%nbody)
+         fragments%Lorbit(:) = 0.0_DP
+         fragments%Lspin(:) = 0.0_DP
+   
+         do i = 1, nfrag
+            fragments%Lorbit(:) = fragments%Lorbit(:) + fragments%mass(i) * (fragments%rc(:, i) .cross. fragments%vc(:, i))
+            fragments%Lspin(:) = fragments%Lspin(:) + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:, i) * fragments%rot(:, i)
+         end do
+      end associate
+
+      return
+   end subroutine collision_util_get_angular_momentum
+
+
+   module subroutine collision_util_get_kinetic_energy(self) 
+      !! Author: David A. Minton
+      !!
+      !! Calculates the current kinetic energy of the fragments
+      implicit none
+      ! Argument
+      class(collision_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
+      ! Internals
+      integer(I4B) :: i
+
+      associate(fragments => self, nfrag => self%nbody)
+         fragments%ke_orbit = 0.0_DP
+         fragments%ke_spin  = 0.0_DP
+   
+         do i = 1, nfrag
+            fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
+            fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
+         end do
+
+         fragments%ke_orbit = fragments%ke_orbit / 2
+         fragments%ke_spin = fragments%ke_spin / 2
+
+      end associate
+
+      return
+   end subroutine collision_util_get_kinetic_energy
+
+
    module subroutine collision_util_get_energy_momentum(self,  nbody_system, param, lbefore)
       !! Author: David A. Minton
       !!
@@ -189,71 +242,49 @@ contains
       class(base_parameters),   intent(inout) :: param   !! Current swiftest run configuration parameters
       logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
       ! Internals
-      class(base_nbody_system), allocatable, save :: tmpsys
-      class(base_parameters), allocatable, save   :: tmpparam
-      integer(I4B)  :: npl_before, npl_after, stage,i
+      integer(I4B)  :: stage,i
+      real(DP), dimension(NDIM) :: Lorbit, Lspin
+      real(DP) :: ke_orbit, ke_spin
+
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
          associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
 
-            ! Because we're making a copy of the massive body object with the excludes/fragments appended, we need to deallocate the
-            ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
-            ! allocating two of these ginormous arrays simulteouously. This is not particularly efficient, but as this
-            ! subroutine should be called relatively infrequently, it shouldn't matter too much.
-
-            npl_before = pl%nbody
-            npl_after = npl_before + nfrag
 
             if (lbefore) then
-               call self%construct_temporary_system(nbody_system, param, tmpsys, tmpparam)
-               select type(tmpsys)
-               class is (swiftest_nbody_system)
-                  ! Build the exluded body logical mask for the *before* case: Only the original bodies are used to compute energy and momentum
-                  tmpsys%pl%status(impactors%id(1:impactors%ncoll)) = ACTIVE
-                  tmpsys%pl%status(npl_before+1:npl_after) = INACTIVE
-               end select
+
+               Lorbit(:) = sum(impactors%Lorbit(:,:), dim=2)
+               Lspin(:) = sum(impactors%Lspin(:,:), dim=2)
+               ke_orbit = 0.0_DP
+               ke_spin = 0.0_DP
+               do concurrent(i = 1:2)
+                  ke_orbit = ke_orbit + impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
+                  ke_spin = ke_spin + impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
+               end do
             else
-               if (.not.allocated(tmpsys)) then
-                  write(*,*) "Error in collision_util_get_energy_momentum. " // &
-                           " This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
-                  call util_exit(FAILURE)
-               end if
-               select type(tmpsys)
-               class is (swiftest_nbody_system)
-                  ! Build the exluded body logical mask for the *after* case: Only the new bodies are used to compute energy and momentum
-                  call self%add_fragments(tmpsys, tmpparam)
-                  tmpsys%pl%status(impactors%id(1:impactors%ncoll)) = INACTIVE
-                  do concurrent(i = npl_before+1:npl_after)
-                     tmpsys%pl%status(i) = ACTIVE
-                     tmpsys%pl%rot(:,i) = 0.0_DP
-                     tmpsys%pl%vb(:,i) = impactors%vbcom(:)
-                  end do
-               end select
+               call fragments%get_angular_momentum()
+               Lorbit(:) = fragments%Lorbit(:) 
+               Lspin(:) = fragments%Lspin(:) 
+
+               call fragments%get_kinetic_energy()
+               ke_orbit = fragments%ke_orbit
+               ke_spin = fragments%ke_spin
+
             end if 
-            select type(tmpsys)
-            class is (swiftest_nbody_system)
-
-               if (param%lflatten_interactions) call tmpsys%pl%flatten(param)
-
-               call tmpsys%get_energy_and_momentum(param)
-
-
-               ! Calculate the current fragment energy and momentum balances
-               if (lbefore) then
-                  stage = 1
-               else
-                  stage = 2
-               end if
-               self%Lorbit(:,stage) = tmpsys%Lorbit(:)
-               self%Lspin(:,stage) = tmpsys%Lspin(:)
-               self%Ltot(:,stage) = tmpsys%Ltot(:)
-               self%ke_orbit(stage) = tmpsys%ke_orbit
-               self%ke_spin(stage) = tmpsys%ke_spin
-               self%pe(stage) = tmpsys%pe
-               self%Etot(stage) = tmpsys%ke_orbit + tmpsys%ke_spin
-            end select
+            ! Calculate the current fragment energy and momentum balances
+            if (lbefore) then
+               stage = 1
+            else
+               stage = 2
+            end if
+            self%Lorbit(:,stage) = Lorbit(:)
+            self%Lspin(:,stage) = Lspin(:)
+            self%Ltot(:,stage) = Lorbit(:) + Lspin(:)
+            self%ke_orbit(stage) = ke_orbit
+            self%ke_spin(stage) = ke_spin
+            self%Etot(stage) = ke_orbit + ke_spin
          end associate
       end select
       end select

@@ -110,9 +110,15 @@ module collision
       real(DP),                  dimension(NDIM,nbody)       :: v_t_unit    !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
       real(DP),                  dimension(NDIM,nbody)       :: v_n_unit    !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
       integer(I1B),              dimension(nbody)            :: origin_body !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
+      real(DP), dimension(NDIM)                              :: Lorbit    !! Orbital angular momentum vector of all fragments
+      real(DP), dimension(NDIM)                              :: Lspin     !! Spin angular momentum vector of all fragments
+      real(DP)                                               :: ke_orbit  !! Orbital kinetic energy of all fragments
+      real(DP)                                               :: ke_spin   !! Spin kinetic energy of all fragments
    contains
-      procedure :: reset => collision_util_reset_fragments !! Deallocates all allocatable arrays and sets everything else to 0
-      final     ::          collision_final_fragments !! Finalizer deallocates all allocatables
+      procedure :: reset                => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
+      procedure :: get_angular_momentum => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
+      procedure :: get_kinetic_energy   => collision_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
+      final     ::                         collision_final_fragments           !! Finalizer deallocates all allocatables
    end type collision_fragments
 
 
@@ -403,6 +409,17 @@ module collision
          class(base_nbody_system), allocatable, intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
          class(base_parameters),   allocatable, intent(out)   :: tmpparam     !! Output temporary configuration run parameters
       end subroutine collision_util_construct_temporary_system 
+
+
+      module subroutine collision_util_get_angular_momentum(self) 
+         implicit none
+         class(collision_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
+      end subroutine collision_util_get_angular_momentum
+
+      module subroutine collision_util_get_kinetic_energy(self) 
+         implicit none
+         class(collision_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
+      end subroutine collision_util_get_kinetic_energy
 
       module subroutine collision_util_reset_fragments(self)
          implicit none

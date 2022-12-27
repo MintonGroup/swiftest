@@ -37,57 +37,6 @@ contains
    end subroutine fraggle_util_construct_temporary_system
 
 
-   module subroutine fraggle_util_get_angular_momentum(self) 
-      !! Author: David A. Minton
-      !!
-      !! Calculates the current angular momentum of the fragments
-      implicit none
-      ! Arguments
-      class(fraggle_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
-      ! Internals
-      integer(I4B) :: i
-
-      associate(fragments => self, nfrag => self%nbody)
-         fragments%Lorbit(:) = 0.0_DP
-         fragments%Lspin(:) = 0.0_DP
-   
-         do i = 1, nfrag
-            fragments%Lorbit(:) = fragments%Lorbit(:) + fragments%mass(i) * (fragments%rc(:, i) .cross. fragments%vc(:, i))
-            fragments%Lspin(:) = fragments%Lspin(:) + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:, i) * fragments%rot(:, i)
-         end do
-      end associate
-
-      return
-   end subroutine fraggle_util_get_angular_momentum
-
-
-   module subroutine fraggle_util_get_kinetic_energy(self) 
-      !! Author: David A. Minton
-      !!
-      !! Calculates the current kinetic energy of the fragments
-      implicit none
-      ! Argument
-      class(fraggle_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
-      ! Internals
-      integer(I4B) :: i
-
-      associate(fragments => self, nfrag => self%nbody)
-         fragments%ke_orbit = 0.0_DP
-         fragments%ke_spin  = 0.0_DP
-   
-         do i = 1, nfrag
-            fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
-            fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
-         end do
-
-         fragments%ke_orbit = fragments%ke_orbit / 2
-         fragments%ke_spin = fragments%ke_spin / 2
-
-      end associate
-
-      return
-   end subroutine fraggle_util_get_kinetic_energy
-
    module subroutine fraggle_util_reset_fragments(self)
       !! author: David A. Minton
       !!
@@ -138,53 +87,6 @@ contains
    end subroutine fraggle_util_reset_system
 
 
-   module subroutine fraggle_util_restructure(self, impactors, try, f_spin, r_max_start)
-      !! Author: David A. Minton
-      !!
-      !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
-      implicit none
-      ! Arguments
-      class(fraggle_fragments(*)), intent(inout) :: self        !! Fraggle fragment system object
-      class(collision_impactors), intent(in)    :: impactors   !! Fraggle collider system object
-      integer(I4B),             intent(in)    :: try         !! The current number of times Fraggle has tried to find a solution
-      real(DP),                 intent(inout) :: f_spin      !! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt
-      real(DP),                 intent(inout) :: r_max_start !! The maximum radial distance that the position calculation starts with. This increases after a failed attempt
-      ! Internals
-      real(DP), save :: ke_tot_deficit, r_max_start_old, ke_avg_deficit_old
-      real(DP) :: delta_r, delta_r_max, ke_avg_deficit
-      real(DP), parameter :: ke_avg_deficit_target = 0.0_DP 
-
-      ! Introduce a bit of noise in the radius determination so we don't just flip flop between similar failed positions
-      associate(fragments => self)
-         call random_number(delta_r_max)
-         delta_r_max = sum(impactors%radius(:)) * (1.0_DP + 2e-1_DP * (delta_r_max - 0.5_DP))
-         if (try == 1) then
-            ke_tot_deficit = - (fragments%ke_budget - fragments%ke_orbit - fragments%ke_spin)
-            ke_avg_deficit = ke_tot_deficit
-            delta_r = delta_r_max
-         else
-            ! Linearly interpolate the last two failed solution ke deficits to find a new distance value to try
-            ke_tot_deficit = ke_tot_deficit - (fragments%ke_budget - fragments%ke_orbit - fragments%ke_spin)
-            ke_avg_deficit = ke_tot_deficit / try
-            delta_r = (r_max_start - r_max_start_old) * (ke_avg_deficit_target - ke_avg_deficit_old) &
-                                                      / (ke_avg_deficit - ke_avg_deficit_old)
-            if (abs(delta_r) > delta_r_max) delta_r = sign(delta_r_max, delta_r)
-         end if
-         r_max_start_old = r_max_start
-         r_max_start = r_max_start + delta_r ! The larger lever arm can help if the problem is in the angular momentum step
-         ke_avg_deficit_old = ke_avg_deficit
-   
-         if (f_spin > epsilon(1.0_DP)) then ! Try reducing the fraction in spin
-            f_spin = f_spin / 2
-         else
-            f_spin = 0.0_DP
-         end if
-      end associate 
-
-      return
-   end subroutine fraggle_util_restructure
-
-
    module subroutine fraggle_util_set_budgets(self)
       !! author: David A. Minton
       !!
@@ -200,8 +102,8 @@ contains
          select type(fragments => self%fragments)
          class is (fraggle_fragments(*))
 
-            dEtot = self%Etot(2) - self%Etot(1)
-            dL(:) = self%Ltot(:,2) - self%Ltot(:,1)
+            dEtot = self%Etot(1)
+            dL(:) = self%Ltot(:,1)
 
             fragments%L_budget(:) = -dL(:)
             fragments%ke_budget = -(dEtot - impactors%Qloss)

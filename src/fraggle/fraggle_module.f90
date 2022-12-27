@@ -20,17 +20,11 @@ module fraggle
       real(DP), dimension(nbody) :: v_r_mag   !! Array of radial direction velocity magnitudes of individual fragments 
       real(DP), dimension(nbody) :: v_t_mag   !! Array of tangential direction velocity magnitudes of individual fragments
       real(DP), dimension(nbody) :: v_n_mag   !! Array of normal direction velocity magnitudes of individual fragments
-      real(DP), dimension(NDIM)  :: Lorbit    !! Orbital angular momentum vector of all fragments
-      real(DP), dimension(NDIM)  :: Lspin     !! Spin angular momentum vector of all fragments
-      real(DP)                   :: ke_orbit  !! Orbital kinetic energy of all fragments
-      real(DP)                   :: ke_spin   !! Spin kinetic energy of all fragments
       real(DP)                   :: ke_budget !! Kinetic energy budget for computing fragment trajectories
       real(DP), dimension(NDIM)  :: L_budget  !! Angular momentum budget for computing fragment trajectories
    contains
-      procedure :: get_angular_momentum => fraggle_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
-      procedure :: get_kinetic_energy   => fraggle_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
+
       procedure :: reset                => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
-      procedure :: restructure          => fraggle_util_restructure          !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
       final     ::                         fraggle_final_fragments           !! Finalizer will deallocate all allocatables
    end type fraggle_fragments
 
@@ -80,16 +74,6 @@ module fraggle
          class(base_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
       end subroutine fraggle_util_construct_temporary_system
 
-      module subroutine fraggle_util_get_angular_momentum(self) 
-         implicit none
-         class(fraggle_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
-      end subroutine fraggle_util_get_angular_momentum
-
-      module subroutine fraggle_util_get_kinetic_energy(self) 
-         implicit none
-         class(fraggle_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
-      end subroutine fraggle_util_get_kinetic_energy
-
       module subroutine fraggle_util_reset_fragments(self)
          implicit none
          class(fraggle_fragments(*)), intent(inout) :: self
@@ -99,15 +83,6 @@ module fraggle
          implicit none
          class(collision_fraggle), intent(inout) :: self  !! Collision system object
       end subroutine fraggle_util_reset_system
-
-      module subroutine fraggle_util_restructure(self, impactors, try, f_spin, r_max_start)
-         implicit none
-         class(fraggle_fragments(*)), intent(inout) :: self        !! Fraggle fragment system object
-         class(collision_impactors), intent(in)    :: impactors   !! Fraggle collider system object
-         integer(I4B),             intent(in)    :: try         !! The current number of times Fraggle has tried to find a solution
-         real(DP),                 intent(inout) :: f_spin      !! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt
-         real(DP),                 intent(inout) :: r_max_start !! The maximum radial distance that the position calculation starts with. This increases after a failed attempt
-      end subroutine fraggle_util_restructure
 
       module subroutine fraggle_util_set_budgets(self)
          implicit none

@@ -80,7 +80,6 @@ contains
             write(message,*) try
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
             if (lfailure_local) then
-               !call fragments%restructure(impactors, try, f_spin, r_max_start)
                call fragments%reset()
                try = try + 1
             end if
@@ -163,7 +162,7 @@ contains
       ! Internals
       real(DP), parameter :: TOL_MIN = 1.0e-6_DP
       real(DP), parameter :: TOL_INIT = 1e-8_DP
-      integer(I4B), parameter :: MAXLOOP = 30
+      integer(I4B), parameter :: MAXLOOP = 50
       real(DP), dimension(collider%fragments%nbody) :: input_v
       real(DP), dimension(:), allocatable :: output_v
       type(lambda_obj) :: Efunc
@@ -174,7 +173,7 @@ contains
          select type(fragments => collider%fragments)
          class is (fraggle_fragments(*))
 
-            nelem = 2 * (nfrag - 1)
+            nelem = nfrag 
             lfailure = .false.
                ! Find the local kinetic energy minimum for the nbody_system that conserves linear and angular momentum
             Efunc = lambda_obj(E_objective_function)
@@ -193,7 +192,7 @@ contains
 
                fragments%vmag(1:nfrag) = output_v(1:nfrag)
 
-               do concurrent(i=2:nfrag)
+               do concurrent(i=1:nfrag)
                   fragments%vc(:,i) = abs(fragments%vmag(i)) * fragments%v_r_unit(:,i)
                end do
 
@@ -240,8 +239,8 @@ contains
                   call fraggle_generate_set_spins(tmp_frag)
 
                   ! Get the current kinetic energy of the system
-                  call fragments%get_kinetic_energy()
-                  deltaE = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
+                  call tmp_frag%get_kinetic_energy()
+                  deltaE = tmp_frag%ke_budget - (tmp_frag%ke_orbit + tmp_frag%ke_spin)
             
                   ! Use the deltaE as the basis of our objective function, with a higher penalty for having excess kinetic energy compared with having a deficit
                   if (deltaE < 0.0_DP) then
