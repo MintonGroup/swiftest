@@ -498,8 +498,7 @@ module collision
          ! Arguments
          type(collision_fragments(*)), intent(inout) :: self
 
-         call self%reset()
-
+         if (allocated(self%info)) deallocate(self%info)
          return
       end subroutine collision_final_fragments
 

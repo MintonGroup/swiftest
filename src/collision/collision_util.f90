@@ -191,8 +191,7 @@ contains
       ! Internals
       class(base_nbody_system), allocatable, save :: tmpsys
       class(base_parameters), allocatable, save   :: tmpparam
-      integer(I4B)  :: npl_before, npl_after, stage
-
+      integer(I4B)  :: npl_before, npl_after, stage,i
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
@@ -226,7 +225,11 @@ contains
                   ! Build the exluded body logical mask for the *after* case: Only the new bodies are used to compute energy and momentum
                   call self%add_fragments(tmpsys, tmpparam)
                   tmpsys%pl%status(impactors%id(1:impactors%ncoll)) = INACTIVE
-                  tmpsys%pl%status(npl_before+1:npl_after) = ACTIVE
+                  do concurrent(i = npl_before+1:npl_after)
+                     tmpsys%pl%status(i) = ACTIVE
+                     tmpsys%pl%rot(:,i) = 0.0_DP
+                     tmpsys%pl%vb(:,i) = impactors%vbcom(:)
+                  end do
                end select
             end if 
             select type(tmpsys)
@@ -234,7 +237,8 @@ contains
 
                if (param%lflatten_interactions) call tmpsys%pl%flatten(param)
 
-               call tmpsys%get_energy_and_momentum(param) 
+               call tmpsys%get_energy_and_momentum(param)
+
 
                ! Calculate the current fragment energy and momentum balances
                if (lbefore) then
@@ -248,8 +252,7 @@ contains
                self%ke_orbit(stage) = tmpsys%ke_orbit
                self%ke_spin(stage) = tmpsys%ke_spin
                self%pe(stage) = tmpsys%pe
-               self%Etot(stage) = tmpsys%te 
-               if (stage == 2) self%Etot(stage) = self%Etot(stage) - (self%pe(2) - self%pe(1)) ! Gotta be careful with PE when number of bodies changes.
+               self%Etot(stage) = tmpsys%ke_orbit + tmpsys%ke_spin
             end select
          end associate
       end select

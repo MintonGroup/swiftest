@@ -27,10 +27,11 @@ module fraggle
       real(DP)                   :: ke_budget !! Kinetic energy budget for computing fragment trajectories
       real(DP), dimension(NDIM)  :: L_budget  !! Angular momentum budget for computing fragment trajectories
    contains
-      procedure :: get_angular_momentum  => fraggle_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
-      procedure :: reset                 => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
-      procedure :: restructure           => fraggle_util_restructure          !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
-      final     ::                          fraggle_final_fragments           !! Finalizer will deallocate all allocatables
+      procedure :: get_angular_momentum => fraggle_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
+      procedure :: get_kinetic_energy   => fraggle_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
+      procedure :: reset                => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      procedure :: restructure          => fraggle_util_restructure          !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
+      final     ::                         fraggle_final_fragments           !! Finalizer will deallocate all allocatables
    end type fraggle_fragments
 
 
@@ -83,6 +84,11 @@ module fraggle
          implicit none
          class(fraggle_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
       end subroutine fraggle_util_get_angular_momentum
+
+      module subroutine fraggle_util_get_kinetic_energy(self) 
+         implicit none
+         class(fraggle_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
+      end subroutine fraggle_util_get_kinetic_energy
 
       module subroutine fraggle_util_reset_fragments(self)
          implicit none
@@ -139,7 +145,7 @@ module fraggle
          ! Arguments
          type(fraggle_fragments(*)),  intent(inout) :: self !! Fraggle encountar storage object
 
-         call self%collision_fragments%reset()
+         if (allocated(self%info)) deallocate(self%info)
 
          return
       end subroutine fraggle_final_fragments

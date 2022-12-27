@@ -128,7 +128,7 @@ module minimizer
          real(DP), dimension(:), intent(out), allocatable :: x1
          ! Internals
          integer(I4B) ::  i, j, k, l, conv
-         real(DP), parameter     :: graddelta = 1e-4_DP !! Delta x for gradient calculations
+         real(DP), parameter     :: graddelta = 1e-6_DP !! Delta x for gradient calculations
          real(DP), dimension(N) :: S               !! Direction vectors 
          real(DP), dimension(N,N) :: H             !! Approximated inverse Hessian matrix 
          real(DP), dimension(N) :: grad1           !! gradient of f 
@@ -137,6 +137,7 @@ module minimizer
          real(DP), dimension(N) :: y, P
          real(DP), dimension(N,N) :: PP, PyH, HyP
          real(DP), save :: yHy, Py
+         real(DP) :: Hnorm
 
          call ieee_get_status(original_fpe_status) ! Save the original floating point exception status
          call ieee_set_flag(ieee_all, .false.) ! Set all flags to quiet
@@ -181,7 +182,7 @@ module minimizer
             end do
             !$omp end do simd
             ! prevent divide by zero (convergence) 
-            if (abs(Py) < tiny(Py)) exit
+            if (abs(Py) < N**2 * tiny(Py)) exit
             ! set up update 
             PyH(:,:) = 0._DP
             HyP(:,:) = 0._DP
@@ -201,13 +202,21 @@ module minimizer
             ! update H matrix 
             H(:,:) = H(:,:) + ((1._DP - yHy / Py) * PP(:,:) - PyH(:,:) - HyP(:,:)) / Py
             ! Normalize to prevent it from blowing up if it takes many iterations to find a solution
-            H(:,:) = H(:,:) / norm2(H(:,:))
+            Hnorm = 0.0_DP
+            do concurrent (j = 1:N,k=1:N,abs(H(j,k))>sqrt(10*tiny(1.0_DP)))
+               Hnorm = Hnorm + H(j,k)**2
+            end do
+            Hnorm = sqrt(Hnorm) 
             ! Stop everything if there are any exceptions to allow the routine to fail gracefully
             call ieee_get_flag(ieee_usual, fpe_flag)
             if (any(fpe_flag)) exit 
             if (i == maxloop) then
                lerr = .true.
             end if
+            where(abs(H(:,:)) < sqrt(10*tiny(1.0_DP)) )
+               H(:,:) = 0.0_DP
+            endwhere
+            H(:,:) = H(:,:) / Hnorm
          end do
          call ieee_get_flag(ieee_usual, fpe_flag)
          lerr = lerr .or. any(fpe_flag)  

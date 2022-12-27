@@ -141,7 +141,9 @@ contains
                   call self%set_mass_dist(param)
 
                   ! Generate the position and velocity distributions of the fragments
+                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
                   call self%disrupt(nbody_system, param, t, lpure)
+                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
 
                   dpe = self%pe(2) - self%pe(1) 
                   nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
@@ -227,7 +229,9 @@ contains
                call util_exit(FAILURE)
             end select
             call self%set_mass_dist(param) 
+            call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
             call self%disrupt(nbody_system, param, t)
+            call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
 
             dpe = self%pe(2) - self%pe(1) 
             nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
@@ -376,12 +380,11 @@ contains
       logical, optional,                   intent(out)   :: lfailure
       ! Internals
 
-      call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
       call collision_generate_simple_pos_vec(self)
       call self%set_coordinate_system()
       call collision_generate_simple_vel_vec(self)
       call collision_generate_simple_rot_vec(self)
-      call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+
       return
    end subroutine collision_generate_disrupt
 
@@ -481,28 +484,34 @@ contains
       ! Arguments
       class(collision_basic), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      real(DP), dimension(NDIM) :: Lresidual
+      real(DP), dimension(NDIM) :: Lresidual, Lbefore, Lafter, Lspin, rot
       integer(I4B) :: i
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
 
          fragments%rot(:,:) = 0.0_DP
-         ! Keep the first two bodies spinning as before to start with
-         Lresidual(:) = 0.0_DP
-         do i = 1,2
-            fragments%rot(:,i) = impactors%Lspin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
-            Lresidual(:) = Lresidual(:) + impactors%Lorbit(:,i)
-         end do
+         ! Torque the first body based on the change in angular momentum betwen the pre- and post-impact system
+         Lbefore(:) = impactors%mass(2) * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (impactors%vb(:,2) - impactors%vb(:,1))
 
-         ! Compute the current orbital angular momentum
-         do i = 1, nfrag
-            Lresidual(:) = Lresidual(:) - fragments%mass(i) * (fragments%rc(:,i) .cross. fragments%vc(:,i))
+         Lafter(:) = 0.0_DP
+         do i = 2, nfrag
+            Lafter(:) = Lafter(:) + fragments%mass(i) * (fragments%rb(:,i) -  fragments%rb(:,1)) .cross. (fragments%vb(:,i) - fragments%vb(:,1))
          end do
+         Lspin(:) = impactors%Lspin(:,1) + (Lbefore(:) - Lafter(:))
 
-         ! Distributed most of the remaining angular momentum amongst all the particles
+         fragments%rot(:,1) = Lspin(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
+
+         Lresidual(:) = sum(impactors%Lspin(:,:) + impactors%Lorbit(:,:), dim=2) - Lspin(:)
+         
+         ! Randomize the rotational vector direction of the n>1 fragments and distribute the residual momentum amongst them
+         call random_number(fragments%rot(:,2:nfrag))
+         rot(:) = Lresidual(:) / sum(fragments%mass(2:nfrag) * fragments%radius(2:nfrag)**2 * fragments%Ip(3,2:nfrag))
+
+         fragments%rot(:,2:nfrag) = .unit. fragments%rot(:,2:nfrag) * .mag. rot(:)
+
          if (.mag.(Lresidual(:)) > tiny(1.0_DP)) then 
-            do i = 1,nfrag
-               fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / (nfrag * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)) 
+            do i = 2,nfrag
+               fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)) 
             end do
          end if
 

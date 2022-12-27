@@ -40,7 +40,7 @@ contains
    module subroutine fraggle_util_get_angular_momentum(self) 
       !! Author: David A. Minton
       !!
-      !! Calcualtes the current angular momentum of the fragments
+      !! Calculates the current angular momentum of the fragments
       implicit none
       ! Arguments
       class(fraggle_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
@@ -60,6 +60,33 @@ contains
       return
    end subroutine fraggle_util_get_angular_momentum
 
+
+   module subroutine fraggle_util_get_kinetic_energy(self) 
+      !! Author: David A. Minton
+      !!
+      !! Calculates the current kinetic energy of the fragments
+      implicit none
+      ! Argument
+      class(fraggle_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
+      ! Internals
+      integer(I4B) :: i
+
+      associate(fragments => self, nfrag => self%nbody)
+         fragments%ke_orbit = 0.0_DP
+         fragments%ke_spin  = 0.0_DP
+   
+         do i = 1, nfrag
+            fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
+            fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
+         end do
+
+         fragments%ke_orbit = fragments%ke_orbit / 2
+         fragments%ke_spin = fragments%ke_spin / 2
+
+      end associate
+
+      return
+   end subroutine fraggle_util_get_kinetic_energy
 
    module subroutine fraggle_util_reset_fragments(self)
       !! author: David A. Minton
@@ -177,7 +204,7 @@ contains
             dL(:) = self%Ltot(:,2) - self%Ltot(:,1)
 
             fragments%L_budget(:) = -dL(:)
-            fragments%ke_budget = -(dEtot - 0.5_DP * fragments%mtot * dot_product(impactors%vbcom(:), impactors%vbcom(:))) - impactors%Qloss 
+            fragments%ke_budget = -(dEtot - impactors%Qloss)
 
          end select
       end associate
@@ -214,7 +241,10 @@ contains
          impactors%bounce_unit(:)    = impactors%bounce_unit(:)    / collider%vscale
          impactors%rb(:,:)     = impactors%rb(:,:)     / collider%dscale
          impactors%vb(:,:)     = impactors%vb(:,:)     / collider%vscale
+         impactors%rc(:,:)     = impactors%rc(:,:)     / collider%dscale
+         impactors%vc(:,:)     = impactors%vc(:,:)     / collider%vscale
          impactors%mass(:)     = impactors%mass(:)     / collider%mscale
+         impactors%Mcb         = impactors%Mcb         / collider%mscale
          impactors%radius(:)   = impactors%radius(:)   / collider%dscale
          impactors%Lspin(:,:)  = impactors%Lspin(:,:)  / collider%Lscale
          impactors%Lorbit(:,:) = impactors%Lorbit(:,:) / collider%Lscale
@@ -256,11 +286,16 @@ contains
          impactors%rbimp(:) = impactors%rbimp(:) * collider%dscale
          impactors%bounce_unit(:) = impactors%bounce_unit(:) * collider%vscale
    
-         impactors%mass   = impactors%mass   * collider%mscale
-         impactors%radius = impactors%radius * collider%dscale
-         impactors%rb     = impactors%rb     * collider%dscale
-         impactors%vb     = impactors%vb     * collider%vscale
-         impactors%Lspin  = impactors%Lspin  * collider%Lscale
+         impactors%mass      = impactors%mass      * collider%mscale
+         impactors%Mcb       = impactors%Mcb       * collider%mscale
+         impactors%mass_dist = impactors%mass_dist * collider%mscale
+         impactors%radius    = impactors%radius    * collider%dscale
+         impactors%rb        = impactors%rb        * collider%dscale
+         impactors%vb        = impactors%vb        * collider%vscale
+         impactors%rc        = impactors%rc        * collider%dscale
+         impactors%vc        = impactors%vc        * collider%vscale
+         impactors%Lspin     = impactors%Lspin     * collider%Lscale
+         impactors%Lorbit    = impactors%Lorbit    * collider%Lscale
          do i = 1, 2
             impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
          end do
