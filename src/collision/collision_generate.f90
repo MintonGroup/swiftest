@@ -382,6 +382,7 @@ contains
       logical, optional,                   intent(out)   :: lfailure
       ! Internals
 
+      call self%set_budgets()
       call collision_generate_simple_pos_vec(self)
       call self%set_coordinate_system()
       call collision_generate_simple_vel_vec(self)
@@ -487,9 +488,7 @@ contains
       class(collision_basic), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
       real(DP), dimension(NDIM) :: Lresidual, Lbefore, Lafter, Lspin, rot
-      real(DP) :: ke_residual, rotmag_old, rotmag_new, vmag_old, vmag_new
       integer(I4B) :: i, loop
-      integer(I4B) :: MAXLOOP = 10
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
 
@@ -505,19 +504,10 @@ contains
 
          fragments%rot(:,1) = Lspin(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
 
-         Lresidual(:) = sum(impactors%Lspin(:,:) + impactors%Lorbit(:,:), dim=2) - Lspin(:)
-         
          ! Randomize the rotational vector direction of the n>1 fragments and distribute the residual momentum amongst them
          call random_number(fragments%rot(:,2:nfrag))
-         rot(:) = Lresidual(:) / sum(fragments%mass(2:nfrag) * fragments%radius(2:nfrag)**2 * fragments%Ip(3,2:nfrag))
-
-         fragments%rot(:,2:nfrag) = .unit. fragments%rot(:,2:nfrag) * .mag. rot(:)
-
-         if (.mag.(Lresidual(:)) > tiny(1.0_DP)) then 
-            do i = 2,nfrag
-               fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)) 
-            end do
-         end if
+         fragments%rot(:,2:nfrag) = .unit. fragments%rot(:,2:nfrag) * .mag. fragments%rot(:,1)
+         call fragments%set_spins()
 
       end associate
 
@@ -576,12 +566,9 @@ contains
          mass_vscale(:) = sqrt(2*mass_vscale(:) / maxval(mass_vscale(:)))
          fragments%vc(:,1) = .mag.impactors%vc(:,1) * impactors%bounce_unit(:) 
          do concurrent(i = 2:nfrag)
-
             j = fragments%origin_body(i)
             vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rb(:,j) + impactors%rbcom(:))
-
             vmag = .mag.impactors%vc(:,j) * vscale(i) * mass_vscale(i)
-
             if (lhitandrun) then
                fragments%vc(:,i) = vmag * 0.5_DP * impactors%bounce_unit(:) * vsign(i) + vrot(:)
             else

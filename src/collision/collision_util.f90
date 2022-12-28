@@ -175,7 +175,6 @@ contains
    end subroutine collision_util_get_idvalues_snapshot
 
 
-
    module subroutine collision_util_get_angular_momentum(self) 
       !! Author: David A. Minton
       !!
@@ -415,6 +414,31 @@ contains
 
       return
    end subroutine collision_util_reset_system
+
+
+   module subroutine collision_util_set_budgets(self)
+      !! author: David A. Minton
+      !!
+      !! Sets the energy and momentum budgets of the fragments based on the collider values and the before/after values of energy and momentum
+      implicit none
+      ! Arguments
+      class(collision_basic), intent(inout) :: self !! Fraggle collision system object
+      ! Internals
+      real(DP) :: dEtot
+      real(DP), dimension(NDIM) :: dL
+
+      associate(impactors => self%impactors, fragments => self%fragments)
+
+         dEtot = self%Etot(1)
+         dL(:) = self%Ltot(:,1)
+
+         fragments%L_budget(:) = -dL(:)
+         fragments%ke_budget = -(dEtot - impactors%Qloss)
+
+      end associate
+      
+      return
+   end subroutine collision_util_set_budgets
 
 
    module subroutine collision_util_set_coordinate_collider(self)
@@ -673,6 +697,31 @@ contains
 
       return
    end subroutine collision_util_set_mass_dist
+
+
+   module subroutine collision_util_set_spins(self)
+      !! Author: David A. Minton
+      !!
+      !! Distributes any residual angular momentum into the spins of the n>1 fragments
+      implicit none
+      ! Arguments
+      class(collision_fragments(*)), intent(inout)  :: self !! Collision fragment system object
+      ! Internals
+      integer(I4B) :: i
+      real(DP), dimension(NDIM) :: Lresidual
+
+      call self%get_angular_momentum()
+      Lresidual(:) = self%L_budget(:) - (self%Lorbit(:) + self%Lspin(:))
+
+      ! Distribute residual angular momentum amongst the fragments
+      if (.mag.(Lresidual(:)) > tiny(1.0_DP)) then 
+         do i = 2,self%nbody
+            self%rot(:,i) = self%rot(:,i) + Lresidual(:) / ((self%nbody - 1) * self%mass(i) * self%radius(i)**2 * self%Ip(3,i)) 
+         end do
+      end if
+
+      return
+   end subroutine collision_util_set_spins
 
 
    module subroutine collision_util_setup_collider(self, nbody_system)

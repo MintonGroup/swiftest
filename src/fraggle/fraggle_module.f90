@@ -20,8 +20,6 @@ module fraggle
       real(DP), dimension(nbody) :: v_r_mag   !! Array of radial direction velocity magnitudes of individual fragments 
       real(DP), dimension(nbody) :: v_t_mag   !! Array of tangential direction velocity magnitudes of individual fragments
       real(DP), dimension(nbody) :: v_n_mag   !! Array of normal direction velocity magnitudes of individual fragments
-      real(DP)                   :: ke_budget !! Kinetic energy budget for computing fragment trajectories
-      real(DP), dimension(NDIM)  :: L_budget  !! Angular momentum budget for computing fragment trajectories
    contains
 
       procedure :: reset                => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
@@ -39,7 +37,6 @@ module fraggle
       real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
    contains
       procedure :: disrupt                    => fraggle_generate_disrupt                !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
-      procedure :: set_budgets                => fraggle_util_set_budgets                !! Sets the energy and momentum budgets of the fragments based on the collider value
       procedure :: set_natural_scale          => fraggle_util_set_natural_scale_factors  !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
       procedure :: set_original_scale         => fraggle_util_set_original_scale_factors !! Restores dimenional quantities back to the original system units
       procedure :: setup_fragments            => fraggle_util_setup_fragments_system     !! Initializer for the fragments of the collision system. 
@@ -83,11 +80,6 @@ module fraggle
          implicit none
          class(collision_fraggle), intent(inout) :: self  !! Collision system object
       end subroutine fraggle_util_reset_system
-
-      module subroutine fraggle_util_set_budgets(self)
-         implicit none
-         class(collision_fraggle), intent(inout) :: self !! Fraggle collision system object
-      end subroutine  fraggle_util_set_budgets
 
       module subroutine fraggle_util_set_natural_scale_factors(self)
          implicit none

@@ -114,10 +114,13 @@ module collision
       real(DP), dimension(NDIM)                              :: Lspin     !! Spin angular momentum vector of all fragments
       real(DP)                                               :: ke_orbit  !! Orbital kinetic energy of all fragments
       real(DP)                                               :: ke_spin   !! Spin kinetic energy of all fragments
+      real(DP)                                               :: ke_budget !! Kinetic energy budget for computing fragment trajectories
+      real(DP), dimension(NDIM)                              :: L_budget  !! Angular momentum budget for computing fragment trajectories
    contains
       procedure :: reset                => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
       procedure :: get_angular_momentum => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
       procedure :: get_kinetic_energy   => collision_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
+      procedure :: set_spins            => collision_util_set_spins            !! Calcualtes the spins of all fragments from the angular momentum budget and residual
       final     ::                         collision_final_fragments           !! Finalizer deallocates all allocatables
    end type collision_fragments
 
@@ -149,6 +152,7 @@ module collision
       procedure :: construct_temporary_system => collision_util_construct_temporary_system !! Constructs temporary n-body nbody_system in order to compute pre- and post-impact energy and momentum
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
+      procedure :: set_budgets                => collision_util_set_budgets                !! Sets the energy and momentum budgets of the fragments based on the collider value
       procedure :: set_coordinate_system      => collision_util_set_coordinate_collider    !! Sets the coordinate system of the collisional system
       procedure :: generate                   => collision_generate_basic                  !! Merges the impactors to make a single final body
       procedure :: hitandrun                  => collision_generate_hitandrun              !! Merges the impactors to make a single final body
@@ -393,7 +397,6 @@ module collision
          integer(I4B),               intent(in)    :: irec   !! Current recursion level
       end subroutine collision_resolve_pltp
 
-
       module subroutine collision_util_add_fragments_to_collider(self, nbody_system, param)
          implicit none
          class(collision_basic),  intent(in)    :: self         !! Collision system object
@@ -410,15 +413,14 @@ module collision
          class(base_parameters),   allocatable, intent(out)   :: tmpparam     !! Output temporary configuration run parameters
       end subroutine collision_util_construct_temporary_system 
 
-
       module subroutine collision_util_get_angular_momentum(self) 
          implicit none
-         class(collision_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
+         class(collision_fragments(*)), intent(inout) :: self !! Fragment system object
       end subroutine collision_util_get_angular_momentum
 
       module subroutine collision_util_get_kinetic_energy(self) 
          implicit none
-         class(collision_fragments(*)), intent(inout) :: self !! Fraggle fragment system object
+         class(collision_fragments(*)), intent(inout) :: self !! Fragment system object
       end subroutine collision_util_get_kinetic_energy
 
       module subroutine collision_util_reset_fragments(self)
@@ -426,11 +428,10 @@ module collision
          class(collision_fragments(*)), intent(inout) :: self
       end subroutine collision_util_reset_fragments
 
-      module subroutine collision_util_set_mass_dist(self, param)
+      module subroutine collision_util_set_budgets(self)
          implicit none
-         class(collision_simple_disruption), intent(inout) :: self  !! Simple disruption collision object
-         class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
-      end subroutine collision_util_set_mass_dist
+         class(collision_basic), intent(inout) :: self !! Collision system object
+      end subroutine  collision_util_set_budgets
 
       module subroutine collision_util_set_coordinate_collider(self)
          implicit none
@@ -441,6 +442,17 @@ module collision
          implicit none
          class(collision_impactors), intent(inout) :: self      !! collisional system
       end subroutine collision_util_set_coordinate_impactors
+
+      module subroutine collision_util_set_mass_dist(self, param)
+         implicit none
+         class(collision_simple_disruption), intent(inout) :: self  !! Simple disruption collision object
+         class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
+      end subroutine collision_util_set_mass_dist
+
+      module subroutine collision_util_set_spins(self)
+         implicit none
+         class(collision_fragments(*)), intent(inout)  :: self !! Collision fragment system object
+      end subroutine collision_util_set_spins
 
       module subroutine collision_util_setup_collider(self, nbody_system)
          implicit none
@@ -554,7 +566,7 @@ module collision
          !! Finalizer will deallocate all allocatables
          implicit none
          ! Arguments
-         type(collision_list_plpl),  intent(inout) :: self !! Fraggle encountar storage object
+         type(collision_list_plpl),  intent(inout) :: self !! PL-PL collision list object
 
          call self%dealloc()
 
@@ -567,7 +579,7 @@ module collision
          !! Finalizer will deallocate all allocatables
          implicit none
          ! Arguments
-         type(collision_list_pltp),  intent(inout) :: self !! Fraggle encountar storage object
+         type(collision_list_pltp),  intent(inout) :: self !! PL-TP collision list object
 
          call self%dealloc()
 
@@ -581,7 +593,7 @@ module collision
          !! Finalizer will deallocate all allocatables
          implicit none
          ! Arguments
-         type(collision_snapshot),  intent(inout) :: self !! Fraggle encountar storage object
+         type(collision_snapshot),  intent(inout) :: self !! Collsion snapshot object
 
          call encounter_final_snapshot(self%encounter_snapshot)
 

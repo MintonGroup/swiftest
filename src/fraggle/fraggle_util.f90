@@ -87,34 +87,6 @@ contains
    end subroutine fraggle_util_reset_system
 
 
-   module subroutine fraggle_util_set_budgets(self)
-      !! author: David A. Minton
-      !!
-      !! Sets the energy and momentum budgets of the fragments based on the collider values and the before/after values of energy and momentum
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: self !! Fraggle collision system object
-      ! Internals
-      real(DP) :: dEtot
-      real(DP), dimension(NDIM) :: dL
-
-      associate(impactors => self%impactors)
-         select type(fragments => self%fragments)
-         class is (fraggle_fragments(*))
-
-            dEtot = self%Etot(1)
-            dL(:) = self%Ltot(:,1)
-
-            fragments%L_budget(:) = -dL(:)
-            fragments%ke_budget = -(dEtot - impactors%Qloss)
-
-         end select
-      end associate
-      
-      return
-   end subroutine fraggle_util_set_budgets
-
-
    module subroutine fraggle_util_set_natural_scale_factors(self)
       !! author: David A. Minton
       !!

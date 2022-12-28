@@ -197,7 +197,7 @@ contains
                end do
 
                ! Set spins in order to conserve angular momentum
-               call fraggle_generate_set_spins(fragments)
+               call collision_util_set_spins(fragments)
 
                if (.not.lfailure) exit
                tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
@@ -238,7 +238,7 @@ contains
 
                   call collision_util_shift_vector_to_origin(tmp_frag%mass, tmp_frag%vc)
                   ! Set spins in order to conserve angular momentum
-                  call fraggle_generate_set_spins(tmp_frag)
+                  call collision_util_set_spins(tmp_frag)
 
                   ! Get the current kinetic energy of the system
                   call tmp_frag%get_kinetic_energy()
@@ -260,35 +260,5 @@ contains
 
 
    end subroutine fraggle_generate_minimize
-
-
-   subroutine fraggle_generate_set_spins(fragments)
-      !! Author: David A. Minton
-      !!
-      !! Distributes any residual angular momentum into the spins of the n>1 fragments
-      implicit none
-      ! Arguments
-      class(fraggle_fragments(*)), intent(inout)  :: fragments !! Fraggle fragment system object
-      ! Internals
-      integer(I4B) :: i
-      real(DP), dimension(NDIM) :: Lresidual
-
-      call fragments%get_angular_momentum()
-      Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:))
-
-      ! Distribute residual angular momentum amongst the fragments
-      if (.mag.(Lresidual(:)) > tiny(1.0_DP)) then 
-         do i = 2,fragments%nbody
-            fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / ((fragments%nbody - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)) 
-         end do
-      end if
-
-      return
-   end subroutine fraggle_generate_set_spins
-
-
-
-
-
 
 end submodule s_fraggle_generate
