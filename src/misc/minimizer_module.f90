@@ -128,7 +128,7 @@ module minimizer
          real(DP), dimension(:), intent(out), allocatable :: x1
          ! Internals
          integer(I4B) ::  i, j, k, l, conv
-         real(DP), parameter     :: graddelta = 1e-2_DP !! Delta x for gradient calculations
+         real(DP), parameter     :: graddelta = 1e-4_DP !! Delta x for gradient calculations
          real(DP), dimension(N) :: S               !! Direction vectors 
          real(DP), dimension(N,N) :: H             !! Approximated inverse Hessian matrix 
          real(DP), dimension(N) :: grad1           !! gradient of f 

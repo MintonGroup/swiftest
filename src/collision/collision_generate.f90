@@ -231,7 +231,7 @@ contains
             call self%set_mass_dist(param) 
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
             call self%set_budgets()
-            call self%set_coordinate_system()
+            call impactors%set_coordinate_system()
             call self%disrupt(nbody_system, param, t)
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
 

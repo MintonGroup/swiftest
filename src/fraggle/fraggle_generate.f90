@@ -101,7 +101,7 @@ contains
 
             lfailure_local = (dEtot > 0.0_DP) 
             if (lfailure_local) then
-               write(message, *) dEtot, abs(dEtot + impactors%Qloss) / FRAGGLE_ETOL
+               write(message, *) "dEtot: ",dEtot, "dEtot/Qloss", dEtot / impactors%Qloss
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to energy gain: " // &
                                                         trim(adjustl(message)))
                !cycle
@@ -161,7 +161,7 @@ contains
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds
       ! Internals
       real(DP), parameter :: TOL_MIN = 1.0e-5_DP
-      real(DP), parameter :: TOL_INIT = 1e-6_DP
+      real(DP), parameter :: TOL_INIT = 1e-8_DP
       integer(I4B), parameter :: MAXLOOP = 50
       real(DP), dimension(collider%fragments%nbody) :: input_v
       real(DP), dimension(:), allocatable :: output_v
@@ -181,13 +181,13 @@ contains
 
             fragments%v_r_unit(:,:) = .unit. fragments%vc(:,:)
             fragments%vmag(:) = .mag. fragments%vc(:,1:nfrag) 
-            fragments%rot(:,1:nfrag) = fragments%rot(:,1:nfrag) * 1e-12_DP
             do loop = 1, 3 !while(tol < TOL_MIN)
 
                input_v(:) = fragments%vmag(1:nfrag)
                fval = E_objective_function(input_v)
                call minimize_bfgs(Efunc, nelem, input_v, tol, MAXLOOP, lfailure, output_v)
                fval = E_objective_function(output_v)
+               lfailure = lfailure .and. (fval > tol)
                input_v(:) = output_v(:)
 
                fragments%vmag(1:nfrag) = output_v(1:nfrag)
@@ -242,7 +242,7 @@ contains
 
                   ! Get the current kinetic energy of the system
                   call tmp_frag%get_kinetic_energy()
-                  deltaE = tmp_frag%ke_budget - (tmp_frag%ke_orbit + tmp_frag%ke_spin)
+                  deltaE = (tmp_frag%ke_budget - (tmp_frag%ke_orbit + tmp_frag%ke_spin)) / (tmp_frag%ke_budget)
             
                   ! Use the deltaE as the basis of our objective function, with a higher penalty for having excess kinetic energy compared with having a deficit
                   if (deltaE < 0.0_DP) then

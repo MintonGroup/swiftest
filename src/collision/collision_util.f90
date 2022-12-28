@@ -423,17 +423,11 @@ contains
       implicit none
       ! Arguments
       class(collision_basic), intent(inout) :: self !! Fraggle collision system object
-      ! Internals
-      real(DP) :: dEtot
-      real(DP), dimension(NDIM) :: dL
 
       associate(impactors => self%impactors, fragments => self%fragments)
 
-         dEtot = self%Etot(1)
-         dL(:) = self%Ltot(:,1)
-
-         fragments%L_budget(:) = dL(:)
-         fragments%ke_budget = (dEtot - impactors%Qloss)
+         fragments%L_budget(:) = self%Ltot(:,1)
+         fragments%ke_budget = self%Etot(1) - impactors%Qloss
 
       end associate
       
