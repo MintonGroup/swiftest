@@ -131,7 +131,7 @@ contains
             ! The simple disruption model (and its extended types allow for non-pure hit and run. 
             !For the basic merge model, all hit and runs are pure
             select type(self) 
-            class is (collision_simple_disruption)
+            class is (collision_disruption)
                if (impactors%mass_dist(2) > 0.9_DP * impactors%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Pure hit and run. No new fragments generated.")
                   nfrag = 0
@@ -198,7 +198,7 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(collision_simple_disruption), intent(inout) :: self
+      class(collision_disruption), intent(inout) :: self
       class(base_nbody_system),           intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),             intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
       real(DP),                           intent(in)    :: t            !! Time of collision
@@ -230,6 +230,8 @@ contains
             end select
             call self%set_mass_dist(param) 
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
+            call self%set_budgets()
+            call self%set_coordinate_system()
             call self%disrupt(nbody_system, param, t)
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
 
@@ -372,21 +374,19 @@ contains
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Generates a simple fragment position and velocity distribution based on the collision 
-      !! regime. It makes no attempt to constrain the energy of the collision
+      !! regime. 
       implicit none
       ! Arguments
-      class(collision_simple_disruption),  intent(inout) :: self         !! Simple fragment system object 
+      class(collision_disruption),  intent(inout) :: self         !! Simple fragment system object 
       class(base_nbody_system),            intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),              intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                            intent(in)    :: t            !! The time of the collision
       logical, optional,                   intent(out)   :: lfailure
       ! Internals
 
-      call self%set_budgets()
       call collision_generate_simple_pos_vec(self)
-      call self%set_coordinate_system()
-      call collision_generate_simple_vel_vec(self)
       call collision_generate_simple_rot_vec(self)
+      call collision_generate_simple_vel_vec(self)
 
       return
    end subroutine collision_generate_disrupt
@@ -401,7 +401,7 @@ contains
       !! regenerated if they overlap.
       implicit none
       ! Arguments
-      class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
+      class(collision_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
       real(DP)  :: dis
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
@@ -461,6 +461,7 @@ contains
             rdistance = rdistance * fail_scale
             fragment_cloud_radius(:) = fragment_cloud_radius(:) * fail_scale
          end do
+
          call collision_util_shift_vector_to_origin(fragments%mass, fragments%rc)
          call collider%set_coordinate_system()
 
@@ -487,27 +488,33 @@ contains
       ! Arguments
       class(collision_basic), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      real(DP), dimension(NDIM) :: Lresidual, Lbefore, Lafter, Lspin, rot
-      integer(I4B) :: i, loop
+      real(DP), dimension(NDIM) :: Lbefore, Lafter, Lspin, rotdir
+      real(DP) :: v_init, v_final, mass_init, mass_final, rotmag
+      integer(I4B) :: i
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
 
-         fragments%rot(:,:) = 0.0_DP
-         ! Torque the first body based on the change in angular momentum betwen the pre- and post-impact system
-         Lbefore(:) = impactors%mass(2) * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (impactors%vb(:,2) - impactors%vb(:,1))
+         ! Torque the first body based on the change in angular momentum betwen the pre- and post-impact system assuming a simple bounce
+         mass_init = impactors%mass(2)
+         mass_final = sum(fragments%mass(2:nfrag))
+         v_init = .mag.(impactors%vb(:,2) - impactors%vb(:,1))
+         v_final = sqrt(mass_init / mass_final * v_init**2 - 2 * impactors%Qloss / mass_final)
 
-         Lafter(:) = 0.0_DP
-         do i = 2, nfrag
-            Lafter(:) = Lafter(:) + fragments%mass(i) * (fragments%rb(:,i) -  fragments%rb(:,1)) .cross. (fragments%vb(:,i) - fragments%vb(:,1))
-         end do
+         Lbefore(:) = mass_init * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (impactors%vb(:,2) - impactors%vb(:,1))
+          
+         Lafter(:) = mass_final * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (v_final * impactors%bounce_unit(:))
          Lspin(:) = impactors%Lspin(:,1) + (Lbefore(:) - Lafter(:))
-
          fragments%rot(:,1) = Lspin(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
 
-         ! Randomize the rotational vector direction of the n>1 fragments and distribute the residual momentum amongst them
-         call random_number(fragments%rot(:,2:nfrag))
-         fragments%rot(:,2:nfrag) = .unit. fragments%rot(:,2:nfrag) * .mag. fragments%rot(:,1)
-         call fragments%set_spins()
+         ! Add in some random spin noise. The magnitude will be scaled by the before-after amount and the direction will be random
+         do concurrent(i = 2:nfrag)
+            call random_number(rotdir)
+            rotdir = rotdir - 0.5_DP
+            rotdir = .unit. rotdir
+            call random_number(rotmag)
+            rotmag = rotmag * .mag. (Lbefore(:) - Lafter(:)) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
+            fragments%rot(:,i) = rotmag * rotdir
+         end do
 
       end associate
 
@@ -523,13 +530,13 @@ contains
       !! 2x the escape velocity of the smallest of the two bodies.
       implicit none
       ! Arguments
-      class(collision_simple_disruption), intent(inout) :: collider !! Fraggle collision system object
+      class(collision_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
       integer(I4B) :: i,j
       logical :: lhitandrun, lnoncat
-      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot
+      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual, vshear
       real(DP), dimension(2) :: vimp
-      real(DP) :: vmag, vdisp
+      real(DP) :: vmag, vdisp, Lmag
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale
 
@@ -563,11 +570,11 @@ contains
          call random_number(mass_vscale)
          mass_vscale(:) = (mass_vscale(:) + 1.0_DP) / 2
          mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP)
-         mass_vscale(:) = sqrt(2*mass_vscale(:) / maxval(mass_vscale(:)))
+         mass_vscale(:) = 2*mass_vscale(:) / maxval(mass_vscale(:))
          fragments%vc(:,1) = .mag.impactors%vc(:,1) * impactors%bounce_unit(:) 
          do concurrent(i = 2:nfrag)
             j = fragments%origin_body(i)
-            vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rb(:,j) + impactors%rbcom(:))
+            vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rc(:,j))
             vmag = .mag.impactors%vc(:,j) * vscale(i) * mass_vscale(i)
             if (lhitandrun) then
                fragments%vc(:,i) = vmag * 0.5_DP * impactors%bounce_unit(:) * vsign(i) + vrot(:)
@@ -578,6 +585,18 @@ contains
                fragments%vc(:,i) = vmag * 0.5_DP * (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
             end if
          end do
+         call collider%set_coordinate_system()
+         ! Check for any residual angular momentum, and if there is any, put it into velocity shear of the fragments
+         call fragments%get_angular_momentum()
+         if (all(fragments%L_budget(:) / (fragments%Lorbit(:) + fragments%Lspin(:)) > epsilon(1.0_DP))) then
+            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:))
+            do concurrent(i = 3:nfrag)
+               vshear(:) = Lresidual(:) / (nfrag - 2) / (fragments%mass(i) * fragments%rc(:,i) .cross. fragments%v_t_unit(:,i))
+               vshear(:) = .mag.vshear(:) * fragments%v_t_unit(:,i)
+               fragments%vc(:,i) = fragments%vc(:,i) + vshear(:)
+            end do
+         end if
+
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
          end do
@@ -587,6 +606,9 @@ contains
             impactors%vbcom(:) = impactors%vbcom(:) + fragments%mass(i) * fragments%vb(:,i) 
          end do
          impactors%vbcom(:) = impactors%vbcom(:) / fragments%mtot
+
+         ! Distribute any remaining angular momentum into fragments pin
+         call fragments%set_spins()
 
       end associate
       return

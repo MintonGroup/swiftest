@@ -432,8 +432,8 @@ contains
          dEtot = self%Etot(1)
          dL(:) = self%Ltot(:,1)
 
-         fragments%L_budget(:) = -dL(:)
-         fragments%ke_budget = -(dEtot - impactors%Qloss)
+         fragments%L_budget(:) = dL(:)
+         fragments%ke_budget = (dEtot - impactors%Qloss)
 
       end associate
       
@@ -448,28 +448,20 @@ contains
       implicit none
       ! Arguments
       class(collision_basic),    intent(inout) :: self      !! Collisional nbody_system
-      ! Internals
-      integer(I4B) :: i
-      real(DP), dimension(NDIM, self%fragments%nbody) :: L_sigma
 
       associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody)
          call impactors%set_coordinate_system() 
 
-         if ((.not.allocated(self%fragments)) .or. (nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
+         if (.not.allocated(self%fragments)) return
+         if ((nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
 
          fragments%rmag(:) = .mag. fragments%rc(:,:)
+         fragments%vmag(:) = .mag. fragments%vc(:,:)
   
-         ! Randomize the tangential velocity direction. 
-         ! This helps to ensure that the tangential velocity doesn't completely line up with the angular momentum vector, otherwise we can get an ill-conditioned nbody_system
-         call random_number(L_sigma(:,:)) 
-         do concurrent(i = 1:nfrag, fragments%rmag(i) > 0.0_DP)
-            fragments%v_n_unit(:, i) = impactors%z_unit(:) + 2e-1_DP * (L_sigma(:,i) - 0.5_DP)
-         end do
-
          ! Define the radial, normal, and tangential unit vectors for each individual fragment
          fragments%v_r_unit(:,:) = .unit. fragments%rc(:,:) 
-         fragments%v_n_unit(:,:) = .unit. fragments%v_n_unit(:,:) 
-         fragments%v_t_unit(:,:) = .unit. (fragments%v_n_unit(:,:) .cross. fragments%v_r_unit(:,:))
+         fragments%v_t_unit(:,:) = .unit. fragments%vc(:,:) 
+         fragments%v_n_unit(:,:) = .unit. (fragments%v_r_unit(:,:) .cross. fragments%v_t_unit(:,:))
 
       end associate
 
@@ -546,7 +538,7 @@ contains
       !!
       implicit none
       ! Arguments
-      class(collision_simple_disruption), intent(inout) :: self  !! Fraggle collision system object
+      class(collision_disruption), intent(inout) :: self  !! Fraggle collision system object
       class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
       integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
@@ -712,13 +704,16 @@ contains
 
       call self%get_angular_momentum()
       Lresidual(:) = self%L_budget(:) - (self%Lorbit(:) + self%Lspin(:))
-
       ! Distribute residual angular momentum amongst the fragments
       if (.mag.(Lresidual(:)) > tiny(1.0_DP)) then 
          do i = 2,self%nbody
             self%rot(:,i) = self%rot(:,i) + Lresidual(:) / ((self%nbody - 1) * self%mass(i) * self%radius(i)**2 * self%Ip(3,i)) 
          end do
       end if
+
+      ! Test to see if we were successful
+      call self%get_angular_momentum()
+      Lresidual(:) = self%L_budget(:) - (self%Lorbit(:) + self%Lspin(:))
 
       return
    end subroutine collision_util_set_spins
@@ -772,6 +767,30 @@ contains
       if (allocated(self%fragments)) deallocate(self%fragments)
       allocate(collision_fragments(nfrag) :: self%fragments)
       self%fragments%nbody = nfrag
+      self%fragments%nbody = nfrag
+      self%fragments%status(:) = ACTIVE
+      self%fragments%rh(:,:) = 0.0_DP
+      self%fragments%vh(:,:) = 0.0_DP
+      self%fragments%rb(:,:) = 0.0_DP
+      self%fragments%vb(:,:) = 0.0_DP
+      self%fragments%rc(:,:) = 0.0_DP
+      self%fragments%vc(:,:) = 0.0_DP
+      self%fragments%rot(:,:) = 0.0_DP
+      self%fragments%Ip(:,:) = 0.0_DP
+      self%fragments%v_r_unit(:,:) = 0.0_DP
+      self%fragments%v_t_unit(:,:) = 0.0_DP
+      self%fragments%v_n_unit(:,:) = 0.0_DP
+      self%fragments%mass(:) = 0.0_DP
+      self%fragments%radius(:) = 0.0_DP
+      self%fragments%density(:) = 0.0_DP
+      self%fragments%rmag(:) = 0.0_DP
+      self%fragments%vmag(:) = 0.0_DP
+      self%fragments%Lorbit(:) = 0.0_DP
+      self%fragments%Lspin(:) = 0.0_DP
+      self%fragments%L_budget(:) = 0.0_DP
+      self%fragments%ke_orbit = 0.0_DP
+      self%fragments%ke_spin = 0.0_DP
+      self%fragments%ke_budget = 0.0_DP
 
       return
    end subroutine collision_util_setup_fragments_collider

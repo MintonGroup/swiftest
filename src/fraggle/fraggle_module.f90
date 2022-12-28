@@ -27,7 +27,7 @@ module fraggle
    end type fraggle_fragments
 
 
-   type, extends(collision_simple_disruption) :: collision_fraggle
+   type, extends(collision_disruption) :: collision_fraggle
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
       real(DP) :: mscale = 1.0_DP !! Mass scale factor

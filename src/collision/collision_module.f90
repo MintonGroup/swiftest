@@ -165,13 +165,13 @@ module collision
       final     ::             collision_final_bounce    !! Finalizer will deallocate all allocatables
    end type collision_bounce
 
-   type, extends(collision_basic) :: collision_simple_disruption
+   type, extends(collision_basic) :: collision_disruption
    contains 
       procedure :: generate      => collision_generate_simple    !! A simple disruption models that does not constrain energy loss in collisions
       procedure :: disrupt       => collision_generate_disrupt   !! Disrupt the colliders into the fragments
       procedure :: set_mass_dist => collision_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
       final     ::                  collision_final_simple       !! Finalizer will deallocate all allocatables
-   end type collision_simple_disruption
+   end type collision_disruption
 
 
    !! NetCDF dimension and variable names for the enounter save object
@@ -235,7 +235,7 @@ module collision
 
       module subroutine collision_generate_disrupt(self, nbody_system, param, t, lfailure)
          implicit none
-         class(collision_simple_disruption), intent(inout) :: self
+         class(collision_disruption), intent(inout) :: self
          class(base_nbody_system),           intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),             intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
          real(DP),                           intent(in)    :: t            !! Time of collision
@@ -260,7 +260,7 @@ module collision
 
       module subroutine collision_generate_simple(self, nbody_system, param, t)
          implicit none
-         class(collision_simple_disruption),  intent(inout) :: self         !! Simple fragment nbody_system object 
+         class(collision_disruption),  intent(inout) :: self         !! Simple fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
@@ -268,7 +268,7 @@ module collision
 
       module subroutine collision_generate_simple_pos_vec(collider)
          implicit none
-         class(collision_simple_disruption), intent(inout) :: collider !! Collision system object
+         class(collision_disruption), intent(inout) :: collider !! Collision system object
       end subroutine collision_generate_simple_pos_vec 
 
       module subroutine collision_generate_simple_rot_vec(collider)
@@ -278,7 +278,7 @@ module collision
 
       module subroutine collision_generate_simple_vel_vec(collider)
          implicit none
-         class(collision_simple_disruption), intent(inout) :: collider !! Collision system object
+         class(collision_disruption), intent(inout) :: collider !! Collision system object
       end subroutine collision_generate_simple_vel_vec
     
       module subroutine collision_io_collider_message(pl, collidx, collider_message)
@@ -445,7 +445,7 @@ module collision
 
       module subroutine collision_util_set_mass_dist(self, param)
          implicit none
-         class(collision_simple_disruption), intent(inout) :: self  !! Simple disruption collision object
+         class(collision_disruption), intent(inout) :: self  !! Simple disruption collision object
          class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
       end subroutine collision_util_set_mass_dist
 
@@ -641,7 +641,7 @@ module collision
          !! Finalizer will deallocate all allocatables
          implicit none
          ! Arguments
-         type(collision_simple_disruption),  intent(inout) :: self !!  Collision system object
+         type(collision_disruption),  intent(inout) :: self !!  Collision system object
 
          call self%reset()
          if (allocated(self%impactors)) deallocate(self%impactors)

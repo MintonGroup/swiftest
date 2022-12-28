@@ -85,10 +85,10 @@ contains
             end if
             lfailure_local = .false.
 
-            ! Use the simple collision model to generate initial conditions
+            ! Use the disruption collision model to generate initial conditions
             ! Compute the "before" energy/momentum and the budgets
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-            call self%collision_simple_disruption%disrupt(nbody_system, param, t)
+            call self%collision_disruption%disrupt(nbody_system, param, t)
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             call self%set_budgets()
 
@@ -167,7 +167,7 @@ contains
       real(DP), dimension(:), allocatable :: output_v
       type(lambda_obj) :: Efunc
       real(DP) :: tol, fval
-      integer(I4B) :: i, nelem
+      integer(I4B) :: loop,i, nelem
 
       associate(impactors => collider%impactors,  nfrag => collider%fragments%nbody)
          select type(fragments => collider%fragments)
@@ -182,7 +182,7 @@ contains
             fragments%v_r_unit(:,:) = .unit. fragments%vc(:,:)
             fragments%vmag(:) = .mag. fragments%vc(:,1:nfrag) 
             fragments%rot(:,1:nfrag) = fragments%rot(:,1:nfrag) * 1e-12_DP
-            do while(tol < TOL_MIN)
+            do loop = 1, 3 !while(tol < TOL_MIN)
 
                input_v(:) = fragments%vmag(1:nfrag)
                fval = E_objective_function(input_v)
@@ -197,7 +197,7 @@ contains
                end do
 
                ! Set spins in order to conserve angular momentum
-               call collision_util_set_spins(fragments)
+               call fragments%set_spins() 
 
                if (.not.lfailure) exit
                tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution

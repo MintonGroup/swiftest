@@ -2085,16 +2085,16 @@ contains
 
 
          if ((param%collision_model /= "MERGE")       .and. &
-             (param%collision_model /= "SIMPLE") .and. &
              (param%collision_model /= "BOUNCE")    .and. &
+             (param%collision_model /= "DISRUPTION") .and. &
              (param%collision_model /= "FRAGGLE")) then
             write(iomsg,*) 'Invalid collision_model parameter: ',trim(adjustl(param%out_type))
-            write(iomsg,*) 'Valid options are NONE, TRAJECTORY, CLOSEST, or BOTH'
+            write(iomsg,*) 'Valid options are MERGE, BOUNCE, DISRUPTION, or FRAGGLE'
             iostat = -1
             return
          end if
 
-         if (param%collision_model == "FRAGGLE") then
+         if (param%collision_model == "FRAGGLE" .or. param%collision_model == "DISRUPTION") then
             if (seed_set) then
                call random_seed(put = param%seed)
             else
