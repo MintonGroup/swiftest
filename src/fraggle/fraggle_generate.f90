@@ -160,14 +160,14 @@ contains
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds
       ! Internals
-      real(DP), parameter :: TOL_MIN = 1.0e-5_DP
-      real(DP), parameter :: TOL_INIT = 1e-8_DP
-      integer(I4B), parameter :: MAXLOOP = 50
+      real(DP), parameter :: TOL_INIT = 1e-5_DP
+      integer(I4B), parameter :: MAXLOOP = 100
       real(DP), dimension(collider%fragments%nbody) :: input_v
       real(DP), dimension(:), allocatable :: output_v
       type(lambda_obj) :: Efunc
       real(DP) :: tol, fval
       integer(I4B) :: loop,i, nelem
+      logical :: lfirst_Efunc
 
       associate(impactors => collider%impactors,  nfrag => collider%fragments%nbody)
          select type(fragments => collider%fragments)
@@ -175,35 +175,24 @@ contains
 
             nelem = nfrag 
             lfailure = .false.
-               ! Find the local kinetic energy minimum for the nbody_system that conserves linear and angular momentum
+            ! Find the local kinetic energy minimum for the nbody_system that conserves linear and angular momentum
             Efunc = lambda_obj(E_objective_function)
             tol = TOL_INIT
 
             fragments%v_r_unit(:,:) = .unit. fragments%vc(:,:)
             fragments%vmag(:) = .mag. fragments%vc(:,1:nfrag) 
-            do loop = 1, 3 !while(tol < TOL_MIN)
+            input_v(:) = fragments%vmag(1:nfrag)
+            lfirst_Efunc = .true.
+            fval = E_objective_function(input_v)
 
-               input_v(:) = fragments%vmag(1:nfrag)
-               fval = E_objective_function(input_v)
-               call minimize_bfgs(Efunc, nelem, input_v, tol, MAXLOOP, lfailure, output_v)
-               fval = E_objective_function(output_v)
-               lfailure = lfailure .and. (fval > tol)
-               input_v(:) = output_v(:)
-
-               fragments%vmag(1:nfrag) = output_v(1:nfrag)
-
-               do concurrent(i=1:nfrag)
-                  fragments%vc(:,i) = abs(fragments%vmag(i)) * fragments%v_r_unit(:,i)
-               end do
-
-               ! Set spins in order to conserve angular momentum
-               call fragments%set_spins() 
-
-               if (.not.lfailure) exit
-               tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
+            call minimize_bfgs(Efunc, nelem, input_v, tol, MAXLOOP, lfailure, output_v)
+            fragments%vmag(1:nfrag) = output_v(1:nfrag)
+            do concurrent(i=1:nfrag)
+               fragments%vc(:,i) = abs(fragments%vmag(i)) * fragments%v_r_unit(:,i)
             end do
 
-
+            ! Set spins in order to conserve angular momentum
+            call fragments%set_spins() 
             call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)
          end select
       end associate
@@ -226,7 +215,8 @@ contains
             integer(I4B) :: i
             type(fraggle_fragments(:)), allocatable :: tmp_frag
             real(DP) :: deltaE
-   
+            real(DP), save :: deltaE_scale = 1.0_DP
+
             associate(impactors => collider%impactors, nfrag => collider%fragments%nbody)
                select type(fragments => collider%fragments)
                class is (fraggle_fragments(*))
@@ -243,13 +233,17 @@ contains
                   ! Get the current kinetic energy of the system
                   call tmp_frag%get_kinetic_energy()
                   deltaE = (tmp_frag%ke_budget - (tmp_frag%ke_orbit + tmp_frag%ke_spin)) / (tmp_frag%ke_budget)
-            
-                  ! Use the deltaE as the basis of our objective function, with a higher penalty for having excess kinetic energy compared with having a deficit
-                  if (deltaE < 0.0_DP) then
-                     fval = deltaE**8
+
+                  ! The result will be scaled so such that the initial deltaE is 1.0. This helps improve the success of the
+                  ! minimizer, by keeping values from getting to large
+                  if (lfirst_Efunc) then 
+                     deltaE_scale = deltaE
+                     deltaE = 1.0_DP
+                     lfirst_Efunc = .false.
                   else
-                     fval = deltaE**2
+                     deltaE = deltaE/deltaE_scale
                   end if
+                  fval = deltaE**2
                   deallocate(tmp_frag)
                   
                end select

@@ -705,10 +705,6 @@ contains
          end do
       end if
 
-      ! Test to see if we were successful
-      call self%get_angular_momentum()
-      Lresidual(:) = self%L_budget(:) - (self%Lorbit(:) + self%Lspin(:))
-
       return
    end subroutine collision_util_set_spins
 
