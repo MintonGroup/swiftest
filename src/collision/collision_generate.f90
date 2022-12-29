@@ -532,18 +532,21 @@ contains
       ! Arguments
       class(collision_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      integer(I4B) :: i,j
+      integer(I4B) :: i,j, loop
       logical :: lhitandrun, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual, vshear
-      real(DP), dimension(2) :: vimp
-      real(DP) :: vmag, vdisp, Lmag
+      real(DP), dimension(NDIM,2) :: vbounce, vcloud
+      real(DP), dimension(2) :: vimp, mcloud
+      real(DP) :: vmag, vdisp, Lmag, Lscale
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
          lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
-         ! "Bounce" the first two bodies
+
+         ! The fragments will be divided into two "clouds" based on identified origin body. 
+         ! These clouds will collectively travel like two impactors bouncing off of each other. 
          where(fragments%origin_body(:) == 1)
             vsign(:) = -1
          elsewhere
@@ -557,20 +560,24 @@ contains
             vdisp = 2 * sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
          end if
 
-         vimp(:) = .mag.impactors%vc(:,:)
+         ! The dominant velocities of the two clouds will be scaled by the CoM velocities of the two bodies
+         vimp(1:2) = .mag.impactors%vc(:,1:2)
 
-         ! Scale the magnitude of the velocity by the distance from the impact point and add a bit of shear
+         ! Scale the magnitude of the velocity by the distance from the impact point
+         ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
          do concurrent(i = 1:nfrag)
             rimp(:) = fragments%rc(:,i) - impactors%rbimp(:) 
             vscale(i) = .mag. rimp(:) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1)))
          end do
          vscale(:) = vscale(:)/maxval(vscale(:))
 
-         ! Give the fragment velocities a random value that is somewhat scaled with fragment mass
+         ! Give the fragment velocities a random value that is scaled with fragment mass
          call random_number(mass_vscale)
          mass_vscale(:) = (mass_vscale(:) + 1.0_DP) / 2
-         mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP)
+         mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP) ! The 1/8 power is arbitrary. It just gives the velocity a small mass dependence
          mass_vscale(:) = 2*mass_vscale(:) / maxval(mass_vscale(:))
+
+         ! Set the velocities of all fragments using all of the scale factors determined above
          fragments%vc(:,1) = .mag.impactors%vc(:,1) * impactors%bounce_unit(:) 
          do concurrent(i = 2:nfrag)
             j = fragments%origin_body(i)
@@ -585,17 +592,44 @@ contains
                fragments%vc(:,i) = vmag * 0.5_DP * (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
             end if
          end do
-         call collider%set_coordinate_system()
+
+         ! ! Now shift the CoM of each fragment cloud to what the origin body would have been in a bounce
+         ! vbounce(:,1) = -.mag.impactors%vc(:,1) * impactors%bounce_unit(:)
+         ! vbounce(:,2) =  .mag.impactors%vc(:,2) * impactors%bounce_unit(:)
+
+         ! ! ! Compute the current CoM of the fragment clouds
+         ! ! vcloud(:,:) = 0.0_DP
+         ! ! do concurrent(j = 1:2)
+         ! !    mcloud(j) = sum(fragments%mass(:), fragments%origin_body(:) == j)
+         ! !    do concurrent(i = 1:nfrag, fragments%origin_body(i) == j)
+         ! !       vcloud(:,j) = vcloud(:,j) + fragments%mass(i) * fragments%vc(:,i)
+         ! !    end do
+         ! !    vcloud(:,j) = vcloud(:,j) / mcloud(j)
+         ! ! end do
+
+         ! ! ! Subtract off the difference between the cloud CoM velocity and the expected CoM velocity from bouncing
+         ! ! vcloud(:,:) = vcloud(:,:) - vbounce(:,:)
+         ! ! do concurrent(i = 1:nfrag)
+         ! !    j = fragments%origin_body(i)
+         ! !    fragments%vc(:,i) = fragments%vc(:,i) - vcloud(:,j)
+         ! ! end do
+
          ! Check for any residual angular momentum, and if there is any, put it into velocity shear of the fragments
+         call collider%set_coordinate_system()
          call fragments%get_angular_momentum()
-         if (all(fragments%L_budget(:) / (fragments%Lorbit(:) + fragments%Lspin(:)) > epsilon(1.0_DP))) then
-            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:))
-            do concurrent(i = 3:nfrag)
-               vshear(:) = Lresidual(:) / (nfrag - 2) / (fragments%mass(i) * fragments%rc(:,i) .cross. fragments%v_t_unit(:,i))
-               vshear(:) = .mag.vshear(:) * fragments%v_t_unit(:,i)
-               fragments%vc(:,i) = fragments%vc(:,i) + vshear(:)
-            end do
-         end if
+
+         Lscale = fragments%mtot * sum(fragments%radius(:)) * sum(vimp(:))
+         Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:)) 
+         Lmag = .mag.Lresidual(:)/Lscale
+         do concurrent(i = 3:nfrag)
+            vshear(:) = (Lresidual(:) / (nfrag-2)) / (fragments%mass(i) * fragments%rmag(i))
+            fragments%vc(:,i) = fragments%vc(:,i) + vshear(:)
+         end do
+         ! Recompute the collision system coordinates, which will also compute the unit basis vectors for each fragment
+         call collider%set_coordinate_system()
+         call fragments%get_angular_momentum()
+         Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:)) 
+         Lmag = .mag.Lresidual(:)/Lscale
 
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)

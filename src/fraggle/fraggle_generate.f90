@@ -94,6 +94,8 @@ contains
 
             ! Minimize difference between energy/momentum and budgets
             call fraggle_generate_minimize(self, lfailure_local)
+            ! call fraggle_generate_tan_vel(self, lfailure_local)
+            ! call fraggle_generate_rad_vel(self, lfailure_local)
 
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             dEtot = self%Etot(2) - self%Etot(1)
@@ -256,71 +258,6 @@ contains
    end subroutine fraggle_generate_minimize
 
 
-   subroutine fraggle_generate_spins(collider, f_spin, lfailure)
-      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Calculates the spins of a collection of fragments such that they conserve angular momentum without blowing the fragment kinetic energy budget.
-      !!
-      !! A failure will trigger a restructuring of the fragments so we will try new values of the radial position distribution.
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
-      real(DP),                 intent(in)    :: f_spin    !! Fraction of energy or momentum that goes into spin (whichever gives the lowest kinetic energy)
-      logical,                  intent(out)   :: lfailure  !! Logical flag indicating whether this step fails or succeeds! 
-      ! Internals
-      real(DP), dimension(NDIM) :: L_remainder, rot_L, rot_ke
-      integer(I4B)              :: i
-      character(len=STRMAX)     :: message
-
-      associate(impactors => collider%impactors,  nfrag => collider%fragments%nbody)
-         select type(fragments => collider%fragments)
-         class is (fraggle_fragments(*))
-            lfailure = .false.
-
-            ! Start the first two bodies with the same rotation as the original two impactors, then distribute the remaining angular momentum among the rest
-            L_remainder(:) = fragments%L_budget(:)
-            fragments%rot(:,:) = 0.0_DP
-
-            fragments%ke_spin = 0.0_DP
-            if (norm2(L_remainder(:)) > FRAGGLE_LTOL) then 
-               do i = 1, nfrag
-                  ! Convert a fraction (f_spin) of either the remaining angular momentum or kinetic energy budget into spin, whichever gives the smaller rotation so as not to blow any budgets
-                  rot_ke(:) = sqrt(2 * f_spin * fragments%ke_budget / (nfrag * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3, i))) &
-                              * L_remainder(:) / norm2(L_remainder(:))
-                  rot_L(:) = f_spin * L_remainder(:) / (nfrag * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3, i))
-                  if (norm2(rot_ke) < norm2(rot_L)) then
-                     fragments%rot(:,i) = rot_ke(:)
-                  else
-                     fragments%rot(:, i) = rot_L(:)
-                  end if
-                  fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%Ip(3, i) * fragments%radius(i)**2 &
-                                                            * dot_product(fragments%rot(:, i), fragments%rot(:, i))
-               end do
-            end if
-            fragments%ke_spin = 0.5_DP * fragments%ke_spin
-
-            lfailure = ((fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit) < 0.0_DP)
-
-            if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, " ")
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Spin failure diagnostics")
-               write(message, *) fragments%ke_budget
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_budget     : " // trim(adjustl(message)))
-               write(message, *) fragments%ke_spin
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_spin       : " // trim(adjustl(message)))
-               write(message, *) fragments%ke_orbit
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_orbit      : " // trim(adjustl(message)))
-               write(message, *) fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "ke_remainder  : " // trim(adjustl(message)))
-            end if
-
-         end select
-      end associate
-
-      return
-   end subroutine fraggle_generate_spins
-
-
    subroutine fraggle_generate_tan_vel(collider, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
@@ -341,71 +278,69 @@ contains
       ! Internals
       integer(I4B) :: i
       real(DP), parameter                  :: TOL_MIN = 1e-1_DP ! This doesn't have to be very accurate, as we really just want a tangential velocity distribution with less kinetic energy than our initial guess.
-      real(DP), parameter                  :: TOL_INIT = 1e-14_DP
+      real(DP), parameter                  :: TOL_INIT = 1e-6_DP
       real(DP), parameter                  :: VNOISE_MAG = 1e-3_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter              :: MAXLOOP = 10
-      real(DP)                             :: tol
+      real(DP)                             :: tol, fval
       real(DP), dimension(:), allocatable  :: v_t_initial
       real(DP), dimension(collider%fragments%nbody)      :: kefrag, vnoise
       type(lambda_obj_err)                 :: objective_function
       real(DP), dimension(NDIM)            :: Li, L_remainder, L_frag_tot
       character(len=STRMAX)                :: message
       real(DP), dimension(:), allocatable :: output_v
+      logical                             :: lfirst_func
 
       associate(impactors => collider%impactors,  nfrag => collider%fragments%nbody)
          select type(fragments => collider%fragments)
          class is (fraggle_fragments(*))
             lfailure = .false.
 
-            allocate(v_t_initial, mold=fragments%v_t_mag)
-            v_t_initial(:) = 0.0_DP
-            fragments%v_t_unit(:,:) = 0.0_DP
-
-            ! Next we will solve for the tangential component of the velocities that both conserves linear momentum and uses the remaining angular momentum not used in spin.
+            ! Solve for the tangential component of the velocities that both conserves linear momentum and uses the remaining angular momentum not used in spin.
             ! This will be done using a linear solver that solves for the tangential velocities of the first 6 fragments, constrained by the linear and angular momentum vectors, 
             ! which is embedded in a non-linear minimizer that will adjust the tangential velocities of the remaining i>6 fragments to minimize kinetic energy for a given momentum solution
             ! The initial conditions fed to the minimizer for the fragments will be the remaining angular momentum distributed between the fragments.
-            call fragments%get_angular_momentum()
-            L_remainder(:) = fragments%L_budget(:) - fragments%Lspin(:)
-            do i = 1, nfrag
-               v_t_initial(i) = norm2(L_remainder(:)) / ((nfrag - i + 1) * fragments%mass(i) * norm2(fragments%v_r_unit(:,i)))
-               Li(:) = fragments%mass(i) * (fragments%v_r_unit(:,i) .cross. (v_t_initial(i) * fragments%v_t_unit(:, i)))
-               L_remainder(:) = L_remainder(:) - Li(:)
-            end do
-
-            ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
-            objective_function = lambda_obj(tangential_objective_function, lfailure)
-
             tol = TOL_INIT
+            lfirst_func = .true.
+            do i = 1, nfrag
+               fragments%v_t_mag(i) = dot_product(fragments%vc(:,i), fragments%v_t_unit(:,i))
+               fragments%v_r_mag(i) = dot_product(fragments%vc(:,i), fragments%v_r_unit(:,i))
+            end do
+            allocate(v_t_initial, source=fragments%v_t_mag)
             do while(tol < TOL_MIN)
+
+               ! ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
+               objective_function = lambda_obj(tangential_objective_function, lfailure)
+
                call minimize_bfgs(objective_function, nfrag-6, v_t_initial(7:nfrag), tol, MAXLOOP, lfailure, output_v)
+               fval = tangential_objective_function(output_v(:), lfailure)
                fragments%v_t_mag(7:nfrag) = output_v(:)
                ! Now that the KE-minimized values of the i>6 fragments are found, calculate the momentum-conserving solution for tangential velociteis
                v_t_initial(7:nfrag) = fragments%v_t_mag(7:nfrag)
+
+               fragments%v_t_mag(1:nfrag) = solve_fragment_tan_vel(v_t_mag_input=v_t_initial(7:nfrag), lfailure=lfailure)
+
+               ! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional system (the origin)
+               fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), fragments%v_t_mag(1:nfrag), &
+                                                            fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
+               do concurrent (i = 1:nfrag)
+                  fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
+               end do
+
+               ! Now do a kinetic energy budget check to make sure we are still within the budget.
+               kefrag = 0.0_DP
+               do concurrent(i = 1:nfrag)
+                  kefrag(i) = fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
+               end do
+               fragments%ke_orbit = 0.5_DP * sum(kefrag(:))
+
+               ! If we are over the energy budget, flag this as a failure so we can try again
+               call fragments%get_angular_momentum()
+               lfailure = ((fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit) < 0.0_DP)
                if (.not.lfailure) exit
                tol = tol * 2_DP ! Keep increasing the tolerance until we converge on a solution
-               call random_number(vnoise(1:nfrag)) ! Adding a bit of noise to the initial conditions helps it find a solution more often
-               vnoise(:) = 1.0_DP + VNOISE_MAG * (2 * vnoise(:) - 1._DP)
-               v_t_initial(:) = v_t_initial(:) * vnoise(:)
+               ! Reduce fragment spins to try to get a better solution
+               fragments%rot(:,2:nfrag) = fragments%rot(:,2:nfrag) * 0.9_DP
             end do
-            fragments%v_t_mag(1:nfrag) = solve_fragment_tan_vel(v_t_mag_input=v_t_initial(7:nfrag), lfailure=lfailure)
-
-            ! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional system (the origin)
-            fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), fragments%v_t_mag(1:nfrag), &
-                                                         fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
-            do concurrent (i = 1:nfrag)
-               fragments%v_t_unit(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
-            end do
-
-            ! Now do a kinetic energy budget check to make sure we are still within the budget.
-            kefrag = 0.0_DP
-            do concurrent(i = 1:nfrag)
-               kefrag(i) = fragments%mass(i) * dot_product(fragments%vb(:, i), fragments%vb(:, i))
-            end do
-            fragments%ke_orbit = 0.5_DP * sum(kefrag(:))
-
-            ! If we are over the energy budget, flag this as a failure so we can try again
-            lfailure = ((fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit) < 0.0_DP)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, " ")
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Tangential velocity failure diagnostics")
@@ -461,7 +396,7 @@ contains
                      else if (present(v_t_mag_input)) then
                         vtmp(:) = v_t_mag_input(i - 6) * fragments%v_t_unit(:, i)
                         L_lin_others(:) = L_lin_others(:) + fragments%mass(i) * vtmp(:)
-                        L(:) = fragments%mass(i) * (fragments%v_r_unit(:, i) .cross. vtmp(:)) 
+                        L(:) = fragments%mass(i) * (fragments%rc(:, i) .cross. vtmp(:)) 
                         L_orb_others(:) = L_orb_others(:) + L(:)
                      end if
                   end do
@@ -488,9 +423,10 @@ contains
             real(DP)                              :: fval
             ! Internals
             integer(I4B) :: i
-            real(DP), dimension(NDIM,collider%fragments%nbody) :: v_shift
+            real(DP), dimension(NDIM,collider%fragments%nbody) :: vc, vb
             real(DP), dimension(collider%fragments%nbody) :: v_t_new, kearr
             real(DP) :: keo
+            real(DP), save :: fval_scale = 1.0_DP
       
             associate(impactors => collider%impactors,  nfrag => collider%fragments%nbody)
                select type(fragments => collider%fragments)
@@ -498,14 +434,22 @@ contains
                   lfailure = .false.
             
                   v_t_new(:) = solve_fragment_tan_vel(v_t_mag_input=v_t_mag_input(:), lfailure=lfailure)
-                  v_shift(:,:) = fraggle_util_vmag_to_vb(fragments%v_r_mag, fragments%v_r_unit, v_t_new, fragments%v_t_unit, fragments%mass, impactors%vbcom) 
-            
+                  vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), v_t_new(1:nfrag), &
+                                                          fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
+                  do concurrent (i = 1:nfrag)
+                     vc(:,i) = vb(:,i) - impactors%vbcom(:)
+                  end do
                   kearr = 0.0_DP
                   do concurrent(i = 1:nfrag)
-                     kearr(i) = fragments%mass(i) * dot_product(v_shift(:, i), v_shift(:, i))
+                     kearr(i) = fragments%mass(i) * dot_product(vc(:,i), vc(:,i))
                   end do
                   keo = 0.5_DP * sum(kearr(:))
                   fval = keo 
+                  if (lfirst_func) then
+                     fval_scale = keo
+                     lfirst_func = .false.
+                  end if
+                  fval = keo / fval_scale
                   lfailure = .false.
                end select
             end associate
@@ -570,7 +514,7 @@ contains
             fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), &
                                  fragments%v_t_mag(1:nfrag), fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
             do i = 1, nfrag
-               fragments%v_t_unit(:, i) = fragments%vb(:, i) - impactors%vbcom(:)
+               fragments%vc(:, i) = fragments%vb(:, i) - impactors%vbcom(:)
                fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vb(:, i), fragments%vb(:, i))
             end do
             fragments%ke_orbit = 0.5_DP * fragments%ke_orbit
