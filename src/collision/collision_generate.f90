@@ -532,7 +532,7 @@ contains
       ! Arguments
       class(collision_disruption), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      integer(I4B) :: i,j, loop
+      integer(I4B) :: i,j, loop, istart
       logical :: lhitandrun, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof
@@ -593,14 +593,19 @@ contains
             end if
          end do
 
+         if (lhitandrun) then
+            istart = 2
+         else 
+            istart = 1
+         end if
          do loop = 1, MAXLOOP
             call collider%set_coordinate_system()
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%vmag(:)
-            ke_per_dof = -ke_residual/(nfrag - 1)
-            do concurrent(i = 2:nfrag, ke_avail(i) > ke_per_dof)
+            ke_per_dof = -ke_residual/(nfrag - istart + 1)
+            do concurrent(i = istart:nfrag, ke_avail(i) > ke_per_dof)
                fragments%vmag(i) = sqrt(2 * (fragments%ke_orbit_frag(i) - ke_per_dof)/fragments%mass(i))
                fragments%vc(:,i) = fragments%vmag(i) * fragments%v_unit(:,i)
             end do
