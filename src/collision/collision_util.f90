@@ -700,10 +700,13 @@ contains
       Lresidual(:) = self%L_budget(:) - (self%Lorbit(:) + self%Lspin(:))
       ! Distribute residual angular momentum amongst the fragments
       if (.mag.(Lresidual(:)) > tiny(1.0_DP)) then 
-         do i = 2,self%nbody
-            self%rot(:,i) = self%rot(:,i) + Lresidual(:) / ((self%nbody - 1) * self%mass(i) * self%radius(i)**2 * self%Ip(3,i)) 
+         do i = 1,self%nbody
+            self%rot(:,i) = self%rot(:,i) + Lresidual(:) / (self%nbody * self%mass(i) * self%radius(i)**2 * self%Ip(3,i)) 
          end do
       end if
+
+      call self%get_angular_momentum()
+      Lresidual(:) = self%L_budget(:) - (self%Lorbit(:) + self%Lspin(:))
 
       return
    end subroutine collision_util_set_spins

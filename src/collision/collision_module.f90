@@ -167,7 +167,7 @@ module collision
 
    type, extends(collision_basic) :: collision_disruption
    contains 
-      procedure :: generate      => collision_generate_simple    !! A simple disruption models that does not constrain energy loss in collisions
+      procedure :: generate      => collision_generate_disruption    !! A simple disruption models that does not constrain energy loss in collisions
       procedure :: disrupt       => collision_generate_disrupt   !! Disrupt the colliders into the fragments
       procedure :: set_mass_dist => collision_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
       final     ::                  collision_final_simple       !! Finalizer will deallocate all allocatables
@@ -258,28 +258,28 @@ module collision
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_merge
 
-      module subroutine collision_generate_simple(self, nbody_system, param, t)
+      module subroutine collision_generate_disruption(self, nbody_system, param, t)
          implicit none
          class(collision_disruption),  intent(inout) :: self         !! Simple fragment nbody_system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine collision_generate_simple
+      end subroutine collision_generate_disruption
 
-      module subroutine collision_generate_simple_pos_vec(collider)
+      module subroutine collision_generate_disruption_pos_vec(collider)
          implicit none
          class(collision_disruption), intent(inout) :: collider !! Collision system object
-      end subroutine collision_generate_simple_pos_vec 
+      end subroutine collision_generate_disruption_pos_vec 
 
-      module subroutine collision_generate_simple_rot_vec(collider)
+      module subroutine collision_generate_disruption_rot_vec(collider)
          implicit none
          class(collision_basic), intent(inout) :: collider !! Collision system object
-      end subroutine collision_generate_simple_rot_vec 
+      end subroutine collision_generate_disruption_rot_vec 
 
-      module subroutine collision_generate_simple_vel_vec(collider)
+      module subroutine collision_generate_disruption_vel_vec(collider)
          implicit none
          class(collision_disruption), intent(inout) :: collider !! Collision system object
-      end subroutine collision_generate_simple_vel_vec
+      end subroutine collision_generate_disruption_vel_vec
     
       module subroutine collision_io_collider_message(pl, collidx, collider_message)
          implicit none

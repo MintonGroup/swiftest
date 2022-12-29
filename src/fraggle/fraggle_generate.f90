@@ -93,9 +93,9 @@ contains
             call self%set_budgets()
 
             ! Minimize difference between energy/momentum and budgets
-            call fraggle_generate_minimize(self, lfailure_local)
-            call fraggle_generate_tan_vel(self, lfailure_local)
-            ! call fraggle_generate_rad_vel(self, lfailure_local)
+            ! call fraggle_generate_minimize(self, lfailure_local)
+            ! call fraggle_generate_tan_vel(self, lfailure_local)
+            call fraggle_generate_rad_vel(self, lfailure_local)
 
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             dEtot = self%Etot(2) - self%Etot(1)
@@ -188,6 +188,7 @@ contains
             fval = E_objective_function(input_v)
 
             call minimize_bfgs(Efunc, nelem, input_v, tol, MAXLOOP, lfailure, output_v)
+            fval = E_objective_function(output_v)
             fragments%vmag(1:nfrag) = output_v(1:nfrag)
             do concurrent(i=1:nfrag)
                fragments%vc(:,i) = abs(fragments%vmag(i)) * fragments%v_r_unit(:,i)
@@ -287,7 +288,7 @@ contains
       type(lambda_obj_err)                 :: objective_function
       real(DP), dimension(NDIM)            :: Li, L_remainder, L_frag_tot
       character(len=STRMAX)                :: message
-      real(DP), dimension(:), allocatable :: output_v
+      real(DP), dimension(:), allocatable :: v_t_output
       logical                             :: lfirst_func
 
       associate(impactors => collider%impactors,  nfrag => collider%fragments%nbody)
@@ -310,10 +311,11 @@ contains
 
                ! ! Find the local kinetic energy minimum for the system that conserves linear and angular momentum
                objective_function = lambda_obj(tangential_objective_function, lfailure)
+               fval = tangential_objective_function(v_t_output(:), lfailure)
 
-               call minimize_bfgs(objective_function, nfrag-6, v_t_initial(7:nfrag), tol, MAXLOOP, lfailure, output_v)
-               fval = tangential_objective_function(output_v(:), lfailure)
-               fragments%v_t_mag(7:nfrag) = output_v(:)
+               call minimize_bfgs(objective_function, nfrag-6, v_t_initial(7:nfrag), tol, MAXLOOP, lfailure, v_t_output)
+               fval = tangential_objective_function(v_t_initial(:), lfailure)
+               fragments%v_t_mag(7:nfrag) = v_t_output(:)
                ! Now that the KE-minimized values of the i>6 fragments are found, calculate the momentum-conserving solution for tangential velociteis
                v_t_initial(7:nfrag) = fragments%v_t_mag(7:nfrag)
 
@@ -474,33 +476,35 @@ contains
       real(DP), parameter                   :: TOL_INIT = 1e-14_DP
       real(DP), parameter                   :: VNOISE_MAG = 1e-10_DP !! Magnitude of the noise to apply to initial conditions to help minimizer find a solution in case of failure
       integer(I4B), parameter               :: MAXLOOP = 100
-      real(DP)                              :: ke_radial, tol 
+      real(DP)                              :: ke_radial, tol, fval
       integer(I4B)                          :: i
       real(DP), dimension(:), allocatable   :: v_r_initial
       real(DP), dimension(collider%fragments%nbody)       :: vnoise
       type(lambda_obj)                      :: objective_function
       character(len=STRMAX)                 :: message
-      real(DP), dimension(:), allocatable :: output_v
+      real(DP), dimension(:), allocatable :: v_r_output
 
       associate(impactors => collider%impactors,  nfrag => collider%fragments%nbody)
          select type(fragments => collider%fragments)
          class is (fraggle_fragments(*))
             ! Set the "target" ke for the radial component
             ke_radial = fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
+
+            do i = 1, nfrag
+               fragments%v_t_mag(i) = dot_product(fragments%vc(:,i), fragments%v_t_unit(:,i))
+               fragments%v_r_mag(i) = dot_product(fragments%vc(:,i), fragments%v_r_unit(:,i))
+            end do
             
             allocate(v_r_initial, source=fragments%v_r_mag)
-            ! Initialize radial velocity magnitudes with a random value that related to equipartition of kinetic energy with some noise
-            call random_number(vnoise(1:nfrag))
-            vnoise(:) = 1.0_DP + VNOISE_MAG * (2 * vnoise(:) - 1.0_DP) 
-            v_r_initial(1:nfrag) = sqrt(abs(2 * ke_radial) / (fragments%mass(1:nfrag) * nfrag)) * vnoise(1:nfrag)
 
             ! Initialize the lambda function using a structure constructor that calls the init method
             ! Minimize the ke objective function using the BFGS optimizer
             objective_function = lambda_obj(radial_objective_function)
             tol = TOL_INIT
             do while(tol < TOL_MIN)
-               call minimize_bfgs(objective_function, nfrag, v_r_initial, tol, MAXLOOP, lfailure, output_v)
-               fragments%v_r_mag = output_v
+               fval = radial_objective_function(v_r_initial)
+               call minimize_bfgs(objective_function, nfrag, v_r_initial, tol, MAXLOOP, lfailure, v_r_output)
+               fragments%v_r_mag = v_r_output
                if (.not.lfailure) exit
                tol = tol * 2 ! Keep increasing the tolerance until we converge on a solution
                v_r_initial(:) = fragments%v_r_mag(:)
@@ -515,7 +519,7 @@ contains
                                  fragments%v_t_mag(1:nfrag), fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
             do i = 1, nfrag
                fragments%vc(:, i) = fragments%vb(:, i) - impactors%vbcom(:)
-               fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vb(:, i), fragments%vb(:, i))
+               fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vc(:, i), fragments%vc(:, i))
             end do
             fragments%ke_orbit = 0.5_DP * fragments%ke_orbit
 
@@ -559,6 +563,7 @@ contains
                   allocate(v_shift, mold=fragments%vb)
                   v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, fragments%v_r_unit, fragments%v_t_mag, fragments%v_t_unit, fragments%mass, impactors%vbcom) 
                   do i = 1,fragments%nbody
+                     v_shift(:,i) = v_shift(:,i) - impactors%vbcom(:)
                      rotmag2 = fragments%rot(1,i)**2 + fragments%rot(2,i)**2 + fragments%rot(3,i)**2
                      vmag2 = v_shift(1,i)**2 + v_shift(2,i)**2 + v_shift(3,i)**2
                      kearr(i) = fragments%mass(i) * (fragments%Ip(3, i) * fragments%radius(i)**2 * rotmag2 + vmag2) 

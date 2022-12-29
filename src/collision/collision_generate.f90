@@ -191,7 +191,7 @@ contains
    end subroutine collision_generate_hitandrun
 
 
-   module subroutine collision_generate_simple(self, nbody_system, param, t)
+   module subroutine collision_generate_disruption(self, nbody_system, param, t)
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Create the fragments resulting from a non-catastrophic disruption collision
@@ -263,7 +263,7 @@ contains
       end select
       end select
       return
-   end subroutine collision_generate_simple
+   end subroutine collision_generate_disruption
 
 
    module subroutine collision_generate_merge(self, nbody_system, param, t)
@@ -384,15 +384,15 @@ contains
       logical, optional,                   intent(out)   :: lfailure
       ! Internals
 
-      call collision_generate_simple_pos_vec(self)
-      call collision_generate_simple_rot_vec(self)
-      call collision_generate_simple_vel_vec(self)
+      call collision_generate_disruption_pos_vec(self)
+      call collision_generate_disruption_rot_vec(self)
+      call collision_generate_disruption_vel_vec(self)
 
       return
    end subroutine collision_generate_disrupt
 
 
-   module subroutine collision_generate_simple_pos_vec(collider)
+   module subroutine collision_generate_disruption_pos_vec(collider)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Initializes the position vectors of the fragments around the center of mass based on the collision style.
@@ -477,10 +477,10 @@ contains
       end associate
 
       return
-   end subroutine collision_generate_simple_pos_vec
+   end subroutine collision_generate_disruption_pos_vec
 
 
-   module subroutine collision_generate_simple_rot_vec(collider)
+   module subroutine collision_generate_disruption_rot_vec(collider)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Calculates the spins of a collection of fragments such that they conserve angular momentum 
@@ -519,10 +519,10 @@ contains
       end associate
 
       return
-   end subroutine collision_generate_simple_rot_vec
+   end subroutine collision_generate_disruption_rot_vec
 
 
-   module subroutine collision_generate_simple_vel_vec(collider)
+   module subroutine collision_generate_disruption_vel_vec(collider)
       !! Author:  David A. Minton
       !!
       !! Generates an initial velocity distribution. For disruptions, the velocity magnitude is set to be
@@ -644,7 +644,7 @@ contains
 
       end associate
       return
-   end subroutine collision_generate_simple_vel_vec
+   end subroutine collision_generate_disruption_vel_vec
 
 
 end submodule s_collision_generate
