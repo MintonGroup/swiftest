@@ -577,11 +577,16 @@ contains
          do concurrent(i = 1:nfrag)
             j = fragments%origin_body(i)
             vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rc(:,j))
-            vmag = vesc * vscale(i) * mass_vscale(i)
             if (lhitandrun) then
-               fragments%vc(:,i) = vmag * impactors%bounce_unit(:) * vsign(i) + vrot(:)
+               if (i == 1) then
+                  fragments%vc(:,1) = impactors%vc(:,1)
+               else
+                  vmag = .mag.impactors%vc(:,2) / (maxval(mass_vscale(:) * maxval(vscale(:))))
+                  fragments%vc(:,i) = vmag * mass_vscale(i) * vscale(i) * impactors%bounce_unit(:) * vsign(i) + vrot(:)
+               end if
             else
                ! Add more velocity dispersion to disruptions vs hit and runs.
+               vmag = vesc * vscale(i) * mass_vscale(i)
                rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
                vimp_unit(:) = .unit. rimp(:)
                fragments%vc(:,i) = vmag *  (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
@@ -594,8 +599,8 @@ contains
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%vmag(:)
-            ke_per_dof = -ke_residual/nfrag
-            do concurrent(i = 1:nfrag, ke_avail(i) > ke_per_dof)
+            ke_per_dof = -ke_residual/(nfrag - 1)
+            do concurrent(i = 2:nfrag, ke_avail(i) > ke_per_dof)
                fragments%vmag(i) = sqrt(2 * (fragments%ke_orbit_frag(i) - ke_per_dof)/fragments%mass(i))
                fragments%vc(:,i) = fragments%vmag(i) * fragments%v_unit(:,i)
             end do
