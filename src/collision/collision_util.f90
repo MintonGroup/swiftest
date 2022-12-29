@@ -205,21 +205,23 @@ contains
       !! Calculates the current kinetic energy of the fragments
       implicit none
       ! Argument
-      class(collision_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
+      class(collision_fragments(*)), intent(inout)  :: self !! Fragment system object
       ! Internals
       integer(I4B) :: i
 
       associate(fragments => self, nfrag => self%nbody)
-         fragments%ke_orbit = 0.0_DP
-         fragments%ke_spin  = 0.0_DP
+         fragments%ke_orbit_frag(:) = 0.0_DP
+         fragments%ke_spin_frag(:)  = 0.0_DP
    
-         do i = 1, nfrag
-            fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
-            fragments%ke_spin = fragments%ke_spin + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
+         do concurrent(i = 1:nfrag)
+            fragments%ke_orbit_frag(i) = fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
+            fragments%ke_spin_frag(i) =  fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
          end do
 
-         fragments%ke_orbit = fragments%ke_orbit / 2
-         fragments%ke_spin = fragments%ke_spin / 2
+         fragments%ke_orbit_frag(:) = fragments%ke_orbit_frag(:) / 2
+         fragments%ke_spin_frag(:) = fragments%ke_spin_frag(:) / 2
+         fragments%ke_orbit = sum(fragments%ke_orbit_frag(:))
+         fragments%ke_spin = sum(fragments%ke_spin_frag(:))
 
       end associate
 
@@ -374,9 +376,9 @@ contains
       self%density(:) = 0.0_DP
       self%rc(:,:) = 0.0_DP
       self%vc(:,:) = 0.0_DP
-      self%v_r_unit(:,:) = 0.0_DP
-      self%v_t_unit(:,:) = 0.0_DP
-      self%v_n_unit(:,:) = 0.0_DP
+      self%r_unit(:,:) = 0.0_DP
+      self%t_unit(:,:) = 0.0_DP
+      self%n_unit(:,:) = 0.0_DP
 
       return
    end subroutine collision_util_reset_fragments
@@ -453,9 +455,10 @@ contains
          fragments%vmag(:) = .mag. fragments%vc(:,:)
   
          ! Define the radial, normal, and tangential unit vectors for each individual fragment
-         fragments%v_r_unit(:,:) = .unit. fragments%rc(:,:) 
-         fragments%v_t_unit(:,:) = .unit. fragments%vc(:,:) 
-         fragments%v_n_unit(:,:) = .unit. (fragments%v_r_unit(:,:) .cross. fragments%v_t_unit(:,:))
+         fragments%r_unit(:,:) = .unit. fragments%rc(:,:) 
+         fragments%v_unit(:,:) = .unit. fragments%vc(:,:) 
+         fragments%n_unit(:,:) = .unit. (fragments%rc(:,:) .cross. fragments%vc(:,:))
+         fragments%t_unit(:,:) = .unit. (fragments%r_unit(:,:) .cross. fragments%r_unit(:,:))
 
       end associate
 
@@ -770,9 +773,9 @@ contains
       self%fragments%vc(:,:) = 0.0_DP
       self%fragments%rot(:,:) = 0.0_DP
       self%fragments%Ip(:,:) = 0.0_DP
-      self%fragments%v_r_unit(:,:) = 0.0_DP
-      self%fragments%v_t_unit(:,:) = 0.0_DP
-      self%fragments%v_n_unit(:,:) = 0.0_DP
+      self%fragments%r_unit(:,:) = 0.0_DP
+      self%fragments%t_unit(:,:) = 0.0_DP
+      self%fragments%n_unit(:,:) = 0.0_DP
       self%fragments%mass(:) = 0.0_DP
       self%fragments%radius(:) = 0.0_DP
       self%fragments%density(:) = 0.0_DP

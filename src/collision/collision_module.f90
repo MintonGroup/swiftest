@@ -106,16 +106,19 @@ module collision
       real(DP),                  dimension(nbody)            :: rmag        !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
       real(DP),                  dimension(nbody)            :: vmag        !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
       real(DP),                  dimension(nbody)            :: rotmag      !! Array of rotation magnitudes of individual fragments 
-      real(DP),                  dimension(NDIM,nbody)       :: v_r_unit    !! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: v_t_unit    !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: v_n_unit    !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: r_unit      !! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: v_unit      !! Array of velocity direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: t_unit      !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: n_unit      !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
       integer(I1B),              dimension(nbody)            :: origin_body !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
-      real(DP), dimension(NDIM)                              :: Lorbit    !! Orbital angular momentum vector of all fragments
-      real(DP), dimension(NDIM)                              :: Lspin     !! Spin angular momentum vector of all fragments
-      real(DP)                                               :: ke_orbit  !! Orbital kinetic energy of all fragments
-      real(DP)                                               :: ke_spin   !! Spin kinetic energy of all fragments
-      real(DP)                                               :: ke_budget !! Kinetic energy budget for computing fragment trajectories
-      real(DP), dimension(NDIM)                              :: L_budget  !! Angular momentum budget for computing fragment trajectories
+      real(DP), dimension(NDIM)                              :: Lorbit      !! Orbital angular momentum vector of all fragments
+      real(DP), dimension(NDIM)                              :: Lspin       !! Spin angular momentum vector of all fragments
+      real(DP)                                               :: ke_orbit    !! Orbital kinetic energy of all fragments
+      real(DP)                                               :: ke_spin     !! Spin kinetic energy of all fragments
+      real(DP)                                               :: ke_budget     !! Kinetic energy budget for computing fragment trajectories
+      real(DP), dimension(NDIM)                              :: L_budget      !! Angular momentum budget for computing fragment trajectories
+      real(DP),                  dimension(nbody)            :: ke_orbit_frag !! Orbital kinetic energy of each individual fragment
+      real(DP),                  dimension(nbody)            :: ke_spin_frag  !! Spin kinetic energy of each individual fragment
    contains
       procedure :: reset                => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
       procedure :: get_angular_momentum => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments

@@ -91,11 +91,11 @@ module fraggle
          class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
       end subroutine fraggle_util_set_original_scale_factors
 
-      module function fraggle_util_vmag_to_vb(v_r_mag, v_r_unit, v_t_mag, v_t_unit, m_frag, vcom) result(vb) 
+      module function fraggle_util_vmag_to_vb(v_r_mag, r_unit, v_t_mag, t_unit, m_frag, vcom) result(vb) 
          implicit none
          real(DP), dimension(:),   intent(in)  :: v_r_mag   !! Unknown radial component of fragment velocity vector
          real(DP), dimension(:),   intent(in)  :: v_t_mag   !! Tangential component of velocity vector set previously by angular momentum constraint
-         real(DP), dimension(:,:), intent(in)  :: v_r_unit, v_t_unit !! Radial and tangential unit vectors for each fragment
+         real(DP), dimension(:,:), intent(in)  :: r_unit, t_unit !! Radial and tangential unit vectors for each fragment
          real(DP), dimension(:),   intent(in)  :: m_frag    !! Fragment masses
          real(DP), dimension(:),   intent(in)  :: vcom      !! Barycentric velocity of collisional system center of mass
          real(DP), dimension(:,:), allocatable   :: vb

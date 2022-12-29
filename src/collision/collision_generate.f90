@@ -535,11 +535,10 @@ contains
       integer(I4B) :: i,j, loop
       logical :: lhitandrun, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual
-      real(DP), dimension(NDIM,2) :: vbounce, vcloud
-      real(DP), dimension(2) :: vimp, mcloud
-      real(DP) :: vmag, vdisp, Lmag, Lscale, rotmag
+      real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
-      real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale
+      real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
+      integer(I4B), parameter :: MAXLOOP = 100
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
@@ -553,35 +552,11 @@ contains
             vsign(:) = 1
          end where
 
-         ! The dominant velocities of the two clouds will be scaled by the CoM velocities of the two bodies
-         vimp(1:2) = .mag.impactors%vc(:,1:2)
-
-         ! Now shift the CoM of each fragment cloud to what the origin body would have been in a bounce
-         vbounce(:,1) = -.mag.impactors%vc(:,1) * impactors%bounce_unit(:)
-         vbounce(:,2) =  .mag.impactors%vc(:,2) * impactors%bounce_unit(:)
-
-         ! Compute the current CoM of the fragment clouds
-         vcloud(:,:) = 0.0_DP
-         do concurrent(j = 1:2)
-            mcloud(j) = sum(fragments%mass(:), fragments%origin_body(:) == j)
-            do concurrent(i = 1:nfrag, fragments%origin_body(i) == j)
-               vcloud(:,j) = vcloud(:,j) + fragments%mass(i) * fragments%vc(:,i)
-            end do
-            vcloud(:,j) = vcloud(:,j) / mcloud(j)
-         end do
-
-         ! Subtract off the difference between the cloud CoM velocity and the expected CoM velocity from bouncing
-         vcloud(:,:) = vcloud(:,:) - vbounce(:,:)
-         do concurrent(i = 1:nfrag)
-            j = fragments%origin_body(i)
-            fragments%vc(:,i) = fragments%vc(:,i) - vcloud(:,j)
-         end do
-
-         ! Compute the velocity dispersion based on the escape velocity
+         ! The minimum fragment velocity will be set by the escape velocity
          if (lhitandrun) then
-            vdisp = 2 * sqrt(2 * impactors%Gmass(2) / impactors%radius(2))
+            vesc = sqrt(2 * impactors%Gmass(2) / impactors%radius(2))
          else
-            vdisp = 2 * sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
+            vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
          end if
 
          ! Scale the magnitude of the velocity by the distance from the impact point
@@ -590,44 +565,54 @@ contains
             rimp(:) = fragments%rc(:,i) - impactors%rbimp(:) 
             vscale(i) = .mag. rimp(:) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1)))
          end do
-         vscale(:) = vscale(:)/maxval(vscale(:))
+         vscale(:) = vscale(:)/minval(vscale(:))
 
          ! Give the fragment velocities a random value that is scaled with fragment mass
          call random_number(mass_vscale)
          mass_vscale(:) = (mass_vscale(:) + 1.0_DP) / 2
          mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP) ! The 1/8 power is arbitrary. It just gives the velocity a small mass dependence
-         mass_vscale(:) = 2*mass_vscale(:) / maxval(mass_vscale(:))
+         mass_vscale(:) = mass_vscale(:) / minval(mass_vscale(:))
 
          ! Set the velocities of all fragments using all of the scale factors determined above
-         fragments%vc(:,1) = .mag.impactors%vc(:,1) * impactors%bounce_unit(:) 
-         do concurrent(i = 2:nfrag)
+         do concurrent(i = 1:nfrag)
             j = fragments%origin_body(i)
             vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rc(:,j))
-            vmag = .mag.fragments%vc(:,i) * vscale(i) * mass_vscale(i)
+            vmag = vesc * vscale(i) * mass_vscale(i)
             if (lhitandrun) then
-               fragments%vc(:,i) = vmag * 0.5_DP * impactors%bounce_unit(:) * vsign(i) + vrot(:)
+               fragments%vc(:,i) = vmag * impactors%bounce_unit(:) * vsign(i) + vrot(:)
             else
                ! Add more velocity dispersion to disruptions vs hit and runs.
                rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
                vimp_unit(:) = .unit. rimp(:)
-               fragments%vc(:,i) = vmag * 0.5_DP * (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
+               fragments%vc(:,i) = vmag *  (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) + vrot(:)
             end if
          end do
 
-         ! Check for any residual angular momentum, and if there is any, put it into spin of the biggest body
-         call collider%set_coordinate_system()
-         call fragments%get_angular_momentum()
+         do loop = 1, MAXLOOP
+            call collider%set_coordinate_system()
+            call fragments%get_kinetic_energy()
+            ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
+            ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
+            ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%vmag(:)
+            ke_per_dof = -ke_residual/nfrag
+            do concurrent(i = 1:nfrag, ke_avail(i) > ke_per_dof)
+               fragments%vmag(i) = sqrt(2 * (fragments%ke_orbit_frag(i) - ke_per_dof)/fragments%mass(i))
+               fragments%vc(:,i) = fragments%vmag(i) * fragments%v_unit(:,i)
+            end do
+            call fragments%get_kinetic_energy()
+            ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
 
-         Lscale = fragments%mtot * sum(fragments%radius(:)) * sum(vimp(:))
-         Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:)) 
-         Lmag = .mag.Lresidual(:)/Lscale
-         rotmag = .mag. fragments%rot(:,1)
-         fragments%rot(:,1) = fragments%rot(:,1) + Lresidual(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(:,1))
-         rotmag = .mag. fragments%rot(:,1)
+            ! Check for any residual angular momentum, and if there is any, put it into spin of the biggest body
+            call collider%set_coordinate_system()
+            call fragments%get_angular_momentum()
+            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:)) 
+            rotmag = .mag. fragments%rot(:,1)
+            fragments%rot(:,1) = fragments%rot(:,1) + Lresidual(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(:,1))
+            rotmag = .mag. fragments%rot(:,1)
 
-         call fragments%get_angular_momentum()
-         Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:)) 
-         Lmag = .mag.Lresidual(:)/Lscale
+            if (ke_residual >= 0.0_DP) exit
+
+         end do
 
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
@@ -638,9 +623,6 @@ contains
             impactors%vbcom(:) = impactors%vbcom(:) + fragments%mass(i) * fragments%vb(:,i) 
          end do
          impactors%vbcom(:) = impactors%vbcom(:) / fragments%mtot
-
-         ! Distribute any remaining angular momentum into fragments pin
-         call fragments%set_spins()
 
       end associate
       return

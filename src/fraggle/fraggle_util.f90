@@ -52,9 +52,9 @@ contains
       self%rb(:,:) = 0.0_DP
       self%vb(:,:) = 0.0_DP
       self%rot(:,:) = 0.0_DP
-      self%v_r_unit(:,:) = 0.0_DP
-      self%v_t_unit(:,:) = 0.0_DP
-      self%v_n_unit(:,:) = 0.0_DP
+      self%r_unit(:,:) = 0.0_DP
+      self%t_unit(:,:) = 0.0_DP
+      self%n_unit(:,:) = 0.0_DP
 
       self%rmag(:) = 0.0_DP
       self%rotmag(:) = 0.0_DP
@@ -226,7 +226,7 @@ contains
    end subroutine fraggle_util_setup_fragments_system
 
 
-   module function fraggle_util_vmag_to_vb(v_r_mag, v_r_unit, v_t_mag, v_t_unit, m_frag, vcom) result(vb) 
+   module function fraggle_util_vmag_to_vb(v_r_mag, r_unit, v_t_mag, t_unit, m_frag, vcom) result(vb) 
       !! Author: David A. Minton
       !!
       !! Converts radial and tangential velocity magnitudes into barycentric velocity
@@ -234,7 +234,7 @@ contains
       ! Arguments
       real(DP), dimension(:),   intent(in)  :: v_r_mag   !! Unknown radial component of fragment velocity vector
       real(DP), dimension(:),   intent(in)  :: v_t_mag   !! Tangential component of velocity vector set previously by angular momentum constraint
-      real(DP), dimension(:,:), intent(in)  :: v_r_unit, v_t_unit !! Radial and tangential unit vectors for each fragment
+      real(DP), dimension(:,:), intent(in)  :: r_unit, t_unit !! Radial and tangential unit vectors for each fragment
       real(DP), dimension(:),   intent(in)  :: m_frag    !! Fragment masses
       real(DP), dimension(:),   intent(in)  :: vcom      !! Barycentric velocity of collisional system center of mass
       ! Result
@@ -242,17 +242,17 @@ contains
       ! Internals
       integer(I4B) :: i, nfrag
 
-      allocate(vb, mold=v_r_unit)
+      allocate(vb, mold=r_unit)
       ! Make sure the velocity magnitude stays positive
       nfrag = size(m_frag)
       do i = 1, nfrag
-         vb(:,i) = abs(v_r_mag(i)) * v_r_unit(:, i)
+         vb(:,i) = abs(v_r_mag(i)) * r_unit(:, i)
       end do
       ! In order to keep satisfying the kinetic energy constraint, we must shift the origin of the radial component of the velocities to the center of mass
       call collision_util_shift_vector_to_origin(m_frag, vb)
       
       do i = 1, nfrag
-         vb(:, i) = vb(:, i) + v_t_mag(i) * v_t_unit(:, i) + vcom(:)
+         vb(:, i) = vb(:, i) + v_t_mag(i) * t_unit(:, i) + vcom(:)
       end do
 
       return

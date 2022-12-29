@@ -181,7 +181,7 @@ contains
             Efunc = lambda_obj(E_objective_function)
             tol = TOL_INIT
 
-            fragments%v_r_unit(:,:) = .unit. fragments%vc(:,:)
+            fragments%r_unit(:,:) = .unit. fragments%vc(:,:)
             fragments%vmag(:) = .mag. fragments%vc(:,1:nfrag) 
             input_v(:) = fragments%vmag(1:nfrag)
             lfirst_Efunc = .true.
@@ -191,7 +191,7 @@ contains
             fval = E_objective_function(output_v)
             fragments%vmag(1:nfrag) = output_v(1:nfrag)
             do concurrent(i=1:nfrag)
-               fragments%vc(:,i) = abs(fragments%vmag(i)) * fragments%v_r_unit(:,i)
+               fragments%vc(:,i) = abs(fragments%vmag(i)) * fragments%r_unit(:,i)
             end do
 
             ! Set spins in order to conserve angular momentum
@@ -226,7 +226,7 @@ contains
                   allocate(tmp_frag, source=fragments)
                   tmp_frag%vmag(1:nfrag) = val_input(1:nfrag)
                   do concurrent(i=1:nfrag)
-                     tmp_frag%vc(:,i) = abs(tmp_frag%vmag(i)) * tmp_frag%v_r_unit(:,i)
+                     tmp_frag%vc(:,i) = abs(tmp_frag%vmag(i)) * tmp_frag%r_unit(:,i)
                   end do
 
                   call collision_util_shift_vector_to_origin(tmp_frag%mass, tmp_frag%vc)
@@ -303,8 +303,8 @@ contains
             tol = TOL_INIT
             lfirst_func = .true.
             do i = 1, nfrag
-               fragments%v_t_mag(i) = dot_product(fragments%vc(:,i), fragments%v_t_unit(:,i))
-               fragments%v_r_mag(i) = dot_product(fragments%vc(:,i), fragments%v_r_unit(:,i))
+               fragments%v_t_mag(i) = dot_product(fragments%vc(:,i), fragments%t_unit(:,i))
+               fragments%v_r_mag(i) = dot_product(fragments%vc(:,i), fragments%r_unit(:,i))
             end do
             allocate(v_t_initial, source=fragments%v_t_mag)
             do while(tol < TOL_MIN)
@@ -322,8 +322,8 @@ contains
                fragments%v_t_mag(1:nfrag) = solve_fragment_tan_vel(v_t_mag_input=v_t_initial(7:nfrag), lfailure=lfailure)
 
                ! Perform one final shift of the radial velocity vectors to align with the center of mass of the collisional system (the origin)
-               fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), fragments%v_t_mag(1:nfrag), &
-                                                            fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
+               fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%r_unit(:,1:nfrag), fragments%v_t_mag(1:nfrag), &
+                                                            fragments%t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
                do concurrent (i = 1:nfrag)
                   fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
                end do
@@ -393,10 +393,10 @@ contains
                   L_orb_others(:) = 0.0_DP
                   do i = 1, nfrag
                      if (i <= 2 * NDIM) then ! The tangential velocities of the first set of bodies will be the unknowns we will solve for to satisfy the constraints
-                        A(1:3, i) = fragments%mass(i) * fragments%v_t_unit(:, i) 
-                        A(4:6, i) = fragments%mass(i) * fragments%rmag(i) * (fragments%v_r_unit(:, i) .cross. fragments%v_t_unit(:, i))
+                        A(1:3, i) = fragments%mass(i) * fragments%t_unit(:, i) 
+                        A(4:6, i) = fragments%mass(i) * fragments%rmag(i) * (fragments%r_unit(:, i) .cross. fragments%t_unit(:, i))
                      else if (present(v_t_mag_input)) then
-                        vtmp(:) = v_t_mag_input(i - 6) * fragments%v_t_unit(:, i)
+                        vtmp(:) = v_t_mag_input(i - 6) * fragments%t_unit(:, i)
                         L_lin_others(:) = L_lin_others(:) + fragments%mass(i) * vtmp(:)
                         L(:) = fragments%mass(i) * (fragments%rc(:, i) .cross. vtmp(:)) 
                         L_orb_others(:) = L_orb_others(:) + L(:)
@@ -436,8 +436,8 @@ contains
                   lfailure = .false.
             
                   v_t_new(:) = solve_fragment_tan_vel(v_t_mag_input=v_t_mag_input(:), lfailure=lfailure)
-                  vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), v_t_new(1:nfrag), &
-                                                          fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
+                  vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%r_unit(:,1:nfrag), v_t_new(1:nfrag), &
+                                                          fragments%t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
                   do concurrent (i = 1:nfrag)
                      vc(:,i) = vb(:,i) - impactors%vbcom(:)
                   end do
@@ -491,8 +491,8 @@ contains
             ke_radial = fragments%ke_budget - fragments%ke_spin - fragments%ke_orbit
 
             do i = 1, nfrag
-               fragments%v_t_mag(i) = dot_product(fragments%vc(:,i), fragments%v_t_unit(:,i))
-               fragments%v_r_mag(i) = dot_product(fragments%vc(:,i), fragments%v_r_unit(:,i))
+               fragments%v_t_mag(i) = dot_product(fragments%vc(:,i), fragments%t_unit(:,i))
+               fragments%v_r_mag(i) = dot_product(fragments%vc(:,i), fragments%r_unit(:,i))
             end do
             
             allocate(v_r_initial, source=fragments%v_r_mag)
@@ -515,8 +515,8 @@ contains
             
             ! Shift the radial velocity vectors to align with the center of mass of the collisional system (the origin)
             fragments%ke_orbit = 0.0_DP
-            fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%v_r_unit(:,1:nfrag), &
-                                 fragments%v_t_mag(1:nfrag), fragments%v_t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
+            fragments%vb(:,1:nfrag) = fraggle_util_vmag_to_vb(fragments%v_r_mag(1:nfrag), fragments%r_unit(:,1:nfrag), &
+                                 fragments%v_t_mag(1:nfrag), fragments%t_unit(:,1:nfrag), fragments%mass(1:nfrag), impactors%vbcom(:)) 
             do i = 1, nfrag
                fragments%vc(:, i) = fragments%vb(:, i) - impactors%vbcom(:)
                fragments%ke_orbit = fragments%ke_orbit + fragments%mass(i) * dot_product(fragments%vc(:, i), fragments%vc(:, i))
@@ -561,7 +561,7 @@ contains
                select type(fragments => collider%fragments)
                class is (fraggle_fragments(*))
                   allocate(v_shift, mold=fragments%vb)
-                  v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, fragments%v_r_unit, fragments%v_t_mag, fragments%v_t_unit, fragments%mass, impactors%vbcom) 
+                  v_shift(:,:) = fraggle_util_vmag_to_vb(v_r_mag_input, fragments%r_unit, fragments%v_t_mag, fragments%t_unit, fragments%mass, impactors%vbcom) 
                   do i = 1,fragments%nbody
                      v_shift(:,i) = v_shift(:,i) - impactors%vbcom(:)
                      rotmag2 = fragments%rot(1,i)**2 + fragments%rot(2,i)**2 + fragments%rot(3,i)**2
