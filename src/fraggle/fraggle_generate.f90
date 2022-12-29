@@ -94,7 +94,7 @@ contains
 
             ! Minimize difference between energy/momentum and budgets
             call fraggle_generate_minimize(self, lfailure_local)
-            ! call fraggle_generate_tan_vel(self, lfailure_local)
+            call fraggle_generate_tan_vel(self, lfailure_local)
             ! call fraggle_generate_rad_vel(self, lfailure_local)
 
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
