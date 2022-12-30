@@ -100,7 +100,7 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision 
       logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
        ! Internals
-      integer(I4B)                         :: try, subtry
+      integer(I4B)                         :: try
       real(DP)                             :: dEtot, dLmag
       integer(I4B), parameter              :: MAXTRY = 100
       logical                              :: lk_plpl, lfailure_local
@@ -140,55 +140,49 @@ contains
          lfailure_local = .false.
          try = 1
 
-         do while (try < MAXTRY)
-            write(message,*) try
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
-            if (lfailure_local) then
-               call fragments%reset()
-               try = try + 1
-            end if
-            lfailure_local = .false.
+         write(message,*) try
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
+         if (lfailure_local) then
+            call fragments%reset()
+            try = try + 1
+         end if
+         lfailure_local = .false.
 
-            ! Use the disruption collision model to generate initial conditions
-            ! Compute the "before" energy/momentum and the budgets
-            call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-            call self%set_budgets()
-            do subtry = 1, MAXTRY
-               call fraggle_generate_pos_vec(self)
-               call fraggle_generate_rot_vec(self)
-               call fraggle_generate_vel_vec(self,lfailure_local)
-               if (.not.lfailure_local) exit
-            end do
-
-            call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-            dEtot = self%Etot(2) - self%Etot(1)
-            dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
-
-            lfailure_local = (dEtot > -impactors%Qloss) 
-            if (lfailure_local) then
-               write(message, *) "dEtot: ",dEtot, "dEtot/Qloss", dEtot / impactors%Qloss
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to energy gain: " // &
-                                                        trim(adjustl(message)))
-               cycle
-               lfailure_local = .false.
-            end if
-
-            lfailure_local = ((abs(dLmag) / (.mag.self%Ltot(:,1))) > FRAGGLE_LTOL) 
-            if (lfailure_local) then
-               write(message,*) dLmag / (.mag.self%Ltot(:,1))
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
-                                                        trim(adjustl(message)))
-               cycle
-            end if
-
-            ! Check if any of the usual floating point exceptions happened, and fail the try if so
-            call ieee_get_flag(ieee_usual, fpe_flag)
-            lfailure_local = any(fpe_flag) 
+         ! Use the disruption collision model to generate initial conditions
+         ! Compute the "before" energy/momentum and the budgets
+         call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
+         call self%set_budgets()
+         do try = 1, MAXTRY
+            call fraggle_generate_pos_vec(self)
+            call fraggle_generate_rot_vec(self)
+            call fraggle_generate_vel_vec(self,lfailure_local)
             if (.not.lfailure_local) exit
-            write(message,*) "Fraggle failed due to a floating point exception: ", fpe_flag
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-
          end do
+
+         call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+         dEtot = self%Etot(2) - self%Etot(1)
+         dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
+
+         lfailure_local = (dEtot > -impactors%Qloss) 
+         if (lfailure_local) then
+            write(message, *) "dEtot: ",dEtot, "dEtot/Qloss", dEtot / impactors%Qloss
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to energy gain: " // &
+                                                      trim(adjustl(message)))
+         end if
+
+         lfailure_local = ((abs(dLmag) / (.mag.self%Ltot(:,1))) > FRAGGLE_LTOL) 
+         if (lfailure_local) then
+            write(message,*) dLmag / (.mag.self%Ltot(:,1))
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
+                                                      trim(adjustl(message)))
+         end if
+
+         ! Check if any of the usual floating point exceptions happened, and fail the try if so
+         call ieee_get_flag(ieee_usual, fpe_flag)
+         lfailure_local = any(fpe_flag) 
+         write(message,*) "Fraggle failed due to a floating point exception: ", fpe_flag
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+
          write(message,*) try
          if (lfailure_local) then
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation failed after " // &
@@ -530,7 +524,7 @@ contains
                fragments%vc(:,i) = fragments%vmag(i) * .unit.fragments%vc(:,i)
             end do
             do concurrent(i = istart:nfrag, fragments%ke_spin_frag(i) > ke_per_dof)
-               rotmag = fragments%rotmag(i)**2 - 2*ke_per_dof/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
+               rotmag = fragments%rotmag(i)**2 - ke_per_dof/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
                rotmag = max(rotmag, 0.0_DP)
                fragments%rotmag(i) = sqrt(rotmag)
                fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
