@@ -453,12 +453,13 @@ contains
 
          fragments%rmag(:) = .mag. fragments%rc(:,:)
          fragments%vmag(:) = .mag. fragments%vc(:,:)
+         fragments%rotmag(:) = .mag. fragments%rot(:,:)
   
          ! Define the radial, normal, and tangential unit vectors for each individual fragment
          fragments%r_unit(:,:) = .unit. fragments%rc(:,:) 
          fragments%v_unit(:,:) = .unit. fragments%vc(:,:) 
          fragments%n_unit(:,:) = .unit. (fragments%rc(:,:) .cross. fragments%vc(:,:))
-         fragments%t_unit(:,:) = .unit. (fragments%r_unit(:,:) .cross. fragments%r_unit(:,:))
+         fragments%t_unit(:,:) = .unit. (fragments%r_unit(:,:) .cross. fragments%n_unit(:,:))
 
       end associate
 

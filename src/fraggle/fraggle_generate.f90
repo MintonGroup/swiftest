@@ -430,14 +430,14 @@ contains
       ! Arguments
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      integer(I4B) :: i, j, loop, istart, n, ndof
+      integer(I4B) :: i, j, loop, istart, iend, n, ndof
       logical :: lhitandrun, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
       integer(I4B), parameter :: MAXLOOP = 100
-      real(DP), parameter :: TOL = 1e-4
+      real(DP), parameter :: TOL = 1e-1
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
@@ -501,13 +501,14 @@ contains
             call collider%set_coordinate_system()
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
-            if (abs(ke_residual) <= fragments%ke_budget * TOL) exit
+            if (ke_residual > 0.0_DP) exit
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
             ke_tot = 0.0_DP
             ke_per_dof = -ke_residual
             do i = 1, 2*(nfrag - istart + 1)
-               n = count(ke_avail(istart:nfrag) > -ke_residual/i) + count(fragments%ke_spin_frag(istart:nfrag) > -ke_residual/i)
+               n = count(ke_avail(istart:nfrag) > -ke_residual/i) 
+               if (ke_residual < 0.0_DP) n = n + count(fragments%ke_spin_frag(istart:nfrag) > -ke_residual/i)
                if (abs(n * ke_per_dof) > ke_tot) then
                   ke_per_dof = -ke_residual/i
                   ke_tot = n * ke_per_dof
@@ -528,7 +529,7 @@ contains
                rotmag = fragments%rotmag(i)**2 - 2*ke_per_dof/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
                rotmag = max(rotmag, 0.0_DP)
                fragments%rotmag(i) = sqrt(rotmag)
-               fragments%rot(:,i) = rotmag * .unit.fragments%rot(:,i)
+               fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
             end do
 
             ! Check for any residual angular momentum, and if there is any, put it into spin
