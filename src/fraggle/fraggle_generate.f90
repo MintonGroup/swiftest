@@ -100,7 +100,7 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision 
       logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
        ! Internals
-      integer(I4B)                         :: try
+      integer(I4B)                         :: try, subtry
       real(DP)                             :: dEtot, dLmag
       integer(I4B), parameter              :: MAXTRY = 100
       logical                              :: lk_plpl, lfailure_local
@@ -153,9 +153,13 @@ contains
             ! Compute the "before" energy/momentum and the budgets
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
             call self%set_budgets()
-            call fraggle_generate_pos_vec(self)
-            call fraggle_generate_rot_vec(self)
-            call fraggle_generate_vel_vec(self)
+            do subtry = 1, MAXTRY
+               call fraggle_generate_pos_vec(self)
+               call fraggle_generate_rot_vec(self)
+               call fraggle_generate_vel_vec(self,lfailure_local)
+               if (.not.lfailure_local) exit
+            end do
+
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             dEtot = self%Etot(2) - self%Etot(1)
             dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
@@ -309,7 +313,7 @@ contains
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP) :: rdistance
-      real(DP), parameter :: fail_scale = 1.01_DP ! Scale factor to apply to cloud radius and distance if cloud generation fails
+      real(DP), parameter :: fail_scale = 1.001_DP ! Scale factor to apply to cloud radius and distance if cloud generation fails
 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
@@ -319,7 +323,7 @@ contains
          ! We will treat the first two fragments of the list as special cases. 
          ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
          rdistance = .mag. (impactors%rc(:,2) - impactors%rc(:,1)) - sum(fragments%radius(1:2))
-         rdistance = min(0.5_DP*rdistance, 1e-6_DP*impactors%radius(2))
+         rdistance = 0.5_DP*rdistance
 
          fragment_cloud_radius(:) = impactors%radius(:)
 
@@ -420,7 +424,7 @@ contains
    end subroutine fraggle_generate_rot_vec
 
 
-   module subroutine fraggle_generate_vel_vec(collider)
+   module subroutine fraggle_generate_vel_vec(collider, lfailure)
       !! Author:  David A. Minton
       !!
       !! Generates an initial velocity distribution. For disruptions, the velocity magnitude is set to be
@@ -429,15 +433,15 @@ contains
       implicit none
       ! Arguments
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
+      logical,                  intent(out)   :: lfailure !! Did the velocity computation fail?
       ! Internals
-      integer(I4B) :: i, j, loop, istart, iend, n, ndof
+      integer(I4B) :: i, j, loop, istart, n, ndof
       logical :: lhitandrun, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
       integer(I4B), parameter :: MAXLOOP = 100
-      real(DP), parameter :: TOL = 1e-1
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
@@ -541,6 +545,7 @@ contains
                fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / (nfrag*fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i))
             end do
          end do
+         lfailure = ke_residual < 0.0_DP
 
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)

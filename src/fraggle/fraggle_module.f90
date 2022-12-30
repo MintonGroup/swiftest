@@ -82,9 +82,10 @@ module fraggle
          class(collision_fraggle), intent(inout) :: collider !! Collision system object
       end subroutine fraggle_generate_rot_vec 
 
-      module subroutine fraggle_generate_vel_vec(collider)
+      module subroutine fraggle_generate_vel_vec(collider, lfailure)
          implicit none
          class(collision_fraggle), intent(inout) :: collider !! Collision system object
+         logical,                  intent(out)   :: lfailure !! Did the velocity computation fail?
       end subroutine fraggle_generate_vel_vec
 
       module subroutine fraggle_util_setup_fragments_system(self, nfrag)
