@@ -231,39 +231,40 @@ contains
       integer(I4B) :: i
 
       associate(collider => self, fragments => self%fragments, impactors => self%impactors)
-         ! Set scale factors
-         collider%Escale = 0.5_DP * ( impactors%mass(1) * dot_product(impactors%vb(:,1), impactors%vb(:,1)) &
-                                            + impactors%mass(2) * dot_product(impactors%vb(:,2), impactors%vb(:,2)))
-         collider%dscale = sum(impactors%radius(:))
+         ! Set primary scale factors (mass, length, and time) based on the impactor properties at the time of collision
          collider%mscale = fragments%mtot 
-         collider%vscale = sqrt(collider%Escale / collider%mscale) 
-         collider%tscale = collider%dscale / collider%vscale 
+         collider%dscale = sum(impactors%radius(:))
+         collider%tscale = collider%dscale / (.mag.(impactors%vc(:,2) - impactors%vc(:,1)))
+
+         ! Set secondary scale factors for convenience
+         collider%vscale = collider%dscale / collider%tscale
+         collider%Escale = collider%mscale * collider%vscale**2
          collider%Lscale = collider%mscale * collider%dscale * collider%vscale
 
          ! Scale all dimensioned quantities of impactors and fragments
-         impactors%rbcom(:)    = impactors%rbcom(:)    / collider%dscale
-         impactors%vbcom(:)    = impactors%vbcom(:)    / collider%vscale
-         impactors%rbimp(:)    = impactors%rbimp(:)    / collider%dscale
-         impactors%bounce_unit(:)    = impactors%bounce_unit(:)    / collider%vscale
-         impactors%rb(:,:)     = impactors%rb(:,:)     / collider%dscale
-         impactors%vb(:,:)     = impactors%vb(:,:)     / collider%vscale
-         impactors%rc(:,:)     = impactors%rc(:,:)     / collider%dscale
-         impactors%vc(:,:)     = impactors%vc(:,:)     / collider%vscale
-         impactors%mass(:)     = impactors%mass(:)     / collider%mscale
-         impactors%Gmass(:)    = impactors%Gmass(:)   / 0.5_DP * collider%vscale**2 * collider%dscale 
-         impactors%Mcb         = impactors%Mcb         / collider%mscale
-         impactors%radius(:)   = impactors%radius(:)   / collider%dscale
-         impactors%Lspin(:,:)  = impactors%Lspin(:,:)  / collider%Lscale
-         impactors%Lorbit(:,:) = impactors%Lorbit(:,:) / collider%Lscale
+         impactors%rbcom(:)       = impactors%rbcom(:)       / collider%dscale
+         impactors%vbcom(:)       = impactors%vbcom(:)       / collider%vscale
+         impactors%rbimp(:)       = impactors%rbimp(:)       / collider%dscale
+         impactors%rb(:,:)        = impactors%rb(:,:)        / collider%dscale
+         impactors%vb(:,:)        = impactors%vb(:,:)        / collider%vscale
+         impactors%rc(:,:)        = impactors%rc(:,:)        / collider%dscale
+         impactors%vc(:,:)        = impactors%vc(:,:)        / collider%vscale
+         impactors%mass(:)        = impactors%mass(:)        / collider%mscale
+         impactors%Gmass(:)       = impactors%Gmass(:)       / (collider%dscale**3/collider%tscale**2)
+         impactors%Mcb            = impactors%Mcb            / collider%mscale
+         impactors%radius(:)      = impactors%radius(:)      / collider%dscale
+         impactors%Lspin(:,:)     = impactors%Lspin(:,:)     / collider%Lscale
+         impactors%Lorbit(:,:)    = impactors%Lorbit(:,:)    / collider%Lscale
+         impactors%bounce_unit(:) = impactors%bounce_unit(:) / collider%vscale
 
          do i = 1, 2
-            impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
+            impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
 
-         fragments%mtot    = fragments%mtot   / collider%mscale
-         fragments%mass    = fragments%mass   / collider%mscale
-         fragments%radius  = fragments%radius / collider%dscale
-         impactors%Qloss   = impactors%Qloss  / collider%Escale
+         fragments%mtot   = fragments%mtot   / collider%mscale
+         fragments%mass   = fragments%mass   / collider%mscale
+         fragments%radius = fragments%radius / collider%dscale
+         impactors%Qloss  = impactors%Qloss  / collider%Escale
       end associate
 
       return
@@ -288,13 +289,13 @@ contains
       associate(collider => self, fragments => self%fragments, impactors => self%impactors)
 
          ! Restore scale factors
-         impactors%rbcom(:) = impactors%rbcom(:) * collider%dscale
-         impactors%vbcom(:) = impactors%vbcom(:) * collider%vscale
-         impactors%rbimp(:) = impactors%rbimp(:) * collider%dscale
+         impactors%rbcom(:)       = impactors%rbcom(:) * collider%dscale
+         impactors%vbcom(:)       = impactors%vbcom(:) * collider%vscale
+         impactors%rbimp(:)       = impactors%rbimp(:) * collider%dscale
          impactors%bounce_unit(:) = impactors%bounce_unit(:) * collider%vscale
-   
+
          impactors%mass      = impactors%mass      * collider%mscale
-         impactors%Gmass(:)  = impactors%Gmass(:)  * 0.5_DP * collider%vscale**2 * collider%dscale 
+         impactors%Gmass(:)  = impactors%Gmass(:)  * (collider%dscale**3/collider%tscale**2)
          impactors%Mcb       = impactors%Mcb       * collider%mscale
          impactors%mass_dist = impactors%mass_dist * collider%mscale
          impactors%radius    = impactors%radius    * collider%dscale
@@ -305,7 +306,7 @@ contains
          impactors%Lspin     = impactors%Lspin     * collider%Lscale
          impactors%Lorbit    = impactors%Lorbit    * collider%Lscale
          do i = 1, 2
-            impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3, i))
+            impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
    
          fragments%mtot   = fragments%mtot   * collider%mscale

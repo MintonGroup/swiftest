@@ -152,8 +152,7 @@ class AnimatedScatter(object):
         self.fig, self.ax = self.setup_plot()
 
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=1, frames=range(0,nframes,nskip),
-                                           blit=True)
+        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=1, frames=range(0,nframes,nskip), blit=True)
         self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
         print(f"Finished writing {animfile}")
 

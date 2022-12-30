@@ -133,7 +133,7 @@ contains
          end if
          call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
-         !call self%set_natural_scale()
+         call self%set_natural_scale()
 
          call fragments%reset()
 
@@ -157,11 +157,10 @@ contains
             call fraggle_generate_rot_vec(self)
             call fraggle_generate_vel_vec(self)
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-            exit
             dEtot = self%Etot(2) - self%Etot(1)
             dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
 
-            lfailure_local = (dEtot > FRAGGLE_ETOL) 
+            lfailure_local = (dEtot > -impactors%Qloss) 
             if (lfailure_local) then
                write(message, *) "dEtot: ",dEtot, "dEtot/Qloss", dEtot / impactors%Qloss
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to energy gain: " // &
@@ -195,7 +194,7 @@ contains
                                                        trim(adjustl(message)) // " tries")
          end if
 
-         !call self%set_original_scale()
+         call self%set_original_scale()
 
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
@@ -234,7 +233,7 @@ contains
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
-         associate(impactors => self%impactors)
+         associate(impactors => self%impactors, nfrag => self%fragments%nbody)
             message = "Hit and run between"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
@@ -310,7 +309,7 @@ contains
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP) :: rdistance
-      real(DP), parameter :: fail_scale = 1.1_DP ! Scale factor to apply to cloud radius and distance if cloud generation fails
+      real(DP), parameter :: fail_scale = 1.01_DP ! Scale factor to apply to cloud radius and distance if cloud generation fails
 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
@@ -431,13 +430,14 @@ contains
       ! Arguments
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      integer(I4B) :: i,j, loop, istart
+      integer(I4B) :: i, j, loop, istart, n, ndof
       logical :: lhitandrun, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual
-      real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof
+      real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
       integer(I4B), parameter :: MAXLOOP = 100
+      real(DP), parameter :: TOL = 1e-4
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
@@ -501,30 +501,44 @@ contains
             call collider%set_coordinate_system()
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
+            if (abs(ke_residual) <= fragments%ke_budget * TOL) exit
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
-            ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%vmag(:)
-            ke_per_dof = -ke_residual/((nfrag - istart + 1))
-            do concurrent(i = istart:nfrag, ke_avail(i) > ke_per_dof)
-               fragments%vmag(i) = sqrt(2 * (fragments%ke_orbit_frag(i) - ke_per_dof)/fragments%mass(i))
-               fragments%vc(:,i) = fragments%vmag(i) * fragments%v_unit(:,i)
+            ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
+            ke_tot = 0.0_DP
+            ke_per_dof = -ke_residual
+            do i = 1, 2*(nfrag - istart + 1)
+               n = count(ke_avail(istart:nfrag) > -ke_residual/i) + count(fragments%ke_spin_frag(istart:nfrag) > -ke_residual/i)
+               if (abs(n * ke_per_dof) > ke_tot) then
+                  ke_per_dof = -ke_residual/i
+                  ke_tot = n * ke_per_dof
+                  ndof = i
+                  if (abs(ke_tot) > abs(ke_residual)) then
+                     ke_tot = -ke_residual
+                     ke_per_dof = ke_tot/n
+                     exit
+                  end if
+               end if
             end do
-            ! do concurrent(i = istart:nfrag, fragments%ke_spin_frag(i) > ke_per_dof)
-            !    fragments%rotmag(i) = sqrt(2 * (fragments%ke_spin_frag(i) - ke_per_dof)/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)))
-            !    fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
-            ! end do
-            call fragments%get_kinetic_energy()
-            ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
+            do concurrent(i = istart:nfrag, ke_avail(i) > ke_per_dof)
+               vmag = max(fragments%vmag(i)**2 - 2*ke_per_dof/fragments%mass(i),vesc**2)
+               fragments%vmag(i) = sqrt(vmag)
+               fragments%vc(:,i) = fragments%vmag(i) * .unit.fragments%vc(:,i)
+            end do
+            do concurrent(i = istart:nfrag, fragments%ke_spin_frag(i) > ke_per_dof)
+               rotmag = fragments%rotmag(i)**2 - 2*ke_per_dof/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
+               rotmag = max(rotmag, 0.0_DP)
+               fragments%rotmag(i) = sqrt(rotmag)
+               fragments%rot(:,i) = rotmag * .unit.fragments%rot(:,i)
+            end do
 
-            ! Check for any residual angular momentum, and if there is any, put it into spin of the biggest body
+            ! Check for any residual angular momentum, and if there is any, put it into spin
             call collider%set_coordinate_system()
             call fragments%get_angular_momentum()
             Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:)) 
-            rotmag = .mag. fragments%rot(:,1)
-            fragments%rot(:,1) = fragments%rot(:,1) + Lresidual(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(:,1))
-            rotmag = .mag. fragments%rot(:,1)
-
-            if (ke_residual >= 0.0_DP) exit
-
+            do concurrent(i = 1:nfrag)
+               rotmag = .mag. fragments%rot(:,i)
+               fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / (nfrag*fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i))
+            end do
          end do
 
          do concurrent(i = 1:nfrag)
