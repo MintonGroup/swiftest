@@ -12,7 +12,7 @@ submodule(fraggle) s_fraggle_generate
    use symba
 
    real(DP), parameter     :: FRAGGLE_LTOL = 1e-4_DP !10 * epsilon(1.0_DP)
-   real(DP), parameter     :: FRAGGLE_ETOL = 1e-1_DP
+   real(DP), parameter     :: FRAGGLE_ETOL = 1e-12_DP
 
 contains
 
@@ -54,11 +54,7 @@ contains
                call util_exit(FAILURE)
             end select
             call self%set_mass_dist(param) 
-            call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-            call self%set_budgets()
-            call impactors%set_coordinate_system()
             call self%disrupt(nbody_system, param, t)
-            call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
 
             dpe = self%pe(2) - self%pe(1) 
             nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
@@ -106,7 +102,7 @@ contains
        ! Internals
       integer(I4B)                         :: try
       real(DP)                             :: dEtot, dLmag
-      integer(I4B), parameter              :: MAXTRY = 10
+      integer(I4B), parameter              :: MAXTRY = 100
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
@@ -156,23 +152,22 @@ contains
             ! Use the disruption collision model to generate initial conditions
             ! Compute the "before" energy/momentum and the budgets
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
+            call self%set_budgets()
             call fraggle_generate_pos_vec(self)
             call fraggle_generate_rot_vec(self)
             call fraggle_generate_vel_vec(self)
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
 
-            call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
             dEtot = self%Etot(2) - self%Etot(1)
             dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
 
-            lfailure_local = (dEtot > 0.0_DP) 
+            lfailure_local = (dEtot > FRAGGLE_ETOL) 
             if (lfailure_local) then
                write(message, *) "dEtot: ",dEtot, "dEtot/Qloss", dEtot / impactors%Qloss
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to energy gain: " // &
                                                         trim(adjustl(message)))
-               !cycle
+               cycle
                lfailure_local = .false.
-               exit
             end if
 
             lfailure_local = ((abs(dLmag) / (.mag.self%Ltot(:,1))) > FRAGGLE_LTOL) 
@@ -294,8 +289,6 @@ contains
 
       return
    end subroutine fraggle_generate_hitandrun
-
-
 
 
    module subroutine fraggle_generate_pos_vec(collider)
@@ -510,10 +503,14 @@ contains
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%vmag(:)
-            ke_per_dof = -ke_residual/(nfrag - istart + 1)
+            ke_per_dof = -ke_residual/(2 * (nfrag - istart + 1))
             do concurrent(i = istart:nfrag, ke_avail(i) > ke_per_dof)
                fragments%vmag(i) = sqrt(2 * (fragments%ke_orbit_frag(i) - ke_per_dof)/fragments%mass(i))
                fragments%vc(:,i) = fragments%vmag(i) * fragments%v_unit(:,i)
+            end do
+            do concurrent(i = istart:nfrag, fragments%ke_spin_frag(i) > ke_per_dof)
+               fragments%rotmag(i) = sqrt(2 * (fragments%ke_spin_frag(i) - ke_per_dof)/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)))
+               fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
             end do
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)

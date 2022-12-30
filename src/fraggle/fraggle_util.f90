@@ -250,6 +250,7 @@ contains
          impactors%rc(:,:)     = impactors%rc(:,:)     / collider%dscale
          impactors%vc(:,:)     = impactors%vc(:,:)     / collider%vscale
          impactors%mass(:)     = impactors%mass(:)     / collider%mscale
+         impactors%Gmass(:)    = impactors%Gmass(:)   / 0.5_DP * collider%vscale**2 * collider%dscale 
          impactors%Mcb         = impactors%Mcb         / collider%mscale
          impactors%radius(:)   = impactors%radius(:)   / collider%dscale
          impactors%Lspin(:,:)  = impactors%Lspin(:,:)  / collider%Lscale
@@ -293,6 +294,7 @@ contains
          impactors%bounce_unit(:) = impactors%bounce_unit(:) * collider%vscale
    
          impactors%mass      = impactors%mass      * collider%mscale
+         impactors%Gmass(:)  = impactors%Gmass(:)  * 0.5_DP * collider%vscale**2 * collider%dscale 
          impactors%Mcb       = impactors%Mcb       * collider%mscale
          impactors%mass_dist = impactors%mass_dist * collider%mscale
          impactors%radius    = impactors%radius    * collider%dscale
