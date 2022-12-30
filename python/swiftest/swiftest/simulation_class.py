@@ -224,7 +224,7 @@ class Simulation:
         general_relativity : bool, default True
             Include the post-Newtonian correction in acceleration calculations.
             Parameter input file equivalent: `GR`
-        collision_model: {"MERGE","BOUNCE","SIMPLE","FRAGGLE"}, default "MERGE"
+        collision_model: {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
             This is used to set the collision/fragmentation model. [TODO: DESCRIBE THESE] 
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
             Parameter input file equivalent: `COLLISION_MODEL`
@@ -1015,7 +1015,7 @@ class Simulation:
     def set_feature(self,
                     close_encounter_check: bool | None = None,
                     general_relativity: bool | None = None,
-                    collision_model: Literal["MERGE","BOUNCE","SIMPLE","FRAGGLE"] | None = None,
+                    collision_model: Literal["MERGE","BOUNCE","FRAGGLE"] | None = None,
                     minimum_fragment_gmass: float | None = None,
                     minimum_fragment_mass: float | None = None,
                     rotation: bool | None = None,
@@ -1048,7 +1048,7 @@ class Simulation:
             *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, optional
             Include the post-Newtonian correction in acceleration calculations.
-        collision_model: {"MERGE","BOUNCE","SIMPLE","FRAGGLE"}, default "MERGE"
+        collision_model: {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
             This is used to set the collision/fragmentation model. [TODO: DESCRIBE THESE] 
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
             Parameter input file equivalent: `COLLISION_MODEL`
@@ -1129,7 +1129,7 @@ class Simulation:
             self.param["GR"] = general_relativity
             update_list.append("general_relativity")
 
-        fragmentation_models = ["FRAGGLE", "SIMPLE"]
+        fragmentation_models = ["FRAGGLE"]
         if collision_model is not None:
             collision_model = collision_model.upper()
             fragmentation = collision_model in fragmentation_models

@@ -86,7 +86,7 @@ rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
 
 body_Gmass = {"disruption_headon"        : [1e-7, 1e-10],
              "disruption_off_axis"       : [1e-7, 1e-10],
-             "supercatastrophic_headon": [1e-7, 1e-8],
+             "supercatastrophic_headon"  : [1e-7, 1e-8],
              "supercatastrophic_off_axis": [1e-7, 1e-8],
              "hitandrun_disrupt"         : [1e-7, 7e-10],
              "hitandrun_pure"            : [1e-7, 7e-10]
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         # Set fragmentation parameters
         minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
         gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
-        sim.set_parameter(collision_model="disruption", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
+        sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
         sim.run(dt=1e-3, tstop=1.0e-3, istep_out=1, dump_cadence=0)
 
         print("Generating animation")

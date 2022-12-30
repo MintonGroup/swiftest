@@ -123,7 +123,6 @@ module collision
       procedure :: reset                => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
       procedure :: get_angular_momentum => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
       procedure :: get_kinetic_energy   => collision_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
-      procedure :: set_spins            => collision_util_set_spins            !! Calcualtes the spins of all fragments from the angular momentum budget and residual
       final     ::                         collision_final_fragments           !! Finalizer deallocates all allocatables
    end type collision_fragments
 
@@ -168,13 +167,7 @@ module collision
       final     ::             collision_final_bounce    !! Finalizer will deallocate all allocatables
    end type collision_bounce
 
-   type, extends(collision_basic) :: collision_disruption
-   contains 
-      procedure :: generate      => collision_generate_disruption    !! A simple disruption models that does not constrain energy loss in collisions
-      procedure :: disrupt       => collision_generate_disrupt   !! Disrupt the colliders into the fragments
-      procedure :: set_mass_dist => collision_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
-      final     ::                  collision_final_simple       !! Finalizer will deallocate all allocatables
-   end type collision_disruption
+
 
 
    !! NetCDF dimension and variable names for the enounter save object
@@ -236,14 +229,6 @@ module collision
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_bounce 
 
-      module subroutine collision_generate_disrupt(self, nbody_system, param, t, lfailure)
-         implicit none
-         class(collision_disruption), intent(inout) :: self
-         class(base_nbody_system),           intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(base_parameters),             intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
-         real(DP),                           intent(in)    :: t            !! Time of collision
-         logical, optional,                  intent(out)   :: lfailure     !! Disruption failed
-      end subroutine collision_generate_disrupt
 
       module subroutine collision_generate_hitandrun(self, nbody_system, param, t) 
          implicit none
@@ -261,28 +246,6 @@ module collision
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_merge
 
-      module subroutine collision_generate_disruption(self, nbody_system, param, t)
-         implicit none
-         class(collision_disruption),  intent(inout) :: self         !! Simple fragment nbody_system object 
-         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-         real(DP),                 intent(in)    :: t            !! The time of the collision
-      end subroutine collision_generate_disruption
-
-      module subroutine collision_generate_disruption_pos_vec(collider)
-         implicit none
-         class(collision_disruption), intent(inout) :: collider !! Collision system object
-      end subroutine collision_generate_disruption_pos_vec 
-
-      module subroutine collision_generate_disruption_rot_vec(collider)
-         implicit none
-         class(collision_basic), intent(inout) :: collider !! Collision system object
-      end subroutine collision_generate_disruption_rot_vec 
-
-      module subroutine collision_generate_disruption_vel_vec(collider)
-         implicit none
-         class(collision_disruption), intent(inout) :: collider !! Collision system object
-      end subroutine collision_generate_disruption_vel_vec
     
       module subroutine collision_io_collider_message(pl, collidx, collider_message)
          implicit none
@@ -446,17 +409,6 @@ module collision
          class(collision_impactors), intent(inout) :: self      !! collisional system
       end subroutine collision_util_set_coordinate_impactors
 
-      module subroutine collision_util_set_mass_dist(self, param)
-         implicit none
-         class(collision_disruption), intent(inout) :: self  !! Simple disruption collision object
-         class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
-      end subroutine collision_util_set_mass_dist
-
-      module subroutine collision_util_set_spins(self)
-         implicit none
-         class(collision_fragments(*)), intent(inout)  :: self !! Collision fragment system object
-      end subroutine collision_util_set_spins
-
       module subroutine collision_util_setup_collider(self, nbody_system)
          implicit none
          class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
@@ -534,7 +486,6 @@ module collision
          return
       end subroutine collision_final_fragments
 
-
       subroutine collision_final_impactors(self)
          !! author: David A. Minton
          !!
@@ -548,7 +499,6 @@ module collision
          return
       end subroutine collision_final_impactors
 
-
       subroutine collision_final_netcdf_parameters(self)
         !! author: David A. Minton
         !!
@@ -561,7 +511,6 @@ module collision
 
         return
       end subroutine collision_final_netcdf_parameters
-
 
       subroutine collision_final_plpl(self)
          !! author: David A. Minton
@@ -589,7 +538,6 @@ module collision
          return
       end subroutine collision_final_pltp
 
-
       subroutine collision_final_snapshot(self)
          !! author: David A. Minton
          !!
@@ -602,7 +550,6 @@ module collision
 
          return
       end subroutine collision_final_snapshot
-
 
       subroutine collision_final_storage(self)
          !! author: David A. Minton
@@ -621,7 +568,6 @@ module collision
          return
       end subroutine collision_final_storage
 
-
       subroutine collision_final_bounce(self)
          !! author: David A. Minton
          !!
@@ -636,22 +582,6 @@ module collision
 
          return
       end subroutine collision_final_bounce
-
-
-      subroutine collision_final_simple(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(collision_disruption),  intent(inout) :: self !!  Collision system object
-
-         call self%reset()
-         if (allocated(self%impactors)) deallocate(self%impactors)
-         if (allocated(self%fragments)) deallocate(self%fragments)
-
-         return
-      end subroutine collision_final_simple
 
 end module collision
 
