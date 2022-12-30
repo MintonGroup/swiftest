@@ -133,7 +133,7 @@ contains
          end if
          call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
-         call self%set_natural_scale()
+         !call self%set_natural_scale()
 
          call fragments%reset()
 
@@ -157,7 +157,7 @@ contains
             call fraggle_generate_rot_vec(self)
             call fraggle_generate_vel_vec(self)
             call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-
+            exit
             dEtot = self%Etot(2) - self%Etot(1)
             dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
 
@@ -195,7 +195,7 @@ contains
                                                        trim(adjustl(message)) // " tries")
          end if
 
-         call self%set_original_scale()
+         !call self%set_original_scale()
 
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
@@ -503,15 +503,15 @@ contains
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%vmag(:)
-            ke_per_dof = -ke_residual/(2 * (nfrag - istart + 1))
+            ke_per_dof = -ke_residual/((nfrag - istart + 1))
             do concurrent(i = istart:nfrag, ke_avail(i) > ke_per_dof)
                fragments%vmag(i) = sqrt(2 * (fragments%ke_orbit_frag(i) - ke_per_dof)/fragments%mass(i))
                fragments%vc(:,i) = fragments%vmag(i) * fragments%v_unit(:,i)
             end do
-            do concurrent(i = istart:nfrag, fragments%ke_spin_frag(i) > ke_per_dof)
-               fragments%rotmag(i) = sqrt(2 * (fragments%ke_spin_frag(i) - ke_per_dof)/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)))
-               fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
-            end do
+            ! do concurrent(i = istart:nfrag, fragments%ke_spin_frag(i) > ke_per_dof)
+            !    fragments%rotmag(i) = sqrt(2 * (fragments%ke_spin_frag(i) - ke_per_dof)/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i)))
+            !    fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
+            ! end do
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
 
