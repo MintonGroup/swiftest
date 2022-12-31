@@ -180,10 +180,7 @@ contains
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(impactors => self%impactors)
-            message = "Hit and run between"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
-
             if (impactors%mass(1) > impactors%mass(2)) then
                jtarg = 1
                jproj = 2
@@ -202,6 +199,8 @@ contains
             end if
             lpure = .false.
             call self%set_mass_dist(param)
+            message = "Hit and run between"
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
 
             ! Generate the position and velocity distributions of the fragments
             call self%disrupt(nbody_system, param, t, lpure)

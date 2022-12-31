@@ -68,7 +68,7 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                "hitandrun_disrupt"         : [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([-1.45, -6.28,     0.0])],
                "hitandrun_pure"            : [np.array([ 0.00,  6.28,     0.0]),
-                                              np.array([-1.50, -6.28,     0.0])]
+                                              np.array([-1.51, -6.28,     0.0])]
                }
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
