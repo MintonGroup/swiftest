@@ -11,9 +11,6 @@ submodule(fraggle) s_fraggle_generate
    use swiftest
    use symba
 
-   real(DP), parameter     :: FRAGGLE_LTOL = 1e-4_DP !10 * epsilon(1.0_DP)
-   real(DP), parameter     :: FRAGGLE_ETOL = 1e-12_DP
-
 contains
 
    module subroutine fraggle_generate(self, nbody_system, param, t)
@@ -36,8 +33,6 @@ contains
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(impactors => self%impactors, status => self%status)
-
-
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
                call self%hitandrun(nbody_system, param, t)
@@ -99,11 +94,9 @@ contains
       logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
        ! Internals
       integer(I4B)                         :: try
-      real(DP)                             :: dEtot, dLmag
       integer(I4B), parameter              :: MAXTRY = 100
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
-      logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
       character(len=STRMAX)                :: message
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
