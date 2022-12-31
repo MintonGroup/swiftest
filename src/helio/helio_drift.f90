@@ -7,11 +7,11 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (helio_classes) s_helio_drift
+submodule (helio) s_helio_drift
    use swiftest
 contains
 
-   module subroutine helio_drift_body(self, system, param, dt)
+   module subroutine helio_drift_body(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through bodies and call Danby drift routine on democratic heliocentric coordinates
@@ -21,7 +21,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
       ! Internals
@@ -35,8 +35,8 @@ contains
          allocate(iflag(n))
          iflag(:) = 0
          allocate(mu(n))
-         mu(:) = system%cb%Gmass
-         call drift_all(mu, self%rh, self%vb, self%nbody, param, dt, self%lmask, iflag)
+         mu(:) = nbody_system%cb%Gmass
+         call swiftest_drift_all(mu, self%rh, self%vb, self%nbody, param, dt, self%lmask, iflag)
          if (any(iflag(1:n) /= 0)) then
             where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
             do i = 1, n
@@ -50,35 +50,35 @@ contains
    end subroutine helio_drift_body
 
 
-   module subroutine helio_drift_pl(self, system, param, dt)
+   module subroutine helio_drift_pl(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Wrapper function used to call the body drift routine from a helio_pl structure
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Helio massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
 
-      call helio_drift_body(self, system, param, dt)
+      call helio_drift_body(self, nbody_system, param, dt)
 
       return
    end subroutine helio_drift_pl
 
 
-   module subroutine helio_drift_tp(self, system, param, dt)
+   module subroutine helio_drift_tp(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Wrapper function used to call the body drift routine from a helio_pl structure
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self   !! Helio massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
 
-      call helio_drift_body(self, system, param, dt)
+      call helio_drift_body(self, nbody_system, param, dt)
 
       return
    end subroutine helio_drift_tp

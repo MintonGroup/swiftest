@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(helio_classes) s_helio_gr
+submodule(helio) s_helio_gr
    use swiftest
 contains
 
@@ -26,7 +26,7 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         call gr_kick_getacch(pl%mu, pl%rh, pl%lmask, npl, param%inv_c2, pl%agr) 
+         call swiftest_gr_kick_getacch(pl%mu, pl%rh, pl%lmask, npl, param%inv_c2, pl%agr) 
          pl%ah(:,1:npl) = pl%ah(:,1:npl) + pl%agr(:,1:npl)
       end associate
 
@@ -49,7 +49,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
-         call gr_kick_getacch(tp%mu, tp%rh, tp%lmask, ntp, param%inv_c2, tp%agr) 
+         call swiftest_gr_kick_getacch(tp%mu, tp%rh, tp%lmask, ntp, param%inv_c2, tp%agr) 
          tp%ah(:,1:ntp) = tp%ah(:,1:ntp) + tp%agr(:,1:ntp)
       end associate
 
@@ -57,7 +57,7 @@ contains
    end subroutine helio_gr_kick_getacch_tp
    
 
-   pure module subroutine helio_gr_p4_pl(self, system, param, dt)
+   pure module subroutine helio_gr_p4_pl(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to massive bodies due to p**4 term in the post-Newtonian correction
@@ -67,7 +67,7 @@ contains
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
@@ -77,7 +77,7 @@ contains
 
       associate(pl => self, npl => self%nbody)
          do concurrent(i = 1:npl, pl%lmask(i))
-            call gr_p4_pos_kick(param, pl%rh(:, i), pl%vb(:, i), dt)
+            call swiftest_gr_p4_pos_kick(param, pl%rh(:, i), pl%vb(:, i), dt)
          end do
       end associate
  
@@ -85,7 +85,7 @@ contains
    end subroutine helio_gr_p4_pl
 
 
-   pure module subroutine helio_gr_p4_tp(self, system, param, dt)
+   pure module subroutine helio_gr_p4_tp(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Position kick to test particles due to p**4 term in the post-Newtonian correction
@@ -95,7 +95,7 @@ contains
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
@@ -105,7 +105,7 @@ contains
 
       associate(tp => self, ntp => self%nbody)
          do concurrent(i = 1:ntp, tp%lmask(i))
-            call gr_p4_pos_kick(param, tp%rh(:, i), tp%vb(:, i), dt)
+            call swiftest_gr_p4_pos_kick(param, tp%rh(:, i), tp%vb(:, i), dt)
          end do
       end associate
  

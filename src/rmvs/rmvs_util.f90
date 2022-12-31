@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(rmvs_classes) s_rmvs_util
+submodule(rmvs) s_rmvs_util
    use swiftest
 contains
 
@@ -25,15 +25,15 @@ contains
       select type(source)
       class is (rmvs_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%nenc, source%nenc, nold, nsrc, lsource_mask)
-            call util_append(self%tpenc1P, source%tpenc1P, nold, nsrc, lsource_mask)
-            call util_append(self%plind, source%plind, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%nenc, source%nenc, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%tpenc1P, source%tpenc1P, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%plind, source%plind, nold, nsrc, lsource_mask)
 
             ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
             ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
-            !call util_append(self%outer, source%outer, nold, nsrc, lsource_mask)
-            !call util_append(self%inner, source%inner, nold, nsrc, lsource_mask)
-            !call util_append(self%planetocentric, source%planetocentric, nold, nsrc, lsource_mask)
+            !call swiftest_util_append(self%outer, source%outer, nold, nsrc, lsource_mask)
+            !call swiftest_util_append(self%inner, source%inner, nold, nsrc, lsource_mask)
+            !call swiftest_util_append(self%planetocentric, source%planetocentric, nold, nsrc, lsource_mask)
 
             call whm_util_append_pl(self, source, lsource_mask)
          end associate
@@ -60,11 +60,11 @@ contains
       select type(source)
       class is (rmvs_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%lperi, source%lperi, nold, nsrc, lsource_mask)
-            call util_append(self%plperP, source%plperP, nold, nsrc, lsource_mask)
-            call util_append(self%plencP, source%plencP, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%lperi, source%lperi, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%plperP, source%plperP, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%plencP, source%plencP, nold, nsrc, lsource_mask)
 
-            call util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
+            call swiftest_util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
@@ -96,7 +96,7 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Argument
-      class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated system variables object
+      class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated nbody_system variables object
       
       if (allocated(self%x)) deallocate(self%x)
       if (allocated(self%v)) deallocate(self%v)
@@ -140,7 +140,7 @@ contains
       if (allocated(self%rheliocentric)) deallocate(self%rheliocentric)
       call self%cb_heliocentric%dealloc()
 
-      call util_dealloc_tp(self)
+      call swiftest_util_dealloc_tp(self)
 
       return
    end subroutine rmvs_util_dealloc_tp
@@ -161,15 +161,15 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_pl)
-            call util_fill(keeps%nenc, inserts%nenc, lfill_list)
-            call util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
-            call util_fill(keeps%plind, inserts%plind, lfill_list)
+            call swiftest_util_fill(keeps%nenc, inserts%nenc, lfill_list)
+            call swiftest_util_fill(keeps%tpenc1P, inserts%tpenc1P, lfill_list)
+            call swiftest_util_fill(keeps%plind, inserts%plind, lfill_list)
 
             ! The following are not implemented as RMVS doesn't make use of fill operations on pl type
             ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
-            !call util_fill(keeps%outer, inserts%outer, lfill_list)
-            !call util_fill(keeps%inner, inserts%inner, lfill_list)
-            !call util_fill(keeps%planetocentric, inserts%planetocentric, lfill_list)
+            !call swiftest_util_fill(keeps%outer, inserts%outer, lfill_list)
+            !call swiftest_util_fill(keeps%inner, inserts%inner, lfill_list)
+            !call swiftest_util_fill(keeps%planetocentric, inserts%planetocentric, lfill_list)
 
             call whm_util_fill_pl(keeps, inserts, lfill_list)
          class default
@@ -181,78 +181,7 @@ contains
       return
    end subroutine rmvs_util_fill_pl
 
-
-   module subroutine rmvs_util_final_cb(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the RMVS massive body object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(rmvs_cb),  intent(inout) :: self !! RMVS central body object
-
-      call self%dealloc()
-
-      return
-   end subroutine rmvs_util_final_cb
-
-
-   module subroutine rmvs_util_final_interp(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the RMVS nbody system object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(rmvs_interp),  intent(inout) :: self !! RMVS nbody system object
-
-      call self%dealloc()
-
-      return
-   end subroutine rmvs_util_final_interp
-
-
-   module subroutine rmvs_util_final_pl(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the RMVS massive body object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
-
-      call self%dealloc()
-
-      return
-   end subroutine rmvs_util_final_pl
-
-
-   module subroutine rmvs_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the RMVS nbody system object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
-
-      if (allocated(self%vbeg)) deallocate(self%vbeg)
-      call whm_util_final_system(self%whm_nbody_system)
-
-      return
-   end subroutine rmvs_util_final_system
-
-
-   module subroutine rmvs_util_final_tp(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the RMVS test particle object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
-
-      call self%dealloc()
-
-      return
-   end subroutine rmvs_util_final_tp
-
-
+   
    module subroutine rmvs_util_fill_tp(self, inserts, lfill_list)
       !! author: David A. Minton
       !!
@@ -268,11 +197,11 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (rmvs_tp)
-            call util_fill(keeps%lperi, inserts%lperi, lfill_list)
-            call util_fill(keeps%plperP, inserts%plperP, lfill_list)
-            call util_fill(keeps%plencP, inserts%plencP, lfill_list)
+            call swiftest_util_fill(keeps%lperi, inserts%lperi, lfill_list)
+            call swiftest_util_fill(keeps%plperP, inserts%plperP, lfill_list)
+            call swiftest_util_fill(keeps%plencP, inserts%plencP, lfill_list)
             
-            call util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_tp or its descendents!"
             call util_exit(FAILURE)
@@ -292,15 +221,15 @@ contains
       class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
       integer(I4B),   intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%nenc, nnew)
-      call util_resize(self%tpenc1P, nnew)
-      call util_resize(self%plind, nnew)
+      call swiftest_util_resize(self%nenc, nnew)
+      call swiftest_util_resize(self%tpenc1P, nnew)
+      call swiftest_util_resize(self%plind, nnew)
 
       ! The following are not implemented as RMVS doesn't make use of resize operations on pl type
       ! So they are here as a placeholder in case someone wants to extend the RMVS class for some reason
-      !call util_resize(self%outer, nnew)
-      !call util_resize(self%inner, nnew)
-      !call util_resize(self%planetocentric, nnew)
+      !call swiftest_util_resize(self%outer, nnew)
+      !call swiftest_util_resize(self%inner, nnew)
+      !call swiftest_util_resize(self%planetocentric, nnew)
 
       call whm_util_resize_pl(self, nnew)
       return
@@ -316,15 +245,168 @@ contains
       class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
       integer(I4B),   intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%lperi, nnew)
-      call util_resize(self%plperP, nnew)
-      call util_resize(self%plencP, nnew)
-      call util_resize(self%rheliocentric, nnew)
+      call swiftest_util_resize(self%lperi, nnew)
+      call swiftest_util_resize(self%plperP, nnew)
+      call swiftest_util_resize(self%plencP, nnew)
+      call swiftest_util_resize(self%rheliocentric, nnew)
 
-      call util_resize_tp(self, nnew)
+      call swiftest_util_resize_tp(self, nnew)
 
       return
    end subroutine rmvs_util_resize_tp
+
+
+   module subroutine rmvs_util_setup_pl(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate RMVS test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_util_setup.f90
+      implicit none
+      ! Arguments
+      class(rmvs_pl),            intent(inout) :: self  !! RMVS test particle object
+      integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
+
+      !> Call allocation method for parent class
+      associate(pl => self)
+         call whm_util_setup_pl(pl, n, param) 
+         if (n == 0) return
+
+         allocate(pl%outer(0:NTENC))
+         allocate(pl%inner(0:NTPHENC))
+         if (.not.pl%lplanetocentric) then
+            allocate(pl%nenc(n))
+            pl%nenc(:) = 0
+            ! Set up inner and outer planet interpolation vector storage containers
+            do i = 0, NTENC
+               allocate(pl%outer(i)%x(NDIM, n))
+               allocate(pl%outer(i)%v(NDIM, n))
+               pl%outer(i)%x(:,:) = 0.0_DP
+               pl%outer(i)%v(:,:) = 0.0_DP
+            end do
+            do i = 0, NTPHENC
+               allocate(pl%inner(i)%x(NDIM, n))
+               allocate(pl%inner(i)%v(NDIM, n))
+               allocate(pl%inner(i)%aobl(NDIM, n))
+               pl%inner(i)%x(:,:) = 0.0_DP
+               pl%inner(i)%v(:,:) = 0.0_DP
+               pl%inner(i)%aobl(:,:) = 0.0_DP
+            end do
+            ! if (param%ltides) then
+            !    do i = 0, NTPHENC
+            !       allocate(pl%inner(i)%atide(NDIM, n))
+            !       pl%inner(i)%atide(:,:) = 0.0_DP
+            !    end do
+            ! end if
+         end if
+      end associate
+      return
+   end subroutine rmvs_util_setup_pl 
+
+
+   module subroutine rmvs_util_setup_initialize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize an RMVS nbody system from files and sets up the planetocentric structures.
+      !! 
+      !! We currently rearrange the pl order to keep it consistent with the way Swifter does it 
+      !! In Swifter, the central body occupies the first position in the pl list, and during
+      !! encounters, the encountering planet is skipped in loops. In Swiftest, we instantiate an
+      !! RMVS nbody system object attached to each pl to store planetocentric versions of the nbody_system
+      !! to use during close encounters. 
+      implicit none
+      ! Arguments
+      class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      integer(I4B) :: i, j
+
+      ! Call parent method
+      call whm_util_setup_initialize_system(self, param)
+
+      ! Set up the pl-tp planetocentric encounter structures for pl and cb. The planetocentric tp structures are 
+      ! generated as necessary during close encounter steps.
+      select type(pl => self%pl)
+      class is(rmvs_pl)
+         select type(cb => self%cb)
+         class is (rmvs_cb)
+            select type (tp => self%tp)
+            class is (rmvs_tp)
+               tp%cb_heliocentric = cb
+               pl%lplanetocentric = .false.
+               tp%lplanetocentric = .false.
+               cb%lplanetocentric = .false.
+               associate(npl => pl%nbody)
+                  allocate(pl%planetocentric(npl))
+                  pl%planetocentric(:)%lplanetocentric = .true.
+                  do i = 1, npl
+                     allocate(pl%planetocentric(i)%cb, source=cb)
+                     allocate(rmvs_pl :: pl%planetocentric(i)%pl)
+                     select type(cbenci => pl%planetocentric(i)%cb)
+                     class is (rmvs_cb)
+                        select type(plenci => pl%planetocentric(i)%pl)
+                        class is (rmvs_pl)
+                           cbenci%lplanetocentric = .true.
+                           plenci%lplanetocentric = .true.
+                           call plenci%setup(npl, param)
+                           plenci%status(:) = ACTIVE
+                           plenci%lmask(:) = .true.
+                           ! plind stores the heliocentric index value of a planetocentric planet
+                           ! e.g. Consider an encounter with planet 3.  
+                           ! Then the following will be the values of plind:
+                           ! pl%planetocentric(3)%pl%plind(1) = 0 (central body - never used)  
+                           ! pl%planetocentric(3)%pl%plind(2) = 1  
+                           ! pl%planetocentric(3)%pl%plind(3) = 2
+                           ! pl%planetocentric(3)%pl%plind(4) = 4
+                           ! pl%planetocentric(3)%pl%plind(5) = 5
+                           ! etc.  
+                           allocate(plenci%plind(npl))
+                           plenci%plind(1:npl) = [(j,j=1,npl)] 
+                           plenci%plind(2:npl) = pack(plenci%plind(1:npl), plenci%plind(1:npl) /= i)
+                           plenci%plind(1)     = 0
+                           plenci%Gmass(1)     = cb%Gmass
+                           plenci%Gmass(2:npl) = pl%Gmass(plenci%plind(2:npl))
+                           cbenci%Gmass        = pl%Gmass(i)
+                        end select
+                     end select
+                  end do
+               end associate
+            end select
+         end select
+      end select
+      return
+   end subroutine rmvs_util_setup_initialize_system
+
+
+   module subroutine rmvs_util_setup_tp(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate WHM test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_util_setup.f90
+      implicit none
+      ! Arguments
+      class(rmvs_tp),             intent(inout) :: self  !! RMVS test particle object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
+      !> Call allocation method for parent class. 
+      call self%whm_tp%setup(n, param) 
+      if (n <= 0) return
+
+      allocate(self%lperi(n))
+      allocate(self%plperP(n))
+      allocate(self%plencP(n))
+
+      if (self%lplanetocentric) allocate(self%rheliocentric(NDIM, n))
+
+      self%lperi(:)  = .false.
+
+      return
+   end subroutine rmvs_util_setup_tp
 
 
    module subroutine rmvs_util_sort_pl(self, sortby, ascending)
@@ -352,11 +434,11 @@ contains
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("nenc")
-            call util_sort(direction * pl%nenc(1:npl), ind)
+            call swiftest_util_sort(direction * pl%nenc(1:npl), ind)
          case("tpenc1P")
-            call util_sort(direction * pl%tpenc1P(1:npl), ind)
+            call swiftest_util_sort(direction * pl%tpenc1P(1:npl), ind)
          case("plind")
-            call util_sort(direction * pl%plind(1:npl), ind)
+            call swiftest_util_sort(direction * pl%plind(1:npl), ind)
          case("outer", "inner", "planetocentric", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -396,13 +478,13 @@ contains
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("plperP")
-            call util_sort(direction * tp%plperP(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%plperP(1:ntp), ind)
          case("plencP")
-            call util_sort(direction * tp%plencP(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%plencP(1:ntp), ind)
          case("lperi", "cb_heliocentric", "rheliocentric", "index", "ipleP", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class (*NOTE whm_tp does not need its own sort method, so we go straight to the swiftest_tp method)
-            call util_sort_tp(tp, sortby, ascending)
+            call swiftest_util_sort_tp(tp, sortby, ascending)
             return
          end select
 
@@ -425,10 +507,10 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         call util_sort_rearrange(pl%nenc, ind, npl)
-         call util_sort_rearrange(pl%tpenc1P, ind, npl)
-         call util_sort_rearrange(pl%plind, ind, npl)
-         call util_sort_rearrange_pl(pl,ind)
+         call swiftest_util_sort_rearrange(pl%nenc, ind, npl)
+         call swiftest_util_sort_rearrange(pl%tpenc1P, ind, npl)
+         call swiftest_util_sort_rearrange(pl%plind, ind, npl)
+         call swiftest_util_sort_rearrange_pl(pl,ind)
       end associate
 
       return
@@ -448,11 +530,11 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody)
-         call util_sort_rearrange(tp%lperi, ind, ntp)
-         call util_sort_rearrange(tp%plperP, ind, ntp)
-         call util_sort_rearrange(tp%plencP, ind, ntp)
-         call util_sort_rearrange(tp%rheliocentric, ind, ntp)
-         call util_sort_rearrange_tp(tp,ind)
+         call swiftest_util_sort_rearrange(tp%lperi, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%plperP, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%plencP, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%rheliocentric, ind, ntp)
+         call swiftest_util_sort_rearrange_tp(tp,ind)
       end associate
 
       return
@@ -475,9 +557,9 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (rmvs_pl)
-            call util_spill(keeps%nenc, discards%nenc, lspill_list, ldestructive)
-            call util_spill(keeps%tpenc1P, discards%tpenc1P, lspill_list, ldestructive)
-            call util_spill(keeps%plind, discards%plind, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%nenc, discards%nenc, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%tpenc1P, discards%tpenc1P, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%plind, discards%plind, lspill_list, ldestructive)
 
             call whm_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
@@ -506,11 +588,11 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (rmvs_tp)
-            call util_spill(keeps%lperi, discards%lperi, lspill_list, ldestructive)
-            call util_spill(keeps%plperP, discards%plperP, lspill_list, ldestructive)
-            call util_spill(keeps%plencP, discards%plencP, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%lperi, discards%lperi, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%plperP, discards%plperP, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%plencP, discards%plencP, lspill_list, ldestructive)
 
-            call util_spill_tp(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class rmvs_tp or its descendents!"
             call util_exit(FAILURE)

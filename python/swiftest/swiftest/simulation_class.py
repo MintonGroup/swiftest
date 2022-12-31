@@ -224,16 +224,18 @@ class Simulation:
         general_relativity : bool, default True
             Include the post-Newtonian correction in acceleration calculations.
             Parameter input file equivalent: `GR`
-        fragmentation : bool, default True
-            If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
+        collision_model: {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
+            This is used to set the collision/fragmentation model. [TODO: DESCRIBE THESE] 
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
-            Parameter input file equivalent: `FRAGMENTATION`
+            Parameter input file equivalent: `COLLISION_MODEL`
         minimum_fragment_gmass : float, optional
-            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
+            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated if a 
+            fragmentation model is enabled. Ignored otherwise.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent: None
         minimum_fragment_mass : float, optional
-            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated.
+            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated. if a 
+            fragmentation model is enabled. Ignored otherwise
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent: `MIN_GMFRAG`
         rotation : bool, default False
@@ -777,7 +779,7 @@ class Simulation:
             "mtiny": None,
             "close_encounter_check": True,
             "general_relativity": True,
-            "fragmentation": False,
+            "collision_model": "MERGE",
             "minimum_fragment_mass": None,
             "minimum_fragment_gmass": 0.0,
             "rotation": False,
@@ -1013,7 +1015,7 @@ class Simulation:
     def set_feature(self,
                     close_encounter_check: bool | None = None,
                     general_relativity: bool | None = None,
-                    fragmentation: bool | None = None,
+                    collision_model: Literal["MERGE","BOUNCE","FRAGGLE"] | None = None,
                     minimum_fragment_gmass: float | None = None,
                     minimum_fragment_mass: float | None = None,
                     rotation: bool | None = None,
@@ -1046,15 +1048,20 @@ class Simulation:
             *WARNING*: Enabling this feature could lead to very large files.
         general_relativity : bool, optional
             Include the post-Newtonian correction in acceleration calculations.
-        fragmentation : bool, optional
-            If set to True, this turns on the Fraggle fragment generation code and `rotation` must also be True.
+        collision_model: {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
+            This is used to set the collision/fragmentation model. [TODO: DESCRIBE THESE] 
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+            Parameter input file equivalent: `COLLISION_MODEL`
         minimum_fragment_gmass : float, optional
-            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated.
+            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated if a 
+            fragmentation model is enabled. Ignored otherwise.
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent: None
         minimum_fragment_mass : float, optional
-            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated.
+            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated. if a 
+            fragmentation model is enabled. Ignored otherwise
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent: `MIN_GMFRAG`
         rotation : bool, optional
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -1122,13 +1129,16 @@ class Simulation:
             self.param["GR"] = general_relativity
             update_list.append("general_relativity")
 
-        if fragmentation is not None:
+        fragmentation_models = ["FRAGGLE"]
+        if collision_model is not None:
+            collision_model = collision_model.upper()
+            fragmentation = collision_model in fragmentation_models
             if self.codename != "Swiftest" and self.integrator != "symba" and fragmentation:
                 warnings.warn("Fragmentation is only available on Swiftest SyMBA.",stacklevel=2)
-                self.param['FRAGMENTATION'] = False
+                self.param['COLLISION_MODEL'] = "MERGE"
             else:
-                self.param['FRAGMENTATION'] = fragmentation
-                update_list.append("fragmentation")
+                self.param['COLLISION_MODEL'] = collision_model
+                update_list.append("collision_model")
                 if fragmentation:
                     if "MIN_GMFRAG" not in self.param and minimum_fragment_mass is None and minimum_fragment_gmass is None:
                         warnings.warn("Minimum fragment mass is not set. Set it using minimum_fragment_gmass or minimum_fragment_mass",stacklevel=2)
@@ -1151,7 +1161,7 @@ class Simulation:
             self.param['ROTATION'] = rotation
             update_list.append("rotation")
 
-        if self.param['FRAGMENTATION'] and not self.param['ROTATION']:
+        if self.param['COLLISION_MODEL'] == "FRAGGLE" and not self.param['ROTATION']:
             self.param['ROTATION'] = True
             update_list.append("rotation")
 
@@ -1230,7 +1240,7 @@ class Simulation:
         ----------
         arg_list: str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
-            ["close_encounter_check", "general_relativity", "fragmentation", "rotation", "compute_conservation_values"]
+            ["close_encounter_check", "general_relativity", "collision_model", "rotation", "compute_conservation_values"]
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
@@ -1245,7 +1255,7 @@ class Simulation:
         """
 
         valid_var = {"close_encounter_check": "CHK_CLOSE",
-                     "fragmentation": "FRAGMENTATION",
+                     "collision_model": "COLLISION_MODEL",
                      "encounter_save": "ENCOUNTER_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
                      "rotation": "ROTATION",
@@ -2765,6 +2775,9 @@ class Simulation:
         # Remove any overlapping time values
         tgood,tid = np.unique(self.encounters.time,return_index=True)
         self.encounters = self.encounters.isel(time=tid)
+        # Remove any NaN values
+        tgood=self.encounters.time.where(~np.isnan(self.encounters.time),drop=True)
+        self.encounters = self.encounters.sel(time=tgood)
 
         return
 

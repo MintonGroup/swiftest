@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(rmvs_classes) s_rmvs_step
+submodule(rmvs) s_rmvs_step
    use swiftest
 contains
 
@@ -26,7 +26,7 @@ contains
       real(DP),                   intent(in)    :: dt    !! Current stepsiz
       ! Internals
       logical :: lencounter, lfirstpl
-      real(DP), dimension(:,:), allocatable :: rbeg, xend, vbeg
+      real(DP), dimension(:,:), allocatable :: rbeg, rend, vbeg
 
       if (self%tp%nbody == 0) then
          call whm_step_system(self, param, t, dt)
@@ -37,32 +37,32 @@ contains
             class is (rmvs_pl)
                select type(tp => self%tp)
                class is (rmvs_tp)
-                  associate(system => self, ntp => tp%nbody, npl => pl%nbody)
+                  associate(nbody_system => self, ntp => tp%nbody, npl => pl%nbody)
                      allocate(rbeg, source=pl%rh)
                      allocate(vbeg, source=pl%vh)
                      call pl%set_beg_end(rbeg = rbeg, vbeg = vbeg)
                      ! ****** Check for close encounters ***** !
                      call pl%set_renc(RHSCALE)
-                     lencounter = tp%encounter_check(param, system, dt)
+                     lencounter = tp%encounter_check(param, nbody_system, dt)
                      if (lencounter) then
                         lfirstpl = pl%lfirst
                         pl%outer(0)%x(:, 1:npl) = rbeg(:, 1:npl)
                         pl%outer(0)%v(:, 1:npl) = vbeg(:, 1:npl)
-                        call pl%step(system, param, t, dt) 
+                        call pl%step(nbody_system, param, t, dt) 
                         pl%outer(NTENC)%x(:, 1:npl) = pl%rh(:, 1:npl)
                         pl%outer(NTENC)%v(:, 1:npl) = pl%vh(:, 1:npl)
                         call rmvs_interp_out(cb, pl, dt)
-                        call rmvs_step_out(cb, pl, tp, system, param, t, dt) 
+                        call rmvs_step_out(cb, pl, tp, nbody_system, param, t, dt) 
                         tp%lmask(1:ntp) = .not. tp%lmask(1:ntp)
-                        call pl%set_beg_end(rbeg = rbeg, xend = xend)
+                        call pl%set_beg_end(rbeg = rbeg, rend = rend)
                         tp%lfirst = .true.
-                        call tp%step(system, param, t, dt)
+                        call tp%step(nbody_system, param, t, dt)
                         tp%lmask(1:ntp) = .true.
                         pl%lfirst = lfirstpl
                         tp%lfirst = .true.
-                        ! if (param%ltides) call system%step_spin(param, t, dt)
+                        ! if (param%ltides) call nbody_system%step_spin(param, t, dt)
                      else
-                        call whm_step_system(system, param, t, dt)
+                        call whm_step_system(nbody_system, param, t, dt)
                      end if
                   end associate
                end select
@@ -106,7 +106,7 @@ contains
          xtmp(:,1:npl) = pl%outer(0)%x(:, 1:npl)
          vtmp(:,1:npl) = pl%outer(0)%v(:, 1:npl)
          do outer_index = 1, NTENC - 1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                         dto(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -128,7 +128,7 @@ contains
          xtmp(:, 1:npl) = pl%outer(NTENC)%x(:, 1:npl)
          vtmp(:, 1:npl) = pl%outer(NTENC)%v(:, 1:npl)
          do outer_index = NTENC - 1, 1, -1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                        -dto(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -153,7 +153,7 @@ contains
    end subroutine rmvs_interp_out   
 
 
-   subroutine rmvs_step_out(cb, pl, tp, system, param, t, dt)
+   subroutine rmvs_step_out(cb, pl, tp, nbody_system, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step ACTIVE test particles ahead in the outer encounter region, setting up and calling the inner region
@@ -166,7 +166,7 @@ contains
       class(rmvs_cb),             intent(inout) :: cb     !! RMVS central body object
       class(rmvs_pl),             intent(inout) :: pl     !! RMVS massive body object
       class(rmvs_tp),             intent(inout) :: tp     !! RMVS test particle object
-      class(rmvs_nbody_system),   intent(inout) :: system !! RMVS nbody system object
+      class(rmvs_nbody_system),   intent(inout) :: nbody_system !! RMVS nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t      !! Current simulation time
       real(DP),                   intent(in)    :: dt     !! Current stepsiz
@@ -187,19 +187,19 @@ contains
             outer_time = t + (outer_index - 1) * dto
             call pl%set_beg_end(rbeg = pl%outer(outer_index - 1)%x(:, 1:npl), &
                                 vbeg = pl%outer(outer_index - 1)%v(:, 1:npl), &
-                                xend = pl%outer(outer_index    )%x(:, 1:npl))
-            lencounter = tp%encounter_check(param, system, dto) 
+                                rend = pl%outer(outer_index    )%x(:, 1:npl))
+            lencounter = tp%encounter_check(param, nbody_system, dto) 
             if (lencounter) then
                ! Interpolate planets in inner encounter region
-               call rmvs_interp_in(cb, pl, system, param, dto, outer_index) 
+               call rmvs_interp_in(cb, pl, nbody_system, param, dto, outer_index) 
                ! Step through the inner region
                call rmvs_step_in(cb, pl, tp, param, outer_time, dto)
                lfirsttp = tp%lfirst
                tp%lfirst = .true.
-               call tp%step(system, param, outer_time, dto)
+               call tp%step(nbody_system, param, outer_time, dto)
                tp%lfirst = lfirsttp
             else
-               call tp%step(system, param, outer_time, dto)
+               call tp%step(nbody_system, param, outer_time, dto)
             end if
             do j = 1, npl
                if (pl%nenc(j) == 0) cycle
@@ -215,7 +215,7 @@ contains
    end subroutine rmvs_step_out
 
 
-   subroutine rmvs_interp_in(cb, pl, system, param, dt, outer_index)
+   subroutine rmvs_interp_in(cb, pl, nbody_system, param, dt, outer_index)
       !! author: David A. Minton
       !!
       !! Interpolate planet positions between two Keplerian orbits in inner encounter regio
@@ -227,7 +227,7 @@ contains
       ! Arguments
       class(rmvs_cb),             intent(inout) :: cb          !! RMVS cenral body object
       class(rmvs_pl),             intent(inout) :: pl          !! RMVS massive body object
-      class(rmvs_nbody_system),   intent(inout) :: system      !! RMVS nbody system object
+      class(rmvs_nbody_system),   intent(inout) :: nbody_system      !! RMVS nbody system object
       class(swiftest_parameters), intent(in)    :: param       !! Swiftest parameters file
       real(DP),                   intent(in)    :: dt          !! Step size
       integer(I4B),               intent(in)    :: outer_index !! Outer substep number within current set
@@ -238,7 +238,7 @@ contains
       real(DP),     dimension(:),   allocatable :: GMcb, dti
       integer(I4B), dimension(:),   allocatable :: iflag
 
-      associate (npl => system%pl%nbody)
+      associate (npl => nbody_system%pl%nbody)
          dntphenc = real(NTPHENC, kind=DP)
 
          ! Set the endpoints of the inner region from the outer region values in the current outer step index
@@ -263,17 +263,17 @@ contains
             pl%rh(:, 1:npl) = xtmp(:, 1:npl) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
          end if
          if (param%loblatecb) then
-            call pl%accel_obl(system)
+            call pl%accel_obl(nbody_system)
             pl%inner(0)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) ! Save the oblateness acceleration on the planet for this substep
          end if
          ! TODO: Implement tides
          ! if (param%ltides) then
-         !    call pl%accel_tides(system)
+         !    call pl%accel_tides(nbody_system)
          !    pl%inner(0)%atide(:, 1:npl) = pl%atide(:, 1:npl) ! Save the oblateness acceleration on the planet for this substep
          ! end if
 
          do inner_index = 1, NTPHENC - 1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                         dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -297,7 +297,7 @@ contains
          vtmp(:, 1:npl) = pl%inner(NTPHENC)%v(:, 1:npl)
 
          do inner_index = NTPHENC - 1, 1, -1
-            call drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
+            call swiftest_drift_one(GMcb(1:npl), xtmp(1,1:npl), xtmp(2,1:npl), xtmp(3,1:npl), &
                                         vtmp(1,1:npl), vtmp(2,1:npl), vtmp(3,1:npl), &
                                         -dti(1:npl), iflag(1:npl))
             if (any(iflag(1:npl) /= 0)) then
@@ -318,24 +318,24 @@ contains
 
             if (param%loblatecb) then
                pl%rh(:,1:npl) = pl%inner(inner_index)%x(:, 1:npl)
-               call pl%accel_obl(system)
+               call pl%accel_obl(nbody_system)
                pl%inner(inner_index)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
             end if
             ! TODO: Implement tides
             ! if (param%ltides) then 
-            !    call pl%accel_tides(system)
+            !    call pl%accel_tides(nbody_system)
             !    pl%inner(inner_index)%atide(:, 1:npl) = pl%atide(:, 1:npl)  
             ! end if
          end do
          if (param%loblatecb) then
             ! Calculate the final value of oblateness accelerations at the final inner substep
             pl%rh(:, 1:npl) = pl%inner(NTPHENC)%x(:, 1:npl)
-            call pl%accel_obl(system)
+            call pl%accel_obl(nbody_system)
             pl%inner(NTPHENC)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
          end if
          ! TODO: Implement tides
          ! if (param%ltides) then
-         !    call pl%accel_tides(system)
+         !    call pl%accel_tides(nbody_system)
          !    pl%inner(NTPHENC)%atide(:, 1:npl) = pl%atide(:, 1:npl) 
          ! end if
          ! Put the planet positions and accelerations back into place 
@@ -390,7 +390,7 @@ contains
                            do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
                               plenci%rh(:, 1:npl) = plenci%inner(inner_index - 1)%x(:, 1:npl)
                               call plenci%set_beg_end(rbeg = plenci%inner(inner_index - 1)%x, &
-                                                      xend = plenci%inner(inner_index)%x)
+                                                      rend = plenci%inner(inner_index)%x)
 
                               if (param%loblatecb) then
                                  cbenci%aoblbeg = cbenci%inner(inner_index - 1)%aobl(:, 1)
@@ -557,7 +557,7 @@ contains
                   if (tp%isperi(i) == -1) then
                      if (vdotr >= 0.0_DP) then
                         tp%isperi(i) = 0
-                        call orbel_xv2aqt(mu, xpc(1,i), xpc(2,i), xpc(3,i), vpc(1,i), vpc(2,i), vpc(3,i), &
+                        call swiftest_orbel_xv2aqt(mu, xpc(1,i), xpc(2,i), xpc(3,i), vpc(1,i), vpc(2,i), vpc(3,i), &
                                           a, peri, capm, tperi)
                         r2 = dot_product(xpc(:, i), xpc(:, i))
                         if ((abs(tperi) > FACQDT * dt) .or. (r2 > rhill2)) peri = sqrt(r2)

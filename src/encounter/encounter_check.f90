@@ -7,19 +7,18 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (encounter_classes) s_encounter_check
+submodule (encounter) s_encounter_check
    use swiftest
 contains
 
-   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, &
-                                              nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
       !!
       implicit none
       ! Arguments
-      class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+      class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
       integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: x      !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: v      !! Velocity vectors of massive bodies
@@ -30,62 +29,61 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      type(interaction_timer), save :: itimer
+      !type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
       logical, save :: skipit = .false. ! This will be used to ensure that the sort & sweep subroutine gets called at least once before timing it so that the extent array is nearly sorted when it is timed
       integer(I8B) :: nplpl = 0_I8B
 
-      if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
-         nplpl = (npl * (npl - 1) / 2) 
-         if (nplpl > 0) then
-            if (lfirst) then  
-               write(itimer%loopname, *) "encounter_check_all_plpl"
-               write(itimer%looptype, *) "ENCOUNTER_PLPL"
-               lfirst = .false.
-               itimer%step_counter = INTERACTION_TIMER_CADENCE
-            else 
-               if (itimer%check(param, nplpl)) call itimer%time_this_loop(param, nplpl)
-            end if
-         else
-            param%lencounter_sas_plpl = .false.
-         end if
-      end if
+      ! if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
+      !    nplpl = (npl * (npl - 1) / 2) 
+      !    if (nplpl > 0) then
+      !       if (lfirst) then  
+      !          write(itimer%loopname, *) "encounter_check_all_plpl"
+      !          write(itimer%looptype, *) "ENCOUNTER_PLPL"
+      !          lfirst = .false.
+      !          itimer%step_counter = INTERACTION_TIMER_CADENCE
+      !       else 
+      !          if (itimer%netcdf_io_check(param, nplpl)) call itimer%time_this_loop(param, nplpl)
+      !       end if
+      !    else
+      !       param%lencounter_sas_plpl = .false.
+      !    end if
+      ! end if
       
-      if (param%lencounter_sas_plpl) then
-         call encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
-      else
+      ! if (param%lencounter_sas_plpl) then
+      !    call encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
+      ! else
          call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
-      end if
+      ! end if
 
-      if (skipit) then
-         skipit = .false.
-      else
-         if (param%ladaptive_encounters_plpl .and. nplpl > 0) then 
-            if (itimer%is_on) then
-               call itimer%adapt(param, nplpl)
-               skipit = .true.
-            end if
-         end if
-      end if
+      ! if (skipit) then
+      !    skipit = .false.
+      ! else
+      !    if (param%ladaptive_encounters_plpl .and. nplpl > 0) then 
+      !       if (itimer%is_on) then
+      !          call itimer%adapt(param, nplpl)
+      !          skipit = .true.
+      !       end if
+      !    end if
+      ! end if
 
       return
    end subroutine encounter_check_all_plpl
 
 
-   module subroutine encounter_check_all_plplm(param, nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
-                                               nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_plplm(param, nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between fully interacting massive bodies partially interacting massive bodies. Choose between the standard triangular or the Sort & Sweep method based on user inputs
       !!
       implicit none
       ! Arguments
-      class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+      class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
       integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
       integer(I4B),                            intent(in)    :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
-      real(DP),     dimension(:,:),            intent(in)    :: xplm   !! Position vectors of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: rplm   !! Position vectors of fully interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: vplm   !! Velocity vectors of fully interacting massive bodies
-      real(DP),     dimension(:,:),            intent(in)    :: xplt   !! Position vectors of partially interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: rplt   !! Position vectors of partially interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: vplt   !! Velocity vectors of partially interacting massive bodies
       real(DP),     dimension(:),              intent(in)    :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)    :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
@@ -95,7 +93,7 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      type(interaction_timer), save :: itimer
+      ! type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
       logical, save :: skipit = .false.
       integer(I8B) :: nplplm = 0_I8B
@@ -104,54 +102,57 @@ contains
       integer(I4B), dimension(:), allocatable :: plmplt_index1 !! List of indices for body 1 in each encounter in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index2 !! List of indices for body 2 in each encounter in the plm-lt group
       integer(I8B)                            :: plmplt_nenc   !! Number of encounters of the plm-plt group
-      class(swiftest_parameters), allocatable :: tmp_param     !! Temporary parameter structure to turn off adaptive timer for the pl-pl phase if necessary
+      class(base_parameters), allocatable :: tmp_param     !! Temporary parameter structure to turn off adaptive timer for the pl-pl phase if necessary
       integer(I8B), dimension(:), allocatable :: ind
       integer(I4B), dimension(:), allocatable :: itmp
       logical, dimension(:), allocatable :: ltmp
 
-      if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
-         npl = nplm + nplt
-         nplplm = nplm * npl - nplm * (nplm + 1) / 2 
-         if (nplplm > 0) then
-            if (lfirst) then  
-               write(itimer%loopname, *) "encounter_check_all_plpl"
-               write(itimer%looptype, *) "ENCOUNTER_PLPL"
-               lfirst = .false.
-               itimer%step_counter = INTERACTION_TIMER_CADENCE
-            else 
-               if (itimer%check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
-            end if
-         else
-            param%lencounter_sas_plpl = .false.
-         end if
-      end if
+      ! if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
+      !    npl = nplm + nplt
+      !    nplplm = nplm * npl - nplm * (nplm + 1) / 2 
+      !    if (nplplm > 0) then
+      !       if (lfirst) then  
+      !          write(itimer%loopname, *) "encounter_check_all_plpl"
+      !          write(itimer%looptype, *) "ENCOUNTER_PLPL"
+      !          lfirst = .false.
+      !          itimer%step_counter = INTERACTION_TIMER_CADENCE
+      !       else 
+      !          if (itimer%netcdf_io_check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
+      !       end if
+      !    else
+      !       param%lencounter_sas_plpl = .false.
+      !    end if
+      ! end if
 
       allocate(tmp_param, source=param)
+      select type(tmp_param)
+      class is (swiftest_parameters)
+         tmp_param%system_history%nc%lfile_is_open = .false.
+      end select
 
       ! Turn off adaptive encounter checks for the pl-pl group
       tmp_param%ladaptive_encounters_plpl = .false.
 
       ! Start with the pl-pl group
-      call encounter_check_all_plpl(tmp_param, nplm, xplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
+      call encounter_check_all_plpl(tmp_param, nplm, rplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
-      if (param%lencounter_sas_plpl) then
-         call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
-                                                       plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
-      else
-         call encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
-                                                       plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
-      end if
+      ! if (param%lencounter_sas_plpl) then
+         ! call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
+          !                                             plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
+      ! else
+         call encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
+      ! end if
 
-      if (skipit) then
-         skipit = .false.
-      else
-         if (param%ladaptive_encounters_plpl .and. nplplm > 0) then 
-            if (itimer%is_on) then
-               call itimer%adapt(param, nplplm)
-               skipit = .true.
-            end if
-         end if
-      end if
+      ! if (skipit) then
+      !    skipit = .false.
+      ! else
+      !    if (param%ladaptive_encounters_plpl .and. nplplm > 0) then 
+      !       if (itimer%is_on) then
+      !          call itimer%adapt(param, nplplm)
+      !          skipit = .true.
+      !       end if
+      !    end if
+      ! end if
 
       if (plmplt_nenc > 0) then ! Consolidate the two lists
          allocate(itmp(nenc+plmplt_nenc))
@@ -168,10 +169,10 @@ contains
          call move_alloc(ltmp, lvdotr)
          nenc = nenc + plmplt_nenc
 
-         call util_sort(index1, ind)
-         call util_sort_rearrange(index1, ind, nenc)
-         call util_sort_rearrange(index2, ind, nenc)
-         call util_sort_rearrange(lvdotr, ind, nenc)
+         call swiftest_util_sort(index1, ind)
+         call swiftest_util_sort_rearrange(index1, ind, nenc)
+         call swiftest_util_sort_rearrange(index2, ind, nenc)
+         call swiftest_util_sort_rearrange(lvdotr, ind, nenc)
 
       end if
 
@@ -179,18 +180,17 @@ contains
    end subroutine encounter_check_all_plplm
 
 
-   module subroutine encounter_check_all_pltp(param, npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
-                                              nenc, index1, index2, lvdotr)
+   module subroutine encounter_check_all_pltp(param, npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. Choose between the standard triangular or the Sort & Sweep method based on user inputs
       !!
       implicit none
       ! Arguments
-      class(swiftest_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+      class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
       integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
       integer(I4B),                            intent(in)    :: ntp    !! Total number of test particles 
-      real(DP),     dimension(:,:),            intent(in)    :: xpl    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)    :: rpl    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)    :: xtp    !! Position vectors of test particlse
       real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of test particles
@@ -201,42 +201,42 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      type(interaction_timer), save :: itimer
+      ! type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
       logical, save :: lsecond = .false.
       integer(I8B) :: npltp = 0_I8B
 
-      if (param%ladaptive_encounters_pltp) then
-         npltp = npl * ntp
-         if (npltp > 0) then
-            if (lfirst) then  
-               write(itimer%loopname, *) "encounter_check_all_pltp"
-               write(itimer%looptype, *) "ENCOUNTER_PLTP"
-               lfirst = .false.
-               lsecond = .true.
-            else
-               if (lsecond) then ! This ensures that the encounter check methods are run at least once prior to timing. Sort and sweep improves on the second pass due to the bounding box extents needing to be nearly sorted 
-                  call itimer%time_this_loop(param, npltp)
-                  lsecond = .false.
-               else if (itimer%check(param, npltp)) then
-                  lsecond = .true.
-                  itimer%is_on = .false.
-               end if
-            end if
-         else
-            param%lencounter_sas_pltp = .false.
-         end if
-      end if
+      ! if (param%ladaptive_encounters_pltp) then
+      !    npltp = npl * ntp
+      !    if (npltp > 0) then
+      !       if (lfirst) then  
+      !          write(itimer%loopname, *) "encounter_check_all_pltp"
+      !          write(itimer%looptype, *) "ENCOUNTER_PLTP"
+      !          lfirst = .false.
+      !          lsecond = .true.
+      !       else
+      !          if (lsecond) then ! This ensures that the encounter check methods are run at least once prior to timing. Sort and sweep improves on the second pass due to the bounding box extents needing to be nearly sorted 
+      !             call itimer%time_this_loop(param, npltp)
+      !             lsecond = .false.
+      !          else if (itimer%netcdf_io_check(param, npltp)) then
+      !             lsecond = .true.
+      !             itimer%is_on = .false.
+      !          end if
+      !       end if
+      !    else
+      !       param%lencounter_sas_pltp = .false.
+      !    end if
+      ! end if
 
-      if (param%lencounter_sas_pltp) then
-         call encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
-      else
-         call encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
-      end if
+      ! if (param%lencounter_sas_pltp) then
+      !    call encounter_check_all_sort_and_sweep_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+      ! else
+         call encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
+      ! end if
 
-      if (.not.lfirst .and. param%ladaptive_encounters_pltp .and. npltp > 0) then 
-         if (itimer%is_on) call itimer%adapt(param, npltp)
-      end if
+      ! if (.not.lfirst .and. param%ladaptive_encounters_pltp .and. npltp > 0) then 
+      !    if (itimer%is_on) call itimer%adapt(param, npltp)
+      ! end if
 
       return
    end subroutine encounter_check_all_pltp
@@ -297,8 +297,7 @@ contains
    end subroutine encounter_check_all_sort_and_sweep_plpl
 
 
-   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
-                                                       nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -309,9 +308,9 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: nplm   !! Total number of fully interacting massive bodies 
       integer(I4B),                            intent(in)  :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
-      real(DP),     dimension(:,:),            intent(in)  :: xplm   !! Position vectors of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplm   !! Position vectors of fully interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplm   !! Velocity vectors of fully interacting massive bodies
-      real(DP),     dimension(:,:),            intent(in)  :: xplt   !! Position vectors of partially interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplt   !! Position vectors of partially interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplt   !! Velocity vectors of partially interacting massive bodies
       real(DP),     dimension(:),              intent(in)  :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)  :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
@@ -338,7 +337,7 @@ contains
       end if
 
       !$omp parallel do default(private) schedule(static) &
-      !$omp shared(xplm, xplt, vplm, vplt, rencm, renct, boundingbox) &
+      !$omp shared(rplm, rplt, vplm, vplt, rencm, renct, boundingbox) &
       !$omp firstprivate(dt, nplm, nplt, ntot)
       do dim = 1, SWEEPDIM
          where(vplm(dim,1:nplm) < 0.0_DP)
@@ -357,21 +356,20 @@ contains
             vpltshift_max(1:nplt) = 1
          end where
 
-         call boundingbox%aabb(dim)%sort(ntot, [xplm(dim,1:nplm) - rencm(1:nplm) + vplmshift_min(1:nplm) * vplm(dim,1:nplm) * dt, &
-                                                xplt(dim,1:nplt) - renct(1:nplt) + vpltshift_min(1:nplt) * vplt(dim,1:nplt) * dt, &
-                                                xplm(dim,1:nplm) + rencm(1:nplm) + vplmshift_max(1:nplm) * vplm(dim,1:nplm) * dt, &
-                                                xplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
+         call boundingbox%aabb(dim)%sort(ntot, [rplm(dim,1:nplm) - rencm(1:nplm) + vplmshift_min(1:nplm) * vplm(dim,1:nplm) * dt, &
+                                                rplt(dim,1:nplt) - renct(1:nplt) + vpltshift_min(1:nplt) * vplt(dim,1:nplt) * dt, &
+                                                rplm(dim,1:nplm) + rencm(1:nplm) + vplmshift_max(1:nplm) * vplm(dim,1:nplm) * dt, &
+                                                rplt(dim,1:nplt) + renct(1:nplt) + vpltshift_max(1:nplt) * vplt(dim,1:nplt) * dt])
       end do
       !$omp end parallel do
 
-      call boundingbox%sweep(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr) 
+      call boundingbox%sweep(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_sort_and_sweep_plplm
 
 
-   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, xpl, vpl, xtp, vtp, rencpl, dt, &
-                                                      nenc, index1, index2, lvdotr)
+   subroutine encounter_check_all_sort_and_sweep_pltp(npl, ntp, rpl, vpl, xtp, vtp, rencpl, dt, nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
       !! Check for encounters between massive bodies and test particles. 
@@ -382,7 +380,7 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
       integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-      real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rpl    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
@@ -413,7 +411,7 @@ contains
       renctp(:) = 0.0_DP
       
       !$omp parallel do default(private) schedule(static) &
-      !$omp shared(xpl, xtp, vpl, vtp, rencpl, renctp, boundingbox) &
+      !$omp shared(rpl, xtp, vpl, vtp, rencpl, renctp, boundingbox) &
       !$omp firstprivate(dt, npl, ntp, ntot)
       do dim = 1, SWEEPDIM
          where(vpl(dim,1:npl) < 0.0_DP)
@@ -432,14 +430,14 @@ contains
             vtpshift_max(1:ntp) = 1
          end where
 
-         call boundingbox%aabb(dim)%sort(ntot, [xpl(dim,1:npl) - rencpl(1:npl) + vplshift_min(1:npl) * vpl(dim,1:npl) * dt, &
+         call boundingbox%aabb(dim)%sort(ntot, [rpl(dim,1:npl) - rencpl(1:npl) + vplshift_min(1:npl) * vpl(dim,1:npl) * dt, &
                                                 xtp(dim,1:ntp) - renctp(1:ntp) + vtpshift_min(1:ntp) * vtp(dim,1:ntp) * dt, &
-                                                xpl(dim,1:npl) + rencpl(1:npl) + vplshift_max(1:npl) * vpl(dim,1:npl) * dt, &
+                                                rpl(dim,1:npl) + rencpl(1:npl) + vplshift_max(1:npl) * vpl(dim,1:npl) * dt, &
                                                 xtp(dim,1:ntp) + renctp(1:ntp) + vtpshift_max(1:ntp) * vtp(dim,1:ntp) * dt])
       end do
       !$omp end parallel do
 
-      call boundingbox%sweep(npl, ntp, xpl, vpl, xtp, vtp, rencpl, renctp, dt, nenc, index1, index2, lvdotr) 
+      call boundingbox%sweep(npl, ntp, rpl, vpl, xtp, vtp, rencpl, renctp, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_sort_and_sweep_pltp
@@ -514,7 +512,7 @@ contains
       real(DP),             dimension(:), intent(in)  :: renc          !! Array of encounter radii of all bodies
       real(DP),                           intent(in)  :: dt            !! Step size
       integer(I4B),         dimension(:), intent(in)  :: ind_arr       !! Index array [1, 2, ..., n]
-      type(encounter_list),               intent(out) :: lenci         !! Output encounter lists containing number of encounters, the v.dot.r direction array, and the index list of encountering bodies 
+      class(encounter_list),              intent(out) :: lenci         !! Output encounter lists containing number of encounters, the v.dot.r direction array, and the index list of encountering bodies 
       ! Internals
       integer(I4B) :: j
       integer(I8B) :: nenci
@@ -563,9 +561,9 @@ contains
       ! Internals
       integer(I4B) :: i
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      type(encounter_list), dimension(npl) :: lenc
+      type(collision_list_plpl), dimension(npl) :: lenc
 
-      call util_index_array(ind_arr, npl) 
+      call swiftest_util_index_array(ind_arr, npl) 
 
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(x, v, renc, lenc, ind_arr) &
@@ -586,7 +584,7 @@ contains
    end subroutine encounter_check_all_triangular_plpl
 
 
-   subroutine encounter_check_all_triangular_plplm(nplm, nplt, xplm, vplm, xplt, vplt, rencm, renct, dt, &
+   subroutine encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
                                                    nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
@@ -596,9 +594,9 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: nplm   !! Total number of fully interacting massive bodies 
       integer(I4B),                            intent(in)  :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
-      real(DP),     dimension(:,:),            intent(in)  :: xplm   !! Position vectors of fully interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplm   !! Position vectors of fully interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplm   !! Velocity vectors of fully interacting massive bodies
-      real(DP),     dimension(:,:),            intent(in)  :: xplt   !! Position vectors of partially interacting massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rplt   !! Position vectors of partially interacting massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vplt   !! Velocity vectors of partially interacting massive bodies
       real(DP),     dimension(:),              intent(in)  :: rencm  !! Critical radii of fully interacting massive bodies that defines an encounter
       real(DP),     dimension(:),              intent(in)  :: renct  !! Critical radii of partially interacting massive bodies that defines an encounter
@@ -610,17 +608,17 @@ contains
       ! Internals
       integer(I4B) :: i
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      type(encounter_list), dimension(nplm) :: lenc
+      type(collision_list_plpl), dimension(nplm) :: lenc
 
-      call util_index_array(ind_arr, nplt)
+      call swiftest_util_index_array(ind_arr, nplt)
 
       !$omp parallel do default(private) schedule(dynamic)&
-      !$omp shared(xplm, vplm, xplt, vplt, rencm, renct, lenc, ind_arr) &
+      !$omp shared(rplm, vplm, rplt, vplt, rencm, renct, lenc, ind_arr) &
       !$omp firstprivate(nplm, nplt, dt)
       do i = 1, nplm
-         call encounter_check_all_triangular_one(0, nplt, xplm(1,i), xplm(2,i), xplm(3,i), &
+         call encounter_check_all_triangular_one(0, nplt, rplm(1,i), rplm(2,i), rplm(3,i), &
                                                           vplm(1,i), vplm(2,i), vplm(3,i), &
-                                                          xplt(1,:), xplt(2,:), xplt(3,:), &
+                                                          rplt(1,:), rplt(2,:), rplt(3,:), &
                                                           vplt(1,:), vplt(2,:), vplt(3,:), &
                                                           rencm(i), renct(:), dt, ind_arr(:), lenc(i))
          if (lenc(i)%nenc > 0) lenc(i)%index1(:) = i
@@ -633,7 +631,7 @@ contains
    end subroutine encounter_check_all_triangular_plplm
 
 
-   subroutine encounter_check_all_triangular_pltp(npl, ntp, xpl, vpl, xtp, vtp, renc, dt, &
+   subroutine encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, &
                                                   nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
@@ -643,7 +641,7 @@ contains
       ! Arguments
       integer(I4B),                            intent(in)  :: npl    !! Total number of massive bodies 
       integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
-      real(DP),     dimension(:,:),            intent(in)  :: xpl    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rpl    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
@@ -656,17 +654,17 @@ contains
       ! Internals
       integer(I4B) :: i
       integer(I4B), dimension(:), allocatable, save :: ind_arr
-      type(encounter_list), dimension(npl) :: lenc
+      type(collision_list_pltp), dimension(npl) :: lenc
       real(DP), dimension(ntp) :: renct
 
-      call util_index_array(ind_arr, ntp)
+      call swiftest_util_index_array(ind_arr, ntp)
       renct(:) = 0.0_DP
 
       !$omp parallel do default(private) schedule(dynamic)&
-      !$omp shared(xpl, vpl, xtp, vtp, renc, renct, lenc, ind_arr) &
+      !$omp shared(rpl, vpl, xtp, vtp, renc, renct, lenc, ind_arr) &
       !$omp firstprivate(npl, ntp, dt)
       do i = 1, npl
-         call encounter_check_all_triangular_one(0, ntp, xpl(1,i), xpl(2,i), xpl(3,i), &
+         call encounter_check_all_triangular_one(0, ntp, rpl(1,i), rpl(2,i), rpl(3,i), &
                                                          vpl(1,i), vpl(2,i), vpl(3,i), &
                                                          xtp(1,:), xtp(2,:), xtp(3,:), &
                                                          vtp(1,:), vtp(2,:), vtp(3,:), &
@@ -734,7 +732,7 @@ contains
       !! Collapses a ragged index list (one encounter list per body) into a pair of index arrays and a vdotr logical array (optional)
       implicit none
       ! Arguments
-      type(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
+      class(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
       integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
       integer(I8B),                                    intent(out)           :: nenc        !! Total number of encountersj 
       integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
@@ -807,10 +805,10 @@ contains
          return
       end if
 
-      call util_sort(index1, ind)
-      call util_sort_rearrange(index1, ind, nenc)
-      call util_sort_rearrange(index2, ind, nenc)
-      call util_sort_rearrange(lvdotr, ind, nenc)
+      call swiftest_util_sort(index1, ind)
+      call swiftest_util_sort_rearrange(index1, ind, nenc)
+      call swiftest_util_sort_rearrange(index2, ind, nenc)
+      call swiftest_util_sort_rearrange(lvdotr, ind, nenc)
 
       ! Get the bounds on the bodies in the first index
       ibeg(:) = n
@@ -836,7 +834,7 @@ contains
          khi = iend(i)
          nenci = khi - klo + 1_I8B
          if (allocated(ind)) deallocate(ind)
-         call util_sort(index2(klo:khi), ind)
+         call swiftest_util_sort(index2(klo:khi), ind)
          index2(klo:khi) = itmp(klo - 1_I8B + ind(:))
          do j = klo + 1_I8B, khi
             if (index2(j) == index2(j - 1_I8B)) lencounter(j) = .false. 
@@ -876,7 +874,7 @@ contains
       ! Internals
       integer(I8B) :: i, k
 
-      call util_sort(extent_arr, self%ind)
+      call swiftest_util_sort(extent_arr, self%ind)
 
       do concurrent(k = 1_I8B:2_I8B * n)
          i = self%ind(k)
@@ -917,13 +915,13 @@ contains
       logical, dimension(SWEEPDIM,n1+n2) :: loverlap_by_dimension
       logical, dimension(SWEEPDIM,2*(n1+n2)) :: llist1
       integer(I4B), dimension(SWEEPDIM,2*(n1+n2)) :: ext_ind
-      type(encounter_list), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
+      type(collision_list_pltp), dimension(n1+n2) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibeg, iend
       real(DP), dimension(2*(n1+n2)) :: xind, yind, zind, vxind, vyind, vzind, rencind
 
       ntot = n1 + n2
-      call util_index_array(ind_arr, ntot)
+      call swiftest_util_index_array(ind_arr, ntot)
 
       do concurrent(dim = 1:SWEEPDIM)
          loverlap_by_dimension(dim,:) = (self%aabb(dim)%ibeg(:) + 1_I8B) < (self%aabb(dim)%iend(:) - 1_I8B)
@@ -1012,7 +1010,7 @@ contains
       !! author: David A. Minton
       !!
       !! Sweeps the sorted bounding box extents and returns the true encounters (combines broad and narrow phases)
-      !! Double list version (e.g. pl-tp or plm-plt)
+      !! Single list version (e.g. pl-pl)
       implicit none
       ! Arguments
       class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
@@ -1031,11 +1029,11 @@ contains
       logical, dimension(2*n) :: lencounteri
       real(DP), dimension(2*n) :: xind, yind, zind, vxind, vyind, vzind, rencind
       integer(I4B), dimension(SWEEPDIM,2*n) :: ext_ind
-      type(encounter_list), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
+      type(collision_list_plpl), dimension(n) :: lenc         !! Array of encounter lists (one encounter list per body)
       integer(I4B), dimension(:), allocatable, save :: ind_arr
       integer(I8B) :: ibeg, iend
 
-      call util_index_array(ind_arr, n)
+      call swiftest_util_index_array(ind_arr, n)
       dim = 1
 
       ! Sweep the intervals for each of the massive bodies along one dimension

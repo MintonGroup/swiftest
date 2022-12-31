@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(whm_classes) s_whm_util
+submodule(whm) s_whm_util
    use swiftest
 contains
 
@@ -25,13 +25,13 @@ contains
       select type(source)
       class is (whm_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%eta, source%eta, nold, nsrc, lsource_mask)
-            call util_append(self%muj, source%muj, nold, nsrc, lsource_mask)
-            call util_append(self%ir3j, source%ir3j, nold, nsrc, lsource_mask)
-            call util_append(self%xj, source%xj, nold, nsrc, lsource_mask)
-            call util_append(self%vj, source%vj, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%eta, source%eta, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%muj, source%muj, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%ir3j, source%ir3j, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%xj, source%xj, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%vj, source%vj, nold, nsrc, lsource_mask)
 
-            call util_append_pl(self, source, lsource_mask)
+            call swiftest_util_append_pl(self, source, lsource_mask)
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class whm_pl or its descendents"
@@ -56,7 +56,7 @@ contains
       if (allocated(self%vj)) deallocate(self%vj)
       if (allocated(self%ir3j)) deallocate(self%ir3j)
 
-      call util_dealloc_pl(self)
+      call swiftest_util_dealloc_pl(self)
 
       return
    end subroutine whm_util_dealloc_pl
@@ -78,13 +78,13 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (whm_pl)
-            call util_fill(keeps%eta, inserts%eta, lfill_list)
-            call util_fill(keeps%muj, inserts%muj, lfill_list)
-            call util_fill(keeps%ir3j, inserts%ir3j, lfill_list)
-            call util_fill(keeps%xj, inserts%xj, lfill_list)
-            call util_fill(keeps%vj, inserts%vj, lfill_list)
+            call swiftest_util_fill(keeps%eta, inserts%eta, lfill_list)
+            call swiftest_util_fill(keeps%muj, inserts%muj, lfill_list)
+            call swiftest_util_fill(keeps%ir3j, inserts%ir3j, lfill_list)
+            call swiftest_util_fill(keeps%xj, inserts%xj, lfill_list)
+            call swiftest_util_fill(keeps%vj, inserts%vj, lfill_list)
 
-            call util_fill_pl(keeps, inserts, lfill_list)
+            call swiftest_util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) "Invalid object passed to the fill method. Inserts must be of class whm_pl or its descendents!"
             call util_exit(FAILURE)
@@ -93,48 +93,6 @@ contains
    
       return
    end subroutine whm_util_fill_pl
-
-
-   module subroutine whm_util_final_pl(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the WHM massive body object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(whm_pl),  intent(inout) :: self !! WHM massive body object
-
-      call self%dealloc()
-
-      return
-   end subroutine whm_util_final_pl
-
-
-   module subroutine whm_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the WHM nbody system object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
-
-      call util_final_system(self)
-
-      return
-   end subroutine whm_util_final_system
-
-
-   module subroutine whm_util_final_tp(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the WHM test particle object - deallocates all allocatables
-      implicit none
-      ! Arguments
-      type(whm_tp),  intent(inout) :: self !! WHM test particle object
-
-      call self%dealloc()
-
-      return
-   end subroutine whm_util_final_tp
 
 
    module subroutine whm_util_resize_pl(self, nnew)
@@ -146,13 +104,13 @@ contains
       class(whm_pl), intent(inout) :: self  !! WHM massive body object
       integer(I4B),  intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%eta, nnew)
-      call util_resize(self%xj, nnew)
-      call util_resize(self%vj, nnew)
-      call util_resize(self%muj, nnew)
-      call util_resize(self%ir3j, nnew)
+      call swiftest_util_resize(self%eta, nnew)
+      call swiftest_util_resize(self%xj, nnew)
+      call swiftest_util_resize(self%vj, nnew)
+      call swiftest_util_resize(self%muj, nnew)
+      call swiftest_util_resize(self%ir3j, nnew)
 
-      call util_resize_pl(self, nnew)
+      call swiftest_util_resize_pl(self, nnew)
 
       return
    end subroutine whm_util_resize_pl
@@ -184,6 +142,93 @@ contains
    end subroutine whm_util_set_ir3j
 
 
+   module subroutine whm_util_setup_pl(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate WHM planet structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_util_setup.f90
+      implicit none
+      ! Arguments
+      class(whm_pl),             intent(inout) :: self  !! Swiftest test particle object
+      integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
+      !> Call allocation method for parent class
+      call swiftest_util_setup_pl(self, n, param) 
+      if (n == 0) return
+
+      allocate(self%eta(n))
+      allocate(self%muj(n))
+      allocate(self%xj(NDIM, n))
+      allocate(self%vj(NDIM, n))
+      allocate(self%ir3j(n))
+
+      self%eta(:)   = 0.0_DP
+      self%muj(:)   = 0.0_DP
+      self%xj(:,:)  = 0.0_DP
+      self%vj(:,:)  = 0.0_DP
+      self%ir3j(:) = 0.0_DP
+
+      return
+   end subroutine whm_util_setup_pl 
+
+
+   module subroutine whm_util_set_mu_eta_pl(self, cb)
+      !! author: David A. Minton
+      !!
+      !! Sets the Jacobi mass value eta for all massive bodies
+      implicit none
+      ! Arguments
+      class(whm_pl),      intent(inout) :: self   !! WHM nbody_system object
+      class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body object
+      ! Internals
+      integer(I4B)                                 :: i
+
+      associate(pl => self, npl => self%nbody)
+         if (npl == 0) return
+         call swiftest_util_set_mu_pl(pl, cb)
+         pl%eta(1) = cb%Gmass + pl%Gmass(1)
+         pl%muj(1) = pl%eta(1)
+         do i = 2, npl
+            pl%eta(i) = pl%eta(i - 1) + pl%Gmass(i)
+            pl%muj(i) = cb%Gmass * pl%eta(i) / pl%eta(i - 1)
+         end do
+      end associate
+
+      return
+   end subroutine whm_util_set_mu_eta_pl
+
+
+   module subroutine whm_util_setup_initialize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize a WHM nbody system from files
+      !!
+      implicit none
+      ! Arguments
+      class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+
+      call swiftest_util_setup_initialize_system(self, param)
+      ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
+      call swiftest_util_set_ir3h(self%pl)
+      call self%pl%sort("ir3h", ascending=.false.)
+      call self%pl%flatten(param)
+
+      ! Make sure that the discard list gets allocated initially
+      call self%tp_discards%setup(0, param)
+      call self%pl%set_mu(self%cb)
+      call self%tp%set_mu(self%cb)
+      if (param%lgr .and. param%in_type == "ASCII") then !! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
+         call self%pl%v2pv(param)
+         call self%tp%v2pv(param)
+      end if
+
+      return
+   end subroutine whm_util_setup_initialize_system
+
+
    module subroutine whm_util_sort_pl(self, sortby, ascending)
       !! author: David A. Minton
       !!
@@ -209,15 +254,15 @@ contains
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("eta")
-            call util_sort(direction * pl%eta(1:npl), ind)
+            call swiftest_util_sort(direction * pl%eta(1:npl), ind)
          case("muj")
-            call util_sort(direction * pl%muj(1:npl), ind)
+            call swiftest_util_sort(direction * pl%muj(1:npl), ind)
          case("ir3j")
-            call util_sort(direction * pl%ir3j(1:npl), ind)
+            call swiftest_util_sort(direction * pl%ir3j(1:npl), ind)
          case("xj", "vj")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
-            call util_sort_pl(pl, sortby, ascending)
+            call swiftest_util_sort_pl(pl, sortby, ascending)
             return
          end select
 
@@ -241,13 +286,13 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody)
-         call util_sort_rearrange(pl%eta,  ind, npl)
-         call util_sort_rearrange(pl%xj,   ind, npl)
-         call util_sort_rearrange(pl%vj,   ind, npl)
-         call util_sort_rearrange(pl%muj,  ind, npl)
-         call util_sort_rearrange(pl%ir3j, ind, npl)
+         call swiftest_util_sort_rearrange(pl%eta,  ind, npl)
+         call swiftest_util_sort_rearrange(pl%xj,   ind, npl)
+         call swiftest_util_sort_rearrange(pl%vj,   ind, npl)
+         call swiftest_util_sort_rearrange(pl%muj,  ind, npl)
+         call swiftest_util_sort_rearrange(pl%ir3j, ind, npl)
 
-         call util_sort_rearrange_pl(pl,ind)
+         call swiftest_util_sort_rearrange_pl(pl,ind)
       end associate
 
       return
@@ -270,13 +315,13 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (whm_pl)
-            call util_spill(keeps%eta, discards%eta, lspill_list, ldestructive)
-            call util_spill(keeps%muj, discards%muj, lspill_list, ldestructive)
-            call util_spill(keeps%ir3j, discards%ir3j, lspill_list, ldestructive)
-            call util_spill(keeps%xj, discards%xj, lspill_list, ldestructive)
-            call util_spill(keeps%vj, discards%vj, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%eta, discards%eta, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%muj, discards%muj, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%ir3j, discards%ir3j, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%xj, discards%xj, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%vj, discards%vj, lspill_list, ldestructive)
 
-            call util_spill_pl(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class whm_pl or its descendents!"
             call util_exit(FAILURE)

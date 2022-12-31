@@ -1,43 +1,16 @@
-submodule(swiftest_classes) s_tides_step_spin
+submodule(tides) s_tides_step_spin
    use swiftest
-
-   type, extends(lambda_obj_tvar) :: tides_derivs_func 
-      !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers
-      procedure(tidederiv), pointer, nopass :: lambdaptr_tides_deriv 
-      real(DP), dimension(:,:), allocatable :: rbeg
-      real(DP), dimension(:,:), allocatable :: xend
-      real(DP)                              :: dt
-   contains
-      generic   :: init => tides_derivs_init
-      procedure :: evalt => tides_derivs_eval
-      procedure, nopass :: tides_derivs_init
-   end type
-   interface lambda_obj
-      module procedure tides_derivs_init
-   end interface
-   abstract interface
-      function tidederiv(x, t, dt, rbeg, xend) result(y)
-         ! Template for a 0 argument function
-         import DP, swiftest_nbody_system
-         real(DP), dimension(:),     intent(in) :: x
-         real(DP),                     intent(in) :: t
-         real(DP),                     intent(in) :: dt
-         real(DP), dimension(:,:),     intent(in) :: rbeg
-         real(DP), dimension(:,:),     intent(in) :: xend
-         real(DP), dimension(:), allocatable    :: y
-      end function
-   end interface
 
 contains
 
    module subroutine tides_step_spin_system(self, param, t, dt)
       !! author: Jennifer L.L. Pouplin and David A. Minton
       !!
-      !! Integrates the spin equations for central and massive bodies of the system subjected to tides.
+      !! Integrates the spin equations for central and massive bodies of the nbody_system subjected to tides.
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters  
+      class(base_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
+      class(base_parameters),   intent(in)    :: param  !! Current run configuration parameters  
       real(DP),                     intent(in)    :: t     !! Simulation time
       real(DP),                     intent(in)    :: dt    !! Current stepsize
       ! Internals
@@ -46,22 +19,25 @@ contains
       real(DP), parameter                       :: tol=1e-6_DP !! Just a guess at the moment
       real(DP)                                  :: subdt 
 
-      associate(pl => self%pl, npl => self%pl%nbody, cb => self%cb)
-         allocate(rot0(NDIM*(npl+1)))
-         rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
-         ! Use this space call the ode_solver, passing tides_spin_derivs as the function:
-         subdt = dt / 20._DP
-         !rot1(:) = util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%rbeg, pl%xend), rot0, dt, subdt tol)
-         ! Recover with unpack
-         !pl%rot(:,1:npl) = unpack(rot1...
-         !cb%rot(:) = unpack(rot1...
-      end associate
+      select type(self)
+      class is (swiftest_nbody_system)
+         associate(pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+            allocate(rot0(NDIM*(npl+1)))
+            ! rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
+            ! Use this space call the ode_solver, passing tides_spin_derivs as the function:
+            ! subdt = dt / 20._DP
+            ! rot1(:) = swiftest_util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%rbeg, pl%rend), rot0, dt, subdt,tol)
+            ! ! Recover with unpack
+            ! pl%rot(:,1:npl) = unpack(rot1...
+            ! cb%rot(:) = unpack(rot1...
+         end associate
+      end select
 
       return
    end subroutine tides_step_spin_system
 
 
-   function tides_spin_derivs(rot_pl_cb, t, dt, rbeg, xend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
+   module function tides_spin_derivs(rot_pl_cb, t, dt, rbeg, rend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
       !! author: Jennifer L.L. Pouplin and David A. Minton
       !!
       !! function used to calculate the derivatives that are fed to the ODE solver
@@ -71,7 +47,7 @@ contains
       real(DP),                     intent(in) :: t         !! Current time, which is used to interpolate the massive body positions
       real(DP),                     intent(in) :: dt        !! Total step size
       real(DP), dimension(:,:),     intent(in) :: rbeg
-      real(DP), dimension(:,:),     intent(in) :: xend
+      real(DP), dimension(:,:),     intent(in) :: rend
       ! Internals
       real(DP), dimension(:,:), allocatable    :: drot
       real(DP), dimension(:), allocatable      :: flatrot
@@ -85,7 +61,7 @@ contains
       allocate(drot, mold=rot_pl_cb)
       drot(:,:) = 0.0_DP
       do i = 1,n-1
-         xinterp(:) = rbeg(:,i) + t / dt * (xend(:,i) - rbeg(:,i))
+         xinterp(:) = rbeg(:,i) + t / dt * (rend(:,i) - rbeg(:,i))
          ! Calculate Ncb and Npl as a function of xinterp
          !drot(:,i) = -Mcb / (Mcb + Mpl(i)) * (N_Tpl + N_Rpl)
          !drot(:,n) = drot(:,n) - Mcb / (Mcb + Mpl(i) * (N_Tcb + N_Rcb)
@@ -95,7 +71,7 @@ contains
       return
    end function tides_spin_derivs
 
-   function tides_derivs_eval(self, x, t) result(y)
+   module function tides_derivs_eval(self, x, t) result(y)
       implicit none
       ! Arguments
       class(tides_derivs_func), intent(inout) :: self
@@ -104,7 +80,7 @@ contains
       ! Result
       real(DP), dimension(:), allocatable  :: y
       if (associated(self%lambdaptr_tides_deriv)) then
-         y = self%lambdaptr_tides_deriv(x, t, self%dt, self%rbeg, self%xend)
+         y = self%lambdaptr_tides_deriv(x, t, self%dt, self%rbeg, self%rend)
       else
          error stop "Lambda function was not initialized"
       end if
@@ -112,19 +88,19 @@ contains
       return
    end function tides_derivs_eval
 
-   function tides_derivs_init(lambda, dt, rbeg, xend) result(f)
+   module function tides_derivs_init(lambda, dt, rbeg, rend) result(f)
       implicit none
       ! Arguments
       procedure(tidederiv)                     :: lambda
       real(DP),                     intent(in) :: dt
       real(DP), dimension(:,:),     intent(in) :: rbeg
-      real(DP), dimension(:,:),     intent(in) :: xend
+      real(DP), dimension(:,:),     intent(in) :: rend
       ! Result
       type(tides_derivs_func)                  :: f
       f%lambdaptr_tides_deriv => lambda
       f%dt = dt
       allocate(f%rbeg, source = rbeg)
-      allocate(f%xend, source = xend)
+      allocate(f%rend, source = rend)
 
       return
    end function tides_derivs_init

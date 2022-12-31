@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(helio_classes) s_helio_step
+submodule(helio) s_helio_step
    use swiftest
 contains
 
@@ -16,7 +16,7 @@ contains
       !!
       !! Step massive bodies and and active test particles ahead in heliocentric coordinates.
       !!
-      !! Currently there's no difference between this and the WHM system stepper, so this is just
+      !! Currently there's no difference between this and the WHM nbody_system stepper, so this is just
       !! a wrapper function to keep the method calls consistent for inherited types.
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk.f
@@ -34,7 +34,7 @@ contains
    end subroutine helio_step_system 
 
 
-   module subroutine helio_step_pl(self, system, param, t, dt)
+   module subroutine helio_step_pl(self, nbody_system, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step massive bodies ahead Democratic Heliocentric method
@@ -44,7 +44,7 @@ contains
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -54,7 +54,7 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self)
-         select type(cb => system%cb)
+         select type(cb => nbody_system%cb)
          class is (helio_cb)
             dth = 0.5_DP * dt
             if (pl%lfirst) then
@@ -62,11 +62,11 @@ contains
                pl%lfirst = .false.
             end if
             call pl%lindrift(cb, dth, lbeg=.true.)
-            call pl%kick(system, param, t, dth, lbeg=.true.)
-            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
-            call pl%drift(system, param, dt)
-            if (param%lgr) call pl%gr_pos_kick(system, param, dth)
-            call pl%kick(system, param, t + dt, dth, lbeg=.false.)
+            call pl%kick(nbody_system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call pl%gr_pos_kick(nbody_system, param, dth)
+            call pl%drift(nbody_system, param, dt)
+            if (param%lgr) call pl%gr_pos_kick(nbody_system, param, dth)
+            call pl%kick(nbody_system, param, t + dt, dth, lbeg=.false.)
             call pl%lindrift(cb, dth, lbeg=.false.)
             call pl%vb2vh(cb)
          end select
@@ -76,7 +76,7 @@ contains
    end subroutine helio_step_pl
 
 
-   module subroutine helio_step_tp(self, system, param, t, dt)
+   module subroutine helio_step_tp(self, nbody_system, param, t, dt)
 
       !! author: David A. Minton
       !!
@@ -87,7 +87,7 @@ contains
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self    !! Helio test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -97,7 +97,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self)
-         select type(cb => system%cb)
+         select type(cb => nbody_system%cb)
          class is (helio_cb)
             dth = 0.5_DP * dt
             if (tp%lfirst) then
@@ -105,11 +105,11 @@ contains
                tp%lfirst = .false.
             end if
             call tp%lindrift(cb, dth, lbeg=.true.)
-            call tp%kick(system, param, t, dth, lbeg=.true.)
-            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-            call tp%drift(system, param, dt)
-            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
+            call tp%kick(nbody_system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call tp%gr_pos_kick(nbody_system, param, dth)
+            call tp%drift(nbody_system, param, dt)
+            if (param%lgr) call tp%gr_pos_kick(nbody_system, param, dth)
+            call tp%kick(nbody_system, param, t + dt, dth, lbeg=.false.)
             call tp%lindrift(cb, dth, lbeg=.false.)
             call tp%vb2vh(vbcb = -cb%ptend)
          end select
