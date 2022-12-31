@@ -98,7 +98,7 @@ contains
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       character(len=STRMAX)                :: message
-      real(DP), parameter                  :: fail_scale_initial = 1.001_DP
+      real(DP), parameter                  :: fail_scale_initial = 1.01_DP
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
       ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
@@ -136,23 +136,16 @@ contains
          ! Compute the "before" energy/momentum and the budgets
          call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
          call self%set_budgets()
-         do try = 1, MAXTRY
-            self%fail_scale = (fail_scale_initial)**try
-            write(message,*) try
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
-            call fraggle_generate_pos_vec(self)
-            call fraggle_generate_rot_vec(self)
-            call fraggle_generate_vel_vec(self,lfailure_local)
-            if (.not.lfailure_local) exit
-         end do
+         self%fail_scale = fail_scale_initial
+         call fraggle_generate_pos_vec(self)
+         call fraggle_generate_rot_vec(self)
+         call fraggle_generate_vel_vec(self,lfailure_local)
          call self%set_original_scale()
 
          if (lfailure_local) then
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation failed after " // &
-                                                      trim(adjustl(message)) // " tries. This collision may have gained energy.")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "This collision may have gained energy.")
          else
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation succeeded after " // &
-                                                       trim(adjustl(message)) // " tries")
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation succeeded.")
          end if
 
 
@@ -253,8 +246,8 @@ contains
       logical, dimension(collider%fragments%nbody) :: loverlap
       integer(I4B) :: i, j, loop
       logical :: lcat, lhitandrun
-      integer(I4B), parameter :: MAXLOOP = 10000
-      real(DP), parameter :: rdistance_scale_factor = 0.01_DP ! Scale factor to apply to distance scaling in the event of a fail
+      integer(I4B), parameter :: MAXLOOP = 20000
+      real(DP), parameter :: rdistance_scale_factor = 0.1_DP ! Scale factor to apply to distance scaling in the event of a fail
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
@@ -269,6 +262,8 @@ contains
             if (.not.any(loverlap(:))) exit
             fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
             fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
+            fragment_cloud_radius(1) = .mag.(fragment_cloud_center(:,1) - impactors%rbimp(:))
+            fragment_cloud_radius(2) = .mag.(fragment_cloud_center(:,2) - impactors%rbimp(:))
             do concurrent(i = 1:nfrag, loverlap(i))
                if (i < 3) then
                   fragments%rc(:,i) = fragment_cloud_center(:,i)
@@ -298,7 +293,6 @@ contains
                end do
             end do
             rdistance(:) = rdistance(:) * collider%fail_scale
-            fragment_cloud_radius(:) = fragment_cloud_radius(:) * collider%fail_scale
          end do
 
          call collision_util_shift_vector_to_origin(fragments%mass, fragments%rc)
@@ -375,15 +369,18 @@ contains
       integer(I4B) :: i, j, loop, istart, n, ndof
       logical :: lhitandrun, lnoncat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual, vshear, vunit
-      real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot
+      real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot, ke_residual_min
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
-      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXLOOP = 2000
       real(DP), parameter :: TOL = 1e-2
+      class(collision_fragments(:)), allocatable :: fragments
 
-      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
+      associate(impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
          lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
+
+         allocate(fragments, source=collider%fragments)
 
          ! The fragments will be divided into two "clouds" based on identified origin body. 
          ! These clouds will collectively travel like two impactors bouncing off of each other. 
@@ -414,6 +411,7 @@ contains
          mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
          mass_vscale(:) = mass_vscale(:) / minval(mass_vscale(:))
 
+
          ! Set the velocities of all fragments using all of the scale factors determined above
          do concurrent(i = 1:nfrag)
             j = fragments%origin_body(i)
@@ -439,10 +437,17 @@ contains
          else 
             istart = 1
          end if
+         ke_residual_min = huge(1.0_DP)
          do loop = 1, MAXLOOP
-            call collider%set_coordinate_system()
+            call fragments%set_coordinate_system()
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit_tot + fragments%ke_spin_tot)
+            if (abs(ke_residual) < abs(ke_residual_min)) then ! This is our best case so far. Save it for posterity
+               if (allocated(collider%fragments)) deallocate(collider%fragments)
+               allocate(collider%fragments, source=fragments)
+               ke_residual_min = ke_residual
+            end if
+            ke_residual_min = max(ke_residual_min,ke_residual)
             if (ke_residual > 0.0_DP) exit
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
@@ -475,7 +480,7 @@ contains
             end do
 
             ! Check for any residual angular momentum, and if there is any, put it into spin
-            call collider%set_coordinate_system()
+            call fragments%set_coordinate_system()
             call fragments%get_angular_momentum()
             Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
             do concurrent(i = istart:nfrag)

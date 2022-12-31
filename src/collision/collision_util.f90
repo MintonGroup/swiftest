@@ -449,22 +449,39 @@ contains
          call impactors%set_coordinate_system() 
 
          if (.not.allocated(self%fragments)) return
-         if ((nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
+         call fragments%set_coordinate_system()
 
-         fragments%rmag(:) = .mag. fragments%rc(:,:)
-         fragments%vmag(:) = .mag. fragments%vc(:,:)
-         fragments%rotmag(:) = .mag. fragments%rot(:,:)
-  
-         ! Define the radial, normal, and tangential unit vectors for each individual fragment
-         fragments%r_unit(:,:) = .unit. fragments%rc(:,:) 
-         fragments%v_unit(:,:) = .unit. fragments%vc(:,:) 
-         fragments%n_unit(:,:) = .unit. (fragments%rc(:,:) .cross. fragments%vc(:,:))
-         fragments%t_unit(:,:) = -.unit. (fragments%r_unit(:,:) .cross. fragments%n_unit(:,:))
 
       end associate
 
       return
    end subroutine collision_util_set_coordinate_collider
+
+
+   module subroutine collision_util_set_coordinate_fragments(self)
+      !! author: David A. Minton
+      !!
+      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
+      implicit none
+      ! Arguments
+      class(collision_fragments(*)), intent(inout) :: self      !! Collisional nbody_system
+
+      associate(fragments => self, nfrag => self%nbody)
+         if ((nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
+
+         fragments%rmag(:) = .mag. fragments%rc(:,:)
+         fragments%vmag(:) = .mag. fragments%vc(:,:)
+         fragments%rotmag(:) = .mag. fragments%rot(:,:)
+   
+         ! Define the radial, normal, and tangential unit vectors for each individual fragment
+         fragments%r_unit(:,:) = .unit. fragments%rc(:,:) 
+         fragments%v_unit(:,:) = .unit. fragments%vc(:,:) 
+         fragments%n_unit(:,:) = .unit. (fragments%rc(:,:) .cross. fragments%vc(:,:))
+         fragments%t_unit(:,:) = -.unit. (fragments%r_unit(:,:) .cross. fragments%n_unit(:,:))
+      end associate
+
+      return
+   end subroutine collision_util_set_coordinate_fragments
 
 
    module subroutine collision_util_set_coordinate_impactors(self)

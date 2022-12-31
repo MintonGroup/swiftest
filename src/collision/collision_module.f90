@@ -122,10 +122,11 @@ module collision
       real(DP),                  dimension(nbody)            :: ke_orbit     !! Orbital kinetic energy of each individual fragment
       real(DP),                  dimension(nbody)            :: ke_spin      !! Spin kinetic energy of each individual fragment
    contains
-      procedure :: reset                => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
-      procedure :: get_angular_momentum => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
-      procedure :: get_kinetic_energy   => collision_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
-      final     ::                         collision_final_fragments           !! Finalizer deallocates all allocatables
+      procedure :: reset                 => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
+      procedure :: get_angular_momentum  => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
+      procedure :: get_kinetic_energy    => collision_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
+      procedure :: set_coordinate_system => collision_util_set_coordinate_fragments !! Sets the coordinate system of the fragments
+      final     ::                          collision_final_fragments           !! Finalizer deallocates all allocatables
    end type collision_fragments
 
 
@@ -231,7 +232,6 @@ module collision
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_bounce 
 
-
       module subroutine collision_generate_hitandrun(self, nbody_system, param, t) 
          implicit none
          class(collision_basic),   intent(inout) :: self
@@ -247,7 +247,6 @@ module collision
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
       end subroutine collision_generate_merge
-
     
       module subroutine collision_io_collider_message(pl, collidx, collider_message)
          implicit none
@@ -405,6 +404,11 @@ module collision
          implicit none
          class(collision_basic), intent(inout) :: self      !! collisional system
       end subroutine collision_util_set_coordinate_collider
+
+      module subroutine collision_util_set_coordinate_fragments(self)
+         implicit none
+         class(collision_fragments(*)), intent(inout) :: self      !! Collisional nbody_system
+      end subroutine collision_util_set_coordinate_fragments
 
       module subroutine collision_util_set_coordinate_impactors(self)
          implicit none
