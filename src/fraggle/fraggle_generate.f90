@@ -247,7 +247,9 @@ contains
       integer(I4B) :: i, j, loop
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 20000
-      real(DP), parameter :: rdistance_scale_factor = 0.01_DP ! Scale factor to apply to distance scaling in the event of overlap
+      real(DP), parameter :: rdistance_scale_factor = 0.05_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
+                                                              ! The distance is chosen to be close to the original locations of the impactors
+                                                              ! but far enough apart to prevent a collisional cascade between fragments 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
