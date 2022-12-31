@@ -373,7 +373,7 @@ contains
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
       integer(I4B), parameter :: MAXLOOP = 1000
-      real(DP), parameter :: TOL = 1e-2
+      real(DP), parameter :: TOL = 1e-6
       class(collision_fragments(:)), allocatable :: fragments
 
       associate(impactors => collider%impactors, nfrag => collider%fragments%nbody)
@@ -411,7 +411,6 @@ contains
          mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
          mass_vscale(:) = mass_vscale(:) / minval(mass_vscale(:))
 
-
          ! Set the velocities of all fragments using all of the scale factors determined above
          do concurrent(i = 1:nfrag)
             j = fragments%origin_body(i)
@@ -446,6 +445,7 @@ contains
                if (allocated(collider%fragments)) deallocate(collider%fragments)
                allocate(collider%fragments, source=fragments)
                ke_residual_min = ke_residual
+               if ((ke_residual > 0.0_DP) .and. (ke_residual < TOL * fragments%ke_budget)) exit
             end if
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
@@ -478,6 +478,7 @@ contains
             end do
 
             ! Check for any residual angular momentum, and if there is any, put it into spin
+            call fragments%set_coordinate_system()
             call fragments%get_angular_momentum()
             Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
             do concurrent(i = istart:nfrag)
