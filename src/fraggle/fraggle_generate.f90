@@ -349,7 +349,7 @@ contains
             rotdir = rotdir - 0.5_DP
             rotdir = .unit. rotdir
             call random_number(rotmag)
-            rotmag = rotmag * .mag. (Lbefore(:) - Lafter(:)) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
+            rotmag = 0.01_DP * rotmag * .mag. (Lbefore(:) - Lafter(:)) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
             fragments%rot(:,i) = rotmag * rotdir
          end do
 
