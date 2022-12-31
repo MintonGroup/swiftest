@@ -11,6 +11,8 @@ submodule(fraggle) s_fraggle_generate
    use swiftest
    use symba
 
+   real(DP), parameter     :: FRAGGLE_LTOL = 1e-4_DP !10 * epsilon(1.0_DP)
+   real(DP), parameter     :: FRAGGLE_ETOL = 1e-12_DP
 
 contains
 
@@ -97,11 +99,12 @@ contains
       logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
        ! Internals
       integer(I4B)                         :: try
+      real(DP)                             :: dEtot, dLmag
       integer(I4B), parameter              :: MAXTRY = 100
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
+      logical, dimension(size(IEEE_USUAL)) :: fpe_flag 
       character(len=STRMAX)                :: message
-      real(DP), parameter :: fail_scale_start = 1.0001_DP
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
       ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
@@ -140,14 +143,12 @@ contains
          ! Compute the "before" energy/momentum and the budgets
          call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
          call self%set_budgets()
-         self%fail_scale = fail_scale_start
          do try = 1, MAXTRY
             write(message,*) try
             call fraggle_generate_pos_vec(self)
             call fraggle_generate_rot_vec(self)
             call fraggle_generate_vel_vec(self,lfailure_local)
             if (.not.lfailure_local) exit
-            self%fail_scale = self%fail_scale**2
          end do
          call self%set_original_scale()
 
@@ -260,6 +261,7 @@ contains
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP) :: rdistance
+      real(DP), parameter :: fail_scale = 1.001_DP ! Scale factor to apply to cloud radius and distance if cloud generation fails
 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
@@ -276,8 +278,8 @@ contains
          loverlap(:) = .true.
          do loop = 1, MAXLOOP
             if (.not.any(loverlap(:))) exit
-            fragment_cloud_center(:,1) = impactors%rc(:,1) + rdistance * impactors%bounce_unit(:)
-            fragment_cloud_center(:,2) = impactors%rc(:,2) - rdistance * impactors%bounce_unit(:)
+            fragment_cloud_center(:,1) = impactors%rc(:,1) !+ rdistance * impactors%bounce_unit(:)
+            fragment_cloud_center(:,2) = impactors%rc(:,2) !- rdistance * impactors%bounce_unit(:)
             do concurrent(i = 1:nfrag, loverlap(i))
                if (i < 3) then
                   fragments%rc(:,i) = fragment_cloud_center(:,i)
@@ -306,8 +308,8 @@ contains
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
-            rdistance = rdistance * collider%fail_scale
-            fragment_cloud_radius(:) = fragment_cloud_radius(:) * collider%fail_scale
+            rdistance = rdistance * fail_scale
+            fragment_cloud_radius(:) = fragment_cloud_radius(:) * fail_scale
          end do
 
          call collision_util_shift_vector_to_origin(fragments%mass, fragments%rc)
@@ -387,7 +389,7 @@ contains
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
-      integer(I4B), parameter :: MAXLOOP = 1000
+      integer(I4B), parameter :: MAXLOOP = 100
       real(DP), parameter :: TOL = 1e-2
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
