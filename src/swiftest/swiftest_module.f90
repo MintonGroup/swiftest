@@ -211,7 +211,7 @@ module swiftest
       real(DP)                                    :: dR       = 0.0_DP !! Change in the radius of the central body
    contains
       procedure :: read_in => swiftest_io_read_in_cb     !! Read in central body initial conditions from an ASCII file
-      procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the nbody_system in NetCDF format  
+      procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_info   => swiftest_io_netcdf_write_info_cb  !! Dump contents of particle information metadata to file
    end type swiftest_cb
 

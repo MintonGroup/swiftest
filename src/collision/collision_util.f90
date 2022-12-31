@@ -186,13 +186,14 @@ contains
       integer(I4B) :: i
 
       associate(fragments => self, nfrag => self%nbody)
-         fragments%Lorbit(:) = 0.0_DP
-         fragments%Lspin(:) = 0.0_DP
    
          do i = 1, nfrag
-            fragments%Lorbit(:) = fragments%Lorbit(:) + fragments%mass(i) * (fragments%rc(:, i) .cross. fragments%vc(:, i))
-            fragments%Lspin(:) = fragments%Lspin(:) + fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:, i) * fragments%rot(:, i)
+            fragments%Lorbit(:,i) = fragments%mass(i) * (fragments%rc(:,i) .cross. fragments%vc(:, i))
+            fragments%Lspin(:,i)  = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i) * fragments%rot(:,i)
          end do
+
+         fragments%Lorbit_tot(:) = sum(fragments%Lorbit, dim=2)
+         fragments%Lspin_tot(:) = sum(fragments%Lspin, dim=2)
       end associate
 
       return
@@ -210,18 +211,16 @@ contains
       integer(I4B) :: i
 
       associate(fragments => self, nfrag => self%nbody)
-         fragments%ke_orbit_frag(:) = 0.0_DP
-         fragments%ke_spin_frag(:)  = 0.0_DP
    
          do concurrent(i = 1:nfrag)
-            fragments%ke_orbit_frag(i) = fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
-            fragments%ke_spin_frag(i) =  fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
+            fragments%ke_orbit(i) = fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
+            fragments%ke_spin(i) =  fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
          end do
 
-         fragments%ke_orbit_frag(:) = fragments%ke_orbit_frag(:) / 2
-         fragments%ke_spin_frag(:) = fragments%ke_spin_frag(:) / 2
-         fragments%ke_orbit = sum(fragments%ke_orbit_frag(:))
-         fragments%ke_spin = sum(fragments%ke_spin_frag(:))
+         fragments%ke_orbit(:) = fragments%ke_orbit(:) / 2
+         fragments%ke_spin(:) = fragments%ke_spin(:) / 2
+         fragments%ke_orbit_tot = sum(fragments%ke_orbit(:))
+         fragments%ke_spin_tot = sum(fragments%ke_spin(:))
 
       end associate
 
@@ -266,14 +265,15 @@ contains
                end do
                ke_orbit = ke_orbit / 2
                ke_spin = ke_spin / 2
+               
             else
                call fragments%get_angular_momentum()
-               Lorbit(:) = fragments%Lorbit(:) 
-               Lspin(:) = fragments%Lspin(:) 
+               Lorbit(:) = fragments%Lorbit_tot(:) 
+               Lspin(:) = fragments%Lspin_tot(:) 
 
                call fragments%get_kinetic_energy()
-               ke_orbit = fragments%ke_orbit
-               ke_spin = fragments%ke_spin
+               ke_orbit = fragments%ke_orbit_tot
+               ke_spin = fragments%ke_spin_tot
 
             end if 
             ! Calculate the current fragment energy and momentum balances
@@ -459,7 +459,7 @@ contains
          fragments%r_unit(:,:) = .unit. fragments%rc(:,:) 
          fragments%v_unit(:,:) = .unit. fragments%vc(:,:) 
          fragments%n_unit(:,:) = .unit. (fragments%rc(:,:) .cross. fragments%vc(:,:))
-         fragments%t_unit(:,:) = .unit. (fragments%r_unit(:,:) .cross. fragments%n_unit(:,:))
+         fragments%t_unit(:,:) = -.unit. (fragments%r_unit(:,:) .cross. fragments%n_unit(:,:))
 
       end associate
 
@@ -594,11 +594,11 @@ contains
       self%fragments%density(:) = 0.0_DP
       self%fragments%rmag(:) = 0.0_DP
       self%fragments%vmag(:) = 0.0_DP
-      self%fragments%Lorbit(:) = 0.0_DP
-      self%fragments%Lspin(:) = 0.0_DP
+      self%fragments%Lorbit_tot(:) = 0.0_DP
+      self%fragments%Lspin_tot(:) = 0.0_DP
       self%fragments%L_budget(:) = 0.0_DP
-      self%fragments%ke_orbit = 0.0_DP
-      self%fragments%ke_spin = 0.0_DP
+      self%fragments%ke_orbit_tot = 0.0_DP
+      self%fragments%ke_spin_tot = 0.0_DP
       self%fragments%ke_budget = 0.0_DP
 
       return

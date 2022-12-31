@@ -30,13 +30,13 @@ contains
       ! Internals
       integer(I4B)          :: i, ibiggest, nfrag
       character(len=STRMAX) :: message 
-      real(DP) :: dpe
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(impactors => self%impactors, status => self%status)
+
 
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -56,9 +56,6 @@ contains
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t)
 
-            dpe = self%pe(2) - self%pe(1) 
-            nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
-            nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
 
             associate (fragments => self%fragments)
                ! Populate the list of new bodies
@@ -79,6 +76,7 @@ contains
                end select
 
                call collision_resolve_mergeaddsub(nbody_system, param, t, status)
+ 
             end associate
          end associate
       end select
@@ -221,17 +219,16 @@ contains
       ! Result
       integer(I4B)                            :: status           !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, ibiggest, nfrag, jtarg, jproj
+      integer(I4B)                            :: i, ibiggest, jtarg, jproj, nfrag
       logical                                 :: lpure 
       character(len=STRMAX) :: message
-      real(DP) :: dpe
 
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
-         associate(impactors => self%impactors, nfrag => self%fragments%nbody)
+         associate(impactors => self%impactors)
             message = "Hit and run between"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
@@ -244,35 +241,23 @@ contains
                jproj = 1
             end if
 
-            ! The frag disruption model (and its extended types allow for non-pure hit and run. 
+            ! The Fraggle disruption model (and its extended types allow for non-pure hit and run. 
             if (impactors%mass_dist(2) > 0.9_DP * impactors%mass(jproj)) then ! Pure hit and run, so we'll just keep the two bodies untouched
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Pure hit and run. No new fragments generated.")
                nfrag = 0
                call self%collision_basic%hitandrun(nbody_system, param, t)
                lpure = .true.
                return
-            else ! Imperfect hit and run, so we'll keep the largest body and destroy the other
-               lpure = .false.
-               call self%set_mass_dist(param)
-
-               ! Generate the position and velocity distributions of the fragments
-               call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
-               call self%disrupt(nbody_system, param, t, lpure)
-               call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-
-               dpe = self%pe(2) - self%pe(1) 
-               nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
-               nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
-
-               if (lpure) then
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Should have been a pure hit and run instead")
-                  nfrag = 0
-               else
-                  nfrag = self%fragments%nbody
-                  write(message, *) nfrag
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
-               end if
             end if
+            lpure = .false.
+            call self%set_mass_dist(param)
+
+            ! Generate the position and velocity distributions of the fragments
+            call self%disrupt(nbody_system, param, t, lpure)
+            nfrag = self%fragments%nbody
+
+            write(message, *) nfrag
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Generating " // trim(adjustl(message)) // " fragments")
 
             ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
             self%fragments%id(1) = pl%id(ibiggest)
@@ -431,11 +416,12 @@ contains
       ! Internals
       integer(I4B) :: i, j, loop, istart, n, ndof
       logical :: lhitandrun, lnoncat
-      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual
+      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual, vshear, vunit
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
-      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXLOOP = 1000
+      real(DP), parameter :: TOL = 1e-4
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
@@ -467,7 +453,7 @@ contains
          ! Give the fragment velocities a random value that is scaled with fragment mass
          call random_number(mass_vscale)
          mass_vscale(:) = (mass_vscale(:) + 1.0_DP) / 2
-         mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP) ! The 1/8 power is arbitrary. It just gives the velocity a small mass dependence
+         mass_vscale(:) = mass_vscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
          mass_vscale(:) = mass_vscale(:) / minval(mass_vscale(:))
 
          ! Set the velocities of all fragments using all of the scale factors determined above
@@ -498,15 +484,15 @@ contains
          do loop = 1, MAXLOOP
             call collider%set_coordinate_system()
             call fragments%get_kinetic_energy()
-            ke_residual = fragments%ke_budget - (fragments%ke_orbit + fragments%ke_spin)
-            if (ke_residual > 0.0_DP) exit
+            ke_residual = fragments%ke_budget - (fragments%ke_orbit_tot + fragments%ke_spin_tot)
+            if ((ke_residual > 0.0_DP).and.(ke_residual <= fragments%ke_budget * TOL)) exit
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
-            ke_avail(:) = fragments%ke_orbit_frag(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
+            ke_avail(:) = fragments%ke_orbit(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
             ke_tot = 0.0_DP
             ke_per_dof = -ke_residual
             do i = 1, 2*(nfrag - istart + 1)
                n = count(ke_avail(istart:nfrag) > -ke_residual/i) 
-               if (ke_residual < 0.0_DP) n = n + count(fragments%ke_spin_frag(istart:nfrag) > -ke_residual/i)
+               if (ke_residual < 0.0_DP) n = n + count(fragments%ke_spin(istart:nfrag) > -ke_residual/i)
                if (abs(n * ke_per_dof) > ke_tot) then
                   ke_per_dof = -ke_residual/i
                   ke_tot = n * ke_per_dof
@@ -523,8 +509,8 @@ contains
                fragments%vmag(i) = sqrt(vmag)
                fragments%vc(:,i) = fragments%vmag(i) * .unit.fragments%vc(:,i)
             end do
-            do concurrent(i = istart:nfrag, fragments%ke_spin_frag(i) > ke_per_dof)
-               rotmag = fragments%rotmag(i)**2 - ke_per_dof/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
+            do concurrent(i = istart:nfrag, fragments%ke_spin(i) > ke_per_dof)
+               rotmag = fragments%rotmag(i)**2 - 2*ke_per_dof/(fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
                rotmag = max(rotmag, 0.0_DP)
                fragments%rotmag(i) = sqrt(rotmag)
                fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
@@ -533,11 +519,22 @@ contains
             ! Check for any residual angular momentum, and if there is any, put it into spin
             call collider%set_coordinate_system()
             call fragments%get_angular_momentum()
-            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit(:) + fragments%Lspin(:)) 
-            do concurrent(i = 1:nfrag)
-               rotmag = .mag. fragments%rot(:,i)
-               fragments%rot(:,i) = fragments%rot(:,i) + Lresidual(:) / (nfrag*fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i))
+            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
+            do concurrent(i = istart:nfrag)
+               vunit(:) = .unit. (Lresidual(:) .cross. fragments%r_unit(:,i))
+               vshear(:) = vunit(:) * (.mag.Lresidual(:) / ((nfrag-istart+1)*fragments%mass(i) * fragments%rmag(i)))
+               fragments%vc(:,i) = fragments%vc(:,i) + vshear(:)
             end do
+            call fragments%get_angular_momentum()
+            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
+            do concurrent(i = istart:nfrag)
+               fragments%Lspin(:,i) = fragments%Lspin(:,i) + Lresidual(:) / (nfrag-istart+1)
+               fragments%rot(:,i) = fragments%Lspin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i)) 
+            end do
+
+            call fragments%get_angular_momentum()
+            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
+
          end do
          lfailure = ke_residual < 0.0_DP
 

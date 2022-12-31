@@ -229,12 +229,15 @@ contains
       class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
       ! Internals
       integer(I4B) :: i
+      real(DP) :: vesc
 
       associate(collider => self, fragments => self%fragments, impactors => self%impactors)
          ! Set primary scale factors (mass, length, and time) based on the impactor properties at the time of collision
-         collider%mscale = fragments%mtot 
-         collider%dscale = sum(impactors%radius(:))
-         collider%tscale = collider%dscale / (.mag.(impactors%vc(:,2) - impactors%vc(:,1)))
+         collider%mscale = minval(fragments%mass(:))
+         collider%dscale = minval(fragments%radius(:))
+
+         vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
+         collider%tscale = collider%dscale / vesc
 
          ! Set secondary scale factors for convenience
          collider%vscale = collider%dscale / collider%tscale

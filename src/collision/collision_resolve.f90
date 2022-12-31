@@ -497,6 +497,7 @@ contains
       logical  :: lgoodcollision
       integer(I4B) :: i, loop, ncollisions
       integer(I4B), parameter :: MAXCASCADE = 1000
+      real(DP) :: dpe
   
       select type (nbody_system)
       class is (swiftest_nbody_system)
@@ -537,11 +538,23 @@ contains
                      idx_parent(2) = pl%kin(idx2(i))%parent
                      call impactors%consolidate(nbody_system, param, idx_parent, lgoodcollision)
                      if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
-      
                      call impactors%get_regime(nbody_system, param)
+
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
+
+                     call nbody_system%get_energy_and_momentum(param)
+                     collider%pe(1)  = nbody_system%pe
+
                      call collider%generate(nbody_system, param, t)
+
+                     call nbody_system%get_energy_and_momentum(param)
+                     collider%pe(2) = nbody_system%pe
+                     dpe = collider%pe(2) - collider%pe(1) 
+                     nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
+                     nbody_system%Euntracked  = nbody_system%Euntracked + dpe
+
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
+
                      plpl_collision%status(i) = collider%status
                      call impactors%reset()
                   end do

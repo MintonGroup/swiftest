@@ -89,36 +89,38 @@ module collision
 
    !> Class definition for the variables that describe a collection of fragments in barycentric coordinates
    type, extends(base_multibody) :: collision_fragments
-      real(DP)                                               :: mtot        !! Total mass of fragments       
-      class(base_particle_info), dimension(:),   allocatable :: info        !! Particle metadata information
-      integer(I4B),              dimension(nbody)            :: status      !! An integrator-specific status indicator 
-      real(DP),                  dimension(NDIM,nbody)       :: rh          !! Heliocentric position
-      real(DP),                  dimension(NDIM,nbody)       :: vh          !! Heliocentric velocity
-      real(DP),                  dimension(NDIM,nbody)       :: rb          !! Barycentric position
-      real(DP),                  dimension(NDIM,nbody)       :: vb          !! Barycentric velocity
-      real(DP),                  dimension(NDIM,nbody)       :: rot         !! rotation vectors of fragments
-      real(DP),                  dimension(NDIM,nbody)       :: Ip          !! Principal axes moment of inertia for fragments
-      real(DP),                  dimension(nbody)            :: mass        !! masses of fragments
-      real(DP),                  dimension(nbody)            :: radius      !! Radii  of fragments
-      real(DP),                  dimension(nbody)            :: density     !! Radii  of fragments
-      real(DP),                  dimension(NDIM,nbody)       :: rc          !! Position vectors in the collision coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: vc          !! Velocity vectors in the collision coordinate frame
-      real(DP),                  dimension(nbody)            :: rmag        !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
-      real(DP),                  dimension(nbody)            :: vmag        !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
-      real(DP),                  dimension(nbody)            :: rotmag      !! Array of rotation magnitudes of individual fragments 
-      real(DP),                  dimension(NDIM,nbody)       :: r_unit      !! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: v_unit      !! Array of velocity direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: t_unit      !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: n_unit      !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
-      integer(I1B),              dimension(nbody)            :: origin_body !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
-      real(DP), dimension(NDIM)                              :: Lorbit      !! Orbital angular momentum vector of all fragments
-      real(DP), dimension(NDIM)                              :: Lspin       !! Spin angular momentum vector of all fragments
-      real(DP)                                               :: ke_orbit    !! Orbital kinetic energy of all fragments
-      real(DP)                                               :: ke_spin     !! Spin kinetic energy of all fragments
-      real(DP)                                               :: ke_budget     !! Kinetic energy budget for computing fragment trajectories
-      real(DP), dimension(NDIM)                              :: L_budget      !! Angular momentum budget for computing fragment trajectories
-      real(DP),                  dimension(nbody)            :: ke_orbit_frag !! Orbital kinetic energy of each individual fragment
-      real(DP),                  dimension(nbody)            :: ke_spin_frag  !! Spin kinetic energy of each individual fragment
+      real(DP)                                               :: mtot         !! Total mass of fragments       
+      class(base_particle_info), dimension(:),   allocatable :: info         !! Particle metadata information
+      integer(I4B),              dimension(nbody)            :: status       !! An integrator-specific status indicator 
+      real(DP),                  dimension(NDIM,nbody)       :: rh           !! Heliocentric position
+      real(DP),                  dimension(NDIM,nbody)       :: vh           !! Heliocentric velocity
+      real(DP),                  dimension(NDIM,nbody)       :: rb           !! Barycentric position
+      real(DP),                  dimension(NDIM,nbody)       :: vb           !! Barycentric velocity
+      real(DP),                  dimension(NDIM,nbody)       :: rot          !! rotation vectors of fragments
+      real(DP),                  dimension(NDIM,nbody)       :: Ip           !! Principal axes moment of inertia for fragments
+      real(DP),                  dimension(nbody)            :: mass         !! masses of fragments
+      real(DP),                  dimension(nbody)            :: radius       !! Radii  of fragments
+      real(DP),                  dimension(nbody)            :: density      !! Radii  of fragments
+      real(DP),                  dimension(NDIM,nbody)       :: rc           !! Position vectors in the collision coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: vc           !! Velocity vectors in the collision coordinate frame
+      real(DP),                  dimension(nbody)            :: rmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
+      real(DP),                  dimension(nbody)            :: vmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
+      real(DP),                  dimension(nbody)            :: rotmag       !! Array of rotation magnitudes of individual fragments 
+      real(DP),                  dimension(NDIM,nbody)       :: r_unit       !! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: v_unit       !! Array of velocity direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: t_unit       !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(NDIM,nbody)       :: n_unit       !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
+      integer(I1B),              dimension(nbody)            :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
+      real(DP), dimension(NDIM)                              :: Lorbit_tot   !! Orbital angular momentum vector of all fragments
+      real(DP), dimension(NDIM)                              :: Lspin_tot    !! Spin angular momentum vector of all fragments
+      real(DP), dimension(NDIM,nbody)                        :: Lorbit       !! Orbital angular momentum vector of each individual fragment
+      real(DP), dimension(NDIM,nbody)                        :: Lspin        !! Spin angular momentum vector of each individual fragment
+      real(DP)                                               :: ke_orbit_tot !! Orbital kinetic energy of all fragments
+      real(DP)                                               :: ke_spin_tot  !! Spin kinetic energy of all fragments
+      real(DP)                                               :: ke_budget    !! Kinetic energy budget for computing fragment trajectories
+      real(DP), dimension(NDIM)                              :: L_budget     !! Angular momentum budget for computing fragment trajectories
+      real(DP),                  dimension(nbody)            :: ke_orbit     !! Orbital kinetic energy of each individual fragment
+      real(DP),                  dimension(nbody)            :: ke_spin      !! Spin kinetic energy of each individual fragment
    contains
       procedure :: reset                => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
       procedure :: get_angular_momentum => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments

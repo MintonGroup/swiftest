@@ -155,7 +155,7 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
       real(DP), dimension(NDIM)                 :: Lspin_new
-      real(DP)                                  :: volume, dpe
+      real(DP)                                  :: volume
       character(len=STRMAX) :: message
 
       select type(nbody_system)
@@ -207,11 +207,6 @@ contains
 
                   ! Get the energy of the system after the collision
                   call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-
-                  ! Keep track of the component of potential energy that is now not considered because two bodies became one
-                  dpe = self%pe(2) - self%pe(1)  
-                  nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
-                  nbody_system%Euntracked  = nbody_system%Euntracked + dpe 
 
                   ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
                   do k = 1, nbody_system%plpl_encounter%nenc
