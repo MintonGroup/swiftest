@@ -258,7 +258,6 @@ contains
          impactors%radius(:)      = impactors%radius(:)      / collider%dscale
          impactors%Lspin(:,:)     = impactors%Lspin(:,:)     / collider%Lscale
          impactors%Lorbit(:,:)    = impactors%Lorbit(:,:)    / collider%Lscale
-         impactors%bounce_unit(:) = impactors%bounce_unit(:) / collider%vscale
 
          do i = 1, 2
             impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
@@ -295,7 +294,6 @@ contains
          impactors%rbcom(:)       = impactors%rbcom(:) * collider%dscale
          impactors%vbcom(:)       = impactors%vbcom(:) * collider%vscale
          impactors%rbimp(:)       = impactors%rbimp(:) * collider%dscale
-         impactors%bounce_unit(:) = impactors%bounce_unit(:) * collider%vscale
 
          impactors%mass      = impactors%mass      * collider%mscale
          impactors%Gmass(:)  = impactors%Gmass(:)  * (collider%dscale**3/collider%tscale**2)

@@ -74,7 +74,7 @@ contains
       case(COLLRESOLVE_REGIME_HIT_AND_RUN)
          write(LUN, *) "Regime: Hit and run"
       end select
-      write(LUN, *) "Energy loss                  : ", impactors%Qloss
+      write(LUN, *) "Expected energy change       : ", -impactors%Qloss
       write(LUN, *) "--------------------------------------------------------------------"
       close(LUN)
 

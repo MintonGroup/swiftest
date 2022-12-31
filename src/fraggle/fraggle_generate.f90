@@ -93,12 +93,11 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision 
       logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
        ! Internals
-      integer(I4B)                         :: try
-      integer(I4B), parameter              :: MAXTRY = 100
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
+      real(DP)                             :: dE, dL
       character(len=STRMAX)                :: message
-      real(DP), parameter                  :: fail_scale_initial = 1.01_DP
+      real(DP), parameter                  :: fail_scale_initial = 1.001_DP
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
       ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
@@ -126,27 +125,23 @@ contains
          call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
          call self%set_natural_scale()
-
          call fragments%reset()
-
          lfailure_local = .false.
-
-
-         ! Use the disruption collision model to generate initial conditions
-         ! Compute the "before" energy/momentum and the budgets
          call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
          call self%set_budgets()
          self%fail_scale = fail_scale_initial
          call fraggle_generate_pos_vec(self)
          call fraggle_generate_rot_vec(self)
          call fraggle_generate_vel_vec(self,lfailure_local)
+         call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
          call self%set_original_scale()
+         dE = self%Etot(2) - self%Etot(1)
+         dL = .mag.(self%Ltot(:,2) - self%Ltot(:,1))
 
-         if (lfailure_local) then
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "This collision may have gained energy.")
-         else
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation succeeded.")
-         end if
+         write(message,*) dE
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Estimated energy change: " // trim(adjustl(message)))
+         write(message,*) dL
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Estimated angular momentum change: " // trim(adjustl(message)))
 
 
          ! Restore the big array
@@ -247,7 +242,7 @@ contains
       integer(I4B) :: i, j, loop
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 20000
-      real(DP), parameter :: rdistance_scale_factor = 0.05_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
+      real(DP), parameter :: rdistance_scale_factor = 0.20_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
                                                               ! The distance is chosen to be close to the original locations of the impactors
                                                               ! but far enough apart to prevent a collisional cascade between fragments 
 
@@ -257,15 +252,23 @@ contains
 
          ! We will treat the first two fragments of the list as special cases. 
          ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
-         fragment_cloud_radius(:) = impactors%radius(:)
          loverlap(:) = .true.
          rdistance(:) = rdistance_scale_factor * .mag.impactors%vc(:,:)
          do loop = 1, MAXLOOP
             if (.not.any(loverlap(:))) exit
             fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
+            if (lcat) then
+               fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
+            else
+               fragment_cloud_center(:,1) = impactors%rc(:,1) 
+            end if
             fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
-            fragment_cloud_radius(1) = .mag.(fragment_cloud_center(:,1) - impactors%rbimp(:))
-            fragment_cloud_radius(2) = .mag.(fragment_cloud_center(:,2) - impactors%rbimp(:))
+            if (lhitandrun) then
+               fragment_cloud_radius(:) = impactors%radius(:)
+            else
+               fragment_cloud_radius(1) = .mag.(fragment_cloud_center(:,1) - impactors%rbimp(:))
+               fragment_cloud_radius(2) = .mag.(fragment_cloud_center(:,2) - impactors%rbimp(:))
+            end if
             do concurrent(i = 1:nfrag, loverlap(i))
                if (i < 3) then
                   fragments%rc(:,i) = fragment_cloud_center(:,i)
@@ -369,7 +372,7 @@ contains
       logical,                  intent(out)   :: lfailure !! Did the velocity computation fail?
       ! Internals
       integer(I4B) :: i, j, loop, istart, n, ndof
-      logical :: lhitandrun, lnoncat
+      logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual, vshear, vunit
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot, ke_residual_min
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
@@ -380,7 +383,7 @@ contains
 
       associate(impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
-         lnoncat = (impactors%regime /= COLLRESOLVE_REGIME_SUPERCATASTROPHIC) ! For non-catastrophic impacts, make the fragments act like ejecta and point away from the impact point
+         lsupercat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
 
          allocate(fragments, source=collider%fragments)
 
@@ -479,15 +482,18 @@ contains
                fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
             end do
 
-            ! Check for any residual angular momentum, and if there is any, put it into spin
             call fragments%set_coordinate_system()
-            call fragments%get_angular_momentum()
-            Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
-            do concurrent(i = istart:nfrag)
-               vunit(:) = .unit. (Lresidual(:) .cross. fragments%r_unit(:,i))
-               vshear(:) = vunit(:) * (.mag.Lresidual(:) / ((nfrag-istart+1)*fragments%mass(i) * fragments%rmag(i)))
-               fragments%vc(:,i) = fragments%vc(:,i) + vshear(:)
-            end do
+            if (lsupercat) then
+               ! Put some of the residual angular momentum into velocity shear. Not too much, or we get some weird trajectories
+               call fragments%get_angular_momentum()
+               Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
+               do concurrent(i = istart:nfrag)
+                  vunit(:) = .unit. (Lresidual(:) .cross. fragments%r_unit(:,i))
+                  vshear(:) = vunit(:) * (.mag.Lresidual(:) / ((nfrag-istart+1)*fragments%mass(i) * fragments%rmag(i)))
+                  fragments%vc(:,i) = fragments%vc(:,i) + vshear(:)
+               end do
+            end if
+            ! Check for any residual angular momentum, and if there is any, put it into spin
             call fragments%get_angular_momentum()
             Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
             do concurrent(i = 1:nfrag)
