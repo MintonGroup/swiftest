@@ -247,7 +247,7 @@ contains
       integer(I4B) :: i, j, loop
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 20000
-      real(DP), parameter :: rdistance_scale_factor = 0.1_DP ! Scale factor to apply to distance scaling in the event of a fail
+      real(DP), parameter :: rdistance_scale_factor = 0.01_DP ! Scale factor to apply to distance scaling in the event of overlap
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
@@ -372,7 +372,7 @@ contains
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot, ke_residual_min
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
-      integer(I4B), parameter :: MAXLOOP = 2000
+      integer(I4B), parameter :: MAXLOOP = 1000
       real(DP), parameter :: TOL = 1e-2
       class(collision_fragments(:)), allocatable :: fragments
 
@@ -437,18 +437,16 @@ contains
          else 
             istart = 1
          end if
-         ke_residual_min = huge(1.0_DP)
+         call fragments%set_coordinate_system()
+         ke_residual_min = -huge(1.0_DP)
          do loop = 1, MAXLOOP
-            call fragments%set_coordinate_system()
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit_tot + fragments%ke_spin_tot)
-            if (abs(ke_residual) < abs(ke_residual_min)) then ! This is our best case so far. Save it for posterity
+            if ((abs(ke_residual) < abs(ke_residual_min)) .or. ((ke_residual >= 0.0_DP) .and. (ke_residual_min < 0.0_DP))) then ! This is our best case so far. Save it for posterity
                if (allocated(collider%fragments)) deallocate(collider%fragments)
                allocate(collider%fragments, source=fragments)
                ke_residual_min = ke_residual
             end if
-            ke_residual_min = max(ke_residual_min,ke_residual)
-            if (ke_residual > 0.0_DP) exit
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
             ke_tot = 0.0_DP
@@ -480,7 +478,6 @@ contains
             end do
 
             ! Check for any residual angular momentum, and if there is any, put it into spin
-            call fragments%set_coordinate_system()
             call fragments%get_angular_momentum()
             Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
             do concurrent(i = istart:nfrag)
