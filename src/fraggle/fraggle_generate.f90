@@ -131,7 +131,6 @@ contains
 
          lfailure_local = .false.
 
-         call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
 
          ! Use the disruption collision model to generate initial conditions
          ! Compute the "before" energy/momentum and the budgets
@@ -140,6 +139,7 @@ contains
          do try = 1, MAXTRY
             self%fail_scale = (fail_scale_initial)**try
             write(message,*) try
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
             call fraggle_generate_pos_vec(self)
             call fraggle_generate_rot_vec(self)
             call fraggle_generate_vel_vec(self,lfailure_local)
@@ -186,7 +186,6 @@ contains
       integer(I4B)                            :: i, ibiggest, jtarg, jproj, nfrag
       logical                                 :: lpure 
       character(len=STRMAX) :: message
-
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -250,12 +249,12 @@ contains
       ! Internals
       real(DP)  :: dis
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
-      real(DP), dimension(2) :: fragment_cloud_radius
+      real(DP), dimension(2) :: fragment_cloud_radius, rdistance
       logical, dimension(collider%fragments%nbody) :: loverlap
       integer(I4B) :: i, j, loop
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
-      real(DP) :: rdistance
+      real(DP), parameter :: rdistance_scale_factor = 0.01_DP ! Scale factor to apply to distance scaling in the event of a fail
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
@@ -263,16 +262,13 @@ contains
 
          ! We will treat the first two fragments of the list as special cases. 
          ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
-         rdistance = .mag. (impactors%rc(:,2) - impactors%rc(:,1)) - sum(fragments%radius(1:2))
-         rdistance = 0.5_DP*rdistance
-
          fragment_cloud_radius(:) = impactors%radius(:)
-
          loverlap(:) = .true.
+         rdistance(:) = rdistance_scale_factor * .mag.impactors%vc(:,:)
          do loop = 1, MAXLOOP
             if (.not.any(loverlap(:))) exit
-            fragment_cloud_center(:,1) = impactors%rc(:,1) !+ rdistance * impactors%bounce_unit(:)
-            fragment_cloud_center(:,2) = impactors%rc(:,2) !- rdistance * impactors%bounce_unit(:)
+            fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
+            fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
             do concurrent(i = 1:nfrag, loverlap(i))
                if (i < 3) then
                   fragments%rc(:,i) = fragment_cloud_center(:,i)
@@ -301,7 +297,7 @@ contains
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
-            rdistance = rdistance * collider%fail_scale
+            rdistance(:) = rdistance(:) * collider%fail_scale
             fragment_cloud_radius(:) = fragment_cloud_radius(:) * collider%fail_scale
          end do
 

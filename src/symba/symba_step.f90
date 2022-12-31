@@ -34,19 +34,17 @@ contains
       class is (symba_tp)
       select type(param)
       class is (swiftest_parameters)
-         associate(encounter_history => self%encounter_history)
-            call self%reset(param)
-            lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
-            if (lencounter) then
-               if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t, "trajectory") 
-               call self%interp(param, t, dt)
-               if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+dt, "trajectory") 
-            else
-               self%irec = -1
-               call helio_step_system(self, param, t, dt)
-            end if
-            param%lfirstkick = pl%lfirst
-         end associate
+         call self%reset(param)
+         lencounter = pl%encounter_check(param, self, dt, 0) .or. tp%encounter_check(param, self, dt, 0)
+         if (lencounter) then
+            if (param%lenc_save_trajectory) call self%encounter_history%take_snapshot(param, self, t, "trajectory") 
+            call self%interp(param, t, dt)
+            if (param%lenc_save_trajectory) call self%encounter_history%take_snapshot(param, self, t+dt, "trajectory") 
+         else
+            self%irec = -1
+            call helio_step_system(self, param, t, dt)
+         end if
+         param%lfirstkick = pl%lfirst
       end select
       end select
       end select
@@ -192,7 +190,7 @@ contains
       class is (symba_list_plpl)
       select type(pltp_encounter => self%pltp_encounter)
       class is (symba_list_pltp)
-         associate(nbody_system => self, lplpl_collision => plpl_encounter%lcollision, lpltp_collision => pltp_encounter%lcollision,  encounter_history => self%encounter_history)
+         associate(nbody_system => self, lplpl_collision => plpl_encounter%lcollision, lpltp_collision => pltp_encounter%lcollision)
             nbody_system%irec = ireci
             dtl = param%dt / (NTENC**ireci)
             dth = 0.5_DP * dtl
@@ -249,7 +247,7 @@ contains
                   if (lplpl_collision) call plpl_encounter%resolve_collision(nbody_system, param, t+j*dtl, dtl, ireci)
                   if (lpltp_collision) call pltp_encounter%resolve_collision(nbody_system, param, t+j*dtl, dtl, ireci)
                end if
-               if (param%lenc_save_trajectory) call encounter_history%take_snapshot(param, self, t+j*dtl, "trajectory") 
+               if (param%lenc_save_trajectory) call self%encounter_history%take_snapshot(param, self, t+j*dtl, "trajectory") 
 
                call self%set_recur_levels(ireci)
 

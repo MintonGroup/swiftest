@@ -17,8 +17,8 @@ contains
       !! Dumps the time history of an encounter to file.
       implicit none
       ! Arguments
-      class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
-      class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
+      class(base_parameters),      intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
 
@@ -33,7 +33,7 @@ contains
             write(nc%file_name, '("encounter_",I0.6,".nc")') nc%file_number
             call nc%initialize(param)
 
-            do i = 1, self%nframes
+            do i = 1, self%iframe
                if (allocated(self%frame(i)%item)) then
                   select type(snapshot => self%frame(i)%item)
                   class is (encounter_snapshot)

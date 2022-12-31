@@ -79,9 +79,7 @@ contains
       real(DP), dimension(NDIM)                 :: xr, vr
       integer(I4B)                              :: i, j, k, nenc
       real(DP)                                  :: rlim, Gmtot
-      logical                                   :: isplpl, lany_closest
-      character(len=STRMAX)                     :: timestr, idstri, idstrj, message
-      class(collision_list_plpl), allocatable   :: tmp       
+      logical                                   :: lany_closest
 
       lany_collision = .false.
       if (self%nenc == 0) return

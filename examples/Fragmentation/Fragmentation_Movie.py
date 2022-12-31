@@ -127,7 +127,7 @@ def encounter_combiner(sim):
     ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
    
     # Interpolate in time to make a smooth, constant time step dataset 
-    smooth_time =  np.linspace(start=tgood.isel(time=0), stop=tgood.isel(time=-1), num=2400)
+    smooth_time =  np.linspace(start=tgood.isel(time=0), stop=ds.time[-1], num=2400)
     ds = ds.interp(time=smooth_time)
 
     return ds

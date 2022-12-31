@@ -332,8 +332,6 @@ contains
       ! Arguments
       class(encounter_list), intent(inout) :: self !! Swiftest encounter structure
       integer(I8B),          intent(in)    :: n    !! Number of encounters to allocate space for
-      ! Internals
-      integer(I8B) :: i
 
       if (n < 0) return
       call self%dealloc()
@@ -450,7 +448,6 @@ contains
          end do
          deallocate(encounter_history)
          call move_alloc(tmp,encounter_history)
-         nnew = nbig
       end if
 
       ! Find out which time slot this belongs in by searching for an existing slot
