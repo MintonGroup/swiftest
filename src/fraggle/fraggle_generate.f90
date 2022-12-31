@@ -136,61 +136,30 @@ contains
          call fragments%reset()
 
          lfailure_local = .false.
-         try = 1
 
-         write(message,*) try
          call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle try " // trim(adjustl(message)))
-         if (lfailure_local) then
-            call fragments%reset()
-            try = try + 1
-         end if
-         lfailure_local = .false.
 
          ! Use the disruption collision model to generate initial conditions
          ! Compute the "before" energy/momentum and the budgets
          call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
          call self%set_budgets()
          do try = 1, MAXTRY
+            write(message,*) try
             call fraggle_generate_pos_vec(self)
             call fraggle_generate_rot_vec(self)
             call fraggle_generate_vel_vec(self,lfailure_local)
             if (.not.lfailure_local) exit
          end do
+         call self%set_original_scale()
 
-         call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
-         dEtot = self%Etot(2) - self%Etot(1)
-         dLmag = .mag. (self%Ltot(:,2) - self%Ltot(:,1))
-
-         lfailure_local = (dEtot > -impactors%Qloss) 
-         if (lfailure_local) then
-            write(message, *) "dEtot: ",dEtot, "dEtot/Qloss", dEtot / impactors%Qloss
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to energy gain: " // &
-                                                      trim(adjustl(message)))
-         end if
-
-         lfailure_local = ((abs(dLmag) / (.mag.self%Ltot(:,1))) > FRAGGLE_LTOL) 
-         if (lfailure_local) then
-            write(message,*) dLmag / (.mag.self%Ltot(:,1))
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed due to high angular momentum error: " // &
-                                                      trim(adjustl(message)))
-         end if
-
-         ! Check if any of the usual floating point exceptions happened, and fail the try if so
-         call ieee_get_flag(ieee_usual, fpe_flag)
-         lfailure_local = any(fpe_flag) 
-         write(message,*) "Fraggle failed due to a floating point exception: ", fpe_flag
-         call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-
-         write(message,*) try
          if (lfailure_local) then
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation failed after " // &
-                                                      trim(adjustl(message)) // " tries")
+                                                      trim(adjustl(message)) // " tries. This collision may have gained energy.")
          else
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle fragment generation succeeded after " // &
                                                        trim(adjustl(message)) // " tries")
          end if
 
-         call self%set_original_scale()
 
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
@@ -309,8 +278,8 @@ contains
          loverlap(:) = .true.
          do loop = 1, MAXLOOP
             if (.not.any(loverlap(:))) exit
-            fragment_cloud_center(:,1) = impactors%rc(:,1) + rdistance * impactors%bounce_unit(:)
-            fragment_cloud_center(:,2) = impactors%rc(:,2) - rdistance * impactors%bounce_unit(:)
+            fragment_cloud_center(:,1) = impactors%rc(:,1) !+ rdistance * impactors%bounce_unit(:)
+            fragment_cloud_center(:,2) = impactors%rc(:,2) !- rdistance * impactors%bounce_unit(:)
             do concurrent(i = 1:nfrag, loverlap(i))
                if (i < 3) then
                   fragments%rc(:,i) = fragment_cloud_center(:,i)
@@ -420,8 +389,8 @@ contains
       real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
-      integer(I4B), parameter :: MAXLOOP = 1000
-      real(DP), parameter :: TOL = 1e-4
+      integer(I4B), parameter :: MAXLOOP = 100
+      real(DP), parameter :: TOL = 1e-2
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
@@ -485,7 +454,7 @@ contains
             call collider%set_coordinate_system()
             call fragments%get_kinetic_energy()
             ke_residual = fragments%ke_budget - (fragments%ke_orbit_tot + fragments%ke_spin_tot)
-            if ((ke_residual > 0.0_DP).and.(ke_residual <= fragments%ke_budget * TOL)) exit
+            if (ke_residual > 0.0_DP) exit
             ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
             ke_avail(:) = fragments%ke_orbit(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
             ke_tot = 0.0_DP
@@ -527,8 +496,8 @@ contains
             end do
             call fragments%get_angular_momentum()
             Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
-            do concurrent(i = istart:nfrag)
-               fragments%Lspin(:,i) = fragments%Lspin(:,i) + Lresidual(:) / (nfrag-istart+1)
+            do concurrent(i = 1:nfrag)
+               fragments%Lspin(:,i) = fragments%Lspin(:,i) + Lresidual(:) / nfrag
                fragments%rot(:,i) = fragments%Lspin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i)) 
             end do
 
