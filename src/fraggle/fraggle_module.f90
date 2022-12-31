@@ -19,8 +19,8 @@ module fraggle
    type, extends(collision_fragments) :: fraggle_fragments
    contains
 
-      procedure :: reset                => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
-      final     ::                         fraggle_final_fragments           !! Finalizer will deallocate all allocatables
+      procedure :: reset => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      final     ::          fraggle_final_fragments           !! Finalizer will deallocate all allocatables
    end type fraggle_fragments
 
 
@@ -31,7 +31,8 @@ module fraggle
       real(DP) :: tscale = 1.0_DP !! Time scale factor
       real(DP) :: vscale = 1.0_DP !! Velocity scale factor (a convenience unit that is derived from dscale and tscale)
       real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
-      real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
+      real(DP) :: Lscale = 1.0_DP !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
+      real(DP) :: fail_scale      !! Scale factor to apply to distance values in the position model when overlaps occur. 
    contains
       procedure :: disrupt                    => fraggle_generate_disrupt                !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: generate                   => fraggle_generate                        !! A simple disruption models that does not constrain energy loss in collisions

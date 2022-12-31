@@ -98,6 +98,7 @@ contains
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       character(len=STRMAX)                :: message
+      real(DP), parameter                  :: fail_scale_initial = 1.001_DP
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
       ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
@@ -137,6 +138,7 @@ contains
          call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
          call self%set_budgets()
          do try = 1, MAXTRY
+            self%fail_scale = (fail_scale_initial)**try
             write(message,*) try
             call fraggle_generate_pos_vec(self)
             call fraggle_generate_rot_vec(self)
@@ -254,8 +256,6 @@ contains
       logical :: lcat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP) :: rdistance
-      real(DP), parameter :: fail_scale = 1.001_DP ! Scale factor to apply to cloud radius and distance if cloud generation fails
-
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
          lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
@@ -301,8 +301,8 @@ contains
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
-            rdistance = rdistance * fail_scale
-            fragment_cloud_radius(:) = fragment_cloud_radius(:) * fail_scale
+            rdistance = rdistance * collider%fail_scale
+            fragment_cloud_radius(:) = fragment_cloud_radius(:) * collider%fail_scale
          end do
 
          call collision_util_shift_vector_to_origin(fragments%mass, fragments%rc)
