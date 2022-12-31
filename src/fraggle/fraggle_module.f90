@@ -32,6 +32,7 @@ module fraggle
       real(DP) :: vscale = 1.0_DP !! Velocity scale factor (a convenience unit that is derived from dscale and tscale)
       real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
       real(DP) :: Lscale = 1.0_DP  !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
+      real(DP) :: fail_scale = 1.0001_DP !! A multiplier on the position vector function that gets larger every time there is a failure. This can help get the energy & momentum constraints solved on tricky off-axis cases
    contains
       procedure :: disrupt                    => fraggle_generate_disrupt                !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: generate                   => fraggle_generate                        !! A simple disruption models that does not constrain energy loss in collisions
