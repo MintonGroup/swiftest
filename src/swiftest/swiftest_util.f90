@@ -1322,7 +1322,9 @@ contains
             nbody_system%Lspin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
          end if
 
-         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe
+         nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl))
+
+         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be
          nbody_system%Ltot(:) = nbody_system%Lorbit(:) + nbody_system%Lspin(:)
       end associate
 

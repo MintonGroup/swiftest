@@ -117,14 +117,15 @@ contains
       logical,                   intent(in)         :: lescape_body
       ! Internals
       real(DP), dimension(NDIM) :: Lpl, Ltot, Lcb, xcom, vcom
-      real(DP)                  :: pe, ke_orbit, ke_spin
+      real(DP)                  :: pe, be, ke_orbit, ke_spin
       integer(I4B)              :: i, oldstat
    
       select type(cb => nbody_system%cb)
       class is (symba_cb)
    
-         ! Add the potential and kinetic energy of the lost body to the records
+         ! Add the potential, binding, and kinetic energy of the lost body to the records
          pe = -cb%Gmass * pl%mass(ipl) / norm2(pl%rb(:, ipl) - cb%rb(:))
+         be = -3*pl%Gmass(ipl) * pl%mass(ipl) / (5 * pl%radius(ipl))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
             ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
@@ -194,11 +195,8 @@ contains
    
          ! We must do this for proper book-keeping, since we can no longer track this body's contribution to energy directly
          if (lescape_body) then
-            nbody_system%Ecollisions  = nbody_system%Ecollisions + ke_orbit + ke_spin + pe
-            nbody_system%Euntracked  = nbody_system%Euntracked - (ke_orbit + ke_spin + pe)
-         else
-            nbody_system%Ecollisions  = nbody_system%Ecollisions + pe 
-            nbody_system%Euntracked = nbody_system%Euntracked - pe
+            nbody_system%Ecollisions  = nbody_system%Ecollisions + ke_orbit + ke_spin + pe + be
+            nbody_system%Euntracked  = nbody_system%Euntracked - (ke_orbit + ke_spin + pe + be)
          end if
    
       end select

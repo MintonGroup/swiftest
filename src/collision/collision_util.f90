@@ -200,15 +200,16 @@ contains
    end subroutine collision_util_get_angular_momentum
 
 
-   module subroutine collision_util_get_kinetic_energy(self) 
+   module subroutine collision_util_get_energy(self) 
       !! Author: David A. Minton
       !!
-      !! Calculates the current kinetic energy of the fragments
+      !! Calculates the current energy of the fragments
       implicit none
       ! Argument
       class(collision_fragments(*)), intent(inout)  :: self !! Fragment system object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i,j
+      real(DP), dimension(self%nbody) :: pepl
 
       associate(fragments => self, nfrag => self%nbody)
    
@@ -222,10 +223,19 @@ contains
          fragments%ke_orbit_tot = sum(fragments%ke_orbit(:))
          fragments%ke_spin_tot = sum(fragments%ke_spin(:))
 
+         fragments%pe = 0.0_DP
+         do i = 1, nfrag
+            do concurrent(j = i+1:nfrag)
+               pepl(j) = - (fragments%Gmass(i) * fragments%mass(j)) / .mag.(fragments%rc(:,i) - fragments%rc(:,j))
+            end do
+            fragments%pe = fragments%pe + sum(pepl(i+1:nfrag))
+         end do
+         fragments%be = -sum(3*fragments%Gmass(:)*fragments%mass(:)/(5*fragments%radius(:)))
+
       end associate
 
       return
-   end subroutine collision_util_get_kinetic_energy
+   end subroutine collision_util_get_energy
 
 
    module subroutine collision_util_get_energy_momentum(self,  nbody_system, param, lbefore)
@@ -242,9 +252,10 @@ contains
       class(base_parameters),   intent(inout) :: param   !! Current swiftest run configuration parameters
       logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
       ! Internals
-      integer(I4B)  :: stage,i
+      integer(I4B)  :: stage,i,j
       real(DP), dimension(NDIM) :: Lorbit, Lspin
-      real(DP) :: ke_orbit, ke_spin
+      real(DP) :: ke_orbit, ke_spin, pe, be
+      real(DP), dimension(self%fragments%nbody) :: pepl
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -254,7 +265,6 @@ contains
 
 
             if (lbefore) then
-
                Lorbit(:) = sum(impactors%Lorbit(:,:), dim=2)
                Lspin(:) = sum(impactors%Lspin(:,:), dim=2)
                ke_orbit = 0.0_DP
@@ -265,15 +275,20 @@ contains
                end do
                ke_orbit = ke_orbit / 2
                ke_spin = ke_spin / 2
+
+               pe = -(impactors%Gmass(1) * impactors%mass(2)) / .mag.(impactors%rc(:,2) - impactors%rc(:,1))
+               be = -sum(3*impactors%Gmass(:)*impactors%mass(:)/(5*impactors%radius(:)))
                
             else
                call fragments%get_angular_momentum()
                Lorbit(:) = fragments%Lorbit_tot(:) 
                Lspin(:) = fragments%Lspin_tot(:) 
 
-               call fragments%get_kinetic_energy()
+               call fragments%get_energy()
                ke_orbit = fragments%ke_orbit_tot
                ke_spin = fragments%ke_spin_tot
+               pe = fragments%pe
+               be = fragments%be
 
             end if 
             ! Calculate the current fragment energy and momentum balances
@@ -287,7 +302,9 @@ contains
             self%Ltot(:,stage) = Lorbit(:) + Lspin(:)
             self%ke_orbit(stage) = ke_orbit
             self%ke_spin(stage) = ke_spin
-            self%Etot(stage) = ke_orbit + ke_spin
+            self%pe(stage) = pe
+            self%be(stage) = be
+            self%Etot(stage) = ke_orbit + ke_spin + pe + be
          end associate
       end select
       end select
@@ -429,7 +446,7 @@ contains
       associate(impactors => self%impactors, fragments => self%fragments)
 
          fragments%L_budget(:) = self%Ltot(:,1)
-         fragments%ke_budget = self%Etot(1) - impactors%Qloss
+         fragments%E_budget = self%Etot(1) - impactors%Qloss
 
       end associate
       
@@ -616,7 +633,7 @@ contains
       self%fragments%L_budget(:) = 0.0_DP
       self%fragments%ke_orbit_tot = 0.0_DP
       self%fragments%ke_spin_tot = 0.0_DP
-      self%fragments%ke_budget = 0.0_DP
+      self%fragments%E_budget = 0.0_DP
 
       return
    end subroutine collision_util_setup_fragments_collider

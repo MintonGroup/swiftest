@@ -98,6 +98,7 @@ module collision
       real(DP),                  dimension(NDIM,nbody)       :: vb           !! Barycentric velocity
       real(DP),                  dimension(NDIM,nbody)       :: rot          !! rotation vectors of fragments
       real(DP),                  dimension(NDIM,nbody)       :: Ip           !! Principal axes moment of inertia for fragments
+      real(DP),                  dimension(nbody)            :: Gmass        !! G*mass of fragments
       real(DP),                  dimension(nbody)            :: mass         !! masses of fragments
       real(DP),                  dimension(nbody)            :: radius       !! Radii  of fragments
       real(DP),                  dimension(nbody)            :: density      !! Radii  of fragments
@@ -117,14 +118,16 @@ module collision
       real(DP), dimension(NDIM,nbody)                        :: Lspin        !! Spin angular momentum vector of each individual fragment
       real(DP)                                               :: ke_orbit_tot !! Orbital kinetic energy of all fragments
       real(DP)                                               :: ke_spin_tot  !! Spin kinetic energy of all fragments
-      real(DP)                                               :: ke_budget    !! Kinetic energy budget for computing fragment trajectories
+      real(DP)                                               :: pe           !! Potential energy of all fragments
+      real(DP)                                               :: be           !! Binding energy of all fragments
+      real(DP)                                               :: E_budget    !! Kinetic energy budget for computing fragment trajectories
       real(DP), dimension(NDIM)                              :: L_budget     !! Angular momentum budget for computing fragment trajectories
       real(DP),                  dimension(nbody)            :: ke_orbit     !! Orbital kinetic energy of each individual fragment
       real(DP),                  dimension(nbody)            :: ke_spin      !! Spin kinetic energy of each individual fragment
    contains
       procedure :: reset                 => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
       procedure :: get_angular_momentum  => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
-      procedure :: get_kinetic_energy    => collision_util_get_kinetic_energy   !! Calcualtes the current kinetic energy of the fragments
+      procedure :: get_energy    => collision_util_get_energy   !! Calcualtes the current kinetic energy of the fragments
       procedure :: set_coordinate_system => collision_util_set_coordinate_fragments !! Sets the coordinate system of the fragments
       final     ::                          collision_final_fragments           !! Finalizer deallocates all allocatables
    end type collision_fragments
@@ -148,6 +151,7 @@ module collision
       real(DP), dimension(2)      :: ke_orbit !! Before/after orbital kinetic energy
       real(DP), dimension(2)      :: ke_spin  !! Before/after spin kinetic energy
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
+      real(DP), dimension(2)      :: be       !! Before/after binding energy
       real(DP), dimension(2)      :: Etot     !! Before/after total nbody_system energy
    contains
       procedure :: setup                      => collision_util_setup_collider             !! Initializer for the encounter collision system and the before/after snapshots
@@ -385,10 +389,10 @@ module collision
          class(collision_fragments(*)), intent(inout) :: self !! Fragment system object
       end subroutine collision_util_get_angular_momentum
 
-      module subroutine collision_util_get_kinetic_energy(self) 
+      module subroutine collision_util_get_energy(self) 
          implicit none
          class(collision_fragments(*)), intent(inout) :: self !! Fragment system object
-      end subroutine collision_util_get_kinetic_energy
+      end subroutine collision_util_get_energy
 
       module subroutine collision_util_reset_fragments(self)
          implicit none

@@ -331,6 +331,7 @@ module swiftest
       real(DP)                        :: ke_orbit = 0.0_DP      !! nbody_system orbital kinetic energy
       real(DP)                        :: ke_spin = 0.0_DP       !! nbody_system spin kinetic energy
       real(DP)                        :: pe = 0.0_DP            !! nbody_system potential energy
+      real(DP)                        :: be = 0.0_DP            !! nbody_system binding energy of all bodies
       real(DP)                        :: te = 0.0_DP            !! nbody_system total energy
       real(DP)                        :: oblpot = 0.0_DP        !! nbody_system potential energy due to oblateness of the central body
       real(DP), dimension(NDIM)       :: Lorbit = 0.0_DP        !! nbody_system orbital angular momentum vector
@@ -339,6 +340,7 @@ module swiftest
       real(DP)                        :: ke_orbit_orig = 0.0_DP !! Initial orbital kinetic energy
       real(DP)                        :: ke_spin_orig = 0.0_DP  !! Initial spin kinetic energy
       real(DP)                        :: pe_orig = 0.0_DP       !! Initial potential energy
+      real(DP)                        :: be_orig = 0.0_DP       !! Initial binding energy
       real(DP)                        :: Eorbit_orig = 0.0_DP   !! Initial orbital energy
       real(DP)                        :: GMtot_orig = 0.0_DP    !! Initial nbody_system mass
       real(DP), dimension(NDIM)       :: Ltot_orig = 0.0_DP     !! Initial total angular momentum vector
@@ -353,6 +355,7 @@ module swiftest
       real(DP)                        :: ke_orbit_error   = 0.0_DP
       real(DP)                        :: ke_spin_error    = 0.0_DP
       real(DP)                        :: pe_error         = 0.0_DP
+      real(DP)                        :: be_error         = 0.0_DP
       real(DP)                        :: Eorbit_error     = 0.0_DP
       real(DP)                        :: Ecoll_error      = 0.0_DP
       real(DP)                        :: Euntracked_error = 0.0_DP

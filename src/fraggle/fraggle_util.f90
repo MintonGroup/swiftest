@@ -72,7 +72,7 @@ contains
       integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, min_mfrag, mtot, mcumul
+      real(DP) :: mfrag, mremaining, min_mfrag, mtot, mcumul, G
       real(DP), parameter :: BETA = 2.85_DP
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
@@ -86,6 +86,7 @@ contains
          ! Get mass weighted mean of Ip and density
          volume(1:2) = 4._DP / 3._DP * PI * impactors%radius(1:2)**3
          mtot = sum(impactors%mass(:))
+         G = impactors%Gmass(1) / impactors%mass(1)
          Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / mtot
 
          if (impactors%mass(1) > impactors%mass(2)) then
@@ -133,6 +134,7 @@ contains
             select type(fragments => self%fragments)
             class is (collision_fragments(*))
                fragments%mass(1) = impactors%mass_dist(1)
+               fragments%Gmass(1) = G * impactors%mass_dist(1)
                fragments%radius(1) = impactors%radius(jtarg)
                fragments%density(1) = impactors%mass_dist(1) / volume(jtarg)
                if (param%lrotation) fragments%Ip(:, 1) = impactors%Ip(:,1)
@@ -171,6 +173,8 @@ contains
             mremaining = fragments%mtot - sum(fragments%mass(1:nfrag))
             fragments%mass(nfrag) = fragments%mass(nfrag) + mremaining
 
+            fragments%Gmass(:) = G * fragments%mass(:)
+
             ! Compute physical properties of the new fragments
             select case(impactors%regime)
             case(COLLRESOLVE_REGIME_HIT_AND_RUN)  ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical properties of the first fragment
@@ -190,25 +194,25 @@ contains
 
             ! For catastrophic impacts, we will assign each of the n>2 fragments to one of the two original bodies so that the fragment cloud occupies 
             ! roughly the same space as both original bodies. For all other disruption cases, we use body 2 as the center of the cloud.
-               fragments%origin_body(1) = 1
-               fragments%origin_body(2) = 2
-               if (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
-                  mcumul = fragments%mass(1)
-                  flipper = .true.
-                  j = 2
-                  do i = 1, nfrag
-                     if (flipper .and. (mcumul < impactors%mass(1))) then
-                        flipper = .false.
-                        j = 1
-                     else
-                        j = 2
-                        flipper = .true.
-                     end if
-                     fragments%origin_body(i) = j
-                  end do
-               else
-                  fragments%origin_body(3:nfrag) = 2
-               end if
+            fragments%origin_body(1) = 1
+            fragments%origin_body(2) = 2
+            if (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
+               mcumul = fragments%mass(1)
+               flipper = .true.
+               j = 2
+               do i = 1, nfrag
+                  if (flipper .and. (mcumul < impactors%mass(1))) then
+                     flipper = .false.
+                     j = 1
+                  else
+                     j = 2
+                     flipper = .true.
+                  end if
+                  fragments%origin_body(i) = j
+               end do
+            else
+               fragments%origin_body(3:nfrag) = 2
+            end if
 
          end select
 
@@ -263,10 +267,11 @@ contains
             impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
 
-         fragments%mtot   = fragments%mtot   / collider%mscale
-         fragments%mass   = fragments%mass   / collider%mscale
-         fragments%radius = fragments%radius / collider%dscale
-         impactors%Qloss  = impactors%Qloss  / collider%Escale
+         fragments%mtot      = fragments%mtot      / collider%mscale
+         fragments%mass(:)   = fragments%mass(:)   / collider%mscale
+         fragments%Gmass(:)  = fragments%Gmass(:)  / (collider%dscale**3/collider%tscale**2)
+         fragments%radius(:) = fragments%radius(:) / collider%dscale
+         impactors%Qloss     = impactors%Qloss     / collider%Escale
       end associate
 
       return
@@ -310,12 +315,13 @@ contains
             impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
    
-         fragments%mtot   = fragments%mtot   * collider%mscale
-         fragments%mass   = fragments%mass   * collider%mscale
-         fragments%radius = fragments%radius * collider%dscale
-         fragments%rot    = fragments%rot    / collider%tscale
-         fragments%rc     = fragments%rc     * collider%dscale
-         fragments%vc     = fragments%vc     * collider%vscale
+         fragments%mtot      = fragments%mtot        * collider%mscale
+         fragments%mass(:)   = fragments%mass(:)     * collider%mscale
+         fragments%Gmass(:)  = fragments%Gmass(:)    * (collider%dscale**3/collider%tscale**2)
+         fragments%radius(:) = fragments%radius(:)   * collider%dscale
+         fragments%rot(:,:)  = fragments%rot(:,:)    / collider%tscale
+         fragments%rc(:,:)   = fragments%rc(:,:)     * collider%dscale
+         fragments%vc(:,:)   = fragments%vc(:,:)     * collider%vscale
    
          do i = 1, fragments%nbody
             fragments%rb(:, i) = fragments%rc(:, i) + impactors%rbcom(:)
@@ -330,6 +336,7 @@ contains
          collider%ke_orbit(:) = collider%ke_orbit(:) * collider%Escale
          collider%ke_spin(:)  = collider%ke_spin(:)  * collider%Escale
          collider%pe(:)       = collider%pe(:)       * collider%Escale
+         collider%be(:)       = collider%be(:)       * collider%Escale
          collider%Etot(:)     = collider%Etot(:)     * collider%Escale
    
          collider%mscale = 1.0_DP
