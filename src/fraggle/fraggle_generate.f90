@@ -373,7 +373,7 @@ contains
       integer(I4B) :: i, j, loop, try, istart, n, ndof
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual, vshear, vunit
-      real(DP) :: vmag, vesc, rotmag, ke_residual, ke_per_dof, ke_tot, ke_residual_min
+      real(DP) :: vmag, vesc, rotmag, E_residual, ke_per_dof, ke_tot, E_residual_min
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, mass_vscale, ke_avail
       integer(I4B), parameter :: MAXLOOP = 100
@@ -442,30 +442,30 @@ contains
             istart = 1
          end if
          call fragments%set_coordinate_system()
-         ke_residual_min = -huge(1.0_DP)
+         E_residual_min = -huge(1.0_DP)
          outer: do try = 1, MAXTRY
             do loop = 1, MAXLOOP
-               call fragments%get_kinetic_energy()
-               ke_residual = fragments%ke_budget - (fragments%ke_orbit_tot + fragments%ke_spin_tot)
-               if ((abs(ke_residual) < abs(ke_residual_min)) .or. ((ke_residual >= 0.0_DP) .and. (ke_residual_min < 0.0_DP))) then ! This is our best case so far. Save it for posterity
+               call fragments%get_energy()
+               E_residual = fragments%E_budget - (fragments%ke_orbit_tot + fragments%ke_spin_tot + fragments%pe + fragments%be)
+               if ((abs(E_residual) < abs(E_residual_min)) .or. ((E_residual >= 0.0_DP) .and. (E_residual_min < 0.0_DP))) then ! This is our best case so far. Save it for posterity
                   if (allocated(collider%fragments)) deallocate(collider%fragments)
                   allocate(collider%fragments, source=fragments)
-                  ke_residual_min = ke_residual
-                  if ((ke_residual > 0.0_DP) .and. (ke_residual < TOL * fragments%ke_budget)) exit outer
+                  E_residual_min = E_residual
+                  if ((E_residual > 0.0_DP) .and. (E_residual < TOL * fragments%E_budget)) exit outer
                end if
                ! Make sure we don't take away too much orbital kinetic energy, otherwise the fragment can't escape
                ke_avail(:) = fragments%ke_orbit(:) - impactors%Gmass(1)*impactors%mass(2)/fragments%rmag(:)
                ke_tot = 0.0_DP
-               ke_per_dof = -ke_residual
+               ke_per_dof = -E_residual
                do i = 1, 2*(nfrag - istart + 1)
-                  n = count(ke_avail(istart:nfrag) > -ke_residual/i) 
-                  if (ke_residual < 0.0_DP) n = n + count(fragments%ke_spin(istart:nfrag) > -ke_residual/i)
+                  n = count(ke_avail(istart:nfrag) > -E_residual/i) 
+                  if (E_residual < 0.0_DP) n = n + count(fragments%ke_spin(istart:nfrag) > -E_residual/i)
                   if (abs(n * ke_per_dof) > ke_tot) then
-                     ke_per_dof = -ke_residual/i
+                     ke_per_dof = -E_residual/i
                      ke_tot = n * ke_per_dof
                      ndof = i
-                     if (abs(ke_tot) > abs(ke_residual)) then
-                        ke_tot = -ke_residual
+                     if (abs(ke_tot) > abs(E_residual)) then
+                        ke_tot = -E_residual
                         ke_per_dof = ke_tot/n
                         exit
                      end if
@@ -511,7 +511,7 @@ contains
             call fraggle_generate_rot_vec(collider)
             collider%fail_scale = collider%fail_scale*1.01_DP
          end do outer
-         lfailure = ke_residual < 0.0_DP
+         lfailure = E_residual < 0.0_DP
 
          do concurrent(i = 1:nfrag)
             fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)

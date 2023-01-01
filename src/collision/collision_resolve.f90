@@ -548,10 +548,6 @@ contains
                      call collider%generate(nbody_system, param, t)
 
                      call nbody_system%get_energy_and_momentum(param)
-                     collider%pe(2) = nbody_system%pe
-                     dpe = collider%pe(2) - collider%pe(1) 
-                     nbody_system%Ecollisions = nbody_system%Ecollisions - dpe 
-                     nbody_system%Euntracked  = nbody_system%Euntracked + dpe
 
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
 

@@ -155,7 +155,7 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
       real(DP), dimension(NDIM)                 :: Lspin_new
-      real(DP)                                  :: volume
+      real(DP)                                  :: volume, G
       character(len=STRMAX) :: message
 
       select type(nbody_system)
@@ -185,7 +185,9 @@ contains
 
                   ! Compute the physical properties of the new body after the merge.
                   volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
+                  G = nbody_system%collider%impactors%Gmass(1) / nbody_system%collider%impactors%mass(1)
                   fragments%mass(1) = impactors%mass_dist(1)
+                  fragments%Gmass(1) = G * fragments%mass(1)
                   fragments%density(1) = fragments%mass(1) / volume
                   fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
                   if (param%lrotation) then
