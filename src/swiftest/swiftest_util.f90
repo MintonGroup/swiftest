@@ -2552,104 +2552,101 @@ contains
       type(encounter_storage)  :: encounter_history
       type(collision_storage)  :: collision_history
 
-      select type(param)
-      class is (swiftest_parameters)
-         allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
-         allocate(swiftest_netcdf_parameters :: param%system_history%nc)
-         call param%system_history%reset()
+      allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
+      allocate(swiftest_netcdf_parameters :: param%system_history%nc)
+      call param%system_history%reset()
 
-         select case(param%integrator)
-         case (INT_BS)
-            write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
-         case (INT_HELIO)
-            allocate(helio_nbody_system :: nbody_system)
-            select type(nbody_system)
-            class is (helio_nbody_system)
-               allocate(helio_cb :: nbody_system%cb)
-               allocate(helio_pl :: nbody_system%pl)
-               allocate(helio_tp :: nbody_system%tp)
-               allocate(helio_tp :: nbody_system%tp_discards)
-            end select
-            param%collision_model = "MERGE"
-         case (INT_RA15)
-            write(*,*) 'Radau integrator not yet enabled'
-         case (INT_TU4)
-            write(*,*) 'INT_TU4 integrator not yet enabled'
-         case (INT_WHM)
-            allocate(whm_nbody_system :: nbody_system)
-            select type(nbody_system)
-            class is (whm_nbody_system)
-               allocate(whm_cb :: nbody_system%cb)
-               allocate(whm_pl :: nbody_system%pl)
-               allocate(whm_tp :: nbody_system%tp)
-               allocate(whm_tp :: nbody_system%tp_discards)
-            end select
-            param%collision_model = "MERGE"
-         case (INT_RMVS)
-            allocate(rmvs_nbody_system :: nbody_system)
-            select type(nbody_system)
-            class is (rmvs_nbody_system)
-               allocate(rmvs_cb :: nbody_system%cb)
-               allocate(rmvs_pl :: nbody_system%pl)
-               allocate(rmvs_tp :: nbody_system%tp)
-               allocate(rmvs_tp :: nbody_system%tp_discards)
-            end select
-            param%collision_model = "MERGE"
-         case (INT_SYMBA)
-            allocate(symba_nbody_system :: nbody_system)
-            select type(nbody_system)
-            class is (symba_nbody_system)
-               allocate(symba_cb :: nbody_system%cb)
-               allocate(symba_pl :: nbody_system%pl)
-               allocate(symba_tp :: nbody_system%tp)
+      select case(param%integrator)
+      case (INT_BS)
+         write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
+      case (INT_HELIO)
+         allocate(helio_nbody_system :: nbody_system)
+         select type(nbody_system)
+         class is (helio_nbody_system)
+            allocate(helio_cb :: nbody_system%cb)
+            allocate(helio_pl :: nbody_system%pl)
+            allocate(helio_tp :: nbody_system%tp)
+            allocate(helio_tp :: nbody_system%tp_discards)
+         end select
+         param%collision_model = "MERGE"
+      case (INT_RA15)
+         write(*,*) 'Radau integrator not yet enabled'
+      case (INT_TU4)
+         write(*,*) 'INT_TU4 integrator not yet enabled'
+      case (INT_WHM)
+         allocate(whm_nbody_system :: nbody_system)
+         select type(nbody_system)
+         class is (whm_nbody_system)
+            allocate(whm_cb :: nbody_system%cb)
+            allocate(whm_pl :: nbody_system%pl)
+            allocate(whm_tp :: nbody_system%tp)
+            allocate(whm_tp :: nbody_system%tp_discards)
+         end select
+         param%collision_model = "MERGE"
+      case (INT_RMVS)
+         allocate(rmvs_nbody_system :: nbody_system)
+         select type(nbody_system)
+         class is (rmvs_nbody_system)
+            allocate(rmvs_cb :: nbody_system%cb)
+            allocate(rmvs_pl :: nbody_system%pl)
+            allocate(rmvs_tp :: nbody_system%tp)
+            allocate(rmvs_tp :: nbody_system%tp_discards)
+         end select
+         param%collision_model = "MERGE"
+      case (INT_SYMBA)
+         allocate(symba_nbody_system :: nbody_system)
+         select type(nbody_system)
+         class is (symba_nbody_system)
+            allocate(symba_cb :: nbody_system%cb)
+            allocate(symba_pl :: nbody_system%pl)
+            allocate(symba_tp :: nbody_system%tp)
 
-               allocate(symba_tp :: nbody_system%tp_discards)
-               allocate(symba_pl :: nbody_system%pl_adds)
-               allocate(symba_pl :: nbody_system%pl_discards)
+            allocate(symba_tp :: nbody_system%tp_discards)
+            allocate(symba_pl :: nbody_system%pl_adds)
+            allocate(symba_pl :: nbody_system%pl_discards)
 
-               allocate(symba_list_pltp :: nbody_system%pltp_encounter)
-               allocate(symba_list_plpl :: nbody_system%plpl_encounter)
-               allocate(collision_list_plpl :: nbody_system%plpl_collision)
+            allocate(symba_list_pltp :: nbody_system%pltp_encounter)
+            allocate(symba_list_plpl :: nbody_system%plpl_encounter)
+            allocate(collision_list_plpl :: nbody_system%plpl_collision)
 
-               if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
-                  allocate(encounter_netcdf_parameters :: encounter_history%nc)
-                  call encounter_history%reset()
-                  select type(nc => encounter_history%nc)
-                  class is (encounter_netcdf_parameters)
-                     nc%file_number = param%iloop / param%dump_cadence
-                  end select
-                  allocate(nbody_system%encounter_history, source=encounter_history)
-               end if
-               
-               allocate(collision_netcdf_parameters :: collision_history%nc)
-               call collision_history%reset()
-               select type(nc => collision_history%nc)
-               class is (collision_netcdf_parameters)
+            if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+               allocate(encounter_netcdf_parameters :: encounter_history%nc)
+               call encounter_history%reset()
+               select type(nc => encounter_history%nc)
+               class is (encounter_netcdf_parameters)
                   nc%file_number = param%iloop / param%dump_cadence
                end select
-               allocate(nbody_system%collision_history, source=collision_history)
-
+               allocate(nbody_system%encounter_history, source=encounter_history)
+            end if
+            
+            allocate(collision_netcdf_parameters :: collision_history%nc)
+            call collision_history%reset()
+            select type(nc => collision_history%nc)
+            class is (collision_netcdf_parameters)
+               nc%file_number = param%iloop / param%dump_cadence
             end select
-         case (INT_RINGMOONS)
-            write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
-         case default
-            write(*,*) 'Unkown integrator',param%integrator
-            call util_exit(FAILURE)
+            allocate(nbody_system%collision_history, source=collision_history)
+
          end select
-
-         allocate(swiftest_particle_info :: nbody_system%cb%info)
-
-         select case(param%collision_model)
-         case("MERGE")
-            allocate(collision_basic :: nbody_system%collider)
-         case("BOUNCE")
-            allocate(collision_bounce :: nbody_system%collider)
-         case("FRAGGLE")
-            allocate(collision_fraggle :: nbody_system%collider)
-         end select
-         call nbody_system%collider%setup(nbody_system)
-
+      case (INT_RINGMOONS)
+         write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
+      case default
+         write(*,*) 'Unkown integrator',param%integrator
+         call util_exit(FAILURE)
       end select
+
+      allocate(swiftest_particle_info :: nbody_system%cb%info)
+
+      select case(param%collision_model)
+      case("MERGE")
+         allocate(collision_basic :: nbody_system%collider)
+      case("BOUNCE")
+         allocate(collision_bounce :: nbody_system%collider)
+      case("FRAGGLE")
+         allocate(collision_fraggle :: nbody_system%collider)
+      end select
+      call nbody_system%collider%setup(nbody_system)
+
 
       return
    end subroutine swiftest_util_setup_construct_system
