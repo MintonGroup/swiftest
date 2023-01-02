@@ -65,7 +65,6 @@ SET(FAST_MATH_FILES
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
-            ${SRC}/swiftest/swiftest_kick.f90       
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
             ${SRC}/swiftest/swiftest_util.f90
