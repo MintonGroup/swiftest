@@ -7,11 +7,11 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(whm_classes) whm_drift
+submodule(whm) whm_drift
    use swiftest
 contains
 
-   module subroutine whm_drift_pl(self, system, param, dt)
+   module subroutine whm_drift_pl(self, nbody_system, param, dt)
       !! author: David A. Minton
       !!
       !! Loop through planets and call Danby drift routine
@@ -21,7 +21,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_nbody_system),  intent(inout) :: system !! WHM nbody system object
+      class(swiftest_nbody_system),  intent(inout) :: nbody_system !! WHM nbody system object
       class(swiftest_parameters),    intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                      intent(in)    :: dt     !! Stepsize
       ! Internals
@@ -33,7 +33,7 @@ contains
       associate(pl => self, npl => self%nbody)
          allocate(iflag(npl))
          iflag(:) = 0
-         call drift_all(pl%muj, pl%xj, pl%vj, npl, param, dt, pl%lmask, iflag)
+         call swiftest_drift_all(pl%muj, pl%xj, pl%vj, npl, param, dt, pl%lmask, iflag)
          if (any(iflag(1:npl) /= 0)) then
             where(iflag(1:npl) /= 0) 
                pl%status(1:npl) = DISCARDED_DRIFTERR

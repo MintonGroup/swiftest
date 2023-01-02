@@ -7,7 +7,7 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(whm_classes) s_whm_step
+submodule(whm) s_whm_step
    use swiftest
 contains
 
@@ -25,17 +25,17 @@ contains
       real(DP),                   intent(in)    :: t     !! Current simulation time
       real(DP),                   intent(in)    :: dt    !! Current stepsize
 
-      associate(system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp)
          tp%lfirst = pl%lfirst
-         call pl%step(system, param, t, dt)
-         call tp%step(system, param, t, dt)
-         ! if (param%ltides) call system%step_spin(param, t, dt)
+         call pl%step(nbody_system, param, t, dt)
+         call tp%step(nbody_system, param, t, dt)
+         ! if (param%ltides) call nbody_system%step_spin(param, t, dt)
       end associate
       return
    end subroutine whm_step_system 
 
 
-   module subroutine whm_step_pl(self, system, param, t, dt)
+   module subroutine whm_step_pl(self, nbody_system, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step planets ahead using kick-drift-kick algorithm
@@ -46,7 +46,7 @@ contains
       implicit none
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t     !! Current simulation time
       real(DP),                     intent(in)    :: dt    !! Current stepsize
@@ -55,22 +55,22 @@ contains
       
       if (self%nbody == 0) return
 
-      associate(pl => self, cb => system%cb)
+      associate(pl => self, cb => nbody_system%cb)
          dth = 0.5_DP * dt
-         call pl%kick(system, param, t, dth,lbeg=.true.)
+         call pl%kick(nbody_system, param, t, dth,lbeg=.true.)
          call pl%vh2vj(cb) 
-         if (param%lgr) call pl%gr_pos_kick(system, param, dth)
-         call pl%drift(system, param, dt)
-         if (param%lgr) call pl%gr_pos_kick(system, param, dth)
+         if (param%lgr) call pl%gr_pos_kick(nbody_system, param, dth)
+         call pl%drift(nbody_system, param, dt)
+         if (param%lgr) call pl%gr_pos_kick(nbody_system, param, dth)
          call pl%j2h(cb)
-         call pl%kick(system, param, t + dt, dth, lbeg=.false.)
+         call pl%kick(nbody_system, param, t + dt, dth, lbeg=.false.)
       end associate
 
       return
    end subroutine whm_step_pl
 
 
-   module subroutine whm_step_tp(self, system, param, t, dt)
+   module subroutine whm_step_tp(self, nbody_system, param, t, dt)
       !! author: David A. Minton
       !!
       !! Step active test particles ahead using kick-drift-kick algorithm
@@ -80,7 +80,7 @@ contains
       implicit none
       ! Arguments
       class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t     !! Current simulation time
       real(DP),                     intent(in)    :: dt    !! Current stepsize
@@ -89,15 +89,15 @@ contains
 
       if (self%nbody == 0) return
 
-      select type(system)
+      select type(nbody_system)
       class is (whm_nbody_system)
-         associate(tp => self, cb => system%cb, pl => system%pl)
+         associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl)
             dth = 0.5_DP * dt
-            call tp%kick(system, param, t, dth, lbeg=.true.)
-            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-            call tp%drift(system, param, dt)
-            if (param%lgr) call tp%gr_pos_kick(system, param, dth)
-            call tp%kick(system, param, t + dt, dth, lbeg=.false.)
+            call tp%kick(nbody_system, param, t, dth, lbeg=.true.)
+            if (param%lgr) call tp%gr_pos_kick(nbody_system, param, dth)
+            call tp%drift(nbody_system, param, dt)
+            if (param%lgr) call tp%gr_pos_kick(nbody_system, param, dth)
+            call tp%kick(nbody_system, param, t + dt, dth, lbeg=.false.)
          end associate
       end select
 

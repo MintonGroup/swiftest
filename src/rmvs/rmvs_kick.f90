@@ -7,11 +7,11 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(rmvs_classes) s_rmvs_kick
+submodule(rmvs) s_rmvs_kick
    use swiftest
 contains  
 
-   module subroutine rmvs_kick_getacch_tp(self, system, param, t, lbeg)
+   module subroutine rmvs_kick_getacch_tp(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute the oblateness acceleration in the inner encounter region with planets 
@@ -21,32 +21,32 @@ contains
       implicit none
       ! Arguments
       class(rmvs_tp),               intent(inout) :: self   !! RMVS test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest central body particle data structuree 
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest central body particle data structuree 
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       class(swiftest_parameters), allocatable   :: param_planetocen
-      real(DP), dimension(:, :), allocatable    :: xh_original
+      real(DP), dimension(:, :), allocatable    :: rh_original
       real(DP)                                  :: GMcb_original
       integer(I4B)                              :: i
 
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, ipleP => self%ipleP, inner_index => self%index)
-         select type(system)
+         select type(nbody_system)
          class is (rmvs_nbody_system)
-            if (system%lplanetocentric) then  ! This is a close encounter step, so any accelerations requiring heliocentric position values
+            if (nbody_system%lplanetocentric) then  ! This is a close encounter step, so any accelerations requiring heliocentric position values
                                               ! must be handeled outside the normal WHM method call
-               select type(pl => system%pl)
+               select type(pl => nbody_system%pl)
                class is (rmvs_pl)
-                  select type (cb => system%cb)
+                  select type (cb => nbody_system%cb)
                   class is (rmvs_cb)
-                     associate(xpc => pl%xh, xpct => self%xh, apct => self%ah, system_planetocen => system)
+                     associate(xpc => pl%rh, xpct => self%rh, apct => self%ah, system_planetocen => nbody_system)
                         system_planetocen%lbeg = lbeg
 
                         ! Save the original heliocentric position for later
-                        allocate(xh_original, source=tp%xh)
+                        allocate(rh_original, source=tp%rh)
 
                         ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter using a copy of the parameter list with all of the heliocentric-specific acceleration terms turned off
                         allocate(param_planetocen, source=param)
@@ -60,17 +60,17 @@ contains
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
                            do concurrent(i = 1:ntp, tp%lmask(i))
-                              tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(inner_index - 1)%x(:,1)
+                              tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index - 1)%x(:,1)
                            end do
                         else
                            do concurrent(i = 1:ntp, tp%lmask(i))
-                              tp%xheliocentric(:,i) = tp%xh(:,i) + cb%inner(inner_index    )%x(:,1)
+                              tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index    )%x(:,1)
                            end do
                         end if
 
                         ! Swap the planetocentric and heliocentric position vectors and central body masses
                         do concurrent(i = 1:ntp, tp%lmask(i))
-                           tp%xh(:, i) = tp%xheliocentric(:, i)
+                           tp%rh(:, i) = tp%rheliocentric(:, i)
                         end do
                         GMcb_original = cb%Gmass
                         cb%Gmass = tp%cb_heliocentric%Gmass
@@ -81,14 +81,14 @@ contains
                         if (param%lgr) call tp%accel_gr(param)
 
                         ! Put everything back the way we found it
-                        call move_alloc(xh_original, tp%xh)
+                        call move_alloc(rh_original, tp%rh)
                         cb%Gmass = GMcb_original
 
                      end associate
                   end select
                end select
             else ! Not a close encounter, so just proceded with the standard WHM method
-               call whm_kick_getacch_tp(tp, system, param, t, lbeg)
+               call whm_kick_getacch_tp(tp, nbody_system, param, t, lbeg)
             end if
          end select
       end associate

@@ -21,32 +21,36 @@ STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
 
 IF(BT STREQUAL "RELEASE")
     SET(CMAKE_BUILD_TYPE RELEASE CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, or TESTING."
+      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
       FORCE)
 ELSEIF(BT STREQUAL "DEBUG")
     SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, or TESTING."
+      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
       FORCE)
 ELSEIF(BT STREQUAL "TESTING")
     SET (CMAKE_BUILD_TYPE TESTING CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, or TESTING."
+      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
       FORCE)
+ELSEIF(BT STREQUAL "PROFILE")
+    SET (CMAKE_BUILD_TYPE PROFILE CACHE STRING
+      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
+      FORCE)      
 ELSEIF(NOT BT)
     SET(CMAKE_BUILD_TYPE RELEASE CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, or TESTING."
+      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
       FORCE)
     MESSAGE(STATUS "CMAKE_BUILD_TYPE not given, defaulting to RELEASE")
 ELSE()
-    MESSAGE(FATAL_ERROR "CMAKE_BUILD_TYPE not valid, choices are DEBUG, RELEASE, or TESTING")
+    MESSAGE(FATAL_ERROR "CMAKE_BUILD_TYPE not valid, choices are DEBUG, RELEASE, PROFILE, or TESTING")
 ENDIF(BT STREQUAL "RELEASE")
 
 #########################################################
 # If the compiler flags have already been set, return now
 #########################################################
 
-IF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG)
+IF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE)
     RETURN ()
-ENDIF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG)
+ENDIF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE)
 
 ########################################################################
 # Determine the appropriate flags for this compiler for each build type.
@@ -81,7 +85,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
 ###################
 ### DEBUG FLAGS ###
 ###################
-
 # NOTE: debugging symbols (-g or /debug:full) are already on by default
 
 # Disable optimizations
@@ -163,7 +166,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
 
 # Aligns a variable to a specified boundary and offset
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-                 Fortran "-align all" # Intel
+                 Fortran "-align all -align array64byte" # Intel
                 )
 
 # Enables changing the variable and array memory layout
@@ -215,14 +218,13 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_TESTING "${CMAKE_Fortran_FLAGS_TESTING}"
 #####################
 ### RELEASE FLAGS ###
 #####################
-
 # NOTE: agressive optimizations (-O3) are already turned on by default
 
 # Unroll loops
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-funroll-loops" # GNU
-                         "-unroll"        # Intel
+                 Fortran "-unroll"        # Intel
                          "/unroll"        # Intel Windows
+                         "-funroll-loops" # GNU
                          "-Munroll"       # Portland Group
                 )
 
@@ -234,19 +236,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                          "-Minline"           # Portland Group
                 )
 
-# Interprocedural (link-time) optimizations
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-ipo"     # Intel
-                         "/Qipo"    # Intel Windows
-                         "-flto"    # GNU
-                         "-Mipa"    # Portland Group
-                )
-
-# Single-file optimizations
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-ip"  # Intel
-                         "/Qip" # Intel Windows
-                )
 
 # Allows for lines longer than 80 characters without truncation
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
@@ -299,7 +288,34 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-fma" # Intel
                 )
 
-# Enables agressive optimixation on floating-points
+# Generate fused multiply-add instructions
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-fp-model=fast" # Intel
+                 Fortran "-qmkl=cluster" # Intel
+                 Fortran "-qmkl" # Intel
+                 Fortran "-mkl" # Old Intel
+                ) 
+
+#####################
+### MATH FLAGS ###
+#####################
+# Some subroutines require more strict floating point operation optimizations for repeatability
+SET_COMPILE_FLAG(STRICTMATH_FLAGS "${STRICTMATH_FLAGS}"
+                  Fortran "-fp-model=precise -prec-div -prec-sqrt -assume protect-parens" # Intel
+                          "/fp:precise /Qprec-div /Qprec-sqrt /assume:protect-parens" # Intel Windows 
+                  )
+
+# Most subroutines can use aggressive optimization of floating point operations without problems.           
+SET_COMPILE_FLAG(FASTMATH_FLAGS "${FASTMATH_FLAGS}"
+                  Fortran "-fp-model=fast"
+                          "/fp:fast"
+                  )
+
+#####################
+### PROFILE FLAGS ###
+#####################
+# Enables the optimization reports to be generated
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
+                 Fortran "-pg -qopt-report=5 -traceback -p -g3" # Intel
+                         "/Qopt-report:5 /traceback -g3" # Windows Intel
+                         "-pg -fbacktrace"
                 )
