@@ -328,8 +328,6 @@ class Simulation:
         else:
             if read_old_output or read_param:
                 raise NotADirectoryError(f"Cannot find directory {self.simdir.resolve()} ")
-            else:
-                self.simdir.mkdir(parents=True, exist_ok=False)
 
         # Set the location of the parameter input file, choosing the default if it isn't specified.
         param_file = kwargs.pop("param_file",Path.cwd() / self.simdir / "param.in")
@@ -1279,9 +1277,8 @@ class Simulation:
                 key = valid_var[arg]
                 if key in feature_dict:
                     if arg == "minimum_fragment_gmass":
-                        if self.param['FRAGMENTATION']:
-                           print(f"{arg:<{self._getter_column_width}} {feature_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
-                           print(f"{'minimum_fragment_mass':<{self._getter_column_width}} {feature_dict[key] / self.GU} {self.MU_name}")
+                        print(f"{arg:<{self._getter_column_width}} {feature_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
+                        print(f"{'minimum_fragment_mass':<{self._getter_column_width}} {feature_dict[key] / self.GU} {self.MU_name}")
                     else:
                         print(f"{arg:<{self._getter_column_width}} {feature_dict[key]}")
                 else:
@@ -2174,7 +2171,6 @@ class Simulation:
 
         return
 
-
     def set_ephemeris_date(self,
                           ephemeris_date: str | None = None,
                           verbose: bool | None = None,
@@ -2638,7 +2634,8 @@ class Simulation:
         if verbose:
             print(f"Writing parameter inputs to file {param_file}")
         param['! VERSION'] = f"{codename} input file"
-
+        
+        self.simdir.mkdir(parents=True, exist_ok=True)
         # Check to see if the parameter type matches the output type. If not, we need to convert
         if codename == "Swifter" or codename == "Swiftest":
             if param['IN_TYPE'] == "ASCII":
@@ -2781,7 +2778,6 @@ class Simulation:
 
         return
 
-
     def read_collisions(self):
         col_files = glob(f"{self.simdir}{os.path.sep}collision_*.nc")
         if len(col_files) == 0:
@@ -2800,7 +2796,6 @@ class Simulation:
         self.collisions = io.process_netcdf_input(self.collisions, self.param)
 
         return
-
 
     def follow(self, codestyle="Swifter"):
         """
@@ -2871,8 +2866,8 @@ class Simulation:
         if "verbose" in kwargs:
             verbose = kwargs['verbose']
         else:
-            verbose = self%verbose
-
+            verbose = self.verbose
+        
         if codename is None:
             codename = self.codename
         if param_file is None:
@@ -2880,6 +2875,7 @@ class Simulation:
         if param is None:
             param = self.param
 
+        self.simdir.mkdir(parents=True, exist_ok=True)
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
             io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)

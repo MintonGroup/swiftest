@@ -2094,7 +2094,6 @@ contains
             return
          end if
 
-
          if ((param%collision_model /= "MERGE")       .and. &
              (param%collision_model /= "BOUNCE")    .and. &
              (param%collision_model /= "FRAGGLE")) then
@@ -2126,7 +2125,6 @@ contains
             param%inv_c2 = einsteinC * param%TU2S / param%DU2M
             param%inv_c2 = (param%inv_c2)**(-2)
          end if
-
 
          select case(trim(adjustl(param%interaction_loops)))
          case("ADAPTIVE")
@@ -2230,6 +2228,7 @@ contains
       character(*),parameter :: Ifmt  = '(I0)'         !! Format label for integer values
       character(*),parameter :: Rfmt  = '(ES25.17)'    !! Format label for real values 
       character(*),parameter :: Lfmt  = '(L1)'         !! Format label for logical values 
+      integer(I4B)                   :: nseeds
 
       associate(param => self)
          call io_param_writer_one("T0", param%t0, unit)
@@ -2275,6 +2274,7 @@ contains
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)
+         call io_param_writer_one("ENCOUNTER_SAVE", param%encounter_save, unit)
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
@@ -2282,6 +2282,14 @@ contains
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
          call io_param_writer_one("MAXID",param%maxid, unit)
          call io_param_writer_one("MAXID_COLLISION",param%maxid_collision, unit)
+
+         if (param%GMTINY > 0.0_DP) call io_param_writer_one("GMTINY",param%GMTINY, unit)
+         if (param%min_GMfrag > 0.0_DP) call io_param_writer_one("MIN_GMFRAG",param%min_GMfrag, unit)
+         call io_param_writer_one("COLLISION_MODEL",param%collision_model, unit)
+         if (param%collision_model == "FRAGGLE" ) then
+            nseeds = size(param%seed)
+            call io_param_writer_one("SEED", [nseeds, param%seed(:)], unit)
+         end if
    
          iostat = 0
          iomsg = "UDIO not implemented"
@@ -2835,7 +2843,6 @@ contains
    
       return
    end subroutine swiftest_io_toupper
-
 
 
    module subroutine swiftest_io_write_discard(self, param)

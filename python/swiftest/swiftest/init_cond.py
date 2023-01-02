@@ -285,8 +285,8 @@ def vec2xr(param: Dict, **kwargs: Any):
     if param['ROTATION']:
         if "rot" not in kwargs and "Gmass" in kwargs:
             kwargs['rot'] = np.zeros((len(kwargs['Gmass']),3))
-        if "Ip" not in kwargs and "rot" in kwargs:
-            kwargs['Ip'] = np.full_like(kwargs['rot'], 0.4)
+        if "Ip" not in kwargs and "Gmass" in kwargs:
+            kwargs['Ip'] = np.full_like(kwargs['Gmass'], 0.4)
 
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])
