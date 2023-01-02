@@ -101,19 +101,15 @@ module globals
 
    !> Standard file names
    integer(I4B), parameter :: NDUMPFILES = 2
-   character(*), dimension(2), parameter :: DUMP_CB_FILE    = ['dump_cb1.bin',    'dump_cb2.bin'  ]
-   character(*), dimension(2), parameter :: DUMP_PL_FILE    = ['dump_pl1.bin',    'dump_pl2.bin'  ]
-   character(*), dimension(2), parameter :: DUMP_TP_FILE    = ['dump_tp1.bin',    'dump_tp2.bin'  ]
-   character(*), dimension(2), parameter :: DUMP_NC_FILE    = ['dump_bin1.nc',    'dump_bin2.nc'  ]
-   character(*), dimension(2), parameter :: DUMP_PARAM_FILE = ['dump_param1.in',  'dump_param2.in']
-   character(*),               parameter :: SWIFTEST_LOG_FILE = "swiftest.log" !! Name of file to use to log output when using "COMPACT" display style
-   integer(I4B),               parameter :: SWIFTEST_LOG_OUT = 33 !! File unit for log file when using "COMPACT" display style 
+   character(*), parameter :: PARAM_RESTART_FILE = "param.restart.in"
+   character(*), parameter :: SWIFTEST_LOG_FILE = "swiftest.log" !! Name of file to use to log output when using "COMPACT" display style
+   integer(I4B), parameter :: SWIFTEST_LOG_OUT = 33 !! File unit for log file when using "COMPACT" display style 
 
    !> Default file names that can be changed by the user in the parameters file
    character(*), parameter :: CB_INFILE        = 'cb.in'
    character(*), parameter :: PL_INFILE        = 'pl.in'
    character(*), parameter :: TP_INFILE        = 'tp.in'
-   character(*), parameter :: NC_INFILE        = 'in.nc'
+   character(*), parameter :: NC_INFILE        = 'init_cond.nc'
    character(*), parameter :: BIN_OUTFILE      = 'data.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file

@@ -378,7 +378,7 @@ module swiftest
       procedure :: compact_output          => swiftest_io_compact_output                      !! Prints out out terminal output when display_style is set to COMPACT
       procedure :: conservation_report     => swiftest_io_conservation_report                 !! Compute energy and momentum and print out the change with time
       procedure :: dump                    => swiftest_io_dump_system                         !! Dump the state of the nbody_system to a file
-      procedure :: get_old_t_final         => swiftest_io_netcdf_get_old_t_final_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      procedure :: get_t0_values         => swiftest_io_netcdf_get_t0_values_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
       procedure :: read_frame              => swiftest_io_netcdf_read_frame_system               !! Read in a frame of input data from file
       procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system              !! Write a frame of input data from file
       procedure :: write_frame_system      => swiftest_io_write_frame_system                  !! Write a frame of input data from file
@@ -623,100 +623,99 @@ module swiftest
 
       module subroutine swiftest_io_netcdf_flush(self, param)
          implicit none
-         class(swiftest_netcdf_parameters), intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_flush
 
-      module function swiftest_io_netcdf_get_old_t_final_system(self, param) result(old_t_final)
+      module subroutine swiftest_io_netcdf_get_t0_values_system(self, param) 
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self        !! Swiftest nbody system object
-         class(swiftest_parameters),       intent(inout) :: param       !! Current run configuration parameters 
-         real(DP)                                    :: old_t_final !! Final time from last run
-      end function swiftest_io_netcdf_get_old_t_final_system
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      end subroutine swiftest_io_netcdf_get_t0_values_system
 
       module subroutine swiftest_io_netcdf_initialize_output(self, param)
          implicit none
          class(swiftest_netcdf_parameters), intent(inout) :: self  !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters),               intent(in)    :: param !! Current run configuration parameters 
+         class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_initialize_output
 
       module subroutine swiftest_io_netcdf_open(self, param, readonly)
          implicit none
          class(swiftest_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),               intent(in)    :: param    !! Current run configuration parameters
-         logical, optional,                    intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+         class(swiftest_parameters),        intent(in)    :: param    !! Current run configuration parameters
+         logical, optional,                 intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       end subroutine swiftest_io_netcdf_open
 
       module function swiftest_io_netcdf_read_frame_system(self, nc, param) result(ierr)
          implicit none
-         class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest nbody_system object
+         class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for reading a NetCDF dataset to file
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
-         integer(I4B)                                    :: ierr  !! Error code: returns 0 if the read is successful
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
+         integer(I4B)                                     :: ierr  !! Error code: returns 0 if the read is successful
       end function swiftest_io_netcdf_read_frame_system
 
       module subroutine swiftest_io_netcdf_read_hdr_system(self, nc, param) 
          implicit none
-         class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for reading a NetCDF dataset to file
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_io_netcdf_read_hdr_system
 
       module subroutine swiftest_io_netcdf_read_particle_info_system(self, nc, param, plmask, tpmask)
          implicit none
-         class(swiftest_nbody_system),     intent(inout) :: self   !! Swiftest nbody system object
+         class(swiftest_nbody_system),      intent(inout) :: self   !! Swiftest nbody system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
-         logical, dimension(:),            intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
-         logical, dimension(:),            intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
+         class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
+         logical, dimension(:),             intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
+         logical, dimension(:),             intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
       end subroutine swiftest_io_netcdf_read_particle_info_system
 
       module subroutine swiftest_io_netcdf_write_frame_body(self, nc, param)
          implicit none
-         class(swiftest_body),             intent(in)    :: self  !! Swiftest base object
+         class(swiftest_body),              intent(in)    :: self  !! Swiftest base object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_write_frame_body
 
       module subroutine swiftest_io_netcdf_write_frame_cb(self, nc, param)
          implicit none
-         class(swiftest_cb),               intent(in)    :: self  !! Swiftest base object
+         class(swiftest_cb),                intent(in)    :: self  !! Swiftest base object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_write_frame_cb
 
       module subroutine swiftest_io_netcdf_write_frame_system(self, nc, param)
          implicit none
-         class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest nbody_system object
+         class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody_system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_write_frame_system
 
       module subroutine swiftest_io_netcdf_write_hdr_system(self, nc, param) 
          implicit none
-         class(swiftest_nbody_system),     intent(in)    :: self  !! Swiftest nbody system object
+         class(swiftest_nbody_system),      intent(in)    :: self  !! Swiftest nbody system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_io_netcdf_write_hdr_system
 
       module subroutine swiftest_io_netcdf_write_info_body(self, nc, param)
          implicit none
-         class(swiftest_body),             intent(in)    :: self  !! Swiftest particle object
-         class(swiftest_netcdf_parameters), intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
+         class(swiftest_body),              intent(in)    :: self  !! Swiftest particle object
+         class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_io_netcdf_write_info_body
 
       module subroutine swiftest_io_netcdf_write_info_cb(self, nc, param)
          implicit none
-         class(swiftest_cb),               intent(in)    :: self  !! Swiftest particle object
-         class(swiftest_netcdf_parameters), intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
+         class(swiftest_cb),                intent(in)    :: self  !! Swiftest particle object
+         class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_io_netcdf_write_info_cb
 
       module subroutine swiftest_io_write_discard(self, param)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_write_discard
 
       module subroutine swiftest_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 

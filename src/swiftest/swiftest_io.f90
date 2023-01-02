@@ -237,42 +237,26 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      class(swiftest_parameters), allocatable :: dump_param !! Local parameters variable used to parameters change input file names 
+      class(swiftest_parameters), allocatable :: param_restart !! Local parameters variable used to parameters change input file names 
                                                             !! to dump file-specific values without changing the user-defined values
-      integer(I4B), save            :: idx = 1              !! Index of current dump file. Output flips between 2 files for extra security
-                                                            !! in case the program halts during writing
       character(len=:), allocatable :: param_file_name
    
-      allocate(dump_param, source=param)
-      param_file_name    = trim(adjustl(DUMP_PARAM_FILE(idx)))
-      dump_param%in_form  = "XV"
-      dump_param%out_stat = 'APPEND'
-      dump_param%in_type = "NETCDF_DOUBLE"
-      dump_param%in_netcdf = trim(adjustl(DUMP_NC_FILE(idx)))
-      associate(nc => dump_param%system_history%nc)
-         nc%name_chunk = self%pl%nbody + self%tp%nbody
-         nc%time_chunk = 1
-         dump_param%tstart = self%t
-
-         call dump_param%dump(param_file_name)
-
-         dump_param%out_form = "XV"
-         nc%file_name = trim(adjustl(DUMP_NC_FILE(idx)))
-         dump_param%ioutput = 1 
-         call nc%initialize(dump_param)
-         call self%write_frame(nc, dump_param)
-         call nc%close()
-      end associate
-
-      idx = idx + 1
-      if (idx > NDUMPFILES) idx = 1
-
       ! Dump the encounter history if necessary
       if (param%lenc_save_trajectory .or. param%lenc_save_closest .and. allocated(self%encounter_history)) call self%encounter_history%dump(param)
       if (allocated(self%collision_history)) call self%collision_history%dump(param)
 
       ! Dump the nbody_system history to file
       call param%system_history%dump(param)
+
+      allocate(param_restart, source=param)
+      param_file_name    = trim(adjustl(PARAM_RESTART_FILE))
+      param_restart%in_form  = "XV"
+      param_restart%out_stat = 'APPEND'
+      param_restart%in_type = "NETCDF_DOUBLE"
+      param_restart%nc_in = param%outfile
+      param_restart%lrestart = .true.
+      param_restart%tstart = self%t
+      call param_restart%dump(param_file_name)
 
       return
    end subroutine swiftest_io_dump_system
@@ -294,18 +278,22 @@ contains
       integer(I8B) :: iloop_start
 
       if (self%iframe == 0) return
-      iloop_start = max(param%iloop - int(param%istep_out * param%dump_cadence, kind=I8B) + 1_I8B,0_I8B)
+      iloop_start = max(param%iloop / param%istep_out - int(param%dump_cadence, kind=I8B) + 1_I8B,0_I8B)
       call self%make_index_map()
-      do i = 1, self%iframe
-         if (allocated(self%frame(i)%item)) then
-            param%ioutput = iloop_start + self%tmap(i)
-            select type(nbody_system => self%frame(i)%item)
-            class is (swiftest_nbody_system)
-               call nbody_system%write_frame(param)
-            end select
-            deallocate(self%frame(i)%item)
-         end if
-      end do
+      associate(nc => param%system_history%nc)
+         call nc%open(param)
+         do i = 1, self%iframe
+            if (allocated(self%frame(i)%item)) then
+               param%ioutput = iloop_start + self%tmap(i)
+               select type(nbody_system => self%frame(i)%item)
+               class is (swiftest_nbody_system)
+                  call nbody_system%write_frame(param)
+               end select
+               deallocate(self%frame(i)%item)
+            end if
+         end do
+         call nc%close()
+      end associate
       call self%reset()
       return
    end subroutine swiftest_io_dump_storage
@@ -493,23 +481,21 @@ contains
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
 
       call self%close()
-      call self%open(param)
+      call self%open(param,readonly=.false.)
 
       return
    end subroutine swiftest_io_netcdf_flush
 
 
-   module function swiftest_io_netcdf_get_old_t_final_system(self, param) result(old_t_final)
+   module subroutine swiftest_io_netcdf_get_t0_values_system(self, param) 
       !! author: David A. Minton
       !!
-      !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      !! Gets the t0 values of various parameters such as energy and momentum
       !!
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self
       class(swiftest_parameters),       intent(inout) :: param
-      ! Result
-      real(DP)                                    :: old_t_final
       ! Internals
       integer(I4B)                              :: itmax, idmax
       real(DP), dimension(:), allocatable       :: vals
@@ -518,53 +504,50 @@ contains
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, BE_orig
 
       associate (nc => param%system_history%nc, cb => self%cb)
-         call nc%open(param)
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_io_get_old_t_final_system time_dimid" )
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_old_t_final_system name_dimid" )
+         call nc%open(param, readonly=.true.)
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_io_get_t0_values_system time_dimid" )
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_t0_values_system name_dimid" )
          allocate(vals(idmax))
-         call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_old_t_final_system time_varid" )
-
-         !old_t_final = rtemp(1)
-         old_t_final = param%t0 ! For NetCDF it is safe to overwrite the final t value on a restart
+         call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_t0_values_system time_varid" )
 
          if (param%lenergy) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_old_t_final_system KE_orb_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_t0_values_system KE_orb_varid" )
             KE_orb_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_old_t_final_system KE_spin_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_t0_values_system KE_spin_varid" )
             KE_spin_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_old_t_final_system PE_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_t0_values_system PE_varid" )
             PE_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_old_t_final_system BE_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid, rtemp, start=[1], count=[1]), "netcdf_io_get_t0_values_system BE_varid" )
             BE_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%Ecollisions_varid, self%Ecollisions, start=[1]), "netcdf_io_get_old_t_final_system Ecollisions_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%Euntracked_varid,  self%Euntracked,  start=[1]), "netcdf_io_get_old_t_final_system Euntracked_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Ecollisions_varid, self%Ecollisions, start=[1]), "netcdf_io_get_t0_values_system Ecollisions_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Euntracked_varid,  self%Euntracked,  start=[1]), "netcdf_io_get_t0_values_system Euntracked_varid" )
 
             self%Eorbit_orig = KE_orb_orig + KE_spin_orig + PE_orig + BE_orig + self%Ecollisions + self%Euntracked
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%L_orb_varid, self%Lorbit_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_io_get_old_t_final_system L_orb_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%Lspin_varid, self%Lspin_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_io_get_old_t_final_system Lspin_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%Lescape(:),  start=[1,1], count=[NDIM,1]), "netcdf_io_get_old_t_final_system L_escape_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%L_orb_varid, self%Lorbit_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_orb_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Lspin_varid, self%Lspin_orig(:), start=[1,1], count=[NDIM,1]), "netcdf_io_get_t0_values_system Lspin_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%Lescape(:),  start=[1,1], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_escape_varid" )
 
             self%Ltot_orig(:) = self%Lorbit_orig(:) + self%Lspin_orig(:) + self%Lescape(:)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,1], count=[idmax,1]), "netcdf_io_get_old_t_final_system Gmass_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[1]), "netcdf_io_get_old_t_final_system GMescape_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,1], count=[idmax,1]), "netcdf_io_get_t0_values_system Gmass_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[1]), "netcdf_io_get_t0_values_system GMescape_varid" )
             self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax)) + self%GMescape
 
             cb%GM0 = vals(1)
             cb%dGM = cb%Gmass - cb%GM0
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1,1], count=[1,1]), "netcdf_io_get_old_t_final_system radius_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1,1], count=[1,1]), "netcdf_io_get_t0_values_system radius_varid" )
             cb%R0 = rtemp(1) 
 
             if (param%lrotation) then
 
-               call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_io_get_old_t_final_system rot_varid" )
-               call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_io_get_old_t_final_system Ip_varid" )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system rot_varid" )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,1], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system Ip_varid" )
 
                cb%L0(:) = Ip0(3) * cb%GM0 * cb%R0**2 * rot0(:)
 
@@ -575,10 +558,11 @@ contains
          end if
 
          deallocate(vals)
+         call nc%close()
       end associate
       
       return
-   end function swiftest_io_netcdf_get_old_t_final_system
+   end subroutine swiftest_io_netcdf_get_t0_values_system
 
 
    module subroutine swiftest_io_netcdf_initialize_output(self, param)
@@ -1599,9 +1583,9 @@ contains
       !! previously were handled as separate output files.
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),     intent(in)    :: self  !! Swiftest nbody system object
+      class(swiftest_nbody_system),      intent(in)    :: self  !! Swiftest nbody system object
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
+      class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B) :: tslot
 
@@ -1797,7 +1781,7 @@ contains
                case ("TP_IN")
                   param%intpfile = param_value
                case ("NC_IN")
-                  param%in_netcdf = param_value
+                  param%nc_in = param_value
                case ("IN_TYPE")
                   call swiftest_io_toupper(param_value)
                   param%in_type = param_value
@@ -2213,8 +2197,8 @@ contains
       !!
       !! Dump integration parameters to file
       !!
-      !! Adapted from David E. Kaufmann's Swifter routine io_dump_param.f90
-      !! Adapted from Martin Duncan's Swift routine io_dump_param.f
+      !! Adapted from David E. Kaufmann's Swifter routine io_param_restart.f90
+      !! Adapted from Martin Duncan's Swift routine io_param_restart.f
       implicit none
       ! Arguments
       class(swiftest_parameters),intent(in)     :: self         !! Collection of parameters
@@ -2241,7 +2225,7 @@ contains
             call io_param_writer_one("PL_IN", param%inplfile, unit)
             call io_param_writer_one("TP_IN", param%intpfile, unit)
          else 
-            call io_param_writer_one("NC_IN", param%in_netcdf, unit)
+            call io_param_writer_one("NC_IN", param%nc_in, unit)
          end if
 
          call io_param_writer_one("IN_FORM", param%in_form, unit)
@@ -2627,7 +2611,7 @@ contains
          self%Euntracked = param%Euntracked
       else
          allocate(tmp_param, source=param)
-         tmp_param%system_history%nc%file_name = param%in_netcdf
+         tmp_param%system_history%nc%file_name = param%nc_in
          tmp_param%out_form = param%in_form
          if (.not. param%lrestart) then
             ! Turn off energy computation so we don't have to feed it into the initial conditions
@@ -2897,6 +2881,7 @@ contains
                   errmsg = param%outfile // " not found! You must specify OUT_STAT = NEW, REPLACE, or UNKNOWN"
                   goto 667
                end if
+               call nc%open(param)
             case('NEW')
                if (fileExists) then
                   errmsg = param%outfile // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
