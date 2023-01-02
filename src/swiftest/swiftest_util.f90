@@ -2695,7 +2695,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
-      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp)
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => param%system_history%nc)
 
          call nbody_system%read_in(param)
          call nbody_system%validate_ids(param)
@@ -2714,6 +2714,12 @@ contains
          if (.not.param%lrestart) then
             call nbody_system%init_particle_info(param)
          end if
+
+         ! Write initial conditions to file
+         nc%file_name = param%outfile
+         call nbody_system%write_frame(param) 
+         call nc%close()
+
       end associate
 
       return

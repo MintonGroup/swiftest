@@ -33,7 +33,7 @@ module base
       character(STRMAX)                       :: incbfile             = CB_INFILE       !! Name of input file for the central body
       character(STRMAX)                       :: inplfile             = PL_INFILE       !! Name of input file for massive bodies
       character(STRMAX)                       :: intpfile             = TP_INFILE       !! Name of input file for test particles
-      character(STRMAX)                       :: in_netcdf            = NC_INFILE       !! Name of system input file for NetCDF input
+      character(STRMAX)                       :: nc_in                = NC_INFILE       !! Name of system input file for NetCDF input
       character(STRMAX)                       :: in_type              = "NETCDF_DOUBLE" !! Data representation type of input data files
       character(STRMAX)                       :: in_form              = "XV"            !! Format of input data files ("EL" or ["XV"])
       integer(I4B)                            :: istep_out            = -1              !! Number of time steps between saved outputs
@@ -276,7 +276,6 @@ module base
    
          return
       end subroutine reset_storage
-
 
 
       subroutine util_exit(code)

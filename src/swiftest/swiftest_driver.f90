@@ -49,7 +49,6 @@ program swiftest_driver
    call param%set_display(display_style)
    call param%read_in(param_file_name)
 
-
    associate(t0       => param%t0, &
       tstart          => param%tstart, &
       dt              => param%dt, &
@@ -65,6 +64,7 @@ program swiftest_driver
       ! Set up loop and output cadence variables
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1.0_DP, kind=I8B)
+      iloop = istart - 1
       ioutput = max(int(istart / istep_out, kind=I4B),1)
 
       ! Set up nbody_system storage for intermittent file dumps
@@ -87,6 +87,7 @@ program swiftest_driver
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
          if (param%lenergy) then
             if (param%lrestart) then
+               call nbody_system%get_t0_values(param)
                call nbody_system%conservation_report(param, lterminal=.true.)
             else
                call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
