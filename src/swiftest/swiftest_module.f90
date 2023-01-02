@@ -43,7 +43,6 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
-   use minimizer
    !use advisor_annotate
    !$ use omp_lib
    implicit none

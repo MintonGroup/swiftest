@@ -10,7 +10,7 @@
 module solver
    !! author: David A. Minton
    !! 
-   !! Contains the Broyden-Fletcher-Goldfarb-Shanno minimizer used by Fraggle
+   !! Contains a 4th order Runge-Kutta-Fehlberg ODE solver and a linear system of equations solver
    use globals
    use base
    use lambda_function
