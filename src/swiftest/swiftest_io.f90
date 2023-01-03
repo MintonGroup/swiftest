@@ -1353,64 +1353,47 @@ contains
             status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )
-            else
-               itemp = 0
-            end if 
-
-            do i = 1, npl
-               call pl%info(i)%set_value(collision_id=itemp(plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
-            end do
+               do i = 1, npl
+                  call pl%info(i)%set_value(collision_id=itemp(plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
+               end do
+            end if
 
             status = nf90_inq_varid(nc%id, nc%discard_time_varname, nc%discard_time_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_time_varid, rtemp), "netcdf_io_read_particle_info_system nf90_getvar discard_time_varid"  )
-            else
-               select case (param%out_type)
-               case("netcdf_io_FLOAT")
-                  rtemp(:) = huge(0.0_SP)
-               case("netcdf_io_DOUBLE")
-                  rtemp(:) = huge(0.0_DP)
-               end select
-            end if 
-
-            call cb%info%set_value(discard_time=rtemp(1))
-            do i = 1, npl
-               call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
-            end do
+               call cb%info%set_value(discard_time=rtemp(1))
+               do i = 1, npl
+                  call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
+               end do
+            end if
 
             status = nf90_inq_varid(nc%id, nc%discard_rh_varname, nc%discard_rh_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_rh_varid"  )
-            else
-               vectemp(:,:) = 0.0_DP
-            end if 
-
-            do i = 1, npl
-               call pl%info(i)%set_value(discard_rh=vectemp(:,plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(discard_rh=vectemp(:,tpind(i)))
-            end do
+               do i = 1, npl
+                  call pl%info(i)%set_value(discard_rh=vectemp(:,plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(discard_rh=vectemp(:,tpind(i)))
+               end do
+            end if
 
             status = nf90_inq_varid(nc%id, nc%discard_vh_varname, nc%discard_vh_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_vh_varid"  )
-            else
-               vectemp(:,:) = 0.0_DP
-            end if 
-
-            do i = 1, npl
-               call pl%info(i)%set_value(discard_vh=vectemp(:,plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(discard_vh=vectemp(:,tpind(i)))
-            end do
+               do i = 1, npl
+                  call pl%info(i)%set_value(discard_vh=vectemp(:,plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(discard_vh=vectemp(:,tpind(i)))
+               end do
+            end if
          end if
 
       end associate
