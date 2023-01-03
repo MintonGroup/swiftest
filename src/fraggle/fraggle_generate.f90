@@ -51,7 +51,6 @@ contains
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t)
 
-
             associate (fragments => self%fragments)
                ! Populate the list of new bodies
                nfrag = fragments%nbody
@@ -96,6 +95,7 @@ contains
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       real(DP)                             :: dE, dL
+      integer(I4B)                         :: i
       character(len=STRMAX)                :: message
       real(DP), parameter                  :: fail_scale_initial = 1.001_DP
 
@@ -135,6 +135,7 @@ contains
          call fraggle_generate_vel_vec(self,lfailure_local)
          call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
          call self%set_original_scale()
+
          dE = self%Etot(2) - self%Etot(1)
          dL = .mag.(self%Ltot(:,2) - self%Ltot(:,1))
 

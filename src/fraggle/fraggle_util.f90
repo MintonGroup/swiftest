@@ -322,11 +322,8 @@ contains
          fragments%rot(:,:)  = fragments%rot(:,:)    / collider%tscale
          fragments%rc(:,:)   = fragments%rc(:,:)     * collider%dscale
          fragments%vc(:,:)   = fragments%vc(:,:)     * collider%vscale
-   
-         do i = 1, fragments%nbody
-            fragments%rb(:, i) = fragments%rc(:, i) + impactors%rbcom(:)
-            fragments%vb(:, i) = fragments%vc(:, i) + impactors%vbcom(:)
-         end do
+         fragments%rb(:,:)   = fragments%rb(:,:)     * collider%dscale
+         fragments%vc(:,:)   = fragments%vb(:,:)     * collider%vscale
 
          impactors%Qloss = impactors%Qloss * collider%Escale
 
