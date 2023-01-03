@@ -2792,7 +2792,7 @@ class Simulation:
             return io.process_netcdf_input(ds,param)
         partial_func = partial(_preprocess, param=self.param)
 
-        self.collisions = xr.open_mfdataset(col_files,parallel=True, coords=["collision"], join="inner", preprocess=partial_func,mask_and_scale=True)
+        self.collisions = xr.open_mfdataset(col_files,parallel=True,  combine="nested", concat_dim="collision", preprocess=partial_func,mask_and_scale=True)
         self.collisions = io.process_netcdf_input(self.collisions, self.param)
 
         return
