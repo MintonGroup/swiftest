@@ -188,7 +188,7 @@ contains
 
             fragments%density(istart:nfrag) = fragments%mtot / sum(volume(:))
             fragments%radius(istart:nfrag) = (3 * fragments%mass(istart:nfrag) / (4 * PI * fragments%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
-            do i = istart, nfrag
+            do concurrent(i = istart:nfrag)
                fragments%Ip(:, i) = Ip_avg(:)
             end do
 
@@ -263,7 +263,7 @@ contains
          impactors%Lspin(:,:)     = impactors%Lspin(:,:)     / collider%Lscale
          impactors%Lorbit(:,:)    = impactors%Lorbit(:,:)    / collider%Lscale
 
-         do i = 1, 2
+         do concurrent(i = 1:2)
             impactors%rot(:,i) = impactors%Lspin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
 
@@ -311,7 +311,7 @@ contains
          impactors%vc        = impactors%vc        * collider%vscale
          impactors%Lspin     = impactors%Lspin     * collider%Lscale
          impactors%Lorbit    = impactors%Lorbit    * collider%Lscale
-         do i = 1, 2
+         do concurrent(i = 1:2)
             impactors%rot(:,i) = impactors%Lspin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
    
@@ -323,7 +323,7 @@ contains
          fragments%rc(:,:)   = fragments%rc(:,:)     * collider%dscale
          fragments%vc(:,:)   = fragments%vc(:,:)     * collider%vscale
          fragments%rb(:,:)   = fragments%rb(:,:)     * collider%dscale
-         fragments%vc(:,:)   = fragments%vb(:,:)     * collider%vscale
+         fragments%vb(:,:)   = fragments%vb(:,:)     * collider%vscale
 
          impactors%Qloss = impactors%Qloss * collider%Escale
 

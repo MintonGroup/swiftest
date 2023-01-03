@@ -515,14 +515,14 @@ contains
          lfailure = E_residual < 0.0_DP
 
          do concurrent(i = 1:nfrag)
-            fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
+            collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
          end do
 
          impactors%vbcom(:) = 0.0_DP
          do concurrent(i = 1:nfrag)
-            impactors%vbcom(:) = impactors%vbcom(:) + fragments%mass(i) * fragments%vb(:,i) 
+            impactors%vbcom(:) = impactors%vbcom(:) + collider%fragments%mass(i) * collider%fragments%vb(:,i) 
          end do
-         impactors%vbcom(:) = impactors%vbcom(:) / fragments%mtot
+         impactors%vbcom(:) = impactors%vbcom(:) / collider%fragments%mtot
 
       end associate
       return
