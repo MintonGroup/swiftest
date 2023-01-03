@@ -2769,7 +2769,7 @@ contains
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
          self%log_output = .false.
       case ('COMPACT', 'PROGRESS')
-         open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status='replace', err = 667, iomsg = errmsg)
+         open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status=self%out_stat, err = 667, iomsg = errmsg)
          self%display_unit = SWIFTEST_LOG_OUT 
          self%log_output = .true.
       case default
