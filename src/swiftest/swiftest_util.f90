@@ -1664,7 +1664,7 @@ contains
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
 
-      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds)
+      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds, nc => param%system_history%nc)
 
          npl = pl%nbody
          nadd = pl_adds%nbody
@@ -1724,7 +1724,9 @@ contains
             end where
          end if
 
-         call pl%write_info(param%system_history%nc, param)
+         call nc%open(param)
+         call pl%write_info(nc, param)
+         call nc%close()
          deallocate(ldump_mask)
 
          ! Reindex the new list of bodies 

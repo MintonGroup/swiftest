@@ -84,7 +84,6 @@ SET(FAST_MATH_FILES
             ${SRC}/swiftest/swiftest_driver.f90
 )
 
-
 set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
 
 # Define the executable in terms of the source files

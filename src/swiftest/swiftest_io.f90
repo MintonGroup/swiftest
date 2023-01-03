@@ -2838,12 +2838,14 @@ contains
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
 
-      associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
-
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%system_history%nc, param)
+      associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds, nc => param%system_history%nc)
+         
+         call nc%open(param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(nc, param)
          if (self%pl_discards%nbody == 0) return
 
-         call self%pl_discards%write_info(param%system_history%nc, param)
+         call self%pl_discards%write_info(nc, param)
+         call nc%close()
       end associate
 
       return
