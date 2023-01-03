@@ -321,13 +321,14 @@ contains
       class(swiftest_pl), allocatable           :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
       character(len=NAMELEN) :: newname, origin_type
+      real(DP) :: volume
   
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
          associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, npl => pl%nbody, &
-            collision_basic => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
+            collider => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
 
             ! Add the impactors%id bodies to the subtraction list
             nimpactors = impactors%ncoll
@@ -351,7 +352,10 @@ contains
             plnew%mass(1:nfrag) = fragments%mass(1:nfrag)
             plnew%Gmass(1:nfrag) = param%GU * fragments%mass(1:nfrag)
             plnew%radius(1:nfrag) = fragments%radius(1:nfrag)
-            plnew%density(1:nfrag) = fragments%mass(1:nfrag) / fragments%radius(1:nfrag)
+            do concurrent(i = 1:nfrag)
+               volume = 4.0_DP/3.0_DP * PI * plnew%radius(i)**3
+               plnew%density(i) = fragments%mass(i) / volume
+            end do
             call plnew%set_rhill(cb)
 
             select case(status)
@@ -437,7 +441,7 @@ contains
             end where
 
             ! Log the properties of the new bodies
-            select type(after => collision_basic%after)
+            select type(after => collider%after)
             class is (swiftest_nbody_system)
                allocate(after%pl, source=plnew)
             end select
