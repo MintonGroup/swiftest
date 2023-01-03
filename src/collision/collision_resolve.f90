@@ -316,7 +316,7 @@ contains
       real(DP),                  intent(in)    :: t      !! Time of collision
       integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
       ! Internals
-      integer(I4B) :: i, ibiggest, ismallest, iother, nstart, nend, nimpactors, nfrag
+      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag
       logical, dimension(:), allocatable    :: lmask
       class(swiftest_pl), allocatable           :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
@@ -447,8 +447,6 @@ contains
             end select
 
             ! Append the new merged body to the list 
-            nstart = pl_adds%nbody + 1
-            nend = pl_adds%nbody + nfrag
             call pl_adds%append(plnew, lsource_mask=[(.true., i=1, nfrag)])
 
             ! Add the discarded bodies to the discard list
@@ -465,8 +463,6 @@ contains
             allocate(plsub, mold=pl)
             call pl%spill(plsub, lmask, ldestructive=.false.)
 
-            nstart = pl_discards%nbody + 1
-            nend = pl_discards%nbody + nimpactors
             call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
 
             call plsub%setup(0, param)
