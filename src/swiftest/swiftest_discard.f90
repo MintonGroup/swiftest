@@ -37,13 +37,20 @@ contains
             call tp%discard(nbody_system, param)
             ltp_discards = (tp_discards%nbody > 0)
          end if
-         call nc%open(param)
-         if (ltp_discards) call tp_discards%write_info(param%system_history%nc, param)
-         if (lpl_discards) call pl_discards%write_info(param%system_history%nc, param)
-         if (lpl_discards .and. param%lenergy) call self%conservation_report(param, lterminal=.false.)
-         call nc%close()
-         if (lpl_check) call pl_discards%setup(0,param) 
-         if (ltp_check) call tp_discards%setup(0,param) 
+
+         if (ltp_discards.or.lpl_discards) then
+            call nc%open(param)
+            if (lpl_discards) then
+               call pl_discards%write_info(param%system_history%nc, param)
+               if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
+               call pl_discards%setup(0,param) 
+            end if
+            if (ltp_discards) then
+               call tp_discards%write_info(param%system_history%nc, param)
+               call tp_discards%setup(0,param) 
+            end if
+            call nc%close()
+         end if
          
       end associate
 
