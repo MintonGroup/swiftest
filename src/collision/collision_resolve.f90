@@ -381,7 +381,7 @@ contains
                if (status == DISRUPTED) then
                   write(origin_type,*) "Disruption"
                else if (status == HIT_AND_RUN_DISRUPT) then
-                  write(origin_type,*) "Hit and run fragmention"
+                  write(origin_type,*) "Hit and run fragmentation"
                end if
                call plnew%info(1)%copy(pl%info(ibiggest))
                plnew%status(1) = OLD_PARTICLE
