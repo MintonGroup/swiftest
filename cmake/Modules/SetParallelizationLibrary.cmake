@@ -27,6 +27,10 @@ IF (USE_MPI)
     # Find MPI
     IF (NOT MPI_Fortran_FOUND)
         FIND_PACKAGE (MPI REQUIRED)
+        FIND_PACKAGE (Coarray_Fortran)
+        IF (NOT Coarray_Fortran_FLAGS)
+            MESSAGE (FATAL_ERROR "Fortran compiler does not support Coarrays")
+        ENDIF (NOT Coarray_Fortran_FLAGS)
     ENDIF (NOT MPI_Fortran_FOUND)
 ENDIF (USE_MPI)
 
@@ -35,6 +39,7 @@ IF (NOT USE_OPENMP AND NOT USE_MPI)
     SET (OMP_NUM_PROCS 0 CACHE
          STRING "Number of processors OpenMP may use" FORCE)
     UNSET (OpenMP_Fortran_FLAGS CACHE)
+    UNSET (Coarray_Fortran_FLAGS CACHE)
     UNSET (GOMP_Fortran_LINK_FLAGS CACHE)
     UNSET (MPI_FOUND CACHE)
     UNSET (MPI_COMPILER CACHE)

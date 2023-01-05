@@ -150,7 +150,7 @@ contains
       real(DP), parameter   :: SUPERCAT_QRATIO = 1.8_DP ! See Section 4.1 of LS12
       ! Internals
       real(DP)           :: a1, alpha, aint, b, bcrit, c_star, egy, zeta, l, lint, mu, phi, theta
-      real(DP)           :: Qr, Qrd_pstar, Qr_erosion, Qr_supercat
+      real(DP)           :: Qr, Qrd_pstar, Qr_erosion, Qr_supercat, Qmerge
       real(DP)           :: Vhr, Verosion, Vescp, Vhill, Vimp, Vsupercat
       real(DP)           :: Mint, Mtot, Mtmp
       real(DP)           :: Rp, rhill 
@@ -214,6 +214,8 @@ contains
       bcrit = rad1 / (rad1 + rad2)
       Qloss = 0.0_DP
       U_binding = (3.0_DP * Mtot) / (5.0_DP * Rp) ! LS12 eq. 27
+
+      Qmerge = Gc * m1 * m2 / (.mag.(rh2 - rh1)) + 3*m1 / (5*rad1) + 3*m2 / (5*rad1) - U_binding ! Change in energy due to a pure merger
 
       if ((m1 < min_mfrag).or.(m2 < min_mfrag)) then 
          regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime

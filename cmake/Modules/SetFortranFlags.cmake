@@ -79,8 +79,8 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                  Fortran "-xhost"        # Intel
                          "/QxHost"       # Intel Windows
                          ${GNUNATIVE}    # GNU
-                         "-ta=host"      # Portland Group
                 )
+
 
 ###################
 ### DEBUG FLAGS ###
@@ -99,12 +99,11 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-warn all" # Intel
                          "/warn:all" # Intel Windows
                          "-Wall"     # GNU
-                                     # Portland Group (on by default)
                 )
 
 # Traceback
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-                 Fortran "-traceback"   # Intel/Portland Group
+                 Fortran "-traceback"   # Intel Group
                          "/traceback"   # Intel Windows
                          "-fbacktrace"  # GNU (gfortran)
                          "-ftrace=full" # GNU (g95)
@@ -116,7 +115,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                          "/check:bounds"  # Intel Windows
                          "-fcheck=bounds" # GNU (New style)
                          "-fbounds-check" # GNU (Old style)
-                         "-Mbounds"       # Portland Group
                 )
 
 # Initializes matrices/arrays with NaN values
@@ -225,7 +223,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-unroll"        # Intel
                          "/unroll"        # Intel Windows
                          "-funroll-loops" # GNU
-                         "-Munroll"       # Portland Group
                 )
 
 # Inline functions
@@ -233,7 +230,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-inline"            # Intel
                          "/Qinline"           # Intel Windows
                          "-finline-functions" # GNU
-                         "-Minline"           # Portland Group
                 )
 
 

@@ -100,13 +100,15 @@ IF(USE_OPENMP)
     SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
                           COMPILE_FLAGS "${OpenMP_Fortran_FLAGS}"
                           LINK_FLAGS "${OpenMP_Fortran_FLAGS}")
-ELSEIF(USE_MPI)
+ENDIF(USE_OPENMP)
+
+IF(USE_MPI)
     SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
-                          COMPILE_FLAGS "${MPI_Fortran_COMPILE_FLAGS}"
-                          LINK_FLAGS "${MPI_Fortran_LINK_FLAGS}")
+                          COMPILE_FLAGS "${MPI_Fortran_COMPILE_FLAGS} ${Coarray_Fortran_FLAGS}"
+                          LINK_FLAGS "${MPI_Fortran_LINK_FLAGS} ${Coarray_Fortran_FLAGS}")
     INCLUDE_DIRECTORIES(${MPI_Fortran_INCLUDE_PATH})
     TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} ${MPI_Fortran_LIBRARIES})
-ENDIF(USE_OPENMP)
+ENDIF(USE_MPI)
 
 
 #####################################

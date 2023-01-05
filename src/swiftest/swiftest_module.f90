@@ -312,6 +312,7 @@ module swiftest
       class(swiftest_cb),                  allocatable :: cb                !! Central body data structure
       class(swiftest_pl),                  allocatable :: pl                !! Massive body data structure
       class(swiftest_tp),                  allocatable :: tp                !! Test particle data structure
+      class(swiftest_tp), dimension(:),codimension[:], allocatable :: cotp  !! Co-array test particle data structure
       
       class(swiftest_tp),                  allocatable :: tp_discards       !! Discarded test particle data structure
       class(swiftest_pl),                  allocatable :: pl_discards       !! Discarded massive body particle data structure

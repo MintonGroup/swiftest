@@ -543,7 +543,6 @@ contains
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
 
                      call nbody_system%get_energy_and_momentum(param)
-                     collider%pe(1)  = nbody_system%pe
 
                      call collider%generate(nbody_system, param, t)
 
@@ -576,7 +575,7 @@ contains
                   if (.not.lplpl_collision) exit
                   if (loop == MAXCASCADE) then
                      write(*,*) 
-                     write(*,*) "An runaway collisional cascade has been detected in collision_resolve_plpl."
+                     write(*,*) "A runaway collisional cascade has been detected in collision_resolve_plpl."
                      write(*,*) "Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments."
                      call util_exit(FAILURE)
                   end if
