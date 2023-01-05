@@ -1353,64 +1353,47 @@ contains
             status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )
-            else
-               itemp = 0
-            end if 
-
-            do i = 1, npl
-               call pl%info(i)%set_value(collision_id=itemp(plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
-            end do
+               do i = 1, npl
+                  call pl%info(i)%set_value(collision_id=itemp(plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(collision_id=itemp(tpind(i)))
+               end do
+            end if
 
             status = nf90_inq_varid(nc%id, nc%discard_time_varname, nc%discard_time_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_time_varid, rtemp), "netcdf_io_read_particle_info_system nf90_getvar discard_time_varid"  )
-            else
-               select case (param%out_type)
-               case("netcdf_io_FLOAT")
-                  rtemp(:) = huge(0.0_SP)
-               case("netcdf_io_DOUBLE")
-                  rtemp(:) = huge(0.0_DP)
-               end select
-            end if 
-
-            call cb%info%set_value(discard_time=rtemp(1))
-            do i = 1, npl
-               call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
-            end do
+               call cb%info%set_value(discard_time=rtemp(1))
+               do i = 1, npl
+                  call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(discard_time=rtemp(tpind(i)))
+               end do
+            end if
 
             status = nf90_inq_varid(nc%id, nc%discard_rh_varname, nc%discard_rh_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_rh_varid"  )
-            else
-               vectemp(:,:) = 0.0_DP
-            end if 
-
-            do i = 1, npl
-               call pl%info(i)%set_value(discard_rh=vectemp(:,plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(discard_rh=vectemp(:,tpind(i)))
-            end do
+               do i = 1, npl
+                  call pl%info(i)%set_value(discard_rh=vectemp(:,plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(discard_rh=vectemp(:,tpind(i)))
+               end do
+            end if
 
             status = nf90_inq_varid(nc%id, nc%discard_vh_varname, nc%discard_vh_varid)
             if (status == nf90_noerr) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_vh_varid"  )
-            else
-               vectemp(:,:) = 0.0_DP
-            end if 
-
-            do i = 1, npl
-               call pl%info(i)%set_value(discard_vh=vectemp(:,plind(i)))
-            end do
-            do i = 1, ntp
-               call tp%info(i)%set_value(discard_vh=vectemp(:,tpind(i)))
-            end do
+               do i = 1, npl
+                  call pl%info(i)%set_value(discard_vh=vectemp(:,plind(i)))
+               end do
+               do i = 1, ntp
+                  call tp%info(i)%set_value(discard_vh=vectemp(:,tpind(i)))
+               end do
+            end if
          end if
 
       end associate
@@ -2180,6 +2163,8 @@ contains
          end select
 
          iostat = 0
+
+         call param%set_display(param%display_style)
          
          ! Print the contents of the parameter file to standard output
          call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
@@ -2754,7 +2739,6 @@ contains
 
       ! Read in name of parameter file
       self%param_file_name = trim(adjustl(param_file_name))
-      write(self%display_unit, *) 'Parameter input file is ' // self%param_file_name 
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    as the newline characters are ignored in the input file when compiled in ifort.
@@ -2779,14 +2763,20 @@ contains
       class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
       character(*),               intent(in)    :: display_style   !! Style of the output display 
       ! Internals
-      character(STRMAX)             :: errmsg
+      character(STRMAX) :: errmsg
+      logical           :: fileExists   
 
       select case(display_style)
       case ('STANDARD')
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
          self%log_output = .false.
       case ('COMPACT', 'PROGRESS')
-         open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status='replace', err = 667, iomsg = errmsg)
+         inquire(SWIFTEST_LOG_FILE, exist=fileExists)
+         if (self%lrestart.and.fileExists) then
+            open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status="OLD", position="APPEND", err = 667, iomsg = errmsg)
+         else
+            open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status="REPLACE", err = 667, iomsg = errmsg)
+         end if
          self%display_unit = SWIFTEST_LOG_OUT 
          self%log_output = .true.
       case default
@@ -2838,12 +2828,14 @@ contains
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
 
-      associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds)
-
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(param%system_history%nc, param)
+      associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds, nc => param%system_history%nc)
+         
+         call nc%open(param)
+         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(nc, param)
          if (self%pl_discards%nbody == 0) return
 
-         call self%pl_discards%write_info(param%system_history%nc, param)
+         call self%pl_discards%write_info(nc, param)
+         call nc%close()
       end associate
 
       return

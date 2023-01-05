@@ -1660,11 +1660,11 @@ contains
       ! Internals
       class(swiftest_pl), allocatable :: tmp !! The discarded body list.
       integer(I4B) :: i, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
-      logical, dimension(:), allocatable :: lmask, ldump_mask
+      logical, dimension(:), allocatable :: lmask
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
 
-      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds)
+      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds, nc => param%system_history%nc)
 
          npl = pl%nbody
          nadd = pl_adds%nbody
@@ -1696,14 +1696,7 @@ contains
          if (nadd > 0) then
             ! Append the adds to the main pl object
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, nadd)])
-
-            allocate(ldump_mask(npl+nadd))  ! This mask is used only to append the original Fortran binary particle.dat file with new bodies. This is ignored for NetCDF output
-            ldump_mask(1:npl) = .false.
-            ldump_mask(npl+1:npl+nadd) = pl%status(npl+1:npl+nadd) == NEW_PARTICLE
             npl = pl%nbody
-         else
-            allocate(ldump_mask(npl))
-            ldump_mask(:) = .false.
          end if
 
          ! Reset all of the status flags for this body
@@ -1724,8 +1717,9 @@ contains
             end where
          end if
 
-         call pl%write_info(param%system_history%nc, param)
-         deallocate(ldump_mask)
+         call nc%open(param)
+         call pl%write_info(nc, param)
+         call nc%close()
 
          ! Reindex the new list of bodies 
          call pl%sort("mass", ascending=.false.)

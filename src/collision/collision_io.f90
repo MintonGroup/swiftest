@@ -303,7 +303,7 @@ contains
 
             select type(before =>self%collider%before)
             class is (swiftest_nbody_system)
-            select type(after =>self%collider%before)
+            select type(after =>self%collider%after)
             class is (swiftest_nbody_system)
                do stage = 1,2
                   if (allocated(pl)) deallocate(pl)

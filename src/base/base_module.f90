@@ -20,7 +20,7 @@ module base
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type, abstract :: base_parameters
-      character(len=:), allocatable           :: integrator                             !! Symbolic name of the nbody integrator  used
+      character(len=:), allocatable           :: integrator                             !! Name of the nbody integrator used
       character(len=:), allocatable           :: param_file_name                        !! The name of the parameter file
       integer(I4B)                            :: maxid                = -1              !! The current maximum particle id number 
       integer(I4B)                            :: maxid_collision      = 0               !! The current maximum collision id number

@@ -19,15 +19,18 @@ SET(STRICT_MATH_FILES
             ${SRC}/symba/symba_kick.f90
             ${SRC}/whm/whm_kick.f90
             ${SRC}/swiftest/swiftest_user.f90
+            ${SRC}/fraggle/fraggle_generate.f90
+            ${SRC}/fraggle/fraggle_util.f90
+            ${SRC}/fraggle/fraggle_module.f90
+            ${SRC}/misc/lambda_function_module.f90
+            ${SRC}/misc/solver_module.f90
 )
 
 SET(FAST_MATH_FILES
             ${SRC}/globals/globals_module.f90
             ${SRC}/base/base_module.f90
             ${SRC}/netcdf_io/netcdf_io_module.f90
-            ${SRC}/misc/lambda_function_module.f90
             ${SRC}/misc/io_progress_bar_module.f90
-            ${SRC}/misc/solver_module.f90
             ${SRC}/encounter/encounter_module.f90
             ${SRC}/collision/collision_module.f90
             ${SRC}/operator/operator_module.f90
@@ -37,7 +40,6 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_module.f90
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
-            ${SRC}/fraggle/fraggle_module.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_generate.f90
             ${SRC}/collision/collision_io.f90     
@@ -47,8 +49,6 @@ SET(FAST_MATH_FILES
             ${SRC}/encounter/encounter_check.f90
             ${SRC}/encounter/encounter_io.f90
             ${SRC}/encounter/encounter_util.f90
-            ${SRC}/fraggle/fraggle_generate.f90
-            ${SRC}/fraggle/fraggle_util.f90
             ${SRC}/helio/helio_drift.f90
             ${SRC}/helio/helio_gr.f90
             ${SRC}/helio/helio_step.f90
@@ -65,7 +65,6 @@ SET(FAST_MATH_FILES
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
-            ${SRC}/swiftest/swiftest_kick.f90       
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
             ${SRC}/swiftest/swiftest_util.f90
@@ -84,7 +83,6 @@ SET(FAST_MATH_FILES
             ${SRC}/whm/whm_util.f90
             ${SRC}/swiftest/swiftest_driver.f90
 )
-
 
 set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
 
