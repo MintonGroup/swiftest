@@ -78,7 +78,7 @@ module netcdf_io
       integer(I4B)       :: vh_varid                                    !! ID for the heliocentric velocity vector variable 
       character(NAMELEN) :: gr_pseudo_vh_varname    = "gr_pseudo_vh"    !! name of the heliocentric pseudovelocity vector variable (used in GR only)
       integer(I4B)       :: gr_pseudo_vh_varid                          !! ID for the heliocentric pseudovelocity vector variable (used in GR)
-      character(NAMELEN) :: gmass_varname           = "Gmass"           !! name of the mass variable
+      character(NAMELEN) :: Gmass_varname           = "Gmass"           !! name of the mass variable
       integer(I4B)       :: Gmass_varid                                 !! ID for the mass variable
       character(NAMELEN) :: rhill_varname           = "rhill"           !! name of the hill radius variable
       integer(I4B)       :: rhill_varid                                 !! ID for the hill radius variable
@@ -104,16 +104,16 @@ module netcdf_io
       integer(I4B)       :: PE_varid                                    !! ID for the system potential energy variable
       character(NAMELEN) :: be_varname              = "BE"              !! name of the system binding energy variable
       integer(I4B)       :: BE_varid                                    !! ID for the system binding energy variable
-      character(NAMELEN) :: L_orb_varname           = "L_orb"           !! name of the orbital angular momentum vector variable
-      integer(I4B)       :: L_orb_varid                                 !! ID for the system orbital angular momentum vector variable
-      character(NAMELEN) :: Lspin_varname          = "Lspin"            !! name of the spin angular momentum vector variable
-      integer(I4B)       :: Lspin_varid                                 !! ID for the system spin angular momentum vector variable
+      character(NAMELEN) :: L_orbit_varname           = "L_orbit"           !! name of the orbital angular momentum vector variable
+      integer(I4B)       :: L_orbit_varid                                 !! ID for the system orbital angular momentum vector variable
+      character(NAMELEN) :: L_spin_varname          = "L_spin"            !! name of the spin angular momentum vector variable
+      integer(I4B)       :: L_spin_varid                                 !! ID for the system spin angular momentum vector variable
       character(NAMELEN) :: L_escape_varname        = "L_escape"        !! name of the escaped angular momentum vector variable
       integer(I4B)       :: L_escape_varid                              !! ID for the escaped angular momentum vector variable
-      character(NAMELEN) :: Ecollisions_varname     = "Ecollisions"     !! name of the escaped angular momentum y variable                             
-      integer(I4B)       :: Ecollisions_varid                           !! ID for the energy lost in collisions variable
-      character(NAMELEN) :: Euntracked_varname      = "Euntracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
-      integer(I4B)       :: Euntracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      character(NAMELEN) :: E_collisions_varname     = "E_collisions"     !! name of the escaped angular momentum y variable                             
+      integer(I4B)       :: E_collisions_varid                           !! ID for the energy lost in collisions variable
+      character(NAMELEN) :: E_untracked_varname      = "E_untracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      integer(I4B)       :: E_untracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
       integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the system
       character(NAMELEN) :: origin_type_varname     = "origin_type"     !! name of the origin type variable (Initial Conditions, Disruption, etc.)

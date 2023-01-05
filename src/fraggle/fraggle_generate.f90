@@ -136,8 +136,8 @@ contains
          call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
          call self%set_original_scale()
 
-         dE = self%Etot(2) - self%Etot(1)
-         dL = .mag.(self%Ltot(:,2) - self%Ltot(:,1))
+         dE = self%te(2) - self%te(1)
+         dL = .mag.(self%L_total(:,2) - self%L_total(:,1))
 
          write(message,*) dE
          call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Estimated energy change: " // trim(adjustl(message)))
@@ -326,7 +326,7 @@ contains
       ! Arguments
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      real(DP), dimension(NDIM) :: Lbefore, Lafter, Lspin, rotdir
+      real(DP), dimension(NDIM) :: Lbefore, Lafter, L_spin, rotdir
       real(DP) :: v_init, v_final, mass_init, mass_final, rotmag
       integer(I4B) :: i
 
@@ -341,8 +341,8 @@ contains
          Lbefore(:) = mass_init * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (impactors%vb(:,2) - impactors%vb(:,1))
           
          Lafter(:) = mass_final * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (v_final * impactors%bounce_unit(:))
-         Lspin(:) = impactors%Lspin(:,1) + (Lbefore(:) - Lafter(:))
-         fragments%rot(:,1) = Lspin(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
+         L_spin(:) = impactors%L_spin(:,1) + (Lbefore(:) - Lafter(:))
+         fragments%rot(:,1) = L_spin(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
 
          ! Add in some random spin noise. The magnitude will be scaled by the before-after amount and the direction will be random
          do concurrent(i = 2:nfrag)
@@ -488,7 +488,7 @@ contains
                if (lsupercat) then
                   ! Put some of the residual angular momentum into velocity shear. Not too much, or we get some weird trajectories
                   call fragments%get_angular_momentum()
-                  Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
+                  Lresidual(:) = fragments%L_budget(:) - (fragments%L_orbit_tot(:) + fragments%L_spin_tot(:)) 
                   do concurrent(i = istart:nfrag)
                      vunit(:) = .unit. (Lresidual(:) .cross. fragments%r_unit(:,i))
                      vshear(:) = vunit(:) * (.mag.Lresidual(:) / ((nfrag-istart+1)*fragments%mass(i) * fragments%rmag(i)))
@@ -497,14 +497,14 @@ contains
                end if
                ! Check for any residual angular momentum, and if there is any, put it into spin
                call fragments%get_angular_momentum()
-               Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
+               Lresidual(:) = fragments%L_budget(:) - (fragments%L_orbit_tot(:) + fragments%L_spin_tot(:)) 
                do concurrent(i = 1:nfrag)
-                  fragments%Lspin(:,i) = fragments%Lspin(:,i) + Lresidual(:) / nfrag
-                  fragments%rot(:,i) = fragments%Lspin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i)) 
+                  fragments%L_spin(:,i) = fragments%L_spin(:,i) + Lresidual(:) / nfrag
+                  fragments%rot(:,i) = fragments%L_spin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i)) 
                end do
 
                call fragments%get_angular_momentum()
-               Lresidual(:) = fragments%L_budget(:) - (fragments%Lorbit_tot(:) + fragments%Lspin_tot(:)) 
+               Lresidual(:) = fragments%L_budget(:) - (fragments%L_orbit_tot(:) + fragments%L_spin_tot(:)) 
 
             end do
             ! We didn't converge. Try another configuration and see if we get a better result

@@ -18,7 +18,8 @@ module collision
    implicit none
    public
 
-   character(len=*), parameter :: COLLISION_LOG_OUT    = "collision.log" !! Name of log file for collision diagnostic information
+   character(len=*), parameter :: COLLISION_OUTFILE = 'collision.nc'  !! Name of NetCDF output file for collision information
+   character(len=*), parameter :: COLLISION_LOG_OUT = "collision.log" !! Name of log file for collision diagnostic information
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
@@ -57,8 +58,8 @@ module collision
       real(DP),     dimension(NDIM,2)              :: rc        !! Two-body equivalent position vectors of the collider bodies prior to collision in collision center of mass coordinates
       real(DP),     dimension(NDIM,2)              :: vc        !! Two-body equivalent velocity vectors of the collider bodies prior to collision in collision center of mass coordinates
       real(DP),     dimension(NDIM,2)              :: rot       !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
-      real(DP),     dimension(NDIM,2)              :: Lspin     !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
-      real(DP),     dimension(NDIM,2)              :: Lorbit    !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: L_spin     !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: L_orbit    !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: Ip        !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(2)                   :: Gmass     !! Two-body equivalent G*mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: mass      !! Two-body equivalent mass of the collider bodies prior to the collision
@@ -112,10 +113,10 @@ module collision
       real(DP),                  dimension(NDIM,nbody)       :: t_unit       !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
       real(DP),                  dimension(NDIM,nbody)       :: n_unit       !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
       integer(I1B),              dimension(nbody)            :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
-      real(DP), dimension(NDIM)                              :: Lorbit_tot   !! Orbital angular momentum vector of all fragments
-      real(DP), dimension(NDIM)                              :: Lspin_tot    !! Spin angular momentum vector of all fragments
-      real(DP), dimension(NDIM,nbody)                        :: Lorbit       !! Orbital angular momentum vector of each individual fragment
-      real(DP), dimension(NDIM,nbody)                        :: Lspin        !! Spin angular momentum vector of each individual fragment
+      real(DP), dimension(NDIM)                              :: L_orbit_tot   !! Orbital angular momentum vector of all fragments
+      real(DP), dimension(NDIM)                              :: L_spin_tot    !! Spin angular momentum vector of all fragments
+      real(DP), dimension(NDIM,nbody)                        :: L_orbit       !! Orbital angular momentum vector of each individual fragment
+      real(DP), dimension(NDIM,nbody)                        :: L_spin        !! Spin angular momentum vector of each individual fragment
       real(DP)                                               :: ke_orbit_tot !! Orbital kinetic energy of all fragments
       real(DP)                                               :: ke_spin_tot  !! Spin kinetic energy of all fragments
       real(DP)                                               :: pe           !! Potential energy of all fragments
@@ -138,27 +139,27 @@ module collision
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       !!
       !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_basic parent class
-      class(collision_fragments(:)), allocatable :: fragments !! Object containing information on the pre-collision system
-      class(collision_impactors),    allocatable :: impactors !! Object containing information on the post-collision system
-      class(base_nbody_system),      allocatable :: before    !! A snapshot of the subset of the nbody_system involved in the collision
-      class(base_nbody_system),      allocatable :: after     !! A snapshot of the subset of the nbody_system containing products of the collision
-      integer(I4B)                               :: status    !! Status flag to pass to the collision list once the collision has been resolved
+      class(collision_fragments(:)), allocatable :: fragments    !! Object containing information on the pre-collision system
+      class(collision_impactors),    allocatable :: impactors    !! Object containing information on the post-collision system
+      class(base_nbody_system),      allocatable :: before       !! A snapshot of the subset of the nbody_system involved in the collision
+      class(base_nbody_system),      allocatable :: after        !! A snapshot of the subset of the nbody_system containing products of the collision
+      integer(I4B)                               :: status       !! Status flag to pass to the collision list once the collision has been resolved
+      integer(I4B)                               :: collision_id !! ID number of this collision event
 
       ! For the following variables, index 1 refers to the *entire* n-body nbody_system in its pre-collisional state and index 2 refers to the nbody_system in its post-collisional state
-      real(DP), dimension(NDIM,2) :: Lorbit   !! Before/after orbital angular momentum 
-      real(DP), dimension(NDIM,2) :: Lspin    !! Before/after spin angular momentum 
-      real(DP), dimension(NDIM,2) :: Ltot     !! Before/after total nbody_system angular momentum 
+      real(DP), dimension(NDIM,2) :: L_orbit   !! Before/after orbital angular momentum 
+      real(DP), dimension(NDIM,2) :: L_spin    !! Before/after spin angular momentum 
+      real(DP), dimension(NDIM,2) :: L_total     !! Before/after total nbody_system angular momentum 
       real(DP), dimension(2)      :: ke_orbit !! Before/after orbital kinetic energy
       real(DP), dimension(2)      :: ke_spin  !! Before/after spin kinetic energy
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: be       !! Before/after binding energy
-      real(DP), dimension(2)      :: Etot     !! Before/after total nbody_system energy
+      real(DP), dimension(2)      :: te       !! Before/after total system energy
    contains
       procedure :: setup                      => collision_util_setup_collider             !! Initializer for the encounter collision system and the before/after snapshots
       procedure :: setup_impactors            => collision_util_setup_impactors_collider   !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       procedure :: setup_fragments            => collision_util_setup_fragments_collider   !! Initializer for the fragments of the collision system. 
       procedure :: add_fragments              => collision_util_add_fragments_to_collider  !! Add fragments to nbody_system
-      procedure :: construct_temporary_system => collision_util_construct_temporary_system !! Constructs temporary n-body nbody_system in order to compute pre- and post-impact energy and momentum
       procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
       procedure :: set_budgets                => collision_util_set_budgets                !! Sets the energy and momentum budgets of the fragments based on the collider value
@@ -168,13 +169,12 @@ module collision
       procedure :: merge                      => collision_generate_merge                  !! Merges the impactors to make a single final body
    end type collision_basic
 
+   
    type, extends(collision_basic) :: collision_bounce
    contains 
       procedure :: generate => collision_generate_bounce !! If a collision would result in a disruption, "bounce" the bodies instead.
       final     ::             collision_final_bounce    !! Finalizer will deallocate all allocatables
    end type collision_bounce
-
-
 
 
    !! NetCDF dimension and variable names for the enounter save object
@@ -184,10 +184,7 @@ module collision
       character(NAMELEN) :: stage_dimname            = "stage"             !! name of the stage dimension (before/after)
       character(len=6), dimension(2) :: stage_coords = ["before", "after"] !! The stage coordinate labels
 
-      character(NAMELEN) :: event_dimname = "collision" !! Name of collision event dimension
-      integer(I4B)       :: event_dimid                 !! ID for the collision event dimension       
-      integer(I4B)       :: event_varid                 !! ID for the collision event variable
-      integer(I4B)       :: event_dimsize = 0           !! Number of events
+      integer(I4B)       :: collision_id_dimid                 !! ID for the collision event dimension       
 
       character(NAMELEN) :: Qloss_varname  = "Qloss"   !! name of the energy loss variable
       integer(I4B)       :: Qloss_varid                !! ID for the energy loss variable 
@@ -195,6 +192,7 @@ module collision
       integer(I4B)       :: regime_varid               !! ID for the collision regime variable
    contains
       procedure :: initialize => collision_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: open       => collision_io_netcdf_open              !! Opens an old file
       final     ::               collision_final_netcdf_parameters     !! Finalizer closes the NetCDF file
    end type collision_netcdf_parameters
 
@@ -275,6 +273,13 @@ module collision
          class(collision_netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
          class(base_parameters),   intent(in)    :: param !! Current run configuration parameters  
       end subroutine collision_io_netcdf_initialize_output
+
+      module subroutine collision_io_netcdf_open(self, param, readonly)
+         implicit none
+         class(collision_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+         class(base_parameters),             intent(in)    :: param    !! Current run configuration parameters
+         logical, optional,                  intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      end subroutine collision_io_netcdf_open
 
       module subroutine collision_io_netcdf_write_frame_snapshot(self, history, param)
          implicit none
@@ -374,15 +379,6 @@ module collision
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(in)    :: param        !! Current swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_collider
-
-      module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
-         implicit none
-         class(collision_basic),               intent(inout) :: self         !! Collision system object
-         class(base_nbody_system),              intent(in)    :: nbody_system !! Original swiftest nbody system object
-         class(base_parameters),                intent(in)    :: param        !! Current swiftest run configuration parameters
-         class(base_nbody_system), allocatable, intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
-         class(base_parameters),   allocatable, intent(out)   :: tmpparam     !! Output temporary configuration run parameters
-      end subroutine collision_util_construct_temporary_system 
 
       module subroutine collision_util_get_angular_momentum(self) 
          implicit none
