@@ -2163,6 +2163,8 @@ contains
          end select
 
          iostat = 0
+
+         call param%set_display(param%display_style)
          
          ! Print the contents of the parameter file to standard output
          call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
@@ -2737,7 +2739,6 @@ contains
 
       ! Read in name of parameter file
       self%param_file_name = trim(adjustl(param_file_name))
-      write(self%display_unit, *) 'Parameter input file is ' // self%param_file_name 
 
       !! todo: Currently this procedure does not work in user-defined derived-type input mode 
       !!    as the newline characters are ignored in the input file when compiled in ifort.
@@ -2762,14 +2763,16 @@ contains
       class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
       character(*),               intent(in)    :: display_style   !! Style of the output display 
       ! Internals
-      character(STRMAX)             :: errmsg
+      character(STRMAX) :: errmsg
+      logical           :: fileExists   
 
       select case(display_style)
       case ('STANDARD')
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
          self%log_output = .false.
       case ('COMPACT', 'PROGRESS')
-         if (self%lrestart) then
+         inquire(SWIFTEST_LOG_FILE, exist=fileExists)
+         if (self%lrestart.and.fileExists) then
             open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status="OLD", position="APPEND", err = 667, iomsg = errmsg)
          else
             open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status="REPLACE", err = 667, iomsg = errmsg)

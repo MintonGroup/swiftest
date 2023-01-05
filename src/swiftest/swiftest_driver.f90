@@ -46,7 +46,7 @@ program swiftest_driver
    !> Read in the user-defined parameters file and the initial conditions of the nbody_system
    allocate(swiftest_parameters :: param)
    param%integrator = trim(adjustl(integrator))
-   call param%set_display(display_style)
+   param%display_style = trim(adjustl(display_style))
    call param%read_in(param_file_name)
 
    associate(t0       => param%t0, &
