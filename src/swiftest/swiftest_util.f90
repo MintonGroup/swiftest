@@ -2608,7 +2608,11 @@ contains
                call encounter_history%reset()
                select type(nc => encounter_history%nc)
                class is (encounter_netcdf_parameters)
-                  nc%file_number = param%iloop / param%dump_cadence
+                  nc%file_name = ENCOUNTER_OUTFILE
+                  if (.not.param%lrestart) then
+                     call nc%initialize(param)
+                     call nc%close()
+                  end if
                end select
                allocate(nbody_system%encounter_history, source=encounter_history)
             end if

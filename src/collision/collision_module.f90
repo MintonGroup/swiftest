@@ -18,8 +18,8 @@ module collision
    implicit none
    public
 
-   character(len=*), parameter :: COLLISION_OUTFILE = 'collision.nc'  !! Name of NetCDF output file for collision information
-   character(len=*), parameter :: COLLISION_LOG_OUT = "collision.log" !! Name of log file for collision diagnostic information
+   character(len=*), parameter :: COLLISION_OUTFILE = 'collisions.nc'  !! Name of NetCDF output file for collision information
+   character(len=*), parameter :: COLLISION_LOG_OUT = "collisions.log" !! Name of log file for collision diagnostic information
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1

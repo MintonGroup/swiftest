@@ -18,6 +18,7 @@ module encounter
    public
 
    integer(I4B), parameter :: SWEEPDIM = 3
+   character(len=*), parameter :: ENCOUNTER_OUTFILE = 'encounters.nc'  !! Name of NetCDF output file for encounter information
 
    type, abstract :: encounter_list
       integer(I8B)                              :: nenc = 0   !! Total number of encounters
@@ -67,6 +68,7 @@ module encounter
       integer(I4B)       :: file_number  = 1         !! The number to append on the output file
    contains
       procedure :: initialize => encounter_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: open       => encounter_io_netcdf_open              !! Open an encounter NetCDF file
       final     ::               encounter_final_netcdf_parameters     !! Finalizer will close the NetCDF file
    end type encounter_netcdf_parameters
 
@@ -229,6 +231,13 @@ module encounter
          class(base_parameters),     intent(in)    :: param   
       end subroutine encounter_io_netcdf_initialize_output
 
+      module subroutine encounter_io_netcdf_open(self, param, readonly)
+         implicit none
+         class(encounter_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+         class(base_parameters),             intent(in)    :: param    !! Current run configuration parameters
+         logical, optional,                  intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      end subroutine encounter_io_netcdf_open
+
       module subroutine encounter_io_netcdf_write_frame_snapshot(self, history, param)
          implicit none
          class(encounter_snapshot),   intent(in)    :: self    !! Swiftest encounter structure
@@ -271,7 +280,6 @@ module encounter
          implicit none
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list object
       end subroutine encounter_util_dealloc_list
-
 
       module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
          implicit none

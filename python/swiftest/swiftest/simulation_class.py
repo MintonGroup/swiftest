@@ -2753,22 +2753,13 @@ class Simulation:
         return
 
     def read_encounter(self):
-        enc_files = glob(f"{self.simdir}{os.path.sep}encounter_*.nc")
-        if len(enc_files) == 0:
-            return
+        enc_file = self.simdir / "encounters.nc"
+        if not os.path.exists(enc_file):
+           return
 
-        if self.verbose:
-            print("Reading encounter history file as .encounters")
+        self.collisions = xr.open_dataset(enc_file)
+        self.collisions = io.process_netcdf_input(self.collisions, self.param)
 
-        enc_files.sort()
-
-        # This is needed in order to pass the param argument down to the io.process_netcdf_input function
-        def _preprocess(ds, param):
-            return io.process_netcdf_input(ds,param)
-        partial_func = partial(_preprocess, param=self.param)
-
-        self.encounters = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
-        self.encounters = io.process_netcdf_input(self.encounters, self.param)
         # Remove any overlapping time values
         tgood,tid = np.unique(self.encounters.time,return_index=True)
         self.encounters = self.encounters.isel(time=tid)
