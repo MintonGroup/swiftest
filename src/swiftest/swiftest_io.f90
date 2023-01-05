@@ -629,6 +629,7 @@ contains
 
          ! Variables
          call netcdf_io_check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), "netcdf_io_initialize_output nf90_def_var id_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%status_varname, NF90_INT, [nc%name_dimid, nc%time_dimid], nc%status_varid), "netcdf_io_initialize_output nf90_def_var status_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%npl_varname, NF90_INT, nc%time_dimid, nc%npl_varid), "netcdf_io_initialize_output nf90_def_var npl_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%ntp_varname, NF90_INT, nc%time_dimid, nc%ntp_varid), "netcdf_io_initialize_output nf90_def_var ntp_varid"  )
          if (param%lmtiny_pl) call netcdf_io_check( nf90_def_var(nc%id, nc%nplm_varname, NF90_INT, nc%time_dimid, nc%nplm_varid), "netcdf_io_initialize_output nf90_def_var nplm_varid"  )
@@ -715,7 +716,12 @@ contains
             call netcdf_io_check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "netcdf_io_initialize_output nf90_inquire_variable"  )
             select case(vartype)
             case(NF90_INT)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), "netcdf_io_initialize_output nf90_def_var_fill NF90_INT"  )
+               if (varid == nc%status_varid) then
+                  ! Be sure the status variable fill value is the INACTIVE symbolic value
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, INACTIVE), "netcdf_io_netcdf_initialize_output nf90_def_var_fill status variable"  )
+               else
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), "netcdf_io_initialize_output nf90_def_var_fill NF90_INT"  )
+               end if
             case(NF90_FLOAT)
                call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), "netcdf_io_initialize_output nf90_def_var_fill NF90_FLOAT"  )
             case(NF90_DOUBLE)
@@ -795,7 +801,7 @@ contains
             if (param%lgr) then
                !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not do the conversion.
                status = nf90_inq_varid(nc%id, nc%gr_pseudo_vh_varname, nc%gr_pseudo_vh_varid)
-               nc%lpseudo_vel_exists = (status == nf90_noerr)
+               nc%lpseudo_vel_exists = (status == NF90_NOERR)
                if (param%lrestart .and. .not.nc%lpseudo_vel_exists) then
                   write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run. If this is a restarted run, bit-identical trajectories are not guarunteed!"
                end if
@@ -829,11 +835,12 @@ contains
          ! Optional Variables
          if (param%lrhill_present) then
             status = nf90_inq_varid(nc%id, nc%rhill_varname, nc%rhill_varid)
-            if (status /= nf90_noerr) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
+            if (status /= NF90_NOERR) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
          end if
 
          ! Optional variables The User Doesn't Need to Know About
          status = nf90_inq_varid(nc%id, nc%npl_varname, nc%npl_varid)
+         status = nf90_inq_varid(nc%id, nc%status_varname, nc%status_varid)
          status = nf90_inq_varid(nc%id, nc%ntp_varname, nc%ntp_varid)
          status = nf90_inq_varid(nc%id, nc%j2rp2_varname, nc%j2rp2_varid)
          status = nf90_inq_varid(nc%id, nc%j4rp4_varname, nc%j4rp4_varid)
@@ -1079,14 +1086,14 @@ contains
          ! end if
 
          status = nf90_inq_varid(nc%id, nc%j2rp2_varname, nc%j2rp2_varid)
-         if (status == nf90_noerr) then
+         if (status == NF90_NOERR) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%j2rp2_varid, cb%j2rp2, start=[tslot]), "netcdf_io_read_frame_system nf90_getvar j2rp2_varid"  )
          else 
             cb%j2rp2 = 0.0_DP
          end if
 
          status = nf90_inq_varid(nc%id, nc%j4rp4_varname, nc%j4rp4_varid)   
-         if (status == nf90_noerr) then      
+         if (status == NF90_NOERR) then      
             call netcdf_io_check( nf90_get_var(nc%id, nc%j4rp4_varid, cb%j4rp4, start=[tslot]), "netcdf_io_read_frame_system nf90_getvar j4rp4_varid"  )
          else 
             cb%j4rp4 = 0.0_DP
@@ -1134,6 +1141,7 @@ contains
       integer(I4B) :: status, idmax
       real(DP), dimension(:), allocatable       :: Gmtemp
       logical, dimension(:), allocatable        :: plmask, tpmask, plmmask
+      integer(I4B), dimension(:), allocatable   :: body_status
 
       associate(tslot => nc%tslot)
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_read_hdr_system nf90_inquire_dimension name_dimid"  )
@@ -1143,29 +1151,41 @@ contains
          allocate(tpmask(idmax))
          allocate(plmask(idmax))
          allocate(plmmask(idmax))
+         allocate(body_status(idmax))
 
          call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, Gmtemp, start=[1,1], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar Gmass_varid"  )
+         status = nf90_inq_varid(nc%id, nc%status_varname, nc%status_varid) 
+         if (status == NF90_NOERR) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%status_varid,  body_status, start=[1,tslot], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar status_varid"  )
+         else
+            body_status(:) = ACTIVE
+         end if
 
          plmask(:) = Gmtemp(:) == Gmtemp(:)
          tpmask(:) = .not. plmask(:)
          plmask(1) = .false. ! This is the central body
-         plmmask(:) = plmask(:)
+
+         ! Select only active bodies
+         plmask(:) = plmask(:) .and. (body_status(:) == ACTIVE)
+         tpmask(:) = tpmask(:) .and. (body_status(:) == ACTIVE)
 
          if (param%lmtiny_pl) then
             where(plmask(:))
                plmmask(:) = Gmtemp(:) > param%GMTINY
             endwhere
+         else
+            plmmask(:) = plmask(:)
          end if
 
          status = nf90_inq_varid(nc%id, nc%npl_varname, nc%npl_varid)
-         if (status == nf90_noerr) then
+         if (status == NF90_NOERR) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%npl_varid,  self%pl%nbody, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar npl_varid"  )
          else
             self%pl%nbody = count(plmask(:))
          end if
 
          status = nf90_inq_varid(nc%id, nc%ntp_varname, nc%ntp_varid)
-         if (status == nf90_noerr) then
+         if (status == NF90_NOERR) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%ntp_varid,  self%tp%nbody, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar ntp_varid"  )
          else
             self%tp%nbody = count(tpmask(:))
@@ -1173,7 +1193,7 @@ contains
 
          if (param%lmtiny_pl) then
             status = nf90_inq_varid(nc%id, nc%nplm_varname, nc%nplm_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%nplm_varid,  self%pl%nplm, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar nplm_varid"  )
             else
                self%pl%nplm = count(plmmask(:))
@@ -1182,25 +1202,25 @@ contains
 
          if (param%lenergy) then
             status = nf90_inq_varid(nc%id, nc%ke_orb_varname, nc%KE_orb_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid,      self%ke_orbit,    start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar KE_orb_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid,      self%ke_orbit,    start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar KE_orb_varid"  )
             status = nf90_inq_varid(nc%id, nc%ke_spin_varname, nc%KE_spin_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid,     self%ke_spin,     start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar KE_spin_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid,     self%ke_spin,     start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar KE_spin_varid"  )
             status = nf90_inq_varid(nc%id, nc%pe_varname, nc%PE_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid,          self%pe,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar PE_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid,          self%pe,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar PE_varid"  )
             status = nf90_inq_varid(nc%id, nc%be_varname, nc%BE_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid,          self%be,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar BE_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid,          self%be,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar BE_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_orbit_varname, nc%L_orbit_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid,      self%L_orbit(:),   start=[1,tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_orbit_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid,      self%L_orbit(:),   start=[1,tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_orbit_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_spin_varname, nc%L_spin_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid,     self%L_spin(:),    start=[1,tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_spin_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid,     self%L_spin(:),    start=[1,tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_spin_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_escape_varname, nc%L_escape_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid,   self%L_escape(:),  start=[1, tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_escape_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid,   self%L_escape(:),  start=[1, tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_escape_varid"  )
             status = nf90_inq_varid(nc%id, nc%E_collisions_varname, nc%E_collisions_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar E_collisions_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar E_collisions_varid"  )
             status = nf90_inq_varid(nc%id, nc%E_untracked_varname, nc%E_untracked_varid)
-            if (status == nf90_noerr) call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar E_untracked_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar E_untracked_varid"  )
             status = nf90_inq_varid(nc%id, nc%GMescape_varname, nc%GMescape_varid)
-            if (status == nf90_noerr)  call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar GMescape_varid"  )
+            if (status == NF90_NOERR)  call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar GMescape_varid"  )
          end if
 
       end associate
@@ -1275,7 +1295,7 @@ contains
          end do
 
          status = nf90_get_var(nc%id, nc%ptype_varid, ctemp, count=[NAMELEN, idmax])
-         if (status /= nf90_noerr) then ! Set default particle types
+         if (status /= NF90_NOERR) then ! Set default particle types
             call cb%info%set_value(particle_type=CB_TYPE_NAME)
 
             ! Handle semi-interacting bodies in SyMBA
@@ -1304,7 +1324,7 @@ contains
          if (param%lclose) then
 
             status = nf90_inq_varid(nc%id, nc%origin_type_varname, nc%origin_type_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%origin_type_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_io_read_particle_info_system nf90_getvar origin_type_varid"  )
             else
                ctemp = "Initial Conditions"
@@ -1319,7 +1339,7 @@ contains
             end do
 
             status = nf90_inq_varid(nc%id, nc%origin_time_varname, nc%origin_time_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%origin_time_varid, rtemp), "netcdf_io_read_particle_info_system nf90_getvar origin_time_varid"  )
             else
                rtemp = param%t0
@@ -1334,7 +1354,7 @@ contains
             end do
 
             status = nf90_inq_varid(nc%id, nc%origin_rh_varname, nc%origin_rh_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%origin_rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar origin_rh_varid"  )
             else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar rh_varid"  )
@@ -1350,7 +1370,7 @@ contains
             end do
 
             status = nf90_inq_varid(nc%id, nc%origin_vh_varname, nc%origin_vh_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%origin_vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar origin_vh_varid"  )
             else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar vh_varid"  )
@@ -1366,7 +1386,7 @@ contains
             end do
 
             status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )
                do i = 1, npl
                   call pl%info(i)%set_value(collision_id=itemp(plind(i)))
@@ -1377,7 +1397,7 @@ contains
             end if
 
             status = nf90_inq_varid(nc%id, nc%discard_time_varname, nc%discard_time_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_time_varid, rtemp), "netcdf_io_read_particle_info_system nf90_getvar discard_time_varid"  )
                call cb%info%set_value(discard_time=rtemp(1))
                do i = 1, npl
@@ -1389,7 +1409,7 @@ contains
             end if
 
             status = nf90_inq_varid(nc%id, nc%discard_rh_varname, nc%discard_rh_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_rh_varid"  )
                do i = 1, npl
                   call pl%info(i)%set_value(discard_rh=vectemp(:,plind(i)))
@@ -1400,7 +1420,7 @@ contains
             end if
 
             status = nf90_inq_varid(nc%id, nc%discard_vh_varname, nc%discard_vh_varid)
-            if (status == nf90_noerr) then
+            if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%discard_vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_vh_varid"  )
                do i = 1, npl
                   call pl%info(i)%set_value(discard_vh=vectemp(:,plind(i)))
@@ -1436,7 +1456,7 @@ contains
 
       call self%write_info(nc, param)
 
-      call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_io_write_frame_body nf90_set_fill"  )
+      call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_frame_body nf90_set_fill"  )
       select type(self)
       class is (swiftest_body)
       select type (param)
@@ -1533,10 +1553,11 @@ contains
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)
 
-         call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_io_write_frame_cb nf90_set_fill"  )
+         call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_frame_cb nf90_set_fill"  )
 
          idslot = self%id + 1
          call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
 
          call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb Gmass_varid"  )
          if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb radius_varid"  )
@@ -1614,23 +1635,23 @@ contains
    module subroutine swiftest_io_netcdf_write_info_body(self, nc, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Write all current particle to file
+      !! Write all current particle information metadata to file
       implicit none
       ! Arguments
-      class(swiftest_body),             intent(in)    :: self  !! Swiftest particle object
+      class(swiftest_body),              intent(in)    :: self  !! Swiftest particle object
       class(swiftest_netcdf_parameters), intent(inout) :: nc      !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
+      class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=:), allocatable             :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_io_write_info_body nf90_set_fill nf90_nofill"  )
+      call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_body nf90_set_fill NF90_NOFILL"  )
 
       select type(self)
          class is (swiftest_body)
-         associate(n => self%nbody)
+         associate(n => self%nbody, tslot => nc%tslot)
             if (n == 0) return
             call swiftest_util_sort(self%id(1:n), ind)
 
@@ -1638,6 +1659,7 @@ contains
                j = ind(i)
                idslot = self%id(j) + 1
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), "netcdf_io_write_info_body nf90_put_var id_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
                charstring = trim(adjustl(self%info(j)%name))
                call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_body nf90_put_var name_varid"  )
@@ -1680,7 +1702,7 @@ contains
       character(len=:), allocatable             :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "netcdf_io_write_info_cb nf90_set_fill nf90_nofill"  )
+      call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_cb nf90_set_fill NF90_NOFILL"  )
 
       idslot = self%id + 1
       call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_info_cb nf90_put_var id_varid"  )

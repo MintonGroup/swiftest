@@ -44,6 +44,8 @@ module netcdf_io
       ! Non-dimension ids and variable names
       character(NAMELEN) :: id_varname              = "id"              !! name of the particle id variable
       integer(I4B)       :: id_varid                                    !! ID for the id variable 
+      character(NAMELEN) :: status_varname          = "status"          !! name of the particle status variable
+      integer(I4B)       :: status_varid                                !! ID for the status variable 
       character(NAMELEN) :: ptype_varname           = "particle_type"   !! name of the particle type variable
       integer(I4B)       :: ptype_varid                                 !! ID for the particle type variable
       character(NAMELEN) :: npl_varname             = "npl"             !! name of the number of active massive bodies variable

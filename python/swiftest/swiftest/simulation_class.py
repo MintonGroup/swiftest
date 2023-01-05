@@ -2950,17 +2950,13 @@ class Simulation:
         old_files = [self.simdir / self.param['BIN_OUT'],
                      self.simdir / "fraggle.log",
                      self.simdir / "swiftest.log",
+                     self.simdir / "collisions.log",
+                     self.simdir / "collisions.nc",
+                     self.simdir / "encounters.nc",
+                     self.simdir / "param.restart.in",
                      ]
-        glob_files = [self.simdir.glob("**/dump_param?.in")] \
-                     + [self.simdir.glob("**/dump_bin?.nc")] \
-                     + [self.simdir.glob("**/encounter_*.nc")] \
-                     + [self.simdir.glob("**/collision_*.nc")]
 
         for f in old_files:
             if f.exists():
                 os.remove(f)
-        for g in glob_files:
-            for f in g:
-                if f.exists():
-                    os.remove(f)
         return

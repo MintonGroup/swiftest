@@ -243,7 +243,7 @@ contains
       select type (nc => history%nc)
       class is (encounter_netcdf_parameters)
          associate(tslot => nc%tslot)
-            call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "encounter_io_netcdf_write_frame_snapshot nf90_set_fill"  )
+            call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "encounter_io_netcdf_write_frame_snapshot nf90_set_fill"  )
       
             call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var time_varid"  )
 

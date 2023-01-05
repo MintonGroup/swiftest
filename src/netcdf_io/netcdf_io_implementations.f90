@@ -21,7 +21,7 @@ contains
       integer, intent (in) :: status !! The status code returned by a NetCDF function
       character(len=*), intent(in), optional :: call_identifier !! String that indicates which calling function caused the error for diagnostic purposes
 
-      if(status /= nf90_noerr) then
+      if(status /= NF90_NOERR) then
          if (present(call_identifier)) write(*,*) "NetCDF error in ",trim(call_identifier)
          write(*,*) trim(nf90_strerror(status))
          call util_exit(FAILURE)
