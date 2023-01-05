@@ -1157,6 +1157,7 @@ contains
          status = nf90_inq_varid(nc%id, nc%status_varname, nc%status_varid) 
          if (status == NF90_NOERR) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%status_varid,  body_status, start=[1,tslot], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar status_varid"  )
+            where(body_status(:) /= INACTIVE) body_status(:) = ACTIVE
          else
             body_status(:) = ACTIVE
          end if
