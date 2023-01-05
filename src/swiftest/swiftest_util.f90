@@ -1717,10 +1717,6 @@ contains
             end where
          end if
 
-         call nc%open(param)
-         call pl%write_info(nc, param)
-         call nc%close()
-
          ! Reindex the new list of bodies 
          call pl%sort("mass", ascending=.false.)
          call pl%flatten(param)

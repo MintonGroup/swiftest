@@ -63,7 +63,7 @@ param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_s
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "status", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
-int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "loopnum"]
+int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "status"]
 
 def bool2yesno(boolval):
     """

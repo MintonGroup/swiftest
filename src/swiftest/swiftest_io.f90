@@ -1557,7 +1557,7 @@ contains
 
          idslot = self%id + 1
          call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
 
          call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb Gmass_varid"  )
          if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb radius_varid"  )
