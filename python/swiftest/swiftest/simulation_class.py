@@ -211,12 +211,12 @@ class Simulation:
             but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
             Parameter input file equivalent: `GMTINY`
         close_encounter_check : bool, default True
-            Check for close encounter between bodies. If set to True, then the radii of massive bodies must be included
+            Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
             Parameter input file equivalent: `CHK_CLOSE`
         encounter_save : {"NONE","TRAJECTORY","CLOSEST", "BOTH"}, default "NONE"
             Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
-            of all bodies undergoing close encounter are saved at each intermediate step to the encounter files.
+            of all bodies undergoing close encounters are saved at each intermediate step to the encounter files.
             If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
             computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
             in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
@@ -316,8 +316,8 @@ class Simulation:
         self.param = {}
         self.data = xr.Dataset()
         self.init_cond = xr.Dataset()
-        self.encounter = xr.Dataset()
-        self.collision = xr.Dataset()
+        self.encounters = xr.Dataset()
+        self.collisions = xr.Dataset()
 
         self.simdir = Path(simdir)
         if self.simdir.exists():
@@ -1035,7 +1035,7 @@ class Simulation:
         Parameters
         ----------
         close_encounter_check : bool, optional
-            Check for close encounter between bodies. If set to True, then the radii of massive bodies must be included
+            Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
         encounter_save : {"NONE","TRAJECTORY","CLOSEST","BOTH"}, default "NONE"
             Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
@@ -2758,7 +2758,7 @@ class Simulation:
             return
 
         if self.verbose:
-            print("Reading encounter history file as .encounter")
+            print("Reading encounter history file as .encounters")
 
         enc_files.sort()
 
@@ -2767,28 +2767,28 @@ class Simulation:
             return io.process_netcdf_input(ds,param)
         partial_func = partial(_preprocess, param=self.param)
 
-        self.encounter = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
-        self.encounter = io.process_netcdf_input(self.encounter, self.param)
+        self.encounters = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
+        self.encounters = io.process_netcdf_input(self.encounters, self.param)
         # Remove any overlapping time values
-        tgood,tid = np.unique(self.encounter.time,return_index=True)
-        self.encounter = self.encounter.isel(time=tid)
+        tgood,tid = np.unique(self.encounters.time,return_index=True)
+        self.encounters = self.encounters.isel(time=tid)
         # Remove any NaN values
-        tgood=self.encounter.time.where(~np.isnan(self.encounter.time),drop=True)
-        self.encounter = self.encounter.sel(time=tgood)
+        tgood=self.encounters.time.where(~np.isnan(self.encounters.time),drop=True)
+        self.encounters = self.encounters.sel(time=tgood)
 
         return
 
     def read_collision(self):
        
-        col_file = self.simdir / "collision.nc"
+        col_file = self.simdir / "collisions.nc"
         if not os.path.exists(col_file):
            return
 
         if self.verbose:
-                print("Reading collision history file as .collision")
+                print("Reading collisions history file as .collisions")
 
-        self.collision = xr.open_dataset(col_file)
-        self.collision = io.process_netcdf_input(self.collision, self.param)
+        self.collisions = xr.open_dataset(col_file)
+        self.collisions = io.process_netcdf_input(self.collisions, self.param)
 
         return
 
