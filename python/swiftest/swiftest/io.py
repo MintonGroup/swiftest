@@ -804,8 +804,6 @@ def process_netcdf_input(ds, param):
     Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that
     is used by the Python side. These include:
     - Ensuring all types are correct
-    - Removing any bad id values (empty id slots)
-    - Swapping the id and name dimension if the names are unique
 
     Parameters
     ----------

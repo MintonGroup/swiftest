@@ -695,6 +695,7 @@ contains
             snapshot%collider%pe(1) = nbody_system%pe
             snapshot%collider%be(1) = nbody_system%be
             snapshot%collider%te(1) = nbody_system%te
+
          case("after")
             ! Get record the energy of the sytem after the collision
             call nbody_system%get_energy_and_momentum(param)
@@ -706,6 +707,22 @@ contains
             snapshot%collider%pe(2) = nbody_system%pe
             snapshot%collider%be(2) = nbody_system%be
             snapshot%collider%te(2) = nbody_system%te
+
+            select type(before_snap => snapshot%collider%before )
+            class is (swiftest_nbody_system)
+            select type(before_orig => nbody_system%collider%before)
+            class is (swiftest_nbody_system)
+               call move_alloc(before_orig%pl, before_snap%pl)
+            end select
+            end select
+
+            select type(after_snap => snapshot%collider%after )
+            class is (swiftest_nbody_system)
+            select type(after_orig => nbody_system%collider%after)
+            class is (swiftest_nbody_system)
+               call move_alloc(after_orig%pl, after_snap%pl)
+            end select
+            end select
 
             ! Save the snapshot for posterity
             call collision_util_save_snapshot(nbody_system%collision_history,snapshot)

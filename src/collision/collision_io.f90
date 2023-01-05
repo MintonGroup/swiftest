@@ -105,11 +105,10 @@ contains
 
             call nc%open(param)
 
-            do i = 1, self%nframes
+            do i = 1, self%iframe
                if (allocated(self%frame(i)%item)) then
                   select type(snapshot => self%frame(i)%item)
                   class is (collision_snapshot)
-                     param%ioutput = i
                      call snapshot%write_frame(self,param)
                   end select
                else
