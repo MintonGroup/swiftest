@@ -56,16 +56,13 @@ program swiftest_driver
       iloop           => param%iloop, &
       istep_out       => param%istep_out, &
       dump_cadence    => param%dump_cadence, &
-      ioutput         => param%ioutput, &
       display_style   => param%display_style, &
       display_unit    => param%display_unit)
-
 
       ! Set up loop and output cadence variables
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1.0_DP, kind=I8B)
       iloop = istart - 1
-      ioutput = max(int(istart / istep_out, kind=I4B),1)
 
       ! Set up nbody_system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)

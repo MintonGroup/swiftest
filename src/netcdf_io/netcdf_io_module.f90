@@ -24,8 +24,8 @@ module netcdf_io
       logical            :: lfile_is_open = .false.                     !! Flag indicating that the linked file is currently open
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B)       :: id                                          !! ID for the output file
-      integer(I4B)       :: name_chunk                                  !! Chunk size for the id dimension variables
-      integer(I4B)       :: time_chunk                                  !! Chunk size for the time dimension variables
+      integer(I4B)       :: max_tslot               = 0                 !! Records the last index value of time in the NetCDF file
+      integer(I4B)       :: tslot                   = 1                 !! The current time slot that gets passed to the NetCDF reader/writer
 
       ! Dimension ids and variable names
       character(NAMELEN) :: str_dimname             = "string32"        !! name of the character string dimension

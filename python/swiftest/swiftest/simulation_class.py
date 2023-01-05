@@ -2757,8 +2757,8 @@ class Simulation:
         if not os.path.exists(enc_file):
            return
 
-        self.collisions = xr.open_dataset(enc_file)
-        self.collisions = io.process_netcdf_input(self.collisions, self.param)
+        self.encounters = xr.open_dataset(enc_file)
+        self.encounters = io.process_netcdf_input(self.encounters, self.param)
 
         # Remove any overlapping time values
         tgood,tid = np.unique(self.encounters.time,return_index=True)

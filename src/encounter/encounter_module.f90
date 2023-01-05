@@ -61,11 +61,6 @@ module encounter
 
    !> NetCDF dimension and variable names for the enounter save object
    type, extends(netcdf_parameters) :: encounter_netcdf_parameters
-      character(NAMELEN) :: loop_varname = "loopnum" !! Loop number for encounter
-      integer(I4B)       :: loop_varid               !! ID for the recursion level variable
-      integer(I4B)       :: time_dimsize = 0         !! Number of time values in snapshot
-      integer(I4B)       :: name_dimsize = 0         !! Number of potential id values in snapshot
-      integer(I4B)       :: file_number  = 1         !! The number to append on the output file
    contains
       procedure :: initialize => encounter_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => encounter_io_netcdf_open              !! Open an encounter NetCDF file
