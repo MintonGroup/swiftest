@@ -374,9 +374,10 @@ contains
 
       select type(nc => history%nc)
       class is (collision_netcdf_parameters)
-         associate(collider => self%collider, impactors => self%collider%impactors, fragments => self%collider%fragments, eslot => param%ioutput)
+         associate(collider => self%collider, impactors => self%collider%impactors, fragments => self%collider%fragments, eslot => self%collider%collision_id)
             call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "collision_io_netcdf_write_frame_snapshot nf90_set_fill" )
 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%collision_id_varid, eslot,            start=[eslot]), "collision_io_netcdf_write_frame_snapshot nf90_put_var collision_id_varid" )
             call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t,                   start=[eslot]), "collision_io_netcdf_write_frame_snapshot nf90_put_var time_varid" )
             call netcdf_io_check( nf90_put_var(nc%id, nc%loop_varid, int(self%iloop,kind=I4B), start=[eslot]), "collision_io_netcdf_write_frame_snapshot nf90_put_varloop_varid" )
 
