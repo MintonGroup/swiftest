@@ -117,7 +117,6 @@ program swiftest_driver
 
             !> Evaluate any discards or collisional outcomes
             call nbody_system%discard(param)
-            if (display_style == "PROGRESS") call pbar%update(iloop)
 
             !> If the loop counter is at the output cadence value, append the data file with a single frame
             if (istep_out > 0) then

@@ -349,6 +349,18 @@ contains
             plnew%mass(1:nfrag) = fragments%mass(1:nfrag)
             plnew%Gmass(1:nfrag) = param%GU * fragments%mass(1:nfrag)
             plnew%radius(1:nfrag) = fragments%radius(1:nfrag)
+
+            if (param%lrotation) then
+               plnew%Ip(:, 1:nfrag) = fragments%Ip(:, 1:nfrag)
+               plnew%rot(:, 1:nfrag) = fragments%rot(:, 1:nfrag)
+            end if
+
+            ! if (param%ltides) then
+            !    plnew%Q = pl%Q(ibiggest)
+            !    plnew%k2 = pl%k2(ibiggest)
+            !    plnew%tlag = pl%tlag(ibiggest)
+            ! end if
+
             do concurrent(i = 1:nfrag)
                volume = 4.0_DP/3.0_DP * PI * plnew%radius(i)**3
                plnew%density(i) = fragments%mass(i) / volume
@@ -406,17 +418,6 @@ contains
                                                             discard_vh=pl%vh(:,i), discard_body_id=iother)
                end do 
             end select
-
-            if (param%lrotation) then
-               plnew%Ip(:, 1:nfrag) = fragments%Ip(:, 1:nfrag)
-               plnew%rot(:, 1:nfrag) = fragments%rot(:, 1:nfrag)
-            end if
-
-            ! if (param%ltides) then
-            !    plnew%Q = pl%Q(ibiggest)
-            !    plnew%k2 = pl%k2(ibiggest)
-            !    plnew%tlag = pl%tlag(ibiggest)
-            ! end if
 
             !Copy over or set integration parameters for new bodies
             plnew%lcollision(1:nfrag) = .false.
