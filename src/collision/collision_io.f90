@@ -305,14 +305,14 @@ contains
             self%lfile_is_open = .true.
 
             ! Dimensions
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%collision_id_varname, nc%time_dimid), "collision_io_netcdf_open nf90_inq_dimid time_dimid"  )
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%collision_id_varname, nc%collision_id_dimid), "collision_io_netcdf_open nf90_inq_dimid collision_id_dimid"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), "collision_io_netcdf_open nf90_inq_dimid space_dimid"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), "collision_io_netcdf_open nf90_inq_dimid name_dimid"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), "collision_io_netcdf_open nf90_inq_dimid str_dimid"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%stage_dimname, nc%stage_dimid), "collision_io_netcdf_open nf90_inq_dimid stage_dimid"  )
 
             ! Dimension coordinates
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%collision_id_varname, nc%time_varid), "collision_io_netcdf_open nf90_inq_varid time_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid), "collision_io_netcdf_open nf90_inq_varid collision_id_varid" )
             call netcdf_io_check( nf90_inq_varid(nc%id, nc%space_dimname, nc%space_varid), "collision_io_netcdf_open nf90_inq_varid space_varid" )
             call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), "collision_io_netcdf_open nf90_inq_varid name_varid" )
             call netcdf_io_check( nf90_inq_varid(nc%id, nc%stage_dimname, nc%stage_varid), "collision_io_netcdf_open nf90_inq_varid stage_varid" )
