@@ -2063,7 +2063,6 @@ contains
          ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-
          ! A minimal log of collision outcomes is stored in the following log file
          ! More complete data on collisions is stored in the NetCDF output files
          call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")

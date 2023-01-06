@@ -574,9 +574,8 @@ contains
 
                   if (.not.lplpl_collision) exit
                   if (loop == MAXCASCADE) then
-                     write(*,*) 
-                     write(*,*) "An runaway collisional cascade has been detected in collision_resolve_plpl."
-                     write(*,*) "Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments."
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"An runaway collisional cascade has been detected in collision_resolve_plpl.")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments.")
                      call util_exit(FAILURE)
                   end if
                end associate

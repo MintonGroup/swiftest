@@ -301,7 +301,7 @@ contains
       logical, save      :: lfirst = .true.
       logical            :: lfirst_orig
       integer(I4B)       :: i
-      character(len=STRMAX) :: timestr, idstr
+      character(len=STRMAX) :: timestr, idstr, message
 
 
       lfirst_orig = pl%lfirst
@@ -320,8 +320,9 @@ contains
                      pl%status(i) = DISCARDED_PERI
                      write(timestr, *) nbody_system%t
                      write(idstr, *) pl%id(i)
-                     write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // &
+                     write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // &
                                  ") perihelion distance too small at t = " // trim(adjustl(timestr)) 
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                      call pl%info(i)%set_value(status="DISCARDED_PERI", discard_time=nbody_system%t, &
                                                discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), discard_body_id=nbody_system%cb%id)
                   end if

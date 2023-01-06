@@ -86,7 +86,7 @@ contains
             case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
             case default 
-               write(*,*) "Error in swiftest_collision, unrecognized collision regime"
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error in swiftest_collision, unrecognized collision regime")
                call util_exit(FAILURE)
             end select
             end associate
