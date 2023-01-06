@@ -239,6 +239,7 @@ contains
       class(swiftest_parameters), allocatable :: param_restart !! Local parameters variable used to parameters change input file names 
                                                             !! to dump file-specific values without changing the user-defined values
       character(len=:), allocatable :: param_file_name
+      character(len=STRMAX) :: time_text
    
       ! Dump the encounter history if necessary
       if (param%lenc_save_trajectory .or. param%lenc_save_closest .and. allocated(self%encounter_history)) call self%encounter_history%dump(param)
@@ -248,13 +249,16 @@ contains
       call param%system_history%dump(param)
 
       allocate(param_restart, source=param)
-      param_file_name    = trim(adjustl(PARAM_RESTART_FILE))
       param_restart%in_form  = "XV"
       param_restart%out_stat = 'APPEND'
       param_restart%in_type = "NETCDF_DOUBLE"
       param_restart%nc_in = param%outfile
       param_restart%lrestart = .true.
       param_restart%tstart = self%t
+      param_file_name    = trim(adjustl(PARAM_RESTART_FILE))
+      call param_restart%dump(param_file_name)
+      write(time_text,'(I0.20)') param%iloop
+      param_file_name = "param." // trim(adjustl(time_text)) // ".in"
       call param_restart%dump(param_file_name)
 
       return
@@ -2293,6 +2297,7 @@ contains
          call io_param_writer_one("COLLISION_MODEL",param%collision_model, unit)
          if (param%collision_model == "FRAGGLE" ) then
             nseeds = size(param%seed)
+            call random_seed(get = param%seed)
             call io_param_writer_one("SEED", [nseeds, param%seed(:)], unit)
          end if
    
