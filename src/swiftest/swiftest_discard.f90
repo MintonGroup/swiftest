@@ -200,7 +200,7 @@ contains
       integer(I4B)              :: i, j, ih
       real(DP)                  :: r2
       real(DP), dimension(NDIM) :: dx
-      character(len=STRMAX) :: idstr, timestr
+      character(len=STRMAX) :: idstr, timestr, message
    
       associate(cb => nbody_system%cb, ntp => tp%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, t => nbody_system%t)
          call tp%get_peri(nbody_system, param)
@@ -220,8 +220,10 @@ contains
                         tp%status(i) = DISCARDED_PERI
                         write(idstr, *) tp%id(i)
                         write(timestr, *) nbody_system%t
-                        write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
+                        write(message, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                                     " perihelion distance too small at t = " // trim(adjustl(timestr))
+                        
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                         tp%ldiscard(i) = .true.
                         call tp%info(i)%set_value(status="DISCARDED_PERI", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                                   discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))

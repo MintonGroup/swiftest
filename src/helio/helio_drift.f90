@@ -28,6 +28,7 @@ contains
       integer(I4B) :: i !! Loop counter
       integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
       real(DP), dimension(:), allocatable    :: mu
+      character(len=STRMAX) message
 
       if (self%nbody == 0) return
 
@@ -40,7 +41,10 @@ contains
          if (any(iflag(1:n) /= 0)) then
             where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
             do i = 1, n
-               if (iflag(i) /= 0) write(*, *) " Body ", self%id(i), " lost due to error in Danby drift"
+               if (iflag(i) /= 0) then
+                  write(message, *) " Body ", self%id(i), " lost due to error in Danby drift"
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT,message)
+               end if
             end do
          end if
       end associate

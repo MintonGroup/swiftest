@@ -27,6 +27,7 @@ contains
       ! Internals
       integer(I4B)                              :: i
       integer(I4B), dimension(:), allocatable   :: iflag
+      character(len=STRMAX) :: message
 
       if (self%nbody == 0) return
 
@@ -41,11 +42,12 @@ contains
             end where
             do i = 1, npl
                if (iflag(i) /= 0) then 
-                  write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!!!"
-                  WRITE(*, *) pl%muj(i), dt
-                  WRITE(*, *) pl%xj(:,i)
-                  WRITE(*, *) pl%vj(:,i)
-                  WRITE(*, *) " STOPPING "
+                  write(message, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!!!",new_line('A'), &
+                                      pl%muj(i), dt, new_line('A'), &
+                                      pl%xj(:,i),new_line('A'), &
+                                      pl%vj(:,i),new_line('A'), &
+                                    " STOPPING "
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                end if
             end do
             call util_exit(FAILURE)

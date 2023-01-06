@@ -262,7 +262,7 @@ contains
             regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
             Qloss = (c_star + 1.0_DP) * U_binding ! Qr - Qr_supercat
          else 
-            write(*,*) "Error no regime found in symba_regime"
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error no regime found in symba_regime")
          end if 
       end if 
 

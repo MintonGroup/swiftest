@@ -63,7 +63,7 @@ param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_s
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "status", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
-int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "loopnum"]
+int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "status"]
 
 def bool2yesno(boolval):
     """
@@ -804,8 +804,6 @@ def process_netcdf_input(ds, param):
     Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that
     is used by the Python side. These include:
     - Ensuring all types are correct
-    - Removing any bad id values (empty id slots)
-    - Swapping the id and name dimension if the names are unique
 
     Parameters
     ----------

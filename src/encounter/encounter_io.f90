@@ -26,18 +26,13 @@ contains
       class is (encounter_netcdf_parameters)
          if (self%iframe > 0) then
             ! Create and save the output files for this encounter and fragmentation
-            nc%file_number = nc%file_number + 1 
             call self%make_index_map()
-            nc%time_dimsize = self%nt
-            nc%name_dimsize = self%nid
-            write(nc%file_name, '("encounter_",I0.6,".nc")') nc%file_number
-            call nc%initialize(param)
-
+            call nc%open(param)
             do i = 1, self%iframe
                if (allocated(self%frame(i)%item)) then
                   select type(snapshot => self%frame(i)%item)
                   class is (encounter_snapshot)
-                     param%ioutput = self%tmap(i)
+                     nc%tslot = nc%max_tslot + self%tmap(i)
                      call snapshot%write_frame(self,param)
                   end select
                else
@@ -47,6 +42,8 @@ contains
 
             call nc%close()
             call self%reset()
+            ! Update the time slot tracker
+            nc%max_tslot = nc%max_tslot + maxval(self%tmap(1:self%iframe))
          end if
       end select
 
@@ -97,9 +94,9 @@ contains
          nc%lfile_is_open = .true.
 
          ! Dimensions
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, nc%time_dimsize, nc%time_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
          call netcdf_io_check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%name_dimname, nc%name_dimsize, nc%name_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim name_dimid" )       ! dimension to store particle id numbers
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%name_dimname, NF90_UNLIMITED, nc%name_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim name_dimid" )       ! dimension to store particle id numbers
          call netcdf_io_check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
 
          ! Dimension coordinates
@@ -113,7 +110,6 @@ contains
          call netcdf_io_check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rh_varid), "encounter_io_netcdf_initialize_output nf90_def_var rh_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%vh_varid), "encounter_io_netcdf_initialize_output nf90_def_var vh_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), "encounter_io_netcdf_initialize_output nf90_def_var Gmass_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%loop_varname, NF90_INT, [nc%time_dimid], nc%loop_varid), "encounter_io_netcdf_initialize_output nf90_def_var loop_varid"  )
          if (param%lclose) then
             call netcdf_io_check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%radius_varid), "encounter_io_netcdf_initialize_output nf90_def_var radius_varid"  )
          end if
@@ -153,6 +149,76 @@ contains
    end subroutine encounter_io_netcdf_initialize_output
 
 
+   module subroutine encounter_io_netcdf_open(self, param, readonly)
+      !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
+      !!
+      !! Opens a NetCDF file and does the variable inquiries to activate variable ids
+      use netcdf
+      implicit none
+      ! Arguments
+      class(encounter_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
+      class(base_parameters),             intent(in)    :: param    !! Current run configuration parameters
+      logical, optional,                  intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      ! Internals
+      integer(I4B) :: mode
+      character(len=STRMAX) :: errmsg
+      logical fileExists
+
+      mode = NF90_WRITE
+      if (present(readonly)) then
+         if (readonly) mode = NF90_NOWRITE
+      end if
+
+      select type(param)
+      class is (base_parameters)
+         associate(nc => self)
+
+            inquire(file=nc%file_name, exist=fileExists)
+            if (.not.fileExists) then
+               call nc%initialize(param)
+               return
+            end if
+
+            write(errmsg,*) "encounter_io_netcdf_open nf90_open ",trim(adjustl(nc%file_name))
+            call netcdf_io_check( nf90_open(nc%file_name, mode, nc%id), errmsg)
+            self%lfile_is_open = .true.
+
+            ! Dimensions
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), "encounter_io_netcdf_open nf90_inq_dimid time_dimid"  )
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, nc%time_dimname, len=nc%max_tslot), "encounter_io_netcdf_open nf90_inquire_dimension max_tslot"  )
+
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), "encounter_io_netcdf_open nf90_inq_dimid space_dimid"  )
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), "encounter_io_netcdf_open nf90_inq_dimid name_dimid"  )
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), "encounter_io_netcdf_open nf90_inq_dimid str_dimid"  )
+
+            ! Dimension coordinates
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), "encounter_io_netcdf_open nf90_inq_varid time_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%space_dimname, nc%space_varid), "encounter_io_netcdf_open nf90_inq_varid space_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), "encounter_io_netcdf_open nf90_inq_varid name_varid" )
+
+            ! Required Variables
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), "encounter_io_netcdf_open nf90_inq_varid name_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%ptype_varname, nc%ptype_varid), "encounter_io_netcdf_open nf90_inq_varid ptype_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), "encounter_io_netcdf_open nf90_inq_varid time_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rh_varname, nc%rh_varid), "encounter_io_netcdf_open nf90_inq_varid rh_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%vh_varname, nc%vh_varid), "encounter_io_netcdf_open nf90_inq_varid vh_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%Gmass_varname, nc%Gmass_varid), "encounter_io_netcdf_open nf90_inq_varid Gmass_varid" )
+            if (param%lclose) then
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%radius_varname, nc%radius_varid), "encounter_io_netcdf_open nf90_inq_varid radius_varid" )
+            end if
+            
+            if (param%lrotation) then
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%Ip_varname, nc%Ip_varid), "encounter_io_netcdf_open nf90_inq_varid Ip_varid" )
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_varname, nc%rot_varid), "encounter_io_netcdf_open nf90_inq_varid rot_varid" )
+            end if
+
+         end associate
+      end select 
+
+      return
+   end subroutine encounter_io_netcdf_open
+
+
    module subroutine encounter_io_netcdf_write_frame_snapshot(self, history, param)
       !! author: David A. Minton
       !!
@@ -176,11 +242,10 @@ contains
       class is (swiftest_tp)
       select type (nc => history%nc)
       class is (encounter_netcdf_parameters)
-         associate(tslot => param%ioutput)
-            call netcdf_io_check( nf90_set_fill(nc%id, nf90_nofill, old_mode), "encounter_io_netcdf_write_frame_snapshot nf90_set_fill"  )
+         associate(tslot => nc%tslot)
+            call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "encounter_io_netcdf_write_frame_snapshot nf90_set_fill"  )
       
             call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var time_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%loop_varid, int(self%iloop,kind=I4B), start=[tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl loop_varid"  )
 
             npl = pl%nbody
             do i = 1, npl
