@@ -15,7 +15,6 @@ contains
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Checks the status of all NetCDF operations to catch errors
-      use netcdf
       implicit none
       ! Arguments
       integer, intent (in) :: status !! The status code returned by a NetCDF function
@@ -35,7 +34,6 @@ contains
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Closes a NetCDF file
-      use netcdf
       implicit none
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
@@ -49,12 +47,44 @@ contains
    end subroutine netcdf_io_close
 
 
+
+   module subroutine netcdf_io_find_tslot(self, t)
+      !! author: David A. Minton
+      !! 
+      !! Given an open NetCDF file and a value of time t, finds the index of the time value (aka the time slot) to place a new set of data.
+      !! The returned value of tslot will correspond to the first index value where the value of t is greater than or equal to the saved time value.
+      implicit none
+      ! Arguments
+      class(netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+      real(DP),                 intent(in)    :: t     !! The value of time to search for
+      ! Internals
+      real(DP), dimension(:), allocatable :: tvals
+
+      self%tslot = 0
+
+      if (.not.self%lfile_is_open) return
+
+      call netcdf_io_check( nf90_inquire_dimension(self%id, self%time_dimid, self%time_dimname, len=self%max_tslot), "netcdf_io_find_tslot nf90_inquire_dimension max_tslot"  )
+      if (self%max_tslot > 0) then
+         allocate(tvals(self%max_tslot))
+         call netcdf_io_check( nf90_get_var(self%id, self%time_varid, tvals(:), start=[1]), "netcdf_io_find_tslot get_var"  )
+      else
+         allocate(tvals(1))
+         tvals(1) = -huge(1.0_DP)
+      end if
+
+      self%tslot = findloc(tvals, t, dim=1)
+      if (self%tslot == 0) self%tslot = self%max_tslot + 1
+      self%max_tslot = max(self%max_tslot, self%tslot)
+
+      return
+   end subroutine netcdf_io_find_tslot
+
    module subroutine netcdf_io_sync(self)
       !! author: David A. Minton
       !!
       !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
       !!    
-      use netcdf
       implicit none
       ! Arguments
       class(netcdf_parameters), intent(inout) :: self !! Parameters used to identify a particular NetCDF dataset

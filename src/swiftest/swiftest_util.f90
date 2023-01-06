@@ -2645,6 +2645,8 @@ contains
       end select
       call nbody_system%collider%setup(nbody_system)
 
+      nbody_system%t = param%tstart
+
 
       return
    end subroutine swiftest_util_setup_construct_system

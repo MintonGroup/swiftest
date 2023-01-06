@@ -138,8 +138,9 @@ module netcdf_io
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard
       logical            :: lpseudo_vel_exists = .false.                !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
    contains
-      procedure :: close      => netcdf_io_close             !! Closes an open NetCDF file
-      procedure :: sync       => netcdf_io_sync              !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+      procedure :: close      => netcdf_io_close       !! Closes an open NetCDF file
+      procedure :: find_tslot => netcdf_io_find_tslot  !! Finds the time dimension index for a given value of t
+      procedure :: sync       => netcdf_io_sync        !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
    interface
@@ -153,6 +154,12 @@ module netcdf_io
          implicit none
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_io_close
+
+      module subroutine netcdf_io_find_tslot(self, t)
+         implicit none
+         class(netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+         real(DP),                 intent(in)    :: t     !! The value of time to search for
+      end subroutine netcdf_io_find_tslot
    
       module subroutine netcdf_io_sync(self)
          implicit none

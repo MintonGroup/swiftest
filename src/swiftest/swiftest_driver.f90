@@ -63,6 +63,8 @@ program swiftest_driver
       nloops = ceiling((tstop - t0) / dt, kind=I8B)
       istart =  ceiling((tstart - t0) / dt + 1.0_DP, kind=I8B)
       iloop = istart - 1
+      iout = 0
+      idump = 0
 
       ! Set up nbody_system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
@@ -104,9 +106,7 @@ program swiftest_driver
             call nbody_system%compact_output(param,integration_timer)
          end if
 
-         iout = 0
-         idump = 0
-         nbody_system%t = tstart
+
          do iloop = istart, nloops
             !> Step the nbody_system forward in time
             call integration_timer%start()

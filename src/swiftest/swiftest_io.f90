@@ -278,27 +278,16 @@ contains
       class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
-      real(DP), dimension(:), allocatable :: tvals
 
       if (self%iframe == 0) return
       call self%make_index_map()
       associate(nc => param%system_history%nc)
          call nc%open(param)
-         ! Get the current time values in the file if this is an old file
-         if (nc%max_tslot > 0) then
-            allocate(tvals(nc%max_tslot))
-            call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, tvals(:), start=[1]), "swiftest_io_dump_storage time_varid"  )
-         else
-            allocate(tvals(1))
-            tvals(1) = -huge(1.0_DP)
-         end if
+
          do i = 1, self%iframe
             if (allocated(self%frame(i)%item)) then
                select type(nbody_system => self%frame(i)%item)
                class is (swiftest_nbody_system)
-                  nc%tslot = findloc(tvals, nbody_system%t, dim=1)
-                  if (nc%tslot == 0) nc%tslot = nc%max_tslot + 1
-                  nc%max_tslot = max(nc%max_tslot, nc%tslot)
                   call nbody_system%write_frame(param)
                end select
                deallocate(self%frame(i)%item)
@@ -907,6 +896,7 @@ contains
 
 
       call nc%open(param, readonly=.true.)
+      call nc%find_tslot(self%t)
       call self%read_hdr(nc, param)
       associate(cb => self%cb, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody, tslot => nc%tslot)
 
@@ -1585,10 +1575,11 @@ contains
       !! Write a frame (header plus records for each massive body and active test particle) to a output binary file
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),     intent(inout) :: self  !! Swiftest nbody_system object
+      class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody_system object
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters 
+      class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
 
+      call nc%find_tslot(self%t)
       call self%write_hdr(nc, param)
       call self%cb%write_frame(nc, param)
       call self%pl%write_frame(nc, param)
