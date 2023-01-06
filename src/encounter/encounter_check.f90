@@ -706,12 +706,16 @@ contains
             r2min = r2
          else
             v2 = vxr**2 + vyr**2 + vzr**2
-            tmin = -vdotr / v2
-         
-            if (tmin < dt) then
-               r2min = r2 - vdotr**2 / v2
+            if (v2 <= VSMALL) then
+               r2min = r2
             else
-               r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+               tmin = -vdotr / v2
+         
+               if (tmin < dt) then
+                  r2min = r2 - vdotr**2 / v2
+               else
+                  r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+               end if
             end if
          end if
       else

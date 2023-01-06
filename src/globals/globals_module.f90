@@ -118,6 +118,6 @@ module globals
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM   = 3                  !! Number of dimensions in our reality
    integer(I4B), parameter :: NDIM2  = 2 * NDIM           !! 2x the number of dimensions
-   real(DP),     parameter :: VSMALL = 2 * epsilon(1._DP) !! Very small number used to prevent floating underflow
+   real(DP),     parameter :: VSMALL = sqrt(TINY(1._DP)) !! Very small number used to prevent floating underflow
 
 end module globals

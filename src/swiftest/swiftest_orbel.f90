@@ -8,6 +8,7 @@
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule (swiftest) s_swiftest_orbel
+   real(DP), parameter :: TINYVALUE = 4.0e-15_DP !! Tiny value used to prevent floating point errors. Value set based on the Swifter TINY parameter.
 contains
 
    module subroutine swiftest_orbel_el2xv_vec(self, cb)
@@ -68,7 +69,7 @@ contains
       else
          e = ie
          em1 = e - 1._DP
-         if (abs(em1) < VSMALL) then
+         if (abs(em1) < TINYVALUE) then
             iorbit_type = PARABOLA
          else if (e > 1.0_DP)  then
             iorbit_type = HYPERBOLA
@@ -258,9 +259,9 @@ contains
       bigb = -(+0.5_DP * b + sq)**(1.0_DP / 3.0_DP) 
       x = biga + bigb
       swiftest_orbel_flon = x
-      ! If capn is VSMALL (or zero) no need to go further than cubic even for
+      ! If capn is TINYVALUE (or zero) no need to go further than cubic even for
       ! e =1.
-      if( capn >= VSMALL) then
+      if( capn >= TINYVALUE) then
          do i = 1,IMAX
             x2 = x**2
             f = a0 + x * (a1 + x2 * (a3 + x2 * (a5 + x2 * (a7 + x2 * (a9 + x2 * (a11 + x2))))))
@@ -268,7 +269,7 @@ contains
             dx = -f / fp
             swiftest_orbel_flon = x + dx
             !   if we have converged here there's no point in going on
-            if(abs(dx) <= VSMALL) exit
+            if(abs(dx) <= TINYVALUE) exit
             x = swiftest_orbel_flon
          end do
       end if
@@ -344,7 +345,7 @@ contains
          dx = -f / (fp + dx * fpp / 2._DP + dx**2 * fppp / 6._DP)
          swiftest_orbel_fget = x + dx
       !   if we have converged here there's no point in going on
-         if(abs(dx) <= VSMALL) return
+         if(abs(dx) <= TINYVALUE) return
          x = swiftest_orbel_fget
       end do
 
@@ -720,13 +721,13 @@ contains
       h2 = dot_product(hvec(:), hvec(:))
       if (h2 == 0.0_DP) return
       energy = 0.5_DP * v2 - mu / r
-      if (abs(energy * r / mu) < sqrt(VSMALL)) then
+      if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
          iorbit_type = PARABOLA
       else
          a = -0.5_DP * mu / energy
          if (a < 0.0_DP) then
             fac = -h2 / (mu * a)
-            if (fac > VSMALL) then
+            if (fac > TINYVALUE) then
                iorbit_type = HYPERBOLA
             else
                iorbit_type = PARABOLA
@@ -738,7 +739,7 @@ contains
       select case (iorbit_type)
       case (ELLIPSE)
          fac = 1.0_DP - h2 / (mu * a)
-         if (fac > VSMALL) e = sqrt(fac)
+         if (fac > TINYVALUE) e = sqrt(fac)
          q = a * (1.0_DP - e)
       case (PARABOLA)
          a = 0.5_DP * h2 / mu
@@ -790,13 +791,13 @@ contains
       if (h2 == 0.0_DP) return
       rdotv = dot_product(x(:), v(:))
       energy = 0.5_DP * v2 - mu / r
-      if (abs(energy * r / mu) < sqrt(VSMALL)) then
+      if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
          iorbit_type = PARABOLA
       else
          a = -0.5_DP * mu / energy
          if (a < 0.0_DP) then
             fac = -h2 / (mu * a)
-            if (fac > VSMALL) then
+            if (fac > TINYVALUE) then
                iorbit_type = HYPERBOLA
             else
                iorbit_type = PARABOLA
@@ -808,7 +809,7 @@ contains
       select case (iorbit_type)
       case (ELLIPSE)
          fac = 1.0_DP - h2 / (mu * a)
-         if (fac > VSMALL) then
+         if (fac > TINYVALUE) then
             e = sqrt(fac)
             cape = 0.0_DP
             face = (a - r) / (a * e)
@@ -955,7 +956,7 @@ contains
          inc = acos(fac)
       end if
       fac = sqrt(hvec(1)**2 + hvec(2)**2) / h
-      if (fac**2 < VSMALL) then
+      if (fac**2 < TINYVALUE) then
          u = atan2(py, px)
          if (hvec(3) < 0.0_DP) u = -u
       else
@@ -964,13 +965,13 @@ contains
       end if
       if (capom < 0.0_DP) capom = capom + TWOPI
       if (u < 0.0_DP) u = u + TWOPI
-      if (abs(energy * r / mu) < sqrt(VSMALL)) then
+      if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
          iorbit_type = parabola
       else
          a = -0.5_DP * mu / energy
          if (a < 0.0_DP) then
             fac = -h2 / (mu * a)
-            if (fac > VSMALL) then
+            if (fac > TINYVALUE) then
                iorbit_type = HYPERBOLA
             else
                iorbit_type = PARABOLA
@@ -982,7 +983,7 @@ contains
       select case (iorbit_type)
          case (ELLIPSE)
             fac = 1.0_DP - h2 / (mu * a)
-            if (fac > VSMALL) then
+            if (fac > TINYVALUE) then
                e = sqrt(fac)
                cape = 0.0_DP
                face = (a - r) / (a * e)
@@ -1031,7 +1032,7 @@ contains
       if (omega < 0.0_DP) omega = omega + TWOPI
       varpi = mod(omega + capom, TWOPI)
       lam = mod(capm + varpi, TWOPI)
-      if (e > VSMALL) then
+      if (e > TINYVALUE) then
          cf = 1.0_DP / e * (a * (1.0_DP - e**2)/r - 1.0_DP)
          rdot = sign(sqrt(v2 - (h / r)**2),rdotv)
          sf = a * (1.0_DP - e**2) / (h * e) * rdot
