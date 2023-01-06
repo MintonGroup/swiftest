@@ -16,30 +16,17 @@ program swiftest_driver
    !! Adapted from Swifter by David E. Kaufmann's Swifter driver programs swifter_[bs,helio,ra15,rmvs,symba,tu4,whm].f90
    !! Adapted from Hal Levison and Martin Duncan's Swift driver programs
    use swiftest
-   use symba
    implicit none
 
-   class(swiftest_nbody_system), allocatable      :: nbody_system           !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_nbody_system), allocatable      :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
    class(swiftest_parameters),   allocatable      :: param             !! Run configuration parameters
    character(len=:), allocatable                  :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable                  :: param_file_name   !! Name of the file containing user-defined parameters
    character(len=:), allocatable                  :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
    integer(I8B)                                   :: istart            !! Starting index for loop counter
-   integer(I8B)                                   :: nloops            !! Number of steps to take in the simulation
    integer(I4B)                                   :: iout              !! Output cadence counter
    integer(I4B)                                   :: idump             !! Dump cadence counter
    type(walltimer)                                :: integration_timer !! Object used for computing elapsed wall time
-   real(DP)                                       :: tfrac             !! Fraction of total simulation time completed
-   type(progress_bar)                             :: pbar              !! Object used to print out a progress bar
-   character(*), parameter                        :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
-                                                                 '"; Number of active pl, tp = ", I6, ", ", I6)'
-   character(*), parameter                        :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
-                                                                    '"; Number of active plm, pl, tp = ", I6, ", ", I6, ", ", I6)'
-   character(*), parameter                        :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
-   character(len=64)                              :: pbarmessage
-
-   character(*), parameter                        :: symbacompactfmt = '(";NPLM",ES22.15,$)'
-   !type(base_storage(nframes=:)), allocatable :: system_history
 
    call swiftest_io_get_args(integrator, param_file_name, display_style)
 
@@ -54,9 +41,9 @@ program swiftest_driver
       dt              => param%dt, &
       tstop           => param%tstop, &
       iloop           => param%iloop, &
+      nloops          => param%nloops, &
       istep_out       => param%istep_out, &
       dump_cadence    => param%dump_cadence, &
-      display_style   => param%display_style, &
       display_unit    => param%display_unit)
 
       ! Set up loop and output cadence variables
@@ -84,28 +71,17 @@ program swiftest_driver
 
       associate (system_history => param%system_history)
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
+         call nbody_system%display_run_information(param, integration_timer, phase="FIRST")
          if (param%lenergy) then
             if (param%lrestart) then
                call nbody_system%get_t0_values(param)
-               call nbody_system%conservation_report(param, lterminal=.true.)
             else
                call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
             end if
          end if
+         call nbody_system%conservation_report(param, lterminal=.true.)
          call system_history%take_snapshot(param,nbody_system)
          call nbody_system%dump(param)
-
-         write(display_unit, *) " *************** Main Loop *************** "
-
-         if (display_style == "PROGRESS") then
-            call pbar%reset(nloops)
-            write(pbarmessage,fmt=pbarfmt) t0, tstop
-            call pbar%update(1,message=pbarmessage)
-         else if (display_style == "COMPACT") then
-            write(*,*) "SWIFTEST START " // param%integrator
-            call nbody_system%compact_output(param,integration_timer)
-         end if
-
 
          do iloop = istart, nloops
             !> Step the nbody_system forward in time
@@ -132,25 +108,10 @@ program swiftest_driver
 
                   end if
 
-                  tfrac = (nbody_system%t - t0) / (tstop - t0)
-
-                  select type(pl => nbody_system%pl)
-                  class is (symba_pl)
-                     write(display_unit, symbastatfmt) nbody_system%t, tfrac, pl%nplm, pl%nbody, nbody_system%tp%nbody
-                  class default
-                     write(display_unit, statusfmt) nbody_system%t, tfrac, pl%nbody, nbody_system%tp%nbody
-                  end select
-                  if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
                   call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
-
-                  if (display_style == "PROGRESS") then
-                     write(pbarmessage,fmt=pbarfmt) nbody_system%t, tstop
-                     call pbar%update(1,message=pbarmessage)
-                  else if (display_style == "COMPACT") then
-                     call nbody_system%compact_output(param,integration_timer)
-                  end if
-
+                  call nbody_system%display_run_information(param, integration_timer)
                   call integration_timer%reset()
+                  if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 
                end if
             end if
@@ -159,7 +120,8 @@ program swiftest_driver
          ! Dump any remaining history if it exists
          call nbody_system%dump(param)
          call system_history%dump(param)
-         if (display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // param%integrator
+         call nbody_system%display_run_information(param, integration_timer, phase="LAST")
+         
       end associate
    end associate
 

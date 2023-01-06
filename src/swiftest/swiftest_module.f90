@@ -374,19 +374,20 @@ module swiftest
       procedure(abstract_step_system), deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure :: discard                 => swiftest_discard_system                         !! Perform a discard step on the nbody_system
-      procedure :: compact_output          => swiftest_io_compact_output                      !! Prints out out terminal output when display_style is set to COMPACT
-      procedure :: conservation_report     => swiftest_io_conservation_report                 !! Compute energy and momentum and print out the change with time
-      procedure :: dump                    => swiftest_io_dump_system                         !! Dump the state of the nbody_system to a file
-      procedure :: get_t0_values         => swiftest_io_netcdf_get_t0_values_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
-      procedure :: read_frame              => swiftest_io_netcdf_read_frame_system               !! Read in a frame of input data from file
-      procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system              !! Write a frame of input data from file
-      procedure :: write_frame_system      => swiftest_io_write_frame_system                  !! Write a frame of input data from file
-      procedure :: read_hdr                => swiftest_io_netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
-      procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
-      procedure :: read_in                 => swiftest_io_read_in_system                      !! Reads the initial conditions for an nbody system
-      procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system       !! Read in particle metadata from file
-      procedure :: obl_pot                 => swiftest_obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure :: discard                 => swiftest_discard_system                              !! Perform a discard step on the nbody_system
+      procedure :: compact_output          => swiftest_io_compact_output                           !! Prints out out terminal output when display_style is set to COMPACT
+      procedure :: conservation_report     => swiftest_io_conservation_report                      !! Compute energy and momentum and print out the change with time
+      procedure :: display_run_information => swiftest_io_display_run_information                  !! Displays helpful information about the run
+      procedure :: dump                    => swiftest_io_dump_system                              !! Dump the state of the nbody_system to a file
+      procedure :: get_t0_values         => swiftest_io_netcdf_get_t0_values_system                !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      procedure :: read_frame              => swiftest_io_netcdf_read_frame_system                 !! Read in a frame of input data from file
+      procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system                !! Write a frame of input data from file
+      procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
+      procedure :: read_hdr                => swiftest_io_netcdf_read_hdr_system                   !! Read a header for an output frame in NetCDF format
+      procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                  !! Write a header for an output frame in NetCDF format
+      procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
+      procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system         !! Read in particle metadata from file
+      procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure :: initialize              => swiftest_util_setup_initialize_system                !! Initialize the nbody_system from input files
       procedure :: init_particle_info      => swiftest_util_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
     ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
@@ -573,6 +574,14 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param     !! Input colleciton of user-defined parameters
          logical,                           intent(in)    :: lterminal !! Indicates whether to output information to the terminal screen
       end subroutine swiftest_io_conservation_report
+
+      module subroutine swiftest_io_display_run_information(self, param, integration_timer, phase)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+         type(walltimer),              intent(inout) :: integration_timer !! Object used for computing elapsed wall time
+         character(len=*), optional,   intent(in)    :: phase !! One of "FIRST" or "LAST" 
+      end subroutine swiftest_io_display_run_information
 
       module subroutine swiftest_io_dump_param(self, param_file_name)
          implicit none
