@@ -260,8 +260,8 @@ contains
          impactors%Gmass(:)       = impactors%Gmass(:)       / (collider%dscale**3/collider%tscale**2)
          impactors%Mcb            = impactors%Mcb            / collider%mscale
          impactors%radius(:)      = impactors%radius(:)      / collider%dscale
-         impactors%L_spin(:,:)     = impactors%L_spin(:,:)     / collider%Lscale
-         impactors%L_orbit(:,:)    = impactors%L_orbit(:,:)    / collider%Lscale
+         impactors%L_spin(:,:)     = impactors%L_spin(:,:)   / collider%Lscale
+         impactors%L_orbit(:,:)    = impactors%L_orbit(:,:)  / collider%Lscale
 
          do concurrent(i = 1:2)
             impactors%rot(:,i) = impactors%L_spin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
@@ -309,8 +309,8 @@ contains
          impactors%vb        = impactors%vb        * collider%vscale
          impactors%rc        = impactors%rc        * collider%dscale
          impactors%vc        = impactors%vc        * collider%vscale
-         impactors%L_spin     = impactors%L_spin     * collider%Lscale
-         impactors%L_orbit    = impactors%L_orbit    * collider%Lscale
+         impactors%L_spin     = impactors%L_spin   * collider%Lscale
+         impactors%L_orbit    = impactors%L_orbit  * collider%Lscale
          do concurrent(i = 1:2)
             impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
@@ -329,12 +329,12 @@ contains
 
          collider%L_orbit(:,:) = collider%L_orbit(:,:) * collider%Lscale
          collider%L_spin(:,:)  = collider%L_spin(:,:)  * collider%Lscale
-         collider%L_total(:,:)   = collider%L_total(:,:)   * collider%Lscale
-         collider%ke_orbit(:) = collider%ke_orbit(:) * collider%Escale
-         collider%ke_spin(:)  = collider%ke_spin(:)  * collider%Escale
-         collider%pe(:)       = collider%pe(:)       * collider%Escale
-         collider%be(:)       = collider%be(:)       * collider%Escale
-         collider%te(:)     = collider%te(:)     * collider%Escale
+         collider%L_total(:,:) = collider%L_total(:,:) * collider%Lscale
+         collider%ke_orbit(:)  = collider%ke_orbit(:)  * collider%Escale
+         collider%ke_spin(:)   = collider%ke_spin(:)   * collider%Escale
+         collider%pe(:)        = collider%pe(:)        * collider%Escale
+         collider%be(:)        = collider%be(:)        * collider%Escale
+         collider%te(:)        = collider%te(:)        * collider%Escale
    
          collider%mscale = 1.0_DP
          collider%dscale = 1.0_DP

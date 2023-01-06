@@ -371,7 +371,7 @@ contains
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       logical,                  intent(out)   :: lfailure !! Did the velocity computation fail?
       ! Internals
-      integer(I4B) :: i, j, loop, try, istart, n, ndof
+      integer(I4B) :: i, j, loop, try, istart, n, ndof, nfrag
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, Lresidual, vshear, vunit
       real(DP) :: vmag, vesc, rotmag, E_residual, ke_per_dof, ke_tot, E_residual_min
@@ -382,7 +382,8 @@ contains
       real(DP), parameter :: TOL = 1e-6
       class(collision_fragments(:)), allocatable :: fragments
 
-      associate(impactors => collider%impactors, nfrag => collider%fragments%nbody)
+      associate(impactors => collider%impactors)
+         nfrag = collider%fragments%nbody
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
          lsupercat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
 
