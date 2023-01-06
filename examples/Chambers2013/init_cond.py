@@ -4,9 +4,7 @@ import numpy as np
 from numpy.random import default_rng
 
 # Initialize simulation object
-sim = swiftest.Simulation(simdir="fragglesim")
-
-sim.set_parameter(compute_conservation_values=True,  rotation=True, init_cond_format="EL",collision_model="fraggle",encounter_save="none")
+sim = swiftest.Simulation(compute_conservation_values=True,  rotation=True, init_cond_format="EL",collision_model="fraggle",encounter_save="none")
 
 # Add bodies described in Chambers (2013) Sec. 2.1, with the uniform spatial distribution and two bodies sizes (big and small)
 Nb = 14
@@ -18,7 +16,7 @@ Rb = (3 * Mb / (4 * np.pi * dens) )**(1.0 / 3.0)
 Rs = (3 * Ms / (4 * np.pi * dens) )**(1.0 / 3.0)
 mtiny = 1e-2 * Ms
 mininum_fragment_mass = 1e-4 * Ms
-rng = default_rng(seed=880334)
+rng = default_rng(seed=170834)
 
 # Define the initial orbital elements of the big and small bodies
 avalb = rng.uniform(0.3, 2.0, Nb)

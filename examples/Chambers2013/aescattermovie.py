@@ -115,7 +115,7 @@ class AnimatedScatter():
         self.s3 = s[3]
         return self.s0, self.s1, self.s2, self.s3, self.title,
 
-sim = swiftest.Simulation(simdir="fragglesim",read_old_output=True)
+sim = swiftest.Simulation(read_old_output=True)
 print('Making animation')
 anim = AnimatedScatter(sim.data,sim.param)
 print('Animation finished')
