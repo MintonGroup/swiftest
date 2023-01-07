@@ -291,6 +291,7 @@ contains
                   ! Shift to the cloud center coordinates
                   fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
 
+                  ! Make sure that the fragments are positioned away from the impact point 
                   direction = dot_product(fragments%rc(:,i) - impactors%rbimp(:), fragment_cloud_center(:,j) - impactors%rbimp(:))
                   if (direction < 0.0_DP) then
                      fragments%rc(:,i) = fragments%rc(:,i) - fragment_cloud_center(:,j)
