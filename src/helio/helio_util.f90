@@ -21,10 +21,21 @@ contains
       class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
-      call whm_util_setup_initialize_system(self, param)
+      call swiftest_util_setup_initialize_system(self, param)
       call self%pl%h2b(self%cb)
       call self%tp%h2b(self%cb)
       call self%pl%sort("mass", ascending=.false.)
+
+      ! Make sure that the discard list gets allocated initially
+      call self%tp_discards%setup(0, param)
+      call self%pl%set_mu(self%cb)
+      call self%tp%set_mu(self%cb)
+
+      if (param%lgr .and. param%in_type == "ASCII") then !! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
+         call self%pl%v2pv(param)
+         call self%tp%v2pv(param)
+      end if
+
       call self%pl%flatten(param)
 
       return

@@ -721,11 +721,10 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_io_netcdf_write_info_cb
 
-      module subroutine swiftest_io_write_discard(self, param)
+      module subroutine swiftest_io_remove_nul_char(string)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      end subroutine swiftest_io_write_discard
+         character(len=*), intent(inout) :: string !! String to remove nul characters from
+      end subroutine swiftest_io_remove_nul_char
 
       module subroutine swiftest_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -860,6 +859,12 @@ module swiftest
          implicit none
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine swiftest_io_toupper
+
+      module subroutine swiftest_io_write_discard(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      end subroutine swiftest_io_write_discard
 
       module subroutine swiftest_io_write_frame_system(self, param)
          implicit none

@@ -2411,16 +2411,20 @@ contains
       fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
 
       if (present(name)) then
-         write(self%name, fmtlabel) trim(adjustl(name))
+         write(self%name, fmtlabel) name
+         call swiftest_io_remove_nul_char(self%name)
       end if
       if (present(particle_type)) then
-         write(self%particle_type, fmtlabel) trim(adjustl(particle_type))
+         write(self%particle_type, fmtlabel) particle_type
+         call swiftest_io_remove_nul_char(self%particle_type)
       end if 
       if (present(status)) then
-         write(self%status, fmtlabel) trim(adjustl(status))
+         write(self%status, fmtlabel) status
+         call swiftest_io_remove_nul_char(self%status)
       end if
       if (present(origin_type)) then
-         write(self%origin_type, fmtlabel) trim(adjustl(origin_type))
+         write(self%origin_type, fmtlabel) origin_type
+         call swiftest_io_remove_nul_char(self%origin_type)
       end if
       if (present(origin_time)) then
          self%origin_time = origin_time

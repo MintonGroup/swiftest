@@ -1792,6 +1792,25 @@ contains
       return
    end subroutine swiftest_io_netcdf_write_info_cb
 
+   module subroutine swiftest_io_remove_nul_char(string)
+      !! author: David A. Minton
+      !!
+      !! Remove spaces and trailing NUL characters that are introduced by NetCDF strings
+      implicit none
+      ! Arguments
+      character(len=*), intent(inout) :: string !! String to make upper case
+      ! Internals
+      integer(I4B) :: pos
+  
+      pos = index(string, achar(0)) - 1
+      if (pos > 0) then
+         string = trim(adjustl(string(1:pos)))
+      else
+         string = trim(adjustl(string))
+      end if
+
+      return
+   end subroutine swiftest_io_remove_nul_char
 
    module subroutine swiftest_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
