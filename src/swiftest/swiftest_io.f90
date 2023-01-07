@@ -1812,6 +1812,7 @@ contains
       return
    end subroutine swiftest_io_remove_nul_char
 
+
    module subroutine swiftest_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -1919,7 +1920,7 @@ contains
                   param%qmin_coord = param_value
                case ("CHK_QMIN_RANGE")
                   read(param_value, *, err = 667, iomsg = iomsg) param%qmin_alo
-                  ifirst = ilast + 1
+                  ifirst = ilast + 2
                   param_value = swiftest_io_get_token(line, ifirst, ilast, iostat)
                   read(param_value, *, err = 667, iomsg = iomsg) param%qmin_ahi
                case ("EXTRA_FORCE")

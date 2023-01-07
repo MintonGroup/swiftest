@@ -79,7 +79,7 @@ module symba
    contains
       procedure :: encounter_check => symba_encounter_check_list_plpl !! Checks if massive bodies are going through close encounters with each other
       procedure :: kick            => symba_kick_list_plpl            !! Kick barycentric velocities of active massive bodies within SyMBA recursion
-      final     :: symba_final_list_plpl                         !! Finalizes the SyMBA test particle object - deallocates all allocatables
+      final     ::                    symba_final_list_plpl            !! Finalizes the SyMBA test particle object - deallocates all allocatables
    end type symba_list_plpl
 
 
@@ -88,20 +88,20 @@ module symba
    contains
       procedure :: encounter_check => symba_encounter_check_list_pltp !! Checks if massive bodies are going through close encounters with test particles
       procedure :: kick            => symba_kick_list_pltp            !! Kick barycentric velocities of active test particles within SyMBA recursion
-      final     :: symba_final_list_pltp                         !! Finalizes the SyMBA test particle object - deallocates all allocatables
+      final     ::                    symba_final_list_pltp           !! Finalizes the SyMBA test particle object - deallocates all allocatables
    end type symba_list_pltp
 
 
    type, extends(helio_nbody_system) :: symba_nbody_system
-      integer(I4B)                                    :: irec               !! nbody_system recursion level
+      integer(I4B)  :: irec = -1 !! nbody_system recursion level
    contains
-      procedure :: initialize       => symba_util_setup_initialize_system      !! Performs SyMBA-specific initilization steps
+      procedure :: initialize       => symba_util_setup_initialize_system  !! Performs SyMBA-specific initilization steps
       procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
       procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
       procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current nbody_system level
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
-      final     ::                     symba_final_system            !! Finalizes the SyMBA nbody system object - deallocates all allocatables
+      final     ::                     symba_final_system                 !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
    interface
