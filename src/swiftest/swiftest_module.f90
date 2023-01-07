@@ -651,7 +651,7 @@ module swiftest
       module subroutine swiftest_io_netcdf_open(self, param, readonly)
          implicit none
          class(swiftest_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),        intent(in)    :: param    !! Current run configuration parameters
+         class(swiftest_parameters),        intent(inout) :: param    !! Current run configuration parameters
          logical, optional,                 intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       end subroutine swiftest_io_netcdf_open
 

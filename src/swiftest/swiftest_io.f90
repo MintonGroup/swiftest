@@ -721,10 +721,7 @@ contains
          end if
 
          call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), "netcdf_io_initialize_output nf90_def_var Gmass_varid"  )
-
-         if (param%lrhill_present) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%rhill_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%rhill_varid), "netcdf_io_initialize_output nf90_def_var rhill_varid"  )
-         end if
+         call netcdf_io_check( nf90_def_var(nc%id, nc%rhill_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%rhill_varid), "netcdf_io_initialize_output nf90_def_var rhill_varid"  )
 
          if (param%lclose) then
             call netcdf_io_check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%radius_varid), "netcdf_io_initialize_output nf90_def_var radius_varid"  )
@@ -820,8 +817,8 @@ contains
       implicit none
       ! Arguments
       class(swiftest_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
-      logical, optional,        intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      class(swiftest_parameters),        intent(inout) :: param    !! Current run configuration parameters
+      logical, optional,                 intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       ! Internals
       integer(I4B) :: mode, status
       character(len=STRMAX) :: errmsg
@@ -891,13 +888,9 @@ contains
          !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%q_varname, nc%Q_varid), "swiftest_io_netcdf_open nf90_inq_varid Q_varid" )
          ! end if
 
-         ! Optional Variables
-         if (param%lrhill_present) then
-            status = nf90_inq_varid(nc%id, nc%rhill_varname, nc%rhill_varid)
-            if (status /= NF90_NOERR) write(*,*) "Warning! RHILL variable not set in input file. Calculating."
-         end if
-
          ! Optional variables The User Doesn't Need to Know About
+         status = nf90_inq_varid(nc%id, nc%rhill_varname, nc%rhill_varid)
+         param%lrhill_present = (status == NF90_NOERR)
          status = nf90_inq_varid(nc%id, nc%npl_varname, nc%npl_varid)
          status = nf90_inq_varid(nc%id, nc%status_varname, nc%status_varid)
          status = nf90_inq_varid(nc%id, nc%ntp_varname, nc%ntp_varid)
@@ -1100,9 +1093,10 @@ contains
             pl%Gmass(:) = pack(rtemp, plmask)
             pl%mass(:) = pl%Gmass(:) / param%GU
 
-            if (param%lrhill_present) then 
-               call netcdf_io_check( nf90_get_var(nc%id, nc%rhill_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar rhill_varid"  )
+            status = nf90_get_var(nc%id, nc%rhill_varid, rtemp, start=[1, tslot], count=[idmax,1])
+            if (status == NF90_NOERR) then
                pl%rhill(:) = pack(rtemp, plmask)
+               param%lrhill_present = .true.
             end if
          end if
 
