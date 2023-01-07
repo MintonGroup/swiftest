@@ -233,7 +233,7 @@ contains
       ! Arguments
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      real(DP)  :: dis
+      real(DP)  :: dis, direction 
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
       real(DP), dimension(2) :: fragment_cloud_radius, rdistance
       logical, dimension(collider%fragments%nbody) :: loverlap
@@ -262,18 +262,15 @@ contains
 
          do loop = 1, MAXLOOP
             if (.not.any(loverlap(:))) exit
-            fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
-            if (lcat) then
-               fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
-            else
-               fragment_cloud_center(:,1) = impactors%rc(:,1) 
-            end if
-            fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
             if (lhitandrun) then
                fragment_cloud_radius(:) = impactors%radius(:)
+               fragment_cloud_center(:,1) = impactors%rc(:,1) 
+               fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
             else
-               fragment_cloud_radius(1) = .mag.(fragment_cloud_center(:,1) - impactors%rbimp(:))
-               fragment_cloud_radius(2) = .mag.(fragment_cloud_center(:,2) - impactors%rbimp(:))
+               fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
+               fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
+               fragment_cloud_radius(1) = 8 * .mag.(fragment_cloud_center(:,1) - impactors%rbimp(:))
+               fragment_cloud_radius(2) = 8 * .mag.(fragment_cloud_center(:,2) - impactors%rbimp(:))
             end if
 
             do concurrent(i = 1:nfrag, loverlap(i))
@@ -293,6 +290,13 @@ contains
 
                   ! Shift to the cloud center coordinates
                   fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
+
+                  direction = dot_product(fragments%rc(:,i) - impactors%rbimp(:), fragment_cloud_center(:,j) - impactors%rbimp(:))
+                  if (direction < 0.0_DP) then
+                     fragments%rc(:,i) = fragments%rc(:,i) - fragment_cloud_center(:,j)
+                     fragments%rc(:,i) = -fragments%rc(:,i) + fragment_cloud_center(:,j)
+                  end if
+
                end if
             end do
 
@@ -494,7 +498,7 @@ contains
                   ke_remove = min(E_residual - ke_remove, fragments%ke_spin_tot)
                   ke_rot_remove(:) = ke_remove * (fragments%ke_spin(:) / fragments%ke_spin_tot)
                   where(ke_rot_remove(:) > fragments%ke_spin(:)) ke_rot_remove(:) = fragments%ke_spin(:) 
-                  do concurrent(i = 1:nfrag)
+                  do concurrent(i = 1:nfrag, fragments%ke_spin(i) > epsilon(1.0_DP))
                      fscale = sqrt((fragments%ke_spin(i) - ke_rot_remove(i))/fragments%ke_spin(i))
                      fragments%rot(:,i) = fscale * fragments%rot(:,i)
                   end do
