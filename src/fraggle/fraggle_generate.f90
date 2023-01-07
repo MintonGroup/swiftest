@@ -252,7 +252,7 @@ contains
          ! We will treat the first two fragments of the list as special cases. 
          ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
          loverlap(:) = .true.
-         rdistance(:) = rdistance_scale_factor * .mag.impactors%vc(:,:)
+         rdistance(:) = rdistance_scale_factor * impactors%radius(:)
          ! Give the fragment positions a random value that is scaled with fragment mass so that the more massive bodies tend to be closer to the impact point
          ! Later, velocities will be scaled such that the farther away a fragment is placed from the impact point, the higher will its velocity be.
          call random_number(mass_rscale)
@@ -332,7 +332,7 @@ contains
       ! Internals
       real(DP), dimension(NDIM) :: Lbefore, Lafter, L_spin, rotdir
       real(DP) :: v_init, v_final, mass_init, mass_final, rotmag
-      real(DP), parameter :: random_scale_factor = 0.1_DP !! The relative scale factor to apply to the random component of the rotation vector
+      real(DP), parameter :: random_scale_factor = 0.01_DP !! The relative scale factor to apply to the random component of the rotation vector
       integer(I4B) :: i
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)

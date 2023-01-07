@@ -22,7 +22,6 @@ module symba
    real(DP),     private, parameter :: RHSCALE = 6.5_DP
    real(DP),     private, parameter :: RSHELL  = 0.48075_DP
 
-
    !> SyMBA central body particle class
    type, extends(helio_cb) :: symba_cb
    end type symba_cb

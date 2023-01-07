@@ -9,6 +9,7 @@
 
 submodule(symba) s_symba_util
    use swiftest
+   use fraggle
 contains
 
    module subroutine symba_util_append_pl(self, source, lsource_mask)
@@ -267,6 +268,9 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody_system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      type(encounter_storage)  :: encounter_history
+      type(collision_storage)  :: collision_history
 
       ! Call parent method
       associate(nbody_system => self)
@@ -274,6 +278,43 @@ contains
          call nbody_system%pltp_encounter%setup(0_I8B)
          call nbody_system%plpl_encounter%setup(0_I8B)
          call nbody_system%plpl_collision%setup(0_I8B)
+
+         if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+            allocate(encounter_netcdf_parameters :: encounter_history%nc)
+            call encounter_history%reset()
+            select type(nc => encounter_history%nc)
+            class is (encounter_netcdf_parameters)
+               nc%file_name = ENCOUNTER_OUTFILE
+               if (.not.param%lrestart) then
+                  call nc%initialize(param)
+                  call nc%close()
+               end if
+            end select
+            allocate(nbody_system%encounter_history, source=encounter_history)
+         end if
+         
+         allocate(collision_netcdf_parameters :: collision_history%nc)
+         call collision_history%reset()
+         select type(nc => collision_history%nc)
+         class is (collision_netcdf_parameters)
+            nc%file_name = COLLISION_OUTFILE
+            if (.not.param%lrestart) then
+               call nc%initialize(param)
+               call nc%close()
+            end if
+         end select
+         allocate(nbody_system%collision_history, source=collision_history)
+
+         select case(param%collision_model)
+         case("MERGE")
+            allocate(collision_basic :: nbody_system%collider)
+         case("BOUNCE")
+            allocate(collision_bounce :: nbody_system%collider)
+         case("FRAGGLE")
+            allocate(collision_fraggle :: nbody_system%collider)
+         end select
+         call nbody_system%collider%setup(nbody_system)
+
       end associate
 
       return

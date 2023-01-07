@@ -2541,13 +2541,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
       class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
-      ! Internals
-      type(encounter_storage)  :: encounter_history
-      type(collision_storage)  :: collision_history
 
-      allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
-      allocate(swiftest_netcdf_parameters :: param%system_history%nc)
-      call param%system_history%reset()
 
       select case(param%integrator)
       case (INT_BS)
@@ -2602,32 +2596,6 @@ contains
             allocate(symba_list_plpl :: nbody_system%plpl_encounter)
             allocate(collision_list_plpl :: nbody_system%plpl_collision)
 
-            if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
-               allocate(encounter_netcdf_parameters :: encounter_history%nc)
-               call encounter_history%reset()
-               select type(nc => encounter_history%nc)
-               class is (encounter_netcdf_parameters)
-                  nc%file_name = ENCOUNTER_OUTFILE
-                  if (.not.param%lrestart) then
-                     call nc%initialize(param)
-                     call nc%close()
-                  end if
-               end select
-               allocate(nbody_system%encounter_history, source=encounter_history)
-            end if
-            
-            allocate(collision_netcdf_parameters :: collision_history%nc)
-            call collision_history%reset()
-            select type(nc => collision_history%nc)
-            class is (collision_netcdf_parameters)
-               nc%file_name = COLLISION_OUTFILE
-               if (.not.param%lrestart) then
-                  call nc%initialize(param)
-                  call nc%close()
-               end if
-            end select
-            allocate(nbody_system%collision_history, source=collision_history)
-
          end select
       case (INT_RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
@@ -2638,15 +2606,6 @@ contains
 
       allocate(swiftest_particle_info :: nbody_system%cb%info)
 
-      select case(param%collision_model)
-      case("MERGE")
-         allocate(collision_basic :: nbody_system%collider)
-      case("BOUNCE")
-         allocate(collision_bounce :: nbody_system%collider)
-      case("FRAGGLE")
-         allocate(collision_fraggle :: nbody_system%collider)
-      end select
-      call nbody_system%collider%setup(nbody_system)
 
       nbody_system%t = param%tstart
 
@@ -2698,8 +2657,11 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
-      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => param%system_history%nc)
+      allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
+      allocate(swiftest_netcdf_parameters :: param%system_history%nc)
+      call param%system_history%reset()
 
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => param%system_history%nc)
          call nbody_system%read_in(param)
          call nbody_system%validate_ids(param)
          call nbody_system%set_msys()
@@ -2722,7 +2684,6 @@ contains
          nc%file_name = param%outfile
          call nbody_system%write_frame(param) 
          call nc%close()
-
       end associate
 
       return
