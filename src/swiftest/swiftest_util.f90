@@ -1221,7 +1221,7 @@ contains
    end subroutine swiftest_util_flatten_eucl_pltp
 
 
-   module subroutine swiftest_util_get_energy_momentum_system(self, param)
+   module subroutine swiftest_util_get_energy_and_momentum_system(self, param)
       !! author: David A. Minton
       !!
       !! Compute total nbody_system angular momentum vector and kinetic, potential and total nbody_system energy
@@ -1298,9 +1298,9 @@ contains
          end if
   
          if (param%lflatten_interactions) then
-            call swiftest_util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+            call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
          else
-            call swiftest_util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+            call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
          end if
 
          ! Potential energy from the oblateness term
@@ -1329,10 +1329,10 @@ contains
       end associate
 
       return
-   end subroutine swiftest_util_get_energy_momentum_system
+   end subroutine swiftest_util_get_energy_and_momentum_system
 
 
-   subroutine swiftest_util_get_energy_potential_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
+   module subroutine swiftest_util_get_potential_energy_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
       !! Compute total nbody_system potential energy
@@ -1381,10 +1381,10 @@ contains
       pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lmask(1:npl))
 
       return
-   end subroutine swiftest_util_get_energy_potential_flat
+   end subroutine swiftest_util_get_potential_energy_flat
 
 
-   subroutine swiftest_util_get_energy_potential_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
+   module subroutine swiftest_util_get_potential_energy_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
       !! Compute total nbody_system potential energy
@@ -1427,41 +1427,7 @@ contains
       pe = pe + sum(pecb(1:npl), lmask(1:npl))
 
       return
-   end subroutine swiftest_util_get_energy_potential_triangular
-
-
-   module subroutine swiftest_util_index_array(ind_arr, n)
-      !! author: David A. Minton
-      !!
-      !! Creates or resizes an index array of size n where ind_arr = [1, 2, ... n].
-      !! This subroutine swiftest_assumes that if ind_arr is already allocated, it is a pre-existing index array of a different size.
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
-      integer(I4B),                            intent(in)    :: n       !! The new size of the index array
-      ! Internals
-      integer(I4B) :: nold, i
-      integer(I4B), dimension(:), allocatable :: itmp
-
-      if (allocated(ind_arr)) then
-         nold = size(ind_arr)
-         if (nold == n) return ! Nothing to do, so go home
-      else
-         nold = 0
-      end if
-
-      allocate(itmp(n))
-      if (n >= nold) then
-         if (nold > 0) itmp(1:nold) = ind_arr(1:nold)
-         itmp(nold+1:n) = [(i, i = nold + 1, n)]
-         call move_alloc(itmp, ind_arr)
-      else
-         itmp(1:n) = ind_arr(1:n)
-         call move_alloc(itmp, ind_arr)
-      end if
-
-      return
-   end subroutine swiftest_util_index_array
+   end subroutine swiftest_util_get_potential_energy_triangular
 
 
    module subroutine swiftest_util_get_idvalues_system(self, idvals)
@@ -1552,6 +1518,40 @@ contains
       end associate 
       return
    end subroutine swiftest_util_get_vals_storage
+
+
+   module subroutine swiftest_util_index_array(ind_arr, n)
+      !! author: David A. Minton
+      !!
+      !! Creates or resizes an index array of size n where ind_arr = [1, 2, ... n].
+      !! This subroutine swiftest_assumes that if ind_arr is already allocated, it is a pre-existing index array of a different size.
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
+      integer(I4B),                            intent(in)    :: n       !! The new size of the index array
+      ! Internals
+      integer(I4B) :: nold, i
+      integer(I4B), dimension(:), allocatable :: itmp
+
+      if (allocated(ind_arr)) then
+         nold = size(ind_arr)
+         if (nold == n) return ! Nothing to do, so go home
+      else
+         nold = 0
+      end if
+
+      allocate(itmp(n))
+      if (n >= nold) then
+         if (nold > 0) itmp(1:nold) = ind_arr(1:nold)
+         itmp(nold+1:n) = [(i, i = nold + 1, n)]
+         call move_alloc(itmp, ind_arr)
+      else
+         itmp(1:n) = ind_arr(1:n)
+         call move_alloc(itmp, ind_arr)
+      end if
+
+      return
+   end subroutine swiftest_util_index_array
 
 
    module subroutine swiftest_util_index_map_storage(self)
@@ -1739,7 +1739,6 @@ contains
          end select
          end select
          end select
-
 
          ! Re-index the encounter list as the index values may have changed
          if (nenc_old > 0) then

@@ -392,7 +392,7 @@ module swiftest
       procedure :: init_particle_info      => swiftest_util_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
     ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => swiftest_util_set_msys                          !! Sets the value of msys from the masses of nbody_system bodies.
-      procedure :: get_energy_and_momentum => swiftest_util_get_energy_momentum_system        !! Calculates the total nbody_system energy and momentum
+      procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system        !! Calculates the total nbody_system energy and momentum
       procedure :: get_idvals              => swiftest_util_get_idvalues_system               !! Returns an array of all id values in use in the nbody_system
       procedure :: rescale                 => swiftest_util_rescale_system                    !! Rescales the nbody_system into a new set of units
       procedure :: validate_ids            => swiftest_util_valid_id_system                   !! Validate the numerical ids passed to the nbody_system and save the maximum value
@@ -580,7 +580,7 @@ module swiftest
          class(swiftest_nbody_system), intent(inout) :: self !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
          type(walltimer),              intent(inout) :: integration_timer !! Object used for computing elapsed wall time
-         character(len=*), optional,   intent(in)    :: phase !! One of "FIRST" or "LAST" 
+         character(len=*), optional,   intent(in)    :: phase !! One of "first" or "last" 
       end subroutine swiftest_io_display_run_information
 
       module subroutine swiftest_io_dump_param(self, param_file_name)
@@ -1319,7 +1319,6 @@ module swiftest
    end interface
 
    interface
-
       pure module subroutine swiftest_util_flatten_eucl_ij_to_k(n, i, j, k)
          !$omp declare simd(swiftest_util_flatten_eucl_ij_to_k)
          implicit none
@@ -1350,6 +1349,46 @@ module swiftest
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
+      module subroutine swiftest_util_get_energy_and_momentum_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
+         class(swiftest_parameters),        intent(in)    :: param    !! Current run configuration parameters
+      end subroutine swiftest_util_get_energy_and_momentum_system
+
+      module subroutine swiftest_util_get_idvalues_system(self, idvals)
+         implicit none
+         class(swiftest_nbody_system),       intent(in)  :: self   !! Encounter snapshot object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      end subroutine swiftest_util_get_idvalues_system
+   end interface
+
+   interface swiftest_util_get_potential_energy
+      module subroutine swiftest_util_get_potential_energy_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
+         implicit none
+         integer(I4B),                 intent(in)  :: npl
+         integer(I8B),                 intent(in)  :: nplpl
+         integer(I4B), dimension(:,:), intent(in)  :: k_plpl
+         logical,      dimension(:),   intent(in)  :: lmask
+         real(DP),                     intent(in)  :: GMcb
+         real(DP),     dimension(:),   intent(in)  :: Gmass
+         real(DP),     dimension(:),   intent(in)  :: mass
+         real(DP),     dimension(:,:), intent(in)  :: rb
+         real(DP),                     intent(out) :: pe
+      end subroutine swiftest_util_get_potential_energy_flat
+   
+      module subroutine swiftest_util_get_potential_energy_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
+         implicit none
+         integer(I4B),                 intent(in)  :: npl
+         logical,      dimension(:),   intent(in)  :: lmask
+         real(DP),                     intent(in)  :: GMcb
+         real(DP),     dimension(:),   intent(in)  :: Gmass
+         real(DP),     dimension(:),   intent(in)  :: mass
+         real(DP),     dimension(:,:), intent(in)  :: rb
+         real(DP),                     intent(out) :: pe
+      end subroutine swiftest_util_get_potential_energy_triangular
+   end interface
+
+   interface
       module subroutine swiftest_util_get_vals_storage(self, idvals, tvals)
          class(swiftest_storage(*)),              intent(in)  :: self   !! Swiftest storage object
          integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
@@ -1470,18 +1509,6 @@ module swiftest
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          integer(I4B),       intent(in)    :: nnew !! New size neded
       end subroutine swiftest_util_resize_tp
-
-      module subroutine swiftest_util_get_energy_momentum_system(self, param)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
-         class(swiftest_parameters),        intent(in)    :: param    !! Current run configuration parameters
-      end subroutine swiftest_util_get_energy_momentum_system
-
-      module subroutine swiftest_util_get_idvalues_system(self, idvals)
-         implicit none
-         class(swiftest_nbody_system),       intent(in)  :: self   !! Encounter snapshot object
-         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
-      end subroutine swiftest_util_get_idvalues_system
 
       module subroutine swiftest_util_set_beg_end_pl(self, rbeg, rend, vbeg)
          implicit none

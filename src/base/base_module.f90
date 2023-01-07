@@ -118,7 +118,7 @@ module base
          import base_parameters
          implicit none
          class(base_parameters),intent(in)    :: self            !! Output collection of parameters
-         character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
+         character(len=*),      intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine abstract_io_dump_param
 
       subroutine abstract_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 

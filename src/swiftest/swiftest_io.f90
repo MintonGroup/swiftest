@@ -203,7 +203,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       type(walltimer),              intent(inout) :: integration_timer !! Object used for computing elapsed wall time
-      character(len=*), optional,   intent(in)    :: phase !! One of "FIRST" or "LAST" 
+      character(len=*), optional,   intent(in)    :: phase !! One of "first" or "last" 
       ! Internals
       integer(I4B)                                   :: phase_val   
       real(DP)                                       :: tfrac             !! Fraction of total simulation time completed
@@ -218,9 +218,9 @@ contains
 
       phase_val = 1
       if (present(phase)) then
-         if (phase == "FIRST") then
+         if (phase == "first") then
             phase_val = 0
-         else if (phase == "LAST") then
+         else if (phase == "last") then
             phase_val = -1
          end if
       end if

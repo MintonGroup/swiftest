@@ -71,7 +71,7 @@ program swiftest_driver
 
       associate (system_history => param%system_history)
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
-         call nbody_system%display_run_information(param, integration_timer, phase="FIRST")
+         call nbody_system%display_run_information(param, integration_timer, phase="first")
          if (param%lenergy) then
             if (param%lrestart) then
                call nbody_system%get_t0_values(param)
@@ -120,7 +120,7 @@ program swiftest_driver
          ! Dump any remaining history if it exists
          call nbody_system%dump(param)
          call system_history%dump(param)
-         call nbody_system%display_run_information(param, integration_timer, phase="LAST")
+         call nbody_system%display_run_information(param, integration_timer, phase="last")
          
       end associate
    end associate

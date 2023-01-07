@@ -73,6 +73,7 @@ contains
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
       real(DP) :: mfrag, mremaining, min_mfrag, mtot, mcumul, G
+      real(DP), dimension(:), allocatable :: mass
       real(DP), parameter :: BETA = 2.85_DP
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
@@ -80,6 +81,7 @@ contains
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
+      integer(I4B), dimension(:), allocatable :: ind
       logical :: flipper
      
       associate(impactors => self%impactors)
@@ -89,7 +91,7 @@ contains
          G = impactors%Gmass(1) / impactors%mass(1)
          Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / mtot
 
-         if (impactors%mass(1) > impactors%mass(2)) then
+         if (impactors%mass(1) >= impactors%mass(2)) then
             jtarg = 1
             jproj = 2
          else
@@ -147,16 +149,17 @@ contains
          select type(fragments => self%fragments)
          class is (collision_fragments(*))
             fragments%mtot = mtot
+            allocate(mass, mold=fragments%mass)
 
             ! Make the first two bins the same as the Mlr and Mslr values that came from collision_regime
-            fragments%mass(1) = impactors%mass_dist(iMlr) 
-            fragments%mass(2) = impactors%mass_dist(iMslr) 
+            mass(1) = impactors%mass_dist(iMlr) 
+            mass(2) = impactors%mass_dist(iMslr) 
 
             ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
             mremaining = impactors%mass_dist(iMrem)
             do i = iMrem, nfrag
                mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
-               fragments%mass(i) = mfrag
+               mass(i) = mfrag
                mremaining = mremaining - mfrag
             end do
 
@@ -166,12 +169,18 @@ contains
             else ! If the remainder is postiive, this means that the number of fragments required by the SFD is larger than our upper limit set by computational expediency. 
                istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment remains the second largest
             end if
-            mfrag = 1._DP + mremaining / sum(fragments%mass(istart:nfrag))
-            fragments%mass(istart:nfrag) = fragments%mass(istart:nfrag) * mfrag
+            mfrag = 1._DP + mremaining / sum(mass(istart:nfrag))
+            mass(istart:nfrag) = mass(istart:nfrag) * mfrag
 
             ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
-            mremaining = fragments%mtot - sum(fragments%mass(1:nfrag))
-            fragments%mass(nfrag) = fragments%mass(nfrag) + mremaining
+            mremaining = fragments%mtot - sum(mass(1:nfrag))
+            mass(nfrag) = mass(nfrag) + mremaining
+
+            ! Sort the distribution in descending order by mass so that the largest fragment is always the first
+            call swiftest_util_sort(-mass, ind)
+            call swiftest_util_sort_rearrange(mass, ind, nfrag)
+            fragments%mass(:) = mass(:)
+            deallocate(mass)
 
             fragments%Gmass(:) = G * fragments%mass(:)
 
@@ -221,132 +230,6 @@ contains
 
       return
    end subroutine fraggle_util_set_mass_dist
-
-
-   module subroutine fraggle_util_set_natural_scale_factors(self)
-      !! author: David A. Minton
-      !!
-      !! Scales dimenional quantities to ~O(1) with respect to the collisional system. 
-      !! This scaling makes it easier for the non-linear minimization to converge on a solution
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      ! Internals
-      integer(I4B) :: i
-      real(DP) :: vesc
-
-      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
-         ! Set primary scale factors (mass, length, and time) based on the impactor properties at the time of collision
-         collider%mscale = minval(fragments%mass(:))
-         collider%dscale = minval(fragments%radius(:))
-
-         vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
-         collider%tscale = collider%dscale / vesc
-
-         ! Set secondary scale factors for convenience
-         collider%vscale = collider%dscale / collider%tscale
-         collider%Escale = collider%mscale * collider%vscale**2
-         collider%Lscale = collider%mscale * collider%dscale * collider%vscale
-
-         ! Scale all dimensioned quantities of impactors and fragments
-         impactors%rbcom(:)       = impactors%rbcom(:)       / collider%dscale
-         impactors%vbcom(:)       = impactors%vbcom(:)       / collider%vscale
-         impactors%rbimp(:)       = impactors%rbimp(:)       / collider%dscale
-         impactors%rb(:,:)        = impactors%rb(:,:)        / collider%dscale
-         impactors%vb(:,:)        = impactors%vb(:,:)        / collider%vscale
-         impactors%rc(:,:)        = impactors%rc(:,:)        / collider%dscale
-         impactors%vc(:,:)        = impactors%vc(:,:)        / collider%vscale
-         impactors%mass(:)        = impactors%mass(:)        / collider%mscale
-         impactors%Gmass(:)       = impactors%Gmass(:)       / (collider%dscale**3/collider%tscale**2)
-         impactors%Mcb            = impactors%Mcb            / collider%mscale
-         impactors%radius(:)      = impactors%radius(:)      / collider%dscale
-         impactors%L_spin(:,:)     = impactors%L_spin(:,:)   / collider%Lscale
-         impactors%L_orbit(:,:)    = impactors%L_orbit(:,:)  / collider%Lscale
-
-         do concurrent(i = 1:2)
-            impactors%rot(:,i) = impactors%L_spin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
-         end do
-
-         fragments%mtot      = fragments%mtot      / collider%mscale
-         fragments%mass(:)   = fragments%mass(:)   / collider%mscale
-         fragments%Gmass(:)  = fragments%Gmass(:)  / (collider%dscale**3/collider%tscale**2)
-         fragments%radius(:) = fragments%radius(:) / collider%dscale
-         impactors%Qloss     = impactors%Qloss     / collider%Escale
-      end associate
-
-      return
-   end subroutine fraggle_util_set_natural_scale_factors
-
-
-   module subroutine fraggle_util_set_original_scale_factors(self)
-      !! author: David A. Minton
-      !!
-      !! Restores dimenional quantities back to the system units
-      use, intrinsic :: ieee_exceptions
-      implicit none
-      ! Arguments
-      class(collision_fraggle),      intent(inout) :: self      !! Fraggle fragment system object
-      ! Internals
-      integer(I4B) :: i
-      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
-
-      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
-      call ieee_set_halting_mode(IEEE_ALL,.false.)
-
-      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
-
-         ! Restore scale factors
-         impactors%rbcom(:)       = impactors%rbcom(:) * collider%dscale
-         impactors%vbcom(:)       = impactors%vbcom(:) * collider%vscale
-         impactors%rbimp(:)       = impactors%rbimp(:) * collider%dscale
-
-         impactors%mass      = impactors%mass      * collider%mscale
-         impactors%Gmass(:)  = impactors%Gmass(:)  * (collider%dscale**3/collider%tscale**2)
-         impactors%Mcb       = impactors%Mcb       * collider%mscale
-         impactors%mass_dist = impactors%mass_dist * collider%mscale
-         impactors%radius    = impactors%radius    * collider%dscale
-         impactors%rb        = impactors%rb        * collider%dscale
-         impactors%vb        = impactors%vb        * collider%vscale
-         impactors%rc        = impactors%rc        * collider%dscale
-         impactors%vc        = impactors%vc        * collider%vscale
-         impactors%L_spin     = impactors%L_spin   * collider%Lscale
-         impactors%L_orbit    = impactors%L_orbit  * collider%Lscale
-         do concurrent(i = 1:2)
-            impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
-         end do
-   
-         fragments%mtot      = fragments%mtot        * collider%mscale
-         fragments%mass(:)   = fragments%mass(:)     * collider%mscale
-         fragments%Gmass(:)  = fragments%Gmass(:)    * (collider%dscale**3/collider%tscale**2)
-         fragments%radius(:) = fragments%radius(:)   * collider%dscale
-         fragments%rot(:,:)  = fragments%rot(:,:)    / collider%tscale
-         fragments%rc(:,:)   = fragments%rc(:,:)     * collider%dscale
-         fragments%vc(:,:)   = fragments%vc(:,:)     * collider%vscale
-         fragments%rb(:,:)   = fragments%rb(:,:)     * collider%dscale
-         fragments%vb(:,:)   = fragments%vb(:,:)     * collider%vscale
-
-         impactors%Qloss = impactors%Qloss * collider%Escale
-
-         collider%L_orbit(:,:) = collider%L_orbit(:,:) * collider%Lscale
-         collider%L_spin(:,:)  = collider%L_spin(:,:)  * collider%Lscale
-         collider%L_total(:,:) = collider%L_total(:,:) * collider%Lscale
-         collider%ke_orbit(:)  = collider%ke_orbit(:)  * collider%Escale
-         collider%ke_spin(:)   = collider%ke_spin(:)   * collider%Escale
-         collider%pe(:)        = collider%pe(:)        * collider%Escale
-         collider%be(:)        = collider%be(:)        * collider%Escale
-         collider%te(:)        = collider%te(:)        * collider%Escale
-   
-         collider%mscale = 1.0_DP
-         collider%dscale = 1.0_DP
-         collider%vscale = 1.0_DP
-         collider%tscale = 1.0_DP
-         collider%Lscale = 1.0_DP
-         collider%Escale = 1.0_DP
-      end associate
-      call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
-   
-      return
-   end subroutine fraggle_util_set_original_scale_factors
 
 
    module subroutine fraggle_util_setup_fragments_system(self, nfrag)

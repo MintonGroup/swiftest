@@ -121,14 +121,10 @@ module collision
       real(DP)                                               :: ke_spin_tot  !! Spin kinetic energy of all fragments
       real(DP)                                               :: pe           !! Potential energy of all fragments
       real(DP)                                               :: be           !! Binding energy of all fragments
-      real(DP)                                               :: E_budget    !! Kinetic energy budget for computing fragment trajectories
-      real(DP), dimension(NDIM)                              :: L_budget     !! Angular momentum budget for computing fragment trajectories
       real(DP),                  dimension(nbody)            :: ke_orbit     !! Orbital kinetic energy of each individual fragment
       real(DP),                  dimension(nbody)            :: ke_spin      !! Spin kinetic energy of each individual fragment
    contains
       procedure :: reset                 => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
-      procedure :: get_angular_momentum  => collision_util_get_angular_momentum !! Calcualtes the current angular momentum of the fragments
-      procedure :: get_energy    => collision_util_get_energy   !! Calcualtes the current kinetic energy of the fragments
       procedure :: set_coordinate_system => collision_util_set_coordinate_fragments !! Sets the coordinate system of the fragments
       final     ::                          collision_final_fragments           !! Finalizer deallocates all allocatables
    end type collision_fragments
@@ -146,27 +142,37 @@ module collision
       integer(I4B)                               :: status       !! Status flag to pass to the collision list once the collision has been resolved
       integer(I4B)                               :: collision_id !! ID number of this collision event
 
-      ! For the following variables, index 1 refers to the *entire* n-body nbody_system in its pre-collisional state and index 2 refers to the nbody_system in its post-collisional state
-      real(DP), dimension(NDIM,2) :: L_orbit   !! Before/after orbital angular momentum 
-      real(DP), dimension(NDIM,2) :: L_spin    !! Before/after spin angular momentum 
-      real(DP), dimension(NDIM,2) :: L_total     !! Before/after total nbody_system angular momentum 
+      ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
+      real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
+      real(DP) :: mscale = 1.0_DP !! Mass scale factor
+      real(DP) :: tscale = 1.0_DP !! Time scale factor
+      real(DP) :: vscale = 1.0_DP !! Velocity scale factor (a convenience unit that is derived from dscale and tscale)
+      real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
+      real(DP) :: Lscale = 1.0_DP !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
+
+      ! For the following variables, index 1 refers to the *entire* n-body system in its pre-collisional state and index 2 refers to the system in its post-collisional state
+      real(DP), dimension(NDIM,2) :: L_orbit  !! Before/after orbital angular momentum 
+      real(DP), dimension(NDIM,2) :: L_spin   !! Before/after spin angular momentum 
+      real(DP), dimension(NDIM,2) :: L_total  !! Before/after total nbody_system angular momentum 
       real(DP), dimension(2)      :: ke_orbit !! Before/after orbital kinetic energy
       real(DP), dimension(2)      :: ke_spin  !! Before/after spin kinetic energy
       real(DP), dimension(2)      :: pe       !! Before/after potential energy
       real(DP), dimension(2)      :: be       !! Before/after binding energy
       real(DP), dimension(2)      :: te       !! Before/after total system energy
+
    contains
-      procedure :: setup                      => collision_util_setup_collider             !! Initializer for the encounter collision system and the before/after snapshots
-      procedure :: setup_impactors            => collision_util_setup_impactors_collider   !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
-      procedure :: setup_fragments            => collision_util_setup_fragments_collider   !! Initializer for the fragments of the collision system. 
-      procedure :: add_fragments              => collision_util_add_fragments_to_collider  !! Add fragments to nbody_system
-      procedure :: get_energy_and_momentum    => collision_util_get_energy_momentum        !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
-      procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
-      procedure :: set_budgets                => collision_util_set_budgets                !! Sets the energy and momentum budgets of the fragments based on the collider value
-      procedure :: set_coordinate_system      => collision_util_set_coordinate_collider    !! Sets the coordinate system of the collisional system
       procedure :: generate                   => collision_generate_basic                  !! Merges the impactors to make a single final body
       procedure :: hitandrun                  => collision_generate_hitandrun              !! Merges the impactors to make a single final body
       procedure :: merge                      => collision_generate_merge                  !! Merges the impactors to make a single final body
+      procedure :: add_fragments              => collision_util_add_fragments_to_collider  !! Add fragments to nbody_system
+      procedure :: get_energy_and_momentum    => collision_util_get_energy_and_momentum    !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
+      procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
+      procedure :: setup                      => collision_util_setup_collider             !! Initializer for the encounter collision system and the before/after snapshots
+      procedure :: setup_impactors            => collision_util_setup_impactors_collider   !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
+      procedure :: setup_fragments            => collision_util_setup_fragments_collider   !! Initializer for the fragments of the collision system. 
+      procedure :: set_coordinate_system      => collision_util_set_coordinate_collider    !! Sets the coordinate system of the collisional system
+      procedure :: set_natural_scale          => collision_util_set_natural_scale_factors  !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
+      procedure :: set_original_scale         => collision_util_set_original_scale_factors !! Restores dimenional quantities back to the original system units
    end type collision_basic
 
    
@@ -380,25 +386,22 @@ module collision
          class(base_parameters),   intent(in)    :: param        !! Current swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_collider
 
-      module subroutine collision_util_get_angular_momentum(self) 
+      module subroutine collision_util_construct_after_system(collider, nbody_system, param, after_system)
+         !! Author: David A. Minton
+         !!
+         !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
          implicit none
-         class(collision_fragments(*)), intent(inout) :: self !! Fragment system object
-      end subroutine collision_util_get_angular_momentum
-
-      module subroutine collision_util_get_energy(self) 
-         implicit none
-         class(collision_fragments(*)), intent(inout) :: self !! Fragment system object
-      end subroutine collision_util_get_energy
+         ! Arguments
+         class(collision_basic),                 intent(inout) :: collider     !! Collision system object
+         class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
+         class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
+         class(base_nbody_system), allocatable,  intent(out)   :: after_system !! Output temporary swiftest nbody system object
+      end subroutine collision_util_construct_after_system
 
       module subroutine collision_util_reset_fragments(self)
          implicit none
          class(collision_fragments(*)), intent(inout) :: self
       end subroutine collision_util_reset_fragments
-
-      module subroutine collision_util_set_budgets(self)
-         implicit none
-         class(collision_basic), intent(inout) :: self !! Collision system object
-      end subroutine  collision_util_set_budgets
 
       module subroutine collision_util_set_coordinate_collider(self)
          implicit none
@@ -444,14 +447,14 @@ module collision
          integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
       end subroutine collision_util_get_idvalues_snapshot
 
-      module subroutine collision_util_get_energy_momentum(self, nbody_system, param, lbefore)
+      module subroutine collision_util_get_energy_and_momentum(self, nbody_system, param, phase)
          use base, only : base_nbody_system, base_parameters
          implicit none
-         class(collision_basic),  intent(inout) :: self         !! Encounter collision system object
+         class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current swiftest run configuration parameters
-         logical,                  intent(in)    :: lbefore      !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
-      end subroutine collision_util_get_energy_momentum
+         character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the calculation this needs to be done
+      end subroutine collision_util_get_energy_and_momentum
 
       module subroutine collision_util_index_map(self)
          implicit none
@@ -476,6 +479,17 @@ module collision
          real(DP),                    intent(in), optional :: t            !! Time of snapshot if different from nbody_system time
          character(*),                intent(in), optional :: arg          !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
       end subroutine collision_util_snapshot
+
+      module subroutine collision_util_set_natural_scale_factors(self)
+         implicit none
+         class(collision_basic), intent(inout) :: self  !! collision system object
+      end subroutine collision_util_set_natural_scale_factors
+
+      module subroutine collision_util_set_original_scale_factors(self)
+         implicit none
+         class(collision_basic), intent(inout) :: self  !! collision system object
+      end subroutine collision_util_set_original_scale_factors
+
    end interface
 
    contains

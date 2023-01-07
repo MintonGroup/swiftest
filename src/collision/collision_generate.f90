@@ -45,7 +45,7 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
-      integer(I4B) :: i,j,nfrag
+      integer(I4B) :: i,j,nimp
       real(DP), dimension(NDIM) :: vcom, rnorm
 
       select type(nbody_system)
@@ -62,8 +62,8 @@ contains
                   allocate(before%pl, source=pl) 
                end select
 
-               nfrag = size(impactors%id(:))
-               do i = 1, nfrag
+               nimp = size(impactors%id(:))
+               do i = 1, nimp
                   j = impactors%id(i)
                   vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
                   rnorm(:) = .unit. (impactors%rb(:,2) - impactors%rb(:,1))
@@ -183,7 +183,7 @@ contains
                associate(fragments => nbody_system%collider%fragments)
 
                   ! Calculate the initial energy of the nbody_system without the collisional family
-                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
+                  call self%get_energy_and_momentum(nbody_system, param, phase="before")
                
                   ! The new body's metadata will be taken from the largest of the two impactor bodies, so we need 
                   ! its index in the main pl structure
@@ -216,7 +216,7 @@ contains
                   fragments%vc(:,1) = 0.0_DP
 
                   ! Get the energy of the system after the collision
-                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+                  call self%get_energy_and_momentum(nbody_system, param, phase="after")
 
                   ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
                   do k = 1, nbody_system%plpl_encounter%nenc

@@ -73,16 +73,16 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
                                               np.array([0.0, 0.0, 0.0])],
-               "disruption_off_axis":        [np.array([0.0, 0.0, -6.0e4]),
-                                              np.array([0.0, 0.0, 1.0e5])],
+               "disruption_off_axis":        [np.array([0.0, 0.0, -6.0e3]),
+                                              np.array([0.0, 0.0, 1.0e4])],
                "supercatastrophic_headon":   [np.array([0.0, 0.0, 0.0]),
                                               np.array([0.0, 0.0, 0.0])],
-               "supercatastrophic_off_axis": [np.array([0.0, 0.0, -6.0e4]),
-                                              np.array([0.0, 0.0, 1.0e5])],
-               "hitandrun_disrupt"         : [np.array([0.0, 0.0, 6.0e4]),
-                                              np.array([0.0, 0.0, 1.0e5])],
-               "hitandrun_pure"            : [np.array([0.0, 0.0, 6.0e4]),
-                                              np.array([0.0, 0.0, 1.0e5])]
+               "supercatastrophic_off_axis": [np.array([0.0, 0.0, -6.0e3]),
+                                              np.array([0.0, 0.0, 1.0e4])],
+               "hitandrun_disrupt"         : [np.array([0.0, 0.0, 6.0e3]),
+                                              np.array([0.0, 0.0, 1.0e4])],
+               "hitandrun_pure"            : [np.array([0.0, 0.0, 6.0e3]),
+                                              np.array([0.0, 0.0, 1.0e4])]
                }
 
 body_Gmass = {"disruption_headon"        : [1e-7, 1e-10],

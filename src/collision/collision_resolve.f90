@@ -312,13 +312,13 @@ contains
       implicit none
       ! Arguments
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                  intent(in)    :: t      !! Time of collision
-      integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
+      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with Swiftest additions
+      real(DP),                 intent(in)    :: t            !! Time of collision
+      integer(I4B),             intent(in)    :: status       !! Status flag to assign to adds
       ! Internals
       integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag
-      logical, dimension(:), allocatable    :: lmask
-      class(swiftest_pl), allocatable           :: plnew, plsub
+      logical, dimension(:), allocatable  :: lmask
+      class(swiftest_pl), allocatable :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
       character(len=NAMELEN) :: newname, origin_type
       real(DP) :: volume
@@ -488,7 +488,8 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
-      real(DP) :: E_orbit_before, E_orbit_after
+      real(DP) :: E_before, E_after, dLmag
+      real(DP), dimension(NDIM) :: L_orbit_before, L_orbit_after, L_spin_before, L_spin_after, L_before, L_after, dL_orbit, dL_spin, dL
       logical :: lplpl_collision
       character(len=STRMAX) :: timestr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
@@ -515,7 +516,10 @@ contains
             ! Get the energy before the collision is resolved
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
-               E_orbit_before = nbody_system%te
+               E_before = nbody_system%te
+               L_orbit_before(:) = nbody_system%L_orbit(:)
+               L_spin_before(:) = nbody_system%L_spin(:)
+               L_before(:) = nbody_system%L_total(:)
             end if
 
             do loop = 1, MAXCASCADE
@@ -584,8 +588,17 @@ contains
 
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
-               E_orbit_after = nbody_system%te
-               nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
+               E_after = nbody_system%te
+               nbody_system%E_collisions = nbody_system%E_collisions + (E_after - E_before)
+
+               L_orbit_after(:) = nbody_system%L_orbit(:)
+               L_spin_after(:) = nbody_system%L_spin(:)
+               L_after(:) = nbody_system%L_total(:)
+
+               dL_orbit = L_orbit_after(:) - L_orbit_before(:)
+               dL_spin = L_spin_after(:) - L_spin_before(:)
+               dL = L_after(:) - L_before(:)
+               dLmag = .mag.dL
             end if
 
          end associate

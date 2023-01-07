@@ -17,7 +17,7 @@ contains
       !! Adds fragments to the temporary system pl object
       implicit none
       ! Arguments
-      class(collision_basic),      intent(in)    :: self      !! Collision system system object
+      class(collision_basic),   intent(in)    :: self      !! Collision system system object
       class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
       ! Internals
@@ -61,13 +61,77 @@ contains
    end subroutine collision_util_add_fragments_to_collider
 
 
+   module subroutine collision_util_construct_after_system(collider, nbody_system, param, after_system)
+      !! Author: David A. Minton
+      !!
+      !! Constructs a temporary internal system consisting of active bodies with impacting bodies replaced with additional fragments. This is used to compute the energy and momentum
+      !! of the system after the collision has been resolved
+      implicit none
+      ! Arguments
+      class(collision_basic),                 intent(inout) :: collider     !! Collision system object
+      class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
+      class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
+      class(base_nbody_system), allocatable,  intent(out)   :: after_system !! Output temporary swiftest nbody system object
+      ! Internals
+      integer(I4B) :: i, status
+      class(swiftest_nbody_system), allocatable :: tmpsys
+      class(swiftest_parameters),   allocatable :: tmpparam
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+      select type(param)
+      class is (swiftest_parameters)
+         associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, cb => nbody_system%cb)
+
+            ! Update barycentric vector values
+            do concurrent(i = 1:nfrag)
+               fragments%rb(:,i) = fragments%rc(:,i) + impactors%rbcom(:)
+               fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
+            end do
+
+            ! Set up a new temporary system based on the original
+            allocate(tmpparam, source=param)
+            call swiftest_util_setup_construct_system(tmpsys, tmpparam)
+
+            if (allocated(tmpsys%cb)) deallocate(tmpsys%cb)
+            allocate(tmpsys%cb, source=cb)
+
+            if (allocated(tmpsys%pl)) deallocate(tmpsys%pl)
+            allocate(tmpsys%pl, source=pl)
+
+            if (allocated(tmpsys%collider)) deallocate(tmpsys%collider)
+            allocate(tmpsys%collider, source=collider)
+            call tmpsys%collider%set_original_scale()
+
+            select case(impactors%regime)
+            case(COLLRESOLVE_REGIME_DISRUPTION)
+               status = DISRUPTED
+            case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+               status = SUPERCATASTROPHIC
+            case(COLLRESOLVE_REGIME_HIT_AND_RUN)
+               status = HIT_AND_RUN_DISRUPT
+            end select
+
+            call collision_resolve_mergeaddsub(tmpsys, tmpparam, nbody_system%t, status)
+            call tmpsys%pl%rearray(tmpsys, tmpparam)
+
+            call move_alloc(tmpsys, after_system)
+
+         end associate
+      end select
+      end select
+
+      return
+   end subroutine collision_util_construct_after_system
+
+
    module subroutine collision_util_get_idvalues_snapshot(self, idvals)
       !! author: David A. Minton
       !!
       !! Returns an array of all id values saved in this snapshot
       implicit none
       ! Arguments
-      class(collision_snapshot),               intent(in)  :: self   !! Fraggle snapshot object
+      class(collision_snapshot),               intent(in)  :: self   !! Collision snapshot object
       integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
       ! Internals
       integer(I4B) :: npl_before, ntp_before, npl_after, ntp_after, ntot, nlo, nhi
@@ -114,141 +178,73 @@ contains
    end subroutine collision_util_get_idvalues_snapshot
 
 
-   module subroutine collision_util_get_angular_momentum(self) 
+   module subroutine collision_util_get_energy_and_momentum(self, nbody_system, param, phase)
       !! Author: David A. Minton
       !!
-      !! Calculates the current angular momentum of the fragments
-      implicit none
-      ! Arguments
-      class(collision_fragments(*)), intent(inout)  :: self !! Fraggle fragment system object
-      ! Internals
-      integer(I4B) :: i
-
-      associate(fragments => self, nfrag => self%nbody)
-   
-         do i = 1, nfrag
-            fragments%L_orbit(:,i) = fragments%mass(i) * (fragments%rc(:,i) .cross. fragments%vc(:, i))
-            fragments%L_spin(:,i)  = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i) * fragments%rot(:,i)
-         end do
-
-         fragments%L_orbit_tot(:) = sum(fragments%L_orbit, dim=2)
-         fragments%L_spin_tot(:) = sum(fragments%L_spin, dim=2)
-      end associate
-
-      return
-   end subroutine collision_util_get_angular_momentum
-
-
-   module subroutine collision_util_get_energy(self) 
-      !! Author: David A. Minton
-      !!
-      !! Calculates the current energy of the fragments
-      implicit none
-      ! Argument
-      class(collision_fragments(*)), intent(inout)  :: self !! Fragment system object
-      ! Internals
-      integer(I4B) :: i,j
-      real(DP), dimension(self%nbody) :: pepl
-
-      associate(fragments => self, nfrag => self%nbody)
-   
-         do concurrent(i = 1:nfrag)
-            fragments%ke_orbit(i) = fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
-            fragments%ke_spin(i) =  fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i),fragments%rot(:,i) )
-         end do
-
-         fragments%ke_orbit(:) = fragments%ke_orbit(:) / 2
-         fragments%ke_spin(:) = fragments%ke_spin(:) / 2
-         fragments%ke_orbit_tot = sum(fragments%ke_orbit(:))
-         fragments%ke_spin_tot = sum(fragments%ke_spin(:))
-
-         fragments%pe = 0.0_DP
-         do i = 1, nfrag
-            do concurrent(j = i+1:nfrag)
-               pepl(j) = - (fragments%Gmass(i) * fragments%mass(j)) / .mag.(fragments%rc(:,i) - fragments%rc(:,j))
-            end do
-            fragments%pe = fragments%pe + sum(pepl(i+1:nfrag))
-         end do
-         fragments%be = -sum(3*fragments%Gmass(:)*fragments%mass(:)/(5*fragments%radius(:)))
-
-      end associate
-
-      return
-   end subroutine collision_util_get_energy
-
-
-   module subroutine collision_util_get_energy_momentum(self,  nbody_system, param, lbefore)
-      !! Author: David A. Minton
-      !!
-      !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
+      !! Calculates total system energy in either the pre-collision outcome state (phase = "before") or the post-collision outcome state (lbefore = .false.)
       !! This subrourtine works by building a temporary internal massive body object out of the non-excluded bodies and optionally with fragments appended. 
       !! This will get passed to the energy calculation subroutine so that energy is computed exactly the same way is it is in the main program. 
-      !! This will temporarily expand the massive body object in a temporary system object called tmpsys to feed it into symba_energy
+      !! This will temporarily expand the massive body object in a temporary system object called after_system to feed it into symba_energy
       implicit none
       ! Arguments
-      class(collision_basic),  intent(inout) :: self    !! Encounter collision system object
-      class(base_nbody_system), intent(inout) :: nbody_system  !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param   !! Current swiftest run configuration parameters
-      logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
+      class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
+      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        !! Current swiftest run configuration parameters
+      character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the calculation this needs to be done
       ! Internals
-      integer(I4B)  :: stage,i,j
-      real(DP), dimension(NDIM) :: L_orbit, L_spin
-      real(DP) :: ke_orbit, ke_spin, pe, be
+      class(base_nbody_system), allocatable :: after_system
+      integer(I4B) :: i
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
          associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
+            if (phase == "before") then
+               call nbody_system%get_energy_and_momentum(param)
+               self%L_orbit(:,1) = nbody_system%L_orbit(:) / self%Lscale
+               self%L_spin(:,1) = nbody_system%L_spin(:) / self%Lscale
+               self%L_total(:,1) = nbody_system%L_total(:) / self%Lscale
+               self%ke_orbit(1) = nbody_system%ke_orbit / self%Escale
+               self%ke_spin(1) = nbody_system%ke_spin / self%Escale
+               self%pe(1) = nbody_system%pe / self%Escale
+               self%be(1) = nbody_system%be / self%Escale
+               self%te(1) = nbody_system%te / self%Escale
+            else if (phase == "after") then
+               call collision_util_construct_after_system(self, nbody_system, param, after_system)
+               select type(after_system)
+               class is (swiftest_nbody_system)
+                  call after_system%get_energy_and_momentum(param)
+                  self%L_orbit(:,2) = after_system%L_orbit(:) / self%Lscale
+                  self%L_spin(:,2) = after_system%L_spin(:) / self%Lscale
+                  self%L_total(:,2) = after_system%L_total(:) / self%Lscale
+                  self%ke_orbit(2) = after_system%ke_orbit / self%Escale
+                  self%ke_spin(2) = after_system%ke_spin / self%Escale
+                  self%pe(2) = after_system%pe / self%Escale
+                  self%be(2) = after_system%be / self%Escale
+                  self%te(2) = after_system%te / self%Escale
 
-
-            if (lbefore) then
-               L_orbit(:) = sum(impactors%L_orbit(:,:), dim=2)
-               L_spin(:) = sum(impactors%L_spin(:,:), dim=2)
-               ke_orbit = 0.0_DP
-               ke_spin = 0.0_DP
-               do concurrent(i = 1:2)
-                  ke_orbit = ke_orbit + impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
-                  ke_spin = ke_spin + impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
-               end do
-               ke_orbit = ke_orbit / 2
-               ke_spin = ke_spin / 2
-
-               pe = -(impactors%Gmass(1) * impactors%mass(2)) / .mag.(impactors%rc(:,2) - impactors%rc(:,1))
-               be = -sum(3*impactors%Gmass(:)*impactors%mass(:)/(5*impactors%radius(:)))
-               
-            else
-               call fragments%get_angular_momentum()
-               L_orbit(:) = fragments%L_orbit_tot(:) 
-               L_spin(:) = fragments%L_spin_tot(:) 
-
-               call fragments%get_energy()
-               ke_orbit = fragments%ke_orbit_tot
-               ke_spin = fragments%ke_spin_tot
-               pe = fragments%pe
-               be = fragments%be
-
+                  do concurrent(i = 1:nfrag)
+                     fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
+                     fragments%ke_spin(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i), fragments%rot(:,i))
+                     fragments%L_orbit(:,i) = fragments%mass(i) * fragments%rc(:,i) .cross. fragments%vc(:,i)
+                     fragments%L_spin(:,i) = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * fragments%rot(:,i)
+                  end do
+                  call swiftest_util_get_potential_energy(nfrag, [(.true., i = 1, nfrag)], after_system%cb%Gmass, fragments%Gmass, fragments%mass, fragments%rb, fragments%pe)
+                  fragments%be = sum(-3*fragments%Gmass(:)*fragments%mass(:)/(5*fragments%radius(:)))
+                  fragments%L_orbit_tot(:) = sum(fragments%L_orbit(:,:),dim=2)
+                  fragments%L_spin_tot(:) = sum(fragments%L_spin(:,:),dim=2)
+                  fragments%ke_orbit_tot = sum(fragments%ke_orbit(:))
+                  fragments%ke_spin_tot = sum(fragments%ke_spin(:))
+               end select
             end if 
-            ! Calculate the current fragment energy and momentum balances
-            if (lbefore) then
-               stage = 1
-            else
-               stage = 2
-            end if
-            self%L_orbit(:,stage) = L_orbit(:)
-            self%L_spin(:,stage) = L_spin(:)
-            self%L_total(:,stage) = L_orbit(:) + L_spin(:)
-            self%ke_orbit(stage) = ke_orbit
-            self%ke_spin(stage) = ke_spin
-            self%pe(stage) = pe
-            self%be(stage) = be
-            self%te(stage) = ke_orbit + ke_spin + pe + be
+
          end associate
       end select
       end select
 
       return
-   end subroutine collision_util_get_energy_momentum
+   end subroutine collision_util_get_energy_and_momentum
 
 
    module subroutine collision_util_index_map(self)
@@ -371,25 +367,6 @@ contains
 
       return
    end subroutine collision_util_reset_system
-
-
-   module subroutine collision_util_set_budgets(self)
-      !! author: David A. Minton
-      !!
-      !! Sets the energy and momentum budgets of the fragments based on the collider values and the before/after values of energy and momentum
-      implicit none
-      ! Arguments
-      class(collision_basic), intent(inout) :: self !! Fraggle collision system object
-
-      associate(impactors => self%impactors, fragments => self%fragments)
-
-         fragments%L_budget(:) = self%L_total(:,1)
-         fragments%E_budget = self%te(1) - impactors%Qloss
-
-      end associate
-      
-      return
-   end subroutine collision_util_set_budgets
 
 
    module subroutine collision_util_set_coordinate_collider(self)
@@ -568,10 +545,8 @@ contains
       self%fragments%vmag(:) = 0.0_DP
       self%fragments%L_orbit_tot(:) = 0.0_DP
       self%fragments%L_spin_tot(:) = 0.0_DP
-      self%fragments%L_budget(:) = 0.0_DP
       self%fragments%ke_orbit_tot = 0.0_DP
       self%fragments%ke_spin_tot = 0.0_DP
-      self%fragments%E_budget = 0.0_DP
 
       return
    end subroutine collision_util_setup_fragments_collider
@@ -580,7 +555,7 @@ contains
    module subroutine collision_util_shift_vector_to_origin(m_frag, vec_frag)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
-      !! Adjusts the position or velocity of the fragments as needed to align them with the origin
+      !! Adjusts the position or velocity of the fragments as needed to align them with the center of mass origin
       implicit none
       ! Arguments
       real(DP), dimension(:),   intent(in)    :: m_frag    !! Fragment masses
@@ -735,6 +710,132 @@ contains
 
       return
    end subroutine collision_util_snapshot
+
+
+   module subroutine collision_util_set_natural_scale_factors(self)
+      !! author: David A. Minton
+      !!
+      !! Scales dimenional quantities to ~O(1) with respect to the collisional system. 
+      !! This scaling makes it it easier to converge on a solution without having floating point issues
+      implicit none
+      ! Arguments
+      class(collision_basic), intent(inout) :: self  !! Collision system object
+      ! Internals
+      integer(I4B) :: i
+      real(DP) :: vesc
+
+      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
+         ! Set primary scale factors (mass, length, and time) based on the impactor properties at the time of collision
+         collider%mscale = minval(fragments%mass(:))
+         collider%dscale = minval(fragments%radius(:))
+
+         vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
+         collider%tscale = collider%dscale / vesc
+
+         ! Set secondary scale factors for convenience
+         collider%vscale = collider%dscale / collider%tscale
+         collider%Escale = collider%mscale * collider%vscale**2
+         collider%Lscale = collider%mscale * collider%dscale * collider%vscale
+
+         ! Scale all dimensioned quantities of impactors and fragments
+         impactors%rbcom(:)     = impactors%rbcom(:)      / collider%dscale
+         impactors%vbcom(:)     = impactors%vbcom(:)      / collider%vscale
+         impactors%rbimp(:)     = impactors%rbimp(:)      / collider%dscale
+         impactors%rb(:,:)      = impactors%rb(:,:)       / collider%dscale
+         impactors%vb(:,:)      = impactors%vb(:,:)       / collider%vscale
+         impactors%rc(:,:)      = impactors%rc(:,:)       / collider%dscale
+         impactors%vc(:,:)      = impactors%vc(:,:)       / collider%vscale
+         impactors%mass(:)      = impactors%mass(:)       / collider%mscale
+         impactors%Gmass(:)     = impactors%Gmass(:)      / (collider%dscale**3/collider%tscale**2)
+         impactors%Mcb          = impactors%Mcb           / collider%mscale
+         impactors%radius(:)    = impactors%radius(:)     / collider%dscale
+         impactors%L_spin(:,:)  = impactors%L_spin(:,:)   / collider%Lscale
+         impactors%L_orbit(:,:) = impactors%L_orbit(:,:)  / collider%Lscale
+
+         do concurrent(i = 1:2)
+            impactors%rot(:,i) = impactors%L_spin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
+         end do
+
+         fragments%mtot      = fragments%mtot      / collider%mscale
+         fragments%mass(:)   = fragments%mass(:)   / collider%mscale
+         fragments%Gmass(:)  = fragments%Gmass(:)  / (collider%dscale**3/collider%tscale**2)
+         fragments%radius(:) = fragments%radius(:) / collider%dscale
+         impactors%Qloss     = impactors%Qloss     / collider%Escale
+      end associate
+
+      return
+   end subroutine collision_util_set_natural_scale_factors
+
+
+   module subroutine collision_util_set_original_scale_factors(self)
+      !! author: David A. Minton
+      !!
+      !! Restores dimenional quantities back to the system units
+      use, intrinsic :: ieee_exceptions
+      implicit none
+      ! Arguments
+      class(collision_basic),      intent(inout) :: self      !! Fragment system object
+      ! Internals
+      integer(I4B) :: i
+      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
+      call ieee_set_halting_mode(IEEE_ALL,.false.)
+
+      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
+
+         ! Restore scale factors
+         impactors%rbcom(:)  = impactors%rbcom(:) * collider%dscale
+         impactors%vbcom(:)  = impactors%vbcom(:) * collider%vscale
+         impactors%rbimp(:)  = impactors%rbimp(:) * collider%dscale
+
+         impactors%mass      = impactors%mass      * collider%mscale
+         impactors%Gmass(:)  = impactors%Gmass(:)  * (collider%dscale**3/collider%tscale**2)
+         impactors%Mcb       = impactors%Mcb       * collider%mscale
+         impactors%mass_dist = impactors%mass_dist * collider%mscale
+         impactors%radius    = impactors%radius    * collider%dscale
+         impactors%rb        = impactors%rb        * collider%dscale
+         impactors%vb        = impactors%vb        * collider%vscale
+         impactors%rc        = impactors%rc        * collider%dscale
+         impactors%vc        = impactors%vc        * collider%vscale
+         impactors%L_spin    = impactors%L_spin    * collider%Lscale
+         impactors%L_orbit   = impactors%L_orbit   * collider%Lscale
+         do concurrent(i = 1:2)
+            impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
+         end do
+   
+         fragments%mtot      = fragments%mtot      * collider%mscale
+         fragments%mass(:)   = fragments%mass(:)   * collider%mscale
+         fragments%Gmass(:)  = fragments%Gmass(:)  * (collider%dscale**3/collider%tscale**2)
+         fragments%radius(:) = fragments%radius(:) * collider%dscale
+         fragments%rot(:,:)  = fragments%rot(:,:)  / collider%tscale
+         fragments%rc(:,:)   = fragments%rc(:,:)   * collider%dscale
+         fragments%vc(:,:)   = fragments%vc(:,:)   * collider%vscale
+         fragments%rb(:,:)   = fragments%rb(:,:)   * collider%dscale
+         fragments%vb(:,:)   = fragments%vb(:,:)   * collider%vscale
+
+         impactors%Qloss = impactors%Qloss * collider%Escale
+
+         collider%L_orbit(:,:) = collider%L_orbit(:,:) * collider%Lscale
+         collider%L_spin(:,:)  = collider%L_spin(:,:)  * collider%Lscale
+         collider%L_total(:,:) = collider%L_total(:,:) * collider%Lscale
+         collider%ke_orbit(:)  = collider%ke_orbit(:)  * collider%Escale
+         collider%ke_spin(:)   = collider%ke_spin(:)   * collider%Escale
+         collider%pe(:)        = collider%pe(:)        * collider%Escale
+         collider%be(:)        = collider%be(:)        * collider%Escale
+         collider%te(:)        = collider%te(:)        * collider%Escale
+   
+         collider%mscale = 1.0_DP
+         collider%dscale = 1.0_DP
+         collider%vscale = 1.0_DP
+         collider%tscale = 1.0_DP
+         collider%Lscale = 1.0_DP
+         collider%Escale = 1.0_DP
+      end associate
+      call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
+   
+      return
+   end subroutine collision_util_set_original_scale_factors
 
 
 end submodule s_collision_util

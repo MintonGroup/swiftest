@@ -25,29 +25,18 @@ module fraggle
 
 
    type, extends(collision_basic) :: collision_fraggle
-      ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
-      real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
-      real(DP) :: mscale = 1.0_DP !! Mass scale factor
-      real(DP) :: tscale = 1.0_DP !! Time scale factor
-      real(DP) :: vscale = 1.0_DP !! Velocity scale factor (a convenience unit that is derived from dscale and tscale)
-      real(DP) :: Escale = 1.0_DP !! Energy scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
-      real(DP) :: Lscale = 1.0_DP !! Angular momentum scale factor (a convenience unit that is derived from dscale, tscale, and mscale)
       real(DP) :: fail_scale      !! Scale factor to apply to distance values in the position model when overlaps occur. 
    contains
-      procedure :: disrupt                    => fraggle_generate_disrupt                !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
-      procedure :: generate                   => fraggle_generate                        !! A simple disruption models that does not constrain energy loss in collisions
-      procedure :: hitandrun                  => fraggle_generate_hitandrun
-      procedure :: set_mass_dist              => fraggle_util_set_mass_dist            !! Sets the distribution of mass among the fragments depending on the regime type
-      procedure :: set_natural_scale          => fraggle_util_set_natural_scale_factors  !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
-      procedure :: set_original_scale         => fraggle_util_set_original_scale_factors !! Restores dimenional quantities back to the original system units
-      procedure :: setup_fragments            => fraggle_util_setup_fragments_system     !! Initializer for the fragments of the collision system. 
-      procedure :: reset                      => fraggle_util_reset_system               !! Deallocates all allocatables
-      final     ::                               fraggle_final_system                    !! Finalizer will deallocate all allocatables
+      procedure :: disrupt         => fraggle_generate_disrupt            !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
+      procedure :: generate        => fraggle_generate                    !! A simple disruption models that does not constrain energy loss in collisions
+      procedure :: hitandrun       => fraggle_generate_hitandrun          !! Generates either a pure hit and run, or one in which the runner is disrupted
+      procedure :: set_mass_dist   => fraggle_util_set_mass_dist          !! Sets the distribution of mass among the fragments depending on the regime type
+      procedure :: setup_fragments => fraggle_util_setup_fragments_system !! Initializer for the fragments of the collision system. 
+      procedure :: reset           => fraggle_util_reset_system           !! Deallocates all allocatables
+      final     ::                    fraggle_final_system                !! Finalizer will deallocate all allocatables
    end type collision_fraggle  
 
    interface
-
-
       module subroutine fraggle_generate(self, nbody_system, param, t)
          implicit none
          class(collision_fraggle),  intent(inout) :: self        !! Fraggle fragment system object 
@@ -78,15 +67,19 @@ module fraggle
          class(collision_fraggle), intent(inout) :: collider !! Fraggle ollision system object
       end subroutine fraggle_generate_pos_vec 
 
-      module subroutine fraggle_generate_rot_vec(collider)
+      module subroutine fraggle_generate_rot_vec(collider, nbody_system, param)
          implicit none
-         class(collision_fraggle), intent(inout) :: collider !! Collision system object
+         class(collision_fraggle),     intent(inout) :: collider     !! Collision system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       end subroutine fraggle_generate_rot_vec 
 
-      module subroutine fraggle_generate_vel_vec(collider, lfailure)
+      module subroutine fraggle_generate_vel_vec(collider, nbody_system, param, lfailure)
          implicit none
-         class(collision_fraggle), intent(inout) :: collider !! Collision system object
-         logical,                  intent(out)   :: lfailure !! Did the velocity computation fail?
+         class(collision_fraggle),     intent(inout) :: collider     !! Fraggle collision system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       end subroutine fraggle_generate_vel_vec
 
       module subroutine fraggle_util_setup_fragments_system(self, nfrag)
@@ -110,17 +103,6 @@ module fraggle
          class(collision_fraggle), intent(inout) :: self  !! Fraggle collision object
          class(base_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
       end subroutine fraggle_util_set_mass_dist
-
-      module subroutine fraggle_util_set_natural_scale_factors(self)
-         implicit none
-         class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      end subroutine fraggle_util_set_natural_scale_factors
-
-      module subroutine fraggle_util_set_original_scale_factors(self)
-         implicit none
-         class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      end subroutine fraggle_util_set_original_scale_factors
-
    end interface
 
    contains
