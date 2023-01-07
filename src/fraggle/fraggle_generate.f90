@@ -448,8 +448,8 @@ contains
                   vmag = vesc * vscale(i) 
                   rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
                   vimp_unit(:) = .unit. rimp(:)
-                  fragments%vc(:,i) = (impactors%bounce_unit(:) + vimp_unit(:)) * vsign(i) 
-                  fragments%vc(:,i) = vmag * .unit.fragments%vc(:,i) !+ vrot(:)
+                  fragments%vc(:,i) = vimp_unit(:) * vsign(i) 
+                  fragments%vc(:,i) = vmag * .unit.fragments%vc(:,i) + vrot(:)
                end if
             end do
 
