@@ -390,7 +390,7 @@ contains
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove
       real(DP), parameter     :: vmin_initial_factor = 1.5_DP ! For the initial "guess" of fragment velocities, this is the maximum velocity relative to escape velocity that the fragments will have
-      real(DP), parameter     :: vmax_initial_factor = 3.0_DP ! For the initial "guess" of fragment velocities, this is the maximum velocity relative to escape velocity that the fragments will have
+      real(DP), parameter     :: vmax_initial_factor = 5.0_DP ! For the initial "guess" of fragment velocities, this is the maximum velocity relative to escape velocity that the fragments will have
       integer(I4B), parameter :: MAXLOOP = 100
       integer(I4B), parameter :: MAXTRY  = 20
       real(DP), parameter :: TOL = 1.0_DP

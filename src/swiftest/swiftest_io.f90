@@ -566,15 +566,16 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self
       class(swiftest_parameters),       intent(inout) :: param
       ! Internals
-      integer(I4B)                              :: itmax, idmax
+      integer(I4B)                              :: itmax, idmax, tslot
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: rtemp
-      real(DP), dimension(NDIM)                 :: rot0, Ip0, Lnow
+      real(DP), dimension(NDIM)                 :: rot0, Ip0
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, BE_orig
 
-      associate (nc => param%system_history%nc, cb => self%cb, tslot => param%system_history%nc%tslot)
+      associate (nc => param%system_history%nc, cb => self%cb)
          call nc%open(param, readonly=.true.)
          call nc%find_tslot(param%t0)
+         tslot = nc%tslot
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_io_get_t0_values_system time_dimid" )
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_t0_values_system name_dimid" )
          allocate(vals(idmax))
@@ -593,20 +594,15 @@ contains
             call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system BE_varid" )
             BE_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_get_t0_values_system E_collisions_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), "netcdf_io_get_t0_values_system E_untracked_varid" )
-
-            self%E_orbit_orig = KE_orb_orig + KE_spin_orig + PE_orig + BE_orig + self%E_collisions + self%E_untracked
+            self%E_orbit_orig = KE_orb_orig + KE_spin_orig + PE_orig + BE_orig 
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid, self%L_orbit_orig(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_orbit_varid" )
             call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid, self%L_spin_orig(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_spin_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%L_escape(:),  start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_escape_varid" )
 
-            self%L_total_orig(:) = self%L_orbit_orig(:) + self%L_spin_orig(:) + self%L_escape(:)
+            self%L_total_orig(:) = self%L_orbit_orig(:) + self%L_spin_orig(:) 
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,tslot], count=[idmax,1]), "netcdf_io_get_t0_values_system Gmass_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_io_get_t0_values_system GMescape_varid" )
-            self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax)) + self%GMescape
+            self%GMtot_orig = vals(1) + sum(vals(2:idmax), vals(2:idmax) == vals(2:idmax)) 
 
             cb%GM0 = vals(1)
             cb%dGM = cb%Gmass - cb%GM0
@@ -615,12 +611,18 @@ contains
             cb%R0 = rtemp(1) 
 
             if (param%lrotation) then
-
                call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system rot_varid" )
                call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system Ip_varid" )
-
                cb%L0(:) = Ip0(3) * cb%GM0 * cb%R0**2 * rot0(:)
             end if
+
+            ! Retrieve the current bookkeeping variables
+            call nc%find_tslot(self%t)
+            tslot = nc%tslot
+            call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%L_escape(:),  start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_escape_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_io_get_t0_values_system GMescape_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_get_t0_values_system E_collisions_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), "netcdf_io_get_t0_values_system E_untracked_varid" )
 
          end if
 
@@ -764,7 +766,6 @@ contains
 
          call netcdf_io_check( nf90_def_var(nc%id, nc%j2rp2_varname, nc%out_type, nc%time_dimid, nc%j2rp2_varid), "netcdf_io_initialize_output nf90_def_var j2rp2_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
-
 
          ! Set fill mode to NaN for all variables
          call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), "netcdf_io_initialize_output nf90_inquire nVariables"  )

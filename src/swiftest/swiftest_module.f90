@@ -379,7 +379,7 @@ module swiftest
       procedure :: conservation_report     => swiftest_io_conservation_report                      !! Compute energy and momentum and print out the change with time
       procedure :: display_run_information => swiftest_io_display_run_information                  !! Displays helpful information about the run
       procedure :: dump                    => swiftest_io_dump_system                              !! Dump the state of the nbody_system to a file
-      procedure :: get_t0_values         => swiftest_io_netcdf_get_t0_values_system                !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      procedure :: get_t0_values           => swiftest_io_netcdf_get_t0_values_system                !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
       procedure :: read_frame              => swiftest_io_netcdf_read_frame_system                 !! Read in a frame of input data from file
       procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system                !! Write a frame of input data from file
       procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
