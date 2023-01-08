@@ -125,10 +125,7 @@ contains
       real(DP)                        :: GMtot_now
       character(len=STRMAX)           :: errmsg
       integer(I4B), parameter         :: EGYIU = 72
-      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5 &
-                                                         "; DE_collisions/|E0| = ", ES12.5, &
-                                                         "; D(E_orbit+E_collisions)/|E0| = ", ES12.5, &
-                                                         "; DM/M0 = ", ES12.5)'
+      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => param%system_history%nc)
 
@@ -175,7 +172,7 @@ contains
             nbody_system%L_total_error = norm2(L_total_now(:) - nbody_system%L_total_orig(:)) / norm2(nbody_system%L_total_orig(:))
             nbody_system%Mescape_error = nbody_system%GMescape / nbody_system%GMtot_orig
             nbody_system%Mtot_error = (GMtot_now - nbody_system%GMtot_orig) / nbody_system%GMtot_orig
-            if (lterminal) write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%Ecoll_error, nbody_system%te_error,nbody_system%Mtot_error
+            if (lterminal) write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%te_error,nbody_system%Mtot_error
             if (abs(nbody_system%Mtot_error) > 100 * epsilon(nbody_system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics

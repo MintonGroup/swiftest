@@ -168,7 +168,7 @@ class AnimatedScatter(object):
 
         scale_frame =   abs(rhy1) + abs(rhy2)
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
-        self.ax_pt_size = self.figsize[0] * 0.7 *  72 / scale_frame
+        self.ax_pt_size = self.figsize[0] *  72 / scale_frame
         ax.set_xlim(-scale_frame, scale_frame)
         ax.set_ylim(-scale_frame, scale_frame)
         ax.set_xticks([])
