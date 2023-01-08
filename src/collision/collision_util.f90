@@ -366,16 +366,23 @@ contains
          deallocate(self%fragments)
       end if
 
-      select type(before => self%before)
-      class is (swiftest_nbody_system)
-         if (allocated(before%pl)) deallocate(before%pl)
-         if (allocated(before%tp)) deallocate(before%tp)
-      end select
-      select type(after => self%after)
-      class is (swiftest_nbody_system)
-         if (allocated(after%pl)) deallocate(after%pl)
-         if (allocated(after%tp)) deallocate(after%tp)
-      end select
+      if (allocated(self%before)) then
+         select type(before => self%before)
+         class is (swiftest_nbody_system)
+            if (allocated(before%pl)) deallocate(before%pl)
+            if (allocated(before%tp)) deallocate(before%tp)
+         end select
+         deallocate(self%before)
+      end if
+
+      if (allocated(self%after)) then
+         select type(after => self%after)
+         class is (swiftest_nbody_system)
+            if (allocated(after%pl)) deallocate(after%pl)
+            if (allocated(after%tp)) deallocate(after%tp)
+         end select
+         deallocate(self%after)
+      end if
 
       self%L_orbit(:,:) = 0.0_DP
       self%L_spin(:,:) = 0.0_DP
@@ -721,6 +728,7 @@ contains
 
             ! Save the snapshot for posterity
             call self%save(snapshot)
+            deallocate(snapshot)
          case default
             write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
          end select
