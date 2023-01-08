@@ -90,7 +90,7 @@ contains
       !! Dumps the time history of an encounter to file.
       implicit none
       ! Arguments
-      class(collision_storage(*)),  intent(inout)  :: self   !! Encounter storage object
+      class(collision_storage),  intent(inout)  :: self   !! Encounter storage object
       class(base_parameters), intent(inout)    :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
@@ -266,7 +266,7 @@ contains
 
       667 continue
       write(*,*) "Error creating fragmentation output file. " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine collision_io_netcdf_initialize_output
 
 
@@ -359,7 +359,7 @@ contains
       implicit none
       ! Arguments
       class(collision_snapshot),   intent(in)    :: self    !! Swiftest encounter structure
-      class(encounter_storage(*)), intent(inout) :: history !! Collision history object
+      class(encounter_storage), intent(inout) :: history !! Collision history object
       class(base_parameters),      intent(inout) :: param   !! Current run configuration parameters
       ! Internals
       integer(I4B)           :: i, idslot, old_mode, npl, stage

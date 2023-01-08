@@ -178,7 +178,7 @@ contains
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
                call self%write_frame(nc, param)
                call nc%close()
-               call util_exit(FAILURE)
+               call base_util_exit(FAILURE)
             end if
          end if
       end associate
@@ -187,7 +187,7 @@ contains
 
       667 continue
       write(*,*) "Error writing energy and momentum tracking file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine swiftest_io_conservation_report
 
 
@@ -286,7 +286,7 @@ contains
 
       667 continue
       write(*,*) "Error opening parameter dump file " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine swiftest_io_dump_param
 
 
@@ -339,7 +339,7 @@ contains
       !! cadence is not divisible by the total number of loops).
       implicit none
       ! Arguments
-      class(swiftest_storage(*)),   intent(inout)        :: self   !! Swiftest simulation history storage object
+      class(swiftest_storage),   intent(inout)        :: self   !! Swiftest simulation history storage object
       class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
@@ -386,18 +386,18 @@ contains
          do i = 1,narg
             call get_command_argument(i, arg(i), status = ierr(i))
          end do
-         if (any(ierr /= 0)) call util_exit(USAGE)
+         if (any(ierr /= 0)) call base_util_exit(USAGE)
       else
-         call util_exit(USAGE)
+         call base_util_exit(USAGE)
       end if
    
       if (narg == 1) then
          if (arg(1) == '-v' .or. arg(1) == '--version') then
             call swiftest_util_version() 
          else if (arg(1) == '-h' .or. arg(1) == '--help') then
-            call util_exit(HELP)
+            call base_util_exit(HELP)
          else
-            call util_exit(USAGE)
+            call base_util_exit(USAGE)
          end if
       else if (narg >= 2) then
          call swiftest_io_toupper(arg(1))
@@ -421,7 +421,7 @@ contains
          case default
             integrator = UNKNOWN_INTEGRATOR
             write(*,*) trim(adjustl(arg(1))) // ' is not a valid integrator.'
-            call util_exit(USAGE)
+            call base_util_exit(USAGE)
          end select
          param_file_name = trim(adjustl(arg(2)))
       end if
@@ -432,7 +432,7 @@ contains
          call swiftest_io_toupper(arg(3))
          display_style = trim(adjustl(arg(3)))
       else
-         call util_exit(USAGE)
+         call base_util_exit(USAGE)
       end if
 
       return
@@ -804,7 +804,7 @@ contains
 
       667 continue
       write(*,*) "Error creating NetCDF output file. " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine swiftest_io_netcdf_initialize_output
 
 
@@ -945,7 +945,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: i, idmax, npl_check, ntp_check, nplm_check, str_max, status
+      integer(I4B)                              :: i, idmax, npl_check, ntp_check, nplm_check, str_max, status, npl, ntp
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable     :: vectemp
       integer(I4B), dimension(:), allocatable   :: itemp
@@ -955,11 +955,13 @@ contains
       call nc%open(param, readonly=.true.)
       call nc%find_tslot(self%t)
       call self%read_hdr(nc, param)
-      associate(cb => self%cb, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody, tslot => nc%tslot)
 
+      associate(cb => self%cb, pl => self%pl, tp => self%tp,tslot => nc%tslot)
+         ! Save these values as variables as they get reset by the setup method
+         npl = pl%nbody
+         ntp = tp%nbody
          call pl%setup(npl, param)
          call tp%setup(ntp, param)
-
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_read_frame_system nf90_inquire_dimension name_dimid"  )
          allocate(rtemp(idmax))
          allocate(vectemp(NDIM,idmax))
@@ -971,7 +973,7 @@ contains
          if (tslot > nc%max_tslot) then
             write(*,*)
             write(*,*) "Error in reading frame from NetCDF file. Requested time index value (",tslot,") exceeds maximum time in file (",nc%max_tslot,"). " 
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end if
 
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%str_dimid, len=str_max), "netcdf_io_read_frame_system nf90_inquire_dimension str_dimid"  )
@@ -997,19 +999,19 @@ contains
 
          if (npl_check /= npl) then
             write(*,*) "Error reading in NetCDF file: The recorded value of npl does not match the number of active massive bodies"
-            call util_exit(failure)
+            call base_util_exit(failure)
          end if
 
          if (ntp_check /= ntp) then
             write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
-            call util_exit(failure)
+            call base_util_exit(failure)
          end if
 
          if (param%lmtiny_pl) then
             nplm_check = count(pack(rtemp,plmask) > param%GMTINY )
             if (nplm_check /= pl%nplm) then
                write(*,*) "Error reading in NetCDF file: The recorded value of nplm does not match the number of active fully interacting massive bodies"
-               call util_exit(failure)
+               call base_util_exit(failure)
             end if
          end if
 
@@ -2675,7 +2677,7 @@ contains
 
       667 continue
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine swiftest_io_read_in_cb
 
 
@@ -2714,7 +2716,7 @@ contains
          end if
          ierr = self%read_frame(tmp_param%system_history%nc, tmp_param)
          deallocate(tmp_param)
-         if (ierr /=0) call util_exit(FAILURE)
+         if (ierr /=0) call base_util_exit(FAILURE)
       end if
 
       param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP))
@@ -2828,7 +2830,7 @@ contains
       class default
          write(*,*) "Error reading body file: " // trim(adjustl(errmsg))
       end select
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end function swiftest_io_read_frame_body
 
 
@@ -2859,7 +2861,7 @@ contains
 
       667 continue
       write(self%display_unit,*) "Error reading parameter file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine swiftest_io_read_in_param
 
 
@@ -2891,7 +2893,7 @@ contains
          self%log_output = .true.
       case default
          write(*,*) display_style, " is an unknown display style"
-         call util_exit(USAGE)
+         call base_util_exit(USAGE)
       end select
 
       self%display_style = display_style
@@ -2900,7 +2902,7 @@ contains
 
       667 continue
       write(*,*) "Error opening swiftest log file: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine swiftest_io_set_display_param
 
 
@@ -3002,7 +3004,7 @@ contains
 
       667 continue
       write(*,*) "Error writing nbody_system frame: " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine swiftest_io_write_frame_system
 
 end submodule s_swiftest_io

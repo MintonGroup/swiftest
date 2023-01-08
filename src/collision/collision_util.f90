@@ -19,7 +19,7 @@ contains
       ! Arguments
       class(collision_basic),   intent(in)    :: self      !! Collision system system object
       class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
-      class(base_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+      class(base_parameters),   intent(in)    :: param     !! Current Swiftest run configuration parameters
       ! Internals
       integer(I4B) :: i, npl_before, npl_after
       logical, dimension(:), allocatable :: lexclude
@@ -69,13 +69,13 @@ contains
       implicit none
       ! Arguments
       class(collision_basic),                 intent(inout) :: collider     !! Collision system object
-      class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
-      class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
-      class(base_nbody_system), allocatable,  intent(out)   :: after_system !! Output temporary swiftest nbody system object
+      class(base_nbody_system),               intent(in)    :: nbody_system !! Original Swiftest nbody system object
+      class(base_parameters),                 intent(inout) :: param        !! Current Swiftest run configuration parameters
+      class(base_nbody_system), allocatable,  intent(out)   :: after_system !! Output temporary Swiftest nbody system object
       ! Internals
       integer(I4B) :: i, status
       class(swiftest_nbody_system), allocatable :: tmpsys
-      class(swiftest_parameters),   allocatable :: tmpparam
+      !class(swiftest_parameters),   allocatable :: tmpparam
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -90,16 +90,11 @@ contains
             end do
 
             ! Set up a new temporary system based on the original
-            allocate(tmpparam, source=param)
-            call swiftest_util_setup_construct_system(tmpsys, tmpparam)
-
-            if (allocated(tmpsys%cb)) deallocate(tmpsys%cb)
+            allocate(tmpsys, mold=nbody_system)
             allocate(tmpsys%cb, source=cb)
-
-            if (allocated(tmpsys%pl)) deallocate(tmpsys%pl)
             allocate(tmpsys%pl, source=pl)
-
-            if (allocated(tmpsys%collider)) deallocate(tmpsys%collider)
+            allocate(tmpsys%pl_adds, mold=pl)
+            allocate(tmpsys%pl_discards, mold=pl)
             allocate(tmpsys%collider, source=collider)
             call tmpsys%collider%set_original_scale()
 
@@ -112,8 +107,8 @@ contains
                status = HIT_AND_RUN_DISRUPT
             end select
 
-            call collision_resolve_mergeaddsub(tmpsys, tmpparam, nbody_system%t, status)
-            call tmpsys%pl%rearray(tmpsys, tmpparam)
+            call collision_resolve_mergeaddsub(tmpsys, param, nbody_system%t, status)
+            call tmpsys%pl%rearray(tmpsys, param)
 
             call move_alloc(tmpsys, after_system)
 
@@ -189,7 +184,7 @@ contains
       ! Arguments
       class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current swiftest run configuration parameters
+      class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
       character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the calculation this needs to be done
       ! Internals
       class(base_nbody_system), allocatable :: after_system
@@ -253,7 +248,7 @@ contains
       !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       implicit none
       ! Arguments
-      class(collision_storage(*)), intent(inout) :: self  !! Swiftest storage object
+      class(collision_storage), intent(inout) :: self  !! Swiftest storage object
       ! Internals
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
@@ -271,7 +266,25 @@ contains
    end subroutine collision_util_index_map
 
 
-   module subroutine collision_util_reset_impactors(self)
+   module subroutine collision_util_dealloc_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Finalizer will deallocate all allocatables
+      implicit none
+      ! Arguments
+      class(collision_snapshot),  intent(inout) :: self !! Collsion snapshot object
+
+      if (allocated(self%collider)) then
+         call self%collider%dealloc()
+         deallocate(self%collider)
+      end if
+
+      call self%encounter_snapshot%dealloc()
+
+      return
+   end subroutine collision_util_dealloc_snapshot
+
+   module subroutine collision_util_dealloc_impactors(self)
       !! author: David A. Minton
       !!
       !! Resets the collider object variables to 0 and deallocates the index and mass distributions
@@ -302,10 +315,10 @@ contains
       self%rbimp(:) = 0.0_DP
 
       return
-   end subroutine collision_util_reset_impactors
+   end subroutine collision_util_dealloc_impactors
 
 
-   module subroutine collision_util_reset_fragments(self)
+   module subroutine collision_util_dealloc_fragments(self)
       !! author: David A. Minton
       !!
       !! Deallocates all allocatables
@@ -332,16 +345,26 @@ contains
       self%n_unit(:,:) = 0.0_DP
 
       return
-   end subroutine collision_util_reset_fragments
+   end subroutine collision_util_dealloc_fragments
 
 
-   module subroutine collision_util_reset_system(self)
+   module subroutine collision_util_dealloc_basic(self)
       !! author: David A. Minton
       !!
       !! Resets the collider nbody_system and deallocates all allocatables
       implicit none
       ! Arguments
-      class(collision_basic),    intent(inout) :: self  !! Collision system object
+      class(collision_basic), intent(inout) :: self  !! Collision system object
+
+      if (allocated(self%impactors)) then 
+         call self%impactors%dealloc()
+         deallocate(self%impactors)
+      end if
+
+      if (allocated(self%fragments)) then
+         call self%fragments%dealloc()
+         deallocate(self%fragments)
+      end if
 
       select type(before => self%before)
       class is (swiftest_nbody_system)
@@ -362,15 +385,57 @@ contains
       self%pe(:) = 0.0_DP
       self%te(:) = 0.0_DP
 
-      if (allocated(self%impactors)) call self%impactors%reset()
-      if (allocated(self%fragments)) deallocate(self%fragments)
+      self%dscale = 1.0_DP 
+      self%mscale = 1.0_DP 
+      self%tscale = 1.0_DP 
+      self%vscale = 1.0_DP 
+      self%Escale = 1.0_DP 
+      self%Lscale = 1.0_DP
+
 
       return
-   end subroutine collision_util_reset_system
+   end subroutine collision_util_dealloc_basic
 
+
+   module subroutine collision_util_reset_fragments(self)
+      !! author: David A. Minton
+      !!
+      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      implicit none
+      ! Arguments
+      class(collision_fragments(*)), intent(inout) :: self
+
+      self%rc(:,:) = 0.0_DP
+      self%vc(:,:) = 0.0_DP
+      self%rh(:,:) = 0.0_DP
+      self%vh(:,:) = 0.0_DP
+      self%rb(:,:) = 0.0_DP
+      self%vb(:,:) = 0.0_DP
+      self%rot(:,:) = 0.0_DP
+      self%r_unit(:,:) = 0.0_DP
+      self%t_unit(:,:) = 0.0_DP
+      self%n_unit(:,:) = 0.0_DP
+
+      self%rmag(:) = 0.0_DP
+      self%vmag(:) = 0.0_DP
+      self%rotmag(:) = 0.0_DP
+
+      self%L_orbit_tot(:) = 0.0_DP 
+      self%L_spin_tot(:)  = 0.0_DP 
+      self%L_orbit(:,:)   = 0.0_DP 
+      self%L_spin(:,:)    = 0.0_DP 
+      self%ke_orbit_tot   = 0.0_DP 
+      self%ke_spin_tot    = 0.0_DP 
+      self%pe             = 0.0_DP 
+      self%be             = 0.0_DP 
+      self%ke_orbit(:)    = 0.0_DP 
+      self%ke_spin(:)     = 0.0_DP 
+
+      return
+   end subroutine collision_util_reset_fragments
 
    module subroutine collision_util_set_coordinate_collider(self)
-      !! author: David A. Minton
+      
       !!
       !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
       implicit none
@@ -422,7 +487,7 @@ contains
       !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
       implicit none
       ! Arguments
-      class(collision_impactors),    intent(inout) :: self      !! Collisional nbody_system
+      class(collision_impactors), intent(inout) :: self      !! Collisional nbody_system
       ! Internals
       real(DP), dimension(NDIM) ::  delta_r, delta_v, L_total
       real(DP)   ::  L_mag, mtot
@@ -484,7 +549,7 @@ contains
       !! but not fragments. Those are setup later when the number of fragments is known.
       implicit none
       ! Arguments
-      class(collision_basic),  intent(inout) :: self         !! Encounter collision system object
+      class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
       class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
 
       call self%setup_impactors()
@@ -582,51 +647,6 @@ contains
    end subroutine collision_util_shift_vector_to_origin
 
 
-   subroutine collision_util_save_snapshot(collision_history, snapshot)
-      !! author: David A. Minton
-      !!
-      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
-      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
-      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
-      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
-      implicit none
-      ! Arguments
-      class(collision_storage(*)), allocatable, intent(inout) :: collision_history  !! Collision history object
-      class(encounter_snapshot),               intent(in)    :: snapshot           !! Encounter snapshot object
-      ! Internals
-      type(collision_storage(nframes=:)), allocatable :: tmp
-      integer(I4B) :: i, nnew, nold, nbig
-
-      ! Advance the snapshot frame counter
-      collision_history%iframe = collision_history%iframe + 1
-
-      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
-      nnew = collision_history%iframe
-      nold = collision_history%nframes
-
-      if (nnew > nold) then
-         nbig = nold
-         do while (nbig < nnew)
-            nbig = nbig * 2
-         end do
-         allocate(collision_storage(nbig) :: tmp) 
-         tmp%iframe = collision_history%iframe
-         call move_alloc(collision_history%nc, tmp%nc)
-
-         do i = 1, nold
-            if (allocated(collision_history%frame(i)%item)) call move_alloc(collision_history%frame(i)%item, tmp%frame(i)%item)
-         end do
-         deallocate(collision_history)
-         call move_alloc(tmp,collision_history)
-         nnew = nbig
-      end if
-
-      collision_history%frame(nnew) = snapshot
-
-      return
-   end subroutine collision_util_save_snapshot
-
-
    module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
@@ -634,11 +654,11 @@ contains
       !! can be played back through the encounter
       implicit none
       ! Internals
-      class(collision_storage(*)), intent(inout)          :: self   !! Swiftest storage object
-      class(base_parameters),      intent(inout)          :: param  !! Current run configuration parameters
-      class(base_nbody_system),    intent(inout)          :: nbody_system !! Swiftest nbody system object to store
-      real(DP),                    intent(in),   optional :: t      !! Time of snapshot if different from nbody_system time
-      character(*),                intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
+      class(collision_storage), intent(inout)          :: self   !! Swiftest storage object
+      class(base_parameters),   intent(inout)          :: param  !! Current run configuration parameters
+      class(base_nbody_system), intent(inout)          :: nbody_system !! Swiftest nbody system object to store
+      real(DP),                 intent(in),   optional :: t      !! Time of snapshot if different from nbody_system time
+      character(*),             intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
       ! Arguments
       class(collision_snapshot), allocatable, save :: snapshot
       character(len=:), allocatable :: stage
@@ -700,8 +720,7 @@ contains
             end select
 
             ! Save the snapshot for posterity
-            call collision_util_save_snapshot(nbody_system%collision_history,snapshot)
-            deallocate(snapshot)
+            call self%save(snapshot)
          case default
             write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
          end select

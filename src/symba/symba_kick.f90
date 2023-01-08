@@ -21,7 +21,7 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameter
+      class(swiftest_parameters), intent(inout) :: param !! Current Swiftest run configuration parameter
       ! Internals
       ! type(interaction_timer), save :: itimer
       ! logical, save :: lfirst = .true.

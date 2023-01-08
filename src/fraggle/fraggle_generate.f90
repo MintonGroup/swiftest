@@ -46,7 +46,7 @@ contains
                message = "Supercatastrophic disruption between"
             case default 
                write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-               call util_exit(FAILURE)
+               call base_util_exit(FAILURE)
             end select
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t)
@@ -94,7 +94,6 @@ contains
       logical                              :: lk_plpl, lfailure_local
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
       real(DP)                             :: dE, dL
-      integer(I4B)                         :: i
       character(len=STRMAX)                :: message
       real(DP), parameter                  :: fail_scale_initial = 1.001_DP
 
@@ -108,9 +107,7 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-      select type(fragments => self%fragments)
-      class is (fraggle_fragments(*))
-      associate(impactors => self%impactors, nfrag => fragments%nbody, pl => nbody_system%pl)
+      associate(impactors => self%impactors, fragments => self%fragments, nfrag => self%fragments%nbody, pl => nbody_system%pl)
 
          write(message,*) nfrag
          call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle generating " // trim(adjustl(message)) // " fragments.")
@@ -124,7 +121,6 @@ contains
          call ieee_set_flag(ieee_all, .false.) ! Set all fpe flags to quiet
 
          call self%set_natural_scale()
-         call fragments%reset()
          lfailure_local = .false.
          call self%get_energy_and_momentum(nbody_system, param, phase="before")
          self%fail_scale = fail_scale_initial
@@ -149,8 +145,7 @@ contains
       end associate
       end select
       end select
-      end select
-      call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
+      call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Restore the original halting modes
 
       return 
    end subroutine fraggle_generate_disrupt

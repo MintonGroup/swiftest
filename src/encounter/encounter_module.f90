@@ -38,24 +38,25 @@ module encounter
       real(DP),     dimension(:,:), allocatable :: v2         !! the velocity of body 2 in the encounter
       integer(I4B), dimension(:),   allocatable :: level      !! Recursion level (used in SyMBA)
    contains
-      procedure :: setup       => encounter_util_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
-      procedure :: append      => encounter_util_append_list  !! Appends elements from one structure to another
-      procedure :: copy        => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
-      procedure :: dealloc     => encounter_util_dealloc_list !! Deallocates all allocatables
-      procedure :: spill       => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: resize      => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
+      procedure :: setup   => encounter_util_setup_list        !! A constructor that sets the number of encounters and allocates and initializes all arrays  
+      procedure :: append  => encounter_util_append_list  !! Appends elements from one structure to another
+      procedure :: copy    => encounter_util_copy_list    !! Copies elements from the source encounter list into self.
+      procedure :: dealloc => encounter_util_dealloc_list !! Deallocates all allocatables
+      procedure :: spill   => encounter_util_spill_list   !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: resize  => encounter_util_resize_list  !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
    end type encounter_list
    
 
-   type :: encounter_snapshot
+   type, extends(base_object) :: encounter_snapshot
       !! A simplified version of a SyMBA nbody system object for storing minimal snapshots of the system state during encounters
       class(base_object), allocatable :: pl    !! Massive body data structure
       class(base_object), allocatable :: tp    !! Test particle data structure
       real(DP)                        :: t     !! Simulation time when snapshot was taken
       integer(I8B)                    :: iloop !! Loop number at time of snapshot
    contains
-      procedure :: write_frame => encounter_io_netcdf_write_frame_snapshot     !! Writes a frame of encounter data to file 
-      procedure :: get_idvals  => encounter_util_get_idvalues_snapshot  !! Gets an array of all id values saved in this snapshot
+      procedure :: write_frame => encounter_io_netcdf_write_frame_snapshot !! Writes a frame of encounter data to file 
+      procedure :: dealloc     => encounter_util_dealloc_snapshot          !! Deallocates all allocatables
+      procedure :: get_idvals  => encounter_util_get_idvalues_snapshot     !! Gets an array of all id values saved in this snapshot
       final     ::                encounter_final_snapshot
    end type encounter_snapshot
 
@@ -73,6 +74,7 @@ module encounter
       class(encounter_netcdf_parameters), allocatable :: nc             !! NetCDF object attached to this storage object
    contains
       procedure :: dump             => encounter_io_netcdf_dump        !! Dumps contents of encounter history to file
+      procedure :: dealloc          => encounter_util_dealloc_storage  !! Deallocates all allocatables
       procedure :: get_index_values => encounter_util_get_vals_storage !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
       procedure :: make_index_map   => encounter_util_index_map        !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: take_snapshot    => encounter_util_snapshot         !! Take a minimal snapshot of the system through an encounter
@@ -95,10 +97,12 @@ module encounter
    type encounter_bounding_box
       type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
    contains
-      procedure :: setup        => encounter_util_setup_aabb      !! Setup a new axis-aligned bounding box structure
+      procedure :: dealloc      => encounter_util_dealloc_bounding_box    !! Deallocates all allocatables
+      procedure :: setup        => encounter_util_setup_aabb              !! Setup a new axis-aligned bounding box structure
       procedure :: sweep_single => encounter_check_sweep_aabb_single_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
       procedure :: sweep_double => encounter_check_sweep_aabb_double_list !! Sweeps the sorted bounding box extents and returns the encounter candidates
       generic   :: sweep        => sweep_single, sweep_double
+      final     ::                 encounter_final_bounding_box
    end type
 
 
@@ -122,7 +126,7 @@ module encounter
                                                   nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
-         class(base_parameters),                 intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+         class(base_parameters),                  intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: nplm   !! Total number of fully interacting massive bodies 
          integer(I4B),                            intent(in)    :: nplt   !! Total number of partially interacting masive bodies (GM < GMTINY) 
          real(DP),     dimension(:,:),            intent(in)    :: rplm   !! Position vectors of fully interacting massive bodies
@@ -141,7 +145,7 @@ module encounter
       module subroutine encounter_check_all_pltp(param, npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
-         class(base_parameters),              intent(inout) :: param  !! Current Swiftest run configuration parameter5s
+         class(base_parameters),                  intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies 
          integer(I4B),                            intent(in)    :: ntp    !! Total number of test particles 
          real(DP),     dimension(:,:),            intent(in)    :: rpl    !! Position vectors of massive bodies
@@ -216,14 +220,14 @@ module encounter
 
       module subroutine encounter_io_netcdf_dump(self, param)
          implicit none
-         class(encounter_storage(*)),  intent(inout)        :: self   !! Encounter storage object
+         class(encounter_storage), intent(inout)        :: self   !! Encounter storage object
          class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
       end subroutine encounter_io_netcdf_dump
 
       module subroutine encounter_io_netcdf_initialize_output(self, param)
          implicit none
          class(encounter_netcdf_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
-         class(base_parameters),     intent(in)    :: param   
+         class(base_parameters),             intent(in)    :: param   
       end subroutine encounter_io_netcdf_initialize_output
 
       module subroutine encounter_io_netcdf_open(self, param, readonly)
@@ -235,9 +239,9 @@ module encounter
 
       module subroutine encounter_io_netcdf_write_frame_snapshot(self, history, param)
          implicit none
-         class(encounter_snapshot),   intent(in)    :: self    !! Swiftest encounter structure
-         class(encounter_storage(*)), intent(inout) :: history !! Encounter storage object
-         class(base_parameters),  intent(inout) :: param   !! Current run configuration parameters
+         class(encounter_snapshot), intent(in)    :: self    !! Swiftest encounter structure
+         class(encounter_storage),  intent(inout) :: history !! Encounter storage object
+         class(base_parameters),    intent(inout) :: param   !! Current run configuration parameters
       end subroutine encounter_io_netcdf_write_frame_snapshot
 
       module subroutine encounter_util_setup_aabb(self, n, n_last)
@@ -271,10 +275,25 @@ module encounter
          class(encounter_bounding_box_1D), intent(inout) :: self !!Bounding box structure along a single dimension
       end subroutine encounter_util_dealloc_aabb
 
+      module subroutine encounter_util_dealloc_bounding_box(self)
+         implicit none
+         class(encounter_bounding_box), intent(inout) :: self !! Bounding box structure
+      end subroutine encounter_util_dealloc_bounding_box
+
       module subroutine encounter_util_dealloc_list(self)
          implicit none
          class(encounter_list), intent(inout) :: self !! Swiftest encounter list object
       end subroutine encounter_util_dealloc_list
+
+      module subroutine encounter_util_dealloc_snapshot(self)
+         implicit none
+         class(encounter_snapshot), intent(inout) :: self !! Encounter shapshot object
+      end subroutine encounter_util_dealloc_snapshot
+
+      module subroutine encounter_util_dealloc_storage(self)
+         implicit none
+         class(encounter_storage), intent(inout) :: self !! Swiftest storage object
+      end subroutine encounter_util_dealloc_storage
 
       module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
          implicit none
@@ -283,14 +302,14 @@ module encounter
       end subroutine encounter_util_get_idvalues_snapshot
 
       module subroutine encounter_util_get_vals_storage(self, idvals, tvals)
-         class(encounter_storage(*)), intent(in)               :: self   !! Encounter storages object
+         class(encounter_storage), intent(in)               :: self   !! Encounter storages object
          integer(I4B), dimension(:),  allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
          real(DP),     dimension(:),  allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
       end subroutine encounter_util_get_vals_storage 
 
       module subroutine encounter_util_index_map(self)
          implicit none
-         class(encounter_storage(*)), intent(inout) :: self  !! Encounter storage object
+         class(encounter_storage), intent(inout) :: self  !! Encounter storage object
       end subroutine encounter_util_index_map
 
       module subroutine encounter_util_resize_list(self, nnew)
@@ -301,11 +320,11 @@ module encounter
 
       module subroutine encounter_util_snapshot(self, param, nbody_system, t, arg)
          implicit none
-         class(encounter_storage(*)), intent(inout)        :: self         !! Swiftest storage object
-         class(base_parameters),      intent(inout)        :: param        !! Current run configuration parameters
-         class(base_nbody_system),    intent(inout)        :: nbody_system !! Swiftest nbody system object to store
-         real(DP),                    intent(in), optional :: t            !! Time of snapshot if different from system time
-         character(*),                intent(in), optional :: arg          !! Optional argument (needed for extended storage type used in collision snapshots)
+         class(encounter_storage),  intent(inout)        :: self         !! Swiftest storage object
+         class(base_parameters),    intent(inout)        :: param        !! Current run configuration parameters
+         class(base_nbody_system),  intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+         real(DP),                  intent(in), optional :: t            !! Time of snapshot if different from system time
+         character(*),              intent(in), optional :: arg          !! Optional argument (needed for extended storage type used in collision snapshots)
       end subroutine encounter_util_snapshot
 
       module subroutine encounter_util_spill_list(self, discards, lspill_list, ldestructive)
@@ -332,6 +351,19 @@ module encounter
 
          return
       end subroutine encounter_final_aabb
+
+      subroutine encounter_final_bounding_box(self)
+         !! author: David A. Minton
+         !!
+         !! Finalize the bounding box object
+         implicit none
+         ! Arguments
+         type(encounter_bounding_box), intent(inout) :: self
+
+         call self%dealloc()
+
+         return
+      end subroutine encounter_final_bounding_box
 
 
       subroutine encounter_final_netcdf_parameters(self)
@@ -370,15 +402,9 @@ module encounter
          !! Deallocates allocatable arrays in an encounter snapshot
          implicit none
          ! Arguments
-         type(encounter_storage(*)),  intent(inout) :: self !! Encounter storage object
-         ! Internals
-         integer(I4B) :: i
+         type(encounter_storage),  intent(inout) :: self !! Encounter storage object
 
-         do i = 1, self%nframes
-            if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-         end do
-
-         return
+         call self%dealloc()
 
          return
       end subroutine encounter_final_storage

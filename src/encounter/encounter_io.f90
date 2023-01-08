@@ -17,7 +17,7 @@ contains
       !! Dumps the time history of an encounter to file.
       implicit none
       ! Arguments
-      class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
+      class(encounter_storage), intent(inout) :: self   !! Encounter storage object
       class(base_parameters),      intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
@@ -145,7 +145,7 @@ contains
 
       667 continue
       write(*,*) "Error creating encounter output file. " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine encounter_io_netcdf_initialize_output
 
 
@@ -227,7 +227,7 @@ contains
       implicit none
       ! Arguments
       class(encounter_snapshot),   intent(in)    :: self              !! Swiftest encounter structure
-      class(encounter_storage(*)), intent(inout) :: history !! Encounter storage object
+      class(encounter_storage), intent(inout) :: history !! Encounter storage object
       class(base_parameters),      intent(inout) :: param             !! Current run configuration parameters
  
       ! Internals

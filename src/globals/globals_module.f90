@@ -41,7 +41,7 @@ module globals
    integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
    integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
 
-   real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! swiftest version
+   real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! Swiftest version
 
    !> Symbolic name for integrator types
    character(*), parameter :: UNKNOWN_INTEGRATOR = "UKNOWN INTEGRATOR"

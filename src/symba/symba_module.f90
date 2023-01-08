@@ -48,7 +48,6 @@ module symba
       procedure :: sort            => symba_util_sort_pl                !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_pl      !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_pl               !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      final     :: symba_final_pl                                  !! Finalizes the SyMBA massive body object - deallocates all allocatables
    end type symba_pl
 
 
@@ -69,7 +68,6 @@ module symba
       procedure :: sort            => symba_util_sort_tp           !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => symba_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => symba_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      final     :: symba_final_tp                             !! Finalizes the SyMBA test particle object - deallocates all allocatables
    end type symba_tp
 
 
@@ -78,7 +76,6 @@ module symba
    contains
       procedure :: encounter_check => symba_encounter_check_list_plpl !! Checks if massive bodies are going through close encounters with each other
       procedure :: kick            => symba_kick_list_plpl            !! Kick barycentric velocities of active massive bodies within SyMBA recursion
-      final     ::                    symba_final_list_plpl            !! Finalizes the SyMBA test particle object - deallocates all allocatables
    end type symba_list_plpl
 
 
@@ -87,20 +84,19 @@ module symba
    contains
       procedure :: encounter_check => symba_encounter_check_list_pltp !! Checks if massive bodies are going through close encounters with test particles
       procedure :: kick            => symba_kick_list_pltp            !! Kick barycentric velocities of active test particles within SyMBA recursion
-      final     ::                    symba_final_list_pltp           !! Finalizes the SyMBA test particle object - deallocates all allocatables
    end type symba_list_pltp
 
 
    type, extends(helio_nbody_system) :: symba_nbody_system
       integer(I4B)  :: irec = -1 !! nbody_system recursion level
    contains
-      procedure :: initialize       => symba_util_setup_initialize_system  !! Performs SyMBA-specific initilization steps
+      procedure :: dealloic         => symba_util_dealloc_system          !! Deallocates all allocatables
+      procedure :: initialize       => symba_util_setup_initialize_system !! Performs SyMBA-specific initilization steps
       procedure :: step             => symba_step_system                  !! Advance the SyMBA nbody system forward in time by one step
       procedure :: interp           => symba_step_interp_system           !! Perform an interpolation step on the SymBA nbody system 
       procedure :: set_recur_levels => symba_step_set_recur_levels_system !! Sets recursion levels of bodies and encounter lists to the current nbody_system level
       procedure :: recursive_step   => symba_step_recur_system            !! Step interacting planets and active test particles ahead in democratic heliocentric coordinates at the current recursion level, if applicable, and descend to the next deeper level if necessary
       procedure :: reset            => symba_step_reset_system            !! Resets pl, tp,and encounter structures at the start of a new step 
-      final     ::                     symba_final_system                 !! Finalizes the SyMBA nbody system object - deallocates all allocatables
    end type symba_nbody_system
 
    interface
@@ -130,7 +126,7 @@ module symba
       module function symba_encounter_check_pl(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_pl),            intent(inout) :: self           !! SyMBA test particle object  
-         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level
@@ -140,7 +136,7 @@ module symba
       module function symba_encounter_check_list_plpl(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_list_plpl),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -150,7 +146,7 @@ module symba
       module function symba_encounter_check_list_pltp(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_list_pltp),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
-         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -160,7 +156,7 @@ module symba
       module function symba_encounter_check_tp(self, param, nbody_system, dt, irec) result(lany_encounter)
          implicit none
          class(symba_tp),            intent(inout) :: self           !! SyMBA test particle object  
-         class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
          class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
          real(DP),                   intent(in)    :: dt             !! step size
          integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -203,7 +199,7 @@ module symba
       module subroutine symba_kick_getacch_int_pl(self, param)
          implicit none
          class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-         class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
+         class(swiftest_parameters), intent(inout) :: param !! Current Swiftest run configuration parameters
       end subroutine symba_kick_getacch_int_pl
 
       module subroutine symba_kick_getacch_pl(self, nbody_system, param, t, lbeg)
@@ -241,6 +237,11 @@ module symba
          integer(I4B),              intent(in)    :: irec   !! Current recursion level
          integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
       end subroutine symba_kick_list_pltp
+
+      module subroutine symba_util_dealloc_system(self)
+         implicit none
+         class(symba_nbody_system), intent(inout) :: self
+      end subroutine symba_util_dealloc_system
 
       module subroutine symba_util_setup_initialize_system(self, param)
          implicit none
@@ -407,79 +408,4 @@ module symba
       end subroutine symba_util_spill_tp
    end interface
 
-
-   contains
-
-
-      subroutine symba_final_list_plpl(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the pl-tp list - deallocates all allocatables
-         implicit none
-         type(symba_list_plpl),  intent(inout) :: self !! SyMBA encounter list object
-
-         call self%dealloc()
-
-         return
-      end subroutine symba_final_list_plpl
-
-
-      subroutine symba_final_list_pltp(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the pl-tp list - deallocates all allocatables
-         implicit none
-         type(symba_list_pltp),  intent(inout) :: self !! SyMBA encounter list object
-
-         call self%dealloc()
-
-         return
-      end subroutine symba_final_list_pltp
-
-
-      subroutine symba_final_pl(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the SyMBA massive body object - deallocates all allocatables
-         implicit none
-         ! Argument
-         type(symba_pl),  intent(inout) :: self !! SyMBA massive body object
-
-         call self%dealloc()
-
-         return
-      end subroutine symba_final_pl
-
-
-      subroutine symba_final_system(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the SyMBA nbody system object - deallocates all allocatables
-         implicit none
-         ! Argument
-         type(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
-
-         if (allocated(self%pl_adds)) deallocate(self%pl_adds)
-         if (allocated(self%pltp_encounter)) deallocate(self%pltp_encounter)
-         if (allocated(self%plpl_encounter)) deallocate(self%plpl_encounter)
-         if (allocated(self%plpl_collision)) deallocate(self%plpl_collision)
-
-         call helio_final_system(self%helio_nbody_system)
-
-         return
-      end subroutine symba_final_system
-
-
-      subroutine symba_final_tp(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the SyMBA test particleobject - deallocates all allocatables
-         implicit none
-         ! Argument
-         type(symba_tp),  intent(inout) :: self !! SyMBA test particle object
-
-         call self%dealloc()
-
-         return
-      end subroutine symba_final_tp
 end module symba

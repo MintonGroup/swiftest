@@ -244,7 +244,7 @@ module solver
                if (s >= 1.0_DP) exit ! Good step!
                if (i == MAXREDUX) then
                   write(*,*) "Something has gone wrong in util_solve_rkf45!! Step size reduction has gone too far this time!"
-                  call util_exit(FAILURE)
+                  call base_util_exit(FAILURE)
                end if
             end do
          

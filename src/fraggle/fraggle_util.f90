@@ -11,53 +11,6 @@ submodule(fraggle) s_fraggle_util
    use swiftest
 contains
 
-   module subroutine fraggle_util_reset_fragments(self)
-      !! author: David A. Minton
-      !!
-      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
-      implicit none
-      ! Arguments
-      class(fraggle_fragments(*)), intent(inout) :: self
-
-      self%rc(:,:) = 0.0_DP
-      self%vc(:,:) = 0.0_DP
-      self%rh(:,:) = 0.0_DP
-      self%vh(:,:) = 0.0_DP
-      self%rb(:,:) = 0.0_DP
-      self%vb(:,:) = 0.0_DP
-      self%rot(:,:) = 0.0_DP
-      self%r_unit(:,:) = 0.0_DP
-      self%t_unit(:,:) = 0.0_DP
-      self%n_unit(:,:) = 0.0_DP
-
-      self%rmag(:) = 0.0_DP
-      self%rotmag(:) = 0.0_DP
-
-      return
-   end subroutine fraggle_util_reset_fragments
-
-
-   module subroutine fraggle_util_reset_system(self)
-      !! author: David A. Minton
-      !!
-      !! Resets the collider system and deallocates all allocatables
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Collision system object
-
-      self%dscale = 1.0_DP
-      self%mscale = 1.0_DP
-      self%tscale = 1.0_DP
-      self%vscale = 1.0_DP
-      self%Escale = 1.0_DP
-      self%Lscale = 1.0_DP
-
-      call collision_util_reset_system(self)
-
-      return
-   end subroutine fraggle_util_reset_system
-
-
    module subroutine fraggle_util_set_mass_dist(self, param)
       !! author: David A. Minton
       !!
@@ -146,8 +99,7 @@ contains
             write(*,*) "collision_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
          end select
 
-         select type(fragments => self%fragments)
-         class is (collision_fragments(*))
+         associate(fragments => self%fragments)
             fragments%mtot = mtot
             allocate(mass, mold=fragments%mass)
 
@@ -223,7 +175,7 @@ contains
                fragments%origin_body(3:nfrag) = 2
             end if
 
-         end select
+         end associate
 
 
       end associate
@@ -242,7 +194,7 @@ contains
       integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
 
       if (allocated(self%fragments)) deallocate(self%fragments)
-      allocate(fraggle_fragments(nbody=nfrag) :: self%fragments)
+      allocate(collision_fragments(nbody=nfrag) :: self%fragments)
       self%fragments%nbody = nfrag
 
       return

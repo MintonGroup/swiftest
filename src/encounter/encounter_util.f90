@@ -85,12 +85,31 @@ contains
       ! Arguments
       class(encounter_bounding_box_1D), intent(inout) :: self
 
+      self%n = 0
       if (allocated(self%ind)) deallocate(self%ind)
       if (allocated(self%ibeg)) deallocate(self%ibeg)
       if (allocated(self%iend)) deallocate(self%iend)
 
       return
    end subroutine encounter_util_dealloc_aabb
+
+
+   module subroutine encounter_util_dealloc_bounding_box(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(encounter_bounding_box), intent(inout) :: self !! Bounding box structure
+      ! Internals
+      integer(I4B) :: i
+
+      do i = 1,NDIM
+         call self%aabb(i)%dealloc()
+      end do
+
+      return
+   end subroutine encounter_util_dealloc_bounding_box
 
 
    module subroutine encounter_util_dealloc_list(self)
@@ -100,6 +119,8 @@ contains
       implicit none
       ! Arguments
       class(encounter_list), intent(inout) :: self
+
+      self%nenc = 0
 
       if (allocated(self%tcollision)) deallocate(self%tcollision)
       if (allocated(self%lclosest)) deallocate(self%lclosest)
@@ -117,6 +138,38 @@ contains
 
       return
    end subroutine encounter_util_dealloc_list
+
+
+   module subroutine encounter_util_dealloc_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(encounter_snapshot), intent(inout) :: self !! Encounter shapshot object
+
+      if (allocated(self%pl)) deallocate(self%pl)
+      if (allocated(self%tp)) deallocate(self%tp)
+
+      return
+   end subroutine encounter_util_dealloc_snapshot
+
+
+   module subroutine encounter_util_dealloc_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      use base, only : base_util_dealloc_storage
+      implicit none
+      ! Arguments
+      class(encounter_storage), intent(inout) :: self !! Swiftest storage object
+
+      if (allocated(self%nc)) deallocate(self%nc)
+
+      call base_util_dealloc_storage(self)
+
+      return
+   end subroutine encounter_util_dealloc_storage
 
 
    module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
@@ -164,7 +217,7 @@ contains
       !!
       !! Gets the id values in a self object, regardless of whether it is encounter of collision
       ! Argument
-      class(encounter_storage(*)), intent(in)               :: self   !! Encounter storages object
+      class(encounter_storage), intent(in)               :: self   !! Encounter storages object
       integer(I4B), dimension(:),  allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
       real(DP),     dimension(:),  allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
       ! Internals
@@ -224,7 +277,7 @@ contains
       !! Basically this will make a unique list of ids that exist in all of the saved snapshots
       implicit none
       ! Arguments
-      class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
+      class(encounter_storage), intent(inout) :: self !! Swiftest storage object
       ! Internals
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
@@ -412,65 +465,19 @@ contains
    end subroutine encounter_util_spill_list
 
 
-   subroutine encounter_util_save_snapshot(encounter_history, snapshot)
-      !! author: David A. Minton
-      !!
-      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
-      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
-      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
-      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
-      implicit none
-      ! Arguments
-      class(encounter_storage(*)), allocatable, intent(inout) :: encounter_history !! SyMBA encounter storage object
-      class(encounter_snapshot),               intent(in)    :: snapshot          !! Encounter snapshot object
-      ! Internals
-      type(encounter_storage(nframes=:)), allocatable :: tmp
-      integer(I4B) :: i, nnew, nold, nbig
-
-      ! Advance the snapshot frame counter
-      encounter_history%iframe = encounter_history%iframe + 1
-
-      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
-      nnew = encounter_history%iframe
-      nold = encounter_history%nframes
-
-      if (nnew > nold) then
-         nbig = nold
-         do while (nbig < nnew)
-            nbig = nbig * 2
-         end do
-         allocate(encounter_storage(nbig) :: tmp) 
-         tmp%iframe = encounter_history%iframe
-         call move_alloc(encounter_history%nc, tmp%nc)
-
-         do i = 1, nold
-            if (allocated(encounter_history%frame(i)%item)) call move_alloc(encounter_history%frame(i)%item, tmp%frame(i)%item)
-         end do
-         deallocate(encounter_history)
-         call move_alloc(tmp,encounter_history)
-      end if
-
-      ! Find out which time slot this belongs in by searching for an existing slot
-      ! with the same value of time or the first available one
-      encounter_history%frame(nnew) = snapshot
-
-      return
-   end subroutine encounter_util_save_snapshot
-
-
    module subroutine encounter_util_snapshot(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
       !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
       !! can be played back through the encounter
-      use symba
+      use symba, only : symba_pl, symba_tp, symba_nbody_system
       implicit none
       ! Internals
-      class(encounter_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
-      class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters
-      class(base_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
-      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
-      character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+      class(encounter_storage),  intent(inout)        :: self         !! Swiftest storage object
+      class(base_parameters),    intent(inout)        :: param        !! Current run configuration parameters
+      class(base_nbody_system),  intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+      real(DP),                  intent(in), optional :: t            !! Time of snapshot if different from system time
+      character(*),              intent(in), optional :: arg          !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
       class(encounter_snapshot), allocatable :: snapshot
       integer(I4B) :: i, pi, pj, k, npl_snap, ntp_snap, iflag
@@ -586,11 +593,8 @@ contains
                      end if
 
                      ! Save the snapshot
-                     select type (encounter_history => nbody_system%encounter_history)
-                     class is (encounter_storage(*))
-                        encounter_history%nid = encounter_history%nid + ntp_snap + npl_snap
-                        call encounter_util_save_snapshot(nbody_system%encounter_history,snapshot)
-                     end select
+                     self%nid = self%nid + ntp_snap + npl_snap
+                     call self%save(snapshot)
                   case("closest")
                      associate(plpl_encounter => nbody_system%plpl_encounter, pltp_encounter => nbody_system%pltp_encounter)
                         if (any(plpl_encounter%lclosest(:))) then
@@ -655,7 +659,7 @@ contains
                                  pl_snap%vh(:,2) = vb(:,2) + vcom(:)
 
                                  call pl_snap%sort("id", ascending=.true.)
-                                 call encounter_util_save_snapshot(nbody_system%encounter_history,snapshot)
+                                 call self%save(snapshot)
                               end if
                            end do
 
@@ -681,7 +685,6 @@ contains
 
       return
    end subroutine encounter_util_snapshot
-
 
 
 end submodule s_encounter_util

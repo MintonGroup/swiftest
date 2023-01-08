@@ -23,7 +23,7 @@ contains
       if(status /= NF90_NOERR) then
          if (present(call_identifier)) write(*,*) "NetCDF error in ",trim(call_identifier)
          write(*,*) trim(nf90_strerror(status))
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end if
 
       return

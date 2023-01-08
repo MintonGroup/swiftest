@@ -556,7 +556,7 @@ contains
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
 
                      plpl_collision%status(i) = collider%status
-                     call impactors%reset()
+                     call impactors%dealloc()
                   end do
 
                   ! Destroy the collision list now that the collisions are resolved
@@ -581,7 +581,7 @@ contains
                   if (loop == MAXCASCADE) then
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT,"An runaway collisional cascade has been detected in collision_resolve_plpl.")
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments.")
-                     call util_exit(FAILURE)
+                     call base_util_exit(FAILURE)
                   end if
                end associate
             end do

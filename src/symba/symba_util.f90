@@ -33,7 +33,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
@@ -61,7 +61,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
@@ -85,6 +85,21 @@ contains
 
       return
    end subroutine symba_util_dealloc_pl
+
+
+   module subroutine symba_util_dealloc_system(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+      implicit none
+      ! Arguments
+      class(symba_nbody_system), intent(inout) :: self
+
+      self%irec = -1
+      call self%helio_nbody_system%dealloc()
+
+      return
+   end subroutine symba_util_dealloc_system
 
 
    module subroutine symba_util_dealloc_tp(self)
@@ -125,7 +140,7 @@ contains
             call swiftest_util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
 
@@ -155,7 +170,7 @@ contains
             call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_tp or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
 
@@ -233,7 +248,6 @@ contains
       return
    end subroutine symba_util_resize_tp
 
-   
    module subroutine symba_util_set_renc(self, scale)
       !! author: David A. Minton
       !!
@@ -258,6 +272,7 @@ contains
       return
    end subroutine symba_util_set_renc
 
+
    module subroutine symba_util_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -272,6 +287,8 @@ contains
       type(encounter_storage)  :: encounter_history
       type(collision_storage)  :: collision_history
 
+      call encounter_history%setup(4096)
+      call collision_history%setup(4096)
       ! Call parent method
       associate(nbody_system => self)
          call helio_util_setup_initialize_system(nbody_system, param)
@@ -281,7 +298,6 @@ contains
 
          if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
             allocate(encounter_netcdf_parameters :: encounter_history%nc)
-            call encounter_history%reset()
             select type(nc => encounter_history%nc)
             class is (encounter_netcdf_parameters)
                nc%file_name = ENCOUNTER_OUTFILE
@@ -292,9 +308,8 @@ contains
             end select
             allocate(nbody_system%encounter_history, source=encounter_history)
          end if
-         
+        
          allocate(collision_netcdf_parameters :: collision_history%nc)
-         call collision_history%reset()
          select type(nc => collision_history%nc)
          class is (collision_netcdf_parameters)
             nc%file_name = COLLISION_OUTFILE
@@ -522,7 +537,7 @@ contains
             call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
      
@@ -554,7 +569,7 @@ contains
             call swiftest_util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_tp or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
      

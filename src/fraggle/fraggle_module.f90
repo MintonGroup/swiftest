@@ -15,15 +15,6 @@ module fraggle
    implicit none
    public
 
-   !> Class definition for the variables that describe a collection of fragments by Fraggle barycentric coordinates
-   type, extends(collision_fragments) :: fraggle_fragments
-   contains
-
-      procedure :: reset => fraggle_util_reset_fragments      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
-      final     ::          fraggle_final_fragments           !! Finalizer will deallocate all allocatables
-   end type fraggle_fragments
-
-
    type, extends(collision_basic) :: collision_fraggle
       real(DP) :: fail_scale      !! Scale factor to apply to distance values in the position model when overlaps occur. 
    contains
@@ -32,8 +23,7 @@ module fraggle
       procedure :: hitandrun       => fraggle_generate_hitandrun          !! Generates either a pure hit and run, or one in which the runner is disrupted
       procedure :: set_mass_dist   => fraggle_util_set_mass_dist          !! Sets the distribution of mass among the fragments depending on the regime type
       procedure :: setup_fragments => fraggle_util_setup_fragments_system !! Initializer for the fragments of the collision system. 
-      procedure :: reset           => fraggle_util_reset_system           !! Deallocates all allocatables
-      final     ::                    fraggle_final_system                !! Finalizer will deallocate all allocatables
+      !procedure :: reset           => fraggle_util_dealloc_system           !! Deallocates all allocatables
    end type collision_fraggle  
 
    interface
@@ -88,64 +78,11 @@ module fraggle
          integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
       end subroutine fraggle_util_setup_fragments_system
 
-      module subroutine fraggle_util_reset_fragments(self)
-         implicit none
-         class(fraggle_fragments(*)), intent(inout) :: self
-      end subroutine fraggle_util_reset_fragments
-
-      module subroutine fraggle_util_reset_system(self)
-         implicit none
-         class(collision_fraggle), intent(inout) :: self  !! Collision system object
-      end subroutine fraggle_util_reset_system
-
       module subroutine fraggle_util_set_mass_dist(self, param)
          implicit none
          class(collision_fraggle), intent(inout) :: self  !! Fraggle collision object
          class(base_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
       end subroutine fraggle_util_set_mass_dist
    end interface
-
-   contains
-
-      subroutine fraggle_final_fragments(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(fraggle_fragments(*)),  intent(inout) :: self !! Fraggle encountar storage object
-
-         if (allocated(self%info)) deallocate(self%info)
-
-         return
-      end subroutine fraggle_final_fragments
-
-
-      subroutine fraggle_final_impactors(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(collision_impactors),  intent(inout) :: self !! Fraggle impactors object
-         call self%reset()
-         return
-      end subroutine fraggle_final_impactors
-
-
-      subroutine fraggle_final_system(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(collision_fraggle),  intent(inout) :: self !! Collision impactors storage object
-
-         call self%reset()
-         if (allocated(self%impactors)) deallocate(self%impactors)
-         if (allocated(self%fragments)) deallocate(self%fragments)
-
-         return
-      end subroutine fraggle_final_system
-
+   
 end module fraggle

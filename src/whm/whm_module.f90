@@ -272,8 +272,6 @@ module whm
 
    contains
 
-
-
       subroutine whm_final_pl(self)
          !! author: David A. Minton
          !!
@@ -296,7 +294,7 @@ module whm
          ! Arguments
          type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
 
-         call swiftest_final_system(self)
+         call self%dealloc()
 
          return
       end subroutine whm_final_system

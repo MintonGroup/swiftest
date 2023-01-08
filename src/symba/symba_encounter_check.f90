@@ -19,7 +19,7 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),            intent(inout)  :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(inout)  :: param  !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout)  :: param  !! Current Swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout)  :: nbody_system !! SyMBA nbody system object
       real(DP),                   intent(in)     :: dt     !! step size
       integer(I4B),               intent(in)     :: irec   !! Current recursion level
@@ -90,7 +90,7 @@ contains
    module function symba_encounter_check_list_plpl(self, param, nbody_system, dt, irec) result(lany_encounter)
       implicit none
       class(symba_list_plpl),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-      class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -158,7 +158,7 @@ contains
    module function symba_encounter_check_list_pltp(self, param, nbody_system, dt, irec) result(lany_encounter)
       implicit none
       class(symba_list_pltp),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
-      class(swiftest_parameters), intent(inout) :: param          !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt             !! step size
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
@@ -234,7 +234,7 @@ contains
       implicit none
       ! Arguments
       class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
+      class(swiftest_parameters), intent(inout) :: param  !! Current Swiftest run configuration parameters
       class(symba_nbody_system),  intent(inout) :: nbody_system !! SyMBA nbody system object
       real(DP),                   intent(in)    :: dt     !! step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level

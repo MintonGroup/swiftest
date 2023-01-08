@@ -82,7 +82,7 @@ module collision
    contains
       procedure :: consolidate           => collision_resolve_consolidate_impactors !! Consolidates a multi-body collision into an equivalent 2-body collision
       procedure :: get_regime            => collision_regime_impactors              !! Determine which fragmentation regime the set of impactors will be
-      procedure :: reset                 => collision_util_reset_impactors          !! Resets the collider object variables to 0 and deallocates the index and mass distributions
+      procedure :: dealloc               => collision_util_dealloc_impactors        !! Resets the collider object variables to 0 and deallocates the index and mass distributions
       procedure :: set_coordinate_system => collision_util_set_coordinate_impactors !! Sets the coordinate system of the impactors
       final     ::                          collision_final_impactors               !! Finalizer will deallocate all allocatables
    end type collision_impactors
@@ -124,9 +124,10 @@ module collision
       real(DP),                  dimension(nbody)            :: ke_orbit     !! Orbital kinetic energy of each individual fragment
       real(DP),                  dimension(nbody)            :: ke_spin      !! Spin kinetic energy of each individual fragment
    contains
-      procedure :: reset                 => collision_util_reset_fragments      !! Deallocates all allocatable arrays and sets everything else to 0
+      procedure :: dealloc               => collision_util_dealloc_fragments        !! Deallocates all allocatable arrays and sets everything else to 0
+      procedure :: reset                 => collision_util_reset_fragments          !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
       procedure :: set_coordinate_system => collision_util_set_coordinate_fragments !! Sets the coordinate system of the fragments
-      final     ::                          collision_final_fragments           !! Finalizer deallocates all allocatables
+      final     ::                          collision_final_fragments               !! Finalizer deallocates all allocatables
    end type collision_fragments
 
 
@@ -166,20 +167,20 @@ module collision
       procedure :: merge                      => collision_generate_merge                  !! Merges the impactors to make a single final body
       procedure :: add_fragments              => collision_util_add_fragments_to_collider  !! Add fragments to nbody_system
       procedure :: get_energy_and_momentum    => collision_util_get_energy_and_momentum    !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
-      procedure :: reset                      => collision_util_reset_system               !! Deallocates all allocatables
+      procedure :: dealloc                    => collision_util_dealloc_basic               !! Deallocates all allocatables
       procedure :: setup                      => collision_util_setup_collider             !! Initializer for the encounter collision system and the before/after snapshots
       procedure :: setup_impactors            => collision_util_setup_impactors_collider   !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       procedure :: setup_fragments            => collision_util_setup_fragments_collider   !! Initializer for the fragments of the collision system. 
       procedure :: set_coordinate_system      => collision_util_set_coordinate_collider    !! Sets the coordinate system of the collisional system
       procedure :: set_natural_scale          => collision_util_set_natural_scale_factors  !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
       procedure :: set_original_scale         => collision_util_set_original_scale_factors !! Restores dimenional quantities back to the original system units
+      final     ::                               collision_final_basic
    end type collision_basic
 
    
    type, extends(collision_basic) :: collision_bounce
    contains 
       procedure :: generate => collision_generate_bounce !! If a collision would result in a disruption, "bounce" the bodies instead.
-      final     ::             collision_final_bounce    !! Finalizer will deallocate all allocatables
    end type collision_bounce
 
 
@@ -199,17 +200,16 @@ module collision
    contains
       procedure :: initialize => collision_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => collision_io_netcdf_open              !! Opens an old file
-      final     ::               collision_final_netcdf_parameters     !! Finalizer closes the NetCDF file
    end type collision_netcdf_parameters
 
 
    type, extends(encounter_snapshot)  :: collision_snapshot
-      logical                              :: lcollision !! Indicates that this snapshot contains at least one collision
+      logical                             :: lcollision !! Indicates that this snapshot contains at least one collision
       class(collision_basic), allocatable :: collider  !! Collider object at this snapshot
    contains
       procedure :: write_frame => collision_io_netcdf_write_frame_snapshot !! Writes a frame of encounter data to file 
+      procedure :: dealloc     => collision_util_dealloc_snapshot          !! Deallocates all allocatables
       procedure :: get_idvals  => collision_util_get_idvalues_snapshot     !! Gets an array of all id values saved in this snapshot
-      final     ::                collision_final_snapshot                 !! Finalizer deallocates all allocatables
    end type collision_snapshot
 
 
@@ -219,7 +219,6 @@ module collision
       procedure :: dump           => collision_io_netcdf_dump !! Dumps contents of encounter history to file
       procedure :: take_snapshot  => collision_util_snapshot  !! Take a minimal snapshot of the nbody_system through an encounter
       procedure :: make_index_map => collision_util_index_map !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      final     ::                   collision_final_storage  !! Finalizer deallocates all allocatables
    end type collision_storage
 
 
@@ -270,8 +269,8 @@ module collision
 
       module subroutine collision_io_netcdf_dump(self, param)
          implicit none
-         class(collision_storage(*)), intent(inout) :: self  !! Collision storage object
-         class(base_parameters),      intent(inout) :: param !! Current run configuration parameters 
+         class(collision_storage), intent(inout) :: self  !! Collision storage object
+         class(base_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine collision_io_netcdf_dump
 
       module subroutine collision_io_netcdf_initialize_output(self, param)
@@ -290,7 +289,7 @@ module collision
       module subroutine collision_io_netcdf_write_frame_snapshot(self, history, param)
          implicit none
          class(collision_snapshot),   intent(in)    :: self    !! Swiftest encounter structure
-         class(encounter_storage(*)), intent(inout) :: history !! Collision history object
+         class(encounter_storage), intent(inout) :: history !! Collision history object
          class(base_parameters),      intent(inout) :: param   !! Current run configuration parameters
       end subroutine collision_io_netcdf_write_frame_snapshot
 
@@ -383,7 +382,7 @@ module collision
          implicit none
          class(collision_basic),  intent(in)    :: self         !! Collision system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(base_parameters),   intent(in)    :: param        !! Current swiftest run configuration parameters
+         class(base_parameters),   intent(in)    :: param        !! Current Swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_collider
 
       module subroutine collision_util_construct_after_system(collider, nbody_system, param, after_system)
@@ -393,10 +392,20 @@ module collision
          implicit none
          ! Arguments
          class(collision_basic),                 intent(inout) :: collider     !! Collision system object
-         class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
-         class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
-         class(base_nbody_system), allocatable,  intent(out)   :: after_system !! Output temporary swiftest nbody system object
+         class(base_nbody_system),               intent(in)    :: nbody_system !! Original Swiftest nbody system object
+         class(base_parameters),                 intent(inout) :: param        !! Current Swiftest run configuration parameters
+         class(base_nbody_system), allocatable,  intent(out)   :: after_system !! Output temporary Swiftest nbody system object
       end subroutine collision_util_construct_after_system
+
+      module subroutine collision_util_dealloc_fragments(self)
+         implicit none
+         class(collision_fragments(*)), intent(inout) :: self
+      end subroutine collision_util_dealloc_fragments
+
+      module subroutine collision_util_dealloc_snapshot(self)
+         implicit none
+         class(collision_snapshot),  intent(inout) :: self !! Collsion snapshot object
+      end subroutine collision_util_dealloc_snapshot
 
       module subroutine collision_util_reset_fragments(self)
          implicit none
@@ -452,28 +461,28 @@ module collision
          implicit none
          class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(base_parameters),   intent(inout) :: param        !! Current swiftest run configuration parameters
+         class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
          character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the calculation this needs to be done
       end subroutine collision_util_get_energy_and_momentum
 
       module subroutine collision_util_index_map(self)
          implicit none
-         class(collision_storage(*)), intent(inout) :: self  !! Collision storage object 
+         class(collision_storage), intent(inout) :: self  !! Collision storage object 
       end subroutine collision_util_index_map
 
-      module subroutine collision_util_reset_impactors(self)
+      module subroutine collision_util_dealloc_impactors(self)
          implicit none
          class(collision_impactors),  intent(inout) :: self !! Collision system object
-      end subroutine collision_util_reset_impactors
+      end subroutine collision_util_dealloc_impactors
 
-      module subroutine collision_util_reset_system(self)
+      module subroutine collision_util_dealloc_basic(self)
          implicit none
          class(collision_basic), intent(inout) :: self  !! Collision system object
-      end subroutine collision_util_reset_system
+      end subroutine collision_util_dealloc_basic
 
       module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
          implicit none
-         class(collision_storage(*)), intent(inout)        :: self         !! Swiftest storage object
+         class(collision_storage), intent(inout)        :: self         !! Swiftest storage object
          class(base_parameters),      intent(inout)        :: param        !! Current run configuration parameters
          class(base_nbody_system),    intent(inout)        :: nbody_system !! Swiftest nbody system object to store
          real(DP),                    intent(in), optional :: t            !! Time of snapshot if different from nbody_system time
@@ -514,23 +523,10 @@ module collision
          ! Arguments
          type(collision_impactors),  intent(inout) :: self !! Collision impactors storage object
 
-         call self%reset()
+         call self%dealloc()
 
          return
       end subroutine collision_final_impactors
-
-      subroutine collision_final_netcdf_parameters(self)
-        !! author: David A. Minton
-        !!
-        !! Finalize the NetCDF by closing the file
-        implicit none
-        ! Arguments
-        type(collision_netcdf_parameters), intent(inout) :: self
-
-        call self%close()
-
-        return
-      end subroutine collision_final_netcdf_parameters
 
       subroutine collision_final_plpl(self)
          !! author: David A. Minton
@@ -558,50 +554,19 @@ module collision
          return
       end subroutine collision_final_pltp
 
-      subroutine collision_final_snapshot(self)
+      subroutine collision_final_basic(self)
          !! author: David A. Minton
          !!
          !! Finalizer will deallocate all allocatables
          implicit none
          ! Arguments
-         type(collision_snapshot),  intent(inout) :: self !! Collsion snapshot object
+         type(collision_basic),  intent(inout) :: self !!  Collision system object
 
-         call encounter_final_snapshot(self%encounter_snapshot)
-
-         return
-      end subroutine collision_final_snapshot
-
-      subroutine collision_final_storage(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(collision_storage(*)),  intent(inout) :: self !! Collision storage object
-         ! Internals
-         integer(I4B) :: i
-
-         do i = 1, self%nframes
-            if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-         end do
+         call self%dealloc()
 
          return
-      end subroutine collision_final_storage
+      end subroutine collision_final_basic
 
-      subroutine collision_final_bounce(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(collision_bounce),  intent(inout) :: self !!  Collision system object
-
-         call self%reset()
-         if (allocated(self%impactors)) deallocate(self%impactors)
-         if (allocated(self%fragments)) deallocate(self%fragments)
-
-         return
-      end subroutine collision_final_bounce
 
 end module collision
 
