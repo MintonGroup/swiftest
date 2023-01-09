@@ -1699,7 +1699,7 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
-      character(len=:), allocatable             :: charstring
+      character(len=NAMELEN) :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_body nf90_set_fill NF90_NOFILL"  )
