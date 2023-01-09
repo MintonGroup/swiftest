@@ -6,13 +6,14 @@ from matplotlib import animation
 import matplotlib.colors as mcolors
 
 titletext = "Chambers (2013)"
+animation_file = "Chambers2013-aescatter.mp4"
 radscale = 2000
 AU = 1.0
 xmin = 0.0
 xmax = 2.25
 ymin = 0.0
 ymax = 1.0
-framejump = 10
+framejump = 1
 ncutoff = 1e20
 
 class AnimatedScatter(object):
@@ -40,8 +41,8 @@ class AnimatedScatter(object):
         self.ax.set_ylim(ymin, ymax)
         fig.add_axes(self.ax)
         self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=True)
-        self.ani.save('aescatter.mp4', fps=30, dpi=300, extra_args=['-vcodec', 'libx264'])
-        print('Finished writing aescattter.mp4')
+        self.ani.save(animation_file, fps=30, dpi=300, extra_args=['-vcodec', 'libx264'])
+        print(f'Finished writing {animation_file}')
 
     def scatters(self, pl, radmarker, origin):
         scat = []
