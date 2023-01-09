@@ -127,7 +127,7 @@ contains
       integer(I4B), parameter         :: EGYIU = 72
       character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
-      associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => param%system_history%nc)
+      associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => self%system_history%nc)
 
          call pl%vb2vh(cb)
          call pl%rh2rb(cb)
@@ -311,7 +311,7 @@ contains
       if (allocated(self%collision_history)) call self%collision_history%dump(param)
 
       ! Dump the nbody_system history to file
-      call param%system_history%dump(param)
+      call self%system_history%dump(param)
 
       allocate(param_restart, source=param)
       param_restart%in_form  = "XV"
@@ -346,7 +346,7 @@ contains
 
       if (self%iframe == 0) return
       call self%make_index_map()
-      associate(nc => param%system_history%nc)
+      associate(nc => self%nc)
          call nc%open(param)
 
          do i = 1, self%iframe
@@ -561,7 +561,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self
-      class(swiftest_parameters),       intent(inout) :: param
+      class(swiftest_parameters),   intent(inout) :: param
       ! Internals
       integer(I4B)                              :: itmax, idmax, tslot
       real(DP), dimension(:), allocatable       :: vals
@@ -569,7 +569,7 @@ contains
       real(DP), dimension(NDIM)                 :: rot0, Ip0
       real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, BE_orig
 
-      associate (nc => param%system_history%nc, cb => self%cb)
+      associate (nc => self%system_history%nc, cb => self%cb)
          call nc%open(param, readonly=.true.)
          call nc%find_tslot(param%t0)
          tslot = nc%tslot
@@ -2708,13 +2708,13 @@ contains
          self%E_untracked = param%E_untracked
       else
          allocate(tmp_param, source=param)
-         tmp_param%system_history%nc%file_name = param%nc_in
+         self%system_history%nc%file_name = param%nc_in
          tmp_param%out_form = param%in_form
          if (.not. param%lrestart) then
             ! Turn off energy computation so we don't have to feed it into the initial conditions
             tmp_param%lenergy = .false.
          end if
-         ierr = self%read_frame(tmp_param%system_history%nc, tmp_param)
+         ierr = self%read_frame(self%system_history%nc, tmp_param)
          deallocate(tmp_param)
          if (ierr /=0) call base_util_exit(FAILURE)
       end if
@@ -2940,7 +2940,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       ! Internals
 
-      associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds, nc => param%system_history%nc)
+      associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds, nc => self%system_history%nc)
          
          call nc%open(param)
          if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(nc, param)
@@ -2972,7 +2972,7 @@ contains
       character(len=STRMAX)            :: errmsg
       logical                          :: fileExists
 
-      associate (nc => param%system_history%nc, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
+      associate (nc => self%system_history%nc, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
          nc%file_name = param%outfile
          if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)

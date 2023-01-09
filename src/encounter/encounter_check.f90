@@ -125,10 +125,6 @@ contains
       ! end if
 
       allocate(tmp_param, source=param)
-      select type(tmp_param)
-      class is (swiftest_parameters)
-         tmp_param%system_history%nc%lfile_is_open = .false.
-      end select
 
       ! Turn off adaptive encounter checks for the pl-pl group
       tmp_param%ladaptive_encounters_plpl = .false.

@@ -53,7 +53,6 @@ module swiftest
       procedure :: initialize => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
       procedure :: open       => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
       procedure :: flush      => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
-      final     ::               swiftest_final_netcdf_parameters     !! Finalizer will close the NetCDF file
    end type swiftest_netcdf_parameters
 
 
@@ -71,15 +70,12 @@ module swiftest
 
    ! The following extended types or their children should be used, where possible, as the base of any types defined in additional modules, such as new integrators. 
    type, extends(base_parameters) :: swiftest_parameters
-      class(swiftest_storage), allocatable :: system_history
    contains
-      procedure :: dealloc     => swiftest_util_dealloc_param
       procedure :: dump        => swiftest_io_dump_param
       procedure :: reader      => swiftest_io_param_reader
       procedure :: writer      => swiftest_io_param_writer
       procedure :: read_in     => swiftest_io_read_in_param
       procedure :: set_display => swiftest_io_set_display_param
-      final     ::                swiftest_final_param
    end type swiftest_parameters
 
 
@@ -328,6 +324,7 @@ module swiftest
       class(collision_basic),     allocatable :: collider          !! Collision system object
       class(encounter_storage),   allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
       class(collision_storage),   allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
+      class(swiftest_storage),    allocatable :: system_history    !! Stores the system history between output dumps
 
       real(DP)                        :: t = -1.0_DP            !! Integration current time
       real(DP)                        :: GMtot = 0.0_DP         !! Total nbody_system mass - used for barycentric coordinate conversion
@@ -1239,11 +1236,6 @@ module swiftest
          class(swiftest_kinship), intent(inout) :: self !! Swiftest kinship object
       end subroutine swiftest_util_dealloc_kin
 
-      module subroutine swiftest_util_dealloc_param(self)
-         implicit none
-         class(swiftest_parameters),intent(inout)  :: self  !! Collection of parameters
-      end subroutine swiftest_util_dealloc_param
-
       module subroutine swiftest_util_dealloc_cb(self)
          implicit none
          class(swiftest_cb), intent(inout) :: self !! Swiftest central body object
@@ -1933,34 +1925,6 @@ module swiftest
    
          return
       end subroutine swiftest_final_kin
-
-
-      subroutine swiftest_final_param(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the Swiftest parameter object - deallocates all allocatables
-         implicit none
-         ! Argument
-         type(swiftest_parameters),  intent(inout) :: self !! SyMBA kinship object
-   
-         call self%dealloc()
-   
-         return
-      end subroutine swiftest_final_param
-
-
-      subroutine swiftest_final_netcdf_parameters(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the NetCDF by closing the file
-         implicit none
-         ! Arguments
-         type(swiftest_netcdf_parameters), intent(inout) :: self
-
-         call self%close()
-
-         return
-      end subroutine swiftest_final_netcdf_parameters
 
 
       subroutine swiftest_final_storage(self)

@@ -18,15 +18,15 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   class(swiftest_nbody_system), allocatable      :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
-   class(swiftest_parameters),   allocatable      :: param             !! Run configuration parameters
-   character(len=:), allocatable                  :: integrator        !! Integrator type code (see globals for symbolic names)
-   character(len=:), allocatable                  :: param_file_name   !! Name of the file containing user-defined parameters
-   character(len=:), allocatable                  :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-   integer(I8B)                                   :: istart            !! Starting index for loop counter
-   integer(I4B)                                   :: iout              !! Output cadence counter
-   integer(I4B)                                   :: idump             !! Dump cadence counter
-   type(walltimer)                                :: integration_timer !! Object used for computing elapsed wall time
+   class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_parameters),   allocatable :: param             !! Run configuration parameters
+   character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
+   character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
+   character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+   integer(I8B)                              :: istart            !! Starting index for loop counter
+   integer(I4B)                              :: iout              !! Output cadence counter
+   integer(I4B)                              :: idump             !! Dump cadence counter
+   type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
 
    call swiftest_io_get_args(integrator, param_file_name, display_style)
 
@@ -69,7 +69,7 @@ program swiftest_driver
 
       call nbody_system%initialize(param)
 
-      associate (system_history => param%system_history)
+      associate (system_history => nbody_system%system_history)
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
          call nbody_system%display_run_information(param, integration_timer, phase="first")
          if (param%lenergy) then

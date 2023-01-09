@@ -802,25 +802,6 @@ contains
    end subroutine swiftest_util_dealloc_kin
 
 
-   module subroutine swiftest_util_dealloc_param(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatables
-      implicit none
-      ! Arguments
-      class(swiftest_parameters),intent(inout)  :: self  !! Collection of parameters
-
-      if (allocated(self%system_history)) then
-         call self%system_history%dealloc()
-         deallocate(self%system_history)
-      end if
-
-      call base_util_dealloc_param(self)
-
-      return
-   end subroutine swiftest_util_dealloc_param
-
-
    module subroutine swiftest_util_dealloc_pl(self)
       !! author: David A. Minton
       !!
@@ -902,6 +883,7 @@ contains
       if (allocated(self%collider)) deallocate(self%collider)
       if (allocated(self%encounter_history)) deallocate(self%encounter_history)
       if (allocated(self%collision_history)) deallocate(self%collision_history)
+      if (allocated(self%system_history)) deallocate(self%system_history)
 
       self%t = -1.0_DP            
       self%GMtot = 0.0_DP         
@@ -1831,7 +1813,7 @@ contains
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
 
-      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds, nc => param%system_history%nc)
+      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds)
 
          npl = pl%nbody
          nadd = pl_adds%nbody
@@ -2825,15 +2807,15 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
-      if (allocated(param%system_history)) then
-         call param%system_history%dealloc()
-         deallocate(param%system_history)
+      if (allocated(self%system_history)) then
+         call self%system_history%dealloc()
+         deallocate(self%system_history)
       end if
-      allocate(swiftest_storage :: param%system_history)
-      call param%system_history%setup(param%dump_cadence)
-      allocate(swiftest_netcdf_parameters :: param%system_history%nc)
+      allocate(swiftest_storage :: self%system_history)
+      call self%system_history%setup(param%dump_cadence)
+      allocate(swiftest_netcdf_parameters :: self%system_history%nc)
 
-      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => param%system_history%nc)
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => self%system_history%nc)
          call nbody_system%read_in(param)
          call nbody_system%validate_ids(param)
          call nbody_system%set_msys()
@@ -3067,6 +3049,9 @@ contains
       allocate(snapshot%cb, source=nbody_system%cb )
       allocate(snapshot%pl, source=nbody_system%pl )
       allocate(snapshot%tp, source=nbody_system%tp )
+      allocate(snapshot%system_history)
+      allocate(snapshot%system_history%nc, source=nbody_system%system_history%nc)
+      snapshot%system_history%nc%lfile_is_open = .true.
 
       snapshot%t                 = nbody_system%t
       snapshot%GMtot             = nbody_system%GMtot
