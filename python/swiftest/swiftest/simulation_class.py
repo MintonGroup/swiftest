@@ -1763,6 +1763,8 @@ class Simulation:
                     warnings.warn(f"{MU} not a recognized unit system. Using MSun as a default.",stacklevel=2)
                     self.param['MU2KG'] = constants.MSun
                     self.MU_name = "MSun"
+            self.MU2KG = self.param['MU2KG']
+            self.KG2MU = 1.0 / self.MU2KG
 
         if DU2M is not None or DU is not None:
             DU2M_old = self.param.pop('DU2M', None)
@@ -1786,6 +1788,8 @@ class Simulation:
                     warnings.warn(f"{DU} not a recognized unit system. Using AU as a default.",stacklevel=2)
                     self.param['DU2M'] = constants.AU2M
                     self.DU_name = "AU"
+            self.DU2M = self.param['DU2M']
+            self.M2DU = 1.0 / self.DU2M
 
         if TU2S is not None or TU is not None:
             TU2S_old = self.param.pop('TU2S', None)
@@ -1806,6 +1810,8 @@ class Simulation:
                     warnings.warn(f"{TU} not a recognized unit system. Using YR as a default.",stacklevel=2)
                     self.param['TU2S'] = constants.YR2S
                     self.TU_name = "y"
+            self.TU2S = self.param['TU2S']
+            self.S2TU = 1.0 / self.TU2S
 
         if MU_name is not None:
             self.MU_name = MU_name
@@ -2464,8 +2470,8 @@ class Simulation:
         if mass is not None:
             if Gmass is not None:
                 raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
-            else:
-                Gmass = self.param['GU'] * mass
+            else: 
+                Gmass = self.GU * mass
 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, J2=J2, J4=J4, time=time)
