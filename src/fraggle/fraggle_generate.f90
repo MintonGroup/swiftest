@@ -228,26 +228,34 @@ contains
       ! Arguments
       class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
       ! Internals
-      real(DP)  :: dis, direction 
+      real(DP)  :: dis, direction, rdistance
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
-      real(DP), dimension(2) :: fragment_cloud_radius, rdistance
+      real(DP), dimension(2) :: fragment_cloud_radius
       logical, dimension(collider%fragments%nbody) :: loverlap
       real(DP), dimension(collider%fragments%nbody) :: mass_rscale
-      integer(I4B) :: i, j, loop
-      logical :: lcat, lhitandrun
+      integer(I4B) :: i, j, loop, istart
+      logical :: lsupercat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 20000
-      real(DP), parameter :: rdistance_scale_factor = 0.20_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
-                                                              ! The distance is chosen to be close to the original locations of the impactors
-                                                              ! but far enough apart to prevent a collisional cascade between fragments 
+      real(DP), parameter :: rdistance_scale_factor = 1.0_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
+                                                             ! The distance is chosen to be close to the original locations of the impactors
+                                                             ! but far enough apart to prevent a collisional cascade between fragments 
+      real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
+                                                               ! A larger value puts more space between fragments initially
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
-         lcat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
+         lsupercat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
          ! We will treat the first two fragments of the list as special cases. 
          ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
          loverlap(:) = .true.
-         rdistance(:) = rdistance_scale_factor * impactors%radius(:)
+         if (lhitandrun) then
+            rdistance = impactors%radius(2)
+         else if (lsupercat) then
+            rdistance = 0.5_DP * sum(impactors%radius(:))
+         else
+            rdistance = 10 * impactors%radius(2)
+         end if
          ! Give the fragment positions a random value that is scaled with fragment mass so that the more massive bodies tend to be closer to the impact point
          ! Later, velocities will be scaled such that the farther away a fragment is placed from the impact point, the higher will its velocity be.
          call random_number(mass_rscale)
@@ -260,40 +268,46 @@ contains
             if (lhitandrun) then
                fragment_cloud_radius(:) = impactors%radius(:)
                fragment_cloud_center(:,1) = impactors%rc(:,1) 
-               fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
+               fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance * impactors%bounce_unit(:)
+            else if (lsupercat) then
+               fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance * impactors%bounce_unit(:)
+               fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance * impactors%bounce_unit(:)
+               fragment_cloud_radius(:) = cloud_size_scale_factor * rdistance / 2.0_DP
             else
-               fragment_cloud_center(:,1) = impactors%rc(:,1) - rdistance(1) * impactors%bounce_unit(:)
-               fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance(2) * impactors%bounce_unit(:)
-               fragment_cloud_radius(1) = 8 * .mag.(fragment_cloud_center(:,1) - impactors%rbimp(:))
-               fragment_cloud_radius(2) = 8 * .mag.(fragment_cloud_center(:,2) - impactors%rbimp(:))
+               fragment_cloud_center(:,1) = impactors%rbimp(:) - impactors%radius(1) * impactors%y_unit(:)
+               fragment_cloud_center(:,2) = impactors%rbimp(:) + impactors%radius(2) * impactors%y_unit(:)
+               fragment_cloud_radius(:) = cloud_size_scale_factor * rdistance
+            end if
+            fragments%rc(:,1) = fragment_cloud_center(:,1)
+            if (lsupercat) then
+               istart = 3
+               fragments%rc(:,2) = fragment_cloud_center(:,2) 
+            else
+               istart = 2
             end if
 
-            do concurrent(i = 1:nfrag, loverlap(i))
-               if (i <= 2) then
-                  fragments%rc(:,i) = fragment_cloud_center(:,i)
-               else
-                  ! Make a random cloud
-                  call random_number(fragments%rc(:,i))
-   
-                  ! Make the fragment cloud symmertic about 0
-                  fragments%rc(:,i) = 2 *(fragments%rc(:,i) - 0.5_DP)
+            do concurrent(i = istart:nfrag, loverlap(i))
+               ! Make a random cloud
+               call random_number(fragments%rc(:,i))
 
-                  j = fragments%origin_body(i)
-   
-                  ! Scale the cloud size
-                  fragments%rc(:,i) = fragment_cloud_radius(j) * mass_rscale(:) * .unit.fragments%rc(:,i)
+               ! Make the fragment cloud symmertic about 0
+               fragments%rc(:,i) = 2 *(fragments%rc(:,i) - 0.5_DP)
 
-                  ! Shift to the cloud center coordinates
-                  fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
+               j = fragments%origin_body(i)
 
-                  ! Make sure that the fragments are positioned away from the impact point
-                  direction = dot_product(fragments%rc(:,i) - impactors%rbimp(:), fragment_cloud_center(:,j) - impactors%rbimp(:))
-                  if (direction < 0.0_DP) then
-                     fragments%rc(:,i) = fragments%rc(:,i) - fragment_cloud_center(:,j)
-                     fragments%rc(:,i) = -fragments%rc(:,i) + fragment_cloud_center(:,j)
-                  end if
+               ! Scale the cloud size
+               fragments%rc(:,i) = fragment_cloud_radius(j) * mass_rscale(:) * .unit.fragments%rc(:,i)
 
+               ! Shift to the cloud center coordinates
+               fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
+
+               ! Make sure that the fragments are positioned away from the impact point
+               direction = dot_product(fragments%rc(:,i) - impactors%rbimp(:), fragment_cloud_center(:,j) - impactors%rbimp(:))
+               if (direction < 0.0_DP) then
+                  fragments%rc(:,i) = fragments%rc(:,i) - fragment_cloud_center(:,j)
+                  fragments%rc(:,i) = -fragments%rc(:,i) + fragment_cloud_center(:,j)
                end if
+
             end do
 
             ! Check for any overlapping bodies.
@@ -304,7 +318,7 @@ contains
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
-            rdistance(:) = rdistance(:) * collider%fail_scale
+            rdistance = rdistance * collider%fail_scale
          end do
 
          call collision_util_shift_vector_to_origin(fragments%mass, fragments%rc)
@@ -443,7 +457,7 @@ contains
                   vmag = vesc * vscale(i) 
                   rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
                   vimp_unit(:) = .unit. rimp(:)
-                  fragments%vc(:,i) = vmag * vscale(i) * impactors%bounce_unit(:) * vsign(i) + vrot(:) + vmag * vimp_unit(:)
+                  fragments%vc(:,i) = vmag * vscale(i) * vimp_unit(:) + vrot(:) 
                end if
             end do
 
