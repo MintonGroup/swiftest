@@ -282,11 +282,10 @@ def vec2xr(param: Dict, **kwargs: Any):
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
-    if param['ROTATION']:
-        if "rot" not in kwargs and "Gmass" in kwargs:
-            kwargs['rot'] = np.zeros((len(kwargs['Gmass']),3))
-        if "Ip" not in kwargs and "Gmass" in kwargs:
-            kwargs['Ip'] = np.full((len(kwargs['Gmass']),3), 0.4)
+    if "rot" not in kwargs and "Gmass" in kwargs:
+        kwargs['rot'] = np.zeros((len(kwargs['Gmass']),3))
+    if "Ip" not in kwargs and "Gmass" in kwargs:
+        kwargs['Ip'] = np.full((len(kwargs['Gmass']),3), 0.4)
 
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])
