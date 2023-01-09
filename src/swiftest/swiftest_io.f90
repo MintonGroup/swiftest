@@ -945,7 +945,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: i, idmax, npl_check, ntp_check, nplm_check, str_max, status, npl, ntp
+      integer(I4B)                              :: i, idmax, npl_check, ntp_check, str_max, status, npl, ntp
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable     :: vectemp
       integer(I4B), dimension(:), allocatable   :: itemp
@@ -999,7 +999,6 @@ contains
 
          if (npl_check /= npl) then
             write(*,*) "Error reading in NetCDF file: The recorded value of npl does not match the number of active massive bodies"
-            call base_util_exit(failure)
          end if
 
          if (ntp_check /= ntp) then
@@ -1007,13 +1006,7 @@ contains
             call base_util_exit(failure)
          end if
 
-         if (param%lmtiny_pl) then
-            nplm_check = count(pack(rtemp,plmask) > param%GMTINY )
-            if (nplm_check /= pl%nplm) then
-               write(*,*) "Error reading in NetCDF file: The recorded value of nplm does not match the number of active fully interacting massive bodies"
-               call base_util_exit(failure)
-            end if
-         end if
+         if (param%lmtiny_pl) pl%nplm = count(pack(rtemp,plmask) > param%GMTINY )
 
          ! Now read in each variable and split the outputs by body type
          if ((param%in_form == "XV") .or. (param%in_form == "XVEL")) then
