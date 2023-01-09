@@ -320,8 +320,10 @@ contains
       logical, dimension(:), allocatable  :: lmask
       class(swiftest_pl), allocatable :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
-      character(*), parameter :: MERGEFMT = '(A,"_MERGE",I0.7)'
-      integer(I4B), parameter :: merge_text_length = 12
+      character(*), parameter :: MERGEFMT = '(A,I0.7)'
+      character(*), parameter :: MERGE_PREPEND_TEXT = "_MERGE"
+      integer(I4B) :: merge_text_length 
+      character(len=NAMELEN) :: merge_text
       character(len=NAMELEN) :: newname, origin_type
       real(DP) :: volume
   
@@ -417,9 +419,11 @@ contains
 
                ! Appends an index number to the end of the original name to make it unique, but still identifiable as the original.
                ! If there is already an index number appended, replace it
-               nameidx = index(plnew%info(1)%name, "_MERGE") - 1
+               write(merge_text,MERGEFMT) MERGE_PREPEND_TEXT,plnew%id(1)
+               merge_text_length = len(trim(adjustl(merge_text)))
+               nameidx = index(plnew%info(1)%name, MERGE_PREPEND_TEXT) - 1
                if (nameidx < 0) nameidx = min(len(trim(adjustl(plnew%info(1)%name))), NAMELEN - merge_text_length)
-               write(newname,MERGEFMT) trim(adjustl(plnew%info(1)%name(1:nameidx))),plnew%id(1)
+               write(newname,*) trim(adjustl(plnew%info(1)%name(1:nameidx))) // trim(adjustl(merge_text))
                plnew%status(1) = NEW_PARTICLE
                call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
                                             origin_rh=plnew%rh(:,1), origin_vh=plnew%vh(:,1), &
