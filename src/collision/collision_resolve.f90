@@ -316,10 +316,12 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision
       integer(I4B),             intent(in)    :: status       !! Status flag to assign to adds
       ! Internals
-      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag
+      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag, nameidx
       logical, dimension(:), allocatable  :: lmask
       class(swiftest_pl), allocatable :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
+      character(*), parameter :: MERGEFMT = '(A,"_MERGE",I0.7)'
+      integer(I4B), parameter :: merge_text_length = 12
       character(len=NAMELEN) :: newname, origin_type
       real(DP) :: volume
   
@@ -408,10 +410,18 @@ contains
                                                             discard_body_id=iother)
                end do 
             case(MERGED)
-               call plnew%info(1)%copy(pl%info(ibiggest))
                write(origin_type,*) "Merger"
+               call plnew%info(1)%copy(pl%info(ibiggest))
+               param%maxid = param%maxid + 1
+               plnew%id(1) = param%maxid
+
+               ! Appends an index number to the end of the original name to make it unique, but still identifiable as the original.
+               ! If there is already an index number appended, replace it
+               nameidx = index(plnew%info(1)%name, "_MERGE") - 1
+               if (nameidx < 0) nameidx = min(len(trim(adjustl(plnew%info(1)%name))), NAMELEN - merge_text_length)
+               write(newname,MERGEFMT) trim(adjustl(plnew%info(1)%name(1:nameidx))),plnew%id(1)
                plnew%status(1) = NEW_PARTICLE
-               call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t,&
+               call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
                                             origin_rh=plnew%rh(:,1), origin_vh=plnew%vh(:,1), &
                                             collision_id=param%maxid_collision)
                do i = 1, nimpactors
