@@ -409,7 +409,11 @@ contains
                end do 
             case(MERGED)
                call plnew%info(1)%copy(pl%info(ibiggest))
-               plnew%status(1) = OLD_PARTICLE
+               write(origin_type,*) "Merger"
+               plnew%status(1) = NEW_PARTICLE
+               call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t,&
+                                            origin_rh=plnew%rh(:,1), origin_vh=plnew%vh(:,1), &
+                                            collision_id=param%maxid_collision)
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) cycle
 
