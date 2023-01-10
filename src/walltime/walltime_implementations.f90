@@ -51,7 +51,7 @@ contains
       ! Internals
       character(len=*), parameter     :: nosubstepfmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5 ' 
       character(len=*), parameter     :: substepfmt   = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, ";' //&
-                                                        'Interval wall time/step:  ", es12.5'
+                                                        ' Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
       integer(I8B)                    :: count_delta_step, count_delta_main, count_now
 
