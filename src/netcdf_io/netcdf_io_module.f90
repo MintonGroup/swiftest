@@ -106,15 +106,17 @@ module netcdf_io
       integer(I4B)       :: PE_varid                                    !! ID for the system potential energy variable
       character(NAMELEN) :: be_varname              = "BE"              !! name of the system binding energy variable
       integer(I4B)       :: BE_varid                                    !! ID for the system binding energy variable
-      character(NAMELEN) :: L_orbit_varname           = "L_orbit"           !! name of the orbital angular momentum vector variable
+      character(NAMELEN) :: te_varname              = "TE"              !! name of the system binding energy variable
+      integer(I4B)       :: TE_varid                                    !! ID for the system binding energy variable
+      character(NAMELEN) :: L_orbit_varname         = "L_orbit"           !! name of the orbital angular momentum vector variable
       integer(I4B)       :: L_orbit_varid                                 !! ID for the system orbital angular momentum vector variable
       character(NAMELEN) :: L_spin_varname          = "L_spin"            !! name of the spin angular momentum vector variable
       integer(I4B)       :: L_spin_varid                                 !! ID for the system spin angular momentum vector variable
       character(NAMELEN) :: L_escape_varname        = "L_escape"        !! name of the escaped angular momentum vector variable
       integer(I4B)       :: L_escape_varid                              !! ID for the escaped angular momentum vector variable
-      character(NAMELEN) :: E_collisions_varname     = "E_collisions"     !! name of the escaped angular momentum y variable                             
+      character(NAMELEN) :: E_collisions_varname    = "E_collisions"     !! name of the escaped angular momentum y variable                             
       integer(I4B)       :: E_collisions_varid                           !! ID for the energy lost in collisions variable
-      character(NAMELEN) :: E_untracked_varname      = "E_untracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      character(NAMELEN) :: E_untracked_varname     = "E_untracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       integer(I4B)       :: E_untracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
       integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the system

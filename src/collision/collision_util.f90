@@ -231,7 +231,6 @@ contains
                self%pe(phase_val) = constraint_system%pe / self%Escale
                self%be(phase_val) = constraint_system%be / self%Escale
                self%te(phase_val) = constraint_system%te / self%Escale
-
                if (phase_val == 2) then
                   do concurrent(i = 1:nfrag)
                      fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
@@ -683,6 +682,7 @@ contains
       ! Arguments
       class(collision_snapshot), allocatable, save :: snapshot
       character(len=:), allocatable :: stage
+      integer(I4B) :: phase_val
 
       if (present(arg)) then
          stage = arg
@@ -694,36 +694,32 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         select case(stage)
-         case("before")
-            ! Saves the states of the bodies involved in the collision before the collision is resolved
+
+         select case (stage)
+         case ("before")
+            phase_val = 1
             allocate(collision_snapshot :: snapshot)
             allocate(snapshot%collider, source=nbody_system%collider) 
             snapshot%t = t
+         case ("after")
+            phase_val = 2
+         case default
+            write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
+            return
+         end select
 
-            ! Get and record the energy of the system before the collision
-            call nbody_system%get_energy_and_momentum(param)
-            snapshot%collider%L_orbit(:,1) = nbody_system%L_orbit(:)
-            snapshot%collider%L_spin(:,1) = nbody_system%L_spin(:)
-            snapshot%collider%L_total(:,1) = nbody_system%L_total(:)
-            snapshot%collider%ke_orbit(1) = nbody_system%ke_orbit
-            snapshot%collider%ke_spin(1) = nbody_system%ke_spin
-            snapshot%collider%pe(1) = nbody_system%pe
-            snapshot%collider%be(1) = nbody_system%be
-            snapshot%collider%te(1) = nbody_system%te
+         ! Get and record the energy of the system before the collision
+         call nbody_system%get_energy_and_momentum(param)
+         snapshot%collider%L_orbit(:,phase_val) = nbody_system%L_orbit(:)
+         snapshot%collider%L_spin(:,phase_val) = nbody_system%L_spin(:)
+         snapshot%collider%L_total(:,phase_val) = nbody_system%L_total(:)
+         snapshot%collider%ke_orbit(phase_val) = nbody_system%ke_orbit
+         snapshot%collider%ke_spin(phase_val) = nbody_system%ke_spin
+         snapshot%collider%pe(phase_val) = nbody_system%pe
+         snapshot%collider%be(phase_val) = nbody_system%be
+         snapshot%collider%te(phase_val) = nbody_system%te
 
-         case("after")
-            ! Get record the energy of the sytem after the collision
-            call nbody_system%get_energy_and_momentum(param)
-            snapshot%collider%L_orbit(:,2) = nbody_system%L_orbit(:)
-            snapshot%collider%L_spin(:,2) = nbody_system%L_spin(:)
-            snapshot%collider%L_total(:,2) = nbody_system%L_total(:)
-            snapshot%collider%ke_orbit(2) = nbody_system%ke_orbit
-            snapshot%collider%ke_spin(2) = nbody_system%ke_spin
-            snapshot%collider%pe(2) = nbody_system%pe
-            snapshot%collider%be(2) = nbody_system%be
-            snapshot%collider%te(2) = nbody_system%te
-
+         if (stage == "after") then
             select type(before_snap => snapshot%collider%before )
             class is (swiftest_nbody_system)
             select type(before_orig => nbody_system%collider%before)
@@ -743,9 +739,7 @@ contains
             ! Save the snapshot for posterity
             call self%save(snapshot)
             deallocate(snapshot)
-         case default
-            write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
-         end select
+         end if
       end select
       end select
 

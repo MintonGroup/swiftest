@@ -121,11 +121,11 @@ contains
       logical,                      intent(in)    :: lterminal !! Indicates whether to output information to the terminal screen
       ! Internals
       real(DP), dimension(NDIM)       :: L_total_now,  L_orbit_now,  L_spin_now
-      real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  E_orbit_now, be_now
+      real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  E_orbit_now, be_now, be_cb_now, be_cb_orig, te_now
       real(DP)                        :: GMtot_now
       character(len=STRMAX)           :: errmsg
       integer(I4B), parameter         :: EGYIU = 72
-      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
+      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE_orbit/|E0| = ", ES12.5, "; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => self%system_history%nc)
 
@@ -137,9 +137,11 @@ contains
          ke_spin_now = nbody_system%ke_spin
          pe_now = nbody_system%pe
          be_now = nbody_system%be
+         be_cb_now = nbody_system%be_cb
+         te_now = nbody_system%te
          L_orbit_now(:) = nbody_system%L_orbit(:)
          L_spin_now(:) = nbody_system%L_spin(:)
-         E_orbit_now = ke_orbit_now + ke_spin_now + pe_now + be_now
+         E_orbit_now = ke_orbit_now + pe_now
          L_total_now(:) = nbody_system%L_total(:) + nbody_system%L_escape(:)
          GMtot_now = nbody_system%GMtot + nbody_system%GMescape 
 
@@ -148,6 +150,7 @@ contains
             nbody_system%ke_spin_orig = ke_spin_now
             nbody_system%pe_orig = pe_now
             nbody_system%be_orig = be_now
+            nbody_system%te_orig = te_now
             nbody_system%E_orbit_orig = E_orbit_now
             nbody_system%GMtot_orig = GMtot_now
             nbody_system%L_orbit_orig(:) = L_orbit_now(:)
@@ -157,22 +160,28 @@ contains
          end if
 
          if (.not.param%lfirstenergy) then 
+
             nbody_system%ke_orbit_error = (ke_orbit_now - nbody_system%ke_orbit_orig) / abs(nbody_system%E_orbit_orig)
             nbody_system%ke_spin_error = (ke_spin_now - nbody_system%ke_spin_orig) / abs(nbody_system%E_orbit_orig)
             nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%E_orbit_orig)
-            nbody_system%be_error = (be_now - nbody_system%be_orig) / abs(nbody_system%E_orbit_orig)
+
+            be_cb_orig = -(3 * cb%GM0**2 / param%GU) / (5 * cb%R0)
+            nbody_system%be_error = (be_now - nbody_system%be_orig) / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) / abs(nbody_system%te_orig)
+
             nbody_system%E_orbit_error = (E_orbit_now - nbody_system%E_orbit_orig) / abs(nbody_system%E_orbit_orig)
-            nbody_system%Ecoll_error = nbody_system%E_collisions / abs(nbody_system%E_orbit_orig)
-            nbody_system%E_untracked_error = nbody_system%E_untracked / abs(nbody_system%E_orbit_orig)
-            nbody_system%te_error = (E_orbit_now - nbody_system%E_collisions - nbody_system%E_orbit_orig - nbody_system%E_untracked) / abs(nbody_system%E_orbit_orig)
+            nbody_system%Ecoll_error = nbody_system%E_collisions / abs(nbody_system%te_orig)
+            nbody_system%E_untracked_error = nbody_system%E_untracked / abs(nbody_system%te_orig)
+            nbody_system%te_error = (nbody_system%te - nbody_system%te_orig - nbody_system%E_collisions - nbody_system%E_untracked) / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) / abs(nbody_system%te_orig)
 
             nbody_system%L_orbit_error = norm2(L_orbit_now(:) - nbody_system%L_orbit_orig(:)) / norm2(nbody_system%L_total_orig(:))
             nbody_system%L_spin_error = norm2(L_spin_now(:) - nbody_system%L_spin_orig(:)) / norm2(nbody_system%L_total_orig(:))
             nbody_system%L_escape_error = norm2(nbody_system%L_escape(:)) / norm2(nbody_system%L_total_orig(:))
             nbody_system%L_total_error = norm2(L_total_now(:) - nbody_system%L_total_orig(:)) / norm2(nbody_system%L_total_orig(:))
+
             nbody_system%Mescape_error = nbody_system%GMescape / nbody_system%GMtot_orig
-            nbody_system%Mtot_error = (GMtot_now - nbody_system%GMtot_orig) / nbody_system%GMtot_orig
-            if (lterminal) write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%te_error,nbody_system%Mtot_error
+
+            if (lterminal) write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error,nbody_system%Mtot_error
+
             if (abs(nbody_system%Mtot_error) > 100 * epsilon(nbody_system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
@@ -567,7 +576,7 @@ contains
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: rtemp
       real(DP), dimension(NDIM)                 :: rot0, Ip0
-      real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, BE_orig, mass0
+      real(DP) :: mass0
 
       associate (nc => self%system_history%nc, cb => self%cb)
          call nc%open(param, readonly=.true.)
@@ -580,18 +589,21 @@ contains
 
          if (param%lenergy) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system KE_orb_varid" )
-            KE_orb_orig = rtemp(1)
+            self%ke_orbit_orig = rtemp(1)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system KE_spin_varid" )
-            KE_spin_orig = rtemp(1)
+            self%ke_spin_orig = rtemp(1)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system PE_varid" )
-            PE_orig = rtemp(1)
+            self%pe_orig = rtemp(1)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system BE_varid" )
-            BE_orig = rtemp(1)
+            self%be_orig = rtemp(1)
+            
+            call netcdf_io_check( nf90_get_var(nc%id, nc%TE_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system TE_varid" )
+            self%te_orig = rtemp(1)
 
-            self%E_orbit_orig = KE_orb_orig + KE_spin_orig + PE_orig + BE_orig 
+            self%E_orbit_orig = self%ke_orbit_orig + self%pe_orig
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid, self%L_orbit_orig(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_orbit_varid" )
             call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid, self%L_spin_orig(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_spin_varid" )
@@ -603,6 +615,7 @@ contains
 
             cb%GM0 = vals(1)
             cb%dGM = cb%Gmass - cb%GM0
+            mass0 = cb%GM0 / param%GU
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1,tslot], count=[1,1]), "netcdf_io_get_t0_values_system radius_varid" )
             cb%R0 = rtemp(1) 
@@ -610,7 +623,6 @@ contains
             if (param%lrotation) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system rot_varid" )
                call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system Ip_varid" )
-               mass0 = cb%GM0 / param%GU
                cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:)
             end if
 
@@ -753,7 +765,8 @@ contains
             call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orb_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), "netcdf_io_initialize_output nf90_def_var KE_orb_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type, nc%time_dimid, nc%KE_spin_varid), "netcdf_io_initialize_output nf90_def_var KE_spin_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%pe_varname, nc%out_type, nc%time_dimid, nc%PE_varid), "netcdf_io_initialize_output nf90_def_var PE_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%be_varname, nc%out_type, nc%time_dimid, nc%BE_varid), "netcdf_io_initialize_output nf90_def_var PE_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%be_varname, nc%out_type, nc%time_dimid, nc%BE_varid), "netcdf_io_initialize_output nf90_def_var BE_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%te_varname, nc%out_type, nc%time_dimid, nc%TE_varid), "netcdf_io_initialize_output nf90_def_var TE_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%L_orbit_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_orbit_varid), "netcdf_io_initialize_output nf90_def_var L_orbit_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%L_spin_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_spin_varid), "netcdf_io_initialize_output nf90_def_var L_spin_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%L_escape_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_escape_varid), "netcdf_io_initialize_output nf90_def_var L_escape_varid"  )
@@ -920,6 +933,7 @@ contains
             status = nf90_inq_varid(nc%id, nc%ke_spin_varname, nc%KE_spin_varid)
             status = nf90_inq_varid(nc%id, nc%pe_varname, nc%PE_varid)
             status = nf90_inq_varid(nc%id, nc%be_varname, nc%BE_varid)
+            status = nf90_inq_varid(nc%id, nc%te_varname, nc%TE_varid)
             status = nf90_inq_varid(nc%id, nc%L_orbit_varname, nc%L_orbit_varid)
             status = nf90_inq_varid(nc%id, nc%L_spin_varname, nc%L_spin_varid)
             status = nf90_inq_varid(nc%id, nc%L_escape_varname, nc%L_escape_varid)
@@ -1257,6 +1271,8 @@ contains
             if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid,          self%pe,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar PE_varid"  )
             status = nf90_inq_varid(nc%id, nc%be_varname, nc%BE_varid)
             if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid,          self%be,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar BE_varid"  )
+            status = nf90_inq_varid(nc%id, nc%te_varname, nc%TE_varid)
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%TE_varid,          self%te,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar TE_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_orbit_varname, nc%L_orbit_varid)
             if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid,      self%L_orbit(:),   start=[1,tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_orbit_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_spin_varname, nc%L_spin_varid)
@@ -1667,6 +1683,7 @@ contains
             call netcdf_io_check( nf90_put_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var KE_spin_varid"  )
             call netcdf_io_check( nf90_put_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var PE_varid"  )
             call netcdf_io_check( nf90_put_var(nc%id, nc%BE_varid, self%be, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var BE_varid"  )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%TE_varid, self%te, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var TE_varid"  )
             call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_orbit_varid"  )
             call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_spin_varid"  )
             call netcdf_io_check( nf90_put_var(nc%id, nc%L_escape_varid, self%L_escape(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_escape_varid"  )

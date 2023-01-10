@@ -226,6 +226,8 @@ contains
 
                call netcdf_io_check( nf90_def_var(nc%id, nc%be_varname,      nc%out_type,&
                   [                                                nc%stage_dimid,  nc%collision_id_dimid], nc%BE_varid),      "collision_io_netcdf_initialize_output nf90_def_var BE_varid"  )
+               call netcdf_io_check( nf90_def_var(nc%id, nc%te_varname,      nc%out_type,&
+                  [                                                nc%stage_dimid,  nc%collision_id_dimid], nc%TE_varid),      "collision_io_netcdf_initialize_output nf90_def_var TE_varid"  )
 
                if (param%lrotation) then
                   call netcdf_io_check( nf90_def_var(nc%id, nc%L_orbit_varname,   nc%out_type, &
@@ -337,6 +339,7 @@ contains
                call netcdf_io_check( nf90_inq_varid(nc%id, nc%ke_orb_varname, nc%ke_orb_varid), "collision_io_netcdf_open nf90_inq_varid ke_orb_varid" )
                call netcdf_io_check( nf90_inq_varid(nc%id, nc%pe_varname, nc%pe_varid), "collision_io_netcdf_open nf90_inq_varid pe_varid" )
                call netcdf_io_check( nf90_inq_varid(nc%id, nc%be_varname, nc%be_varid), "collision_io_netcdf_open nf90_inq_varid be_varid" )
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%te_varname, nc%te_varid), "collision_io_netcdf_open nf90_inq_varid te_varid" )
                call netcdf_io_check( nf90_inq_varid(nc%id, nc%L_orbit_varname, nc%L_orbit_varid), "collision_io_netcdf_open nf90_inq_varid L_orbit_varid" )
                if (param%lrotation) then
                   call netcdf_io_check( nf90_inq_varid(nc%id, nc%ke_spin_varname, nc%ke_spin_varid), "collision_io_netcdf_open nf90_inq_varid ke_spin_varid" )
@@ -416,6 +419,7 @@ contains
                call netcdf_io_check( nf90_put_var(nc%id, nc%ke_spin_varid, collider%ke_spin(:),  start=[   1, eslot], count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var ke_spin_varid before" )
                call netcdf_io_check( nf90_put_var(nc%id, nc%pe_varid,      collider%pe(:),       start=[   1, eslot], count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var pe_varid before" )
                call netcdf_io_check( nf90_put_var(nc%id, nc%be_varid,      collider%be(:),       start=[   1, eslot], count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var pe_varid before" )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%te_varid,      collider%te(:),       start=[   1, eslot], count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var pe_varid tefore" )
                call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid,   collider%L_orbit(:,:), start=[1, 1, eslot], count=[NDIM, 2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var L_orbit_varid before" )
                call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid,   collider%L_spin(:,:),  start=[1, 1, eslot], count=[NDIM, 2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var L_spin_varid before" )
             end if

@@ -1390,6 +1390,7 @@ contains
 
          nbody_system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
+         nbody_system%be_cb = -3*cb%Gmass * cb%mass / (5 * cb%radius) 
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
          do concurrent (i = 1:npl, pl%lmask(i))
@@ -1445,8 +1446,8 @@ contains
             nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
          end do
 
-         nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl))
-         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be
+         nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl)) 
+         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be 
          nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_spin(:)
       end associate
 

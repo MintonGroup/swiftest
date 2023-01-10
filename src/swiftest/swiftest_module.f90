@@ -334,22 +334,24 @@ module swiftest
       real(DP)                        :: be = 0.0_DP            !! nbody_system binding energy of all bodies
       real(DP)                        :: te = 0.0_DP            !! nbody_system total energy
       real(DP)                        :: oblpot = 0.0_DP        !! nbody_system potential energy due to oblateness of the central body
-      real(DP), dimension(NDIM)       :: L_orbit = 0.0_DP        !! nbody_system orbital angular momentum vector
-      real(DP), dimension(NDIM)       :: L_spin = 0.0_DP         !! nbody_system spin angular momentum vector
-      real(DP), dimension(NDIM)       :: L_total = 0.0_DP          !! nbody_system angular momentum vector
+      real(DP), dimension(NDIM)       :: L_orbit = 0.0_DP       !! nbody_system orbital angular momentum vector
+      real(DP), dimension(NDIM)       :: L_spin = 0.0_DP        !! nbody_system spin angular momentum vector
+      real(DP), dimension(NDIM)       :: L_total = 0.0_DP       !! nbody_system angular momentum vector
       real(DP)                        :: ke_orbit_orig = 0.0_DP !! Initial orbital kinetic energy
       real(DP)                        :: ke_spin_orig = 0.0_DP  !! Initial spin kinetic energy
       real(DP)                        :: pe_orig = 0.0_DP       !! Initial potential energy
-      real(DP)                        :: be_orig = 0.0_DP       !! Initial binding energy
-      real(DP)                        :: E_orbit_orig = 0.0_DP   !! Initial orbital energy
+      real(DP)                        :: be_orig = 0.0_DP       !! Initial gravitational binding energy
+      real(DP)                        :: te_orig = 0.0_DP       !! Initial total energy (sum of all sources of energy tracked)
+      real(DP)                        :: be_cb   = 0.0_DP       !! Binding energy of central body (usually orders of magnitude larger than the rest of the system, and therefore tracked seperately)
+      real(DP)                        :: E_orbit_orig = 0.0_DP  !! Initial orbital energy
       real(DP)                        :: GMtot_orig = 0.0_DP    !! Initial nbody_system mass
-      real(DP), dimension(NDIM)       :: L_total_orig = 0.0_DP     !! Initial total angular momentum vector
-      real(DP), dimension(NDIM)       :: L_orbit_orig = 0.0_DP   !! Initial orbital angular momentum
-      real(DP), dimension(NDIM)       :: L_spin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM)       :: L_escape = 0.0_DP       !! Angular momentum of bodies that escaped the nbody_system (used for bookeeping)
+      real(DP), dimension(NDIM)       :: L_total_orig = 0.0_DP  !! Initial total angular momentum vector
+      real(DP), dimension(NDIM)       :: L_orbit_orig = 0.0_DP  !! Initial orbital angular momentum
+      real(DP), dimension(NDIM)       :: L_spin_orig = 0.0_DP   !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM)       :: L_escape = 0.0_DP      !! Angular momentum of bodies that escaped the nbody_system (used for bookeeping)
       real(DP)                        :: GMescape = 0.0_DP      !! Mass of bodies that escaped the nbody_system (used for bookeeping)
-      real(DP)                        :: E_collisions = 0.0_DP   !! Energy lost from nbody_system due to collisions
-      real(DP)                        :: E_untracked = 0.0_DP    !! Energy gained from nbody_system due to escaped bodies
+      real(DP)                        :: E_collisions = 0.0_DP  !! Energy lost from nbody_system due to collisions
+      real(DP)                        :: E_untracked = 0.0_DP   !! Energy gained from nbody_system due to escaped bodies
 
       ! Energy, momentum, and mass errors (used in error reporting)
       real(DP)                        :: ke_orbit_error    = 0.0_DP
