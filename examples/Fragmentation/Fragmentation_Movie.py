@@ -257,7 +257,7 @@ if __name__ == "__main__":
         sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
         # Set fragmentation parameters
-        minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
+        minimum_fragment_gmass = 0.05 * body_Gmass[style][1] 
         gmtiny = 0.10 * body_Gmass[style][1] 
         sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
         sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)
