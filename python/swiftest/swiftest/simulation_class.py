@@ -649,10 +649,10 @@ class Simulation:
             update_list.append("istep_out")
 
         if tstep_out is not None and dt is not None:
-            istep_out = int(np.floor(tstep_out / dt))
+            istep_out = int(tstep_out / dt)
 
         if istep_out is not None:
-            self.param['ISTEP_OUT'] = istep_out
+            self.param['ISTEP_OUT'] = int(istep_out)
 
         if dump_cadence is None:
             dump_cadence = self.param.pop("DUMP_CADENCE", 1)
