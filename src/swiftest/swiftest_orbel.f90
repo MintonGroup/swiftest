@@ -930,7 +930,7 @@ contains
       real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot
+      real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot, h_over_r2
       real(DP), dimension(NDIM) :: hvec, x, v
 
       a = 0.0_DP
@@ -1034,7 +1034,7 @@ contains
       lam = mod(capm + varpi, TWOPI)
       if (e > TINYVALUE) then
          cf = 1.0_DP / e * (a * (1.0_DP - e**2)/r - 1.0_DP)
-         rdot = sign(sqrt(v2 - (h / r)**2),rdotv)
+         rdot = sign(sqrt(max(v2 - (h / r)**2,0.0_DP)),rdotv)
          sf = a * (1.0_DP - e**2) / (h * e) * rdot
          f = atan2(sf,cf)
          if (f < 0.0_DP) f = f + TWOPI
