@@ -116,7 +116,7 @@ contains
       integer(I4B),              intent(in)    :: ipl
       logical,                   intent(in)         :: lescape_body
       ! Internals
-      real(DP), dimension(NDIM) :: Lpl, L_total, Lcb, xcom, vcom
+      real(DP), dimension(NDIM) :: Lpl, L_total, Lcb, xcom, vcom, drot0, drot1
       real(DP)                  :: pe, be, ke_orbit, ke_spin
       integer(I4B)              :: i, oldstat
    
@@ -167,7 +167,8 @@ contains
             xcom(:) = (pl%mass(ipl) * pl%rb(:, ipl) + cb%mass * cb%rb(:)) / (cb%mass + pl%mass(ipl))
             vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
             Lpl(:) = (pl%rb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
-            if (param%lrotation) Lpl(:) = pl%mass(ipl) * (Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl))
+            if (param%lrotation) Lpl(:) = Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl)
+            Lpl(:) = pl%mass(ipl) * Lpl(:)
      
             Lcb(:) = cb%mass * ((cb%rb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
@@ -184,7 +185,9 @@ contains
             cb%dL(:) = Lpl(:) + Lcb(:) + cb%dL(:)
             ! Update rotation of central body to by consistent with its angular momentum 
             if (param%lrotation) then
-               cb%rot(:) = (cb%L0(:) + cb%dL(:)) / (cb%Ip(3) * cb%mass * cb%radius**2)        
+               drot0(:) = cb%L0(:)/ (cb%Ip(3) * cb%mass * cb%radius**2)  
+               drot1(:) = cb%dL(:) / (cb%Ip(3) * cb%mass * cb%radius**2)        
+               cb%rot(:) = drot0(:) + drot1(:)
                ke_spin  = ke_spin - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
             end if
             cb%rb(:) = xcom(:)

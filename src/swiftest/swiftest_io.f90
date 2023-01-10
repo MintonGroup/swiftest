@@ -567,7 +567,7 @@ contains
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: rtemp
       real(DP), dimension(NDIM)                 :: rot0, Ip0
-      real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, BE_orig
+      real(DP) :: KE_orb_orig, KE_spin_orig, PE_orig, BE_orig, mass0
 
       associate (nc => self%system_history%nc, cb => self%cb)
          call nc%open(param, readonly=.true.)
@@ -610,7 +610,8 @@ contains
             if (param%lrotation) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system rot_varid" )
                call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system Ip_varid" )
-               cb%L0(:) = Ip0(3) * cb%GM0 * cb%R0**2 * rot0(:)
+               mass0 = cb%GM0 / param%GU
+               cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:)
             end if
 
             ! Retrieve the current bookkeeping variables
@@ -1119,7 +1120,7 @@ contains
             end do
 
             ! Set initial central body angular momentum for bookkeeping
-            cb%L0(:) = cb%Ip(3) * cb%GM0 * cb%R0**2 * cb%rot(:)         
+            cb%L0(:) = cb%Ip(3) * cb%mass * cb%R0**2 * cb%rot(:)         
          end if
 
          ! if (param%ltides) then
