@@ -1367,13 +1367,13 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i,j
       real(DP) :: kecb, kespincb
       real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
-      real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
-      real(DP), dimension(self%pl%nbody) :: Lplspinx, Lplspiny, Lplspinz
+      real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
+      real(DP), dimension(NDIM,self%pl%nbody) :: Lplspin
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
-      real(DP) :: hx, hy, hz
+      real(DP), dimension(NDIM) :: h
 
       associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          nbody_system%L_orbit(:) = 0.0_DP
@@ -1383,12 +1383,8 @@ contains
          nbody_system%ke_spin = 0.0_DP
 
          kepl(:) = 0.0_DP
-         Lplorbitx(:) = 0.0_DP
-         Lplorbity(:) = 0.0_DP
-         Lplorbitz(:) = 0.0_DP
-         Lplspinx(:) = 0.0_DP
-         Lplspiny(:) = 0.0_DP
-         Lplspinz(:) = 0.0_DP
+         Lplorbit(:,:) = 0.0_DP
+         Lplspin(:,:) = 0.0_DP
 
          pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
 
@@ -1397,14 +1393,10 @@ contains
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
          do concurrent (i = 1:npl, pl%lmask(i))
-            hx = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
-            hy = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
-            hz = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
+            h(:) = pl%rb(:,i) .cross. pl%vb(:,i)
 
             ! Angular momentum from orbit 
-            Lplorbitx(i) = pl%mass(i) * hx
-            Lplorbity(i) = pl%mass(i) * hy
-            Lplorbitz(i) = pl%mass(i) * hz
+            Lplorbit(:,i) = pl%mass(i) * h(:)
 
             ! Kinetic energy from orbit
             kepl(i) = pl%mass(i) * dot_product(pl%vb(:,i), pl%vb(:,i)) 
@@ -1419,16 +1411,20 @@ contains
             do concurrent (i = 1:npl, pl%lmask(i))
                ! Currently we assume that the rotation pole is the 3rd principal axis
                ! Angular momentum from spin
-               Lplspinx(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(1,i)
-               Lplspiny(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(2,i)  
-               Lplspinz(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(3,i)  
+               Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
 
                ! Kinetic energy from spin
                kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
             end do
+
+            nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+
+            do concurrent (j = 1:NDIM)
+               nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
+            end do
          else
-            kespincb = 0.0_DP
-            kespinpl(:) = 0.0_DP
+            nbody_system%ke_spin = 0.0_DP
+            nbody_system%L_spin(:) = 0.0_DP
          end if
   
          if (param%lflatten_interactions) then
@@ -1444,20 +1440,12 @@ contains
          end if
 
          nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
-         if (param%lrotation) nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
    
-         nbody_system%L_orbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
-         nbody_system%L_orbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
-         nbody_system%L_orbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), pl%lmask(1:npl)) 
-  
-         if (param%lrotation) then
-            nbody_system%L_spin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), pl%lmask(1:npl)) 
-            nbody_system%L_spin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), pl%lmask(1:npl)) 
-            nbody_system%L_spin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
-         end if
+         do concurrent (j = 1:NDIM)
+            nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
+         end do
 
          nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl))
-
          nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be
          nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_spin(:)
       end associate

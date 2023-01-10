@@ -31,13 +31,12 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from pathlib import Path
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Define the names and initial conditions of the various fragmentation simulation types
 # ----------------------------------------------------------------------------------------------------------------------
-available_movie_styles = ["disruption_headon", "disruption_off_axis", "supercatastrophic_headon", "supercatastrophic_off_axis","hitandrun_disrupt", "hitandrun_pure"]
-movie_title_list = ["Head-on Disruption", "Off-axis Disruption", "Head-on Supercatastrophic", "Off-axis Supercatastrophic", "Hit and Run w/ Runner Disruption", "Pure Hit and Run"]
+available_movie_styles = ["disruption_headon", "disruption_off_axis", "supercatastrophic_headon", "supercatastrophic_off_axis","hitandrun_disrupt", "hitandrun_pure", "merge"]
+movie_title_list = ["Head-on Disruption", "Off-axis Disruption", "Head-on Supercatastrophic", "Off-axis Supercatastrophic", "Hit and Run w/ Runner Disruption", "Pure Hit and Run", "Merge"]
 movie_titles = dict(zip(available_movie_styles, movie_title_list))
 num_movie_frames = 1200
 
@@ -54,12 +53,14 @@ pos_vectors = {"disruption_headon"         : [np.array([1.0, -5.0e-05, 0.0]),
                "hitandrun_disrupt"         : [np.array([1.0, -4.2e-05, 0.0]),
                                               np.array([1.0,  4.2e-05, 0.0])],
                "hitandrun_pure"            : [np.array([1.0, -4.2e-05, 0.0]),
-                                              np.array([1.0,  4.2e-05, 0.0])] 
+                                              np.array([1.0,  4.2e-05, 0.0])],
+               "merge"                      : [np.array([1.0, -5.0e-05, 0.0]),
+                                              np.array([1.0,  5.0e-05 ,0.0])]                
                }
 
 vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                                               np.array([ 0.00, -6.280005, 0.0])],
-              "disruption_off_axis"        : [np.array([ 0.00,  6.280005, 0.0]),
+               "disruption_off_axis"       : [np.array([ 0.00,  6.280005, 0.0]),
                                               np.array([ 0.50, -6.280005, 0.0])], 
                "supercatastrophic_headon":   [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([ 0.00, -6.28,     0.0])],
@@ -68,7 +69,9 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                "hitandrun_disrupt"         : [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([-1.45, -6.28,     0.0])],
                "hitandrun_pure"            : [np.array([ 0.00,  6.28,     0.0]),
-                                              np.array([-1.51, -6.28,     0.0])]
+                                              np.array([-1.51, -6.28,     0.0])],
+               "merge"                     : [np.array([ 0.00,  0.0, 0.0]),
+                                              np.array([ 0.01, -0.100005, 0.0])] 
                }
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
@@ -82,7 +85,9 @@ rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
                "hitandrun_disrupt"         : [np.array([0.0, 0.0, 6.0e3]),
                                               np.array([0.0, 0.0, 1.0e4])],
                "hitandrun_pure"            : [np.array([0.0, 0.0, 6.0e3]),
-                                              np.array([0.0, 0.0, 1.0e4])]
+                                              np.array([0.0, 0.0, 1.0e4])],
+               "merge"                     : [np.array([0.0, 0.0, -6.0e3]),
+                                              np.array([0.0, 0.0, 1.0e4])] 
                }
 
 body_Gmass = {"disruption_headon"        : [1e-7, 1e-10],
@@ -90,8 +95,18 @@ body_Gmass = {"disruption_headon"        : [1e-7, 1e-10],
              "supercatastrophic_headon"  : [1e-7, 1e-8],
              "supercatastrophic_off_axis": [1e-7, 1e-8],
              "hitandrun_disrupt"         : [1e-7, 7e-10],
-             "hitandrun_pure"            : [1e-7, 7e-10]
+             "hitandrun_pure"            : [1e-7, 7e-10],
+             "merge"                     : [1e-7, 1e-8] 
                }
+
+tstop = {"disruption_headon"         : 5.0e-4,
+         "disruption_off_axis"       : 5.0e-4,
+         "supercatastrophic_headon"  : 5.0e-4,
+         "supercatastrophic_off_axis": 5.0e-4,
+         "hitandrun_disrupt"         : 2.0e-4,
+         "hitandrun_pure"            : 2.0e-4,
+         "merge"                     : 2.0e-3,
+         }
 
 density = 3000 * swiftest.AU2M**3 / swiftest.MSun
 GU = swiftest.GMSun * swiftest.YR2S**2 / swiftest.AU2M**3
@@ -114,7 +129,7 @@ def encounter_combiner(sim):
     """
 
     # Only keep a minimal subset of necessary data from the simulation and encounter datasets
-    keep_vars = ['rh','Gmass','radius']
+    keep_vars = ['rh','vh','Gmass','radius']
     data = sim.data[keep_vars]
     enc = sim.encounters[keep_vars].load()
 
@@ -167,6 +182,9 @@ class AnimatedScatter(object):
         rhy2 = self.ds['rh'].sel(name="Projectile",space='y').isel(time=0).values[()]
 
         scale_frame =   abs(rhy1) + abs(rhy2)
+        if "hitandrun" in style:
+           scale_frame *= 2
+           
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
         self.ax_pt_size = self.figsize[0] *  72 / scale_frame
         ax.set_xlim(-scale_frame, scale_frame)
@@ -182,18 +200,16 @@ class AnimatedScatter(object):
         return fig, ax
 
     def update_plot(self, frame):
-        # Define a function to calculate the center of mass of the system.
-        def center(Gmass, x, y):
-            x = x[~np.isnan(x)]
-            y = y[~np.isnan(y)]
-            Gmass = Gmass[~np.isnan(Gmass)]
-            x_com = np.sum(Gmass * x) / np.sum(Gmass)
-            y_com = np.sum(Gmass * y) / np.sum(Gmass)
-            return x_com, y_com
+        
+        # Define a function to calculate a reference frame for the animation
+        # This will be based on the initial velocity of the Target body
+        def reference_frame(r_ref, v_ref, t):
+            coord_pos = r_ref + v_ref * t 
+            return coord_pos.values[0], coord_pos.values[1]
 
-        Gmass, rh, point_rad = next(self.data_stream(frame))
-        x_com, y_com = center(Gmass, rh[:,0], rh[:,1])
-        self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_com, rh[:,1] - y_com])
+        t, Gmass, rh, point_rad = next(self.data_stream(frame))
+        x_ref, y_ref = reference_frame(self.r_ref,self.v_ref, t)
+        self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_ref, rh[:,1] - y_ref])
         self.scatter_artist.set_sizes(point_rad**2)
         return self.scatter_artist,
 
@@ -201,11 +217,17 @@ class AnimatedScatter(object):
         while True:
             ds = self.ds.isel(time=frame)
             ds = ds.where(ds['name'] != "Sun", drop=True)
+            t = ds['time'].values[()]
             radius = ds['radius'].values
             Gmass = ds['Gmass'].values
             rh = ds['rh'].values
             point_rad = radius * self.ax_pt_size
-            yield Gmass, rh, point_rad
+            
+            # Save the initial velocity of body 1 to use as a reference
+            if frame == 0:
+                self.r_ref = ds.sel(name="Target")['rh'] 
+                self.v_ref = ds.sel(name="Target")['vh'] 
+            yield t, Gmass, rh, point_rad
 
 if __name__ == "__main__":
 
@@ -216,10 +238,11 @@ if __name__ == "__main__":
     print("4. Off-axis supercatastrophic")
     print("5. Hit and run with disruption of the runner")
     print("6. Pure hit and run")
-    print("7. All of the above")
+    print("7. Merge")
+    print("8. All of the above")
     user_selection = int(input("? "))
 
-    if user_selection > 0 and user_selection < 7:
+    if user_selection > 0 and user_selection < 8:
         movie_styles = [available_movie_styles[user_selection-1]]
     else:
         print("Generating all movie styles")
@@ -234,10 +257,10 @@ if __name__ == "__main__":
         sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
         # Set fragmentation parameters
-        minimum_fragment_gmass = 0.2 * body_Gmass[style][1] # Make the minimum fragment mass a fraction of the smallest body
-        gmtiny = 0.99 * body_Gmass[style][1] # Make GMTINY just smaller than the smallest original body. This will prevent runaway collisional cascades
+        minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
+        gmtiny = 0.10 * body_Gmass[style][1] 
         sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
-        sim.run(dt=5e-4, tstop=5.0e-4, istep_out=1, dump_cadence=0)
+        sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)
 
         print("Generating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)

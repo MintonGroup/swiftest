@@ -385,17 +385,14 @@ module collision
          class(base_parameters),   intent(in)    :: param        !! Current Swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_collider
 
-      module subroutine collision_util_construct_after_system(collider, nbody_system, param, after_system)
-         !! Author: David A. Minton
-         !!
-         !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
+      module subroutine collision_util_construct_constraint_system(collider, nbody_system, param, constraint_system, phase)
          implicit none
-         ! Arguments
-         class(collision_basic),                 intent(inout) :: collider     !! Collision system object
-         class(base_nbody_system),               intent(in)    :: nbody_system !! Original Swiftest nbody system object
-         class(base_parameters),                 intent(inout) :: param        !! Current Swiftest run configuration parameters
-         class(base_nbody_system), allocatable,  intent(out)   :: after_system !! Output temporary Swiftest nbody system object
-      end subroutine collision_util_construct_after_system
+         class(collision_basic),                 intent(inout) :: collider          !! Collision system object
+         class(base_nbody_system),               intent(in)    :: nbody_system      !! Original Swiftest nbody system object
+         class(base_parameters),                 intent(inout) :: param             !! Current Swiftest run configuration parameters
+         class(base_nbody_system), allocatable,  intent(out)   :: constraint_system !! Output temporary Swiftest nbody system object
+         character(len=*),                       intent(in)    :: phase             !! One of "before" or "after", indicating which phase of the calculation this needs to be done
+      end subroutine collision_util_construct_constraint_system
 
       module subroutine collision_util_dealloc_fragments(self)
          implicit none
