@@ -263,9 +263,9 @@ contains
                end if
 
                charstring = trim(adjustl(pl%info(i)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl name_varid"  )
                charstring = trim(adjustl(pl%info(i)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl particle_type_varid"  )
             end do
 
             ntp = tp%nbody
@@ -276,9 +276,9 @@ contains
                call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp vh_varid"  )
 
                charstring = trim(adjustl(tp%info(i)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp name_varid"  )
                charstring = trim(adjustl(tp%info(i)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
             end do
 
             call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode) )
