@@ -47,19 +47,24 @@ contains
       ! Internals
       integer(I4B) :: i,j,nimp
       real(DP), dimension(NDIM) :: vcom, rnorm
+      logical, dimension(:), allocatable :: lmask
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type (pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
+            allocate(lmask, mold=pl%lmask)
+            lmask(:) = .false.
+            lmask(impactors%id(:)) = .true.
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
 
                ! Manually save the before/after snapshots because this case doesn't use the mergeaddsub procedure
                select type(before => self%before)
                class is (swiftest_nbody_system)
-                  allocate(before%pl, source=pl) 
+                  allocate(before%pl, mold=pl) 
+                  call pl%spill(before%pl, lmask, ldestructive=.false.)
                end select
 
                nimp = size(impactors%id(:))
@@ -78,7 +83,8 @@ contains
 
                select type(after => self%after)
                class is (swiftest_nbody_system)
-                  allocate(after%pl, source=pl) 
+                  allocate(after%pl, mold=pl) 
+                  call pl%spill(after%pl, lmask, ldestructive=.false.)
                end select
 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -112,12 +118,18 @@ contains
       integer(I4B)                            :: status           !! Status flag assigned to this outcome
       ! Internals
       character(len=STRMAX) :: message
+      logical, dimension(:), allocatable :: lmask
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(impactors => self%impactors)
+
+            allocate(lmask, mold=pl%lmask)
+            lmask(:) = .false.
+            lmask(impactors%id(:)) = .true.
+
             message = "Hit and run between"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
@@ -125,7 +137,8 @@ contains
             ! Manually save the before/after snapshots because this case doesn't use the mergeaddsub procedure
             select type(before => self%before)
             class is (swiftest_nbody_system)
-               allocate(before%pl, source=pl) 
+               allocate(before%pl, mold=pl) 
+               call pl%spill(before%pl, lmask, ldestructive=.false.)
             end select
 
             status = HIT_AND_RUN_PURE
@@ -135,7 +148,8 @@ contains
 
             select type(after => self%after)
             class is (swiftest_nbody_system)
-               allocate(after%pl, source=pl) 
+               allocate(after%pl, mold=pl) 
+               call pl%spill(after%pl, lmask, ldestructive=.false.)
             end select
 
          end associate
