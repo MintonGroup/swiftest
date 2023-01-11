@@ -389,7 +389,6 @@ module swiftest
       procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                  !! Write a header for an output frame in NetCDF format
       procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system         !! Read in particle metadata from file
       procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
-      procedure :: write_discard           => swiftest_io_write_discard                            !! Write out information about discarded and merged planets and test particles in SyMBA
       procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure :: dealloc                 => swiftest_util_dealloc_system                           !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
@@ -863,12 +862,6 @@ module swiftest
          implicit none
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine swiftest_io_toupper
-
-      module subroutine swiftest_io_write_discard(self, param)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      end subroutine swiftest_io_write_discard
 
       module subroutine swiftest_io_write_frame_system(self, param)
          implicit none

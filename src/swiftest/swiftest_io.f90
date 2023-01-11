@@ -2943,30 +2943,6 @@ contains
    end subroutine swiftest_io_toupper
 
 
-   module subroutine swiftest_io_write_discard(self, param)
-      !! author: David A. Minton
-      !!
-      !! Write the metadata of the discarded body to the output file 
-      implicit none
-      class(swiftest_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      ! Internals
-
-      associate(pl => self%pl, npl => self%pl%nbody, pl_adds => self%pl_adds, nc => self%system_history%nc)
-         
-         call nc%open(param)
-         if (self%tp_discards%nbody > 0) call self%tp_discards%write_info(nc, param)
-         if (self%pl_discards%nbody == 0) return
-
-         call self%pl_discards%write_info(nc, param)
-         call nc%close()
-      end associate
-
-      return
-
-   end subroutine swiftest_io_write_discard
-
-
    module subroutine swiftest_io_write_frame_system(self, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!

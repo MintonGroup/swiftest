@@ -371,9 +371,6 @@ contains
 
                call symba_discard_nonplpl_conservation(self, nbody_system, param)
 
-               ! Save the add/discard information to file
-               call nbody_system%write_discard(param)
-
                call pl%rearray(nbody_system, param)
 
                if (param%lenergy) then
