@@ -325,6 +325,7 @@ contains
       integer(I4B) :: merge_text_length 
       character(len=NAMELEN) :: merge_text
       character(len=NAMELEN) :: newname, origin_type
+      character(len=STRMAX)  :: message
       real(DP) :: volume
   
       select type(nbody_system)
@@ -472,7 +473,7 @@ contains
 
             call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
 
-            ! Log the properties of the old and new bodies
+            ! Save the before/after snapshots
             select type(before => collider%before)
             class is (swiftest_nbody_system)
                call move_alloc(plsub, before%pl)
@@ -597,7 +598,7 @@ contains
 
                   if (.not.lplpl_collision) exit
                   if (loop == MAXCASCADE) then
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"An runaway collisional cascade has been detected in collision_resolve_plpl.")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"A runaway collisional cascade has been detected in collision_resolve_plpl.")
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments.")
                      call base_util_exit(FAILURE)
                   end if

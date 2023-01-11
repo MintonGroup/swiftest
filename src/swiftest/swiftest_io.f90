@@ -219,7 +219,7 @@ contains
       character(*), parameter :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
       character(*), parameter :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
-                                                '"; Number of active plm, pl, tp = ", I6, ", ", I6, ", ", I6)'
+                                                '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
       character(*), parameter :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
 
       phase_val = 1
@@ -254,7 +254,7 @@ contains
       end if
 
       if (self%pl%nplm > 0) then
-         write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nplm, self%pl%nbody, self%tp%nbody
+         write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
       else
          write(param%display_unit, statusfmt) self%t, tfrac, self%pl%nbody, self%tp%nbody
       end if
@@ -1728,14 +1728,14 @@ contains
                call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
                charstring = trim(adjustl(self%info(j)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_body nf90_put_var name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var name_varid"  )
 
                charstring = trim(adjustl(self%info(j)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_body nf90_put_var particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var particle_type_varid"  )
 
                if (param%lclose) then
                   charstring = trim(adjustl(self%info(j)%origin_type))
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_body nf90_put_var origin_type_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var origin_type_varid"  )
                   call netcdf_io_check( nf90_put_var(nc%id, nc%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]), "netcdf_io_write_info_body nf90_put_var origin_time_varid"  )
                   call netcdf_io_check( nf90_put_var(nc%id, nc%origin_rh_varid,    self%info(j)%origin_rh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var origin_rh_varid"  )
                   call netcdf_io_check( nf90_put_var(nc%id, nc%origin_vh_varid,    self%info(j)%origin_vh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var origin_vh_varid"  )
@@ -1765,7 +1765,7 @@ contains
       class(swiftest_parameters),           intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B)                              :: idslot, old_mode
-      character(len=:), allocatable             :: charstring
+      character(len=NAMELEN) :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_cb nf90_set_fill NF90_NOFILL"  )
@@ -1774,14 +1774,14 @@ contains
       call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_info_cb nf90_put_var id_varid"  )
 
       charstring = trim(adjustl(self%info%name))
-      call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_cb nf90_put_var name_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_cb nf90_put_var name_varid"  )
 
       charstring = trim(adjustl(self%info%particle_type))
-      call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_cb nf90_put_var ptype_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_cb nf90_put_var ptype_varid"  )
 
       if (param%lclose) then
          charstring = trim(adjustl(self%info%origin_type))
-         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "netcdf_io_write_info_body nf90_put_var cb origin_type_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var cb origin_type_varid"  )
 
          call netcdf_io_check( nf90_put_var(nc%id, nc%origin_time_varid, self%info%origin_time, start=[idslot]), "netcdf_io_write_info_body nf90_put_var cb origin_time_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%origin_rh_varid, self%info%origin_rh(:), start=[1, idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var cb origin_rh_varid"  )
@@ -1796,6 +1796,7 @@ contains
 
       return
    end subroutine swiftest_io_netcdf_write_info_cb
+
 
    module subroutine swiftest_io_remove_nul_char(string)
       !! author: David A. Minton

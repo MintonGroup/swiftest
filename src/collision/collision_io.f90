@@ -15,7 +15,7 @@ contains
    module subroutine collision_io_collider_message(pl, collidx, collider_message)
       !! author: David A. Minton
       !!
-      !! Prints a nicely formatted message about which bodies collided, including their names and ids.
+      !! Prints a nicely formatted message about which bodies collided, including their names
       !! This subroutine appends the body names and ids to an input message.
       implicit none
       ! Arguments
@@ -25,7 +25,6 @@ contains
       ! Internals
       integer(I4B) :: i, n
       character(len=STRMAX) :: idstr
-
       
       n = size(collidx)
       if (n == 0) return
@@ -366,7 +365,7 @@ contains
       class(base_parameters),      intent(inout) :: param   !! Current run configuration parameters
       ! Internals
       integer(I4B)           :: i, idslot, old_mode, npl, stage
-      character(len=:), allocatable :: charstring
+      character(len=NAMELEN) :: charstring
       class(swiftest_pl), allocatable :: pl
 
       select type(nc => history%nc)
@@ -378,7 +377,7 @@ contains
             call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t,                   start=[eslot]), "collision_io_netcdf_write_frame_snapshot nf90_put_var time_varid" )
 
             charstring = trim(adjustl(REGIME_NAMES(impactors%regime)))
-            call netcdf_io_check( nf90_put_var(nc%id, nc%regime_varid, charstring,             start=[1, eslot], count=[len(charstring), 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var regime_varid" )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%regime_varid, charstring,             start=[1, eslot], count=[NAMELEN, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var regime_varid" )
             call netcdf_io_check( nf90_put_var(nc%id, nc%Qloss_varid, impactors%Qloss,         start=[eslot] ), "collision_io_netcdf_write_frame_snapshot nf90_put_var Qloss_varid" )
 
             select type(before =>self%collider%before)
@@ -398,9 +397,9 @@ contains
                      idslot = findloc(history%idvals,pl%id(i),dim=1)
                      call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid,     pl%id(i),     start=[   idslot              ]), "collision_io_netcdf_write_frame_snapshot nf90_put_var id_varid"  )
                      charstring = trim(adjustl(pl%info(i)%name))
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], count=[len(charstring), 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var name_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], count=[NAMELEN, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var name_varid"  )
                      charstring = trim(adjustl(pl%info(i)%particle_type))
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot, stage, eslot], count=[len(charstring), 1, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var particle_type_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot, stage, eslot], count=[NAMELEN, 1, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var particle_type_varid"  )
                      call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid,     pl%rh(:,i),   start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var rh_varid"  )
                      call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid,     pl%vh(:,i),   start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var vh_varid"  )
                      call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid,  pl%Gmass(i),  start=[   idslot, stage, eslot]), "collision_io_netcdf_write_frame_snapshot nf90_put_var Gmass_varid"  )

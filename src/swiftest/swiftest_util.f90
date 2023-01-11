@@ -2681,7 +2681,6 @@ contains
       class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
       class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
 
-
       select case(param%integrator)
       case (INT_BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
