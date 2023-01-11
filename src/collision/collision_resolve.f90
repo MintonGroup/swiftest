@@ -583,10 +583,7 @@ contains
 
                   if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
 
-                  ! Save the add/discard information to file
-                  call nbody_system%write_discard(param)
-
-                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
+                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, re-sort, and recompute all indices and encounter lists
                   call pl%rearray(nbody_system, param)
 
                   ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
