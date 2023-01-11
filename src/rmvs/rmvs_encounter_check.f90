@@ -7,11 +7,11 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule (rmvs_classes) s_rmvs_chk
+submodule (rmvs) s_rmvs_encounter_check
    use swiftest
 contains
 
-   module function rmvs_encounter_check_tp(self, param, system, dt) result(lencounter)
+   module function rmvs_encounter_check_tp(self, param, nbody_system, dt) result(lencounter)
       !! author: David A. Minton
       !!
       !! Determine whether a test particle and planet are having or will have an encounter within the next time step
@@ -22,7 +22,7 @@ contains
       ! Arguments
       class(rmvs_tp),             intent(inout) :: self   !! RMVS test particle object  
       class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
-      class(rmvs_nbody_system),   intent(inout) :: system !! RMVS nbody system object
+      class(rmvs_nbody_system),   intent(inout) :: nbody_system !! RMVS nbody system object
       real(DP),                   intent(in)    :: dt     !! step size
       ! Result
       logical                                 :: lencounter  !! Returns true if there is at least one close encounter
@@ -38,11 +38,11 @@ contains
       lencounter = .false.
       if (self%nbody == 0) return
 
-      select type(pl => system%pl)
+      select type(pl => nbody_system%pl)
       class is (rmvs_pl)
          associate(tp => self, ntp => self%nbody, npl => pl%nbody)
             tp%plencP(1:ntp) = 0
-            call encounter_check_all_pltp(param, npl, ntp, pl%xbeg, pl%vbeg, tp%xh, tp%vh, pl%renc, dt, & 
+            call encounter_check_all_pltp(param, npl, ntp, pl%rbeg, pl%vbeg, tp%rh, tp%vh, pl%renc, dt, & 
                                           nenc, index1, index2, lvdotr)
 
             lencounter = (nenc > 0_I8B)
@@ -59,4 +59,4 @@ contains
    end function rmvs_encounter_check_tp
 
 
-end submodule s_rmvs_chk
+end submodule s_rmvs_encounter_check

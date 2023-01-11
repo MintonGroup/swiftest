@@ -7,63 +7,10 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(symba_classes) s_symba_util
+submodule(symba) s_symba_util
    use swiftest
+   use fraggle
 contains
-
-
-   module subroutine symba_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      type(symba_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
-
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
-      else
-         call util_resize(arr, nold + nnew)
-      end if
-
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine symba_util_append_arr_kin
-
-
-   module subroutine symba_util_append_encounter_list(self, source, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append components from one encounter list (pl-pl or pl-tp) body object to another. 
-      !! This method will automatically resize the destination body if it is too small
-      implicit none
-      ! Arguments
-      class(symba_encounter), intent(inout) :: self         !! SyMBA encounter list object
-      class(encounter_list),  intent(in)    :: source       !! Source object to append
-      logical, dimension(:),  intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nold, nsrc
-
-      nold = self%nenc
-      nsrc = source%nenc
-      select type(source)
-      class is (symba_encounter)
-         call util_append(self%level, source%level, nold, nsrc, lsource_mask)
-      end select
-      call encounter_util_append_list(self, source, lsource_mask) 
-
-      return
-   end subroutine symba_util_append_encounter_list
-
 
    module subroutine symba_util_append_pl(self, source, lsource_mask)
       !! author: David A. Minton
@@ -79,66 +26,18 @@ contains
       select type(source)
       class is (symba_pl)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%lcollision, source%lcollision, nold, nsrc, lsource_mask)
-            call util_append(self%lencounter, source%lencounter, nold, nsrc, lsource_mask)
-            call util_append(self%lmtiny, source%lmtiny, nold, nsrc, lsource_mask)
-            call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
-            call util_append(self%ntpenc, source%ntpenc, nold, nsrc, lsource_mask)
-            call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
-            call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
-            call util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
-            call util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
-            call util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
-            call util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
 
-            call util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
+            call swiftest_util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
    end subroutine symba_util_append_pl
-
-
-   module subroutine symba_util_append_merger(self, source, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append components from one massive body object to another. 
-      !! This method will automatically resize the destination body if it is too small
-      implicit none
-      ! Arguments
-      class(symba_merger),             intent(inout) :: self         !! SyMBA massive body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B), dimension(:), allocatable        :: ncomp_tmp    !! Temporary placeholder for ncomp incase we are appending a symba_pl object to a symba_merger
-      integer(I4B) :: nold, nsrc, nnew
-
-      nold = self%nbody
-      nsrc = source%nbody
-      nnew = count(lsource_mask)
-
-      select type(source)
-      class is (symba_merger)
-         call util_append(self%ncomp, source%ncomp, nold, nsrc, lsource_mask)
-         call symba_util_append_pl(self, source, lsource_mask) 
-      class is (symba_pl)
-         allocate(ncomp_tmp, mold=source%id)
-         ncomp_tmp(:) = 0
-         call util_append(self%ncomp, ncomp_tmp, nold, nsrc, lsource_mask)
-         call symba_util_append_pl(self, source, lsource_mask) 
-      class default
-         write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
-         call util_exit(FAILURE)
-      end select
-
-      ! Save the number of appended bodies 
-      self%ncomp(nold+1:nold+nnew) = nnew
-
-      return
-   end subroutine symba_util_append_merger
 
 
    module subroutine symba_util_append_tp(self, source, lsource_mask)
@@ -155,104 +54,18 @@ contains
       select type(source)
       class is (symba_tp)
          associate(nold => self%nbody, nsrc => source%nbody)
-            call util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
-            call util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
-            call util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
+            call swiftest_util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
 
-            call util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
+            call swiftest_util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
    end subroutine symba_util_append_tp
-
-
-   module subroutine symba_util_copy_encounter_list(self, source)
-      !! author: David A. Minton
-      !!
-      !! Copies elements from the source encounter list into self.
-      implicit none
-      ! Arguments
-      class(symba_encounter),    intent(inout) :: self   !! Encounter list 
-      class(encounter_list), intent(in)    :: source !! Source object to copy into
-  
-      select type(source)
-      class is (symba_encounter)
-         associate(n => source%nenc)
-            self%level(1:n) = source%level(1:n) 
-         end associate
-      end select
-
-      call encounter_util_copy_list(self, source)
-   
-      return
-   end subroutine symba_util_copy_encounter_list
-
-
-   module subroutine symba_util_dealloc_encounter_list(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatabale arrays
-      implicit none
-      ! Argumentse
-      class(symba_encounter),  intent(inout) :: self !! SyMBA encounter list
-
-      if (allocated(self%level)) deallocate(self%level)
-
-      return
-   end subroutine symba_util_dealloc_encounter_list
-
-
-   module subroutine symba_util_dealloc_kin(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatabale arrays
-      implicit none
-      ! Arguments
-      class(symba_kinship),  intent(inout) :: self !! SyMBA kinship object
-
-      if (allocated(self%child)) deallocate(self%child)
-
-      return
-   end subroutine symba_util_dealloc_kin
-
-
-   module subroutine symba_util_dealloc_merger(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatabale arrays
-      implicit none
-      ! Arguments
-      class(symba_merger),  intent(inout) :: self !! SyMBA body merger object
-
-      if (allocated(self%ncomp)) deallocate(self%ncomp)
-
-      call symba_util_dealloc_pl(self)
-
-      return
-   end subroutine symba_util_dealloc_merger
-
-
-   module subroutine symba_util_dealloc_system(self)
-      !! author: David A. Minton
-      !!
-      !! Deallocates all allocatabale arrays
-      implicit none
-      ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
-
-      if (allocated(self%pl_adds)) deallocate(self%pl_adds)
-      if (allocated(self%pltpenc_list)) deallocate(self%pltpenc_list)
-      if (allocated(self%plplenc_list)) deallocate(self%plplenc_list)
-      if (allocated(self%plplcollision_list)) deallocate(self%plplcollision_list)
-
-      call util_dealloc_system(self)
-
-      return
-   end subroutine symba_util_dealloc_system
 
 
    module subroutine symba_util_dealloc_pl(self)
@@ -265,28 +78,28 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      if (allocated(self%lcollision)) deallocate(self%lcollision)
-      if (allocated(self%lencounter)) deallocate(self%lencounter)
-      if (allocated(self%lmtiny)) deallocate(self%lmtiny)
-      if (allocated(self%nplenc)) deallocate(self%nplenc)
-      if (allocated(self%ntpenc)) deallocate(self%ntpenc)
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
-      if (allocated(self%isperi)) deallocate(self%isperi)
-      if (allocated(self%peri)) deallocate(self%peri)
-      if (allocated(self%atp)) deallocate(self%atp)
 
-      if (allocated(self%kin)) then
-         do i = 1, self%nbody
-            call self%kin(i)%dealloc()
-         end do
-         deallocate(self%kin)
-      end if
-
-      call util_dealloc_pl(self)
+      call self%helio_pl%dealloc()
 
       return
    end subroutine symba_util_dealloc_pl
+
+
+   module subroutine symba_util_dealloc_system(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+      implicit none
+      ! Arguments
+      class(symba_nbody_system), intent(inout) :: self
+
+      self%irec = -1
+      call self%helio_nbody_system%dealloc()
+
+      return
+   end subroutine symba_util_dealloc_system
 
 
    module subroutine symba_util_dealloc_tp(self)
@@ -297,34 +110,13 @@ contains
       ! Arguments
       class(symba_tp),  intent(inout) :: self !! SyMBA test particle object
 
-      if (allocated(self%nplenc)) deallocate(self%nplenc)
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
 
-      call util_dealloc_tp(self)
+      call self%helio_tp%dealloc() 
 
       return
    end subroutine symba_util_dealloc_tp
-
-
-   module subroutine symba_util_fill_arr_kin(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of particle kinship types
-      !! This is the inverse of a spill operation   
-      implicit none
-      ! Arguments
-      type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      type(symba_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
-   
-      return
-   end subroutine symba_util_fill_arr_kin
 
 
    module subroutine symba_util_fill_pl(self, inserts, lfill_list)
@@ -342,22 +134,13 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_pl)
-            call util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
-            call util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
-            call util_fill(keeps%lmtiny, inserts%lmtiny, lfill_list)
-            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
-            call util_fill(keeps%ntpenc, inserts%ntpenc, lfill_list)
-            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
-            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-            call util_fill(keeps%isperi, inserts%isperi, lfill_list)
-            call util_fill(keeps%peri, inserts%peri, lfill_list)
-            call util_fill(keeps%atp, inserts%atp, lfill_list)
-            call util_fill(keeps%kin, inserts%kin, lfill_list)
-            
-            call util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call swiftest_util_fill(keeps%levelm, inserts%levelm, lfill_list)
+
+            call swiftest_util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
 
@@ -380,14 +163,14 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_tp)
-            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
-            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
-            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            call swiftest_util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
+            call swiftest_util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call swiftest_util_fill(keeps%levelm, inserts%levelm, lfill_list)
             
-            call util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_tp or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
 
@@ -415,440 +198,20 @@ contains
 
       associate(pl => self, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
-         select type(param)
-         class is (symba_parameters)
+         if (param%lmtiny_pl) then 
             pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY 
-         end select
-         nplm = count(.not. pl%lmtiny(1:npl))
+            nplm = count(.not. pl%lmtiny(1:npl))
+         else
+            nplm = npl
+         end if
          pl%nplm = int(nplm, kind=I4B)
          nplplm = nplm * npl - nplm * (nplm + 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
 
-         call util_flatten_eucl_plpl(pl, param)
+         call swiftest_util_flatten_eucl_plpl(pl, param)
       end associate
 
       return
    end subroutine symba_util_flatten_eucl_plpl
-
-
-   module subroutine symba_util_final_encounter_list(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA encounter list object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_encounter),  intent(inout) :: self !! SyMBA encounter list object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_encounter_list
-
-   module subroutine symba_util_final_kin(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA kinship object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_kinship),  intent(inout) :: self !! SyMBA kinship object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_kin
-
-   module subroutine symba_util_final_merger(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA merger object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_merger),  intent(inout) :: self !! SyMBA merger object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_merger
-
-   module subroutine symba_util_final_pl(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA massive body object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_pl),  intent(inout) :: self !! SyMBA massive body object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_pl
-
-   module subroutine symba_util_final_system(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA nbody system object - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_nbody_system),  intent(inout) :: self !! SyMBA nbody system object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_system
-
-   module subroutine symba_util_final_tp(self)
-      !! author: David A. Minton
-      !!
-      !! Finalize the SyMBA test particleobject - deallocates all allocatables
-      implicit none
-      ! Argument
-      type(symba_tp),  intent(inout) :: self !! SyMBA test particle object
-
-      call self%dealloc()
-
-      return
-   end subroutine symba_util_final_tp
-
-
-   module subroutine symba_util_peri_pl(self, system, param)
-      !! author: David A. Minton
-      !!
-      !! Determine system pericenter passages for planets in SyMBA
-      !!
-      !! Adapted from David E. Kaufmann's Swifter routine: symba_peri.f90
-      !! Adapted from Hal Levison's Swift routine util_mass_peri.f
-      implicit none
-      ! Arguments
-      class(symba_pl),              intent(inout) :: self   !! SyMBA massive body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
-      ! Internals
-      integer(I4B)       :: i
-      real(DP)           :: vdotr, e
-
-      associate(pl => self, npl => self%nbody)
-         if (pl%lfirst) then
-            if (param%qmin_coord == "HELIO") then
-               do i = 1, npl
-                  if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
-                     if (vdotr > 0.0_DP) then
-                        pl%isperi(i) = 1
-                     else
-                        pl%isperi(i) = -1
-                     end if
-                  end if
-               end do
-            else
-               do i = 1, npl
-                  if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
-                     if (vdotr > 0.0_DP) then
-                        pl%isperi(i) = 1
-                     else
-                        pl%isperi(i) = -1
-                     end if
-                  end if
-               end do
-            end if
-         else
-            if (param%qmin_coord == "HELIO") then
-               do i = 1, npl
-                  if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xh(:,i), pl%vh(:,i))
-                     if (pl%isperi(i) == -1) then
-                        if (vdotr >= 0.0_DP) then
-                           pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(pl%mu(i), pl%xh(1,i), pl%xh(2,i), pl%xh(3,i), pl%vh(1,i), pl%vh(2,i), pl%vh(3,i), &
-                                  pl%atp(i), e, pl%peri(i))
-                        end if
-                     else
-                        if (vdotr > 0.0_DP) then
-                           pl%isperi(i) = 1
-                        else
-                           pl%isperi(i) = -1
-                        end if
-                     end if
-                  end if
-               end do
-            else
-               do i = 1, npl
-                  if (pl%status(i) == ACTIVE) then
-                     vdotr = dot_product(pl%xb(:,i), pl%vb(:,i))
-                     if (pl%isperi(i) == -1) then
-                        if (vdotr >= 0.0_DP) then
-                           pl%isperi(i) = 0
-                           CALL orbel_xv2aeq(system%Gmtot, pl%xb(1,i), pl%xb(2,i), pl%xb(3,i), pl%vb(1,i), pl%vb(2,i), pl%vb(3,i),&
-                                             pl%atp(i), e, pl%peri(i))
-                        end if
-                     else
-                        if (vdotr > 0.0_DP) then
-                           pl%isperi(i) = 1
-                        else
-                           pl%isperi(i) = -1
-                        end if
-                     end if
-                  end if
-               end do
-            end if
-         end if
-      end associate
- 
-     return
-   end subroutine symba_util_peri_pl
-
-
-   module subroutine symba_util_rearray_pl(self, system, param)
-      !! Author: the Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
-      !!
-      !! Clean up the massive body structures to remove discarded bodies and add new bodies
-      implicit none
-      ! Arguments
-      class(symba_pl),           intent(inout) :: self   !! SyMBA massive body object
-      class(symba_nbody_system), intent(inout) :: system !! Swiftest nbody system object
-      class(symba_parameters),   intent(inout) :: param  !! Current run configuration parameters
-      ! Internals
-      class(symba_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
-      logical, dimension(:), allocatable :: lmask, ldump_mask
-      class(symba_plplenc), allocatable :: plplenc_old
-      logical :: lencounter
-      integer(I4B), dimension(:), allocatable :: levelg_orig_pl, levelm_orig_pl, levelg_orig_tp, levelm_orig_tp
-      integer(I4B), dimension(:), allocatable :: nplenc_orig_pl, nplenc_orig_tp, ntpenc_orig_pl
-
-      associate(pl => self, pl_adds => system%pl_adds)
-
-         npl = pl%nbody
-         nadd = pl_adds%nbody
-         if (npl == 0) return
-         ! Deallocate any temporary variables
-         if (allocated(pl%xbeg)) deallocate(pl%xbeg)
-         if (allocated(pl%xend)) deallocate(pl%xend)
-
-         ! Remove the discards and destroy the list, as the system already tracks pl_discards elsewhere
-         allocate(lmask(npl))
-         lmask(1:npl) = pl%ldiscard(1:npl)
-         if (count(lmask(:)) > 0) then
-            allocate(tmp, mold=self)
-            call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
-            npl = pl%nbody
-            call tmp%setup(0,param)
-            deallocate(tmp)
-            deallocate(lmask)
-         end if
-
-         ! Store the original plplenc list so we don't remove any of the original encounters
-         nenc_old = system%plplenc_list%nenc
-         if (nenc_old > 0) then 
-            allocate(plplenc_old, source=system%plplenc_list)
-            call plplenc_old%copy(system%plplenc_list)
-         end if
-
-         ! Add in any new bodies
-         if (nadd > 0) then
-            ! Append the adds to the main pl object
-            call pl%append(pl_adds, lsource_mask=[(.true., i=1, nadd)])
-
-            allocate(ldump_mask(npl+nadd))  ! This mask is used only to append the original Fortran binary particle.dat file with new bodies. This is ignored for NetCDF output
-            ldump_mask(1:npl) = .false.
-            ldump_mask(npl+1:npl+nadd) = pl%status(npl+1:npl+nadd) == NEW_PARTICLE
-            npl = pl%nbody
-         else
-            allocate(ldump_mask(npl))
-            ldump_mask(:) = .false.
-         end if
-
-         ! Reset all of the status flags for this body
-         pl%status(1:npl) = ACTIVE
-         do i = 1, npl
-            call pl%info(i)%set_value(status="ACTIVE")
-         end do
-         pl%ldiscard(1:npl) = .false.
-         pl%lcollision(1:npl) = .false.
-         pl%lmask(1:npl) = .true.
-
-         select type(param)
-         class is (symba_parameters)
-            pl%lmtiny(1:npl) = pl%Gmass(1:npl) < param%GMTINY
-            where(pl%lmtiny(1:npl))
-               pl%info(1:npl)%particle_type = PL_TINY_TYPE_NAME 
-            elsewhere
-               pl%info(1:npl)%particle_type = PL_TYPE_NAME 
-            end where
-         end select
-
-         call pl%write_particle_info(param%nciu, param)
-         deallocate(ldump_mask)
-
-         ! Reindex the new list of bodies 
-         call pl%sort("mass", ascending=.false.)
-         call pl%flatten(param)
-
-         ! Reset the kinship trackers
-         call pl%reset_kinship([(i, i=1, npl)])
-
-         ! Re-build the zero-level encounter list, being sure to save the original level information for all bodies
-         allocate(levelg_orig_pl, source=pl%levelg)
-         allocate(levelm_orig_pl, source=pl%levelm)
-         allocate(nplenc_orig_pl, source=pl%nplenc)
-         lencounter = pl%encounter_check(param, system, param%dt, 0) 
-         if (system%tp%nbody > 0) then
-            select type(tp => system%tp)
-            class is (symba_tp)
-               allocate(ntpenc_orig_pl, source=pl%ntpenc)
-               allocate(levelg_orig_tp, source=tp%levelg)
-               allocate(levelm_orig_tp, source=tp%levelm)
-               allocate(nplenc_orig_tp, source=tp%nplenc)
-               lencounter = tp%encounter_check(param, system, param%dt, 0)
-               call move_alloc(levelg_orig_tp, tp%levelg)
-               call move_alloc(levelm_orig_tp, tp%levelm)
-               call move_alloc(nplenc_orig_tp, tp%nplenc)
-               call move_alloc(ntpenc_orig_pl, pl%ntpenc)
-            end select
-         end if
-         call move_alloc(levelg_orig_pl, pl%levelg)
-         call move_alloc(levelm_orig_pl, pl%levelm)
-         call move_alloc(nplenc_orig_pl, pl%nplenc)
-
-         ! Re-index the encounter list as the index values may have changed
-         if (nenc_old > 0) then
-            nencmin = min(system%plplenc_list%nenc, plplenc_old%nenc) 
-            system%plplenc_list%nenc = nencmin
-            do k = 1, nencmin
-               idnew1 = system%plplenc_list%id1(k)
-               idnew2 = system%plplenc_list%id2(k)
-               idold1 = plplenc_old%id1(k)
-               idold2 = plplenc_old%id2(k)
-               if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
-                  ! This is an encounter we already know about, so save the old information
-                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%x1(:,k) = plplenc_old%x1(:,k)
-                  system%plplenc_list%x2(:,k) = plplenc_old%x2(:,k)
-                  system%plplenc_list%v1(:,k) = plplenc_old%v1(:,k)
-                  system%plplenc_list%v2(:,k) = plplenc_old%v2(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
-                  system%plplenc_list%level(k) = plplenc_old%level(k)
-               else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
-                  ! This is an encounter we already know about, but with the order reversed, so save the old information
-                  system%plplenc_list%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  system%plplenc_list%status(k) = plplenc_old%status(k) 
-                  system%plplenc_list%x1(:,k) = plplenc_old%x2(:,k)
-                  system%plplenc_list%x2(:,k) = plplenc_old%x1(:,k)
-                  system%plplenc_list%v1(:,k) = plplenc_old%v2(:,k)
-                  system%plplenc_list%v2(:,k) = plplenc_old%v1(:,k)
-                  system%plplenc_list%t(k) = plplenc_old%t(k)
-                  system%plplenc_list%level(k) = plplenc_old%level(k)
-               end if
-               system%plplenc_list%index1(k) = findloc(pl%id(1:npl), system%plplenc_list%id1(k), dim=1)
-               system%plplenc_list%index2(k) = findloc(pl%id(1:npl), system%plplenc_list%id2(k), dim=1)
-            end do
-            if (allocated(lmask)) deallocate(lmask)
-            allocate(lmask(nencmin))
-            nenc_old = nencmin
-            if (any(system%plplenc_list%index1(1:nencmin) == 0) .or. any(system%plplenc_list%index2(1:nencmin) == 0)) then
-               lmask(:) = system%plplenc_list%index1(1:nencmin) /= 0 .and. system%plplenc_list%index2(1:nencmin) /= 0
-            else
-               return
-            end if
-            nencmin = count(lmask(:))
-            system%plplenc_list%nenc = nencmin
-            if (nencmin > 0) then
-               system%plplenc_list%index1(1:nencmin) = pack(system%plplenc_list%index1(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%index2(1:nencmin) = pack(system%plplenc_list%index2(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%id1(1:nencmin) = pack(system%plplenc_list%id1(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%id2(1:nencmin) = pack(system%plplenc_list%id2(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%lvdotr(1:nencmin) = pack(system%plplenc_list%lvdotr(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%status(1:nencmin) = pack(system%plplenc_list%status(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%t(1:nencmin) = pack(system%plplenc_list%t(1:nenc_old), lmask(1:nenc_old))
-               system%plplenc_list%level(1:nencmin) = pack(system%plplenc_list%level(1:nenc_old), lmask(1:nenc_old))
-               do i = 1, NDIM
-                  system%plplenc_list%x1(i, 1:nencmin) = pack(system%plplenc_list%x1(i, 1:nenc_old), lmask(1:nenc_old))
-                  system%plplenc_list%x2(i, 1:nencmin) = pack(system%plplenc_list%x2(i, 1:nenc_old), lmask(1:nenc_old))
-                  system%plplenc_list%v1(i, 1:nencmin) = pack(system%plplenc_list%v1(i, 1:nenc_old), lmask(1:nenc_old))
-                  system%plplenc_list%v2(i, 1:nencmin) = pack(system%plplenc_list%v2(i, 1:nenc_old), lmask(1:nenc_old))
-               end do
-            end if
-         end if
-      end associate
-
-      return
-   end subroutine symba_util_rearray_pl
-
-
-   module subroutine symba_util_reset_kinship(self, idx)
-      !! author: David A. Minton
-      !! 
-      !! Resets the kinship status of bodies.
-      !!
-      implicit none
-      class(symba_pl),            intent(inout) :: self !! SyMBA massive body object
-      integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
-      ! Internals
-      integer(I4B) :: i, j
-
-      self%kin(idx(:))%parent = idx(:)
-      self%kin(idx(:))%nchild = 0
-      do j = 1, size(idx(:))
-         i = idx(j)
-         if (allocated(self%kin(i)%child)) deallocate(self%kin(i)%child)
-      end do
-
-      return
-   end subroutine symba_util_reset_kinship
-   
-
-   module subroutine symba_util_resize_arr_kin(arr, nnew)
-      !! author: David A. Minton
-      !!
-      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
-      implicit none
-      ! Arguments
-      type(symba_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                                   intent(in)    :: nnew !! New size
-      ! Internals
-      type(symba_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
-
-      if (nnew < 0) return
-
-      if (nnew == 0) then
-         if (allocated(arr)) deallocate(arr)
-         return
-      end if
-      
-      if (allocated(arr)) then
-         nold = size(arr)
-      else
-         nold = 0
-      end if
-
-      allocate(tmp(nnew))
-      if (nnew > nold) then
-         tmp(1:nold) = arr(1:nold)
-      else
-         tmp(1:nnew) = arr(1:nnew)
-      end if
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine symba_util_resize_arr_kin
-
-
-   module subroutine symba_util_resize_merger(self, nnew)
-      !! author: David A. Minton
-      !!
-      !! Checks the current size of a SyMBA merger list against the requested size and resizes it if it is too small.
-      implicit none
-      ! Arguments
-      class(symba_merger), intent(inout) :: self  !! SyMBA massive body object
-      integer(I4B),        intent(in)    :: nnew  !! New size neded
-
-      call util_resize(self%ncomp, nnew)
-
-      call symba_util_resize_pl(self, nnew)
-
-      return
-   end subroutine symba_util_resize_merger
 
 
    module subroutine symba_util_resize_pl(self, nnew)
@@ -860,23 +223,13 @@ contains
       class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%lcollision, nnew)
-      call util_resize(self%lencounter, nnew)
-      call util_resize(self%lmtiny, nnew)
-      call util_resize(self%nplenc, nnew)
-      call util_resize(self%ntpenc, nnew)
-      call util_resize(self%levelg, nnew)
-      call util_resize(self%levelm, nnew)
-      call util_resize(self%isperi, nnew)
-      call util_resize(self%peri, nnew)
-      call util_resize(self%atp, nnew)
-      call util_resize(self%kin, nnew)
+      call swiftest_util_resize(self%levelg, nnew)
+      call swiftest_util_resize(self%levelm, nnew)
 
-      call util_resize_pl(self, nnew)
+      call swiftest_util_resize_pl(self, nnew)
 
       return
    end subroutine symba_util_resize_pl
-
 
    module subroutine symba_util_resize_tp(self, nnew)
       !! author: David A. Minton
@@ -887,16 +240,14 @@ contains
       class(symba_tp), intent(inout) :: self  !! SyMBA test particle object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call util_resize(self%nplenc, nnew)
-      call util_resize(self%levelg, nnew)
-      call util_resize(self%levelm, nnew)
+      call swiftest_util_resize(self%levelg, nnew)
+      call swiftest_util_resize(self%levelm, nnew)
 
-      call util_resize_tp(self, nnew)
+      call swiftest_util_resize_tp(self, nnew)
 
       return
    end subroutine symba_util_resize_tp
 
-   
    module subroutine symba_util_set_renc(self, scale)
       !! author: David A. Minton
       !!
@@ -920,6 +271,122 @@ contains
 
       return
    end subroutine symba_util_set_renc
+
+
+   module subroutine symba_util_setup_initialize_system(self, param)
+      !! author: David A. Minton
+      !!
+      !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
+      !! This subroutine will also sort the massive bodies in descending order by mass
+      !! 
+      implicit none
+      ! Arguments
+      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody_system object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      type(encounter_storage)  :: encounter_history
+      type(collision_storage)  :: collision_history
+
+      call encounter_history%setup(4096)
+      call collision_history%setup(4096)
+      ! Call parent method
+      associate(nbody_system => self)
+         call helio_util_setup_initialize_system(nbody_system, param)
+         call nbody_system%pltp_encounter%setup(0_I8B)
+         call nbody_system%plpl_encounter%setup(0_I8B)
+         call nbody_system%plpl_collision%setup(0_I8B)
+
+         if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+            allocate(encounter_netcdf_parameters :: encounter_history%nc)
+            select type(nc => encounter_history%nc)
+            class is (encounter_netcdf_parameters)
+               nc%file_name = ENCOUNTER_OUTFILE
+               if (.not.param%lrestart) then
+                  call nc%initialize(param)
+                  call nc%close()
+               end if
+            end select
+            allocate(nbody_system%encounter_history, source=encounter_history)
+         end if
+        
+         allocate(collision_netcdf_parameters :: collision_history%nc)
+         select type(nc => collision_history%nc)
+         class is (collision_netcdf_parameters)
+            nc%file_name = COLLISION_OUTFILE
+            if (.not.param%lrestart) then
+               call nc%initialize(param)
+               call nc%close()
+            end if
+         end select
+         allocate(nbody_system%collision_history, source=collision_history)
+
+         select case(param%collision_model)
+         case("MERGE")
+            allocate(collision_basic :: nbody_system%collider)
+         case("BOUNCE")
+            allocate(collision_bounce :: nbody_system%collider)
+         case("FRAGGLE")
+            allocate(collision_fraggle :: nbody_system%collider)
+         end select
+         call nbody_system%collider%setup(nbody_system)
+
+      end associate
+
+      return
+   end subroutine symba_util_setup_initialize_system
+
+
+   module subroutine symba_util_setup_pl(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate SyMBA test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine symba_util_setup.f90
+      implicit none
+      ! Arguments
+      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      ! Internals
+      integer(I4B) :: i
+
+      !> Call allocation method for parent class. 
+      call self%helio_pl%setup(n, param) 
+      if (n == 0) return
+
+      allocate(self%levelg(n))
+      allocate(self%levelm(n))
+
+      self%levelg(:) = -1
+      self%levelm(:) = -1
+      return
+   end subroutine symba_util_setup_pl
+
+
+   module subroutine symba_util_setup_tp(self, n, param)
+      !! author: David A. Minton
+      !!
+      !! Allocate WHM test particle structure
+      !!
+      !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_util_setup.f90
+      implicit none
+      ! Arguments
+      class(symba_tp),            intent(inout) :: self  !! SyMBA test particle object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+
+      !> Call allocation method for parent class. 
+      call self%helio_tp%setup(n, param) 
+      if (n == 0) return
+
+      allocate(self%levelg(n))
+      allocate(self%levelm(n))
+
+      self%levelg(:) = -1
+      self%levelm(:) = -1
+      
+      return
+   end subroutine symba_util_setup_tp
 
 
    module subroutine symba_util_sort_pl(self, sortby, ascending)
@@ -946,22 +413,13 @@ contains
 
       associate(pl => self, npl => self%nbody)
          select case(sortby)
-         case("nplenc")
-            call util_sort(direction * pl%nplenc(1:npl), ind)
-         case("ntpenc")
-            call util_sort(direction * pl%ntpenc(1:npl), ind)
          case("levelg")
-            call util_sort(direction * pl%levelg(1:npl), ind)
+            call swiftest_util_sort(direction * pl%levelg(1:npl), ind)
          case("levelm")
-            call util_sort(direction * pl%levelm(1:npl), ind)
-         case("peri")
-            call util_sort(direction * pl%peri(1:npl), ind)
-         case("atp")
-            call util_sort(direction * pl%atp(1:npl), ind)
-         case("lcollision", "lencounter", "lmtiny", "nplm", "nplplm", "kin", "info")
-            write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
+            call swiftest_util_sort(direction * pl%levelm(1:npl), ind)
+
          case default ! Look for components in the parent class
-            call util_sort_pl(pl, sortby, ascending)
+            call swiftest_util_sort_pl(pl, sortby, ascending)
             return
          end select
 
@@ -997,13 +455,13 @@ contains
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("nplenc")
-            call util_sort(direction * tp%nplenc(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%nplenc(1:ntp), ind)
          case("levelg")
-            call util_sort(direction * tp%levelg(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%levelg(1:ntp), ind)
          case("levelm")
-            call util_sort(direction * tp%levelm(1:ntp), ind)
+            call swiftest_util_sort(direction * tp%levelm(1:ntp), ind)
          case default ! Look for components in the parent class
-            call util_sort_tp(tp, sortby, ascending)
+            call swiftest_util_sort_tp(tp, sortby, ascending)
             return
          end select
 
@@ -1012,35 +470,6 @@ contains
 
       return
    end subroutine symba_util_sort_tp
-
-
-
-   module subroutine symba_util_sort_rearrange_arr_kin(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of particle kinship type in-place from an index list.
-      implicit none
-      ! Arguments
-      type(symba_kinship),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B),         dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                                    intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      type(symba_kinship),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-      integer(I4B) :: i,j
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, source=arr)
-      tmp(1:n) = arr(ind(1:n))
-
-      do i = 1, n
-         do j = 1, tmp(i)%nchild
-            tmp(i)%child(j) = ind(tmp(i)%child(j))
-         end do
-      end do
-
-      call move_alloc(tmp, arr)
-      return
-   end subroutine symba_util_sort_rearrange_arr_kin
 
 
    module subroutine symba_util_sort_rearrange_pl(self, ind)
@@ -1054,19 +483,9 @@ contains
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(pl => self, npl => self%nbody)
-         call util_sort_rearrange(pl%lcollision, ind, npl)
-         call util_sort_rearrange(pl%lencounter, ind, npl)
-         call util_sort_rearrange(pl%lmtiny,     ind, npl)
-         call util_sort_rearrange(pl%nplenc,     ind, npl)
-         call util_sort_rearrange(pl%ntpenc,     ind, npl)
-         call util_sort_rearrange(pl%levelg,     ind, npl)
-         call util_sort_rearrange(pl%levelm,     ind, npl)
-         call util_sort_rearrange(pl%isperi,     ind, npl)
-         call util_sort_rearrange(pl%peri,       ind, npl)
-         call util_sort_rearrange(pl%atp,        ind, npl)
-         call util_sort_rearrange(pl%kin,        ind, npl)
-
-         call util_sort_rearrange_pl(pl,ind)
+         call swiftest_util_sort_rearrange(pl%levelg,     ind, npl)
+         call swiftest_util_sort_rearrange(pl%levelm,     ind, npl)
+         call swiftest_util_sort_rearrange_pl(pl,ind)
       end associate
 
       return
@@ -1084,57 +503,15 @@ contains
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(tp => self, ntp => self%nbody)
-         call util_sort_rearrange(tp%nplenc, ind, ntp)
-         call util_sort_rearrange(tp%levelg, ind, ntp)
-         call util_sort_rearrange(tp%levelm, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%nplenc, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%levelg, ind, ntp)
+         call swiftest_util_sort_rearrange(tp%levelm, ind, ntp)
 
-         call util_sort_rearrange_tp(tp,ind)
+         call swiftest_util_sort_rearrange_tp(tp,ind)
       end associate
       
       return
    end subroutine symba_util_sort_rearrange_tp
-
-
-   module subroutine symba_util_spill_arr_kin(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of particle kinships
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      type(symba_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      type(symba_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,             dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-      logical,                                        intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-      type(symba_kinship), dimension(:), allocatable :: tmp
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            allocate(tmp(nkeep))
-            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-            call move_alloc(tmp, keeps)
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine symba_util_spill_arr_kin
 
 
    module subroutine symba_util_spill_pl(self, discards, lspill_list, ldestructive)
@@ -1154,54 +531,18 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_pl)
-            call util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
-            call util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
-            call util_spill(keeps%lmtiny, discards%lmtiny, lspill_list, ldestructive)
-            call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
-            call util_spill(keeps%ntpenc, discards%ntpenc, lspill_list, ldestructive)
-            call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
-            call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
-            call util_spill(keeps%isperi, discards%isperi, lspill_list, ldestructive)
-            call util_spill(keeps%peri, discards%peri, lspill_list, ldestructive)
-            call util_spill(keeps%atp, discards%atp, lspill_list, ldestructive)
-            call util_spill(keeps%kin, discards%kin, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
 
-            call util_spill_pl(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
      
       return
    end subroutine symba_util_spill_pl
-
-
-   module subroutine symba_util_spill_encounter_list(self, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Move spilled (discarded) SyMBA encounter structure from active list to discard list
-      !! Note: Because the symba_plplenc currently does not contain any additional variable components, this method can recieve it as an input as well.
-      implicit none
-      ! Arguments
-      class(symba_encounter),      intent(inout) :: self         !! SyMBA pl-tp encounter list 
-      class(encounter_list), intent(inout) :: discards     !! Discarded object 
-      logical, dimension(:),     intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                   intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
-  
-      associate(keeps => self)
-         select type(discards)
-         class is (symba_encounter)
-            call util_spill(keeps%level, discards%level, lspill_list, ldestructive)
-            call encounter_util_spill_list(keeps, discards, lspill_list, ldestructive)
-         class default
-            write(*,*) "Invalid object passed to the spill method. Source must be of class symba_encounter or its descendents!"
-            call util_exit(FAILURE)
-         end select
-      end associate
-   
-      return
-   end subroutine symba_util_spill_encounter_list
 
 
    module subroutine symba_util_spill_tp(self, discards, lspill_list, ldestructive)
@@ -1221,18 +562,20 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_tp)
-            call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
-            call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
-            call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
+            call swiftest_util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
 
-            call util_spill_tp(keeps, discards, lspill_list, ldestructive)
+            call swiftest_util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_tp or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
      
       return
    end subroutine symba_util_spill_tp
+
+
 
 end submodule s_symba_util

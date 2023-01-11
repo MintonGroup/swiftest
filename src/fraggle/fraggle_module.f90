@@ -1,0 +1,88 @@
+!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
+module fraggle
+   !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
+   !!
+   !! Definition of classes and methods specific to Fraggle: *Fragment* *g*eneration that conserves angular momentum (*L*) and energy (*E*)
+   use swiftest
+   implicit none
+   public
+
+   type, extends(collision_basic) :: collision_fraggle
+      real(DP) :: fail_scale      !! Scale factor to apply to distance values in the position model when overlaps occur. 
+   contains
+      procedure :: disrupt         => fraggle_generate_disrupt            !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
+      procedure :: generate        => fraggle_generate                    !! A simple disruption models that does not constrain energy loss in collisions
+      procedure :: hitandrun       => fraggle_generate_hitandrun          !! Generates either a pure hit and run, or one in which the runner is disrupted
+      procedure :: set_mass_dist   => fraggle_util_set_mass_dist          !! Sets the distribution of mass among the fragments depending on the regime type
+      procedure :: setup_fragments => fraggle_util_setup_fragments_system !! Initializer for the fragments of the collision system. 
+      !procedure :: reset           => fraggle_util_dealloc_system           !! Deallocates all allocatables
+   end type collision_fraggle  
+
+   interface
+      module subroutine fraggle_generate(self, nbody_system, param, t)
+         implicit none
+         class(collision_fraggle),  intent(inout) :: self        !! Fraggle fragment system object 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
+      end subroutine fraggle_generate
+
+      module subroutine fraggle_generate_disrupt(self, nbody_system, param, t, lfailure)
+         implicit none
+         class(collision_fraggle), intent(inout) :: self         !! Fraggle system object the outputs will be the fragmentation 
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! Time of collision 
+         logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
+      end subroutine fraggle_generate_disrupt
+
+      module subroutine fraggle_generate_hitandrun(self, nbody_system, param, t) 
+         implicit none
+         class(collision_fraggle),   intent(inout) :: self         !! Collision system object
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
+         real(DP),                 intent(in)    :: t            !! Time of collision
+      end subroutine fraggle_generate_hitandrun
+
+      module subroutine fraggle_generate_pos_vec(collider)
+         implicit none
+         class(collision_fraggle), intent(inout) :: collider !! Fraggle ollision system object
+      end subroutine fraggle_generate_pos_vec 
+
+      module subroutine fraggle_generate_rot_vec(collider, nbody_system, param)
+         implicit none
+         class(collision_fraggle),     intent(inout) :: collider     !! Collision system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      end subroutine fraggle_generate_rot_vec 
+
+      module subroutine fraggle_generate_vel_vec(collider, nbody_system, param, lfailure)
+         implicit none
+         class(collision_fraggle),     intent(inout) :: collider     !! Fraggle collision system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
+      end subroutine fraggle_generate_vel_vec
+
+      module subroutine fraggle_util_setup_fragments_system(self, nfrag)
+         implicit none
+         class(collision_fraggle), intent(inout) :: self  !! Encounter collision system object
+         integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
+      end subroutine fraggle_util_setup_fragments_system
+
+      module subroutine fraggle_util_set_mass_dist(self, param)
+         implicit none
+         class(collision_fraggle), intent(inout) :: self  !! Fraggle collision object
+         class(base_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
+      end subroutine fraggle_util_set_mass_dist
+   end interface
+   
+end module fraggle

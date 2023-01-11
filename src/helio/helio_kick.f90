@@ -7,11 +7,11 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(helio_classes) s_helio_kick
+submodule(helio) s_helio_kick
    use swiftest
 contains
 
-   module subroutine helio_kick_getacch_pl(self, system, param, t, lbeg)
+   module subroutine helio_kick_getacch_pl(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of massive bodies
@@ -21,17 +21,17 @@ contains
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current simulation time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
 
       if (self%nbody == 0) return
 
-      associate(cb => system%cb, pl => self, npl => self%nbody)
+      associate(cb => nbody_system%cb, pl => self, npl => self%nbody)
          call pl%accel_int(param)
          if (param%loblatecb) then 
-            call pl%accel_obl(system)
+            call pl%accel_obl(nbody_system)
             if (lbeg) then
                cb%aoblbeg = cb%aobl
             else
@@ -39,7 +39,7 @@ contains
             end if
             ! TODO: Implement tides
             ! if (param%ltides) then
-            !    call pl%accel_tides(system)
+            !    call pl%accel_tides(nbody_system)
             !    if (lbeg) then
             !       cb%atidebeg = cb%atide
             !    else
@@ -47,7 +47,7 @@ contains
             !    end if
             ! end if
          end if
-         if (param%lextra_force) call pl%accel_user(system, param, t, lbeg)
+         if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call pl%accel_gr(param)
       end associate
 
@@ -55,7 +55,7 @@ contains
    end subroutine helio_kick_getacch_pl
 
 
-   module subroutine helio_kick_getacch_tp(self, system, param, t, lbeg)
+   module subroutine helio_kick_getacch_tp(self, nbody_system, param, t, lbeg)
       !! author: David A. Minton
       !!
       !! Compute heliocentric accelerations of test particles
@@ -65,22 +65,22 @@ contains
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self   !! Helio test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
    
       if (self%nbody == 0) return
 
-      associate(tp => self, cb => system%cb, pl => system%pl, npl => system%pl%nbody)
-         system%lbeg = lbeg
-         if (system%lbeg) then
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%xbeg(:,1:npl), npl)
+      associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl, npl => nbody_system%pl%nbody)
+         nbody_system%lbeg = lbeg
+         if (nbody_system%lbeg) then
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:,1:npl), npl)
          else
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%xend(:,1:npl), npl)
+            call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:,1:npl), npl)
          end if
-         if (param%loblatecb) call tp%accel_obl(system)
-         if (param%lextra_force) call tp%accel_user(system, param, t, lbeg)
+         if (param%loblatecb) call tp%accel_obl(nbody_system)
+         if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param)
       end associate
 
@@ -88,7 +88,7 @@ contains
    end subroutine helio_kick_getacch_tp
 
 
-   module subroutine helio_kick_vb_pl(self, system, param, t, dt, lbeg)
+   module subroutine helio_kick_vb_pl(self, nbody_system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of bodies
@@ -98,7 +98,7 @@ contains
       implicit none
       ! Arguments
       class(helio_pl),              intent(inout) :: self   !! Swiftest generic body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t      !! Current time
       real(DP),                     intent(in)    :: dt     !! Stepsize
@@ -110,11 +110,11 @@ contains
 
       associate(pl => self, npl => self%nbody)
          pl%ah(:, 1:npl) = 0.0_DP
-         call pl%accel(system, param, t, lbeg)
+         call pl%accel(nbody_system, param, t, lbeg)
          if (lbeg) then
-            call pl%set_beg_end(xbeg = pl%xh)
+            call pl%set_beg_end(rbeg = pl%rh)
          else
-            call pl%set_beg_end(xend = pl%xh)
+            call pl%set_beg_end(rend = pl%rh)
          end if
          do concurrent(i = 1:npl, pl%lmask(i)) 
             pl%vb(1, i) = pl%vb(1, i) + pl%ah(1, i) * dt
@@ -127,7 +127,7 @@ contains
    end subroutine helio_kick_vb_pl
 
 
-   module subroutine helio_kick_vb_tp(self, system, param, t, dt, lbeg)
+   module subroutine helio_kick_vb_tp(self, nbody_system, param, t, dt, lbeg)
       !! author: David A. Minton
       !!
       !! Kick barycentric velocities of bodies
@@ -137,7 +137,7 @@ contains
       implicit none
       ! Arguments
       class(helio_tp),              intent(inout) :: self !! Swiftest generic body object
-      class(swiftest_nbody_system), intent(inout) :: system !! Swiftest nbody system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: t     !! Current time
       real(DP),                     intent(in)    :: dt    !! Stepsize
@@ -149,7 +149,7 @@ contains
 
       associate(tp => self, ntp => self%nbody)
          tp%ah(:, 1:ntp) = 0.0_DP
-         call tp%accel(system, param, t, lbeg)
+         call tp%accel(nbody_system, param, t, lbeg)
          do concurrent(i = 1:ntp, tp%lmask(i)) 
             tp%vb(:, i) = tp%vb(:, i) + tp%ah(:, i) * dt
          end do

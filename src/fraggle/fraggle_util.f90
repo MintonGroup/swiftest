@@ -7,313 +7,198 @@
 !! You should have received a copy of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
-submodule(fraggle_classes) s_fraggle_util
+submodule(fraggle) s_fraggle_util
    use swiftest
 contains
 
-   module subroutine fraggle_util_add_fragments_to_system(frag, colliders, system, param)
-      !! Author: David A. Minton
+   module subroutine fraggle_util_set_mass_dist(self, param)
+      !! author: David A. Minton
       !!
-      !! Adds fragments to the temporary system pl object
+      !! Sets the mass of fragments based on the mass distribution returned by the regime calculation.
+      !! This subroutine must be run after the the setup routine has been run on the fragments
+      !!
       implicit none
       ! Arguments
-      class(fraggle_fragments),     intent(in)    :: frag      !! Fraggle fragment system object
-      class(fraggle_colliders),     intent(in)    :: colliders !! Fraggle collider system object
-      class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param     !! Current swiftest run configuration parameters
+      class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
+      class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B) :: i, npl_before, npl_after
-      logical, dimension(:), allocatable :: lexclude
+      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
+      real(DP), dimension(2)    :: volume
+      real(DP), dimension(NDIM) :: Ip_avg
+      real(DP) :: mfrag, mremaining, min_mfrag, mtot, mcumul, G
+      real(DP), dimension(:), allocatable :: mass
+      real(DP), parameter :: BETA = 2.85_DP
+      integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
+      integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
+      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
+      integer(I4B), parameter :: iMlr = 1
+      integer(I4B), parameter :: iMslr = 2
+      integer(I4B), parameter :: iMrem = 3
+      integer(I4B), dimension(:), allocatable :: ind
+      logical :: flipper
+     
+      associate(impactors => self%impactors)
+         ! Get mass weighted mean of Ip and density
+         volume(1:2) = 4._DP / 3._DP * PI * impactors%radius(1:2)**3
+         mtot = sum(impactors%mass(:))
+         G = impactors%Gmass(1) / impactors%mass(1)
+         Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / mtot
 
-      associate(nfrag => frag%nbody, pl => system%pl, cb => system%cb)
-         npl_after = pl%nbody
-         npl_before = npl_after - nfrag
-         allocate(lexclude(npl_after))
-
-         pl%status(npl_before+1:npl_after) = ACTIVE
-         pl%mass(npl_before+1:npl_after) = frag%mass(1:nfrag)
-         pl%Gmass(npl_before+1:npl_after) = frag%mass(1:nfrag) * param%GU
-         pl%radius(npl_before+1:npl_after) = frag%radius(1:nfrag)
-         do concurrent (i = 1:nfrag)
-            pl%xb(:,npl_before+i) =  frag%xb(:,i) 
-            pl%vb(:,npl_before+i) =  frag%vb(:,i) 
-            pl%xh(:,npl_before+i) =  frag%xb(:,i) - cb%xb(:)
-            pl%vh(:,npl_before+i) =  frag%vb(:,i) - cb%vb(:)
-         end do
-         if (param%lrotation) then
-            pl%Ip(:,npl_before+1:npl_after) = frag%Ip(:,1:nfrag)
-            pl%rot(:,npl_before+1:npl_after) = frag%rot(:,1:nfrag)
-         end if
-         ! This will remove the colliders from the system since we've replaced them with fragments
-         lexclude(1:npl_after) = .false.
-         lexclude(colliders%idx(1:colliders%ncoll)) = .true.
-         where(lexclude(1:npl_after)) 
-            pl%status(1:npl_after) = INACTIVE
-         elsewhere
-            pl%status(1:npl_after) = ACTIVE
-         endwhere
-
-      end associate
-
-      return
-   end subroutine fraggle_util_add_fragments_to_system
-   
-
-   module subroutine fraggle_util_ang_mtm(self) 
-      !! Author: David A. Minton
-      !!
-      !! Calcualtes the current angular momentum of the fragments
-      implicit none
-      ! Arguments
-      class(fraggle_fragments), intent(inout)  :: self !! Fraggle fragment system object
-      ! Internals
-      integer(I4B) :: i
-
-      associate(frag => self, nfrag => self%nbody)
-         frag%L_orbit(:) = 0.0_DP
-         frag%L_spin(:) = 0.0_DP
-   
-         do i = 1, nfrag
-            frag%L_orbit(:) = frag%L_orbit(:) + frag%mass(i) * (frag%x_coll(:, i) .cross. frag%v_coll(:, i))
-            frag%L_spin(:) = frag%L_spin(:) + frag%mass(i) * frag%radius(i)**2 * frag%Ip(:, i) * frag%rot(:, i)
-         end do
-      end associate
-
-      return
-   end subroutine fraggle_util_ang_mtm
-
-
-   module subroutine fraggle_util_construct_temporary_system(frag, system, param, tmpsys, tmpparam)
-      !! Author: David A. Minton
-      !!
-      !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
-      implicit none
-      ! Arguments
-      class(fraggle_fragments),                   intent(in)  :: frag     !! Fraggle fragment system object
-      class(swiftest_nbody_system),               intent(in)  :: system   !! Original swiftest nbody system object
-      class(swiftest_parameters),                 intent(in)  :: param    !! Current swiftest run configuration parameters
-      class(swiftest_nbody_system), allocatable,  intent(out) :: tmpsys   !! Output temporary swiftest nbody system object
-      class(swiftest_parameters),   allocatable,  intent(out) :: tmpparam !! Output temporary configuration run parameters
-      ! Internals
-      logical, dimension(:), allocatable :: linclude
-      integer(I4B) :: npl_tot
-
-      associate(nfrag => frag%nbody, pl => system%pl, npl => system%pl%nbody, cb => system%cb)
-         ! Set up a new system based on the original
-         if (allocated(tmpparam)) deallocate(tmpparam)
-         if (allocated(tmpsys)) deallocate(tmpsys)
-         allocate(tmpparam, source=param)
-         call setup_construct_system(tmpsys, tmpparam)
-
-         ! No test particles necessary for energy/momentum calcs
-         call tmpsys%tp%setup(0, param)
-
-         ! Replace the empty central body object with a copy of the original
-         deallocate(tmpsys%cb)
-         allocate(tmpsys%cb, source=cb)
-
-         ! Make space for the fragments
-         npl_tot = npl + nfrag
-         call tmpsys%pl%setup(npl_tot, tmpparam)
-         allocate(linclude(npl_tot))
-
-         ! Fill up the temporary system with all of the original bodies, leaving the spaces for fragments empty until we add them in later
-         linclude(1:npl) = .true.
-         linclude(npl+1:npl_tot) = .false.
-         call tmpsys%pl%fill(pl, linclude)
-
-         ! Scale the temporary system to the natural units of the current Fraggle calculation
-         call tmpsys%rescale(tmpparam, frag%mscale, frag%dscale, frag%tscale)
-
-      end associate
-
-      return
-   end subroutine fraggle_util_construct_temporary_system
-
-
-   module subroutine fraggle_util_get_energy_momentum(self, colliders, system, param, lbefore)
-      !! Author: David A. Minton
-      !!
-      !! Calculates total system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
-      !! This subrourtine works by building a temporary internal massive body object out of the non-excluded bodies and optionally with fragments appended. 
-      !! This will get passed to the energy calculation subroutine so that energy is computed exactly the same way is it is in the main program. 
-      !! This will temporarily expand the massive body object in a temporary system object called tmpsys to feed it into symba_energy
-      implicit none
-      ! Arguments
-      class(fraggle_fragments),     intent(inout) :: self      !! Fraggle fragment system object
-      class(fraggle_colliders),     intent(inout) :: colliders !! Fraggle collider system object
-      class(swiftest_nbody_system), intent(inout) :: system    !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param     !! Current swiftest run configuration parameters
-      logical,                      intent(in)    :: lbefore   !! Flag indicating that this the "before" state of the system, with colliders included and fragments excluded or vice versa
-      ! Internals
-      class(swiftest_nbody_system), allocatable, save :: tmpsys
-      class(swiftest_parameters), allocatable, save   :: tmpparam
-      integer(I4B)  :: npl_before, npl_after
-
-      associate(frag => self, nfrag => self%nbody, pl => system%pl, cb => system%cb)
-
-         ! Because we're making a copy of the massive body object with the excludes/fragments appended, we need to deallocate the
-         ! big k_plpl array and recreate it when we're done, otherwise we run the risk of blowing up the memory by
-         ! allocating two of these ginormous arrays simulteouously. This is not particularly efficient, but as this
-         ! subroutine should be called relatively infrequently, it shouldn't matter too much.
-
-         npl_before = pl%nbody
-         npl_after = npl_before + nfrag
-
-         if (lbefore) then
-            call fraggle_util_construct_temporary_system(frag, system, param, tmpsys, tmpparam)
-            ! Build the exluded body logical mask for the *before* case: Only the original bodies are used to compute energy and momentum
-            tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = ACTIVE
-            tmpsys%pl%status(npl_before+1:npl_after) = INACTIVE
+         if (impactors%mass(1) >= impactors%mass(2)) then
+            jtarg = 1
+            jproj = 2
          else
-            if (.not.allocated(tmpsys)) then
-               write(*,*) "Error in fraggle_util_get_energy_momentum. " // &
-                         " This must be called with lbefore=.true. at least once before calling it with lbefore=.false."
-               call util_exit(FAILURE)
+            jtarg = 2
+            jproj = 1
+         end if
+  
+         select case(impactors%regime)
+         case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
+            ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of collision_regime.
+            ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
+            ! the limits bracketed above and the model size distribution of fragments.
+            ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
+
+            select type(param)
+            class is (swiftest_parameters)
+               min_mfrag = (param%min_GMfrag / param%GU) 
+               ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
+               ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
+               ! code from getting an overwhelmingly large number of fragments
+               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(mtot / min_mfrag))
+               nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
+            class default
+               min_mfrag = 0.0_DP
+               nfrag = NFRAGMAX
+            end select
+
+            i = iMrem
+            mremaining = impactors%mass_dist(iMrem)
+            do while (i <= nfrag)
+               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
+               if (mremaining - mfrag < 0.0_DP) exit
+               mremaining = mremaining - mfrag
+               i = i + 1
+            end do
+            if (i < nfrag) nfrag = max(i, NFRAGMIN)  ! The sfd would actually give us fewer fragments than our maximum
+            call self%setup_fragments(nfrag)
+
+         case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
+
+            call self%setup_fragments(1)
+            select type(fragments => self%fragments)
+            class is (collision_fragments(*))
+               fragments%mass(1) = impactors%mass_dist(1)
+               fragments%Gmass(1) = G * impactors%mass_dist(1)
+               fragments%radius(1) = impactors%radius(jtarg)
+               fragments%density(1) = impactors%mass_dist(1) / volume(jtarg)
+               if (param%lrotation) fragments%Ip(:, 1) = impactors%Ip(:,1)
+            end select
+            return
+         case default
+            write(*,*) "collision_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
+         end select
+
+         associate(fragments => self%fragments)
+            fragments%mtot = mtot
+            allocate(mass, mold=fragments%mass)
+
+            ! Make the first two bins the same as the Mlr and Mslr values that came from collision_regime
+            mass(1) = impactors%mass_dist(iMlr) 
+            mass(2) = impactors%mass_dist(iMslr) 
+
+            ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
+            mremaining = impactors%mass_dist(iMrem)
+            do i = iMrem, nfrag
+               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
+               mass(i) = mfrag
+               mremaining = mremaining - mfrag
+            end do
+
+            ! If there is any residual mass (either positive or negative) we will distribute remaining mass proportionally among the the fragments
+            if (mremaining < 0.0_DP) then ! If the remainder is negative, this means that that the number of fragments required by the SFD is smaller than our lower limit set by fraggle_generate. 
+               istart = iMrem ! We will reduce the mass of the 3:nfrag bodies to prevent the second-largest fragment from going smaller
+            else ! If the remainder is postiive, this means that the number of fragments required by the SFD is larger than our upper limit set by computational expediency. 
+               istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment remains the second largest
             end if
-            ! Build the exluded body logical mask for the *after* case: Only the new bodies are used to compute energy and momentum
-            call fraggle_util_add_fragments_to_system(frag, colliders, tmpsys, tmpparam)
-            tmpsys%pl%status(colliders%idx(1:colliders%ncoll)) = INACTIVE
-            tmpsys%pl%status(npl_before+1:npl_after) = ACTIVE
-         end if 
+            mfrag = 1._DP + mremaining / sum(mass(istart:nfrag))
+            mass(istart:nfrag) = mass(istart:nfrag) * mfrag
 
-         if (param%lflatten_interactions) call tmpsys%pl%flatten(param)
+            ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
+            mremaining = fragments%mtot - sum(mass(1:nfrag))
+            mass(nfrag) = mass(nfrag) + mremaining
 
-         call tmpsys%get_energy_and_momentum(param) 
+            ! Sort the distribution in descending order by mass so that the largest fragment is always the first
+            call swiftest_util_sort(-mass, ind)
+            call swiftest_util_sort_rearrange(mass, ind, nfrag)
+            fragments%mass(:) = mass(:)
+            deallocate(mass)
+
+            fragments%Gmass(:) = G * fragments%mass(:)
+
+            ! Compute physical properties of the new fragments
+            select case(impactors%regime)
+            case(COLLRESOLVE_REGIME_HIT_AND_RUN)  ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical properties of the first fragment
+               fragments%radius(1) = impactors%radius(jtarg)
+               fragments%density(1) = impactors%mass_dist(iMlr) / volume(jtarg)
+               fragments%Ip(:, 1) = impactors%Ip(:,1)
+               istart = 2
+            case default
+               istart = 1
+            end select
+
+            fragments%density(istart:nfrag) = fragments%mtot / sum(volume(:))
+            fragments%radius(istart:nfrag) = (3 * fragments%mass(istart:nfrag) / (4 * PI * fragments%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
+            do concurrent(i = istart:nfrag)
+               fragments%Ip(:, i) = Ip_avg(:)
+            end do
+
+            ! For catastrophic impacts, we will assign each of the n>2 fragments to one of the two original bodies so that the fragment cloud occupies 
+            ! roughly the same space as both original bodies. For all other disruption cases, we use body 2 as the center of the cloud.
+            fragments%origin_body(1) = 1
+            fragments%origin_body(2) = 2
+            if (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
+               mcumul = fragments%mass(1)
+               flipper = .true.
+               j = 2
+               do i = 1, nfrag
+                  if (flipper .and. (mcumul < impactors%mass(1))) then
+                     flipper = .false.
+                     j = 1
+                  else
+                     j = 2
+                     flipper = .true.
+                  end if
+                  fragments%origin_body(i) = j
+               end do
+            else
+               fragments%origin_body(3:nfrag) = 2
+            end if
+
+         end associate
 
 
-         ! Calculate the current fragment energy and momentum balances
-         if (lbefore) then
-            frag%Lorbit_before(:) = tmpsys%Lorbit(:)
-            frag%Lspin_before(:) = tmpsys%Lspin(:)
-            frag%Ltot_before(:) = tmpsys%Ltot(:)
-            frag%ke_orbit_before = tmpsys%ke_orbit
-            frag%ke_spin_before = tmpsys%ke_spin
-            frag%pe_before = tmpsys%pe
-            frag%Etot_before = tmpsys%te
-         else
-            frag%Lorbit_after(:) = tmpsys%Lorbit(:)
-            frag%Lspin_after(:) = tmpsys%Lspin(:)
-            frag%Ltot_after(:) = tmpsys%Ltot(:)
-            frag%ke_orbit_after = tmpsys%ke_orbit
-            frag%ke_spin_after = tmpsys%ke_spin
-            frag%pe_after = tmpsys%pe
-            frag%Etot_after = tmpsys%te
-         end if
       end associate
 
       return
-   end subroutine fraggle_util_get_energy_momentum
+   end subroutine fraggle_util_set_mass_dist
 
 
-   module subroutine fraggle_util_restructure(self, colliders, try, f_spin, r_max_start)
-      !! Author: David A. Minton
+   module subroutine fraggle_util_setup_fragments_system(self, nfrag)
+      !! author: David A. Minton
       !!
-      !! Restructure the inputs after a failed attempt failed to find a set of positions and velocities that satisfy the energy and momentum constraints
+      !! Initializer for the fragments of the collision system. 
       implicit none
       ! Arguments
-      class(fraggle_fragments), intent(inout) :: self        !! Fraggle fragment system object
-      class(fraggle_colliders), intent(in)    :: colliders   !! Fraggle collider system object
-      integer(I4B),             intent(in)    :: try         !! The current number of times Fraggle has tried to find a solution
-      real(DP),                 intent(inout) :: f_spin      !! Fraction of energy/momentum that goes into spin. This decreases ater a failed attempt
-      real(DP),                 intent(inout) :: r_max_start !! The maximum radial distance that the position calculation starts with. This increases after a failed attempt
-      ! Internals
-      real(DP), save :: ke_tot_deficit, r_max_start_old, ke_avg_deficit_old
-      real(DP) :: delta_r, delta_r_max, ke_avg_deficit
-      real(DP), parameter :: ke_avg_deficit_target = 0.0_DP 
+      class(collision_fraggle), intent(inout) :: self  !! Encounter collision system object
+      integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
 
-      ! Introduce a bit of noise in the radius determination so we don't just flip flop between similar failed positions
-      associate(frag => self)
-         call random_number(delta_r_max)
-         delta_r_max = sum(colliders%radius(:)) * (1.0_DP + 2e-1_DP * (delta_r_max - 0.5_DP))
-         if (try == 1) then
-            ke_tot_deficit = - (frag%ke_budget - frag%ke_orbit - frag%ke_spin)
-            ke_avg_deficit = ke_tot_deficit
-            delta_r = delta_r_max
-         else
-            ! Linearly interpolate the last two failed solution ke deficits to find a new distance value to try
-            ke_tot_deficit = ke_tot_deficit - (frag%ke_budget - frag%ke_orbit - frag%ke_spin)
-            ke_avg_deficit = ke_tot_deficit / try
-            delta_r = (r_max_start - r_max_start_old) * (ke_avg_deficit_target - ke_avg_deficit_old) &
-                                                      / (ke_avg_deficit - ke_avg_deficit_old)
-            if (abs(delta_r) > delta_r_max) delta_r = sign(delta_r_max, delta_r)
-         end if
-         r_max_start_old = r_max_start
-         r_max_start = r_max_start + delta_r ! The larger lever arm can help if the problem is in the angular momentum step
-         ke_avg_deficit_old = ke_avg_deficit
-   
-         if (f_spin > epsilon(1.0_DP)) then ! Try reducing the fraction in spin
-            f_spin = f_spin / 2
-         else
-            f_spin = 0.0_DP
-         end if
-      end associate 
+      if (allocated(self%fragments)) deallocate(self%fragments)
+      allocate(collision_fragments(nbody=nfrag) :: self%fragments)
+      self%fragments%nbody = nfrag
 
       return
-   end subroutine fraggle_util_restructure
-
-
-   module subroutine fraggle_util_shift_vector_to_origin(m_frag, vec_frag)
-      !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
-      !!
-      !! Adjusts the position or velocity of the fragments as needed to align them with the origin
-      implicit none
-      ! Arguments
-      real(DP), dimension(:),   intent(in)    :: m_frag    !! Fragment masses
-      real(DP), dimension(:,:), intent(inout) :: vec_frag  !! Fragment positions or velocities in the center of mass frame
-
-      ! Internals
-      real(DP), dimension(NDIM) :: mvec_frag, COM_offset
-      integer(I4B) :: i, nfrag
-      real(DP) :: mtot
-
-      mvec_frag(:) = 0.0_DP
-      mtot = sum(m_frag)
-      nfrag = size(m_frag)
-
-      do i = 1, nfrag
-         mvec_frag = mvec_frag(:) + vec_frag(:,i) * m_frag(i)
-      end do
-      COM_offset(:) = -mvec_frag(:) / mtot
-      do i = 1, nfrag 
-         vec_frag(:, i) = vec_frag(:, i) + COM_offset(:)
-      end do
-
-      return
-   end subroutine fraggle_util_shift_vector_to_origin
-
-
-   module function fraggle_util_vmag_to_vb(v_r_mag, v_r_unit, v_t_mag, v_t_unit, m_frag, vcom) result(vb) 
-      !! Author: David A. Minton
-      !!
-      !! Converts radial and tangential velocity magnitudes into barycentric velocity
-      implicit none
-      ! Arguments
-      real(DP), dimension(:),   intent(in)  :: v_r_mag   !! Unknown radial component of fragment velocity vector
-      real(DP), dimension(:),   intent(in)  :: v_t_mag   !! Tangential component of velocity vector set previously by angular momentum constraint
-      real(DP), dimension(:,:), intent(in)  :: v_r_unit, v_t_unit !! Radial and tangential unit vectors for each fragment
-      real(DP), dimension(:),   intent(in)  :: m_frag    !! Fragment masses
-      real(DP), dimension(:),   intent(in)  :: vcom      !! Barycentric velocity of collisional system center of mass
-      ! Result
-      real(DP), dimension(:,:), allocatable   :: vb
-      ! Internals
-      integer(I4B) :: i, nfrag
-
-      allocate(vb, mold=v_r_unit)
-      ! Make sure the velocity magnitude stays positive
-      nfrag = size(m_frag)
-      do i = 1, nfrag
-         vb(:,i) = abs(v_r_mag(i)) * v_r_unit(:, i)
-      end do
-      ! In order to keep satisfying the kinetic energy constraint, we must shift the origin of the radial component of the velocities to the center of mass
-      call fraggle_util_shift_vector_to_origin(m_frag, vb)
-      
-      do i = 1, nfrag
-         vb(:, i) = vb(:, i) + v_t_mag(i) * v_t_unit(:, i) + vcom(:)
-      end do
-
-      return
-   end function fraggle_util_vmag_to_vb
+   end subroutine fraggle_util_setup_fragments_system
 
 
 end submodule s_fraggle_util

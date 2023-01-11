@@ -1,4 +1,8 @@
-*/param.*
-*/simdata/*
-*/*/simdata/*
-
+*
+!.gitignore
+!Basic_Simulation
+!Fragmentation
+!helio_gr_test
+!whm_gr_test
+!Chambers2013
+!solar_impact
