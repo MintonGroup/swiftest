@@ -141,7 +141,7 @@ contains
          te_now = nbody_system%te
          L_orbit_now(:) = nbody_system%L_orbit(:)
          L_spin_now(:) = nbody_system%L_spin(:)
-         E_orbit_now = ke_orbit_now + pe_now + be_now
+         E_orbit_now = ke_orbit_now + pe_now
          L_total_now(:) = nbody_system%L_total(:) + nbody_system%L_escape(:)
          GMtot_now = nbody_system%GMtot + nbody_system%GMescape 
 
