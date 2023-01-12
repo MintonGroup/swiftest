@@ -420,7 +420,7 @@ contains
       real(DP), parameter     :: vmax_initial_factor = 5.0_DP ! For the initial "guess" of fragment velocities, this is the maximum velocity relative to escape velocity that the fragments will have
       integer(I4B), parameter :: MAXLOOP = 200
       integer(I4B), parameter :: MAXTRY  = 20
-      real(DP), parameter :: SUCCESS_METRIC = 1.0_DP
+      real(DP), parameter :: SUCCESS_METRIC = 1.0e-3_DP
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
 
