@@ -65,7 +65,7 @@ contains
       integer(I4B) :: jtarg, jproj
       real(DP), dimension(2) :: radius_si, mass_si, density_si
       real(DP) :: min_mfrag_si, Mcb_si
-      real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si, runit
+      real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si
       real(DP) :: mlr, mslr, mtot, dentot
       integer(I4B), parameter :: NMASS_DIST = 3   !! Number of mass bins returned by the regime calculation (largest fragment, second largest, and remainder)  
 
@@ -149,7 +149,7 @@ contains
       real(DP), parameter   :: CRUFU = 2.0_DP - 3 * MU_BAR ! central potential variable from Rufu and Aharonson (2019)
       real(DP), parameter   :: SUPERCAT_QRATIO = 1.8_DP ! See Section 4.1 of LS12
       ! Internals
-      real(DP)           :: a1, alpha, aint, b, bcrit, c_star, egy, zeta, l, lint, mu, phi, theta
+      real(DP)           :: a1, alpha, aint, b, bcrit, c_star, egy, zeta, l, lint, mu, phi, theta, ke, pe, Qmerge
       real(DP)           :: Qr, Qrd_pstar, Qr_erosion, Qr_supercat
       real(DP)           :: Vhr, Verosion, Vescp, Vhill, Vimp, Vsupercat
       real(DP)           :: Mint, Mtot, Mtmp
@@ -213,13 +213,16 @@ contains
       Vhr = Vescp * (C1 * zeta**2 * theta**(2.5_DP) + C2 * zeta**2 + C3 * theta**(2.5_DP) + C4) ! Kokubo & Genda (2010) eq. (3)
       bcrit = rad1 / (rad1 + rad2)
       Qloss = 0.0_DP
-      U_binding = (3.0_DP * Mtot) / (5.0_DP * Rp) ! LS12 eq. 27
+      U_binding = (3 * GC * Mtot**2) / (5 * Rp) ! LS12 eq. 27
+      ke = 0.5_DP * Mtot * Vimp**2
+      pe = - GC * m1 * m2 / norm2(rh2 - rh1)
+      Qmerge = ke + pe + U_binding 
 
       if ((m1 < min_mfrag).or.(m2 < min_mfrag)) then 
          regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
          Mlr = Mtot
          Mslr = 0.0_DP
-         Qloss = 0.0_DP
+         Qloss = Qmerge
          call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
                                  "Fragments would have mass below the minimum. Converting this collision into a merger.")
       else 
@@ -227,18 +230,18 @@ contains
             regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
             Mlr = Mtot
             Mslr = 0.0_DP
-            Qloss = 0.0_DP
+            Qloss = Qmerge
          else if (Vimp < Verosion) then 
             if (b < bcrit) then
                regime = COLLRESOLVE_REGIME_MERGE !partial accretion regime"
                Mlr = Mtot
                Mslr = 0.0_DP
-               Qloss = 0.0_DP
+               Qloss = Qmerge
             else if ((b > bcrit) .and. (Vimp < Vhr)) then
                regime = COLLRESOLVE_REGIME_MERGE ! graze and merge
                Mlr = Mtot
                Mslr = 0.0_DP
-               Qloss = 0.0_DP
+               Qloss = Qmerge
             else
                Mlr = m1
                Mslr = max(calc_Qrd_rev(m2, m1, Mint, den1, den2, Vimp, c_star), min_mfrag)
@@ -250,7 +253,7 @@ contains
                regime = COLLRESOLVE_REGIME_MERGE !cratering regime"
                Mlr = Mtot
                Mslr = 0.0_DP
-               Qloss = 0.0_DP
+               Qloss = Qmerge
             else 
                Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA), min_mfrag)  ! LS12 eq (37)
                regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
