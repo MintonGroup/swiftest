@@ -313,10 +313,12 @@ contains
          select type(nc => collision_history%nc)
          class is (collision_netcdf_parameters)
             nc%file_name = COLLISION_OUTFILE
-            if (.not.param%lrestart) then
+            if (param%lrestart) then
+               call nc%open(param) ! This will find the nc%max_idslot variable
+            else
                call nc%initialize(param)
-               call nc%close()
             end if
+            call nc%close()
          end select
          allocate(nbody_system%collision_history, source=collision_history)
 
@@ -329,6 +331,10 @@ contains
             allocate(collision_fraggle :: nbody_system%collider)
          end select
          call nbody_system%collider%setup(nbody_system)
+         select type(nc => collision_history%nc)
+         class is (collision_netcdf_parameters)
+            nbody_system%collider%maxid_collision = nc%max_idslot
+         end select
 
       end associate
 
