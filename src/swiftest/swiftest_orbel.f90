@@ -939,6 +939,11 @@ contains
       capom = 0.0_DP
       omega = 0.0_DP
       capm = 0.0_DP
+      varpi = 0.0_DP
+      lam = 0.0_DP
+      f = 0.0_DP
+      cape = 0.0_DP
+      capf = 0.0_DP
       x = [px, py, pz]
       v = [vx, vy, vz]
       r = .mag. x(:)
