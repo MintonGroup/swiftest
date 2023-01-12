@@ -24,8 +24,10 @@ module netcdf_io
       logical            :: lfile_is_open = .false.                     !! Flag indicating that the linked file is currently open
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B)       :: id                                          !! ID for the output file
-      integer(I4B)       :: max_tslot               = 0                 !! Records the last index value of time in the NetCDF file
       integer(I4B)       :: tslot                   = 1                 !! The current time slot that gets passed to the NetCDF reader/writer
+      integer(I4B)       :: max_tslot               = 0                 !! Records the last index value of time in the NetCDF file
+      integer(I4B), dimension(:), allocatable :: idvals                 !! Array of id values in this NetCDF file
+      integer(I4B)       :: max_idslot              = 0                 !! Records the last index value of id in the NetCDF file
 
       ! Dimension ids and variable names
       character(NAMELEN) :: str_dimname             = "string32"        !! name of the character string dimension
@@ -142,6 +144,7 @@ module netcdf_io
    contains
       procedure :: close      => netcdf_io_close       !! Closes an open NetCDF file
       procedure :: find_tslot => netcdf_io_find_tslot  !! Finds the time dimension index for a given value of t
+      procedure :: get_idvals => netcdf_io_get_idvals  !! Gets the valid id numbers currently stored in this dataset
       procedure :: sync       => netcdf_io_sync        !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
@@ -156,6 +159,11 @@ module netcdf_io
          implicit none
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_io_close
+
+      module subroutine netcdf_io_get_idvals(self)
+         implicit none
+         class(netcdf_parameters),                            intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+      end subroutine netcdf_io_get_idvals
 
       module subroutine netcdf_io_find_tslot(self, t)
          implicit none

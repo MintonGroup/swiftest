@@ -4678,7 +4678,7 @@ contains
       !! author: David A. Minton
       !!
       !! Validate massive body and test particle ids
-      !! subroutine swiftest_causes program to exit with error if any ids are not unique
+      !! If non-unique values detected, it will replace them
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: util_valid.f90
       implicit none
@@ -4686,11 +4686,14 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                  :: i
-      integer(I4B), dimension(:), allocatable :: idarr
+      integer(I4B) :: i, nid
+      integer(I4B), dimension(:), allocatable :: idarr, unique_idarr, idmap
 
-      associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
-         allocate(idarr(1+npl+ntp))
+      associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody, maxid => self%maxid)
+         nid = 1 + npl+ ntp
+         allocate(idarr(nid))
+         ! Central body should always be id=0
+         cb%id = 0
          idarr(1) = cb%id
          do i = 1, npl
             idarr(1+i) = pl%id(i)
@@ -4698,15 +4701,25 @@ contains
          do i = 1, ntp
             idarr(1+npl+i) = tp%id(i)
          end do
-         call swiftest_util_sort(idarr)
-         do i = 1, npl + ntp 
-            if (idarr(i) == idarr(i+1)) then
-               write(*, *) "Swiftest error:"
-               write(*, *) "   more than one body/particle has id = ", idarr(i)
-               call base_util_exit(FAILURE)
+         maxid = maxval(idarr)
+
+         ! Check to see if the ids are unique
+         call swiftest_util_unique(idarr, unique_idarr, idmap)
+         if (size(unique_idarr) == nid) return ! All id values are unique
+
+         ! Fix any duplicate id values and update the maxid
+         call swiftest_util_sort(idmap)
+         do i = 2, size(idmap)
+            if (idmap(i) == idmap(i-1)) then
+               maxid = maxid + 1
+               if (i < 1 + npl) then
+                  pl%id(i - 1) = maxid 
+               else
+                  tp%id(i - 1 - npl) = maxid
+               end if
             end if
          end do
-         param%maxid = max(param%maxid, maxval(idarr))
+
       end associate
 
       return

@@ -33,7 +33,7 @@ contains
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
-         associate(impactors => self%impactors, status => self%status)
+         associate(impactors => self%impactors, status => self%status, maxid => nbody_system%maxid)
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
                call self%hitandrun(nbody_system, param, t)
@@ -53,7 +53,7 @@ contains
             call self%disrupt(nbody_system, param, t, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a merger.") 
-               call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
+               call self%merge(nbody_system, param, t) 
                return
             end if
 
@@ -66,12 +66,12 @@ contains
                   status = DISRUPTED
                   ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
                   fragments%id(1) = pl%id(ibiggest)
-                  fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-                  param%maxid = fragments%id(nfrag)
+                  fragments%id(2:nfrag) = [(i, i = maxid + 1, maxid + nfrag - 1)]
+                  maxid = fragments%id(nfrag)
                case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
                   status = SUPERCATASTROPHIC
-                  fragments%id(1:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag)]
-                  param%maxid = fragments%id(nfrag)
+                  fragments%id(1:nfrag) = [(i, i = maxid + 1, maxid + nfrag)]
+                  maxid = fragments%id(nfrag)
                end select
 
                call collision_resolve_mergeaddsub(nbody_system, param, t, status)
@@ -200,7 +200,7 @@ contains
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
-         associate(impactors => self%impactors)
+         associate(impactors => self%impactors, maxid => nbody_system%maxid)
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             if (impactors%mass(1) > impactors%mass(2)) then
                jtarg = 1
@@ -232,8 +232,8 @@ contains
 
             ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
             self%fragments%id(1) = pl%id(ibiggest)
-            self%fragments%id(2:nfrag) = [(i, i = param%maxid + 1, param%maxid + nfrag - 1)]
-            param%maxid = self%fragments%id(nfrag)
+            self%fragments%id(2:nfrag) = [(i, i = maxid + 1, maxid + nfrag - 1)]
+            maxid = self%fragments%id(nfrag)
             status = HIT_AND_RUN_DISRUPT
             call collision_resolve_mergeaddsub(nbody_system, param, t, status)
          end associate
@@ -570,6 +570,7 @@ contains
 
                end do
                ! We didn't converge. Try another configuration and see if we get a better result
+               call fragments%reset()
                call fraggle_generate_pos_vec(collider_local)
                call fraggle_generate_rot_vec(collider_local, nbody_system, param)
                collider_local%fail_scale = collider_local%fail_scale*1.01_DP
