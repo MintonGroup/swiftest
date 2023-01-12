@@ -509,7 +509,7 @@ contains
       real(DP) :: E_before, E_after, dLmag
       real(DP), dimension(NDIM) :: L_orbit_before, L_orbit_after, L_spin_before, L_spin_after, L_before, L_after, dL_orbit, dL_spin, dL
       logical :: lplpl_collision
-      character(len=STRMAX) :: timestr
+      character(len=STRMAX) :: timestr, idstr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
       integer(I4B) :: i, loop, ncollisions
@@ -562,6 +562,8 @@ contains
                      param%maxid_collision = max(param%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
                      param%maxid_collision = param%maxid_collision + 1
                      collider%collision_id = param%maxid_collision
+                     write(idstr,*) collider%collision_id
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision id " // trim(adjustl(idstr)))
 
                      ! Get the collision regime
                      call impactors%get_regime(nbody_system, param)
