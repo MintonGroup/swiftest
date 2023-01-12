@@ -233,7 +233,14 @@ contains
                self%pe(phase_val) = constraint_system%pe / self%Escale
                self%be(phase_val) = constraint_system%be / self%Escale
                self%te(phase_val) = constraint_system%te / self%Escale
-               if (phase_val == 2) then
+               if (phase_val == 1) then
+                  do concurrent(i = 1:2)
+                     impactors%ke_orbit(i) = 0.5_DP * impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
+                     impactors%ke_spin(i) = 0.5_DP * impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
+                     impactors%L_orbit(:,i) = impactors%mass(i) * impactors%rc(:,i) .cross. impactors%vc(:,i)
+                     impactors%L_spin(:,i) = impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * impactors%rot(:,i)
+                  end do
+               else if (phase_val == 2) then
                   do concurrent(i = 1:nfrag)
                      fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
                      fragments%ke_spin(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i), fragments%rot(:,i))
@@ -315,6 +322,8 @@ contains
       self%rot(:,:) = 0.0_DP
       self%L_spin(:,:) = 0.0_DP
       self%L_orbit(:,:) = 0.0_DP
+      self%ke_spin(:) = 0.0_DP
+      self%ke_orbit(:) = 0.0_DP
       self%Ip(:,:) = 0.0_DP
       self%mass(:) = 0.0_DP
       self%radius(:) = 0.0_DP
@@ -810,6 +819,8 @@ contains
          impactors%radius(:)    = impactors%radius(:)     / collider%dscale
          impactors%L_spin(:,:)  = impactors%L_spin(:,:)   / collider%Lscale
          impactors%L_orbit(:,:) = impactors%L_orbit(:,:)  / collider%Lscale
+         impactors%ke_orbit(:)  = impactors%ke_orbit(:)   / collider%Escale
+         impactors%ke_spin(:)   = impactors%ke_spin(:)    / collider%Escale
 
          do concurrent(i = 1:2)
             impactors%rot(:,i) = impactors%L_spin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
@@ -859,6 +870,8 @@ contains
          impactors%vc        = impactors%vc        * collider%vscale
          impactors%L_spin    = impactors%L_spin    * collider%Lscale
          impactors%L_orbit   = impactors%L_orbit   * collider%Lscale
+         impactors%ke_orbit  = impactors%ke_orbit  * collider%Escale
+         impactors%ke_spin   = impactors%ke_spin   * collider%Escale
          do concurrent(i = 1:2)
             impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do

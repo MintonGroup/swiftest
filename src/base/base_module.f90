@@ -346,7 +346,7 @@ module base
          integer(I4B),        intent(in)    :: nnew !! New size
          ! Internals
          class(base_storage_frame), dimension(:), allocatable :: tmp
-         integer(I4B) :: i, n, nold, nbig
+         integer(I4B) :: i, nold, nbig
   
          nold = self%nframes
          if (nnew <= nold) return
