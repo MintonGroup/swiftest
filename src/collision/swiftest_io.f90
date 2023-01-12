@@ -1720,15 +1720,10 @@ contains
          associate(n => self%nbody, tslot => nc%tslot)
             if (n == 0) return
             call swiftest_util_sort(self%id(1:n), ind)
-            call nc%get_idvals()
 
             do i = 1, n
                j = ind(i)
-               idslot = findloc(nc%idvals, self%id(j), dim=1)
-               if (idslot == 0) then
-                  nc%max_idslot = nc%max_idslot + 1
-                  idslot = nc%max_idslot
-               end if
+               idslot = self%id(j) + 1
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), "netcdf_io_write_info_body nf90_put_var id_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
@@ -2700,16 +2695,13 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self
       class(swiftest_parameters),   intent(inout) :: param
       ! Internals
-      integer(I4B) :: ierr, i
+      integer(I4B) :: ierr
       class(swiftest_parameters), allocatable :: tmp_param
 
       if (param%in_type == "ASCII") then
          call self%cb%read_in(param)
          call self%pl%read_in(param)
-         if (self%pl%nbody > 0) self%pl%id(:) = [(i, i = 1, self%pl%nbody)]
          call self%tp%read_in(param)
-         if (self%tp%nbody > 0) self%tp%id(:) = [(i, i = self%pl%nbody + 1, self%pl%nbody + 1 + self%tp%nbody)]
-         self%maxid = self%pl%nbody + self%tp%nbody
          ! Copy over param file variable inputs
          self%E_orbit_orig = param%E_orbit_orig
          self%GMtot_orig = param%GMtot_orig

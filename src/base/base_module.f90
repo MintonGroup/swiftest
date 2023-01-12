@@ -22,8 +22,6 @@ module base
    type, abstract :: base_parameters
       character(len=:), allocatable           :: integrator                             !! Name of the nbody integrator used
       character(len=:), allocatable           :: param_file_name                        !! The name of the parameter file
-      integer(I4B)                            :: maxid                = -1              !! The current maximum particle id number 
-      integer(I4B)                            :: maxid_collision      = 0               !! The current maximum collision id number
       real(DP)                                :: t0                   =  0.0_DP         !! Integration reference time
       real(DP)                                :: tstart               = -1.0_DP         !! Integration start time
       real(DP)                                :: tstop                = -1.0_DP         !! Integration stop time

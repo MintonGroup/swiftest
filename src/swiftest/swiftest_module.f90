@@ -326,6 +326,7 @@ module swiftest
       class(collision_storage),   allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
       class(swiftest_storage),    allocatable :: system_history    !! Stores the system history between output dumps
 
+      integer(I4B)                    :: maxid = -1             !! The current maximum particle id number 
       real(DP)                        :: t = -1.0_DP            !! Integration current time
       real(DP)                        :: GMtot = 0.0_DP         !! Total nbody_system mass - used for barycentric coordinate conversion
       real(DP)                        :: ke_orbit = 0.0_DP      !! nbody_system orbital kinetic energy

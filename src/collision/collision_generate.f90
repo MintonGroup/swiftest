@@ -177,12 +177,12 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
       real(DP), dimension(NDIM)                 :: L_spin_new
-      real(DP)                                  :: volume, G
+      real(DP)                                  :: volume
       character(len=STRMAX) :: message
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(impactors => nbody_system%collider%impactors)
+         associate(impactors => self%impactors)
             message = "Merging"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
@@ -194,7 +194,7 @@ contains
 
                ! Generate the merged body as a single fragment
                call self%setup_fragments(1)
-               associate(fragments => nbody_system%collider%fragments)
+               associate(fragments => self%fragments)
 
                   ! Calculate the initial energy of the nbody_system without the collisional family
                   call self%get_energy_and_momentum(nbody_system, param, phase="before")
@@ -207,9 +207,8 @@ contains
 
                   ! Compute the physical properties of the new body after the merge.
                   volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
-                  G = nbody_system%collider%impactors%Gmass(1) / nbody_system%collider%impactors%mass(1)
-                  fragments%mass(1) = impactors%mass_dist(1)
-                  fragments%Gmass(1) = G * fragments%mass(1)
+                  fragments%mass(1) = sum(impactors%mass(:))
+                  fragments%Gmass(1) =sum(impactors%Gmass(:))
                   fragments%density(1) = fragments%mass(1) / volume
                   fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
                   if (param%lrotation) then

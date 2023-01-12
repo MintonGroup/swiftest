@@ -813,14 +813,12 @@ def process_netcdf_input(ds, param):
     -------
     ds : xarray dataset
     """
-    #
 
     if param['OUT_TYPE'] == "NETCDF_DOUBLE":
         ds = fix_types(ds,ftype=np.float64)
     elif param['OUT_TYPE'] == "NETCDF_FLOAT":
         ds = fix_types(ds,ftype=np.float32)
 
-    ds = ds.where(ds['id']>=0, drop=True)
     return ds
 
 def swiftest2xr(param, verbose=True):

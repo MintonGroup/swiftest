@@ -142,12 +142,13 @@ module collision
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       !!
       !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_basic parent class
-      class(collision_fragments(:)), allocatable :: fragments    !! Object containing information on the pre-collision system
-      class(collision_impactors),    allocatable :: impactors    !! Object containing information on the post-collision system
-      class(base_nbody_system),      allocatable :: before       !! A snapshot of the subset of the nbody_system involved in the collision
-      class(base_nbody_system),      allocatable :: after        !! A snapshot of the subset of the nbody_system containing products of the collision
-      integer(I4B)                               :: status       !! Status flag to pass to the collision list once the collision has been resolved
-      integer(I4B)                               :: collision_id !! ID number of this collision event
+      class(collision_fragments(:)), allocatable :: fragments           !! Object containing information on the pre-collision system
+      class(collision_impactors),    allocatable :: impactors           !! Object containing information on the post-collision system
+      class(base_nbody_system),      allocatable :: before              !! A snapshot of the subset of the nbody_system involved in the collision
+      class(base_nbody_system),      allocatable :: after               !! A snapshot of the subset of the nbody_system containing products of the collision
+      integer(I4B)                               :: status              !! Status flag to pass to the collision list once the collision has been resolved
+      integer(I4B)                               :: collision_id        !! ID number of this collision event
+      integer(I4B)                               :: maxid_collision = 0 !! The current maximum collision id number
 
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
