@@ -325,7 +325,6 @@ contains
       integer(I4B) :: merge_text_length 
       character(len=NAMELEN) :: merge_text
       character(len=NAMELEN) :: newname, origin_type
-      character(len=STRMAX)  :: message
       real(DP) :: volume
   
       select type(nbody_system)

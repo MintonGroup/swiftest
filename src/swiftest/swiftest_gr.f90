@@ -200,6 +200,10 @@ contains
          pv(1:NDIM) = vh(1:NDIM) ! Initial guess
          rterm = 3 * mu / norm2(rh(:))
          v2 = dot_product(vh(:), vh(:))
+         if (v2 < TINY(1.0_DP)) then
+            pv(:) = 0.0_DP
+            return
+         end if
          do n = 1, MAXITER
             pv2 = dot_product(pv(:), pv(:))
             G = 1.0_DP - inv_c2 * (0.5_DP * pv2 + rterm)

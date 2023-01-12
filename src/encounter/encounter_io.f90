@@ -232,7 +232,7 @@ contains
  
       ! Internals
       integer(I4B)           :: i, idslot, old_mode, npl, ntp
-      character(len=:), allocatable :: charstring
+      character(len=STRMAX) :: charstring
 
       select type(param)
       class is (swiftest_parameters)
