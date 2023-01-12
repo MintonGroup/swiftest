@@ -348,7 +348,7 @@ contains
       !! Deallocates all allocatables
       implicit none
       ! Arguments
-      class(collision_fragments(*)),  intent(inout) :: self
+      class(collision_fragments),  intent(inout) :: self
 
       if (allocated(self%info)) deallocate(self%info) 
       self%mtot = 0.0_DP
@@ -434,7 +434,7 @@ contains
       !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
       implicit none
       ! Arguments
-      class(collision_fragments(*)), intent(inout) :: self
+      class(collision_fragments), intent(inout) :: self
 
       self%rc(:,:) = 0.0_DP
       self%vc(:,:) = 0.0_DP
@@ -465,6 +465,111 @@ contains
       return
    end subroutine collision_util_reset_fragments
 
+
+   module subroutine collision_util_setup_fragments(self, n)
+      !! author: David A. Minton
+      !!
+      !! Constructor for fragment class. Allocates space for all particles and
+      implicit none
+      ! Arguments
+      class(collision_fragments), intent(inout) :: self  !! Swiftest generic body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      ! Internals
+      integer(I4B) :: i
+
+      if (n < 0) return
+
+      call self%dealloc()
+
+      self%nbody = n
+      if (n == 0) return
+
+      allocate(swiftest_particle_info :: self%info(n))
+      allocate(self%id(n))
+      allocate(self%status(n))
+      allocate(self%rh(NDIM, n))
+      allocate(self%vh(NDIM, n))
+      allocate(self%rb(NDIM, n))
+      allocate(self%vb(NDIM, n))
+      allocate(self%rc(NDIM, n))
+      allocate(self%vc(NDIM, n))
+      allocate(self%r_unit(NDIM, n))
+      allocate(self%v_unit(NDIM, n))
+      allocate(self%t_unit(NDIM, n))
+      allocate(self%n_unit(NDIM, n))
+      allocate(self%rot(NDIM, n))
+      allocate(self%Ip(NDIM, n))
+      allocate(self%Gmass(n))
+      allocate(self%mass(n))
+      allocate(self%radius(n))
+      allocate(self%density(n))
+      allocate(self%rmag(n))
+      allocate(self%vmag(n))
+      allocate(self%rotmag(n))
+      allocate(self%origin_body(n))
+      allocate(self%L_orbit(NDIM, n))
+      allocate(self%L_spin(NDIM, n))
+      allocate(self%ke_orbit(n))
+      allocate(self%ke_spin(n))
+
+      self%id(:) = 0
+      select type(info => self%info)
+      class is (swiftest_particle_info)
+         do i = 1, n
+            call info(i)%set_value(&
+               name = "UNNAMED", &
+               particle_type = "UNKNOWN", &
+               status = "INACTIVE", & 
+               origin_type = "UNKNOWN", &
+               collision_id = 0, &
+               origin_time = -huge(1.0_DP), & 
+               origin_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               discard_time = huge(1.0_DP), & 
+               discard_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               discard_body_id = -1  &
+            )
+         end do
+      end select
+
+      self%mtot = 0.0_DP
+      self%status(:) = ACTIVE
+      self%rh(:,:)   = 0.0_DP
+      self%vh(:,:)   = 0.0_DP
+      self%rb(:,:)   = 0.0_DP
+      self%vb(:,:)   = 0.0_DP
+      self%rc(:,:)   = 0.0_DP
+      self%vc(:,:)   = 0.0_DP
+      self%r_unit(:,:)   = 0.0_DP
+      self%v_unit(:,:)   = 0.0_DP
+      self%t_unit(:,:)   = 0.0_DP
+      self%n_unit(:,:)   = 0.0_DP
+      self%rot(:,:)   = 0.0_DP
+      self%Ip(:,:)   = 0.0_DP
+      self%Gmass(:)   = 0.0_DP
+      self%mass(:)   = 0.0_DP
+      self%radius(:)   = 0.0_DP
+      self%density(:)   = 0.0_DP
+      self%rmag(:)   = 0.0_DP
+      self%vmag(:)   = 0.0_DP
+      self%rotmag(:)   = 0.0_DP
+      self%origin_body(:)   = 0
+      self%L_orbit_tot(:)   = 0.0_DP
+      self%L_spin_tot(:)   = 0.0_DP
+      self%L_orbit(:,:)   = 0.0_DP
+      self%L_spin(:,:)   = 0.0_DP
+      self%ke_orbit_tot = 0.0_DP
+      self%ke_spin_tot = 0.0_DP
+      self%pe = 0.0_DP
+      self%be = 0.0_DP
+      self%ke_orbit(:)   = 0.0_DP
+      self%ke_spin(:)   = 0.0_DP
+
+      return
+   end subroutine collision_util_setup_fragments
+
+
    module subroutine collision_util_set_coordinate_collider(self)
       
       !!
@@ -492,7 +597,7 @@ contains
       !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
       implicit none
       ! Arguments
-      class(collision_fragments(*)), intent(inout) :: self      !! Collisional nbody_system
+      class(collision_fragments), intent(inout) :: self      !! Collisional nbody_system
 
       associate(fragments => self, nfrag => self%nbody)
          if ((nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
@@ -619,30 +724,8 @@ contains
       integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
 
       if (allocated(self%fragments)) deallocate(self%fragments)
-      allocate(collision_fragments(nfrag) :: self%fragments)
-      self%fragments%nbody = nfrag
-      self%fragments%nbody = nfrag
-      self%fragments%status(:) = ACTIVE
-      self%fragments%rh(:,:) = 0.0_DP
-      self%fragments%vh(:,:) = 0.0_DP
-      self%fragments%rb(:,:) = 0.0_DP
-      self%fragments%vb(:,:) = 0.0_DP
-      self%fragments%rc(:,:) = 0.0_DP
-      self%fragments%vc(:,:) = 0.0_DP
-      self%fragments%rot(:,:) = 0.0_DP
-      self%fragments%Ip(:,:) = 0.0_DP
-      self%fragments%r_unit(:,:) = 0.0_DP
-      self%fragments%t_unit(:,:) = 0.0_DP
-      self%fragments%n_unit(:,:) = 0.0_DP
-      self%fragments%mass(:) = 0.0_DP
-      self%fragments%radius(:) = 0.0_DP
-      self%fragments%density(:) = 0.0_DP
-      self%fragments%rmag(:) = 0.0_DP
-      self%fragments%vmag(:) = 0.0_DP
-      self%fragments%L_orbit_tot(:) = 0.0_DP
-      self%fragments%L_spin_tot(:) = 0.0_DP
-      self%fragments%ke_orbit_tot = 0.0_DP
-      self%fragments%ke_spin_tot = 0.0_DP
+      allocate(collision_fragments :: self%fragments)
+      call self%fragments%setup(nfrag)
 
       return
    end subroutine collision_util_setup_fragments_collider

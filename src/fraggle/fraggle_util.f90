@@ -87,7 +87,7 @@ contains
 
             call self%setup_fragments(1)
             select type(fragments => self%fragments)
-            class is (collision_fragments(*))
+            class is (collision_fragments)
                fragments%mass(1) = impactors%mass_dist(1)
                fragments%Gmass(1) = G * impactors%mass_dist(1)
                fragments%radius(1) = impactors%radius(jtarg)
@@ -182,23 +182,6 @@ contains
 
       return
    end subroutine fraggle_util_set_mass_dist
-
-
-   module subroutine fraggle_util_setup_fragments_system(self, nfrag)
-      !! author: David A. Minton
-      !!
-      !! Initializer for the fragments of the collision system. 
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Encounter collision system object
-      integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
-
-      if (allocated(self%fragments)) deallocate(self%fragments)
-      allocate(collision_fragments(nbody=nfrag) :: self%fragments)
-      self%fragments%nbody = nfrag
-
-      return
-   end subroutine fraggle_util_setup_fragments_system
 
 
 end submodule s_fraggle_util

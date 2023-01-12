@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
  Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -9,7 +10,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
 """
 Generates a movie of a fragmentation event from set of Swiftest output files.
 
