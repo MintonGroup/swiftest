@@ -27,7 +27,12 @@ module collision
    integer(I4B), parameter :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
    integer(I4B), parameter :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
    integer(I4B), parameter :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
-   character(len=*),dimension(5), parameter :: REGIME_NAMES = ["Merge", "Disruption", "Supercatastrophic", "Graze and Merge", "Hit and Run"] 
+   character(len=NAMELEN),parameter :: REGIME_NAME_MERGE = "Merge"
+   character(len=NAMELEN),parameter :: REGIME_NAME_DISRUPTION = "Disruption"
+   character(len=NAMELEN),parameter :: REGIME_NAME_SUPERCATASTROPHIC = "Supercatastrophic"
+   character(len=NAMELEN),parameter :: REGIME_NAME_GRAZE_AND_MERGE = "Graze and Merge"
+   character(len=NAMELEN),parameter :: REGIME_NAME_HIT_AND_RUN = "Hit and Run"
+   character(len=NAMELEN),dimension(5), parameter :: REGIME_NAMES = [REGIME_NAME_MERGE, REGIME_NAME_DISRUPTION, REGIME_NAME_SUPERCATASTROPHIC, REGIME_NAME_GRAZE_AND_MERGE, REGIME_NAME_HIT_AND_RUN]
 
    !> Swiftest class for tracking pl-pl close encounters in a step when collisions are possible
    type, extends(encounter_list) :: collision_list_plpl
@@ -52,14 +57,16 @@ module collision
    !> Class definition for the variables that describe the bodies involved in the collision
    type, extends(base_object) :: collision_impactors
       integer(I4B)                                 :: ncoll     !! Number of bodies involved in the collision
-      integer(I4B), dimension(:),      allocatable :: id       !! Index of bodies involved in the collision
+      integer(I4B), dimension(:),      allocatable :: id        !! Index of bodies involved in the collision
       real(DP),     dimension(NDIM,2)              :: rb        !! Two-body equivalent position vectors of the collider bodies prior to collision in system barycentric coordinates
       real(DP),     dimension(NDIM,2)              :: vb        !! Two-body equivalent velocity vectors of the collider bodies prior to collision in system barycentric coordinate
       real(DP),     dimension(NDIM,2)              :: rc        !! Two-body equivalent position vectors of the collider bodies prior to collision in collision center of mass coordinates
       real(DP),     dimension(NDIM,2)              :: vc        !! Two-body equivalent velocity vectors of the collider bodies prior to collision in collision center of mass coordinates
       real(DP),     dimension(NDIM,2)              :: rot       !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
-      real(DP),     dimension(NDIM,2)              :: L_spin     !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
-      real(DP),     dimension(NDIM,2)              :: L_orbit    !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: L_spin    !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: L_orbit   !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(2)                   :: ke_orbit  !! Orbital kinetic energy of each individual impactor
+      real(DP),     dimension(2)                   :: ke_spin   !! Spin kinetic energy of each individual impactors
       real(DP),     dimension(NDIM,2)              :: Ip        !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(2)                   :: Gmass     !! Two-body equivalent G*mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: mass      !! Two-body equivalent mass of the collider bodies prior to the collision
@@ -113,10 +120,10 @@ module collision
       real(DP),                  dimension(NDIM,nbody)       :: t_unit       !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
       real(DP),                  dimension(NDIM,nbody)       :: n_unit       !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
       integer(I1B),              dimension(nbody)            :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
-      real(DP), dimension(NDIM)                              :: L_orbit_tot   !! Orbital angular momentum vector of all fragments
-      real(DP), dimension(NDIM)                              :: L_spin_tot    !! Spin angular momentum vector of all fragments
-      real(DP), dimension(NDIM,nbody)                        :: L_orbit       !! Orbital angular momentum vector of each individual fragment
-      real(DP), dimension(NDIM,nbody)                        :: L_spin        !! Spin angular momentum vector of each individual fragment
+      real(DP),                  dimension(NDIM)             :: L_orbit_tot   !! Orbital angular momentum vector of all fragments
+      real(DP),                  dimension(NDIM)             :: L_spin_tot    !! Spin angular momentum vector of all fragments
+      real(DP),                  dimension(NDIM,nbody)       :: L_orbit       !! Orbital angular momentum vector of each individual fragment
+      real(DP),                  dimension(NDIM,nbody)       :: L_spin        !! Spin angular momentum vector of each individual fragment
       real(DP)                                               :: ke_orbit_tot !! Orbital kinetic energy of all fragments
       real(DP)                                               :: ke_spin_tot  !! Spin kinetic energy of all fragments
       real(DP)                                               :: pe           !! Potential energy of all fragments
@@ -127,7 +134,6 @@ module collision
       procedure :: dealloc               => collision_util_dealloc_fragments        !! Deallocates all allocatable arrays and sets everything else to 0
       procedure :: reset                 => collision_util_reset_fragments          !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
       procedure :: set_coordinate_system => collision_util_set_coordinate_fragments !! Sets the coordinate system of the fragments
-      final     ::                          collision_final_fragments               !! Finalizer deallocates all allocatables
    end type collision_fragments
 
 
@@ -136,12 +142,13 @@ module collision
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       !!
       !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_basic parent class
-      class(collision_fragments(:)), allocatable :: fragments    !! Object containing information on the pre-collision system
-      class(collision_impactors),    allocatable :: impactors    !! Object containing information on the post-collision system
-      class(base_nbody_system),      allocatable :: before       !! A snapshot of the subset of the nbody_system involved in the collision
-      class(base_nbody_system),      allocatable :: after        !! A snapshot of the subset of the nbody_system containing products of the collision
-      integer(I4B)                               :: status       !! Status flag to pass to the collision list once the collision has been resolved
-      integer(I4B)                               :: collision_id !! ID number of this collision event
+      class(collision_fragments(:)), allocatable :: fragments           !! Object containing information on the pre-collision system
+      class(collision_impactors),    allocatable :: impactors           !! Object containing information on the post-collision system
+      class(base_nbody_system),      allocatable :: before              !! A snapshot of the subset of the nbody_system involved in the collision
+      class(base_nbody_system),      allocatable :: after               !! A snapshot of the subset of the nbody_system containing products of the collision
+      integer(I4B)                               :: status              !! Status flag to pass to the collision list once the collision has been resolved
+      integer(I4B)                               :: collision_id        !! ID number of this collision event
+      integer(I4B)                               :: maxid_collision = 0 !! The current maximum collision id number
 
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
@@ -189,7 +196,7 @@ module collision
       integer(I4B)       :: stage_dimid                                    !! ID for the stage dimension
       integer(I4B)       :: stage_varid                                    !! ID for the stage variable  
       character(NAMELEN) :: stage_dimname            = "stage"             !! name of the stage dimension (before/after)
-      character(len=6), dimension(2) :: stage_coords = ["before", "after"] !! The stage coordinate labels
+      character(len=6), dimension(2) :: stage_coords = ["before", "after "] !! The stage coordinate labels
 
       integer(I4B)       :: collision_id_dimid                 !! ID for the collision event dimension       
 
@@ -499,18 +506,6 @@ module collision
    end interface
 
    contains
-
-      subroutine collision_final_fragments(self)
-         !! author: David A. Minton
-         !!
-         !! Finalizer will deallocate all allocatables
-         implicit none
-         ! Arguments
-         type(collision_fragments(*)), intent(inout) :: self
-
-         if (allocated(self%info)) deallocate(self%info)
-         return
-      end subroutine collision_final_fragments
 
       subroutine collision_final_impactors(self)
          !! author: David A. Minton

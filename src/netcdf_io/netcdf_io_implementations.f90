@@ -47,7 +47,6 @@ contains
    end subroutine netcdf_io_close
 
 
-
    module subroutine netcdf_io_find_tslot(self, t)
       !! author: David A. Minton
       !! 
@@ -79,6 +78,33 @@ contains
 
       return
    end subroutine netcdf_io_find_tslot
+
+
+   module subroutine netcdf_io_get_idvals(self)
+      !! author: David A. Minton
+      !! 
+      !! Given an open NetCDF file and a value of id, finds the index of the id value (aka the id slot) to place a new set of data.
+      !! The returned value of idslot will correspond to the first index value where the value of id is equal to a saved id value. If none are found, it is the next available index.
+      implicit none
+      ! Arguments
+      class(netcdf_parameters),                            intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+      ! Internals
+
+      if (.not.self%lfile_is_open) return
+
+      if (allocated(self%idvals)) deallocate(self%idvals)
+      call netcdf_io_check( nf90_inquire_dimension(self%id, self%name_dimid, self%name_dimname, len=self%max_idslot), "netcdf_io_find_tslot nf90_inquire_dimension max_tslot"  )
+      if (self%max_idslot > 0) then
+         allocate(self%idvals(self%max_idslot))
+         call netcdf_io_check( nf90_get_var(self%id, self%id_varid, self%idvals(:), start=[1]), "netcdf_io_find_idslot get_var"  )
+      else
+         allocate(self%idvals(1))
+         self%idvals(1) = -huge(1)
+      end if
+
+      return
+   end subroutine netcdf_io_get_idvals
+
 
    module subroutine netcdf_io_sync(self)
       !! author: David A. Minton

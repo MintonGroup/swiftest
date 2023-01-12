@@ -1720,10 +1720,15 @@ contains
          associate(n => self%nbody, tslot => nc%tslot)
             if (n == 0) return
             call swiftest_util_sort(self%id(1:n), ind)
+            call nc%get_idvals()
 
             do i = 1, n
                j = ind(i)
-               idslot = self%id(j) + 1
+               idslot = findloc(nc%idvals, self%id(j), dim=1)
+               if (idslot == 0) then
+                  nc%max_idslot = nc%max_idslot + 1
+                  idslot = nc%max_idslot
+               end if
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), "netcdf_io_write_info_body nf90_put_var id_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
@@ -2013,10 +2018,6 @@ contains
                   read(param_value, *, err = 667, iomsg = iomsg) param%E_collisions
                case("EUNTRACKED")
                   read(param_value, *, err = 667, iomsg = iomsg) param%E_untracked
-               case ("MAXID")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%maxid 
-               case ("MAXID_COLLISION")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%maxid_collision
                case ("COLLISION_MODEL")
                   call swiftest_io_toupper(param_value)
                   read(param_value, *) param%collision_model
@@ -2372,8 +2373,6 @@ contains
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
          end if
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
-         call io_param_writer_one("MAXID",param%maxid, unit)
-         call io_param_writer_one("MAXID_COLLISION",param%maxid_collision, unit)
 
          if (param%GMTINY > 0.0_DP) call io_param_writer_one("GMTINY",param%GMTINY, unit)
          if (param%min_GMfrag > 0.0_DP) call io_param_writer_one("MIN_GMFRAG",param%min_GMfrag, unit)
@@ -2657,7 +2656,6 @@ contains
       if (param%in_type /= "ASCII") return ! Not for NetCDF
 
       self%id = 0
-      param%maxid = 0
       open(unit = iu, file = param%incbfile, status = 'old', form = 'FORMATTED', err = 667, iomsg = errmsg)
       read(iu, *, err = 667, iomsg = errmsg) name
       call self%info%set_value(name=name)
@@ -2702,13 +2700,16 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self
       class(swiftest_parameters),   intent(inout) :: param
       ! Internals
-      integer(I4B) :: ierr
+      integer(I4B) :: ierr, i
       class(swiftest_parameters), allocatable :: tmp_param
 
       if (param%in_type == "ASCII") then
          call self%cb%read_in(param)
          call self%pl%read_in(param)
+         if (self%pl%nbody > 0) self%pl%id(:) = [(i, i = 1, self%pl%nbody)]
          call self%tp%read_in(param)
+         if (self%tp%nbody > 0) self%tp%id(:) = [(i, i = self%pl%nbody + 1, self%pl%nbody + 1 + self%tp%nbody)]
+         self%maxid = self%pl%nbody + self%tp%nbody
          ! Copy over param file variable inputs
          self%E_orbit_orig = param%E_orbit_orig
          self%GMtot_orig = param%GMtot_orig
@@ -2817,8 +2818,6 @@ contains
                   !    read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
                   ! end if
                end select
-               param%maxid = param%maxid + 1
-               self%id(i) = param%maxid
             end do
          end select
 

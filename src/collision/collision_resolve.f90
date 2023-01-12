@@ -378,7 +378,7 @@ contains
                   write(newname, FRAGFMT) fragments%id(i)
                   call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=t, name=newname, &
                                                 origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
-                                                collision_id=param%maxid_collision)
+                                                collision_id=collider%maxid_collision)
                end do
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) then
@@ -402,7 +402,7 @@ contains
                   write(newname, FRAGFMT) fragments%id(i)
                   call plnew%info(i)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
                                                 origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
-                                                collision_id=param%maxid_collision)
+                                                collision_id=collider%maxid_collision)
                end do
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) cycle
@@ -414,8 +414,8 @@ contains
             case(MERGED)
                write(origin_type,*) "Merger"
                call plnew%info(1)%copy(pl%info(ibiggest))
-               param%maxid = param%maxid + 1
-               plnew%id(1) = param%maxid
+               nbody_system%maxid = nbody_system%maxid + 1
+               plnew%id(1) = nbody_system%maxid
 
                ! Appends an index number to the end of the original name to make it unique, but still identifiable as the original.
                ! If there is already an index number appended, replace it
@@ -427,7 +427,7 @@ contains
                plnew%status(1) = NEW_PARTICLE
                call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
                                             origin_rh=plnew%rh(:,1), origin_vh=plnew%vh(:,1), &
-                                            collision_id=param%maxid_collision)
+                                            collision_id=collider%maxid_collision)
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) cycle
 
@@ -509,7 +509,7 @@ contains
       real(DP) :: E_before, E_after, dLmag
       real(DP), dimension(NDIM) :: L_orbit_before, L_orbit_after, L_spin_before, L_spin_after, L_before, L_after, dL_orbit, dL_spin, dL
       logical :: lplpl_collision
-      character(len=STRMAX) :: timestr
+      character(len=STRMAX) :: timestr, idstr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
       integer(I4B) :: i, loop, ncollisions
@@ -559,9 +559,11 @@ contains
                      if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
 
                      ! Advance the collision id number and save it
-                     param%maxid_collision = max(param%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-                     param%maxid_collision = param%maxid_collision + 1
-                     collider%collision_id = param%maxid_collision
+                     collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+                     collider%maxid_collision = collider%maxid_collision + 1
+                     collider%collision_id = collider%maxid_collision
+                     write(idstr,*) collider%collision_id
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
 
                      ! Get the collision regime
                      call impactors%get_regime(nbody_system, param)
