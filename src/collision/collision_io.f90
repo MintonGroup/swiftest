@@ -307,6 +307,7 @@ contains
 
             ! Dimensions
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%collision_id_varname, nc%collision_id_dimid), "collision_io_netcdf_open nf90_inq_dimid collision_id_dimid"  )
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%collision_id_dimid, nc%collision_id_varname, len=nc%max_idslot), "collision_io_find_idslot nf90_inquire_dimension max_idslot"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), "collision_io_netcdf_open nf90_inq_dimid space_dimid"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), "collision_io_netcdf_open nf90_inq_dimid name_dimid"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), "collision_io_netcdf_open nf90_inq_dimid str_dimid"  )
