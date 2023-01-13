@@ -1865,21 +1865,21 @@ contains
                call plplenc_old%copy(nbody_system%plpl_encounter)
             end if
 
-            ! Re-build the encounter list
-            ! Be sure to get the level info if this is a SyMBA nbody_system
-            select type(nbody_system)
-            class is (symba_nbody_system)
-            select type(pl)
-            class is (symba_pl)
-            select type(tp)
-            class is (symba_tp)
-               lencounter = pl%encounter_check(param, nbody_system, param%dt, nbody_system%irec) 
-               if (tp%nbody > 0) then
-                  lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
-               end if
-            end select
-            end select
-            end select
+            ! ! Re-build the encounter list
+            ! ! Be sure to get the level info if this is a SyMBA nbody_system
+            ! select type(nbody_system)
+            ! class is (symba_nbody_system)
+            ! select type(pl)
+            ! class is (symba_pl)
+            ! select type(tp)
+            ! class is (symba_tp)
+            !    lencounter = pl%encounter_check(param, nbody_system, param%dt, nbody_system%irec) 
+            !    if (tp%nbody > 0) then
+            !       lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
+            !    end if
+            ! end select
+            ! end select
+            ! end select
 
             ! Re-index the encounter list as the index values may have changed
             if (nenc_old > 0) then

@@ -121,6 +121,10 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                          "/check"  # Intel Windows
                          "-fcheck=all" # GNU 
                 )
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-fstack-check" # GNU 
+                )
+                
 
 # Initializes matrices/arrays with NaN values
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"

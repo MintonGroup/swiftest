@@ -59,29 +59,29 @@ pos_vectors = {"disruption_headon"         : [np.array([1.0, -5.0e-05, 0.0]),
                }
 
 vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
-                                              np.array([ 0.00, -6.280005, 0.0])],
+                                              np.array([ 0.00,  4.28,     0.0])],
                "disruption_off_axis"       : [np.array([ 0.00,  6.280005, 0.0]),
-                                              np.array([ 0.50, -6.280005, 0.0])], 
+                                              np.array([ 0.05,  4.28,     0.0])],
                "supercatastrophic_headon":   [np.array([ 0.00,  6.28,     0.0]),
-                                              np.array([ 0.00, -6.28,     0.0])],
+                                              np.array([ 0.00,  4.28,     0.0])],
                "supercatastrophic_off_axis": [np.array([ 0.00,  6.28,     0.0]),
-                                              np.array([ 0.50, -6.28,     0.0])],
+                                              np.array([ 0.05,  4.28,     0.0])],
                "hitandrun_disrupt"         : [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([-1.45, -6.28,     0.0])],
                "hitandrun_pure"            : [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([-1.52, -6.28,     0.0])],
-               "merge"                     : [np.array([ 0.00,  0.0, 0.0]),
-                                              np.array([ 0.01, -0.100005, 0.0])] 
+               "merge"                     : [np.array([ 0.05,  6.28,     0.0]),
+                                              np.array([ 0.05,  6.18,     0.0])] 
                }
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
                                               np.array([0.0, 0.0, 0.0])],
-               "disruption_off_axis":        [np.array([0.0, 0.0, -6.0e3]),
-                                              np.array([0.0, 0.0, 1.0e4])],
+               "disruption_off_axis":        [np.array([0.0, 0.0, 0.0]),
+                                              np.array([0.0, 0.0, 0.0])],
                "supercatastrophic_headon":   [np.array([0.0, 0.0, 0.0]),
                                               np.array([0.0, 0.0, 0.0])],
-               "supercatastrophic_off_axis": [np.array([0.0, 0.0, -6.0e3]),
-                                              np.array([0.0, 0.0, 1.0e4])],
+               "supercatastrophic_off_axis": [np.array([0.0, 0.0, 0.0]),
+                                              np.array([0.0, 0.0, 0.0])],
                "hitandrun_disrupt"         : [np.array([0.0, 0.0, 6.0e3]),
                                               np.array([0.0, 0.0, 1.0e4])],
                "hitandrun_pure"            : [np.array([0.0, 0.0, 6.0e3]),
@@ -99,13 +99,13 @@ body_Gmass = {"disruption_headon"        : [1e-7, 1e-10],
              "merge"                     : [1e-7, 1e-8] 
                }
 
-tstop = {"disruption_headon"         : 5.0e-4,
-         "disruption_off_axis"       : 5.0e-4,
-         "supercatastrophic_headon"  : 5.0e-4,
-         "supercatastrophic_off_axis": 5.0e-4,
+tstop = {"disruption_headon"         : 2.0e-3,
+         "disruption_off_axis"       : 2.0e-3,
+         "supercatastrophic_headon"  : 2.0e-3,
+         "supercatastrophic_off_axis": 2.0e-3,
          "hitandrun_disrupt"         : 2.0e-4,
          "hitandrun_pure"            : 2.0e-4,
-         "merge"                     : 2.0e-3,
+         "merge"                     : 5.0e-3,
          }
 
 density = 3000 * swiftest.AU2M**3 / swiftest.MSun

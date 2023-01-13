@@ -25,7 +25,8 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! Time of collision
       ! Internals
-      integer(I4B)          :: i, ibiggest, nfrag
+      integer(I4B)          :: i, j, ibiggest, nfrag, nimp
+      real(DP), dimension(NDIM) :: rcom, vcom, rnorm
       character(len=STRMAX) :: message 
       logical               :: lfailure
 
@@ -52,15 +53,31 @@ contains
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t, lfailure)
             if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a merger.") 
-               call self%merge(nbody_system, param, t) 
-               return
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a bounce.") 
+
+               nimp = size(impactors%id(:))
+               call self%fragments%setup(nimp)
+               do i = 1, nimp
+                  j = impactors%id(i)
+                  vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
+                  rcom(:) = pl%rb(:,j) - impactors%rbcom(:)
+                  rnorm(:) = .unit. rcom(:)
+                  ! Do the reflection
+                  vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
+                  self%fragments%vb(:,i) = impactors%vbcom(:) + vcom(:)
+                  self%fragments%mass(i) = pl%mass(j)
+                  self%fragments%Gmass(i) = pl%Gmass(j)
+                  self%fragments%radius(i) = pl%radius(j)
+                  self%fragments%rot(:,i) = pl%rot(:,j)
+                  self%fragments%Ip(:,i) = pl%Ip(:,j)
+                  ! Ensure that the bounce doesn't happen again
+                  self%fragments%rb(:,i) = pl%rb(:,j) + 0.5_DP * self%fragments%radius(i) * rnorm(:)
+               end do
             end if
 
             associate (fragments => self%fragments)
                ! Populate the list of new bodies
                nfrag = fragments%nbody
-               write(message, *) nfrag
                select case(impactors%regime)
                case(COLLRESOLVE_REGIME_DISRUPTION)
                   status = DISRUPTED
@@ -287,7 +304,7 @@ contains
          else if (lsupercat) then
             rdistance = 0.5_DP * sum(impactors%radius(:))
          else
-            rdistance = 10 * impactors%radius(2)
+            rdistance = 2 * impactors%radius(2)
          end if
          ! Give the fragment positions a random value that is scaled with fragment mass so that the more massive bodies tend to be closer to the impact point
          ! Later, velocities will be scaled such that the farther away a fragment is placed from the impact point, the higher will its velocity be.
@@ -318,7 +335,6 @@ contains
                istart = 2
             end if
 
-
             do i = istart, nfrag
                if (loverlap(i)) then
                   call random_number(phi(i))
@@ -326,8 +342,6 @@ contains
                   call random_number(u(i))
                end if
             end do
-
-            ! Make the fragment cloud symmertic about 0
 
             do concurrent(i = istart:nfrag, loverlap(i))
                j = fragments%origin_body(i)
@@ -454,7 +468,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      integer(I4B) :: i, j, loop, try, istart, nfrag, nlast
+      integer(I4B) :: i, j, loop, try, istart, nfrag, nlast, nsteps
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual
       real(DP) :: vmag, vesc, dE, E_residual, ke_min, ke_avail, ke_remove, dE_best, E_residual_best, fscale, f_spin, f_orbit, dE_metric
@@ -462,9 +476,9 @@ contains
       real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
       real(DP)                :: vmin_guess = 1.5_DP 
-      real(DP)                :: vmax_guess = 10.0_DP
+      real(DP)                :: vmax_guess = 4.0_DP
       real(DP)                :: delta_v, volume
-      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXLOOP = 200
       integer(I4B), parameter :: MAXTRY = 1000
       real(DP), parameter :: SUCCESS_METRIC = 1.0e-2_DP
       class(collision_fraggle), allocatable :: collider_local
@@ -504,7 +518,7 @@ contains
             lfailure = .false.
             dE_metric = huge(1.0_DP)
 
-            outer: do try = 1, maxtry
+            outer: do try = 1, nfrag
                ! Scale the magnitude of the velocity by the distance from the impact point
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
                do concurrent(i = 1:nfrag)
@@ -543,8 +557,13 @@ contains
                ke_min = 0.5_DP * fragments%mtot * vesc**2
 
                do loop = 1, MAXLOOP
+                  nsteps = loop * try
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                  ke_avail = max(fragments%ke_orbit_tot - ke_min, 0.0_DP)
+                  ke_avail = 0.0_DP
+                  do i = 1, fragments%nbody
+                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
+                  end do
+
                   ! Check for any residual angular momentum, and if there is any, put it into spin of the largest body
                   L_residual(:) = collider_local%L_total(:,2) - collider_local%L_total(:,1)
                   if (ke_avail < epsilon(1.0_DP)) then
@@ -601,8 +620,9 @@ contains
                   call fragments%set_coordinate_system()
 
                end do
+               !if (dE_best < 0.0_DP) exit outer
                ! We didn't converge. Reset the fragment positions and velocities and try a new configuration with some slightly different parameters
-               if (fragments%nbody == 2) exit
+               if (fragments%nbody == 2) exit outer
                ! Reduce the number of fragments by one
                nlast = fragments%nbody
                fragments%Ip(:,1) = fragments%mass(1) * fragments%Ip(:,1) + fragments%mass(nlast) * fragments%Ip(:,nlast)
@@ -634,7 +654,7 @@ contains
             end do outer
             lfailure = dE_best > 0.0_DP
 
-            write(message, *) try*loop
+            write(message, *) nsteps
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle velocity calculation failed to converge after " // trim(adjustl(message)) // " steps. This collision would add energy.")
             else 
