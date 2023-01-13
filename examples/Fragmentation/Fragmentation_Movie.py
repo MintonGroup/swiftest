@@ -70,8 +70,8 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                                               np.array([-1.45, -6.28,     0.0])],
                "hitandrun_pure"            : [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([-1.52, -6.28,     0.0])],
-               "merge"                     : [np.array([ 0.00,  0.0, 0.0]),
-                                              np.array([ 0.01, -0.100005, 0.0])] 
+               "merge"                     : [np.array([ 0.05,  6.28,     0.0]),
+                                              np.array([ 0.05,  6.18,     0.0])] 
                }
 
 rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
@@ -105,7 +105,7 @@ tstop = {"disruption_headon"         : 2.0e-3,
          "supercatastrophic_off_axis": 2.0e-3,
          "hitandrun_disrupt"         : 2.0e-4,
          "hitandrun_pure"            : 2.0e-4,
-         "merge"                     : 2.0e-3,
+         "merge"                     : 5.0e-3,
          }
 
 density = 3000 * swiftest.AU2M**3 / swiftest.MSun
