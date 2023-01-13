@@ -319,3 +319,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
                          "/Qopt-report:5 /traceback -g3" # Windows Intel
                          "-pg -fbacktrace"
                 )
+
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_PROFILE}"
+                 Fortran "-check bounds,pointers,uninit"  # Intel
+                )                
