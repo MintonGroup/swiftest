@@ -259,7 +259,7 @@ contains
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
       real(DP), dimension(2) :: fragment_cloud_radius
       logical, dimension(collider%fragments%nbody) :: loverlap
-      real(DP), dimension(collider%fragments%nbody) :: mass_rscale
+      real(DP), dimension(collider%fragments%nbody) :: mass_rscale, phi, theta, u
       integer(I4B) :: i, j, loop, istart
       logical :: lsupercat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 20000
@@ -312,17 +312,29 @@ contains
                istart = 2
             end if
 
-            call random_number(fragments%rc(:,istart:nfrag))
+
+            do i = istart, nfrag
+               if (loverlap(i)) then
+                  call random_number(phi(i))
+                  call random_number(theta(i))
+                  call random_number(u(i))
+               end if
+            end do
+
+            ! Make the fragment cloud symmertic about 0
+
             do concurrent(i = istart:nfrag, loverlap(i))
-               ! Make a random cloud
-
-               ! Make the fragment cloud symmertic about 0
-               fragments%rc(:,i) = 2 *(fragments%rc(:,i) - 0.5_DP)
-
                j = fragments%origin_body(i)
 
+               ! Make a random cloud
+               phi(i) = TWOPI * phi(i)
+               theta(i) = acos( 2 * theta(i) - 1.0_DP)
                ! Scale the cloud size
-               fragments%rc(:,i) = fragment_cloud_radius(j) * mass_rscale(i) * .unit.(fragments%rc(:,i))
+               fragments%rmag(i) = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
+
+               fragments%rc(1,i) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
+               fragments%rc(2,i) = fragments%rmag(i) * sin(theta(i)) * sin(phi(i))
+               fragments%rc(3,i) = fragments%rmag(i) * cos(theta(i))
 
                ! Shift to the cloud center coordinates
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
@@ -335,6 +347,7 @@ contains
                end if
 
             end do
+            fragments%rmag(:) = .mag. fragments%rc(:,:)
 
             ! Check for any overlapping bodies.
             loverlap(:) = .false.
@@ -342,6 +355,7 @@ contains
                do i = j + 1, nfrag
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
+                  loverlap(j) = loverlap(j) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                end do
             end do
             rdistance = rdistance * collider%fail_scale
