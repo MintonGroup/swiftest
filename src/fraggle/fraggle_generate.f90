@@ -420,13 +420,13 @@ contains
          fragments%rot(:,1) = L_spin(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
          fragments%rotmag(1) = .mag.fragments%rot(:,1)
          ! Add in some random spin noise. The magnitude will be scaled by the before-after amount and the direction will be random
-         call random_number(fragments%rotmag(2:nfrag))
          do i = 2,nfrag
             call random_number(rotdir)
+            call random_number(rotmag)
             rotdir = rotdir - 0.5_DP
             rotdir = .unit. rotdir
-            rotmag = random_scale_factor * .mag. (Lbefore(:) - Lafter(:)) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
-            fragments%rot(:,i) = rotmag * fragments%rotmag(i) * rotdir
+            fragments%rotmag(i) = random_scale_factor * rotmag * .mag.L_spin(:) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
+            fragments%rot(:,i) = fragments%rotmag(i) * rotdir
          end do
       end associate
 
@@ -453,8 +453,10 @@ contains
       real(DP) :: vmag, vesc, dE, E_residual, ke_avail, ke_remove, dE_best, E_residual_best, fscale, f_spin, f_orbit, dE_metric
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove
-      real(DP), parameter     :: vmin_initial_factor = 2.0_DP ! For the initial "guess" of fragment velocities, this is the maximum velocity relative to escape velocity that the fragments will have
-      real(DP)                :: vmax_initial_factor = 8.0_DP
+      ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
+      real(DP)                :: vmin_guess = 1.5_DP 
+      real(DP)                :: vmax_guess = 10.0_DP
+      real(DP)                :: delta_v
       integer(I4B), parameter :: MAXLOOP = 20
       integer(I4B), parameter :: MAXTRY  = 100
       real(DP), parameter :: SUCCESS_METRIC = 1.0e-3_DP
@@ -491,23 +493,24 @@ contains
                vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
             end if
 
-            ! Scale the magnitude of the velocity by the distance from the impact point
-               ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
-            do concurrent(i = 1:nfrag)
-               rimp(:) = fragments%rc(:,i) - impactors%rbimp(:) 
-               vscale(i) = .mag. rimp(:) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1)))
-            end do
-
-            ! Set the velocity scale factor to span from vmin/vesc to vmax/vesc
-            vscale(:) = vscale(:)/minval(vscale(:))
-            fscale = log(vmax_initial_factor - vmin_initial_factor + 1.0_DP) / log(maxval(vscale(:)))
-            vscale(:) = vscale(:)**fscale + vmin_initial_factor - 1.0_DP
-
             E_residual_best = huge(1.0_DP)
             lfailure = .false.
             dE_metric = huge(1.0_DP)
 
             outer: do try = 1, MAXTRY
+               ! Scale the magnitude of the velocity by the distance from the impact point
+               ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
+               do concurrent(i = 1:nfrag)
+                  rimp(:) = fragments%rc(:,i) - impactors%rbimp(:) 
+                  vscale(i) = .mag. rimp(:) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1)))
+               end do
+
+               ! Set the velocity scale factor to span from vmin/vesc to vmax/vesc
+               vscale(:) = vscale(:)/minval(vscale(:))
+               fscale = log(vmax_guess - vmin_guess + 1.0_DP) / log(maxval(vscale(:)))
+               vscale(:) = vscale(:)**fscale + vmin_guess - 1.0_DP
+
+
                ! Set the velocities of all fragments using all of the scale factors determined above
                do concurrent(i = 1:nfrag)
                   j = fragments%origin_body(i)
@@ -588,6 +591,11 @@ contains
                call fraggle_generate_pos_vec(collider_local)
                call fraggle_generate_rot_vec(collider_local, nbody_system, param)
                collider_local%fail_scale = collider_local%fail_scale*1.01_DP
+
+               ! Bring the minimum and maximum velocities closer together for the next round
+               delta_v = 0.25_DP * (vmax_guess - vmin_guess)
+               vmin_guess = vmin_guess + delta_v
+               vmax_guess = vmax_guess - delta_v
             end do outer
             lfailure = dE_best > 0.0_DP
 
