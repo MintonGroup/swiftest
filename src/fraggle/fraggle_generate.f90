@@ -293,7 +293,7 @@ contains
          ! Later, velocities will be scaled such that the farther away a fragment is placed from the impact point, the higher will its velocity be.
          call random_number(mass_rscale)
          mass_rscale(:) = (mass_rscale(:) + 1.0_DP) / 2
-         mass_rscale(:) = mass_rscale(:) * (fragments%mtot / fragments%mass(:))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
+         mass_rscale(:) = mass_rscale(:) * (fragments%mtot / fragments%mass(1:nfrag))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
          mass_rscale(:) = mass_rscale(:) / maxval(mass_rscale(:))
 
          do loop = 1, MAXLOOP
