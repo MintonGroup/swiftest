@@ -26,7 +26,7 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision
       ! Internals
       integer(I4B)          :: i, j, ibiggest, nfrag, nimp
-      real(DP), dimension(NDIM) :: vcom, rnorm
+      real(DP), dimension(NDIM) :: rcom, vcom, rnorm
       character(len=STRMAX) :: message 
       logical               :: lfailure
 
@@ -60,16 +60,18 @@ contains
                do i = 1, nimp
                   j = impactors%id(i)
                   vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
-                  rnorm(:) = .unit. (impactors%rb(:,2) - impactors%rb(:,1))
+                  rcom(:) = pl%rb(:,j) - impactors%rbcom(:)
+                  rnorm(:) = .unit. rcom(:)
                   ! Do the reflection
                   vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
                   self%fragments%vb(:,i) = impactors%vbcom(:) + vcom(:)
-                  self%fragments%rb(:,i) = pl%rb(:,j)
                   self%fragments%mass(i) = pl%mass(j)
                   self%fragments%Gmass(i) = pl%Gmass(j)
                   self%fragments%radius(i) = pl%radius(j)
                   self%fragments%rot(:,i) = pl%rot(:,j)
                   self%fragments%Ip(:,i) = pl%Ip(:,j)
+                  ! Ensure that the bounce doesn't happen again
+                  self%fragments%rb(:,i) = pl%rb(:,j) + 0.5_DP * self%fragments%radius(i) * rnorm(:)
                end do
             end if
 
@@ -302,7 +304,7 @@ contains
          else if (lsupercat) then
             rdistance = 0.5_DP * sum(impactors%radius(:))
          else
-            rdistance = 10 * impactors%radius(2)
+            rdistance = 2 * impactors%radius(2)
          end if
          ! Give the fragment positions a random value that is scaled with fragment mass so that the more massive bodies tend to be closer to the impact point
          ! Later, velocities will be scaled such that the farther away a fragment is placed from the impact point, the higher will its velocity be.
