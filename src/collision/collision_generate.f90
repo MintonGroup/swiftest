@@ -203,6 +203,7 @@ contains
                   ! its index in the main pl structure
                   ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
                   fragments%id(1) = pl%id(ibiggest)
+                  if (allocated(fragments%info)) deallocate(fragments%info)
                   allocate(fragments%info, source=pl%info(ibiggest:ibiggest))
 
                   ! Compute the physical properties of the new body after the merge.
