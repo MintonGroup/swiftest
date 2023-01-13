@@ -248,11 +248,11 @@ contains
                      fragments%L_spin(:,i) = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * fragments%rot(:,i)
                   end do
                   call swiftest_util_get_potential_energy(nfrag, [(.true., i = 1, nfrag)], constraint_system%cb%Gmass, fragments%Gmass, fragments%mass, fragments%rb, fragments%pe)
-                  fragments%be = sum(-3*fragments%Gmass(:)*fragments%mass(:)/(5*fragments%radius(:)))
-                  fragments%L_orbit_tot(:) = sum(fragments%L_orbit(:,:),dim=2)
-                  fragments%L_spin_tot(:) = sum(fragments%L_spin(:,:),dim=2)
-                  fragments%ke_orbit_tot = sum(fragments%ke_orbit(:))
-                  fragments%ke_spin_tot = sum(fragments%ke_spin(:))
+                  fragments%be = sum(-3*fragments%Gmass(1:nfrag)*fragments%mass(1:nfrag)/(5*fragments%radius(1:nfrag)))
+                  fragments%L_orbit_tot(:) = sum(fragments%L_orbit(:,1:nfrag),dim=2)
+                  fragments%L_spin_tot(:) = sum(fragments%L_spin(:,1:nfrag),dim=2)
+                  fragments%ke_orbit_tot = sum(fragments%ke_orbit(1:nfrag))
+                  fragments%ke_spin_tot = sum(fragments%ke_spin(1:nfrag))
                end if
             end select
 
@@ -755,7 +755,7 @@ contains
 
       mvec_frag(:) = 0.0_DP
       mtot = sum(m_frag)
-      nfrag = size(m_frag)
+      nfrag = count(m_frag > tiny(0.0_DP))
 
       do i = 1, nfrag
          mvec_frag = mvec_frag(:) + vec_frag(:,i) * m_frag(i)

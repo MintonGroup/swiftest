@@ -1770,6 +1770,8 @@ contains
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       select type(self)
       class is (swiftest_pl)
          if (self%lfirst) self%isperi(:) = 0

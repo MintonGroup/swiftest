@@ -40,10 +40,10 @@ contains
                end if
             end do
 
-            call nc%close()
-            call self%reset()
-            ! Update the time slot tracker
             nc%max_tslot = nc%max_tslot + maxval(self%tmap(1:self%iframe))
+            call nc%close()
+            ! Update the time slot tracker
+            call self%reset()
          end if
       end select
 
