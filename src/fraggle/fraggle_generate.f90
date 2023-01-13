@@ -634,12 +634,12 @@ contains
             end do outer
             lfailure = dE_best > 0.0_DP
 
+            write(message, *) try*loop
             if (lfailure) then
-               write(message,*) "Fraggle velocity calculation failed to converge after ",try*loop," steps. This collision may have added energy."
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle velocity calculation failed to converge after " // trim(adjustl(message)) // " steps. This collision would add energy.")
             else 
-               write(message,*) "Fraggle velocity calculation converged after ",try*loop," steps."
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Fraggle velocity calculation converged after " // trim(adjustl(message)) // " steps.")
             end if
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
 
          end associate
       end associate
