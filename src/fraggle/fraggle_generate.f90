@@ -476,7 +476,7 @@ contains
       real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
       real(DP)                :: vmin_guess = 1.5_DP 
-      real(DP)                :: vmax_guess = 4.0_DP
+      real(DP)                :: vmax_guess = 10.0_DP
       real(DP)                :: delta_v, volume
       integer(I4B), parameter :: MAXLOOP = 200
       integer(I4B), parameter :: MAXTRY = 1000
