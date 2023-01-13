@@ -335,7 +335,6 @@ contains
                istart = 2
             end if
 
-
             do i = istart, nfrag
                if (loverlap(i)) then
                   call random_number(phi(i))
@@ -343,8 +342,6 @@ contains
                   call random_number(u(i))
                end if
             end do
-
-            ! Make the fragment cloud symmertic about 0
 
             do concurrent(i = istart:nfrag, loverlap(i))
                j = fragments%origin_body(i)
@@ -479,9 +476,9 @@ contains
       real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
       real(DP)                :: vmin_guess = 1.5_DP 
-      real(DP)                :: vmax_guess = 10.0_DP
+      real(DP)                :: vmax_guess = 4.0_DP
       real(DP)                :: delta_v, volume
-      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXLOOP = 200
       integer(I4B), parameter :: MAXTRY = 1000
       real(DP), parameter :: SUCCESS_METRIC = 1.0e-2_DP
       class(collision_fraggle), allocatable :: collider_local
@@ -562,7 +559,11 @@ contains
                do loop = 1, MAXLOOP
                   nsteps = loop * try
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                  ke_avail = max(fragments%ke_orbit_tot - ke_min, 0.0_DP)
+                  ke_avail = 0.0_DP
+                  do i = 1, fragments%nbody
+                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
+                  end do
+
                   ! Check for any residual angular momentum, and if there is any, put it into spin of the largest body
                   L_residual(:) = collider_local%L_total(:,2) - collider_local%L_total(:,1)
                   if (ke_avail < epsilon(1.0_DP)) then
@@ -619,7 +620,7 @@ contains
                   call fragments%set_coordinate_system()
 
                end do
-               if (dE_best < 0.0_DP) exit outer
+               !if (dE_best < 0.0_DP) exit outer
                ! We didn't converge. Reset the fragment positions and velocities and try a new configuration with some slightly different parameters
                if (fragments%nbody == 2) exit outer
                ! Reduce the number of fragments by one
