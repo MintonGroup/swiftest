@@ -24,8 +24,8 @@ contains
       ! Internals
       integer(I4B) :: nold, nsrc
 
-      nold = self%nenc
-      nsrc = source%nenc
+      nold = int(self%nenc, kind=I4B)
+      nsrc = int(source%nenc, kind=I4B)
       call swiftest_util_append(self%tcollision, source%tcollision,   nold, nsrc, lsource_mask)
       call swiftest_util_append(self%lclosest,   source%lclosest,     nold, nsrc, lsource_mask)
       call swiftest_util_append(self%lvdotr,     source%lvdotr,       nold, nsrc, lsource_mask)
@@ -480,7 +480,8 @@ contains
       character(*),              intent(in), optional :: arg          !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
       class(encounter_snapshot), allocatable :: snapshot
-      integer(I4B) :: i, pi, pj, k, npl_snap, ntp_snap, iflag
+      integer(I4B) :: i, pii, pjj, npl_snap, ntp_snap, iflag
+      integer(I8B) :: k
       real(DP), dimension(NDIM) :: rrel, vrel, rcom, vcom
       real(DP) :: Gmtot, a, q, capm, tperi
       real(DP), dimension(NDIM,2) :: rb,vb
@@ -597,79 +598,83 @@ contains
                      call self%save(snapshot)
                   case("closest")
                      associate(plpl_encounter => nbody_system%plpl_encounter, pltp_encounter => nbody_system%pltp_encounter)
-                        if (any(plpl_encounter%lclosest(:))) then
-                           call pl_snap%setup(2, param)
-                           do k = 1, plpl_encounter%nenc
-                              if (plpl_encounter%lclosest(k)) then
-                                 pi = plpl_encounter%index1(k)
-                                 pj = plpl_encounter%index2(k)
-                                 select type(pl_snap)
-                                 class is (symba_pl)
-                                 select type(pl)
-                                 class is (symba_pl)
-                                    pl_snap%levelg(:) = pl%levelg([pi,pj])
-                                 end select
-                                 end select
-                                 pl_snap%id(:) = pl%id([pi,pj])
-                                 pl_snap%info(:) = pl%info([pi,pj])
-                                 pl_snap%Gmass(:) = pl%Gmass([pi,pj])
-                                 Gmtot = sum(pl_snap%Gmass(:))
-                                 if (param%lclose) pl_snap%radius(:) = pl%radius([pi,pj])
-                                 if (param%lrotation) then
-                                    do i = 1, NDIM
-                                       pl_snap%Ip(i,:) = pl%Ip(i,[pi,pj])
-                                       pl_snap%rot(i,:) = pl%rot(i,[pi,pj])
-                                    end do
+                        if (plpl_encounter%nenc > 0) then
+                           if (any(plpl_encounter%lclosest(:))) then
+                              call pl_snap%setup(2, param)
+                              do k = 1_I8B, plpl_encounter%nenc
+                                 if (plpl_encounter%lclosest(k)) then
+                                    pii = plpl_encounter%index1(k)
+                                    pjj = plpl_encounter%index2(k)
+                                    select type(pl_snap)
+                                    class is (symba_pl)
+                                    select type(pl)
+                                    class is (symba_pl)
+                                       pl_snap%levelg(:) = pl%levelg([pii,pjj])
+                                    end select
+                                    end select
+                                    pl_snap%id(:) = pl%id([pii,pjj])
+                                    pl_snap%info(:) = pl%info([pii,pjj])
+                                    pl_snap%Gmass(:) = pl%Gmass([pii,pjj])
+                                    Gmtot = sum(pl_snap%Gmass(:))
+                                    if (param%lclose) pl_snap%radius(:) = pl%radius([pii,pjj])
+                                    if (param%lrotation) then
+                                       do i = 1, NDIM
+                                          pl_snap%Ip(i,:) = pl%Ip(i,[pii,pjj])
+                                          pl_snap%rot(i,:) = pl%rot(i,[pii,pjj])
+                                       end do
+                                    end if
+
+                                    ! Compute pericenter passage time to get the closest approach parameters
+                                    rrel(:) = plpl_encounter%r2(:,k) - plpl_encounter%r1(:,k)
+                                    vrel(:) = plpl_encounter%v2(:,k) - plpl_encounter%v1(:,k)
+                                    call swiftest_orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
+                                    snapshot%t = t + tperi
+                                    if ((snapshot%t < maxval(pl_snap%info(:)%origin_time)) .or. &
+                                          (snapshot%t > minval(pl_snap%info(:)%discard_time))) cycle
+
+                                    ! Computer the center mass of the pair
+                                    rcom(:) = (plpl_encounter%r1(:,k) * pl_snap%Gmass(1) + plpl_encounter%r2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                    vcom(:) = (plpl_encounter%v1(:,k) * pl_snap%Gmass(1) + plpl_encounter%v2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                    rb(:,1) = plpl_encounter%r1(:,k) - rcom(:)
+                                    rb(:,2) = plpl_encounter%r2(:,k) - rcom(:)
+                                    vb(:,1) = plpl_encounter%v1(:,k) - vcom(:)
+                                    vb(:,2) = plpl_encounter%v2(:,k) - vcom(:)
+
+                                    ! Drift the relative orbit to get the new relative position and velocity
+                                    call swiftest_drift_one(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), tperi, iflag)
+                                    if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. Closest approach positions and vectors may not be accurate."
+
+                                    ! Get the new position and velocity vectors
+                                    rb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * rrel(:)
+                                    rb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * rrel(:)
+
+                                    vb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * vrel(:)
+                                    vb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * vrel(:)
+
+                                    ! Move the CoM assuming constant velocity over the time it takes to reach periapsis
+                                    rcom(:) = rcom(:) + vcom(:) * tperi
+
+                                    ! Compute the heliocentric position and velocity vector at periapsis
+                                    pl_snap%rh(:,1) = rb(:,1) + rcom(:)
+                                    pl_snap%rh(:,2) = rb(:,2) + rcom(:)
+                                    pl_snap%vh(:,1) = vb(:,1) + vcom(:)
+                                    pl_snap%vh(:,2) = vb(:,2) + vcom(:)
+
+                                    call pl_snap%sort("id", ascending=.true.)
+                                    call self%save(snapshot)
                                  end if
+                              end do
 
-                                 ! Compute pericenter passage time to get the closest approach parameters
-                                 rrel(:) = plpl_encounter%r2(:,k) - plpl_encounter%r1(:,k)
-                                 vrel(:) = plpl_encounter%v2(:,k) - plpl_encounter%v1(:,k)
-                                 call swiftest_orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
-                                 snapshot%t = t + tperi
-                                 if ((snapshot%t < maxval(pl_snap%info(:)%origin_time)) .or. &
-                                       (snapshot%t > minval(pl_snap%info(:)%discard_time))) cycle
-
-                                 ! Computer the center mass of the pair
-                                 rcom(:) = (plpl_encounter%r1(:,k) * pl_snap%Gmass(1) + plpl_encounter%r2(:,k) * pl_snap%Gmass(2)) / Gmtot
-                                 vcom(:) = (plpl_encounter%v1(:,k) * pl_snap%Gmass(1) + plpl_encounter%v2(:,k) * pl_snap%Gmass(2)) / Gmtot
-                                 rb(:,1) = plpl_encounter%r1(:,k) - rcom(:)
-                                 rb(:,2) = plpl_encounter%r2(:,k) - rcom(:)
-                                 vb(:,1) = plpl_encounter%v1(:,k) - vcom(:)
-                                 vb(:,2) = plpl_encounter%v2(:,k) - vcom(:)
-
-                                 ! Drift the relative orbit to get the new relative position and velocity
-                                 call swiftest_drift_one(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), tperi, iflag)
-                                 if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. Closest approach positions and vectors may not be accurate."
-
-                                 ! Get the new position and velocity vectors
-                                 rb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * rrel(:)
-                                 rb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * rrel(:)
-
-                                 vb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * vrel(:)
-                                 vb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * vrel(:)
-
-                                 ! Move the CoM assuming constant velocity over the time it takes to reach periapsis
-                                 rcom(:) = rcom(:) + vcom(:) * tperi
-
-                                 ! Compute the heliocentric position and velocity vector at periapsis
-                                 pl_snap%rh(:,1) = rb(:,1) + rcom(:)
-                                 pl_snap%rh(:,2) = rb(:,2) + rcom(:)
-                                 pl_snap%vh(:,1) = vb(:,1) + vcom(:)
-                                 pl_snap%vh(:,2) = vb(:,2) + vcom(:)
-
-                                 call pl_snap%sort("id", ascending=.true.)
-                                 call self%save(snapshot)
-                              end if
-                           end do
-
-                           plpl_encounter%lclosest(:) = .false.
+                              plpl_encounter%lclosest(:) = .false.
+                           end if
                         end if
 
-                        if (any(pltp_encounter%lclosest(:))) then
-                           do k = 1, pltp_encounter%nenc
-                           end do
-                           pltp_encounter%lclosest(:) = .false.
+                        if (pltp_encounter%nenc > 0) then
+                           if (any(pltp_encounter%lclosest(:))) then
+                              do k = 1_I8B, pltp_encounter%nenc
+                              end do
+                              pltp_encounter%lclosest(:) = .false.
+                           end if
                         end if
                      end associate
                   case default
