@@ -90,8 +90,8 @@ rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
                                               np.array([0.0, 0.0, 1.0e4])] 
                }
 
-body_Gmass = {"disruption_headon"        : [1e-7, 1e-10],
-             "disruption_off_axis"       : [1e-7, 1e-10],
+body_Gmass = {"disruption_headon"        : [1e-7, 1e-9],
+             "disruption_off_axis"       : [1e-7, 1e-9],
              "supercatastrophic_headon"  : [1e-7, 1e-8],
              "supercatastrophic_off_axis": [1e-7, 1e-8],
              "hitandrun_disrupt"         : [1e-7, 7e-10],
