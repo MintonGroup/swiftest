@@ -102,7 +102,7 @@ contains
       return
    end subroutine collision_generate_bounce
 
-
+   
    module subroutine collision_generate_hitandrun(self, nbody_system, param, t) 
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
