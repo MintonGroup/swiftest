@@ -457,9 +457,8 @@ contains
       real(DP)                :: vmin_guess = 1.5_DP 
       real(DP)                :: vmax_guess = 10.0_DP
       real(DP)                :: delta_v, volume
-      integer(I4B), parameter :: MAXLOOP = 20
-      integer(I4B), parameter :: MAXTRY  = 100
-      real(DP), parameter :: SUCCESS_METRIC = 1.0e-3_DP
+      integer(I4B), parameter :: MAXLOOP = 100
+      real(DP), parameter :: SUCCESS_METRIC = 1.0e-2_DP
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
 
@@ -497,7 +496,7 @@ contains
             lfailure = .false.
             dE_metric = huge(1.0_DP)
 
-            outer: do try = 1, nfrag - 1
+            outer: do try = 1, nfrag - 2
                ! Scale the magnitude of the velocity by the distance from the impact point
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
                do concurrent(i = 1:nfrag)
@@ -509,7 +508,6 @@ contains
                vscale(:) = vscale(:)/minval(vscale(:))
                fscale = log(vmax_guess - vmin_guess + 1.0_DP) / log(maxval(vscale(:)))
                vscale(:) = vscale(:)**fscale + vmin_guess - 1.0_DP
-
 
                ! Set the velocities of all fragments using all of the scale factors determined above
                do concurrent(i = 1:nfrag)
@@ -526,7 +524,7 @@ contains
                      ! Add more velocity dispersion to disruptions vs hit and runs.
                      vmag = vesc * vscale(i) 
                      rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
-                     vimp_unit(:) = .unit. rimp(:)
+                     vimp_unit(:) = .unit. (rimp(:) + 0.5_DP * impactors%bounce_unit(:))
                      fragments%vc(:,i) = vmag * vscale(i) * vimp_unit(:) + vrot(:) 
                   end if
                end do
@@ -541,6 +539,7 @@ contains
                   L_residual(:) = collider_local%L_total(:,2) - collider_local%L_total(:,1)
                   fragments%L_spin(:,1) = fragments%L_spin(:,1) - L_residual(:) 
                   fragments%rot(:,1) = fragments%L_spin(:,1) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(:,1)) 
+                  fragments%rotmag(:) = .mag.fragments%rot(:,:)
 
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
@@ -573,7 +572,7 @@ contains
                   fragments%vc(:,:) = fscale * fragments%vc(:,:)
 
                   f_spin = 1.0_DP - f_orbit
-                  ke_remove = min(f_spin * E_residual, fragments%ke_spin_tot)
+                  ke_remove = min(f_spin * E_residual, 0.01_DP*fragments%ke_spin_tot)
                   ke_rot_remove(:) = ke_remove * (fragments%ke_spin(:) / fragments%ke_spin_tot)
                   where(ke_rot_remove(:) > fragments%ke_spin(:)) ke_rot_remove(:) = fragments%ke_spin(:) 
                   do concurrent(i = 1:fragments%nbody, fragments%ke_spin(i) > 10*sqrt(tiny(1.0_DP)))
@@ -600,6 +599,7 @@ contains
                fragments%mass(nlast) = 0.0_DP
                fragments%Gmass(nlast) = 0.0_DP
                fragments%radius(nlast) = 0.0_DP
+               fragments%status(nlast) = INACTIVE
                fragments%nbody = nlast - 1
 
                call fragments%reset()
