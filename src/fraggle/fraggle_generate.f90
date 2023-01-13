@@ -322,7 +322,7 @@ contains
                j = fragments%origin_body(i)
 
                ! Scale the cloud size
-               fragments%rc(:,i) = fragment_cloud_radius(j) * mass_rscale(:) * .unit.fragments%rc(:,i)
+               fragments%rc(:,i) = fragment_cloud_radius(j) * mass_rscale(i) * .unit.(fragments%rc(:,i))
 
                ! Shift to the cloud center coordinates
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
