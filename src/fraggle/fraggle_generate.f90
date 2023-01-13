@@ -589,7 +589,7 @@ contains
                ! We didn't converge. Reset the fragment positions and velocities and try a new configuration with some slightly different parameters
                ! Reduce the number of fragments by one
                nlast = fragments%nbody
-               fragments%Ip(:,1) = fragments%mass(1) * impactors%Ip(:,1) + fragments%mass(nlast) * impactors%Ip(:,nlast)
+               fragments%Ip(:,1) = fragments%mass(1) * fragments%Ip(:,1) + fragments%mass(nlast) * fragments%Ip(:,nlast)
                fragments%mass(1) = fragments%mass(1) + fragments%mass(nlast)
                fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
                fragments%Gmass(1) = fragments%Gmass(1) + fragments%mass(nlast)

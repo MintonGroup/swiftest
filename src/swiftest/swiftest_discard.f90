@@ -92,6 +92,8 @@ contains
       logical, dimension(:), allocatable :: ldiscard
       integer(I4B) :: npl, ntp
 
+      if (self%nbody == 0) return
+
       associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl)
          ntp = tp%nbody
          npl = pl%nbody
