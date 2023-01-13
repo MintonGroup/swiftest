@@ -593,7 +593,7 @@ contains
                collider_local%fail_scale = collider_local%fail_scale*1.01_DP
 
                ! Bring the minimum and maximum velocities closer together for the next round
-               delta_v = 0.25_DP * (vmax_guess - vmin_guess)
+               delta_v = 0.125_DP * (vmax_guess - vmin_guess)
                vmin_guess = vmin_guess + delta_v
                vmax_guess = vmax_guess - delta_v
             end do outer
