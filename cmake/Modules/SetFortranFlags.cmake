@@ -109,14 +109,17 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                          "-fbacktrace"  # GNU (gfortran)
                          "-ftrace=full" # GNU (g95)
                 )
+# Sanitize
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-fsanitize=address"  # Gnu 
+                )
+                
 
 # Check everything
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-check"  # Intel
                          "/check"  # Intel Windows
-                         "-fcheck=bounds" # GNU (New style)
-                         "-fbounds-check" # GNU (Old style)
-                         "-Mbounds"       # Portland Group
+                         "-fcheck=all" # GNU 
                 )
 
 # Initializes matrices/arrays with NaN values
@@ -142,6 +145,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
 # Enables floating-point invalid, divide-by-zero, and overflow exceptions
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-fpe-all=0" # Intel
+                         "-ffpe-trap=zero,overflow,underflow" # GNU
                 )
 
 # Improves floating-point precision and consistency
