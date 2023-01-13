@@ -209,7 +209,7 @@ module base
       integer(I4B)                             :: nbody = 0 !! Number of bodies
       integer(I4B),  dimension(:), allocatable :: id        !! Identifier
    contains
-         procedure :: dealloc => base_util_dealloc_multibody
+      procedure :: dealloc => base_util_dealloc_multibody
    end type base_multibody 
 
 

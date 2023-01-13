@@ -492,7 +492,7 @@ contains
       if (n == 0) return
 
       allocate(swiftest_particle_info :: self%info(n))
-      allocate(self%id(n))
+
       allocate(self%status(n))
       allocate(self%rh(NDIM, n))
       allocate(self%vh(NDIM, n))

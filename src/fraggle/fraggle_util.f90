@@ -86,14 +86,13 @@ contains
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
 
             call self%setup_fragments(1)
-            select type(fragments => self%fragments)
-            class is (collision_fragments)
+            associate(fragments => self%fragments)
                fragments%mass(1) = impactors%mass_dist(1)
                fragments%Gmass(1) = G * impactors%mass_dist(1)
                fragments%radius(1) = impactors%radius(jtarg)
                fragments%density(1) = impactors%mass_dist(1) / volume(jtarg)
                if (param%lrotation) fragments%Ip(:, 1) = impactors%Ip(:,1)
-            end select
+            end associate
             return
          case default
             write(*,*) "collision_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
