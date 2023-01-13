@@ -620,7 +620,7 @@ contains
                   call fragments%set_coordinate_system()
 
                end do
-               !if (dE_best < 0.0_DP) exit outer
+               if (dE_best < 0.0_DP) exit outer
                ! We didn't converge. Reset the fragment positions and velocities and try a new configuration with some slightly different parameters
                if (fragments%nbody == 2) exit outer
                ! Reduce the number of fragments by one
