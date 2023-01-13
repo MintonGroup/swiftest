@@ -351,22 +351,29 @@ contains
       class(collision_fragments),  intent(inout) :: self
 
       if (allocated(self%info)) deallocate(self%info) 
-      self%mtot = 0.0_DP
-      self%status = 0
-      self%rh(:,:) = 0.0_DP
-      self%vh(:,:) = 0.0_DP
-      self%rb(:,:) = 0.0_DP
-      self%vb(:,:) = 0.0_DP
-      self%rot(:,:) = 0.0_DP
-      self%Ip(:,:) = 0.0_DP
-      self%mass(:) = 0.0_DP
-      self%radius(:) = 0.0_DP
-      self%density(:) = 0.0_DP
-      self%rc(:,:) = 0.0_DP
-      self%vc(:,:) = 0.0_DP
-      self%r_unit(:,:) = 0.0_DP
-      self%t_unit(:,:) = 0.0_DP
-      self%n_unit(:,:) = 0.0_DP
+      if (allocated(self%status)) deallocate(self%status) 
+      if (allocated(self%rh)) deallocate(self%rh)
+      if (allocated(self%vh)) deallocate(self%vh)
+      if (allocated(self%rb))  deallocate(self%rb)
+      if (allocated(self%vb)) deallocate(self%vb)
+      if (allocated(self%rc)) deallocate(self%rc)
+      if (allocated(self%vc)) deallocate(self%vc)
+      if (allocated(self%r_unit)) deallocate(self%r_unit)
+      if (allocated(self%t_unit)) deallocate(self%t_unit)
+      if (allocated(self%n_unit)) deallocate(self%n_unit)
+      if (allocated(self%rot)) deallocate(self%rot)
+      if (allocated(self%Ip)) deallocate(self%Ip)
+      if (allocated(self%mass)) deallocate(self%mass)
+      if (allocated(self%radius)) deallocate(self%radius)
+      if (allocated(self%density)) deallocate(self%density)
+      if (allocated(self%rmag)) deallocate(self%rmag)
+      if (allocated(self%vmag)) deallocate(self%vmag)
+      if (allocated(self%rotmag)) deallocate(self%rotmag)
+      if (allocated(self%origin_body)) deallocate(self%origin_body)
+      if (allocated(self%L_orbit)) deallocate(self%L_orbit)
+      if (allocated(self%L_spin)) deallocate(self%L_spin)
+      if (allocated(self%ke_orbit)) deallocate(self%ke_orbit)
+      if (allocated(self%ke_spin)) deallocate(self%ke_spin)
 
       return
    end subroutine collision_util_dealloc_fragments
