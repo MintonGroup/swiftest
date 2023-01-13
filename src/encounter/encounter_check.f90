@@ -490,7 +490,7 @@ contains
    end subroutine encounter_check_all_sweep_one
 
 
-   pure subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, &
+   subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, &
                                                       dt, ind_arr, lenci)
       !! author: David A. Minton
       !!
@@ -1023,8 +1023,8 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for the other body in each encounter candidate pair
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       ! Internals
-      integer(I4B) :: i, nbox, dim
-      integer(I8B) :: k, itmp
+      integer(I4B) :: i, dim, itmp, nbox
+      integer(I8B) :: k
       logical, dimension(n) :: loverlap
       logical, dimension(2*n) :: lencounteri
       real(DP), dimension(2*n) :: xind, yind, zind, vxind, vyind, vzind, rencind
@@ -1062,7 +1062,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb(dim)%ibeg(i) + 1_I8B
             iend =  self%aabb(dim)%iend(i) - 1_I8B
-            nbox = iend - ibeg + 1
+            nbox = int(iend - ibeg + 1, kind=I4B)
             lencounteri(ibeg:iend) = .true.
             call encounter_check_all_sweep_one(i, nbox, x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), &
                                                       xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&

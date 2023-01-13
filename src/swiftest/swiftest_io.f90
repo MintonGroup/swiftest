@@ -248,7 +248,7 @@ contains
 
       if (param%display_style == "PROGRESS") then
          write(pbarmessage,fmt=pbarfmt) self%t, param%tstop
-         call pbar%update(1,message=pbarmessage)
+         call pbar%update(1_I8B,message=pbarmessage)
       else if (param%display_style == "COMPACT") then
          call self%compact_output(param,integration_timer)
       end if
@@ -2894,7 +2894,7 @@ contains
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
          self%log_output = .false.
       case ('COMPACT', 'PROGRESS')
-         inquire(SWIFTEST_LOG_FILE, exist=fileExists)
+         inquire(file=SWIFTEST_LOG_FILE, exist=fileExists)
          if (self%lrestart.and.fileExists) then
             open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status="OLD", position="APPEND", err = 667, iomsg = errmsg)
          else

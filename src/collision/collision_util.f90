@@ -818,37 +818,39 @@ contains
             select type(before_snap => snapshot%collider%before )
             class is (swiftest_nbody_system)
             select type(before_orig => nbody_system%collider%before)
-            class is (swiftest_nbody_system)
-            select type(plsub => before_orig%pl)
-            class is (swiftest_pl)
-               ! Log the properties of the old and new bodies
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
-               do i = 1, plsub%nbody
-                  write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-               end do
+               class is (swiftest_nbody_system)
+               select type(plsub => before_orig%pl)
+               class is (swiftest_pl)
+                  ! Log the properties of the old and new bodies
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
+                  do i = 1, plsub%nbody
+                     write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                  end do
 
-               call move_alloc(before_orig%pl, before_snap%pl)
+                  allocate(before_snap%pl, source=plsub)
+               end select
+               deallocate(before_orig%pl)
             end select
             end select
-            end select
+
 
             select type(after_snap => snapshot%collider%after )
             class is (swiftest_nbody_system)
             select type(after_orig => nbody_system%collider%after)
             class is (swiftest_nbody_system)
-            select type(plnew => after_orig%pl)
-            class is (swiftest_pl)
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
-               do i = 1, plnew%nbody
-                  write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-               end do
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
-                                                                  "***********************************************************")
-
-               call move_alloc(after_orig%pl, after_snap%pl)
-            end select
+               select type(plnew => after_orig%pl)
+               class is (swiftest_pl)
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
+                  do i = 1, plnew%nbody
+                     write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                  end do
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                                     "***********************************************************")
+                  allocate(after_snap%pl, source=plnew)
+               end select
+               deallocate(after_orig%pl)
             end select
             end select
 
