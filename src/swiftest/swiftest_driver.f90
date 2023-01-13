@@ -15,6 +15,7 @@ program swiftest_driver
    !!
    !! Adapted from Swifter by David E. Kaufmann's Swifter driver programs swifter_[bs,helio,ra15,rmvs,symba,tu4,whm].f90
    !! Adapted from Hal Levison and Martin Duncan's Swift driver programs
+   use netcdf
    use swiftest
    implicit none
 
@@ -54,7 +55,7 @@ program swiftest_driver
       idump = 0
 
       ! Set up nbody_system storage for intermittent file dumps
-      if (dump_cadence == 0) dump_cadence = ceiling(nloops / (1.0_DP * istep_out), kind=I8B)
+      if (dump_cadence == 0) dump_cadence = int(ceiling(nloops / (1.0_DP * istep_out), kind=I8B), kind=I4B)
 
       ! Construct the main n-body nbody_system using the user-input integrator to choose the type of nbody_system
       call swiftest_util_setup_construct_system(nbody_system, param)

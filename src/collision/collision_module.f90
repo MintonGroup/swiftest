@@ -99,41 +99,43 @@ module collision
    type, extends(base_multibody) :: collision_fragments
       real(DP)                                               :: mtot         !! Total mass of fragments       
       class(base_particle_info), dimension(:),   allocatable :: info         !! Particle metadata information
-      integer(I4B),              dimension(nbody)            :: status       !! An integrator-specific status indicator 
-      real(DP),                  dimension(NDIM,nbody)       :: rh           !! Heliocentric position
-      real(DP),                  dimension(NDIM,nbody)       :: vh           !! Heliocentric velocity
-      real(DP),                  dimension(NDIM,nbody)       :: rb           !! Barycentric position
-      real(DP),                  dimension(NDIM,nbody)       :: vb           !! Barycentric velocity
-      real(DP),                  dimension(NDIM,nbody)       :: rot          !! rotation vectors of fragments
-      real(DP),                  dimension(NDIM,nbody)       :: Ip           !! Principal axes moment of inertia for fragments
-      real(DP),                  dimension(nbody)            :: Gmass        !! G*mass of fragments
-      real(DP),                  dimension(nbody)            :: mass         !! masses of fragments
-      real(DP),                  dimension(nbody)            :: radius       !! Radii  of fragments
-      real(DP),                  dimension(nbody)            :: density      !! Radii  of fragments
-      real(DP),                  dimension(NDIM,nbody)       :: rc           !! Position vectors in the collision coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: vc           !! Velocity vectors in the collision coordinate frame
-      real(DP),                  dimension(nbody)            :: rmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
-      real(DP),                  dimension(nbody)            :: vmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
-      real(DP),                  dimension(nbody)            :: rotmag       !! Array of rotation magnitudes of individual fragments 
-      real(DP),                  dimension(NDIM,nbody)       :: r_unit       !! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: v_unit       !! Array of velocity direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: t_unit       !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
-      real(DP),                  dimension(NDIM,nbody)       :: n_unit       !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
-      integer(I1B),              dimension(nbody)            :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
-      real(DP),                  dimension(NDIM)             :: L_orbit_tot   !! Orbital angular momentum vector of all fragments
-      real(DP),                  dimension(NDIM)             :: L_spin_tot    !! Spin angular momentum vector of all fragments
-      real(DP),                  dimension(NDIM,nbody)       :: L_orbit       !! Orbital angular momentum vector of each individual fragment
-      real(DP),                  dimension(NDIM,nbody)       :: L_spin        !! Spin angular momentum vector of each individual fragment
+      integer(I4B),              dimension(:),   allocatable :: status       !! An integrator-specific status indicator 
+      real(DP),                  dimension(:,:), allocatable :: rh           !! Heliocentric position
+      real(DP),                  dimension(:,:), allocatable :: vh           !! Heliocentric velocity
+      real(DP),                  dimension(:,:), allocatable :: rb           !! Barycentric position
+      real(DP),                  dimension(:,:), allocatable :: vb           !! Barycentric velocity
+      real(DP),                  dimension(:,:), allocatable :: rc           !! Position vectors in the collision coordinate frame
+      real(DP),                  dimension(:,:), allocatable :: vc           !! Velocity vectors in the collision coordinate frame
+      real(DP),                  dimension(:,:), allocatable :: r_unit       !! Array of radial direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(:,:), allocatable :: v_unit       !! Array of velocity direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(:,:), allocatable :: t_unit       !! Array of tangential direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(:,:), allocatable :: n_unit       !! Array of normal direction unit vectors of individual fragments in the collisional coordinate frame
+      real(DP),                  dimension(:,:), allocatable :: rot          !! rotation vectors of fragments
+      real(DP),                  dimension(:,:), allocatable :: Ip           !! Principal axes moment of inertia for fragments
+      real(DP),                  dimension(:),   allocatable :: Gmass        !! G*mass of fragments
+      real(DP),                  dimension(:),   allocatable :: mass         !! masses of fragments
+      real(DP),                  dimension(:),   allocatable :: radius       !! Radii  of fragments
+      real(DP),                  dimension(:),   allocatable :: density      !! Radii  of fragments
+      real(DP),                  dimension(:),   allocatable :: rmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
+      real(DP),                  dimension(:),   allocatable :: vmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
+      real(DP),                  dimension(:),   allocatable :: rotmag       !! Array of rotation magnitudes of individual fragments 
+      integer(I1B),              dimension(:),   allocatable :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
+      real(DP),                  dimension(NDIM)             :: L_orbit_tot  !! Orbital angular momentum vector of all fragments
+      real(DP),                  dimension(NDIM)             :: L_spin_tot   !! Spin angular momentum vector of all fragments
+      real(DP),                  dimension(:,:), allocatable :: L_orbit      !! Orbital angular momentum vector of each individual fragment
+      real(DP),                  dimension(:,:), allocatable :: L_spin       !! Spin angular momentum vector of each individual fragment
       real(DP)                                               :: ke_orbit_tot !! Orbital kinetic energy of all fragments
       real(DP)                                               :: ke_spin_tot  !! Spin kinetic energy of all fragments
       real(DP)                                               :: pe           !! Potential energy of all fragments
       real(DP)                                               :: be           !! Binding energy of all fragments
-      real(DP),                  dimension(nbody)            :: ke_orbit     !! Orbital kinetic energy of each individual fragment
-      real(DP),                  dimension(nbody)            :: ke_spin      !! Spin kinetic energy of each individual fragment
+      real(DP),                  dimension(:), allocatable   :: ke_orbit     !! Orbital kinetic energy of each individual fragment
+      real(DP),                  dimension(:), allocatable   :: ke_spin      !! Spin kinetic energy of each individual fragment
    contains
       procedure :: dealloc               => collision_util_dealloc_fragments        !! Deallocates all allocatable arrays and sets everything else to 0
+      procedure :: setup                 => collision_util_setup_fragments          !! Allocates all allocatables
       procedure :: reset                 => collision_util_reset_fragments          !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
       procedure :: set_coordinate_system => collision_util_set_coordinate_fragments !! Sets the coordinate system of the fragments
+      final     ::                          collision_final_fragments               !! Finalizer deallocates all allocatables
    end type collision_fragments
 
 
@@ -142,13 +144,13 @@ module collision
       !! to resolve collision by defining extended types of encounters_impactors and/or encounetr_fragments
       !!
       !! The generate method for this class is the merge model. This allows any extended type to have access to the merge procedure by selecting the collision_basic parent class
-      class(collision_fragments(:)), allocatable :: fragments           !! Object containing information on the pre-collision system
-      class(collision_impactors),    allocatable :: impactors           !! Object containing information on the post-collision system
-      class(base_nbody_system),      allocatable :: before              !! A snapshot of the subset of the nbody_system involved in the collision
-      class(base_nbody_system),      allocatable :: after               !! A snapshot of the subset of the nbody_system containing products of the collision
-      integer(I4B)                               :: status              !! Status flag to pass to the collision list once the collision has been resolved
-      integer(I4B)                               :: collision_id        !! ID number of this collision event
-      integer(I4B)                               :: maxid_collision = 0 !! The current maximum collision id number
+      class(collision_fragments), allocatable :: fragments           !! Object containing information on the pre-collision system
+      class(collision_impactors), allocatable :: impactors           !! Object containing information on the post-collision system
+      class(base_nbody_system),   allocatable :: before              !! A snapshot of the subset of the nbody_system involved in the collision
+      class(base_nbody_system),   allocatable :: after               !! A snapshot of the subset of the nbody_system containing products of the collision
+      integer(I4B)                            :: status              !! Status flag to pass to the collision list once the collision has been resolved
+      integer(I4B)                            :: collision_id        !! ID number of this collision event
+      integer(I4B)                            :: maxid_collision = 0 !! The current maximum collision id number
 
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
@@ -403,7 +405,7 @@ module collision
 
       module subroutine collision_util_dealloc_fragments(self)
          implicit none
-         class(collision_fragments(*)), intent(inout) :: self
+         class(collision_fragments), intent(inout) :: self
       end subroutine collision_util_dealloc_fragments
 
       module subroutine collision_util_dealloc_snapshot(self)
@@ -413,7 +415,7 @@ module collision
 
       module subroutine collision_util_reset_fragments(self)
          implicit none
-         class(collision_fragments(*)), intent(inout) :: self
+         class(collision_fragments), intent(inout) :: self
       end subroutine collision_util_reset_fragments
 
       module subroutine collision_util_set_coordinate_collider(self)
@@ -423,7 +425,7 @@ module collision
 
       module subroutine collision_util_set_coordinate_fragments(self)
          implicit none
-         class(collision_fragments(*)), intent(inout) :: self      !! Collisional nbody_system
+         class(collision_fragments), intent(inout) :: self      !! Collisional nbody_system
       end subroutine collision_util_set_coordinate_fragments
 
       module subroutine collision_util_set_coordinate_impactors(self)
@@ -503,9 +505,28 @@ module collision
          class(collision_basic), intent(inout) :: self  !! collision system object
       end subroutine collision_util_set_original_scale_factors
 
+      module subroutine collision_util_setup_fragments(self, n)
+         implicit none
+         class(collision_fragments), intent(inout) :: self  !! Swiftest generic body object
+         integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      end subroutine collision_util_setup_fragments
+
    end interface
 
    contains
+
+      subroutine collision_final_fragments(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer will deallocate all allocatables
+         implicit none
+         ! Arguments
+         type(collision_fragments),  intent(inout) :: self !! Collision impactors storage object
+
+         call self%dealloc()
+
+         return
+      end subroutine collision_final_fragments
 
       subroutine collision_final_impactors(self)
          !! author: David A. Minton

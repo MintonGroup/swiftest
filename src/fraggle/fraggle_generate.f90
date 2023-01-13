@@ -312,9 +312,9 @@ contains
                istart = 2
             end if
 
+            call random_number(fragments%rc(:,istart:nfrag))
             do concurrent(i = istart:nfrag, loverlap(i))
                ! Make a random cloud
-               call random_number(fragments%rc(:,i))
 
                ! Make the fragment cloud symmertic about 0
                fragments%rc(:,i) = 2 *(fragments%rc(:,i) - 0.5_DP)
@@ -322,7 +322,7 @@ contains
                j = fragments%origin_body(i)
 
                ! Scale the cloud size
-               fragments%rc(:,i) = fragment_cloud_radius(j) * mass_rscale(:) * .unit.fragments%rc(:,i)
+               fragments%rc(:,i) = fragment_cloud_radius(j) * mass_rscale(i) * .unit.(fragments%rc(:,i))
 
                ! Shift to the cloud center coordinates
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
@@ -407,7 +407,7 @@ contains
          fragments%rotmag(1) = .mag.fragments%rot(:,1)
          ! Add in some random spin noise. The magnitude will be scaled by the before-after amount and the direction will be random
          call random_number(fragments%rotmag(2:nfrag))
-         do concurrent(i = 2:nfrag)
+         do i = 2,nfrag
             call random_number(rotdir)
             rotdir = rotdir - 0.5_DP
             rotdir = .unit. rotdir

@@ -248,7 +248,7 @@ contains
 
       if (param%display_style == "PROGRESS") then
          write(pbarmessage,fmt=pbarfmt) self%t, param%tstop
-         call pbar%update(1,message=pbarmessage)
+         call pbar%update(1_I8B,message=pbarmessage)
       else if (param%display_style == "COMPACT") then
          call self%compact_output(param,integration_timer)
       end if
@@ -1828,8 +1828,6 @@ contains
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Read in parameters for the integration
-      !! Currently this procedure does not work in user-defined derived-type input mode 
-      !!    e.g. read(unit,'(DT)') param 
       !! as the newline characters are ignored in the input file when compiled in ifort.
       !!
       !! Adapted from David E. Kaufmann's Swifter routine io_init_param.f90
@@ -1837,12 +1835,12 @@ contains
       implicit none
       ! Arguments
       class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
-      integer, intent(in)                       :: unit       !! File unit number
-      character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
+      integer(I4B),               intent(in)    :: unit       !! File unit number
+      character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
                                                               !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-      character(len=*), intent(in)              :: v_list(:)  !! The first element passes the integrator code to the reader
-      integer, intent(out)                      :: iostat     !! IO status code
-      character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
+      character(len=*),           intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
+      integer(I4B),               intent(out)   :: iostat     !! IO status code
+      character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
       logical                        :: tstart_set = .false.               !! Is the final time set in the input file?
       logical                        :: tstop_set = .false.               !! Is the final time set in the input file?
@@ -2168,8 +2166,7 @@ contains
          param%lenc_save_trajectory = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "BOTH")
          param%lenc_save_closest = (param%encounter_save == "CLOSEST") .or. (param%encounter_save == "BOTH")
 
-         integrator = v_list(1)
-         if ((integrator == INT_RMVS) .or. (integrator == INT_SYMBA)) then
+         if ((param%integrator == INT_RMVS) .or. (param%integrator == INT_SYMBA)) then
             if (.not.param%lclose) then
                write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
                iostat = -1
@@ -2177,7 +2174,7 @@ contains
             end if
          end if
 
-         param%lmtiny_pl = (integrator == INT_SYMBA) 
+         param%lmtiny_pl = (param%integrator == INT_SYMBA) 
 
          if (param%lmtiny_pl .and. param%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", param%GMTINY
@@ -2204,7 +2201,7 @@ contains
          end if
    
          ! Determine if the GR flag is set correctly for this integrator
-         select case(integrator)
+         select case(param%integrator)
          case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA)
          case default   
             if (param%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
@@ -2867,7 +2864,7 @@ contains
       !!    as the newline characters are ignored in the input file when compiled in ifort.
 
       !read(LUN,'(DT)', iostat= ierr, iomsg = errmsg) self
-      call self%reader(LUN, iotype= "none", v_list = [self%integrator], iostat = ierr, iomsg = errmsg)
+      call self%reader(LUN, iotype= "none", v_list=[""], iostat = ierr, iomsg = errmsg)
       if (ierr == 0) return
 
       667 continue
@@ -2894,7 +2891,7 @@ contains
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
          self%log_output = .false.
       case ('COMPACT', 'PROGRESS')
-         inquire(SWIFTEST_LOG_FILE, exist=fileExists)
+         inquire(file=SWIFTEST_LOG_FILE, exist=fileExists)
          if (self%lrestart.and.fileExists) then
             open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status="OLD", position="APPEND", err = 667, iomsg = errmsg)
          else

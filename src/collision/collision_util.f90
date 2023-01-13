@@ -348,25 +348,32 @@ contains
       !! Deallocates all allocatables
       implicit none
       ! Arguments
-      class(collision_fragments(*)),  intent(inout) :: self
+      class(collision_fragments),  intent(inout) :: self
 
       if (allocated(self%info)) deallocate(self%info) 
-      self%mtot = 0.0_DP
-      self%status = 0
-      self%rh(:,:) = 0.0_DP
-      self%vh(:,:) = 0.0_DP
-      self%rb(:,:) = 0.0_DP
-      self%vb(:,:) = 0.0_DP
-      self%rot(:,:) = 0.0_DP
-      self%Ip(:,:) = 0.0_DP
-      self%mass(:) = 0.0_DP
-      self%radius(:) = 0.0_DP
-      self%density(:) = 0.0_DP
-      self%rc(:,:) = 0.0_DP
-      self%vc(:,:) = 0.0_DP
-      self%r_unit(:,:) = 0.0_DP
-      self%t_unit(:,:) = 0.0_DP
-      self%n_unit(:,:) = 0.0_DP
+      if (allocated(self%status)) deallocate(self%status) 
+      if (allocated(self%rh)) deallocate(self%rh)
+      if (allocated(self%vh)) deallocate(self%vh)
+      if (allocated(self%rb))  deallocate(self%rb)
+      if (allocated(self%vb)) deallocate(self%vb)
+      if (allocated(self%rc)) deallocate(self%rc)
+      if (allocated(self%vc)) deallocate(self%vc)
+      if (allocated(self%r_unit)) deallocate(self%r_unit)
+      if (allocated(self%t_unit)) deallocate(self%t_unit)
+      if (allocated(self%n_unit)) deallocate(self%n_unit)
+      if (allocated(self%rot)) deallocate(self%rot)
+      if (allocated(self%Ip)) deallocate(self%Ip)
+      if (allocated(self%mass)) deallocate(self%mass)
+      if (allocated(self%radius)) deallocate(self%radius)
+      if (allocated(self%density)) deallocate(self%density)
+      if (allocated(self%rmag)) deallocate(self%rmag)
+      if (allocated(self%vmag)) deallocate(self%vmag)
+      if (allocated(self%rotmag)) deallocate(self%rotmag)
+      if (allocated(self%origin_body)) deallocate(self%origin_body)
+      if (allocated(self%L_orbit)) deallocate(self%L_orbit)
+      if (allocated(self%L_spin)) deallocate(self%L_spin)
+      if (allocated(self%ke_orbit)) deallocate(self%ke_orbit)
+      if (allocated(self%ke_spin)) deallocate(self%ke_spin)
 
       return
    end subroutine collision_util_dealloc_fragments
@@ -434,7 +441,7 @@ contains
       !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
       implicit none
       ! Arguments
-      class(collision_fragments(*)), intent(inout) :: self
+      class(collision_fragments), intent(inout) :: self
 
       self%rc(:,:) = 0.0_DP
       self%vc(:,:) = 0.0_DP
@@ -465,6 +472,112 @@ contains
       return
    end subroutine collision_util_reset_fragments
 
+
+   module subroutine collision_util_setup_fragments(self, n)
+      !! author: David A. Minton
+      !!
+      !! Constructor for fragment class. Allocates space for all particles and
+      implicit none
+      ! Arguments
+      class(collision_fragments), intent(inout) :: self  !! Swiftest generic body object
+      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      ! Internals
+      integer(I4B) :: i
+
+      if (n < 0) return
+
+      call self%dealloc()
+
+      self%nbody = n
+      if (n == 0) return
+
+      allocate(swiftest_particle_info :: self%info(n))
+
+      allocate(self%id(n))
+      allocate(self%status(n))
+      allocate(self%rh(NDIM, n))
+      allocate(self%vh(NDIM, n))
+      allocate(self%rb(NDIM, n))
+      allocate(self%vb(NDIM, n))
+      allocate(self%rc(NDIM, n))
+      allocate(self%vc(NDIM, n))
+      allocate(self%r_unit(NDIM, n))
+      allocate(self%v_unit(NDIM, n))
+      allocate(self%t_unit(NDIM, n))
+      allocate(self%n_unit(NDIM, n))
+      allocate(self%rot(NDIM, n))
+      allocate(self%Ip(NDIM, n))
+      allocate(self%Gmass(n))
+      allocate(self%mass(n))
+      allocate(self%radius(n))
+      allocate(self%density(n))
+      allocate(self%rmag(n))
+      allocate(self%vmag(n))
+      allocate(self%rotmag(n))
+      allocate(self%origin_body(n))
+      allocate(self%L_orbit(NDIM, n))
+      allocate(self%L_spin(NDIM, n))
+      allocate(self%ke_orbit(n))
+      allocate(self%ke_spin(n))
+
+      self%id(:) = 0
+      select type(info => self%info)
+      class is (swiftest_particle_info)
+         do i = 1, n
+            call info(i)%set_value(&
+               name = "UNNAMED", &
+               particle_type = "UNKNOWN", &
+               status = "INACTIVE", & 
+               origin_type = "UNKNOWN", &
+               collision_id = 0, &
+               origin_time = -huge(1.0_DP), & 
+               origin_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               discard_time = huge(1.0_DP), & 
+               discard_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+               discard_body_id = -1  &
+            )
+         end do
+      end select
+
+      self%mtot = 0.0_DP
+      self%status(:) = ACTIVE
+      self%rh(:,:)   = 0.0_DP
+      self%vh(:,:)   = 0.0_DP
+      self%rb(:,:)   = 0.0_DP
+      self%vb(:,:)   = 0.0_DP
+      self%rc(:,:)   = 0.0_DP
+      self%vc(:,:)   = 0.0_DP
+      self%r_unit(:,:)   = 0.0_DP
+      self%v_unit(:,:)   = 0.0_DP
+      self%t_unit(:,:)   = 0.0_DP
+      self%n_unit(:,:)   = 0.0_DP
+      self%rot(:,:)   = 0.0_DP
+      self%Ip(:,:)   = 0.0_DP
+      self%Gmass(:)   = 0.0_DP
+      self%mass(:)   = 0.0_DP
+      self%radius(:)   = 0.0_DP
+      self%density(:)   = 0.0_DP
+      self%rmag(:)   = 0.0_DP
+      self%vmag(:)   = 0.0_DP
+      self%rotmag(:)   = 0.0_DP
+      self%origin_body(:)   = 0
+      self%L_orbit_tot(:)   = 0.0_DP
+      self%L_spin_tot(:)   = 0.0_DP
+      self%L_orbit(:,:)   = 0.0_DP
+      self%L_spin(:,:)   = 0.0_DP
+      self%ke_orbit_tot = 0.0_DP
+      self%ke_spin_tot = 0.0_DP
+      self%pe = 0.0_DP
+      self%be = 0.0_DP
+      self%ke_orbit(:)   = 0.0_DP
+      self%ke_spin(:)   = 0.0_DP
+
+      return
+   end subroutine collision_util_setup_fragments
+
+
    module subroutine collision_util_set_coordinate_collider(self)
       
       !!
@@ -492,7 +605,7 @@ contains
       !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
       implicit none
       ! Arguments
-      class(collision_fragments(*)), intent(inout) :: self      !! Collisional nbody_system
+      class(collision_fragments), intent(inout) :: self      !! Collisional nbody_system
 
       associate(fragments => self, nfrag => self%nbody)
          if ((nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
@@ -619,30 +732,8 @@ contains
       integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
 
       if (allocated(self%fragments)) deallocate(self%fragments)
-      allocate(collision_fragments(nfrag) :: self%fragments)
-      self%fragments%nbody = nfrag
-      self%fragments%nbody = nfrag
-      self%fragments%status(:) = ACTIVE
-      self%fragments%rh(:,:) = 0.0_DP
-      self%fragments%vh(:,:) = 0.0_DP
-      self%fragments%rb(:,:) = 0.0_DP
-      self%fragments%vb(:,:) = 0.0_DP
-      self%fragments%rc(:,:) = 0.0_DP
-      self%fragments%vc(:,:) = 0.0_DP
-      self%fragments%rot(:,:) = 0.0_DP
-      self%fragments%Ip(:,:) = 0.0_DP
-      self%fragments%r_unit(:,:) = 0.0_DP
-      self%fragments%t_unit(:,:) = 0.0_DP
-      self%fragments%n_unit(:,:) = 0.0_DP
-      self%fragments%mass(:) = 0.0_DP
-      self%fragments%radius(:) = 0.0_DP
-      self%fragments%density(:) = 0.0_DP
-      self%fragments%rmag(:) = 0.0_DP
-      self%fragments%vmag(:) = 0.0_DP
-      self%fragments%L_orbit_tot(:) = 0.0_DP
-      self%fragments%L_spin_tot(:) = 0.0_DP
-      self%fragments%ke_orbit_tot = 0.0_DP
-      self%fragments%ke_spin_tot = 0.0_DP
+      allocate(collision_fragments :: self%fragments)
+      call self%fragments%setup(nfrag)
 
       return
    end subroutine collision_util_setup_fragments_collider
@@ -735,37 +826,39 @@ contains
             select type(before_snap => snapshot%collider%before )
             class is (swiftest_nbody_system)
             select type(before_orig => nbody_system%collider%before)
-            class is (swiftest_nbody_system)
-            select type(plsub => before_orig%pl)
-            class is (swiftest_pl)
-               ! Log the properties of the old and new bodies
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
-               do i = 1, plsub%nbody
-                  write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-               end do
+               class is (swiftest_nbody_system)
+               select type(plsub => before_orig%pl)
+               class is (swiftest_pl)
+                  ! Log the properties of the old and new bodies
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
+                  do i = 1, plsub%nbody
+                     write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                  end do
 
-               call move_alloc(before_orig%pl, before_snap%pl)
+                  allocate(before_snap%pl, source=plsub)
+               end select
+               deallocate(before_orig%pl)
             end select
             end select
-            end select
+
 
             select type(after_snap => snapshot%collider%after )
             class is (swiftest_nbody_system)
             select type(after_orig => nbody_system%collider%after)
             class is (swiftest_nbody_system)
-            select type(plnew => after_orig%pl)
-            class is (swiftest_pl)
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
-               do i = 1, plnew%nbody
-                  write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-               end do
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
-                                                                  "***********************************************************")
-
-               call move_alloc(after_orig%pl, after_snap%pl)
-            end select
+               select type(plnew => after_orig%pl)
+               class is (swiftest_pl)
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
+                  do i = 1, plnew%nbody
+                     write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                  end do
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                                     "***********************************************************")
+                  allocate(after_snap%pl, source=plnew)
+               end select
+               deallocate(after_orig%pl)
             end select
             end select
 
