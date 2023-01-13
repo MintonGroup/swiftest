@@ -447,7 +447,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      integer(I4B) :: i, j, loop, try, istart, nfrag
+      integer(I4B) :: i, j, loop, try, istart, nfrag, nlast
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual
       real(DP) :: vmag, vesc, dE, E_residual, ke_avail, ke_remove, dE_best, E_residual_best, fscale, f_spin, f_orbit, dE_metric
@@ -456,7 +456,7 @@ contains
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
       real(DP)                :: vmin_guess = 1.5_DP 
       real(DP)                :: vmax_guess = 10.0_DP
-      real(DP)                :: delta_v
+      real(DP)                :: delta_v, volume
       integer(I4B), parameter :: MAXLOOP = 20
       integer(I4B), parameter :: MAXTRY  = 100
       real(DP), parameter :: SUCCESS_METRIC = 1.0e-3_DP
@@ -497,7 +497,7 @@ contains
             lfailure = .false.
             dE_metric = huge(1.0_DP)
 
-            outer: do try = 1, MAXTRY
+            outer: do try = 1, nfrag - 1
                ! Scale the magnitude of the velocity by the distance from the impact point
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
                do concurrent(i = 1:nfrag)
@@ -551,7 +551,7 @@ contains
                      E_residual_best = E_residual
                      dE_best = dE
 
-                     do concurrent(i = 1:nfrag)
+                     do concurrent(i = 1:fragments%nbody)
                         fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
                      end do
 
@@ -576,7 +576,7 @@ contains
                   ke_remove = min(f_spin * E_residual, fragments%ke_spin_tot)
                   ke_rot_remove(:) = ke_remove * (fragments%ke_spin(:) / fragments%ke_spin_tot)
                   where(ke_rot_remove(:) > fragments%ke_spin(:)) ke_rot_remove(:) = fragments%ke_spin(:) 
-                  do concurrent(i = 1:nfrag, fragments%ke_spin(i) > 10*sqrt(tiny(1.0_DP)))
+                  do concurrent(i = 1:fragments%nbody, fragments%ke_spin(i) > 10*sqrt(tiny(1.0_DP)))
                      fscale = sqrt((fragments%ke_spin(i) - ke_rot_remove(i))/fragments%ke_spin(i))
                      fragments%rot(:,i) = fscale * fragments%rot(:,i)
                   end do
@@ -586,16 +586,34 @@ contains
                   call fragments%set_coordinate_system()
 
                end do
-               ! We didn't converge. Try another configuration and see if we get a better result
+               ! We didn't converge. Reset the fragment positions and velocities and try a new configuration with some slightly different parameters
+               ! Reduce the number of fragments by one
+               nlast = fragments%nbody
+               fragments%Ip(:,1) = fragments%mass(1) * impactors%Ip(:,1) + fragments%mass(nlast) * impactors%Ip(:,nlast)
+               fragments%mass(1) = fragments%mass(1) + fragments%mass(nlast)
+               fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
+               fragments%Gmass(1) = fragments%Gmass(1) + fragments%mass(nlast)
+               volume = 4.0_DP / 3.0_DP * PI * (fragments%radius(1) + fragments%radius(nlast))
+               fragments%density(1) = fragments%mass(1) / volume
+               fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
+               fragments%Ip(:,nlast) = 0.0_DP
+               fragments%mass(nlast) = 0.0_DP
+               fragments%Gmass(nlast) = 0.0_DP
+               fragments%radius(nlast) = 0.0_DP
+               fragments%nbody = nlast - 1
+
                call fragments%reset()
                call fraggle_generate_pos_vec(collider_local)
                call fraggle_generate_rot_vec(collider_local, nbody_system, param)
+
+               ! Increase the spatial size factor to get a less dense cloud
                collider_local%fail_scale = collider_local%fail_scale*1.01_DP
 
-               ! Bring the minimum and maximum velocities closer together for the next round
+               ! Bring the minimum and maximum velocities closer together 
                delta_v = 0.125_DP * (vmax_guess - vmin_guess)
                vmin_guess = vmin_guess + delta_v
                vmax_guess = vmax_guess - delta_v
+
             end do outer
             lfailure = dE_best > 0.0_DP
 
