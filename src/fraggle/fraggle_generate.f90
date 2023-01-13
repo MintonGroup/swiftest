@@ -537,8 +537,10 @@ contains
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   ! Check for any residual angular momentum, and if there is any, put it into spin of the largest body
                   L_residual(:) = collider_local%L_total(:,2) - collider_local%L_total(:,1)
-                  fragments%L_spin(:,1) = fragments%L_spin(:,1) - L_residual(:) 
-                  fragments%rot(:,1) = fragments%L_spin(:,1) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(:,1)) 
+                  do i = 1, fragments%nbody
+                     fragments%L_spin(:,i) = fragments%L_spin(:,i) - L_residual(:) * fragments%mass(i) / fragments%mtot
+                     fragments%rot(:,i) = fragments%L_spin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i)) 
+                  end do
                   fragments%rotmag(:) = .mag.fragments%rot(:,:)
 
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
