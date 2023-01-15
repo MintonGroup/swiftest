@@ -1446,7 +1446,11 @@ contains
             nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
          end do
 
-         nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl)) 
+         if ((param%lclose)) then
+            nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl)) 
+         else
+            nbody_system%be = 0.0_DP
+         end if
          nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be 
          nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_spin(:)
       end associate

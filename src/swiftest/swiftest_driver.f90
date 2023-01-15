@@ -79,8 +79,8 @@ program swiftest_driver
             else
                call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
             end if
+            call nbody_system%conservation_report(param, lterminal=.true.)
          end if
-         call nbody_system%conservation_report(param, lterminal=.true.)
          call system_history%take_snapshot(param,nbody_system)
          call nbody_system%dump(param)
 

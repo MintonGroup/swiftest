@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import shlex
 import warnings
+import sys
 from tqdm.auto import tqdm
 from typing import (
     Literal,
@@ -453,9 +454,11 @@ class Simulation:
                 if p.returncode != 0:
                     for line in res[1]:
                         print(line, end='')
-                        warnings.warn("Failure in swiftest_driver", stacklevel=2)
+                    warnings.warn("Failure in swiftest_driver", stacklevel=2)
+                    sys.exit()
         except:
             warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
+            sys.exit()
 
         pbar.close()
         return
@@ -485,11 +488,20 @@ class Simulation:
             warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
             return
 
-        if self.driver_executable is None:
+        if self.driver_executable is None or self.binary_source is None:
             msg = "Path to swiftest_driver has not been set!"
             msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
             warnings.warn(msg,stacklevel=2)
             return
+        
+        if not self.driver_executable.exists():
+            if not self.binary_source.exists():
+                msg = "Path to swiftest_driver has not been set!"
+                msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
+                warnings.warn(msg,stacklevel=2)
+                return
+            else:
+                shutil.copy(self.binary_source, self.driver_executable) 
 
         if not self.restart:
             self.clean()
@@ -902,11 +914,16 @@ class Simulation:
             self.param['! VERSION'] = f"{self.codename} input file"
             update_list.append("codename")
             if self.codename == "Swiftest":
-                self.binary_path = Path(_pyfile).parent.parent.parent.parent / "bin"
+                self.binary_source = Path(_pyfile).parent.parent.parent.parent / "bin" / "swiftest_driver"
+                self.binary_path = self.simdir.resolve()
                 self.driver_executable = self.binary_path / "swiftest_driver"
-                if not self.driver_executable.exists():
+                if not self.binary_source.exists():
                     warnings.warn(f"Cannot find the Swiftest driver in {str(self.binary_path)}",stacklevel=2)
                     self.driver_executable = None
+                else:
+                    if self.binary_path.exists():
+                        shutil.copy(self.binary_source, self.driver_executable) 
+                        self.driver_executable.resolve()
             else:
                 self.binary_path = "NOT IMPLEMENTED FOR THIS CODE"
                 self.driver_executable = None
@@ -1027,6 +1044,7 @@ class Simulation:
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
                     encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST", "BOTH"] | None = None,
                     verbose: bool | None = None,
+                    simdir: str | os.PathLike = None, 
                     **kwargs: Any
                     ):
         """
@@ -1105,6 +1123,9 @@ class Simulation:
             If true, will restart an old run. The file given by `output_file_name` must exist before the run can
             execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
             when the run is executed.
+        simdir: PathLike, optional
+            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
+            dump files, and log files. 
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
@@ -1222,6 +1243,16 @@ class Simulation:
             else:
                 self.param["ENCOUNTER_SAVE"] = encounter_save
                 update_list.append("encounter_save")
+                
+        if simdir is not None:
+            self.simdir = Path(simdir)
+            if self.simdir.exists():
+                if not self.simdir.is_dir():
+                    msg = f"Cannot create the {self.simdir.resolve()} directory: File exists."
+                    msg += "\nDelete the file or change the location of param_file"
+                    raise NotADirectoryError(msg)
+            self.binary_path = self.simdir.resolve()
+            self.driver_executable = self.binary_path / "swiftest_driver"
 
         self.param["TIDES"] = False
 
@@ -2868,10 +2899,22 @@ class Simulation:
             param = self.param
 
         self.simdir.mkdir(parents=True, exist_ok=True)
+        
+        
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
             io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)
             self.write_param(param_file=param_file,**kwargs)
+            
+            if not self.driver_executable.exists():
+                if not self.binary_source.exists():
+                    msg = "Path to swiftest_driver has not been set!"
+                    msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
+                    warnings.warn(msg,stacklevel=2)
+                    return
+                else:
+                    shutil.copy(self.binary_source, self.driver_executable)  
+            
         elif codename == "Swifter":
             if codename == "Swiftest":
                 swifter_param = io.swiftest2swifter_param(param)
