@@ -1114,13 +1114,12 @@ contains
             call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar radius_varid"  )
             cb%radius = rtemp(1)
 
-            ! Set initial central body radius for SyMBA bookkeeping
-            cb%R0 = cb%radius
             if (npl > 0) pl%radius(:) = pack(rtemp, plmask)
          else
             cb%radius = param%rmin
             if (npl > 0) pl%radius(:) = 0.0_DP
          end if
+         cb%R0 = cb%radius
 
          if (param%lrotation) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid,  vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_io_read_frame_system nf90_getvar Ip_varid"  )
