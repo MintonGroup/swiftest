@@ -922,7 +922,6 @@ class Simulation:
                     self.driver_executable = None
                 else:
                     if self.binary_path.exists():
-                        shutil.copy(self.binary_source, self.driver_executable) 
                         self.driver_executable.resolve()
             else:
                 self.binary_path = "NOT IMPLEMENTED FOR THIS CODE"
