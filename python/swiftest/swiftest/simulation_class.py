@@ -488,20 +488,13 @@ class Simulation:
             warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
             return
 
-        if self.driver_executable is None or self.binary_source is None:
+        if not self.binary_source.exists():
             msg = "Path to swiftest_driver has not been set!"
             msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
             warnings.warn(msg,stacklevel=2)
             return
-        
-        if not self.driver_executable.exists():
-            if not self.binary_source.exists():
-                msg = "Path to swiftest_driver has not been set!"
-                msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
-                warnings.warn(msg,stacklevel=2)
-                return
-            else:
-                shutil.copy(self.binary_source, self.driver_executable) 
+        else:
+            shutil.copy(self.binary_source, self.driver_executable) 
 
         if not self.restart:
             self.clean()
@@ -2897,23 +2890,20 @@ class Simulation:
         if param is None:
             param = self.param
 
-        self.simdir.mkdir(parents=True, exist_ok=True)
-        
+        if not self.simdir.exists():
+            self.simdir.mkdir(parents=True, exist_ok=True)
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
             io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)
             self.write_param(param_file=param_file,**kwargs)
-            
-            if not self.driver_executable.exists():
-                if not self.binary_source.exists():
-                    msg = "Path to swiftest_driver has not been set!"
-                    msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
-                    warnings.warn(msg,stacklevel=2)
-                    return
-                else:
-                    shutil.copy(self.binary_source, self.driver_executable)  
-            
+            if not self.binary_source.exists():
+                msg = "Path to swiftest_driver has not been set!"
+                msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
+                warnings.warn(msg,stacklevel=2)
+                return
+            else:
+                shutil.copy2(self.binary_source, self.driver_executable)  
         elif codename == "Swifter":
             if codename == "Swiftest":
                 swifter_param = io.swiftest2swifter_param(param)
