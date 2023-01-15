@@ -800,12 +800,14 @@ contains
          end do
 
          ! Set special fill mode for discard time so that we can make use of it for non-discarded bodies.
-         select case (vartype)
-         case(NF90_FLOAT)
-            call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_SP)), "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_FLOAT"  )
-         case(NF90_DOUBLE)
-            call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_DP)), "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_DOUBLE"  )
-         end select
+         if (param%lclose) then
+            select case (vartype)
+            case(NF90_FLOAT)
+               call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_SP)), "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_FLOAT"  )
+            case(NF90_DOUBLE)
+               call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_DP)), "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_DOUBLE"  )
+            end select
+         end if
 
          ! Take the file out of define mode
          call netcdf_io_check( nf90_enddef(nc%id), "netcdf_io_initialize_output nf90_enddef"  )

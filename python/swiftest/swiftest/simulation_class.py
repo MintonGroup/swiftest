@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import shlex
 import warnings
+import sys
 from tqdm.auto import tqdm
 from typing import (
     Literal,
@@ -453,9 +454,11 @@ class Simulation:
                 if p.returncode != 0:
                     for line in res[1]:
                         print(line, end='')
-                        warnings.warn("Failure in swiftest_driver", stacklevel=2)
+                    warnings.warn("Failure in swiftest_driver", stacklevel=2)
+                    sys.exit()
         except:
             warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
+            sys.exit()
 
         pbar.close()
         return
@@ -918,8 +921,9 @@ class Simulation:
                     warnings.warn(f"Cannot find the Swiftest driver in {str(self.binary_path)}",stacklevel=2)
                     self.driver_executable = None
                 else:
-                    shutil.copy(self.binary_source, self.driver_executable) 
-                    self.driver_executable.resolve()
+                    if self.binary_path.exists():
+                        shutil.copy(self.binary_source, self.driver_executable) 
+                        self.driver_executable.resolve()
             else:
                 self.binary_path = "NOT IMPLEMENTED FOR THIS CODE"
                 self.driver_executable = None
