@@ -378,14 +378,7 @@ class Simulation:
         # Get current environment variables
 
         env = os.environ.copy()
-        driver_script = os.path.join(self.binary_path, "swiftest_driver.sh")
-        with open(driver_script, 'w') as f:
-            f.write(f"#{self._shell_full} -l\n")
-            f.write(f"source ~/.{self._shell}rc\n")
-            f.write(f"cd {self.simdir}\n")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
-
-        cmd = f"{env['SHELL']} -l {driver_script}"
+        cmd = f"{env['SHELL']} -l {self.driver_script}"
 
         def _type_scrub(output_data):
             int_vars = ["ILOOP","NPL","NTP","NPLM"]
@@ -485,7 +478,7 @@ class Simulation:
             warnings.warn(msg,stacklevel=2)
             return
         else:
-            shutil.copy(self.binary_source, self.driver_executable) 
+            shutil.copy2(self.binary_source, self.driver_executable) 
 
         if not self.restart:
             self.clean()
@@ -2670,6 +2663,15 @@ class Simulation:
             io.write_swift_param(param, self.simdir / param_file)
         else:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
+            
+        # Generate executable script    
+        self.driver_script = os.path.join(self.simdir, "swiftest_driver.sh")
+        with open(self.driver_script, 'w') as f:
+            f.write(f"#{self._shell_full}\n")
+            f.write(f"source ~/.{self._shell}rc\n")
+            f.write(f"cd {self.simdir}\n")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
+            
         return
 
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
