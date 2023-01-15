@@ -381,7 +381,7 @@ contains
          function calc_c_star(Rc1) result(c_star)
             !! author: David A. Minton
             !!
-            !! Calculates c_star as a function of impact equivalent radius. It inteRpolates between 5 for ~1 km sized bodies to
+            !! Calculates c_star as a function of impact equivalent radius. It interpolates between 5 for ~1 km sized bodies to
             !! 1.8 for ~10000 km sized bodies. See LS12 Fig. 4 for details.
             !! 
             implicit none

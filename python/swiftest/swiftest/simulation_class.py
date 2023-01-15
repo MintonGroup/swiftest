@@ -313,6 +313,7 @@ class Simulation:
         self._getter_column_width = self._swiftest_configuration['getter_column_width']
         self._shell = Path(self._swiftest_configuration['shell'])
         self._shell_full = Path(self._swiftest_configuration['shell_full'])
+        self.verbose = kwargs.pop("verbose",True)
 
         self.param = {}
         self.data = xr.Dataset()
@@ -320,19 +321,9 @@ class Simulation:
         self.encounters = xr.Dataset()
         self.collisions = xr.Dataset()
 
-        self.simdir = Path(simdir)
-        if self.simdir.exists():
-            if not self.simdir.is_dir():
-                msg = f"Cannot create the {self.simdir.resolve()} directory: File exists."
-                msg += "\nDelete the file or change the location of param_file"
-                raise NotADirectoryError(msg)
-        else:
-            if read_old_output or read_param:
-                raise NotADirectoryError(f"Cannot find directory {self.simdir.resolve()} ")
-
         # Set the location of the parameter input file, choosing the default if it isn't specified.
-        param_file = kwargs.pop("param_file",Path.cwd() / self.simdir / "param.in")
-        self.verbose = kwargs.pop("verbose",True)
+        self.simdir = Path.cwd() / Path(simdir)
+        param_file = Path(kwargs.pop("param_file", "param.in"))
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
@@ -794,13 +785,13 @@ class Simulation:
             "encounter_check_loops": "TRIANGULAR",
             "ephemeris_date": "MBCL",
             "restart": False,
-            "encounter_save" : "NONE"
+            "encounter_save" : "NONE",
+            "simdir" : self.simdir
         }
         param_file = kwargs.pop("param_file",None)
 
-        # Extract the simulation directory and create it if it doesn't exist
         if param_file is not None:
-            self.param_file = Path.cwd() / param_file
+            self.param_file = param_file
 
         # If no arguments (other than, possibly, verbose) are requested, use defaults
         if len(kwargs) == 0:
@@ -1245,6 +1236,7 @@ class Simulation:
                     raise NotADirectoryError(msg)
             self.binary_path = self.simdir.resolve()
             self.driver_executable = self.binary_path / "swiftest_driver"
+            self.param_file = Path(kwargs.pop("param_file","param.in"))
 
         self.param["TIDES"] = False
 
@@ -2587,7 +2579,7 @@ class Simulation:
         True if the parameter file exists and is read correctly. False otherwise.
         """
         if param_file is None:
-            param_file = self.param_file
+            param_file = self.simdir / self.param_file
         if read_init_cond is None:
             read_init_cond = True
         if codename is None:
@@ -2661,7 +2653,7 @@ class Simulation:
             verbose = self.verbose
 
         if verbose:
-            print(f"Writing parameter inputs to file {param_file}")
+            print(f"Writing parameter inputs to file {str(self.simdir / param_file)}")
         param['! VERSION'] = f"{codename} input file"
         
         self.simdir.mkdir(parents=True, exist_ok=True)
@@ -2673,9 +2665,9 @@ class Simulation:
                 param.pop("CB_IN", None)
                 param.pop("PL_IN", None)
                 param.pop("TP_IN", None)
-            io.write_labeled_param(param, param_file)
+            io.write_labeled_param(param, self.simdir / param_file)
         elif codename == "Swift":
-            io.write_swift_param(param, param_file)
+            io.write_swift_param(param, self.simdir / param_file)
         else:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
