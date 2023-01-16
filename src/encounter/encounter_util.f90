@@ -248,7 +248,7 @@ contains
 
          allocate(idvals(ntotal))
          nlo = 1
-         ! Second pass to store all ids get all of the ids stored
+         ! Second pass to get all of the ids stored
          do i = 1, nsnaps
             if (allocated(self%frame(i)%item)) then
                select type(snapshot => self%frame(i)%item)

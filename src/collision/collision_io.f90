@@ -394,8 +394,11 @@ contains
                      allocate(pl, source=after%pl)
                   end select
                   npl = pl%nbody
+
+                  ! This ensures that there first idslot will have the first body in it, not id 0 which is the default for a new idvals array
+                  if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=pl%id)
                   do i = 1, npl
-                     idslot = findloc(history%idvals,pl%id(i),dim=1)
+                     call nc%find_idslot(pl%id(i), idslot) 
                      call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid,     pl%id(i),     start=[   idslot              ]), "collision_io_netcdf_write_frame_snapshot nf90_put_var id_varid"  )
                      charstring = trim(adjustl(pl%info(i)%name))
                      call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], count=[NAMELEN, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var name_varid"  )

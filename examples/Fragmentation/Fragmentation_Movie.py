@@ -143,7 +143,8 @@ def encounter_combiner(sim):
     ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
    
     # Interpolate in time to make a smooth, constant time step dataset 
-    smooth_time = np.linspace(start=tgood.isel(time=0), stop=ds.time[-1], num=num_movie_frames)
+    # Add a bit of padding to the time, otherwise there are some issues with the interpolation in the last few frames.
+    smooth_time = np.linspace(start=tgood.isel(time=0), stop=ds.time[-1], num=int(1.2*num_movie_frames))
     ds = ds.interp(time=smooth_time)
 
     return ds
@@ -154,7 +155,6 @@ class AnimatedScatter(object):
     def __init__(self, sim, animfile, title, style, nskip=1):
 
         self.ds = encounter_combiner(sim)
-        nframes = int(self.ds['time'].size)
         self.sim = sim
         self.title = title
         self.body_color_list = {'Initial conditions': 'xkcd:windows blue',
@@ -168,7 +168,7 @@ class AnimatedScatter(object):
         self.fig, self.ax = self.setup_plot()
 
         # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=1, frames=range(0,nframes,nskip), blit=True)
+        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=1, frames=range(0,num_movie_frames,nskip), blit=True)
         self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
         print(f"Finished writing {animfile}")
 
