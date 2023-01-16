@@ -129,7 +129,6 @@ def str2bool(input_str):
         raise ValueError(f"{input_str} is not recognized as boolean")
 
 
-
 def real2float(realstr):
     """
     Converts a Fortran-generated ASCII string of a real value into a numpy float type. Handles cases where double precision
@@ -199,6 +198,7 @@ def read_swiftest_param(param_file_name, param, verbose=True):
         print(f"{param_file_name} not found.")
     return param
 
+
 def reorder_dims(ds):
 
     # Re-order dimension coordinates so that they are in the same order as the Fortran side
@@ -212,6 +212,8 @@ def reorder_dims(ds):
     idx = {index_name: idx[index_name] for index_name in dim_order}
     ds = ds.reindex(idx)
     return ds
+
+
 def read_swifter_param(param_file_name, verbose=True):
     """
     Reads in a Swifter param.in file and saves it as a dictionary
