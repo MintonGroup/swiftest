@@ -113,7 +113,7 @@ class AnimatedScatter(object):
 
         return self.slist
 
-sim = swiftest.Simulation(read_old_output=True)
+sim = swiftest.Simulation(read_data=True)
 print('Making animation')
 anim = AnimatedScatter(sim.data,sim.param)
 print('Animation finished')
